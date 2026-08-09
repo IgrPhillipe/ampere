@@ -16,8 +16,6 @@
 
 ## Como executar
 
-> A ser preenchido na Entrega 02.
-
 ```bash
 # TBD
 ```
@@ -25,8 +23,6 @@
 ---
 
 ## Variáveis de ambiente
-
-> A ser preenchido após definição da stack.
 
 | Variável  | Obrigatória | Descrição                   |
 | :-------- | :---------- | :-------------------------- |

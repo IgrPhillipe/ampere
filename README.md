@@ -1,6 +1,18 @@
-# Projetos 3 — Cálculo de Demanda Elétrica (Neoenergia)
+# Cálculo de Demanda Elétrica (Neoenergia)
 
 > Ferramenta para automatizar o cálculo de demanda elétrica em edificações com múltiplas unidades consumidoras, aplicando as regras normativas vigentes da Neoenergia Pernambuco de forma padronizada.
+
+---
+
+## Visão Geral
+
+Cerca de 50 % dos aproximadamente 1.400 projetos elétricos de edificações com múltiplas unidades consumidoras recebidos anualmente pela Neoenergia Pernambuco são reprovados por erros no cálculo de demanda. A complexidade das tabelas, parâmetros e regras normativas aumenta a probabilidade de equívocos tanto dos clientes quanto das equipes de análise.
+
+A solução automatiza esse cálculo aplicando as regras normativas vigentes de forma padronizada, eliminando erros de interpretação e reduzindo o índice de reprovação de projetos.
+
+Mais detalhes em [`docs/negocio/premissas-desafio.md`](docs/negocio/premissas-desafio.md).
+
+---
 
 ## Deploy
 
@@ -13,19 +25,7 @@
 
 ## Executando localmente
 
-> Instruções a adicionar a partir da Entrega 02.
-
 Documentação detalhada: [app/back/README.md](app/back/README.md) · [app/front/README.md](app/front/README.md)
-
----
-
-## Visão Geral
-
-Cerca de 50 % dos aproximadamente 1.400 projetos elétricos de edificações com múltiplas unidades consumidoras recebidos anualmente pela Neoenergia Pernambuco são reprovados por erros no cálculo de demanda. A complexidade das tabelas, parâmetros e regras normativas aumenta a probabilidade de equívocos tanto dos clientes quanto das equipes de análise.
-
-A solução automatiza esse cálculo aplicando as regras normativas vigentes de forma padronizada, eliminando erros de interpretação e reduzindo o índice de reprovação de projetos.
-
-Mais detalhes em [`docs/negocio/premissas-desafio.md`](docs/negocio/premissas-desafio.md).
 
 ---
 
