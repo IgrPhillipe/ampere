@@ -56,12 +56,12 @@ Marcos, checklists por entrega e distribuição de notas: [`docs/cronograma.md`]
 | Nome               | Papel                        | E-mail             | Entrada    | Saída | LinkedIn                                                                 | GitHub                                      |
 | :----------------- | :--------------------------- | :----------------- | :--------- | :---- | :----------------------------------------------------------------------- | :------------------------------------------ |
 | _Afonso Araujo_    | Engenheiro de Dados          | ahma@cesar.school  | 08/08/2026 | —     | [LinkedIn](https://www.linkedin.com/in/afonso-araujo-8ab810369/)         | [GitHub](https://github.com/araujo1901mx)   |
-| _Igor Phillipe_    | Tech Lead & Dev FullStack    | ipara@cesar.school | 08/08/2026 | —     | [LinkedIn](https://www.linkedin.com/in/igrphillipe/)                     | [GitHub](https://github.com/IgrPhillipe)    |
-| _Williams Pontes_  | Product Owner & Dev Back-End | jwlp@cesar.school  | 08/08/2026 | —     | [LinkedIn](https://www.linkedin.com/in/williams-pontes/)                 | [GitHub](https://github.com/WillPontes)     |
-| _Jean Augusto_     | Dev FullStack                | jasm2@cesar.school | 08/08/2026 | —     | [LinkedIn](https://www.linkedin.com/in/jean-augusto-0562953b4/)          | [GitHub](https://github.com/jeanaugustox)   |
-| _Lucas Gabriel_    | Dev FullStack                | lgcs2@cesar.school | 08/08/2026 | —     | [LinkedIn](https://www.linkedin.com/in/lucasgabrielcs/)                  | [GitHub](https://github.com/lucasgabrielcs) |
-| _Kellwen Costa_    | Dev Back-End                 | kilc@cesar.school  | 08/08/2026 | —     | [LinkedIn](https://www.linkedin.com/in/kellwencosta/)                    | [GitHub](https://github.com/kellwencosta)   |
 | _André Montenegro_ | Dev FullStack                | agmos@cesar.school | 08/08/2026 | —     | [LinkedIn](https://www.linkedin.com/in/andr%C3%A9-montenegro-420132391/) | [GitHub](https://github.com/andre4383)      |
+| _Igor Phillipe_    | Tech Lead & Dev FullStack    | ipara@cesar.school | 08/08/2026 | —     | [LinkedIn](https://www.linkedin.com/in/igrphillipe/)                     | [GitHub](https://github.com/IgrPhillipe)    |
+| _Jean Augusto_     | Dev FullStack                | jasm2@cesar.school | 08/08/2026 | —     | [LinkedIn](https://www.linkedin.com/in/jean-augusto-0562953b4/)          | [GitHub](https://github.com/jeanaugustox)   |
+| _Kellwen Costa_    | Dev Back-End                 | kilc@cesar.school  | 08/08/2026 | —     | [LinkedIn](https://www.linkedin.com/in/kellwencosta/)                    | [GitHub](https://github.com/kellwencosta)   |
+| _Lucas Gabriel_    | Dev FullStack                | lgcs2@cesar.school | 08/08/2026 | —     | [LinkedIn](https://www.linkedin.com/in/lucasgabrielcs/)                  | [GitHub](https://github.com/lucasgabrielcs) |
+| _Williams Pontes_  | Product Owner & Dev Back-End | jwlp@cesar.school  | 08/08/2026 | —     | [LinkedIn](https://www.linkedin.com/in/williams-pontes/)                 | [GitHub](https://github.com/WillPontes)     |
 
 ---
 
