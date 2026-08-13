@@ -1,6 +1,6 @@
 # Benchmarking — Cálculo de demanda em edificações com múltiplas UCs
 
-Análise de mercado para o desafio da **Neoenergia Pernambuco**.
+Análise de mercado para o desafio da **Neoenergia Pernambuco** (CESAR School).
 
 ---
 
@@ -46,36 +46,47 @@ Nenhuma outra distribuidora é concorrente direta — todas operam em regiões d
 
 ### Concessionárias
 
-| Referência | Descrição |
-|---|---|
-| **COPEL PEW** | Sistema oficial de submissão e histórico de projetos. Recebe documentação pronta, mas o cálculo de demanda é feito manualmente antes do envio. |
-| **CEMIG** | Portal de solicitação de Análise de Carga e Projeto Elétrico. Elimina o atendimento presencial, mas o cálculo continua sendo responsabilidade do projetista. |
-| **Enel** | Simulador online que calcula a demanda residencial conforme LIG BT 2014 e NBR 5410. Resultado imediato, porém isolado do processo oficial e restrito a unidade individual. |
-| **CPFL** | Portal de projetos particulares com normas técnicas publicadas (ex. GED 4621) definindo o modelo de cálculo. Regras claras, mas aplicação totalmente manual. |
+| Referência | Acesso | Descrição |
+|---|---|---|
+| **COPEL PEW** | [Portal PEW](https://www.copel.com/pewweb/paginas/inicio.jsf) · [manual](https://www.copel.com/pewweb/ajuda/ManualApoioPEW.pdf) | Sistema oficial de submissão e histórico de projetos. Recebe documentação pronta, mas o cálculo de demanda é feito manualmente antes do envio. |
+| **CEMIG** | [Serviço](https://www.cemig.com.br/como-solicitar-os-principais-servicos/ligacao-nova-e-aumento-de-carga/ligacao-nova-ou-alteracao-de-carga-para-demandas-especificas/) · [manual APR Web](https://www.cemig.com.br/wp-content/uploads/2025/10/Sistema-APR-Web-Manual-do-Usuario.pdf) | Portal de solicitação de Análise de Carga e Projeto Elétrico (APR Web), restrito a responsável técnico com CREA. Elimina o atendimento presencial, mas o cálculo continua sendo responsabilidade do projetista. |
+| **Enel** | [Ligação nova BT](https://www.enel.com.br/pt-saopaulo/Para_Voce/ligacao-nova/baixa-tensao.html) · [LIG BT 2014](https://www.eneldistribuicaosp.com.br/normas-tecnicas/lig-bt-2014) | Simulador online que calcula a demanda residencial conforme LIG BT 2014 e NBR 5410. Resultado imediato, porém isolado do processo oficial e restrito a unidade individual. |
+| **CPFL** | [Normas técnicas](https://www.cpfl.com.br/normas-tecnicas) · [GED 4621](https://sites.cpfl.com.br/documentos-tecnicos/GED-4621.pdf) | Portal de projetos particulares com normas técnicas publicadas definindo o modelo de cálculo. Regras claras, mas aplicação totalmente manual. |
 
 ### Ferramenta do projetista
 
-| Referência | Descrição |
-|---|---|
-| **AltoQi Builder** | Software BIM de projeto elétrico predial, usado antes da submissão. Dimensiona conforme NBR 5410 e normas das concessionárias, gera quadro de cargas e demanda, detecta erros e emite memorial automático — mas não conversa com a concessionária. |
+| Referência | Acesso | Descrição |
+|---|---|---|
+| **AltoQi Builder** | [Produto](https://www.altoqi.com.br/builder/software-para-projetos-eletricos-em-bim) · [parâmetros de dimensionamento](https://suporte.altoqi.com.br/hc/pt-br/articles/115002210193) | Software BIM de projeto elétrico predial, usado antes da submissão. Dimensiona conforme NBR 5410 e normas das concessionárias, gera quadro de cargas e demanda, detecta erros e emite memorial automático — mas não conversa com a concessionária. |
 
 ---
 
 ## 4. Comparativo
 
-`✓` atende · `✕` não atende · `◐` atende em parte
+`✓` atende · `✕` não atende · `◐` atende em parte (ver notas)
 
 | Critério | COPEL | CEMIG | Enel | CPFL | AltoQi |
 |---|:---:|:---:|:---:|:---:|:---:|
 | Cobre edificações com múltiplas UCs | ✓ | ✓ | ✕ | ✓ | ✓ |
 | Calculadora de demanda automática | ✕ | ✕ | ✓ | ✕ | ✓ |
-| Calcula segundo a norma | ✕ | ✕ | ✓ | ◐ | ✓ |
-| Padroniza o resultado | ✕ | ✕ | ✓ | ◐ | ✓ |
+| Calcula segundo a norma | ✕ | ✕ | ✓ | ◐ <sup>1</sup> | ✓ |
+| Padroniza o resultado | ✕ | ✕ | ✓ | ◐ <sup>2</sup> | ✓ |
 | **Valida erros antes do envio** | ✕ | ✕ | ✕ | ✕ | ✓ |
 | **Aponta o erro e como corrigir** | ✕ | ✕ | ✕ | ✕ | ✓ |
-| Mostra memória de cálculo | ✕ | ✕ | ◐ | ✕ | ✓ |
+| Mostra memória de cálculo | ✕ | ✕ | ◐ <sup>3</sup> | ✕ | ✓ |
 | Integrada à submissão oficial | ✓ | ✓ | ✕ | ✓ | ✕ |
 | Apoia a análise interna | ✓ | ✓ | ✕ | ✓ | ✕ |
+
+### Notas dos itens parciais
+
+**1. CPFL — Calcula segundo a norma `◐`**
+A GED 4621 **define** o modelo de cálculo para medição agrupada com todo o detalhe normativo, mas a CPFL não oferece nenhuma ferramenta que **execute** esse cálculo. A norma existe e é clara; a aplicação é 100% manual pelo projetista. Atende no critério normativo, não no de automação.
+
+**2. CPFL — Padroniza o resultado `◐`**
+Consequência direta da nota 1: por ser a norma mais explícita do grupo, a GED 4621 reduz a margem de interpretação e tende a produzir resultados mais consistentes entre projetistas. Mas, sem execução automatizada, dois profissionais ainda podem chegar a números diferentes para o mesmo caso — que é exatamente o problema do desafio.
+
+**3. Enel — Mostra memória de cálculo `◐`**
+O simulador entrega o resultado da demanda de forma imediata, mas apresenta o valor final sem o detalhamento das parcelas e fatores aplicados. Serve para o projetista conferir a ordem de grandeza; não substitui o memorial que a concessionária exige anexado ao projeto.
 
 ---
 
@@ -154,3 +165,7 @@ O diferencial não está em construir mais uma calculadora — já existem boas.
 - ABNT NBR 14039 — Instalações elétricas de média tensão (1,0 kV a 36,2 kV)
 
 ---
+
+## Equipe
+
+Afonso Araujo · André Montenegro · Igor Phillipe · Jean Augusto · Kellwen Costa · Lucas Gabriel · Williams Pontes
