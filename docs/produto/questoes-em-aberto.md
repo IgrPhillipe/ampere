@@ -24,6 +24,33 @@ Regra: nenhuma dessas questões deve ser respondida por suposição dentro dos o
 | **5** | **Métrica de sucesso**                                                                                     | "Reduzir reprovação" não tem meta numérica nem forma de medir dentro de um MVP acadêmico.                                                                                    | Ideação               |
 | **6** | **Stack de front-end** — Thymeleaf (servidor) ou front separado + API REST                                 | [`app/front/README.md`](../../app/front/README.md) segue "a definir"; a escolha afeta a arquitetura de camadas do back-end.                                                  | Time (Tech Lead)      |
 
+> As questões **5** e **6** não dependem de ninguém de fora — podem ser fechadas pelo time a qualquer momento, independentemente das respostas do cliente.
+
+---
+
+## Decisões internas da Ideação — Parte 1
+
+Não dependem do cliente. Precisam ser fechadas **antes** da sessão de brainstorming ([`ideacao.md`](ideacao.md)).
+
+| #      | Questão                                                                       | Por que importa                                                                                                                                       | Quando            |
+| :----- | :---------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------- |
+| **7**  | **Critério de decisão** para eleger a solução final                            | Sem ele a justificativa da atividade 3 vira opinião. Candidatos: cobertura dos 4 critérios em branco do benchmarking, menor risco, viabilidade nas 4 entregas de POO. | Antes da sessão   |
+| **8**  | **Escala de risco** a ser usada                                                | A atividade 2 pede riscos de cada solução; nenhuma escala foi definida. O usual é probabilidade × impacto.                                             | Antes da sessão   |
+| **9**  | **Formato, facilitador e duração** do brainstorming                            | O entregável exige o registro da atividade no Miro, não só do resultado.                                                                               | Antes da sessão   |
+| **10** | **A restrição POO entra como filtro antes ou depois** da rodada divergente?    | Enunciada antes, evita gastar a sessão em ideias sem persistência que não poderiam ser escolhidas. Aplicada depois, preserva a divergência.            | Antes da sessão   |
+
+---
+
+## Perguntas para enviar ao cliente
+
+As questões 1, 2 e 3 não se resolvem internamente. Texto pronto para envio:
+
+1. **Usuário do sistema** — a ferramenta deve ser usada pelo projetista externo, antes de submeter o projeto, ou pela equipe interna de análise da Neoenergia, durante a avaliação? Ou pelos dois, com perfis distintos?
+2. **Base normativa** — qual documento define hoje as regras, tabelas e fórmulas de cálculo de demanda para edificações com múltiplas unidades consumidoras na Neoenergia PE? Há como disponibilizar uma cópia, ainda que parcial?
+3. **Faixa de atendimento** — a simplificação de critérios abaixo de 50 kVA reduziu as reprovações nessa faixa. A ferramenta deve cobrir apenas a faixa acima de 50 kVA, onde o problema persiste, ou todas as faixas?
+
+> Se não houver resposta até o fim da janela de 22/08, a atividade 3 deve ser fechada com decisão **condicionada** e premissa explícita ("solução X, assumindo usuário = projetista externo"), registrada em [`ideacao.md`](ideacao.md#3--proposta-de-solução-final). Travar a etapa custa mais que assumir e revisar.
+
 ---
 
 ## Descompasso entre os dois cronogramas
