@@ -131,9 +131,26 @@ Fonte: [Projeto Particular](https://www.neoenergia.com/web/pernambuco/seu-negoci
 
 | Item | Situação |
 | :---------------------------- | :--------------------------------------------------------------------------------------------- |
-| **ABNT NBR 5410 e NBR 14039** | Vendidas pela ABNT. A DIS-NOR-053 referencia 12 normas NBR, sendo a 5410 a mais citada. **Ação barata e não feita:** perguntar à biblioteca da CESAR se há assinatura institucional da coleção ABNT. |
 | **Erros mais comuns**         | Nenhuma fonte pública os enumera. Continua dependendo do cliente.                                |
 | **Método interno de análise** | Como a equipe da Neoenergia confere o cálculo não é público. Continua dependendo do cliente.     |
+
+### As NBRs pagas não bloqueiam este projeto
+
+A DIS-NOR-053 referencia 12 normas ABNT, sendo a NBR 5410 a mais citada. Elas são vendidas pela ABNT e não têm API pública.
+
+**Mas não são necessárias para o cálculo de demanda.** Verificando cada citação no PDF, as NBRs aparecem sempre em contexto de **instalação**: condições de eletroduto, método de instalação B1/D/F para dimensionamento de condutor, aterramento, conformidade de subestação. O **Anexo I**, que contém a metodologia de cálculo e as tabelas paramétricas, tem uma única menção a NBR em cerca de 20 páginas.
+
+Ou seja: o método de demanda é **autocontido** entre DIS-NOR-053 e DIS-NOR-030, ambas gratuitas.
+
+| Pergunta | Resposta |
+| :-- | :-- |
+| Precisamos comprar NBR para construir o MVP? | Não. A metodologia de demanda não depende delas. |
+| Precisamos pagar para entregar o projeto acadêmico? | Não. |
+| Precisamos pagar para acompanhar atualizações? | Da NBR, sim, se um dia precisarmos dela. **Da DIS-NOR-053, não** — é gratuita e é a que rege o cálculo. |
+| Existe API para as NBRs? | Não pública. O acesso é por assinatura (coleção ABNT e plataformas equivalentes). Vale checar com a biblioteca da CESAR, mas não é bloqueio. |
+| Dá para automatizar a leitura da norma da Neoenergia? | **Sim.** O PDF tem URL estável e texto extraível. Este documento foi produzido justamente assim, com `pdftotext` sobre o PDF baixado. |
+
+> **Ideia de funcionalidade que nasce daí:** como a norma muda com frequência e o PDF tem URL estável e revisão no cabeçalho, dá para checar automaticamente se saiu uma revisão nova e alertar. Vira história de usuário e ataca direto a categoria *Machine* do Ishikawa, que é a única sem cobertura.
 
 ---
 
