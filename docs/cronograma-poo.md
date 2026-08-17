@@ -1,5 +1,7 @@
 # Cronograma e Entregas — POO 2026.2
 
+> Marcos e entregas da disciplina **Programação Orientada a Objetos**. O cronograma de atividades da disciplina **Projetos 3** é outro: [`cronograma-projetos3.md`](cronograma-projetos3.md).
+
 Professor: Maurício da Motta Braga (mmb2@cesar.school)
 
 ## Marcos
@@ -25,11 +27,13 @@ Professor: Maurício da Motta Braga (mmb2@cesar.school)
 
 ## Entrega 01 — 31/08/2026
 
-- Histórias de usuário (mínimo 7) em BDD, escrita em `.md` no GitHub — [`docs/produto/user-stories.md`](produto/user-stories.md)
+- Histórias de usuário (mínimo 7) em BDD, escrita em `.md` no GitHub — `docs/produto/user-stories.md` (TBD)
   - Claras, concisas, completas com detalhes de negócio
   - Cenários de validação com BDD
 - Protótipo Lo-Fi no Figma (mínimo 5 histórias), acessível pelo README
 - Screencast (YouTube, com áudio ou legenda) apresentando o protótipo Figma e cada história
+
+> ⚠️ O [cronograma de Projetos 3](cronograma-projetos3.md) prevê histórias de usuário e protótipos lo-fi terminando em **12/09**, quase duas semanas depois deste prazo. Ver [`produto/questoes-em-aberto.md`](produto/questoes-em-aberto.md#descompasso-entre-os-dois-cronogramas).
 
 ---
 
