@@ -105,7 +105,7 @@ Risco técnico aqui é quase zero: a stack está definida, são sete pessoas e u
 
 | Proposta | Do que depende que não controlamos |
 | :-- | :-- |
-| Calculadora para o projetista | Norma completa e correta, mais um gabarito de casos já aprovados para provar que o cálculo está certo. Some-se o acesso externo (questão 1c). |
+| Calculadora para o projetista | Já não depende da norma: ela é pública e traz cinco exemplos resolvidos que servem de gabarito. Resta o acesso externo (questão 1c), com indício favorável. **Ficou a proposta menos arriscada das cinco.** |
 | Conferência para o analista | Entender o fluxo de análise atual, que ninguém do time viu. Tolera cobertura parcial da norma. |
 | Plataforma dos dois lados | Integração com o sistema oficial de submissão, ou seja, o TI da Neoenergia. **Mas esse risco depende da questão 9:** se já existir sistema extensível, cai muito. |
 | Consulta normativa | Tolera imprecisão porque informa em vez de dar veredito, mas entrega menos e cobre menos lacunas. |
@@ -159,7 +159,8 @@ Na prática isso elimina, antes da avaliação, propostas sem persistência. Val
 
 Não diferenciam as propostas, mas precisam estar registrados:
 
-- **Não temos o documento normativo da Neoenergia PE.** Ver questão 2 em [`questoes-em-aberto.md`](questoes-em-aberto.md).
+- ~~Não temos o documento normativo da Neoenergia PE.~~ **Deixou de ser risco em 17/08:** a norma é a DIS-NOR-053 REV 06, pública, com metodologia e cinco exemplos resolvidos. Ver [`../tecnico/fontes-normativas.md`](../tecnico/fontes-normativas.md).
+- **A norma muda com frequência** — sete revisões em menos de quatro anos, três delas em dois meses. Vale para todas as propostas e vira requisito de arquitetura, não risco de escolha.
 - **A Entrega 01 de POO é 31/08**, quase duas semanas antes do que este cronograma prevê para histórias e protótipos.
 
 ---

@@ -25,5 +25,6 @@ docs/
 | Produto    | [produto/ideacao.md](produto/ideacao.md)                            | Ideação Parte 1: to-do da semana, brainstorming, riscos e proposta de solução final.         |
 | Produto    | [produto/questoes-em-aberto.md](produto/questoes-em-aberto.md)      | Decisões que faltam para transformar os objetivos em requisitos construíveis.                |
 | Técnico    | [tecnico/README.md](tecnico/README.md)                              | Ponto de entrada da documentação técnica: motor de cálculo e requisitos POO.                 |
+| Técnico    | [tecnico/fontes-normativas.md](tecnico/fontes-normativas.md)        | A norma que rege o cálculo (DIS-NOR-053), a metodologia do Anexo I, o processo de submissão atual e o que segue inacessível. |
 | Cronograma | [cronograma-projetos3.md](cronograma-projetos3.md)                  | Atividades do time em Projetos 3, com responsável, prioridade e status.                      |
 | Cronograma | [cronograma-poo.md](cronograma-poo.md)                              | Marcos, checklists por entrega e distribuição de notas da disciplina de POO.                 |

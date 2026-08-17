@@ -4,7 +4,9 @@
 
 Regra: nenhuma dessas questões deve ser respondida por suposição dentro dos outros documentos. Enquanto estiverem abertas, aparecem como `TBD` com ponteiro para cá.
 
-Os números são **identificadores estáveis**, não ordem. Questão nova recebe o próximo número livre, mesmo que entre numa seção anterior. Não renumerar: os números estão referenciados no board e nos outros documentos.
+Os números são **identificadores estáveis**, não ordem. Questão nova recebe o próximo número livre, mesmo que entre numa seção anterior. Não renumerar: os números estão referenciados no board e nos outros documentos. Questão respondida fica tachada, com a resposta e a fonte, em vez de ser apagada.
+
+> **Atualização de 17/08/2026.** Uma rodada de pesquisa em fontes públicas respondeu a questão 2 e adiantou boa parte de 1c, 3, 4 e 9. Resultado completo em [`../tecnico/fontes-normativas.md`](../tecnico/fontes-normativas.md). Antes de mandar qualquer pergunta ao cliente, leia esse documento: várias já não precisam ser feitas como estavam escritas.
 
 ---
 
@@ -13,7 +15,7 @@ Os números são **identificadores estáveis**, não ordem. Questão nova recebe
 | #     | Questão                                                                                          | Por que bloqueia                                                                                                                                                                                                       | Onde resolver         |
 | :---- | :----------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------- |
 | **1** | **Quem usa o MVP e como trabalha hoje** — ver o desdobramento abaixo                             | Os documentos dizem "os dois". São produtos diferentes: entrada, saída, autenticação e fluxo mudam conforme a resposta. Ver [`mapa-stakeholders.md`](mapa-stakeholders.md#quem-o-produto-atinge-diretamente).            | Cliente / orientador  |
-| **2** | **Qual documento normativo da Neoenergia PE** rege o cálculo de demanda?                        | Todos os documentos dizem "regras normativas vigentes" sem citar fonte. O [`benchmarking`](../negocio/benchmarking.md) cita as normas das outras concessionárias (NBR 5410/14039, LIG BT 2014, GED 4621) — o equivalente da Neoenergia PE não aparece em lugar nenhum. **Sem esse documento não existe motor de cálculo.** | Cliente               |
+| ~~**2**~~ | ~~**Qual documento normativo da Neoenergia PE** rege o cálculo de demanda?~~ | **RESPONDIDA em 17/08 por pesquisa pública.** É a **DIS-NOR-053 REV 06**, de 09/09/2025, com a metodologia completa no Anexo I e cinco exemplos resolvidos. Ver [`../tecnico/fontes-normativas.md`](../tecnico/fontes-normativas.md). Resta confirmar com o cliente que é a revisão em uso. | ~~Cliente~~ · resolvida |
 | **3** | **Faixa de escopo do MVP** — cobre só acima de 50 kVA?                                          | [`premissas-desafio.md`](../negocio/premissas-desafio.md#tentativas-anteriores) registra que abaixo de 50 kVA o problema já foi mitigado por simplificação de critérios. Ninguém escreveu se o MVP cobre a faixa inteira. | Time + cliente        |
 | **9** | **Já existe um sistema de submissão e análise?** E o que ele faz hoje?                          | Todo o raciocínio até aqui assumiu que vamos construir algo novo. Se já existe sistema, aparece uma quinta proposta — **módulo dentro do que já existe** — que pode ganhar de todas as outras. E muda a avaliação de risco que já está no board. | Cliente               |
 
