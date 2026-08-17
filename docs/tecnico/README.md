@@ -14,7 +14,9 @@ Responsabilidades previstas:
 - Executar as fórmulas de demanda (individual e coletiva)
 - Retornar o resultado com indicação das regras aplicadas em cada etapa
 
-Documentação detalhada das fórmulas e regras será adicionada em `docs/tecnico/engine-calculo.md` após levantamento das normas Neoenergia PE.
+O levantamento normativo está feito: as fórmulas, os métodos por tipo de edificação e as tabelas paramétricas estão em [`fontes-normativas.md`](fontes-normativas.md), com origem na **DIS-NOR-053 REV 06** da Neoenergia. A modelagem detalhada do motor será adicionada em `docs/tecnico/engine-calculo.md` (TBD).
+
+Restrição de projeto que veio desse levantamento: a norma foi revisada **sete vezes em menos de quatro anos**, três delas em dois meses. Os parâmetros normativos precisam ser **dados versionados e persistidos**, não constantes no código, e o resultado de cada cálculo deve registrar qual revisão foi aplicada.
 
 ---
 
