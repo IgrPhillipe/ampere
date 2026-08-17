@@ -4,6 +4,8 @@
 
 **Neoenergia Pernambuco** é a concessionária responsável pela distribuição de energia elétrica em todo o estado de Pernambuco e no município de Pedras de Fogo (PB). Integra o grupo **Neoenergia**, controlado pela espanhola **Iberdrola**, um dos maiores grupos de energia do mundo.
 
+O grupo está no Brasil desde 1997 e atua em **geração, transmissão, distribuição e comercialização de energia**, com operações em 18 estados e no Distrito Federal. Por meio de suas distribuidoras, atende cerca de **17 milhões de clientes**, alcançando uma população de aproximadamente 40 milhões de pessoas. Também investe em energia renovável, desenvolvimento sustentável e iniciativas socioambientais.
+
 ---
 
 ## Problema
