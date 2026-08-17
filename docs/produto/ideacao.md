@@ -3,7 +3,11 @@
 > Registro do brainstorming de soluções, da análise de riscos e da escolha da proposta final.
 
 Fase: **Ideação** ([`../processo.md`](../processo.md)) · Janela: **15/08 a 22/08/2026** · Responsável: Todos
-Entregável: ideação feita no **Miro** + registro das atividades 1 a 3 no **Google Sites**
+Entregável: ideação no board + registro das atividades 1 a 3 no **Google Sites**
+
+**Board da sessão:** [FigJam — Ideação Parte 1](https://www.figma.com/board/H7ZlU9nAbR72LiXVLUBmqo)
+
+> ⚠️ O enunciado da entrega diz literalmente "ideação feita no **Miro**". O time optou por FigJam, já que toda a Imersão está no Figma. **Confirmar com o orientador antes da entrega.** Se ele exigir Miro, o board foi montado em seções lineares, sem recursos exclusivos do FigJam, e é replicável manualmente.
 
 ---
 
@@ -11,10 +15,11 @@ Entregável: ideação feita no **Miro** + registro das atividades 1 a 3 no **Go
 
 **Preparação**
 
-- [ ] Criar o board no Miro e adicionar o link em [`../../README.md`](../../README.md) (hoje está `TBD`)
+- [x] Criar o board da sessão e adicionar o link em [`../../README.md`](../../README.md)
+- [ ] Confirmar com o orientador se FigJam é aceito no lugar do Miro
 - [ ] Criar a subpágina *Ideação* no Google Sites (só *Imersão* está publicada)
 - [ ] Definir facilitador, formato e duração da sessão
-- [ ] Colar no board os insumos da Imersão (ver [Insumos](#insumos-da-imersão) abaixo)
+- [x] Colar no board os insumos da Imersão (zona 0 do FigJam, ver [Insumos](#insumos-da-imersão) abaixo)
 - [ ] Definir a escala de risco (questão 8)
 - [ ] Definir o critério de decisão da solução final (questão 7)
 - [ ] Enviar ao cliente as perguntas bloqueantes ([`questoes-em-aberto.md`](questoes-em-aberto.md#perguntas-para-enviar-ao-cliente))
@@ -43,6 +48,20 @@ Entregável: ideação feita no **Miro** + registro das atividades 1 a 3 no **Go
 
 - [ ] Registrar as três atividades no Google Sites
 - [ ] Atualizar o status no [`../cronograma-projetos3.md`](../cronograma-projetos3.md)
+
+---
+
+## Estrutura do board
+
+O FigJam segue as três atividades, da esquerda para a direita:
+
+| Zona | Conteúdo |
+| :--------------------- | :------------------------------------------------------------------------------------------- |
+| **0. Contexto**        | Causa raiz, categorias alvo do Ishikawa, lacunas do benchmarking, filtro de POO, usuários candidatos e a pergunta norteadora. Já preenchida. |
+| **1. Brainstorming**   | Regras da sessão, sete faixas de divergência (uma por integrante), três clusters de agrupamento e a área de descartadas. |
+| **2. Riscos**          | Escala de risco, matriz probabilidade por impacto e a tabela de riscos por solução.            |
+| **3. Decisão**         | Critério de decisão, matriz de decisão, solução escolhida, justificativa e premissas.          |
+| **4. Saídas**          | As quatro questões que a etapa precisa fechar, mais o checklist de fechamento.                 |
 
 ---
 

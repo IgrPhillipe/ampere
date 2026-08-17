@@ -61,7 +61,7 @@ Documentação detalhada: [app/back/README.md](app/back/README.md) · [app/front
 | Deploy (API)          | TBD                                                                                                      |
 | Site do grupo         | [Google Sites](https://sites.google.com/cesar.school/site-grupo-4/)                                      |
 | Backlog               | [Trello](https://trello.com/b/yd35ygrF/cesar-projetos-3)                                                 |
-| Ideação               | [Miro](TBD)                                                                                              |
+| Ideação               | [FigJam](https://www.figma.com/board/H7ZlU9nAbR72LiXVLUBmqo)                                             |
 | Figma (descoberta)    | [Figma](https://www.figma.com/files/team/1541129127160121770/project/636750169?fuid=1543015890914897932) |
 | Wireframes            | TBD                                                                                                      |
 | Drive                 | [Google Drive](https://drive.google.com/drive/u/1/folders/13xm3xImWBu0tH-wV9_ENizb65mgrkQ3l)             |
