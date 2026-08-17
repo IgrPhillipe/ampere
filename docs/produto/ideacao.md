@@ -27,6 +27,9 @@ Ou seja, "site ou aplicativo" não é a pergunta em aberto. O que varia de verda
 - Ferramenta de conferência para o **analista interno**, durante a análise
 - Plataforma que cobre **os dois lados** do fluxo
 - **Consulta normativa** centralizada com calculadora acoplada
+- **Módulo dentro do sistema que a Neoenergia já usa**, se é que existe um
+
+A última só entra na mesa se a questão 9 for respondida. Vale perguntar antes da sessão: se já houver sistema de submissão e análise, construir um produto separado pode ser a decisão errada.
 
 ---
 
@@ -104,8 +107,9 @@ Risco técnico aqui é quase zero: a stack está definida, são sete pessoas e u
 | :-- | :-- |
 | Calculadora para o projetista | Norma completa e correta, mais um gabarito de casos já aprovados para provar que o cálculo está certo. Some-se o acesso externo (questão 1c). |
 | Conferência para o analista | Entender o fluxo de análise atual, que ninguém do time viu. Tolera cobertura parcial da norma. |
-| Plataforma dos dois lados | Integração com o sistema oficial de submissão, ou seja, o TI da Neoenergia. |
+| Plataforma dos dois lados | Integração com o sistema oficial de submissão, ou seja, o TI da Neoenergia. **Mas esse risco depende da questão 9:** se já existir sistema extensível, cai muito. |
 | Consulta normativa | Tolera imprecisão porque informa em vez de dar veredito, mas entrega menos e cobre menos lacunas. |
+| Módulo no sistema existente | Depende inteiramente de acesso, documentação e disponibilidade do time de TI da Neoenergia. Só existe se a questão 9 confirmar o sistema. |
 
 ---
 

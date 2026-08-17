@@ -4,6 +4,8 @@
 
 Regra: nenhuma dessas questões deve ser respondida por suposição dentro dos outros documentos. Enquanto estiverem abertas, aparecem como `TBD` com ponteiro para cá.
 
+Os números são **identificadores estáveis**, não ordem. Questão nova recebe o próximo número livre, mesmo que entre numa seção anterior. Não renumerar: os números estão referenciados no board e nos outros documentos.
+
 ---
 
 ## Bloqueiam a construção
@@ -13,6 +15,7 @@ Regra: nenhuma dessas questões deve ser respondida por suposição dentro dos o
 | **1** | **Quem usa o MVP e como trabalha hoje** — ver o desdobramento abaixo                             | Os documentos dizem "os dois". São produtos diferentes: entrada, saída, autenticação e fluxo mudam conforme a resposta. Ver [`mapa-stakeholders.md`](mapa-stakeholders.md#quem-o-produto-atinge-diretamente).            | Cliente / orientador  |
 | **2** | **Qual documento normativo da Neoenergia PE** rege o cálculo de demanda?                        | Todos os documentos dizem "regras normativas vigentes" sem citar fonte. O [`benchmarking`](../negocio/benchmarking.md) cita as normas das outras concessionárias (NBR 5410/14039, LIG BT 2014, GED 4621) — o equivalente da Neoenergia PE não aparece em lugar nenhum. **Sem esse documento não existe motor de cálculo.** | Cliente               |
 | **3** | **Faixa de escopo do MVP** — cobre só acima de 50 kVA?                                          | [`premissas-desafio.md`](../negocio/premissas-desafio.md#tentativas-anteriores) registra que abaixo de 50 kVA o problema já foi mitigado por simplificação de critérios. Ninguém escreveu se o MVP cobre a faixa inteira. | Time + cliente        |
+| **9** | **Já existe um sistema de submissão e análise?** E o que ele faz hoje?                          | Todo o raciocínio até aqui assumiu que vamos construir algo novo. Se já existe sistema, aparece uma quinta proposta — **módulo dentro do que já existe** — que pode ganhar de todas as outras. E muda a avaliação de risco que já está no board. | Cliente               |
 
 ### Desdobramento da questão 1
 
@@ -25,6 +28,19 @@ Perguntar só "qual dos dois" não dá base para desenhar nada. São três pergu
 | **1c** | Pessoa de fora da Neoenergia pode acessar um sistema de vocês?                               | É a pergunta mais barata e a que mais elimina caminho: se a resposta for não, a proposta de self-service para o projetista morre antes de nascer. |
 
 Já **quais funcionalidades cada perfil teria** não é pergunta para o cliente. É trabalho do time, e sai da Ideação e das histórias de usuário.
+
+### Desdobramento da questão 9
+
+A questão 4 pergunta o que o **nosso** sistema deve receber e devolver. Esta pergunta o que o sistema **atual** já faz — e as duas respostas juntas definem se construímos um produto ou uma extensão.
+
+| Sub    | Questão                                                                                                   | O que muda conforme a resposta                                                                 |
+| :----- | :--------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------ |
+| **9a** | Existe hoje um sistema por onde o projeto é submetido e acompanhado? Qual?                                | Se existir, a solução pode ser um módulo dentro dele em vez de um produto novo.                 |
+| **9b** | O analista apenas **visualiza** o projeto, ou o sistema entrega a ele dados, histórico, indicadores e uma metodologia de conferência? | Define o quanto da análise já é apoiada e o quanto ainda é memória e planilha do analista.       |
+| **9c** | A revisão acontece **dentro** do sistema ou fora dele, em planilha, papel ou e-mail?                       | Se acontece fora, o ponto de entrada da nossa ferramenta é óbvio. Se acontece dentro, é integração. |
+| **9d** | Reprovação e re-submissão já são um fluxo do sistema, ou são manuais?                                     | Determina se o ciclo de retrabalho já é rastreado, e se dá para medir melhora. Liga direto na questão 5. |
+
+> **Consequência imediata:** o board marcou "plataforma dos dois lados" como quase inviável por depender do TI da Neoenergia. Se a resposta de 9a for que já existe um sistema extensível, esse risco cai muito e a proposta volta para a mesa.
 
 ---
 
@@ -53,13 +69,14 @@ Já **quais funcionalidades cada perfil teria** não é pergunta para o cliente.
 
 ## Perguntas para enviar ao cliente
 
-As questões 1, 2 e 3 não se resolvem internamente. Texto pronto para envio:
+As questões 1, 2, 3 e 9 não se resolvem internamente. Texto pronto para envio:
 
 1. **Usuário do sistema** — a ferramenta deve ser usada pelo projetista externo, antes de submeter o projeto, ou pela equipe interna de análise da Neoenergia, durante a avaliação? Ou pelos dois, com perfis distintos?
 2. **Fluxo atual** — como cada um trabalha hoje? Em que o projetista faz o cálculo e com qual material em mãos? O que a equipe de análise recebe, o que confere e como devolve quando reprova?
 3. **Acesso externo** — uma pessoa de fora da Neoenergia pode acessar um sistema de vocês, ou a ferramenta precisa ficar restrita ao ambiente interno?
 4. **Base normativa** — qual documento define hoje as regras, tabelas e fórmulas de cálculo de demanda para edificações com múltiplas unidades consumidoras na Neoenergia PE? Há como disponibilizar uma cópia, ainda que parcial?
 5. **Faixa de atendimento** — a simplificação de critérios abaixo de 50 kVA reduziu as reprovações nessa faixa. A ferramenta deve cobrir apenas a faixa acima de 50 kVA, onde o problema persiste, ou todas as faixas?
+6. **Sistema atual** — já existe um sistema por onde o projeto é submetido e acompanhado? Nele, o analista apenas visualiza o projeto, ou tem acesso a dados, histórico, indicadores e uma metodologia de conferência? A revisão acontece dentro do sistema ou fora dele? E a reprovação e a re-submissão já são um fluxo do sistema, ou são manuais?
 
 > Se não houver resposta até o fim da janela de 22/08, a atividade 3 deve ser fechada com decisão **condicionada** e premissa explícita ("solução X, assumindo usuário = projetista externo"), registrada em [`ideacao.md`](ideacao.md#3--proposta-de-solução-final). Travar a etapa custa mais que assumir e revisar.
 
