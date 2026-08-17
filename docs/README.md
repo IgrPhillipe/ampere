@@ -22,6 +22,7 @@ docs/
 | Negócio    | [negocio/benchmarking.md](negocio/benchmarking.md)                  | Concessionárias e ferramentas de mercado, comparativo por 9 critérios e a lacuna encontrada. |
 | Negócio    | [negocio/objetivos-projeto.md](negocio/objetivos-projeto.md)        | O que o MVP precisa alcançar e como isso responde à descoberta.                              |
 | Produto    | [produto/mapa-stakeholders.md](produto/mapa-stakeholders.md)        | Atores por grau de proximidade com o problema e posição dentro/fora da Neoenergia.           |
+| Produto    | [produto/ideacao.md](produto/ideacao.md)                            | Ideação Parte 1: to-do da semana, brainstorming, riscos e proposta de solução final.         |
 | Produto    | [produto/questoes-em-aberto.md](produto/questoes-em-aberto.md)      | Decisões que faltam para transformar os objetivos em requisitos construíveis.                |
 | Técnico    | [tecnico/README.md](tecnico/README.md)                              | Ponto de entrada da documentação técnica: motor de cálculo e requisitos POO.                 |
 | Cronograma | [cronograma-projetos3.md](cronograma-projetos3.md)                  | Atividades do time em Projetos 3, com responsável, prioridade e status.                      |

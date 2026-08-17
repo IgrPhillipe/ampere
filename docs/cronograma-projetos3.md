@@ -30,6 +30,9 @@ Fonte: [Figma — Cronograma](https://www.figma.com/board/cY4d3nMm3qiVUKVPAtOmRN
 | Mensurar os riscos de cada solução levantada           | Todos       | Alta       | Não iniciado |
 | Definição da proposta de solução final com justificativa | Todos     | Alta       | Não iniciado |
 
+Entregável: ideação no Miro + registro das três atividades no Google Sites.
+To-do detalhado e registro das atividades: [`produto/ideacao.md`](produto/ideacao.md).
+
 ---
 
 ## Ideação — 22/08 a 12/09

@@ -57,9 +57,9 @@ Fase de construção da solução.
 | Imersão | Objetivos do projeto | [`negocio/objetivos-projeto.md`](negocio/objetivos-projeto.md) |
 | Imersão | Mapa de stakeholders | [`produto/mapa-stakeholders.md`](produto/mapa-stakeholders.md) |
 | Imersão | Cronograma inicial | [`cronograma-projetos3.md`](cronograma-projetos3.md) |
-| Ideação | Brainstorming | TBD |
-| Ideação | Análise de riscos | TBD |
-| Ideação | Solução final com justificativa | TBD |
+| Ideação | Brainstorming | [`produto/ideacao.md`](produto/ideacao.md) |
+| Ideação | Análise de riscos | [`produto/ideacao.md`](produto/ideacao.md) |
+| Ideação | Solução final com justificativa | [`produto/ideacao.md`](produto/ideacao.md) |
 | Ideação | Histórias de usuário (BDD) | TBD — `produto/user-stories.md` |
 | Ideação | Matriz esforço × impacto | TBD |
 | Ideação | Protótipos de baixa fidelidade | TBD — Figma |
