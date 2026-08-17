@@ -10,6 +10,22 @@ Os números são **identificadores estáveis**, não ordem. Questão nova recebe
 
 ---
 
+## Placar
+
+**9 questões abertas, 1 fechada.** Delas, só **4 dependem do cliente**. As outras 5 o time pode fechar sozinho, hoje.
+
+| Estado | Questões | Total |
+| :--------------------------------- | :---------------------- | :---: |
+| **Fechada**                        | 2                       | 1 |
+| **Dependem do cliente**            | 1, 3, 9, 10             | 4 |
+| **Dependem só do time**            | 4, 5, 6, 7, 8           | 5 |
+
+As quatro do cliente viram **6 itens** na lista de envio, porque as questões 1 e 9 se desdobram. Ver [Perguntas para enviar ao cliente](#perguntas-para-enviar-ao-cliente).
+
+Mais importantes, nesta ordem: **10** (se os erros forem de dado de entrada e não de regra, a tese do produto muda), **1** (define para quem construímos) e **9** (define se construímos produto ou extensão).
+
+---
+
 ## Bloqueiam a construção
 
 | #     | Questão                                                                                          | Por que bloqueia                                                                                                                                                                                                       | Onde resolver         |
@@ -72,15 +88,22 @@ A questão 4 pergunta o que o **nosso** sistema deve receber e devolver. Esta pe
 
 ## Perguntas para enviar ao cliente
 
-As questões 1, 2, 3 e 9 não se resolvem internamente. Texto pronto para envio:
+As questões **1, 3, 9 e 10** não se resolvem internamente. Desdobradas, viram seis itens. A coluna da esquerda diz qual questão cada item fecha.
 
-1. **Usuário do sistema** — a ferramenta deve ser usada pelo projetista externo, antes de submeter o projeto, ou pela equipe interna de análise da Neoenergia, durante a avaliação? Ou pelos dois, com perfis distintos?
-2. **Fluxo atual** — como cada um trabalha hoje? Em que o projetista faz o cálculo e com qual material em mãos? O que a equipe de análise recebe, o que confere e como devolve quando reprova?
-3. **Acesso externo** — uma pessoa de fora da Neoenergia pode acessar um sistema de vocês, ou a ferramenta precisa ficar restrita ao ambiente interno?
-4. **Base normativa** — qual documento define hoje as regras, tabelas e fórmulas de cálculo de demanda para edificações com múltiplas unidades consumidoras na Neoenergia PE? Há como disponibilizar uma cópia, ainda que parcial?
-5. **Faixa de atendimento** — a simplificação de critérios abaixo de 50 kVA reduziu as reprovações nessa faixa. A ferramenta deve cobrir apenas a faixa acima de 50 kVA, onde o problema persiste, ou todas as faixas?
-6. **Sistema atual** — já existe um sistema por onde o projeto é submetido e acompanhado? Nele, o analista apenas visualiza o projeto, ou tem acesso a dados, histórico, indicadores e uma metodologia de conferência? A revisão acontece dentro do sistema ou fora dele? E a reprovação e a re-submissão já são um fluxo do sistema, ou são manuais?
-7. **Natureza dos erros** — entre os projetos reprovados, os equívocos são mais de **aplicação da regra** (método errado para o tipo de edificação, faixa errada na tabela, fator de coincidência ou de segurança incorreto, parcela esquecida como serviços do condomínio ou valor mínimo por tensão) ou de **dado de entrada** (número de unidades, área útil, potência de carga informados errado)? Existe algum registro ou classificação das reprovações?
+| Fecha | Pergunta, pronta para envio |
+| :---- | :-------------------------- |
+| **10** | **Natureza dos erros.** Entre os projetos reprovados, os equívocos são mais de **aplicação da regra** (método errado para o tipo de edificação, faixa errada na tabela, fator de coincidência ou de segurança incorreto, parcela esquecida como serviços do condomínio ou valor mínimo por tensão) ou de **dado de entrada** (número de unidades, área útil, potência de carga informados errado)? Existe algum registro ou classificação das reprovações? |
+| **1a** | **Usuário do sistema.** A ferramenta deve ser usada pelo projetista externo, antes de submeter o projeto, ou pela equipe interna de análise, durante a avaliação? Ou pelos dois, com perfis distintos? |
+| **1b** | **Fluxo atual.** Como cada um trabalha hoje? Em que o projetista faz o cálculo e com qual material em mãos? O que a equipe de análise recebe, o que confere e como devolve quando reprova? |
+| **1c** | **Acesso externo.** Uma pessoa de fora da Neoenergia pode acessar um sistema de vocês, ou a ferramenta precisa ficar restrita ao ambiente interno? |
+| **9**  | **Sistema atual.** Já existe um sistema por onde o projeto é submetido e acompanhado? Nele, o analista apenas visualiza o projeto, ou tem acesso a dados, histórico, indicadores e uma metodologia de conferência? A revisão acontece dentro do sistema ou fora dele? E a reprovação e a re-submissão já são um fluxo do sistema, ou são manuais? |
+| **3**  | **Faixa de atendimento.** A simplificação de critérios abaixo de 50 kVA reduziu as reprovações nessa faixa. A ferramenta deve cobrir apenas a faixa acima de 50 kVA, onde o problema persiste, ou todas as faixas? |
+
+**Não perguntar mais a base normativa.** Ela já foi encontrada. No lugar, pedir uma confirmação de uma linha:
+
+> Identificamos a **DIS-NOR-053 REV 06**, de 09/09/2025, como a norma que rege o cálculo de demanda para edificações com múltiplas unidades consumidoras. Confirmam que é essa a revisão em uso na Neoenergia Pernambuco?
+
+Chegar com a norma já identificada muda o tom da reunião: sai de "nos expliquem o problema" e entra em "validem nosso entendimento".
 
 > Se não houver resposta até o fim da janela de 22/08, a atividade 3 deve ser fechada com decisão **condicionada** e premissa explícita ("solução X, assumindo usuário = projetista externo"), registrada em [`ideacao.md`](ideacao.md#3--proposta-de-solução-final). Travar a etapa custa mais que assumir e revisar.
 
