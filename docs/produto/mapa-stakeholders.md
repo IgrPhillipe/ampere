@@ -1,6 +1,6 @@
 # Mapa de Stakeholders
 
-> Atores envolvidos no processo de submissão e análise de projetos elétricos, classificados por **grau de proximidade com o problema** (primário, secundário, terciário) e por **posição em relação à Neoenergia** (dentro ou fora da empresa).
+Atores envolvidos no processo de submissão e análise de projetos elétricos, classificados por **grau de proximidade com o problema** (primário, secundário, terciário) e por **posição em relação à Neoenergia** (dentro ou fora da empresa).
 
 Fase: **Imersão** ([`../processo.md`](../processo.md)) · Responsável: Afonso Araújo · Fonte: [Figma — Mapa de Stakeholders](https://www.figma.com/board/9MbYu3RwGB9twN6NJmUWso/Mapa-de-Stakeholders)
 
@@ -26,7 +26,6 @@ O segundo eixo separa quem é **interno à Neoenergia** de quem é **externo**.
 | **Secundário** | Projetistas e Engenheiros Eletricistas<br>Empresas de engenharia<br>Construtoras e Incorporadoras<br>Fabricantes de equipamentos elétricos | Área de normas técnicas<br>Área de análise de projetos<br>Planejamento e projetos<br>Engenharia                          |
 | **Terciário**  | Clientes / proprietários das edificações<br>Incorporadoras e empresas imobiliárias<br>ANEEL / órgãos reguladores                    | Jurídico / Compliance<br>Gestão de processos<br>Atendimento ao cliente<br>Gestão / Diretoria<br>TI / Desenvolvimento     |
 
-> **Pendência no board:** o card *Clientes / proprietários das edificações* aparece duplicado (dois post-its, mesmo anel e mesma posição). Aqui está registrado uma única vez.
 
 ---
 
