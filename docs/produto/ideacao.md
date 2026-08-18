@@ -89,7 +89,7 @@ Preenchido no board durante as atividades 2 e 3. Colunas:
 | :----- | :------------- |
 | Proposta | O conceito em uma frase |
 | Usuário atendido | Projetista externo, analista interno ou os dois |
-| Cobre as lacunas do mercado? | Contra a tabela do [`benchmarking`](../negocio/benchmarking.md#02--comparativo-por-critério) |
+| Cobre as lacunas do mercado? | Contra a tabela do [`benchmarking`](../negocio/benchmarking.md#4-comparativo) |
 | Cabe nas entregas de POO? | Viabilidade no semestre |
 | Do que depende que não controlamos | Coluna de risco |
 | Nota | Espaço livre |
