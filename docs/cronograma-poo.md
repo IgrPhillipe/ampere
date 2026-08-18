@@ -1,6 +1,6 @@
 # Cronograma e Entregas — POO 2026.2
 
-> Marcos e entregas da disciplina **Programação Orientada a Objetos**. O cronograma de atividades da disciplina **Projetos 3** é outro: [`cronograma-projetos3.md`](cronograma-projetos3.md).
+Marcos e entregas avaliadas da disciplina **Programação Orientada a Objetos**. As aulas e entregáveis de Projetos 3 estão em [`cronograma-projetos3.md`](cronograma-projetos3.md).
 
 Professor: Maurício da Motta Braga (mmb2@cesar.school)
 
@@ -33,7 +33,6 @@ Professor: Maurício da Motta Braga (mmb2@cesar.school)
 - Protótipo Lo-Fi no Figma (mínimo 5 histórias), acessível pelo README
 - Screencast (YouTube, com áudio ou legenda) apresentando o protótipo Figma e cada história
 
-> ⚠️ O [cronograma de Projetos 3](cronograma-projetos3.md) prevê histórias de usuário e protótipos lo-fi terminando em **12/09**, quase duas semanas depois deste prazo. Ver [`produto/questoes-em-aberto.md`](produto/questoes-em-aberto.md#descompasso-entre-os-dois-cronogramas).
 
 ---
 

@@ -1,6 +1,6 @@
 # Processo do Projeto
 
-> O trabalho é dividido em três fases: **Imersão**, **Ideação** e **Desenvolvimento do MVP**. Cada artefato produzido pela equipe pertence a uma delas.
+O trabalho é dividido em três fases: **Imersão**, **Ideação** e **Desenvolvimento do MVP**. Cada artefato produzido pela equipe pertence a uma delas.
 
 Fonte: [Google Sites do Grupo 4 — Processo](https://sites.google.com/cesar.school/site-grupo-4/processo)
 
@@ -71,8 +71,3 @@ Fase de construção da solução.
 
 Questões ainda não respondidas que afetam as fases de Ideação e Desenvolvimento: [`produto/questoes-em-aberto.md`](produto/questoes-em-aberto.md).
 
----
-
-## Observação
-
-As subpáginas *Ideação* e *Desenvolvimento* do Google Sites ainda não foram publicadas — apenas *Imersão* está no ar. O conteúdo acima para essas duas fases vem da página `/processo`.

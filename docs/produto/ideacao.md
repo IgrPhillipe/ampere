@@ -1,135 +1,99 @@
 # Ideação — Parte 1
 
-> Registro do brainstorming de soluções, da análise de riscos e da escolha da proposta final.
+Registro do brainstorming de soluções, da análise de riscos e da escolha da proposta final.
 
-Fase: **Ideação** ([`../processo.md`](../processo.md)) · Janela: **15/08 a 22/08/2026** · Responsável: Todos
-Entregável: ideação no board + registro das atividades 1 a 3 no **Google Sites**
+Aula 3, 22/08/2026 · Fase: Ideação ([`../processo.md`](../processo.md)) · Responsável: Todos
+Entregável: ideação no board e registro das três atividades no Google Sites
+Board: [FigJam — Ideação Parte 1](https://www.figma.com/board/H7ZlU9nAbR72LiXVLUBmqo)
 
-**Board da sessão:** [FigJam — Ideação Parte 1](https://www.figma.com/board/H7ZlU9nAbR72LiXVLUBmqo)
+Nesta etapa, "solução" é conceito de produto, não funcionalidade. Funcionalidades saem das histórias de usuário, na aula 4.
 
-> ⚠️ O enunciado da entrega diz literalmente "ideação feita no **Miro**". O time optou por FigJam, já que toda a Imersão está no Figma. **Confirmar com o orientador antes da entrega.** Se ele exigir Miro, o board foi montado em seções lineares, sem recursos exclusivos do FigJam, e é replicável manualmente.
-
----
-
-## To-do — Semana 2 (15/08 a 22/08)
+## To-do
 
 **Preparação**
 
-- [x] Criar o board da sessão e adicionar o link em [`../../README.md`](../../README.md)
-- [ ] Confirmar com o orientador se FigJam é aceito no lugar do Miro
-- [ ] Criar a subpágina *Ideação* no Google Sites (só *Imersão* está publicada)
-- [ ] Definir facilitador, formato e duração da sessão
-- [x] Colar no board os insumos da Imersão (zona 0 do FigJam, ver [Insumos](#insumos-da-imersão) abaixo)
-- [ ] Definir a escala de risco (questão 8)
-- [ ] Definir o critério de decisão da solução final (questão 7)
-- [ ] Enviar ao cliente as perguntas bloqueantes ([`questoes-em-aberto.md`](questoes-em-aberto.md#perguntas-para-enviar-ao-cliente))
+- [x] Criar o board da sessão e registrar o link no [`README`](../../README.md) do projeto
+- [x] Carregar o board com os insumos da Imersão
+- [ ] Publicar a subpágina *Ideação* no Google Sites
+- [ ] Definir facilitador, formato e duração da sessão (questão 7)
+- [ ] Definir se a restrição de POO entra antes ou depois da rodada divergente (questão 8)
+- [ ] Enviar ao cliente as perguntas de [`questoes-em-aberto.md`](questoes-em-aberto.md#perguntas-para-enviar-ao-cliente)
 
-**Atividade 1 — Brainstorming de possíveis soluções**
+**Atividade 1 — Brainstorming**
 
-- [ ] Rodada divergente, sem filtro
-- [ ] Agrupamento das ideias por tema
-- [ ] Registrar **todas** as ideias no Miro, inclusive as descartadas
-- [ ] Transcrever o resultado na seção [1](#1--brainstorming-de-possíveis-soluções) deste documento
+- [ ] Rodada divergente, uma faixa por integrante
+- [ ] Agrupar cada ideia pelo usuário que ela atende
+- [ ] Registrar todas as ideias, incluindo as descartadas e o motivo do descarte
+- [ ] Transcrever na seção 1
 
-**Atividade 2 — Riscos de cada solução**
+**Atividade 2 — Riscos**
 
-- [ ] Avaliar cada proposta na escala definida
-- [ ] Registrar mitigação por risco
-- [ ] Transcrever na seção [2](#2--riscos-por-solução)
+- [ ] Levantar no máximo dois riscos por proposta
+- [ ] Transcrever na seção 2
 
-**Atividade 3 — Proposta de solução final**
+**Atividade 3 — Proposta final**
 
-- [ ] Aplicar o critério de decisão
+- [ ] Fechar o comparativo e escolher
 - [ ] Escrever a justificativa
-- [ ] Registrar as premissas assumidas, se alguma questão bloqueante ficar sem resposta
-- [ ] Transcrever na seção [3](#3--proposta-de-solução-final)
+- [ ] Registrar as premissas assumidas, se houver questão bloqueante sem resposta
+- [ ] Transcrever na seção 3
 
 **Fechamento**
 
 - [ ] Registrar as três atividades no Google Sites
-- [ ] Atualizar o status no [`../cronograma-projetos3.md`](../cronograma-projetos3.md)
-
----
-
-## Estrutura do board
-
-O FigJam segue as três atividades, da esquerda para a direita:
-
-| Zona | Conteúdo |
-| :--------------------- | :------------------------------------------------------------------------------------------- |
-| **0. Contexto**        | Causa raiz, categorias alvo do Ishikawa, lacunas do benchmarking, filtro de POO, usuários candidatos e a pergunta norteadora. Já preenchida. |
-| **1. Brainstorming**   | Regras da sessão, sete faixas de divergência (uma por integrante), três clusters de agrupamento e a área de descartadas. |
-| **2. Riscos**          | Escala de risco, matriz probabilidade por impacto e a tabela de riscos por solução.            |
-| **3. Decisão**         | Critério de decisão, matriz de decisão, solução escolhida, justificativa e premissas.          |
-| **4. Saídas**          | As quatro questões que a etapa precisa fechar, mais o checklist de fechamento.                 |
-
----
+- [ ] Atualizar o status em [`../cronograma-projetos3.md`](../cronograma-projetos3.md)
 
 ## Insumos da Imersão
 
-O que a Imersão já entregou e que deve estar visível durante a sessão:
+Disponíveis na zona de contexto do board durante a sessão:
 
-| Insumo | Origem | Como usar |
-| :------------------------------------ | :------------------------------------------------------------------ | :----------------------------------------------------------------- |
-| Causa raiz e as 4 categorias do Ishikawa | [`../negocio/analise-causa-raiz.md`](../negocio/analise-causa-raiz.md) | Cada ideia deve atacar *Machine*, *Methods* ou *Materials*. *Personal* está fora de escopo. |
-| Os 4 critérios sem cobertura no mercado | [`../negocio/benchmarking.md`](../negocio/benchmarking.md)           | Validar antes do envio · apontar o erro · memória de cálculo · padronizar o resultado. É o espaço onde a solução precisa existir. |
-| As 3 capacidades do objetivo           | [`../negocio/objetivos-projeto.md`](../negocio/objetivos-projeto.md) | Centralizar regras · orientar o preenchimento · reduzir interpretação. Filtro de relevância. |
-| Os 2 usuários candidatos               | [`mapa-stakeholders.md`](mapa-stakeholders.md)                       | Projetista externo (fora) e Área de análise de projetos (dentro).   |
+- Causa raiz e causas mapeadas — [`analise-causa-raiz.md`](../negocio/analise-causa-raiz.md)
+- Lacunas do mercado — [`benchmarking.md`](../negocio/benchmarking.md)
+- Objetivo do MVP — [`objetivos-projeto.md`](../negocio/objetivos-projeto.md)
+- Usuários candidatos — [`mapa-stakeholders.md`](mapa-stakeholders.md)
+- Metodologia normativa de cálculo — [`fontes-normativas.md`](../tecnico/fontes-normativas.md)
 
-### Restrição obrigatória — requisitos de POO
-
-Qualquer solução escolhida precisa caber nos requisitos da disciplina ([`../../app/back/README.md`](../../app/back/README.md)):
-
-- Sistema em **Java + Spring Boot** com **banco de dados**
-- Mínimo **3 classes de domínio persistidas**
-- **Toda história de usuário lê e/ou escreve no banco**
-- Sem geração automática de boilerplate (Lombok não é permitido)
-
-Na prática isso elimina, antes da avaliação, propostas sem persistência — planilha inteligente, plugin de ferramenta existente, checklist em PDF, calculadora client-side. Vale enunciar isso na abertura da sessão, e não depois da rodada divergente, para não gastar a discussão em ideias que não poderiam ser escolhidas.
-
----
+A solução escolhida precisa caber nos requisitos de POO: Java com Spring Boot, banco de dados, mínimo 3 classes de domínio persistidas e toda história lendo ou escrevendo no banco ([`app/back/README.md`](../../app/back/README.md)).
 
 ## 1 — Brainstorming de possíveis soluções
 
-*A preencher — atividade 1.*
+A preencher na atividade 1.
 
-| # | Ideia | Categoria Ishikawa atacada | Autor |
-| :- | :---- | :------------------------- | :---- |
+| # | Ideia | Usuário atendido | Autor |
+| :- | :---- | :--------------- | :---- |
 
-**Ideias descartadas na convergência e o porquê:** a preencher.
+Ideias descartadas e o motivo: a preencher.
 
----
+## 2 — Riscos por proposta
 
-## 2 — Riscos por solução
+A preencher na atividade 2. Máximo de dois riscos por proposta.
 
-*A preencher — atividade 2.* Escala de avaliação: **TBD** (questão 8).
+| Proposta | Do que depende que não controlamos | O que faríamos a respeito |
+| :------- | :--------------------------------- | :------------------------ |
 
-| Solução | Risco | Probabilidade | Impacto | Mitigação |
-| :------ | :---- | :------------ | :------ | :-------- |
-
-### Risco comum a todas as propostas
-
-**Não temos o documento normativo da Neoenergia PE.** Nenhum documento do projeto cita a fonte das regras que o motor precisa aplicar — ver questão 2 em [`questoes-em-aberto.md`](questoes-em-aberto.md). Enquanto isso não for resolvido, esse risco pesa igualmente sobre todas as propostas e não serve para diferenciá-las.
-
----
+Riscos que valem para todas as propostas, e por isso não as diferenciam: a norma de cálculo é revisada com frequência, sete vezes em menos de quatro anos ([`fontes-normativas.md`](../tecnico/fontes-normativas.md)).
 
 ## 3 — Proposta de solução final
 
-*A preencher — atividade 3.*
+A preencher na atividade 3.
 
 **Solução escolhida:** TBD
-**Critério de decisão aplicado:** TBD (questão 7)
 **Justificativa:** TBD
+**Premissas assumidas:** TBD
 
-**Premissas assumidas:** registrar aqui toda questão bloqueante que não tiver sido respondida a tempo, no formato "assumindo que X". Ver [`questoes-em-aberto.md`](questoes-em-aberto.md).
+## Comparativo das propostas
 
----
+Preenchido no board durante as atividades 2 e 3. Colunas:
 
-## Saídas esperadas desta etapa
+| Coluna | O que registra |
+| :----- | :------------- |
+| Proposta | O conceito em uma frase |
+| Usuário atendido | Projetista externo, analista interno ou os dois |
+| Cobre as lacunas do mercado? | Contra a tabela do [`benchmarking`](../negocio/benchmarking.md#4-comparativo) |
+| Cabe nas entregas de POO? | Viabilidade no semestre |
+| Do que depende que não controlamos | Coluna de risco |
+| Nota | Espaço livre |
 
-Ao fim da Ideação Parte 1, estas questões devem sair resolvidas:
+## Saídas esperadas
 
-- Questão 4 — entrada e saída concretas do sistema
-- Questão 5 — métrica de sucesso
-- Questão 7 — critério de decisão
-- Questão 8 — escala de risco
+Ao fim desta etapa, devem estar resolvidas as questões 4 (entrada e saída do sistema) e 5 (métrica de sucesso), registradas em [`questoes-em-aberto.md`](questoes-em-aberto.md). A atividade 1 deve produzir evidência para o cliente fechar a questão 1.

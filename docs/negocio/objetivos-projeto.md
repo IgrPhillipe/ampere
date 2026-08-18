@@ -1,6 +1,6 @@
 # Objetivos do Projeto
 
-> Desenvolver um MVP capaz de automatizar e padronizar o cálculo de demanda elétrica, tornando esse processo mais simples, confiável e eficiente.
+Desenvolver um MVP capaz de automatizar e padronizar o cálculo de demanda elétrica, tornando esse processo mais simples, confiável e eficiente.
 
 Fase: **Imersão** ([`../processo.md`](../processo.md)) · Responsável: Jean Augusto · Fonte: [Google Sites — Desafio](https://sites.google.com/cesar.school/site-grupo-4/desafio)
 

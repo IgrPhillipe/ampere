@@ -1,6 +1,6 @@
 # Cálculo de Demanda Elétrica (Neoenergia)
 
-> Ferramenta para automatizar o cálculo de demanda elétrica em edificações com múltiplas unidades consumidoras, aplicando as regras normativas vigentes da Neoenergia Pernambuco de forma padronizada.
+Ferramenta para automatizar o cálculo de demanda elétrica em edificações com múltiplas unidades consumidoras, aplicando as regras normativas vigentes da Neoenergia Pernambuco de forma padronizada.
 
 ---
 
@@ -25,6 +25,7 @@ O projeto é dividido em três fases — **Imersão**, **Ideação** e **Desenvo
 | [Benchmarking](docs/negocio/benchmarking.md)                                  | O que COPEL, CEMIG, Enel, CPFL e AltoQi fazem, comparados em 9 critérios. Ninguém junta cálculo e aprovação. |
 | [Objetivos do projeto](docs/negocio/objetivos-projeto.md)                     | O que o MVP precisa alcançar e como isso responde à descoberta.                                   |
 | [Mapa de stakeholders](docs/produto/mapa-stakeholders.md)                     | Quem é afetado, por grau de proximidade e posição dentro/fora da Neoenergia.                      |
+| [Fontes normativas](docs/tecnico/fontes-normativas.md)                        | A DIS-NOR-053, a metodologia de cálculo e o processo de submissão atual.                          |
 | [Questões em aberto](docs/produto/questoes-em-aberto.md)                      | O que ainda falta decidir para transformar os objetivos em requisitos construíveis.               |
 
 ---
@@ -48,8 +49,8 @@ Documentação detalhada: [app/back/README.md](app/back/README.md) · [app/front
 
 | Cronograma                                                            | Conteúdo                                                          |
 | :-------------------------------------------------------------------- | :----------------------------------------------------------------- |
-| [`docs/cronograma-projetos3.md`](docs/cronograma-projetos3.md)        | Atividades do time, com responsável, prioridade e status.         |
-| [`docs/cronograma-poo.md`](docs/cronograma-poo.md)                    | Marcos, checklists por entrega e distribuição de notas de POO.    |
+| [`docs/cronograma-projetos3.md`](docs/cronograma-projetos3.md)        | Aulas, conteúdo e entregáveis de Projetos 3.                      |
+| [`docs/cronograma-poo.md`](docs/cronograma-poo.md)                    | Marcos e checklists das entregas avaliadas de POO.                |
 
 ---
 
