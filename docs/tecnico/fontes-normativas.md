@@ -1,8 +1,8 @@
 # Fontes Normativas
 
-> Levantamento das fontes públicas que definem o cálculo de demanda para edificações com múltiplas unidades consumidoras na Neoenergia PE. Feito em 17/08/2026 por pesquisa aberta, sem contato com o cliente.
+Levantamento das fontes públicas que definem o cálculo de demanda para edificações com múltiplas unidades consumidoras na Neoenergia PE. Feito em 17/08/2026 por pesquisa aberta, sem contato com o cliente.
 
-**Resultado:** a norma existe, é pública e traz a metodologia completa com exemplos resolvidos. A questão 2, que era o maior bloqueio do projeto, está respondida.
+A norma existe, é pública e traz a metodologia completa com exemplos resolvidos. Fecha a questão 2 do registro de [`questões em aberto`](../produto/questoes-em-aberto.md).
 
 ---
 
@@ -38,7 +38,7 @@ Norma complementar, referenciada o tempo todo pela 053 para o método da carga i
 
 **DIS-NOR-030 — Fornecimento de Energia Elétrica em Tensão Secundária de Distribuição à Edificações Individuais**, REV 07 ([PDF](https://www.neoenergia.com/documents/d/pernambuco/dis-nor-030-rev07?download=true)).
 
-> O PDF da 053 está hospedado sob o caminho `/d/rn/` porque é o mesmo documento das quatro distribuidoras. Não é erro nem versão de outro estado — o próprio histórico de revisões declara a unificação. Ainda assim, vale confirmar com o cliente que é essa a revisão em uso em PE.
+O PDF da 053 está hospedado sob o caminho `/d/rn/` porque é o mesmo documento das quatro distribuidoras. O próprio histórico de revisões declara a unificação.
 
 ---
 
@@ -149,39 +149,16 @@ Fonte: [Projeto Particular](https://www.neoenergia.com/web/pernambuco/seu-negoci
 | **Erros mais comuns**         | Nenhuma fonte pública os enumera. Continua dependendo do cliente.                                |
 | **Método interno de análise** | Como a equipe da Neoenergia confere o cálculo não é público. Continua dependendo do cliente.     |
 
-### As NBRs pagas não bloqueiam este projeto
+### As NBR não entram no cálculo de demanda
 
-A DIS-NOR-053 referencia 12 normas ABNT, sendo a NBR 5410 a mais citada. Elas são vendidas pela ABNT e não têm API pública.
+A DIS-NOR-053 referencia 12 normas ABNT, vendidas e sem API pública. Verificando cada citação no PDF, todas aparecem em contexto de instalação: condições de eletroduto, método de instalação para dimensionamento de condutor, aterramento e conformidade de subestação. O Anexo I, que contém a metodologia e as tabelas paramétricas, tem uma única menção a NBR em cerca de 20 páginas.
 
-**Mas não são necessárias para o cálculo de demanda.** Verificando cada citação no PDF, as NBRs aparecem sempre em contexto de **instalação**: condições de eletroduto, método de instalação B1/D/F para dimensionamento de condutor, aterramento, conformidade de subestação. O **Anexo I**, que contém a metodologia de cálculo e as tabelas paramétricas, tem uma única menção a NBR em cerca de 20 páginas.
+O método de demanda é autocontido entre DIS-NOR-053 e DIS-NOR-030, ambas gratuitas. Não é necessário adquirir norma da ABNT para construir o motor de cálculo.
 
-Ou seja: o método de demanda é **autocontido** entre DIS-NOR-053 e DIS-NOR-030, ambas gratuitas.
 
-| Pergunta | Resposta |
-| :-- | :-- |
-| Precisamos comprar NBR para construir o MVP? | Não. A metodologia de demanda não depende delas. |
-| Precisamos pagar para entregar o projeto acadêmico? | Não. |
-| Precisamos pagar para acompanhar atualizações? | Da NBR, sim, se um dia precisarmos dela. **Da DIS-NOR-053, não** — é gratuita e é a que rege o cálculo. |
-| Existe API para as NBRs? | Não pública. O acesso é por assinatura (coleção ABNT e plataformas equivalentes). Vale checar com a biblioteca da CESAR, mas não é bloqueio. |
-| Dá para automatizar a leitura da norma da Neoenergia? | **Sim.** O PDF tem URL estável e texto extraível. Este documento foi produzido justamente assim, com `pdftotext` sobre o PDF baixado. |
-
-> **Ideia de funcionalidade que nasce daí:** como a norma muda com frequência e o PDF tem URL estável e revisão no cabeçalho, dá para checar automaticamente se saiu uma revisão nova e alertar. Vira história de usuário e ataca direto a categoria *Machine* do Ishikawa, que é a única sem cobertura.
 
 ---
 
-## Impacto nas questões em aberto
+## Efeito no registro de questões
 
-Referência: [`../produto/questoes-em-aberto.md`](../produto/questoes-em-aberto.md).
-
-| Questão | Situação depois da pesquisa |
-| :------ | :---------------------------------------------------------------------------------------------- |
-| **2** — base normativa | **Respondida.** DIS-NOR-053 REV 06, pública, com metodologia e exemplos. Deixa de ser bloqueio. |
-| **9a** — existe sistema? | **Em grande parte respondida.** Existem portais para MT, grandes clientes e GD, e e-mail para BT acima de 50 kW. |
-| **9d** — reprovação e re-submissão | **Parcial.** A devolutiva com motivos e providências corretivas é regra publicada, e chega por e-mail. Ou seja, pelo menos em parte é manual. |
-| **1c** — acesso externo | **Indício forte.** Projetistas externos já submetem por portal e por e-mail, então existe interação com quem está fora. |
-| **4** — entrada e saída | **Informada.** O que se entrega hoje é um **memorial descritivo com o cálculo de demanda**. Esse é o formato de saída a mirar. |
-| **3** — faixa de escopo | **Parcial.** A norma cobre MUC até 34,5 kV. O corte de 50 kW aparece como divisor de canal de submissão, não de metodologia. Confirmar lendo a norma. |
-| **5** — métrica de sucesso | **Pista.** O prazo de 30 dias e os dados abertos da ANEEL dão material para uma métrica.        |
-| **6** — erros mais comuns | **Segue aberta.** Depende do cliente.                                                            |
-
-**Efeito prático:** o time pode começar a modelar o motor de cálculo agora, contra uma norma real e com cinco exemplos que servem de caso de teste. A conversa com o cliente deixa de ser "nos expliquem o problema" e passa a ser "validem nosso entendimento" — que é uma reunião muito melhor.
+O levantamento fechou a questão 2 e adiantou 1c, 3, 4 e 9. O estado de cada uma está em [`../produto/questoes-em-aberto.md`](../produto/questoes-em-aberto.md), que é o registro único.

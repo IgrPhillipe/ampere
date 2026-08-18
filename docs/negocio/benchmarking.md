@@ -1,6 +1,6 @@
 # Benchmarking
 
-> Levantamento de concessionárias e ferramentas que hoje calculam ou recebem a demanda elétrica de edificações com múltiplas unidades consumidoras — o caso em que a Neoenergia PE reprova cerca de 50 % dos ~1.400 projetos recebidos por ano. O objetivo é mapear onde estão as lacunas de automação, padronização e validação.
+Levantamento de concessionárias e ferramentas que hoje calculam ou recebem a demanda elétrica de edificações com múltiplas unidades consumidoras — o caso em que a Neoenergia PE reprova cerca de 50 % dos ~1.400 projetos recebidos por ano. O objetivo é mapear onde estão as lacunas de automação, padronização e validação.
 
 Fase: **Imersão** ([`../processo.md`](../processo.md)) · Responsável: André Montenegro · Fonte: [Figma — Benchmarking](https://www.figma.com/design/eiw2Pt6gUGCxStE0wVqrKd/Benchmarking)
 
@@ -57,14 +57,7 @@ E a linha mais reveladora é a de validação: **nenhuma concessionária verific
 
 ### Onde isso posiciona a nossa solução
 
-Quatro linhas do comparativo não têm nenhum ✅ do lado das concessionárias:
-
-- Valida erros antes do envio
-- Aponta onde está o erro e como corrigir
-- Mostra memória de cálculo
-- Padroniza o resultado do cálculo
-
-São as mesmas capacidades que [`objetivos-projeto.md`](objetivos-projeto.md) define como objetivo do MVP — com a diferença de que aqui elas precisam existir **dentro do processo de submissão**, e não numa ferramenta paralela como a AltoQi.
+Quatro linhas do comparativo não têm nenhum ✅ do lado das concessionárias, e são as mesmas capacidades que [`objetivos-projeto.md`](objetivos-projeto.md) define como objetivo do MVP. A diferença é que aqui elas precisam existir dentro do processo de submissão, e não numa ferramenta paralela como a AltoQi.
 
 ---
 
@@ -75,10 +68,3 @@ São as mesmas capacidades que [`objetivos-projeto.md`](objetivos-projeto.md) de
 3. **LIG BT** — Livro de Instruções Gerais para fornecimento de energia em Baixa Tensão; norma da concessionária com as regras de conexão até 1 kV (ex.: LIG BT 2014, da Enel).
 4. **GED** — código de normas técnicas da CPFL (Gestão Eletrônica de Documentos); a GED 4621, por exemplo, trata de medição agrupada em baixa tensão.
 
----
-
-## Observação
-
-Existem **dois arquivos "Benchmarking"** no projeto do Figma. Este documento transcreve o mais recente (`eiw2Pt6gUGCxStE0wVqrKd`, editado em 12/08/2026). A versão anterior (`PAepIjzcmolGGSHEfmezda`, 10/08/2026) foi superada e não deve ser usada como referência.
-
-Nenhum documento normativo da **Neoenergia PE** aparece neste levantamento — só os das concessionárias comparadas. Ver [`../produto/questoes-em-aberto.md`](../produto/questoes-em-aberto.md).

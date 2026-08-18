@@ -1,7 +1,6 @@
 # Documentação Técnica
 
-> Ponto de entrada da documentação técnica do projeto.  
-> **Stack ainda não definida** — este documento será expandido após a decisão de tecnologia.
+Ponto de entrada da documentação técnica. Back-end definido como Java com Spring Boot; front-end em aberto até a aula 4 (questão 6).
 
 ## Motor de Cálculo
 
@@ -16,7 +15,7 @@ Responsabilidades previstas:
 
 O levantamento normativo está feito: as fórmulas, os métodos por tipo de edificação e as tabelas paramétricas estão em [`fontes-normativas.md`](fontes-normativas.md), com origem na **DIS-NOR-053 REV 06** da Neoenergia. A modelagem detalhada do motor será adicionada em `docs/tecnico/engine-calculo.md` (TBD).
 
-Restrição de projeto que veio desse levantamento: a norma foi revisada **sete vezes em menos de quatro anos**, três delas em dois meses. Os parâmetros normativos precisam ser **dados versionados e persistidos**, não constantes no código, e o resultado de cada cálculo deve registrar qual revisão foi aplicada.
+A norma foi revisada sete vezes em menos de quatro anos. Os parâmetros normativos são tratados como dados versionados e persistidos, não constantes no código, e cada cálculo registra qual revisão aplicou.
 
 ---
 

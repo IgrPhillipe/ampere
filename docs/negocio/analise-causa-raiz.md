@@ -1,6 +1,6 @@
 # Análise de Causa Raiz
 
-> Investigação estruturada das origens do alto índice de rejeição de projetos elétricos na Neoenergia PE, usando duas técnicas complementares: **5 Porquês** (profundidade) e **Diagrama de Ishikawa** (amplitude).
+Investigação estruturada das origens do alto índice de rejeição de projetos elétricos na Neoenergia PE, usando duas técnicas complementares: **5 Porquês** (profundidade) e **Diagrama de Ishikawa** (amplitude).
 
 Fase: **Imersão** ([`../processo.md`](../processo.md)) · Responsável: Lucas Gabriel
 Fontes: [Figma — 5 Por quês](https://www.figma.com/board/XyJzy2WicMqwNtRJcB35Mk/5-Por-qu%C3%AAs) · [Figma — Diagrama Ishikawa](https://www.figma.com/board/hOulvegTeIps2B5X7xdKZw/Diagrama-Ishikawa)
@@ -40,7 +40,6 @@ Fontes: [Figma — 5 Por quês](https://www.figma.com/board/XyJzy2WicMqwNtRJcB35
 | **Personal**  | Falta de treinamento padronizado sobre as normas específicas da Neoenergia PE<br>Comunicação insuficiente entre equipes internas e projetistas externos sobre os critérios exigidos                   |
 | **Materials** | Documentação normativa dispersa, sem consolidação em formato acessível ao projetista<br>Normas sujeitas a interpretações divergentes sem mecanismo de desambiguação                                   |
 
-> **Pendência no board:** a espinha *Machine* tem uma segunda ramificação cujo texto é uma cópia do próprio efeito ("Alto índice de rejeição de projetos elétricos por erros no cálculo de demanda") — é um placeholder que ficou por preencher, não uma causa. Precisa ser corrigido no Figma.
 
 ---
 
