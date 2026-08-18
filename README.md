@@ -23,8 +23,8 @@ O projeto é dividido em três fases — **Imersão**, **Ideação** e **Desenvo
 | [Premissas do desafio](docs/negocio/premissas-desafio.md)                     | O desafio como a Neoenergia PE o apresentou: problema, impacto e proposta de solução.            |
 | [Análise de causa raiz](docs/negocio/analise-causa-raiz.md)                   | 5 Porquês e Ishikawa — por que os projetos são reprovados, até a causa raiz.                     |
 | [Benchmarking](docs/negocio/benchmarking.md)                                  | O que COPEL, CEMIG, Enel, CPFL e AltoQi fazem, comparados em 9 critérios. Ninguém junta cálculo e aprovação. |
-| [Objetivos do projeto](docs/negocio/objetivos-projeto.md)                     | O que o MVP precisa alcançar e como isso responde à descoberta.                                   |
-| [Mapa de stakeholders](docs/produto/mapa-stakeholders.md)                     | Quem é afetado, por grau de proximidade e posição dentro/fora da Neoenergia.                      |
+| [Objetivos do projeto](docs/produto/objetivos-projeto.md)                     | O que o MVP precisa alcançar e como isso responde à descoberta.                                   |
+| [Mapa de stakeholders](docs/negocio/mapa-stakeholders.md)                     | Quem é afetado, por grau de proximidade e posição dentro/fora da Neoenergia.                      |
 | [Fontes normativas](docs/tecnico/fontes-normativas.md)                        | A DIS-NOR-053, a metodologia de cálculo e o processo de submissão atual.                          |
 | [Questões em aberto](docs/produto/questoes-em-aberto.md)                      | O que ainda falta decidir para transformar os objetivos em requisitos construíveis.               |
 

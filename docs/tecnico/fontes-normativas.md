@@ -112,7 +112,7 @@ O histórico de alterações da própria norma:
 
 Sete revisões em menos de quatro anos, e **três delas em menos de dois meses** entre julho e setembro de 2025.
 
-**Consequência de arquitetura:** os parâmetros normativos não podem ser constantes no código. Precisam ser dados versionados e persistidos, com o resultado do cálculo registrando qual revisão aplicou. Isso atende de uma vez três coisas já escritas no projeto: a rastreabilidade prometida em [`../negocio/objetivos-projeto.md`](../negocio/objetivos-projeto.md), o requisito de classes de domínio persistidas em [`../../app/back/README.md`](../../app/back/README.md), e a herança e polimorfismo por tipo de edificação que a tabela acima praticamente desenha sozinha.
+**Consequência de arquitetura:** os parâmetros normativos não podem ser constantes no código. Precisam ser dados versionados e persistidos, com o resultado do cálculo registrando qual revisão aplicou. Isso atende de uma vez três coisas já escritas no projeto: a rastreabilidade prometida em [`../produto/objetivos-projeto.md`](../produto/objetivos-projeto.md), o requisito de classes de domínio persistidas em [`../../app/back/README.md`](../../app/back/README.md), e a herança e polimorfismo por tipo de edificação que a tabela acima praticamente desenha sozinha.
 
 ---
 

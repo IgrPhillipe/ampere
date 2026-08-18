@@ -62,6 +62,6 @@ O eixo **Personal** é o único que a cadeia dos 5 Porquês não alcança. Ele n
 
 A causa raiz e as categorias *Machine*, *Methods* e *Materials* são exatamente o que a solução proposta ataca:
 
-- [`objetivos-projeto.md`](objetivos-projeto.md) — objetivo do MVP derivado desta análise
+- [`objetivos-projeto.md`](../produto/objetivos-projeto.md) — objetivo do MVP derivado desta análise
 - [`premissas-desafio.md`](premissas-desafio.md#proposta-de-solução) — proposta de solução do desafio original
 - [`benchmarking.md`](benchmarking.md) — confirmação de que nenhuma ferramenta de mercado cobre essa lacuna

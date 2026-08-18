@@ -49,8 +49,8 @@ Disponíveis na zona de contexto do board durante a sessão:
 
 - Causa raiz e causas mapeadas — [`analise-causa-raiz.md`](../negocio/analise-causa-raiz.md)
 - Lacunas do mercado — [`benchmarking.md`](../negocio/benchmarking.md)
-- Objetivo do MVP — [`objetivos-projeto.md`](../negocio/objetivos-projeto.md)
-- Usuários candidatos — [`mapa-stakeholders.md`](mapa-stakeholders.md)
+- Objetivo do MVP — [`objetivos-projeto.md`](objetivos-projeto.md)
+- Usuários candidatos — [`mapa-stakeholders.md`](../negocio/mapa-stakeholders.md)
 - Metodologia normativa de cálculo — [`fontes-normativas.md`](../tecnico/fontes-normativas.md)
 
 A solução escolhida precisa caber nos requisitos de POO: Java com Spring Boot, banco de dados, mínimo 3 classes de domínio persistidas e toda história lendo ou escrevendo no banco ([`app/back/README.md`](../../app/back/README.md)).

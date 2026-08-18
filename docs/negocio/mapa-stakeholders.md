@@ -38,7 +38,7 @@ Duas caixas do anel **secundário** concentram o problema, uma de cada lado da s
 | **Projetistas e Engenheiros Eletricistas** | Fora          | Elaboram o cálculo de demanda manualmente e têm o projeto reprovado                 |
 | **Área de análise de projetos**            | Dentro        | Recebe o projeto, identifica a inconsistência e devolve para correção               |
 
-São os dois lados do mesmo ciclo de retrabalho descrito em [`../negocio/premissas-desafio.md`](../negocio/premissas-desafio.md#impacto) — e os mesmos dois lados que o [`../negocio/benchmarking.md`](../negocio/benchmarking.md) mostrou desassistidos: nenhuma ferramenta do mercado valida o cálculo antes do envio nem aponta onde está o erro.
+São os dois lados do mesmo ciclo de retrabalho descrito em [`../negocio/premissas-desafio.md`](premissas-desafio.md#impacto) — e os mesmos dois lados que o [`../negocio/benchmarking.md`](benchmarking.md) mostrou desassistidos: nenhuma ferramenta do mercado valida o cálculo antes do envio nem aponta onde está o erro.
 
 Stakeholders de apoio relevantes para a construção da solução:
 
@@ -50,4 +50,4 @@ Stakeholders de apoio relevantes para a construção da solução:
 
 ## Em aberto
 
-Qual dos dois usuários do anel secundário é o **usuário do MVP** ainda não foi decidido — ver [`questoes-em-aberto.md`](questoes-em-aberto.md).
+Qual dos dois usuários do anel secundário é o **usuário do MVP** ainda não foi decidido — ver [`questoes-em-aberto.md`](../produto/questoes-em-aberto.md).

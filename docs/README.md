@@ -23,8 +23,8 @@ docs/
 | Negócio    | [negocio/premissas-desafio.md](negocio/premissas-desafio.md) | Empresa, problema, impacto, stakeholders afetados e proposta de solução |
 | Negócio    | [negocio/analise-causa-raiz.md](negocio/analise-causa-raiz.md) | 5 Porquês e Diagrama de Ishikawa |
 | Negócio    | [negocio/benchmarking.md](negocio/benchmarking.md) | Concessionárias e ferramentas de mercado, comparadas por 9 critérios |
-| Negócio    | [negocio/objetivos-projeto.md](negocio/objetivos-projeto.md) | O que o MVP precisa alcançar |
-| Produto    | [produto/mapa-stakeholders.md](produto/mapa-stakeholders.md) | Atores por proximidade com o problema e posição dentro ou fora da Neoenergia |
+| Produto    | [produto/objetivos-projeto.md](produto/objetivos-projeto.md) | O que o MVP precisa alcançar |
+| Negócio    | [negocio/mapa-stakeholders.md](negocio/mapa-stakeholders.md) | Atores por proximidade com o problema e posição dentro ou fora da Neoenergia |
 | Produto    | [produto/ideacao.md](produto/ideacao.md) | Registro da Ideação Parte 1: brainstorming, riscos e proposta final |
 | Produto    | [produto/questoes-em-aberto.md](produto/questoes-em-aberto.md) | Registro único das questões de produto |
 | Técnico    | [tecnico/README.md](tecnico/README.md) | Motor de cálculo e requisitos de POO |

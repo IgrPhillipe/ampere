@@ -118,7 +118,7 @@ O diferencial não está em construir mais uma calculadora, já existem boas. Es
 
 Antecipar para o momento da elaboração o que hoje só chega no fim de um ciclo de até 30 dias é onde está o ganho.
 
-As quatro linhas sem nenhum `✓` do lado das concessionárias são as mesmas capacidades que [`objetivos-projeto.md`](objetivos-projeto.md) define como objetivo do MVP.
+As quatro linhas sem nenhum `✓` do lado das concessionárias são as mesmas capacidades que [`objetivos-projeto.md`](../produto/objetivos-projeto.md) define como objetivo do MVP.
 
 ---
 
