@@ -1,86 +1,53 @@
-# Cronograma de Atividades — Projetos 3
+# Cronograma — Projetos 3
 
-> Organização e acompanhamento das tarefas do time ao longo do projeto. As entregas avaliadas da disciplina **POO** estão em outro arquivo: [`cronograma-poo.md`](cronograma-poo.md).
+Aulas, conteúdo e entregáveis da disciplina, conforme o plano de ensino. As entregas avaliadas de POO estão em [`cronograma-poo.md`](cronograma-poo.md).
 
-Responsáveis pelo cronograma: José Williams e Kellwen Costa · Última atualização do board: **14/08/2026**
-Fonte: [Figma — Cronograma](https://www.figma.com/board/cY4d3nMm3qiVUKVPAtOmRN/Cronograma)
+Responsáveis por acompanhar e atualizar: José Williams e Kellwen Costa.
 
----
+## Aulas
 
-## Imersão — 08/08 a 15/08
+| Aula | Data | Conteúdo | Entregável |
+| :--: | :--- | :------- | :--------- |
+| 1 | 08/08 | Apresentação da disciplina e do desafio, formação dos grupos, criação do Google Sites e do board de imersão e ideação | Registro inicial do desafio, dos grupos e do board no Google Sites |
+| 2 | 15/08 | **Imersão**: definição e entendimento do problema (5 Porquês, Ishikawa), benchmarking, objetivos do projeto, cronograma inicial, mapa de stakeholders | Imersão no board e registro das 5 atividades no Google Sites |
+| 3 | 22/08 | **Ideação Parte 1**: brainstorming de soluções, riscos de cada solução, definição da proposta final com justificativa | Ideação no board e registro das 3 atividades no Google Sites |
+| 4 | 29/08 | **Ideação Parte 2**: histórias de usuário com matriz de esforço e impacto, protótipos de baixa fidelidade no Figma, papéis e responsabilidades, ferramentas e tecnologias, revisão do cronograma | Registro das atividades no Google Sites. Alteração de cronograma vai primeiro ao board, depois ao Google Sites |
+| — | 05/09 e 07/09 | Feriado da Independência | — |
+| 5 | 12/09 | **Kick Off** | Apresentação |
+| 6 | 19/09 | **MVP Sprint 1**: priorização das histórias, desenvolvimento das primeiras | Histórias priorizadas, Google Sites atualizado, código no GitHub |
+| 7 | 26/09 | **MVP Sprint 2**: continuação do desenvolvimento | GitHub e Google Sites atualizados |
+| 8 | 03/10 | **Status Report 1** | Apresentação |
+| — | 09/10, 10/10 e 12/10 | Feriados | — |
+| 9 | 17/10 | **MVP Sprint 3**: feedback do SR1, retrospectiva do primeiro ciclo, priorização, desenvolvimento | Retro no board, GitHub atualizado, Google Sites com print da retro |
+| 10 | 24/10 | **MVP Sprint 4**: ajustes pós-retro, priorização, desenvolvimento | GitHub e Google Sites atualizados, com os ajustes feitos após a retro |
+| — | 31/10 e 02/11 | Feriado de Finados | — |
+| 11 | 07/11 | **MVP Sprint 5**: desenvolvimento, validação com o cliente, melhorias após a validação | Código no GitHub, registro do feedback do cliente no Google Sites |
+| 12 | 14/11 | Rec'n Play (atividade assíncrona) | — |
+| — | 15/11 e 20/11 | Feriados | — |
+| 13 | 21/11 | Retrospectiva do projeto e preparação do SR2 | Retro no board, material parcial do SR2 |
+| 14 | 28/11 | Preparação do SR2 e relatório sobre uso de IA | Ajustes no material do SR2 e o relatório de IA ([`uso-de-ia/`](uso-de-ia/)) |
 
-| Atividade                                                                | Responsável                        | Prioridade | Status    |
-| :----------------------------------------------------------------------- | :--------------------------------- | :--------- | :-------- |
-| Criar repositório e composição inicial no GitHub                         | Igor Aragão                        | Média      | Concluído |
-| Criar e atualizar Google Sites                                           | Jean Augusto e André Montenegro    | Média      | Concluído |
-| Criar e atualizar board no Trello                                        | José Williams                      | Média      | Concluído |
-| Definição e exploração/entendimento do problema (5 Porquês, Ishikawa)    | Lucas Gabriel                      | Média      | Concluído |
-| Criar Benchmarking                                                       | André Montenegro                   | Alta       | Concluído |
-| Definir Objetivos do Projeto                                             | Jean Augusto                       | Alta       | Concluído |
-| Criar Cronograma inicial                                                 | José Williams e Kellwen Costa      | Baixa      | Concluído |
-| Criar mapa de stakeholders                                               | Afonso Araújo                      | Média      | Concluído |
+## Atribuições do time
 
----
+Definidas pelo time no board de cronograma. Atualizadas em 14/08/2026.
 
-## Ideação — 15/08 a 22/08
+| Atividade | Responsável | Status |
+| :-------- | :---------- | :----- |
+| Repositório e composição inicial no GitHub | Igor Aragão | Concluído |
+| Google Sites, criação e atualização | Jean Augusto e André Montenegro | Concluído |
+| Board no Trello | José Williams | Concluído |
+| Exploração do problema, 5 Porquês e Ishikawa | Lucas Gabriel | Concluído |
+| Benchmarking | André Montenegro | Concluído |
+| Objetivos do projeto | Jean Augusto | Concluído |
+| Cronograma | José Williams e Kellwen Costa | Concluído |
+| Mapa de stakeholders | Afonso Araújo | Concluído |
+| Roteiro das apresentações | Jean Augusto | Em andamento |
+| Slides das apresentações | Kellwen Costa e Igor Aragão | Não iniciado |
+| Registro das atividades no Google Sites | Jean Augusto e André Montenegro | Em andamento |
 
-| Atividade                                              | Responsável | Prioridade | Status       |
-| :----------------------------------------------------- | :---------- | :--------- | :----------- |
-| Realizar Brainstorming                                 | Todos       | Alta       | Não iniciado |
-| Mensurar os riscos de cada solução levantada           | Todos       | Alta       | Não iniciado |
-| Definição da proposta de solução final com justificativa | Todos     | Alta       | Não iniciado |
+A definição formal de papéis e responsabilidades é atividade da aula 4.
 
-Entregável: ideação no Miro + registro das três atividades no Google Sites.
-To-do detalhado e registro das atividades: [`produto/ideacao.md`](produto/ideacao.md).
-
----
-
-## Ideação — 22/08 a 12/09
-
-| Atividade                                                          | Responsável                     | Prioridade | Status       |
-| :----------------------------------------------------------------- | :------------------------------ | :--------- | :----------- |
-| Criar histórias de usuário escritas (usar matriz esforço × impacto) | Todos                           | Alta       | Não iniciado |
-| Realizar protótipos de baixa fidelidade (Figma)                    | Todos                           | Alta       | Não iniciado |
-| Definição de papéis e responsabilidades                            | Todos                           | Alta       | Não iniciado |
-| Revisitar o cronograma e atualizar caso necessário                 | Todos                           | Alta       | Não iniciado |
-| Registrar todas as atividades no Google Sites                      | Jean Augusto e André Montenegro | Alta       | Não iniciado |
-
-> ⚠️ A **Entrega 01 de POO é 31/08** e exige 7 histórias em BDD mais protótipo lo-fi — quase duas semanas antes do previsto aqui. Ver [`produto/questoes-em-aberto.md`](produto/questoes-em-aberto.md#descompasso-entre-os-dois-cronogramas).
-
----
-
-## Marcos de apresentação
-
-### KickOff — 12/09
-
-| Atividade                | Período       | Responsável   | Prioridade | Status       |
-| :----------------------- | :------------ | :------------ | :--------- | :----------- |
-| Roteiro da apresentação  | 08/08 a 19/09 | Jean Augusto  | Alta       | Concluído    |
-| Slides da apresentação   | 11/09 a 12/09 | Kellwen, Igor | Alta       | Não iniciado |
-| Ensaio da apresentação   | 11/09 a 12/09 | Todos         | Alta       | Não iniciado |
-| **Grande dia — KickOff** | 12/09         | Todos         | Alta       | Não iniciado |
-
-### SR1 — 03/10
-
-| Atividade               | Período       | Responsável   | Prioridade | Status       |
-| :---------------------- | :------------ | :------------ | :--------- | :----------- |
-| Roteiro da apresentação | 14/09 a 01/10 | Jean Augusto  | Alta       | Não iniciado |
-| Slides da apresentação  | 14/09 a 01/10 | Kellwen, Igor | Alta       | Não iniciado |
-| Ensaio da apresentação  | 02/10 a 03/10 | Todos         | Alta       | Não iniciado |
-| **Grande dia — SR1**    | 03/10         | Todos         | Alta       | Não iniciado |
-
-### SR2 — 05/12
-
-| Atividade               | Período       | Responsável   | Prioridade | Status       |
-| :---------------------- | :------------ | :------------ | :--------- | :----------- |
-| Roteiro da apresentação | 05/10 a 03/12 | Jean Augusto  | Alta       | Não iniciado |
-| Slides da apresentação  | 05/10 a 03/12 | Kellwen, Igor | Alta       | Não iniciado |
-| Ensaio da apresentação  | 04/12         | Todos         | Alta       | Não iniciado |
-| **Grande dia — SR2**    | 05/12         | Todos         | Alta       | Não iniciado |
-
----
-
-## Equipe (Grupo 4)
+## Equipe
 
 Afonso Henrique Martins de Araujo · André Guilherme Montenegro de Oliveira Santos · Igor Phillipe Amorim Rocha Aragão · Jean Augusto dos Santos Mateus · José Williams Lopes de Pontes · Kellwen Igor Liberato da Costa · Lucas Gabriel Cardoso Souza
 
