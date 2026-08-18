@@ -12,17 +12,19 @@ Os números são **identificadores estáveis**, não ordem. Questão nova recebe
 
 ## Placar
 
-**9 questões abertas, 1 fechada.** Delas, só **4 dependem do cliente**. As outras 5 o time pode fechar sozinho, hoje.
+**16 questões abertas, 1 fechada.** Delas, **11 dependem do cliente**. As outras 5 o time pode fechar sozinho, hoje.
 
 | Estado | Questões | Total |
 | :--------------------------------- | :---------------------- | :---: |
 | **Fechada**                        | 2                       | 1 |
-| **Dependem do cliente**            | 1, 3, 9, 10             | 4 |
+| **Dependem do cliente**            | 1, 3, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 | 11 |
 | **Dependem só do time**            | 4, 5, 6, 7, 8           | 5 |
 
-As quatro do cliente viram **6 itens** na lista de envio, porque as questões 1 e 9 se desdobram. Ver [Perguntas para enviar ao cliente](#perguntas-para-enviar-ao-cliente).
+Desdobradas, as do cliente viram **15 itens** de pauta. Ver [Perguntas para enviar ao cliente](#perguntas-para-enviar-ao-cliente).
 
 Mais importantes, nesta ordem: **10** (se os erros forem de dado de entrada e não de regra, a tese do produto muda), **1** (define para quem construímos) e **9** (define se construímos produto ou extensão).
+
+> A pauta completa, agrupada pelas sete etapas do ciclo e pronta para conduzir a reunião, está no artefato **Ciclo do Projeto Elétrico**. Este documento é o registro; o artefato é a ferramenta de reunião.
 
 ---
 
@@ -35,6 +37,23 @@ Mais importantes, nesta ordem: **10** (se os erros forem de dado de entrada e n�
 | **3** | **Faixa de escopo do MVP** — cobre só acima de 50 kVA?                                          | [`premissas-desafio.md`](../negocio/premissas-desafio.md#tentativas-anteriores) registra que abaixo de 50 kVA o problema já foi mitigado por simplificação de critérios. Ninguém escreveu se o MVP cobre a faixa inteira. | Time + cliente        |
 | **9** | **Já existe um sistema de submissão e análise?** E o que ele faz hoje?                          | Todo o raciocínio até aqui assumiu que vamos construir algo novo. Se já existe sistema, aparece uma quinta proposta — **módulo dentro do que já existe** — que pode ganhar de todas as outras. E muda a avaliação de risco que já está no board. | Cliente               |
 | **10** | **Os erros são de aplicação da regra ou de dado de entrada?**                                  | **Decide se o produto funciona.** Automatizar o cálculo elimina erro de regra: método errado, faixa errada na tabela, fator incorreto, parcela esquecida. Não elimina erro de dado de entrada: se o projetista digitar 14 unidades onde há 15, a ferramenta calcula certo em cima do dado errado. Se a maioria for de entrada, a tese do produto enfraquece e o foco tem que virar validação de consistência, não cálculo. | Cliente               |
+
+### Questões levantadas na revisão do ciclo (17/08)
+
+Surgiram ao revisar o ciclo etapa a etapa. Todas dependem do cliente.
+
+| #      | Questão                                                                                                   | Por que importa                                                                                     |
+| :----- | :---------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------- |
+| **11** | **Qual tipo de edificação concentra o problema?** Residencial, não residencial, misto ou Smart/Studio?     | A norma trata cada tipo com um método diferente. Focar em um reduz o escopo do MVP sem perder o problema. É também a base da hierarquia de classes de POO. |
+| **12** | **A DIS-NOR-053 é a única norma aplicável**, ou convive com DIS-NOR-030, PRODIST e NBRs? Qual prevalece em conflito? | Se forem várias, o motor precisa saber qual regra vence, e não apenas aplicar uma tabela.            |
+| **13** | **Como começa o processo, e o projetista precisa ser credenciado?** Para quem envio, com quem falo, do que preciso? Quem contrata é quem elabora? CREA e ART são verificados, ou qualquer pessoa pode enviar? | Define quem entra no sistema e se existe cadastro prévio a modelar.                                  |
+| **14** | **Em que formato o projeto é enviado?** PDF, DWG, planilha, formulário? Existe formato obrigatório? A norma define o formato do memorial ou só o conteúdo? | Define se o sistema recebe dados estruturados ou precisa extrair de documento. Muda tudo na entrada. |
+| **15** | **Como a devolutiva volta e como funciona o reenvio?** O projeto corrigido reinicia o processo com novo prazo de 30 dias, ou tem fila própria? O projetista acompanha o andamento? | Define se a ferramenta pode encurtar o ciclo de retrabalho ou só o de primeira submissão.            |
+| **16** | **O que acontece depois dos 36 meses de validade** se a obra não terminou?                                | Pode ser um caso de uso inteiro que ninguém mapeou, e uma fonte de retrabalho invisível.             |
+| **17** | **Existe acervo de projetos anteriores**, aprovados e reprovados? Um sistema novo precisaria importar?     | Muda o esforço drasticamente, e abre a possibilidade de aprender com o histórico de reprovações.     |
+| **18** | **Como a equipe e os projetistas acompanham as revisões da norma?** Projeto submetido sob a revisão anterior é avaliado por qual? | Sete revisões em menos de quatro anos. Define como o sistema versiona regras e o que faz com projetos em trânsito. |
+
+> **Hipótese de solução a validar junto:** um sistema com área **interna de revisão**, onde o analista registra a conferência e monta a devolutiva de forma estruturada, e área **externa de retorno**, onde quem submeteu vê o que foi apontado e reenvia pelo mesmo lugar. Resolveria mais do que apenas automatizar o cálculo?
 
 ### Desdobramento da questão 1
 
@@ -88,20 +107,17 @@ A questão 4 pergunta o que o **nosso** sistema deve receber e devolver. Esta pe
 
 ## Perguntas para enviar ao cliente
 
-As questões **1, 3, 9 e 10** não se resolvem internamente. Desdobradas, viram seis itens. A coluna da esquerda diz qual questão cada item fecha.
+A pauta completa, agrupada pelas sete etapas do ciclo e formatada para conduzir a reunião, vive no artefato **Ciclo do Projeto Elétrico**. São 15 itens. Resumo da ordem:
 
-| Fecha | Pergunta, pronta para envio |
-| :---- | :-------------------------- |
-| **10** | **Natureza dos erros.** Entre os projetos reprovados, os equívocos são mais de **aplicação da regra** (método errado para o tipo de edificação, faixa errada na tabela, fator de coincidência ou de segurança incorreto, parcela esquecida como serviços do condomínio ou valor mínimo por tensão) ou de **dado de entrada** (número de unidades, área útil, potência de carga informados errado)? Existe algum registro ou classificação das reprovações? |
-| **1a** | **Usuário do sistema.** A ferramenta deve ser usada pelo projetista externo, antes de submeter o projeto, ou pela equipe interna de análise, durante a avaliação? Ou pelos dois, com perfis distintos? |
-| **1b** | **Fluxo atual.** Como cada um trabalha hoje? Em que o projetista faz o cálculo e com qual material em mãos? O que a equipe de análise recebe, o que confere e como devolve quando reprova? |
-| **1c** | **Acesso externo.** Uma pessoa de fora da Neoenergia pode acessar um sistema de vocês, ou a ferramenta precisa ficar restrita ao ambiente interno? |
-| **9**  | **Sistema atual.** Já existe um sistema por onde o projeto é submetido e acompanhado? Nele, o analista apenas visualiza o projeto, ou tem acesso a dados, histórico, indicadores e uma metodologia de conferência? A revisão acontece dentro do sistema ou fora dele? E a reprovação e a re-submissão já são um fluxo do sistema, ou são manuais? |
-| **3**  | **Faixa de atendimento.** A simplificação de critérios abaixo de 50 kVA reduziu as reprovações nessa faixa. A ferramenta deve cobrir apenas a faixa acima de 50 kVA, onde o problema persiste, ou todas as faixas? |
-
-**Não perguntar mais a base normativa.** Ela já foi encontrada. No lugar, pedir uma confirmação de uma linha:
-
-> Identificamos a **DIS-NOR-053 REV 06**, de 09/09/2025, como a norma que rege o cálculo de demanda para edificações com múltiplas unidades consumidoras. Confirmam que é essa a revisão em uso na Neoenergia Pernambuco?
+| Etapa do ciclo | Questões |
+| :------------------------------ | :------------------------ |
+| 01 e 02 · antes do projeto      | 13, 1a                    |
+| 03 · o cálculo                  | 11, 12, 3                 |
+| 04 · a submissão                | 14, 1c, 9, 17             |
+| 05 · a análise                  | 1b                        |
+| 06 · a decisão                  | 10                        |
+| 07 · o retorno                  | 15, 16                    |
+| sobre a norma                   | 18, 4                     |
 
 Chegar com a norma já identificada muda o tom da reunião: sai de "nos expliquem o problema" e entra em "validem nosso entendimento".
 
