@@ -54,6 +54,7 @@ Fase de construção da solução.
 | Imersão | Definição e exploração do problema | [`negocio/premissas-desafio.md`](negocio/premissas-desafio.md) |
 | Imersão | Análise de causa raiz | [`negocio/analise-causa-raiz.md`](negocio/analise-causa-raiz.md) |
 | Imersão | Benchmarking | [`negocio/benchmarking.md`](negocio/benchmarking.md) |
+| Imersão | Processo atual do cliente | [`negocio/processo-submissao.md`](negocio/processo-submissao.md) |
 | Imersão | Objetivos do projeto | [`produto/objetivos-projeto.md`](produto/objetivos-projeto.md) |
 | Imersão | Mapa de stakeholders | [`negocio/mapa-stakeholders.md`](negocio/mapa-stakeholders.md) |
 | Imersão | Cronograma inicial | [`cronograma-projetos3.md`](cronograma-projetos3.md) |

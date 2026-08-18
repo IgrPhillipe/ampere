@@ -7,11 +7,10 @@ Documentação do projeto organizada por tema. Visão geral do produto e da equi
 ```
 docs/
 ├── ciclo-projeto-eletrico.html   documento visual de apoio à reunião com o cliente
-├── negocio/      desafio, causa raiz, benchmarking e objetivos
-├── produto/      stakeholders, questões em aberto e registro da ideação
-├── tecnico/      fontes normativas, motor de cálculo e design OOP
-├── uso-de-ia/    registro de uso de IA, para o relatório da aula 14
-└── diagramas/    diagramas de US e fluxos (a preencher)
+├── negocio/      o desafio, a causa raiz, o mercado e o processo atual do cliente
+├── produto/      o que vamos construir: objetivos, ideação e questões em aberto
+├── tecnico/      norma, metodologia de cálculo, motor e design OOP
+└── uso-de-ia/    registro de uso de IA, para o relatório da aula 14
 ```
 
 ## Documentos
@@ -22,6 +21,7 @@ docs/
 | Processo   | [processo.md](processo.md) | As três fases do projeto e a rastreabilidade fase → documento |
 | Negócio    | [negocio/premissas-desafio.md](negocio/premissas-desafio.md) | Empresa, problema, impacto, stakeholders afetados e proposta de solução |
 | Negócio    | [negocio/analise-causa-raiz.md](negocio/analise-causa-raiz.md) | 5 Porquês e Diagrama de Ishikawa |
+| Negócio    | [negocio/processo-submissao.md](negocio/processo-submissao.md) | Como o projeto chega hoje à Neoenergia, é analisado e volta ao projetista |
 | Negócio    | [negocio/benchmarking.md](negocio/benchmarking.md) | Concessionárias e ferramentas de mercado, comparadas por 9 critérios |
 | Produto    | [produto/objetivos-projeto.md](produto/objetivos-projeto.md) | O que o MVP precisa alcançar |
 | Negócio    | [negocio/mapa-stakeholders.md](negocio/mapa-stakeholders.md) | Atores por proximidade com o problema e posição dentro ou fora da Neoenergia |
@@ -43,6 +43,7 @@ Para evitar que a mesma informação seja mantida em dois lugares:
 | Questões de produto e seu estado | [produto/questoes-em-aberto.md](produto/questoes-em-aberto.md) |
 | Pendências operacionais | [pendencias.md](pendencias.md) |
 | Norma, metodologia e revisões | [tecnico/fontes-normativas.md](tecnico/fontes-normativas.md) |
+| Processo de submissão do cliente | [negocio/processo-submissao.md](negocio/processo-submissao.md) |
 | Aulas, datas e entregáveis | [cronograma-projetos3.md](cronograma-projetos3.md) e [cronograma-poo.md](cronograma-poo.md) |
 | Casos de uso de IA | [uso-de-ia/](uso-de-ia/) |
 

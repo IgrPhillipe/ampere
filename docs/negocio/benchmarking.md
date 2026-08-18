@@ -100,7 +100,7 @@ Consequência direta da nota 1: por ser a norma mais explícita do grupo, a GED 
 O simulador entrega o resultado da demanda de forma imediata, mas apresenta o valor final sem o detalhamento das parcelas e fatores aplicados. Serve para o projetista conferir a ordem de grandeza; não substitui o memorial que a concessionária exige anexado ao projeto.
 
 **4. Neoenergia — Aponta o erro e como corrigir `◐`**
-Por regra publicada, o resultado da análise é informado com as ressalvas, os motivos da reprovação e as providências corretivas necessárias, por e-mail ao endereço cadastrado. Isso é mais do que as demais concessionárias comparadas oferecem. A lacuna não é a ausência de devolutiva, e sim o momento: ela chega **depois** do envio e de até 30 dias de análise, quando o retrabalho já é inevitável.
+Por regra publicada, o resultado da análise é informado com as ressalvas, os motivos da reprovação e as providências corretivas necessárias ([`processo-submissao.md`](processo-submissao.md)). Isso é mais do que as demais concessionárias comparadas oferecem. A lacuna não é a ausência de devolutiva, e sim o momento: ela chega **depois** do envio e de até 30 dias de análise, quando o retrabalho já é inevitável.
 
 ---
 

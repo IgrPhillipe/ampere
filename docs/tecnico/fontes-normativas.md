@@ -116,22 +116,9 @@ Sete revisões em menos de quatro anos, e **três delas em menos de dois meses**
 
 ---
 
-## O processo de submissão hoje
+## O processo de submissão
 
-Levantado nas páginas públicas da Neoenergia PE.
-
-| Aspecto | O que foi encontrado |
-| :---------------------- | :------------------------------------------------------------------------------------------ |
-| Canal para MT, grandes clientes e geração distribuída | Portal Clientes Corporativos e [portal de geração distribuída](https://gdneoenergiapernambuco.neoenergia.com/) |
-| Canal para baixa tensão acima de 50 kW | E-mail `projetos.pe@neoenergia.com` |
-| Formulários simplificados | Obrigatórios desde 01/02/2024 |
-| Documentos exigidos | Carta de solicitação, **ART** do engenheiro, desenhos assinados e **memorial descritivo contendo o cálculo de demanda**, cálculo de proteção e queda de tensão |
-| Prazo de análise | **30 dias**, suspensos se faltar informação solicitada |
-| Resposta | Enviada ao e-mail cadastrado, **com os motivos da reprovação e as providências corretivas necessárias** |
-| Re-submissão | Mesmo processo, após correção |
-| Validade da aprovação | **36 meses** a partir da aprovação |
-
-Fonte: [Projeto Particular](https://www.neoenergia.com/web/pernambuco/seu-negocio/projeto-particular) e [Projetistas e Prestadores de Serviço](https://www.neoenergia.com/web/pernambuco/seu-negocio/projetistas-prestadores-de-servico).
+Canais, documentos exigidos, prazo de análise e validade da aprovação estão em [`../negocio/processo-submissao.md`](../negocio/processo-submissao.md). Este documento cobre apenas a norma e o método de cálculo.
 
 ---
 

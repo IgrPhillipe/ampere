@@ -1,4 +1,8 @@
-# Premissas do Desafio — Neoenergia Pernambuco
+# Premissas do Desafio
+
+O desafio como a Neoenergia Pernambuco o apresentou: empresa, problema, impacto, quem é afetado e a proposta de solução esperada.
+
+Fase: Imersão ([`../processo.md`](../processo.md))
 
 ## Empresa
 
