@@ -1,0 +1,673 @@
+<title>Ciclo do Projeto Elétrico</title>
+<!--
+  Documento visual de apoio à reunião com o cliente.
+  Publicado também como artefato em claude.ai; este arquivo é a cópia versionada.
+
+  FONTE DE VERDADE dos fatos: os .md em docs/. Este HTML é derivado.
+  Ao alterar aqui, refletir no markdown correspondente (e vice-versa),
+  senão os dois divergem — já aconteceu uma vez com a lista de perguntas.
+-->
+
+<style>
+  :root {
+    --paper:   #E9EDEF;
+    --panel:   #FBFCFC;
+    --panel-2: #F2F5F6;
+    --ink:     #16212B;
+    --ink-2:   #4C5D69;
+    --ink-3:   #75868F;
+    --rule:    #C4D0D6;
+    --rule-2:  #DDE5E8;
+    --ok:      #0E6154;
+    --ok-bg:   #DCEDE9;
+    --hyp:     #9A5B00;
+    --hyp-bg:  #F5E8D2;
+    --mark:    #1F4E79;
+    --mark-bg: #DCE7F1;
+
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --serif: "Iowan Old Style", "Charter", Charter, Georgia, "Times New Roman", serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:   #0E151A;
+      --panel:   #161F26;
+      --panel-2: #1B262E;
+      --ink:     #E3EAEE;
+      --ink-2:   #9AACB6;
+      --ink-3:   #71838D;
+      --rule:    #2B3B45;
+      --rule-2:  #223038;
+      --ok:      #55C7B0;
+      --ok-bg:   #10312C;
+      --hyp:     #E0A244;
+      --hyp-bg:  #362713;
+      --mark:    #79B4E8;
+      --mark-bg: #132534;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:   #0E151A;
+    --panel:   #161F26;
+    --panel-2: #1B262E;
+    --ink:     #E3EAEE;
+    --ink-2:   #9AACB6;
+    --ink-3:   #71838D;
+    --rule:    #2B3B45;
+    --rule-2:  #223038;
+    --ok:      #55C7B0;
+    --ok-bg:   #10312C;
+    --hyp:     #E0A244;
+    --hyp-bg:  #362713;
+    --mark:    #79B4E8;
+    --mark-bg: #132534;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0 20px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .sheet { max-width: 1080px; margin: 0 auto; }
+
+  .titleblock { border-bottom: 2px solid var(--ink); padding: 44px 0 18px; margin-bottom: 36px; }
+  .titleblock h1 {
+    font-size: clamp(34px, 6vw, 54px); line-height: 1.05;
+    letter-spacing: -0.015em; font-weight: 700; margin: 0 0 10px; text-wrap: balance;
+  }
+  .lede { font-size: 19px; color: var(--ink-2); max-width: 62ch; margin: 0 0 30px; }
+  .meta {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 18px 26px; border-top: 1px solid var(--rule); padding-top: 16px;
+  }
+  .meta div { display: flex; flex-direction: column; gap: 3px; }
+  .meta dt, .k {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.11em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .meta dd { font-family: var(--mono); font-size: 13px; color: var(--ink); margin: 0; }
+
+  section { margin: 0 0 62px; }
+  h2 {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink-2); font-weight: 600;
+    margin: 0 0 20px; padding-bottom: 9px; border-bottom: 1px solid var(--rule);
+  }
+  h3.sub {
+    font-family: var(--serif); font-size: 22px; font-weight: 700;
+    margin: 34px 0 12px; line-height: 1.2;
+  }
+  p { max-width: 68ch; }
+  p:first-of-type { margin-top: 0; }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-top: 26px;
+  }
+  .stat { background: var(--panel); padding: 20px 22px; }
+  .stat .n {
+    font-family: var(--mono); font-size: 30px; font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em; line-height: 1.1; display: block; margin-bottom: 6px;
+  }
+  .stat .d { font-size: 15px; color: var(--ink-2); line-height: 1.4; }
+  .stat.good .n { color: var(--ok); }
+  .stat.flag .n { color: var(--hyp); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-bottom: 22px; padding: 0; list-style: none; }
+  .legend li {
+    display: flex; align-items: center; gap: 9px;
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.05em; color: var(--ink-2);
+  }
+  .swatch { width: 26px; height: 14px; border-width: 1.5px; flex: none; }
+  .sw-ok  { border-style: solid;  border-color: var(--ok);  background: var(--ok-bg); }
+  .sw-hyp { border-style: dashed; border-color: var(--hyp); background: var(--hyp-bg); }
+
+  figure { margin: 0; }
+  .scroller { overflow-x: auto; background: var(--panel); border: 1px solid var(--rule); padding: 8px; }
+  .dg { display: block; width: 100%; min-width: 720px; height: auto; }
+  .dg text { font-family: var(--mono); fill: var(--ink); }
+  .dg .num  { font-size: 11px; letter-spacing: 0.08em; fill: var(--ink-3); }
+  .dg .ttl  { font-size: 15px; font-weight: 600; }
+  .dg .sub  { font-size: 11.5px; fill: var(--ink-2); }
+  .dg .edge { font-size: 11px; fill: var(--ink-2); letter-spacing: 0.04em; }
+  .dg .tag  { font-size: 11px; fill: var(--mark); letter-spacing: 0.06em; }
+  .dg .flow { stroke: var(--ink-2); stroke-width: 1.4; fill: none; }
+  .dg .loop { stroke: var(--ink-3); stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; }
+  .dg .mk   { stroke: var(--mark); stroke-width: 1.4; fill: none; }
+  .dg .box  { stroke-width: 1.6; }
+  .dg .b-ok  { fill: var(--ok-bg);  stroke: var(--ok); }
+  .dg .b-hyp { fill: var(--hyp-bg); stroke: var(--hyp); stroke-dasharray: 6 3; }
+  .dg .head-ink { fill: var(--ink-2); }
+  figcaption { font-size: 15px; color: var(--ink-2); margin-top: 14px; max-width: 70ch; }
+
+  .stage {
+    border-top: 1px solid var(--rule); padding: 22px 0;
+    display: grid; grid-template-columns: 210px 1fr; gap: 12px 32px;
+  }
+  .stage:last-child { border-bottom: 1px solid var(--rule); }
+  .stage .hd { display: flex; flex-direction: column; gap: 8px; }
+  .stage .no { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; color: var(--ink-3); }
+  .stage h3 { font-size: 23px; font-weight: 700; margin: 0; line-height: 1.15; }
+  .chip {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; padding: 3px 8px; align-self: flex-start;
+  }
+  .c-ok  { color: var(--ok);  background: var(--ok-bg);  border: 1.5px solid var(--ok); }
+  .c-hyp { color: var(--hyp); background: var(--hyp-bg); border: 1.5px dashed var(--hyp); }
+  .stage .body > * { margin: 0 0 12px; }
+  .stage .body > *:last-child { margin-bottom: 0; }
+  .stage .body p { max-width: 62ch; }
+  .src { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); letter-spacing: 0.02em; }
+  .ask {
+    background: var(--panel-2); border-left: 3px solid var(--ink-3);
+    padding: 11px 15px; font-size: 15.5px; max-width: 62ch;
+  }
+  .ask .k { display: block; margin-bottom: 5px; }
+  .qref { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  .qtag {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+    color: var(--mark); border: 1px solid var(--mark); padding: 2px 6px;
+  }
+
+  .block { margin-bottom: 34px; }
+  .block > .bh {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--mark);
+    border-bottom: 1px solid var(--mark); padding-bottom: 7px; margin-bottom: 4px;
+  }
+  .qs { list-style: none; padding: 0; margin: 0; }
+  .qs li {
+    border-bottom: 1px solid var(--rule-2); padding: 15px 0 15px 62px;
+    position: relative; max-width: 78ch;
+  }
+  .qs li .qid {
+    position: absolute; left: 0; top: 16px;
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em;
+    color: var(--mark); border: 1px solid var(--mark); padding: 2px 7px;
+  }
+  .qs strong { font-weight: 700; }
+  .qs .why {
+    display: block; font-size: 14.5px; color: var(--ink-3);
+    margin-top: 5px; font-style: italic;
+  }
+
+  .idea {
+    background: var(--mark-bg); border-left: 3px solid var(--mark);
+    padding: 16px 20px; margin: 26px 0 0; max-width: 72ch;
+  }
+  .idea .k { display: block; margin-bottom: 6px; color: var(--mark); }
+  .idea p { margin: 0; font-size: 16.5px; }
+
+  .normcard { background: var(--panel); border: 1px solid var(--rule); padding: 24px 26px; margin-bottom: 8px; }
+  .normcard h3 { font-size: 24px; margin: 0 0 6px; line-height: 1.2; }
+  .normcard .code {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
+    color: var(--ok); display: block; margin-bottom: 12px;
+  }
+  .formula {
+    font-family: var(--mono); font-size: 15px; background: var(--panel-2);
+    border-left: 3px solid var(--ok); padding: 14px 18px; margin: 18px 0;
+    overflow-x: auto; line-height: 1.9; white-space: pre;
+  }
+  .tablewrap { overflow-x: auto; }
+  table.grid { border-collapse: collapse; width: 100%; font-size: 15px; margin-top: 8px; }
+  table.grid th, table.grid td {
+    border-bottom: 1px solid var(--rule-2); padding: 10px 14px 10px 0;
+    text-align: left; vertical-align: top;
+  }
+  table.grid th {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.11em;
+    text-transform: uppercase; color: var(--ink-3);
+    border-bottom: 1px solid var(--rule); font-weight: 600;
+  }
+  table.grid td.mono { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+  table.grid tr.burst td { color: var(--hyp); }
+
+  .sources { border-top: 2px solid var(--ink); padding-top: 18px; font-size: 14.5px; color: var(--ink-2); }
+  .sources ul { margin: 12px 0 0; padding-left: 20px; }
+  .sources li { margin-bottom: 5px; }
+  .sources code { font-family: var(--mono); font-size: 12.5px; color: var(--ink); }
+  a { color: inherit; text-decoration-color: var(--ink-3); text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+
+  @media (max-width: 640px) {
+    .stage { grid-template-columns: 1fr; }
+    body { font-size: 16px; }
+    .qs li { padding-left: 0; padding-top: 34px; }
+    .qs li .qid { top: 2px; }
+  }
+</style>
+
+<div class="sheet">
+
+  <header class="titleblock">
+    <h1>Ciclo do Projeto Elétrico</h1>
+    <p class="lede">O caminho que um projeto de edificação com múltiplas unidades consumidoras percorre até ser aprovado ou reprovado pela Neoenergia PE. Documento de consulta para a reunião com o cliente: marca o que já sabemos, o que estamos supondo e o que precisamos perguntar.</p>
+    <dl class="meta">
+      <div><dt>Projeto</dt><dd>Cálculo de Demanda Elétrica</dd></div>
+      <div><dt>Equipe</dt><dd>Grupo 4</dd></div>
+      <div><dt>Disciplina</dt><dd>Projetos 3 · CESAR School</dd></div>
+      <div><dt>Fase</dt><dd>Ideação · Parte 1</dd></div>
+      <div><dt>Revisão</dt><dd>17/08/2026</dd></div>
+    </dl>
+  </header>
+
+  <section>
+    <h2>O problema</h2>
+    <p>Metade dos projetos elétricos de edificações com múltiplas unidades consumidoras que a Neoenergia Pernambuco recebe por ano é reprovada por erro no cálculo de demanda. As regras normativas são aplicadas à mão, envolvem muitas tabelas e parâmetros, e admitem interpretações divergentes.</p>
+    <p>Isso queima os dois lados do fluxo: o <strong>projetista</strong>, que refaz e reenvia, e a <strong>equipe interna de análise</strong>, que gasta o tempo encontrando a inconsistência e devolvendo o projeto.</p>
+    <div class="stats">
+      <div class="stat"><span class="n">~50%</span><span class="d">dos projetos desse tipo são reprovados</span></div>
+      <div class="stat good"><span class="n">5 de 7</span><span class="d">etapas do ciclo confirmadas por documento público</span></div>
+      <div class="stat flag"><span class="n">15</span><span class="d">perguntas para a reunião, agrupadas por etapa</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>As normas em jogo</h2>
+    <p>A Neoenergia publica as próprias normas técnicas, gratuitamente, na <a href="https://www.neoenergia.com/web/pernambuco/normas-tecnicas">página de normas técnicas da distribuidora</a>, sempre com a revisão vigente de cada uma. Duas valem para o nosso problema.</p>
+
+    <div class="tablewrap">
+      <table class="grid">
+        <thead><tr><th>Norma</th><th>Assunto</th><th>Papel no cálculo</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="mono">DIS-NOR-053<br>REV 06</td>
+            <td>Edificações com múltiplas unidades consumidoras até 34,5 kV</td>
+            <td><strong>A principal.</strong> Metodologia completa no Anexo I, com cinco exemplos resolvidos</td>
+          </tr>
+          <tr>
+            <td class="mono">DIS-NOR-030<br>REV 07</td>
+            <td>Edificações individuais em tensão secundária</td>
+            <td>Complementar. Define o método da carga instalada, usado nas unidades individuais e na área de serviço do condomínio</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:22px;">O método de cálculo é <strong>autocontido entre essas duas normas gratuitas</strong>. A DIS-NOR-053 também cita normas da ABNT, mas somente para questões de instalação, como dimensionamento de condutor e aterramento. Nada do cálculo de demanda depende delas.</p>
+
+    <p>O detalhamento das fórmulas, das tabelas e do ritmo de revisão está no <a href="#anexo">anexo, ao final deste documento</a>.</p>
+  </section>
+
+  <section>
+    <h2>O ciclo</h2>
+
+    <ul class="legend">
+      <li><span class="swatch sw-ok"></span>Confirmado por documento</li>
+      <li><span class="swatch sw-hyp"></span>Hipótese nossa, a validar</li>
+    </ul>
+
+    <figure>
+      <div class="scroller">
+        <svg class="dg" viewBox="0 0 1100 510" role="img" aria-label="Fluxo em sete etapas do ciclo de vida de um projeto elétrico, da contratação ao retrabalho. Cinco etapas estão confirmadas por documento público: projeto, cálculo, submissão, decisão e retorno. Duas seguem como hipótese: a origem da contratação e o método interno de análise.">
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+            </marker>
+          </defs>
+
+          <rect class="box b-hyp" x="40"  y="100" width="180" height="120" />
+          <text class="num" x="56"  y="126">01</text>
+          <text class="ttl" x="56"  y="158">Origem</text>
+          <text class="sub" x="56"  y="180">quem contrata</text>
+          <text class="sub" x="56"  y="196">o projeto</text>
+
+          <rect class="box b-ok" x="320" y="100" width="180" height="120" />
+          <text class="num" x="336" y="126">02</text>
+          <text class="ttl" x="336" y="158">Projeto</text>
+          <text class="sub" x="336" y="180">projetista com ART</text>
+          <text class="sub" x="336" y="196">elabora</text>
+
+          <rect class="box b-ok" x="600" y="100" width="180" height="120" />
+          <text class="num" x="616" y="126">03</text>
+          <text class="ttl" x="616" y="158">Cálculo</text>
+          <text class="sub" x="616" y="180">demanda calculada</text>
+          <text class="sub" x="616" y="196">à mão</text>
+
+          <rect class="box b-ok" x="880" y="100" width="180" height="120" />
+          <text class="num" x="896" y="126">04</text>
+          <text class="ttl" x="896" y="158">Submissão</text>
+          <text class="sub" x="896" y="180">portal ou e-mail,</text>
+          <text class="sub" x="896" y="196">conforme o porte</text>
+
+          <rect class="box b-hyp" x="880" y="320" width="180" height="120" />
+          <text class="num" x="896" y="346">05</text>
+          <text class="ttl" x="896" y="378">Análise</text>
+          <text class="sub" x="896" y="400">30 dias. Método</text>
+          <text class="sub" x="896" y="416">de conferência?</text>
+
+          <rect class="box b-ok" x="600" y="320" width="180" height="120" />
+          <text class="num" x="616" y="346">06</text>
+          <text class="ttl" x="616" y="378">Decisão</text>
+          <text class="sub" x="616" y="400">metade é</text>
+          <text class="sub" x="616" y="416">reprovada</text>
+
+          <rect class="box b-ok" x="320" y="320" width="180" height="120" />
+          <text class="num" x="336" y="346">07</text>
+          <text class="ttl" x="336" y="378">Retorno</text>
+          <text class="sub" x="336" y="400">e-mail com motivo</text>
+          <text class="sub" x="336" y="416">e correções</text>
+
+          <g class="head-ink">
+            <line class="flow" x1="220" y1="160" x2="313" y2="160" marker-end="url(#ar)" />
+            <line class="flow" x1="500" y1="160" x2="593" y2="160" marker-end="url(#ar)" />
+            <line class="flow" x1="780" y1="160" x2="873" y2="160" marker-end="url(#ar)" />
+            <line class="flow" x1="970" y1="220" x2="970" y2="313" marker-end="url(#ar)" />
+            <line class="flow" x1="880" y1="380" x2="787" y2="380" marker-end="url(#ar)" />
+            <line class="flow" x1="600" y1="380" x2="507" y2="380" marker-end="url(#ar)" />
+            <line class="loop" x1="410" y1="320" x2="410" y2="227" marker-end="url(#ar)" />
+          </g>
+
+          <text class="edge" x="266" y="150" text-anchor="middle">contrata</text>
+          <text class="edge" x="546" y="150" text-anchor="middle">elabora</text>
+          <text class="edge" x="826" y="150" text-anchor="middle">envia</text>
+          <text class="edge" x="982" y="272">recebe</text>
+          <text class="edge" x="833" y="370" text-anchor="middle">confere</text>
+          <text class="edge" x="553" y="370" text-anchor="middle">reprova</text>
+          <text class="edge" x="422" y="276">retrabalho</text>
+
+          <g class="mk">
+            <path d="M 620 88 L 620 76 L 760 76 L 760 88" />
+            <path d="M 900 452 L 900 464 L 1040 464 L 1040 452" />
+          </g>
+          <text class="tag" x="690" y="66"  text-anchor="middle">entrada possível do MVP</text>
+          <text class="tag" x="970" y="482" text-anchor="middle">entrada possível do MVP</text>
+        </svg>
+      </div>
+      <figcaption>O erro nasce na etapa 03 e só é descoberto na 06, sem que nada entre as duas o verifique. Esse trecho é a oportunidade. As duas âncoras marcam onde a ferramenta poderia entrar, e a escolha entre elas é a questão 1.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Etapa a etapa</h2>
+    <p style="margin-bottom:26px;">Cada lacuna abaixo aponta as perguntas que a fecham. Elas estão listadas na íntegra na seção seguinte.</p>
+
+    <div class="stage">
+      <div class="hd">
+        <span class="no">ETAPA 01</span>
+        <h3>Origem</h3>
+        <span class="chip c-hyp">Hipótese</span>
+      </div>
+      <div class="body">
+        <p>Alguém contrata o projeto elétrico da edificação. O mapa de stakeholders lista incorporadoras, construtoras e proprietários como caixas separadas dos projetistas, o que sugere que quem paga e quem projeta raramente são a mesma pessoa. A submissão exige carta de solicitação assinada pelo "interessado", mas quem é esse interessado não está definido.</p>
+        <p class="src">Base: mapa-stakeholders.md · documentação pública de projeto particular</p>
+        <div class="ask">
+          <span class="k">Falta saber</span>Quem contrata, se é a mesma pessoa que projeta, e se o contratante tem papel na correção quando o projeto é reprovado.
+          <div class="qref"><span class="qtag">Q13</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="hd">
+        <span class="no">ETAPA 02</span>
+        <h3>Projeto</h3>
+        <span class="chip c-ok">Confirmado</span>
+      </div>
+      <div class="body">
+        <p>Um projetista elétrico elabora o projeto. A documentação de submissão exige explicitamente a <strong>ART do engenheiro</strong> descrevendo a atividade, além dos desenhos assinados e do memorial descritivo. Existe, portanto, um responsável técnico registrado por trás de cada projeto.</p>
+        <p class="src">Base: página pública de projeto particular da Neoenergia PE</p>
+        <div class="ask">
+          <span class="k">Falta saber</span>Se o usuário é pessoa física com registro próprio ou empresa de engenharia com vários projetos, e se a Neoenergia verifica esse registro antes de aceitar o envio.
+          <div class="qref"><span class="qtag">Q1a</span><span class="qtag">Q13</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="hd">
+        <span class="no">ETAPA 03</span>
+        <h3>Cálculo</h3>
+        <span class="chip c-ok">Confirmado</span>
+      </div>
+      <div class="body">
+        <p>A demanda é calculada inteiramente à mão, aplicando muitas tabelas e parâmetros que admitem interpretações divergentes. É aqui que o erro nasce. A metodologia está detalhada na DIS-NOR-053, com fórmulas, tabelas e cinco exemplos resolvidos. Os detalhes estão na última seção deste documento.</p>
+        <p class="src">Base: DIS-NOR-053 REV 06, Anexo I · premissas-desafio.md · analise-causa-raiz.md</p>
+        <div class="ask">
+          <span class="k">Falta saber</span>Qual tipo de edificação concentra o problema, e se a DIS-NOR-053 é a única norma aplicável ou se convive com outras.
+          <div class="qref"><span class="qtag">Q11</span><span class="qtag">Q12</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="hd">
+        <span class="no">ETAPA 04</span>
+        <h3>Submissão</h3>
+        <span class="chip c-ok">Confirmado</span>
+      </div>
+      <div class="body">
+        <p>O projeto chega por dois canais, conforme o porte: <strong>portal</strong> para média tensão, grandes clientes e geração distribuída, e <strong>e-mail</strong> para baixa tensão acima de 50 kW. Formulários simplificados são obrigatórios desde fevereiro de 2024. Exige-se carta de solicitação, ART, desenhos assinados e memorial descritivo com o cálculo de demanda.</p>
+        <p class="src">Base: páginas públicas de projeto particular e de projetistas da Neoenergia PE</p>
+        <div class="ask">
+          <span class="k">Falta saber</span>Em que formato os arquivos chegam, como o canal de e-mail dá conta do volume, se o projetista externo tem conta no portal, e se existe base histórica que o novo sistema precisaria importar.
+          <div class="qref"><span class="qtag">Q14</span><span class="qtag">Q1c</span><span class="qtag">Q9</span><span class="qtag">Q17</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="hd">
+        <span class="no">ETAPA 05</span>
+        <h3>Análise</h3>
+        <span class="chip c-hyp">Hipótese</span>
+      </div>
+      <div class="body">
+        <p>A análise tem prazo publicado de <strong>30 dias</strong>, suspensos se faltar informação solicitada. Mas como a equipe confere o cálculo continua desconhecido: refaz a conta por inteiro, usa planilha, segue um roteiro? É a lacuna mais relevante que restou.</p>
+        <p class="src">Base: prazo confirmado em fonte pública · método não é público</p>
+        <div class="ask">
+          <span class="k">Falta saber</span>O método de conferência, se acontece dentro de um sistema ou fora dele, e se o analista tem dados, histórico e indicadores à mão ou apenas visualiza o projeto.
+          <div class="qref"><span class="qtag">Q1b</span><span class="qtag">Q9</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="hd">
+        <span class="no">ETAPA 06</span>
+        <h3>Decisão</h3>
+        <span class="chip c-ok">Confirmado</span>
+      </div>
+      <div class="body">
+        <p>Cerca de metade dos projetos é reprovada. Uma tentativa anterior simplificou os critérios para demanda abaixo de 50 kVA e reduziu as reprovações nessa faixa; acima dela o problema persiste. A aprovação, quando sai, vale 36 meses.</p>
+        <p class="src">Base: premissas-desafio.md · validade confirmada em fonte pública</p>
+        <div class="ask">
+          <span class="k">Falta saber</span>Se os erros são de aplicação da regra ou de dado de entrada, e que tipo de edificação concentra as reprovações. Automatizar o cálculo mata o primeiro tipo de erro e não mata o segundo.
+          <div class="qref"><span class="qtag">Q10</span><span class="qtag">Q11</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="hd">
+        <span class="no">ETAPA 07</span>
+        <h3>Retorno</h3>
+        <span class="chip c-ok">Confirmado</span>
+      </div>
+      <div class="body">
+        <p>Aqui a suposição inicial do time estava errada. Por regra publicada, a Neoenergia informa o resultado <strong>com as ressalvas, os motivos da reprovação e as providências corretivas necessárias</strong>, por e-mail ao endereço cadastrado. A re-submissão segue o mesmo processo, após correção.</p>
+        <p class="src">Base: página pública de projeto particular da Neoenergia PE</p>
+        <div class="ask">
+          <span class="k">Falta saber</span>Se o reenvio volta para o fim da fila ou tem tratamento próprio, e o que acontece quando os 36 meses de validade expiram.
+          <div class="qref"><span class="qtag">Q15</span><span class="qtag">Q16</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Pauta da reunião</h2>
+    <p style="margin-bottom:30px;">Todas as perguntas em aberto, na ordem do ciclo. Em itálico, por que cada uma importa para a decisão de produto.</p>
+
+    <div class="block">
+      <div class="bh">Etapas 01 e 02 · antes do projeto chegar</div>
+      <ul class="qs">
+        <li><span class="qid">Q13</span><strong>Como começa.</strong> Tenho um projeto pronto hoje. Para quem envio, com quem falo, do que preciso? Quem contrata o projeto é a mesma pessoa que o elabora? O projetista precisa ser credenciado, com CREA e ART verificados, ou qualquer pessoa pode enviar?
+          <span class="why">Define quem entra no sistema e se existe cadastro prévio a modelar.</span></li>
+        <li><span class="qid">Q1a</span><strong>Usuário do MVP.</strong> A ferramenta deve ser usada pelo projetista externo, antes de submeter, ou pela equipe interna de análise, durante a avaliação? Ou pelos dois, com perfis distintos? E o projetista é pessoa física com registro próprio ou empresa de engenharia com vários projetos?
+          <span class="why">É a decisão que define o produto. Entrada, saída, autenticação e fluxo mudam conforme a resposta.</span></li>
+      </ul>
+    </div>
+
+    <div class="block">
+      <div class="bh">Etapa 03 · o cálculo</div>
+      <ul class="qs">
+        <li><span class="qid">Q11</span><strong>Tipo de edificação em foco.</strong> A norma trata residencial, não residencial, misto e Smart/Studio com métodos diferentes. Qual desses tipos concentra o volume de projetos, e qual concentra as reprovações? O MVP deve cobrir todos ou focar em um?
+          <span class="why">Cada tipo é um método de cálculo distinto. Focar em um reduz o escopo do MVP sem perder o problema.</span></li>
+        <li><span class="qid">Q12</span><strong>Uma norma ou várias.</strong> A DIS-NOR-053 é a única norma aplicável a esses projetos, ou eles precisam atender outras em paralelo, como a DIS-NOR-030, o PRODIST ou NBRs? Em caso de conflito, qual prevalece?
+          <span class="why">Se forem várias, o motor precisa saber qual regra vence, e não só aplicar uma tabela.</span></li>
+        <li><span class="qid">Q3</span><strong>Faixa de atendimento.</strong> A simplificação de critérios abaixo de 50 kVA reduziu as reprovações nessa faixa. A ferramenta deve cobrir apenas a faixa acima, onde o problema persiste, ou todas?
+          <span class="why">Define o recorte do MVP.</span></li>
+      </ul>
+    </div>
+
+    <div class="block">
+      <div class="bh">Etapa 04 · a submissão</div>
+      <ul class="qs">
+        <li><span class="qid">Q14</span><strong>Formato do que é enviado.</strong> O que chega hoje: PDF, DWG, planilha, formulário preenchido? Existe formato padrão obrigatório? A norma define o formato do memorial de cálculo, ou só o conteúdo?
+          <span class="why">Define se o sistema recebe dados estruturados ou precisa extrair de documento.</span></li>
+        <li><span class="qid">Q1c</span><strong>Acesso externo.</strong> Uma pessoa de fora da Neoenergia pode acessar um sistema de vocês, ou a ferramenta precisa ficar restrita ao ambiente interno?
+          <span class="why">Se a resposta for não, a proposta de self-service para o projetista morre antes de nascer.</span></li>
+        <li><span class="qid">Q9</span><strong>O sistema atual.</strong> Existe portal para todos os casos ou só para média tensão e geração distribuída? Como o canal de e-mail dá conta do volume: há protocolo, triagem, fila? O analista apenas visualiza o projeto, ou o sistema entrega a ele dados, histórico, indicadores e uma metodologia de conferência?
+          <span class="why">Se já existe sistema extensível, a solução pode ser um módulo dentro dele em vez de um produto novo.</span></li>
+        <li><span class="qid">Q17</span><strong>Base histórica.</strong> Existe acervo de projetos anteriores, aprovados e reprovados? Um sistema novo precisaria importar essa base, ou começaria vazio?
+          <span class="why">Muda drasticamente o esforço e abre a possibilidade de aprender com o histórico de reprovações.</span></li>
+      </ul>
+    </div>
+
+    <div class="block">
+      <div class="bh">Etapa 05 · a análise</div>
+      <ul class="qs">
+        <li><span class="qid">Q1b</span><strong>Fluxo atual dos dois lados.</strong> Em que o projetista faz o cálculo hoje e com qual material em mãos? O que a equipe de análise recebe, o que confere, em que ordem, e como monta a devolutiva quando reprova?
+          <span class="why">Sem isso não há como escrever história de usuário nem desenhar tela.</span></li>
+      </ul>
+    </div>
+
+    <div class="block">
+      <div class="bh">Etapa 06 · a decisão</div>
+      <ul class="qs">
+        <li><span class="qid">Q10</span><strong>Natureza dos erros.</strong> Entre os projetos reprovados, os equívocos são mais de <strong>aplicação da regra</strong> (método errado para o tipo de edificação, faixa errada na tabela, fator de coincidência ou de segurança incorreto, parcela esquecida) ou de <strong>dado de entrada</strong> (número de unidades, área útil, potência informados errado)? Existe registro ou classificação das reprovações?
+          <span class="why">Decide se o produto funciona. Automatizar o cálculo elimina erro de regra e não elimina erro de entrada: se o projetista digitar 14 unidades onde há 15, a ferramenta calcula certo em cima do dado errado.</span></li>
+      </ul>
+    </div>
+
+    <div class="block">
+      <div class="bh">Etapa 07 · o retorno</div>
+      <ul class="qs">
+        <li><span class="qid">Q15</span><strong>Devolutiva e reenvio.</strong> Como a análise volta ao projetista, na prática? O projeto corrigido reinicia o processo do zero, com novo prazo de 30 dias, ou existe fila separada para reenvio de correção? O projetista consegue acompanhar em que pé está?
+          <span class="why">Define se a ferramenta pode encurtar o ciclo de retrabalho ou só o de primeira submissão.</span></li>
+        <li><span class="qid">Q16</span><strong>Depois dos 36 meses.</strong> A aprovação vale 36 meses. O que acontece ao fim desse prazo se a obra não terminou? O projetista submete tudo de novo, pede prorrogação, ou o projeto simplesmente caduca?
+          <span class="why">Pode ser um caso de uso inteiro que ninguém mapeou, e um motivo de retrabalho invisível.</span></li>
+      </ul>
+    </div>
+
+    <div class="block">
+      <div class="bh">Sobre a norma</div>
+      <ul class="qs">
+        <li><span class="qid">Q18</span><strong>Como as revisões circulam.</strong> A página de normas técnicas de vocês já publica a REV 06 como vigente, então essa parte não precisamos perguntar. O que falta: como a equipe de análise e os projetistas ficam sabendo que saiu revisão nova? Um projeto submetido sob a revisão anterior é avaliado por qual delas? Existe período de transição?
+          <span class="why">Sete revisões em menos de quatro anos, três delas em dois meses. A resposta define como o sistema versiona regras e o que faz com projeto em trânsito quando a norma muda no meio do caminho.</span></li>
+        <li><span class="qid">Q4</span><strong>O que a ferramenta deveria devolver.</strong> Na visão de vocês, a saída ideal é um número de demanda, uma memória de cálculo passo a passo, um documento pronto para submeter, ou um parecer apontando onde está o erro?
+          <span class="why">Define o produto tanto quanto saber quem é o usuário.</span></li>
+      </ul>
+    </div>
+
+    <div class="idea">
+      <span class="k">Hipótese de solução a validar na reunião</span>
+      <p>Um sistema com duas áreas: uma <strong>interna de revisão</strong>, onde o analista registra a conferência e monta a devolutiva de forma estruturada, e uma <strong>externa de retorno</strong>, onde quem submeteu vê exatamente o que foi apontado e reenvia a correção pelo mesmo lugar. Faz sentido para vocês? Resolveria mais do que apenas automatizar o cálculo?</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 id="anexo">Anexo · a norma e o cálculo</h2>
+    <p>Material de referência técnica. Não é necessário para conduzir a reunião, mas sustenta tudo que foi afirmado sobre a etapa 03.</p>
+
+    <h3 class="sub">A norma</h3>
+
+    <div class="normcard">
+      <span class="code">DIS-NOR-053 · REV 06 · 09/09/2025 · 353 páginas</span>
+      <h3>Fornecimento de Energia Elétrica à Edificações com Múltiplas Unidades Consumidoras até 34,5 kV</h3>
+      <p style="margin:10px 0 0;color:var(--ink-2);font-size:16px;">Documento público e gratuito, unificado entre as distribuidoras do grupo Neoenergia: Coelba, Pernambuco, Cosern e Elektro. A metodologia de cálculo está no Anexo I, com cinco exemplos numéricos resolvidos de ponta a ponta, que servem diretamente como casos de teste.</p>
+    </div>
+
+    <p style="margin-top:18px;">A norma complementar <strong>DIS-NOR-030</strong>, também pública, define o método da carga instalada, usado para as unidades individuais e para a área de serviço do condomínio.</p>
+
+    <h3 class="sub">Ritmo de revisão</h3>
+
+    <p>Este é o dado com maior consequência de arquitetura do levantamento.</p>
+
+    <div class="tablewrap">
+      <table class="grid">
+        <thead><tr><th>Revisão</th><th>Data</th><th>Intervalo</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">00</td><td class="mono">29/10/2021</td><td></td></tr>
+          <tr><td class="mono">01</td><td class="mono">21/12/2021</td><td class="mono">2 meses</td></tr>
+          <tr><td class="mono">02</td><td class="mono">22/02/2022</td><td class="mono">2 meses</td></tr>
+          <tr><td class="mono">03</td><td class="mono">16/05/2022</td><td class="mono">3 meses</td></tr>
+          <tr><td class="mono">04</td><td class="mono">22/07/2025</td><td class="mono">3 anos</td></tr>
+          <tr class="burst"><td class="mono">05</td><td class="mono">26/08/2025</td><td class="mono">1 mês</td></tr>
+          <tr class="burst"><td class="mono">06</td><td class="mono">09/09/2025</td><td class="mono">2 semanas</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:20px;">Sete revisões em menos de quatro anos, e três delas em menos de dois meses. Duas consequências diretas:</p>
+    <p><strong>Os parâmetros não podem ser constantes no código.</strong> Precisam ser dados versionados e persistidos, com cada cálculo registrando qual revisão aplicou. Isso atende de uma vez a rastreabilidade prometida nos objetivos do projeto e o requisito de classes de domínio persistidas da disciplina.</p>
+    <p><strong>Dá para automatizar o acompanhamento.</strong> O PDF tem URL estável e traz a revisão no cabeçalho de cada página. Um verificador periódico consegue detectar revisão nova e alertar. É a única ideia levantada até agora que ataca a categoria <em>Machine</em> do Ishikawa, que segue descoberta.</p>
+
+    <h3 class="sub">A metodologia</h3>
+
+    <p>A demanda total da edificação é a soma das demandas residencial, comercial e de serviço:</p>
+
+    <div class="formula">Df = (Dr × Fr) + Ds
+
+Dr = D_apto(área útil) × f_coinc(nº de apartamentos) × Nº de apartamentos
+
+Ds = a + g
+  a = (P_iluminação / Fp × Fd) + (P_TUG / Fp × Fd)
+  g = motores. Fator 1,00 no maior, 0,50 nos demais</div>
+
+    <p>Sobre o resultado incide ainda um <strong>valor mínimo por tensão de fornecimento</strong>. No exemplo 1 da própria norma, uma edificação com demanda calculada de 32,37 kVA em 380/220 V tem o mínimo de 46 kVA aplicado.</p>
+
+    <p>Quase todo passo é uma consulta a tabela por faixa: demanda do apartamento por área útil, fator de coincidência por número de apartamentos, fator de segurança por faixa de demanda, fator de demanda por tipo de ocupação, potência em kVA por cv do motor. É o tipo de operação em que errar de faixa é fácil e conferir é caro.</p>
+
+    <h3 class="sub">Tipos de edificação e seus métodos</h3>
+
+    <p>Cada tipo usa um método diferente. Essa tabela é a base da questão <strong>Q11</strong>, e praticamente desenha a hierarquia de classes que a disciplina de POO exige.</p>
+
+    <div class="tablewrap">
+      <table class="grid">
+        <thead><tr><th>Tipo de edificação</th><th>Método aplicável</th></tr></thead>
+        <tbody>
+          <tr><td>Uso coletivo residencial</td><td>Área útil na parte residencial. Carga instalada nos serviços do condomínio</td></tr>
+          <tr><td>Uso coletivo não residencial</td><td>Carga instalada, no total e por unidade</td></tr>
+          <tr><td>Misto residencial e comercial</td><td>Partes calculadas em separado e somadas</td></tr>
+          <tr><td>Smart, Studio, Home Studio acima de 15 unidades</td><td class="mono">Área útil com f_coinc fixo de 90%</td></tr>
+          <tr><td>Unidade com carregador veicular</td><td>Área útil somada à recarga, com fator de coincidência por quantidade de carregadores</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <section class="sources">
+    <p><strong>Procedência.</strong> Todo fato marcado como confirmado vem de um documento do repositório do projeto ou de uma fonte pública verificada. As hipóteses são inferências da equipe e estão marcadas como tal para que o cliente possa corrigi-las durante a reunião.</p>
+    <ul>
+      <li><strong>DIS-NOR-053 REV 06</strong> — norma da Neoenergia para edificações com múltiplas unidades consumidoras. Metodologia no Anexo I</li>
+      <li><strong>DIS-NOR-030 REV 07</strong> — norma complementar, método da carga instalada</li>
+      <li>Páginas públicas da Neoenergia PE: normas técnicas, projeto particular, projetistas e prestadores de serviço</li>
+      <li><code>docs/tecnico/fontes-normativas.md</code> — levantamento completo, com links e o que segue inacessível</li>
+      <li><code>docs/produto/questoes-em-aberto.md</code> — placar das questões, sincronizado com a pauta acima</li>
+      <li><code>docs/negocio/premissas-desafio.md</code> · <code>analise-causa-raiz.md</code> · <code>benchmarking.md</code></li>
+      <li><code>docs/produto/mapa-stakeholders.md</code> — atores internos e externos</li>
+    </ul>
+  </section>
+
+</div>
