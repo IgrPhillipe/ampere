@@ -6,6 +6,21 @@
 
 ---
 
+## Duas famílias de norma, e elas se comportam diferente
+
+Confusão fácil de fazer, então fica registrado antes de tudo:
+
+| Família | De quem é | Acesso | O que trata |
+| :------------- | :--------------------- | :------------------------------------------ | :------------------------------------------------------------ |
+| **DIS-NOR-xxx** | Da própria Neoenergia | **Pública e gratuita**, no site da distribuidora | Como se conecta à rede dela. **É aqui que está o cálculo de demanda.** |
+| **ABNT NBR**    | Da ABNT, entidade nacional | **Vendida**, sem API pública               | Instalação elétrica em geral: condutor, eletroduto, aterramento, subestação |
+
+A Neoenergia publica integralmente o que é dela. O que é pago pertence a outra entidade, e por isso ela não pode redistribuir. **Não há norma escondida nem exigência de comprar algo para conhecer a regra de cálculo.**
+
+As 12 NBR citadas pela DIS-NOR-053 são referências de instalação e não entram no cálculo de demanda. A verificação está em [As NBRs pagas não bloqueiam este projeto](#as-nbrs-pagas-não-bloqueiam-este-projeto).
+
+---
+
 ## A norma principal
 
 **DIS-NOR-053 — Fornecimento de Energia Elétrica à Edificações com Múltiplas Unidades Consumidoras até 34,5 kV**
