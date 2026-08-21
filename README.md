@@ -1,6 +1,6 @@
-# Cálculo de Demanda Elétrica (Neoenergia)
+# AMPERE — Automação e Modelagem para Projetos de Energia em Redes Edificadas
 
-Ferramenta para automatizar o cálculo de demanda elétrica em edificações com múltiplas unidades consumidoras, aplicando as regras normativas vigentes da Neoenergia Pernambuco de forma padronizada.
+O AMPERE automatiza o cálculo de demanda elétrica em edificações com múltiplas unidades consumidoras, aplicando de forma padronizada as regras normativas vigentes da Neoenergia Pernambuco. A ferramenta modela a rede elétrica do projeto, elimina erros de interpretação das normas e reduz o índice de reprovação de projetos por falhas de cálculo.
 
 ---
 
