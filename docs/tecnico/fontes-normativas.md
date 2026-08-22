@@ -36,7 +36,7 @@ As 12 NBR citadas pela DIS-NOR-053 são referências de instalação e não entr
 
 Norma complementar, referenciada o tempo todo pela 053 para o método da carga instalada:
 
-**DIS-NOR-030 — Fornecimento de Energia Elétrica em Tensão Secundária de Distribuição à Edificações Individuais**, REV 07 ([PDF](https://www.neoenergia.com/documents/d/pernambuco/dis-nor-030-rev07?download=true)).
+**DIS-NOR-030 — Fornecimento de Energia Elétrica em Tensão Secundária de Distribuição à Edificações Individuais**, REV 07 ([PDF](https://www.neoenergia.com/documents/d/pernambuco/dis-nor-030-rev07?download=true)). O cálculo está no item 6.27, página 47.
 
 O PDF da 053 está hospedado sob o caminho `/d/rn/` porque é o mesmo documento das quatro distribuidoras. O próprio histórico de revisões declara a unificação.
 
@@ -44,7 +44,7 @@ O PDF da 053 está hospedado sob o caminho `/d/rn/` porque é o mesmo documento 
 
 ## A metodologia de cálculo
 
-Está no **Anexo I** da DIS-NOR-053, com **5 exemplos numéricos resolvidos** de ponta a ponta. É exatamente a especificação que o motor precisa.
+Está no **Anexo I** da DIS-NOR-053, página 106, com **5 exemplos numéricos resolvidos** de ponta a ponta. É exatamente a especificação que o motor precisa.
 
 ### Estrutura geral
 
