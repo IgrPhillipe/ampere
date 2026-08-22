@@ -8,12 +8,12 @@ Pendências operacionais, como correção de board ou publicação de página, f
 
 ## Placar
 
-16 abertas, 1 fechada. Onze dependem do cliente e cinco dependem apenas do time.
+15 abertas, 3 fechadas. Dez dependem do cliente e cinco dependem apenas do time.
 
 | Estado | Questões | Total |
 | :------------------------- | :------------------------------------------ | :---: |
-| Fechada                    | 2                                            | 1 |
-| Dependem do cliente        | 1, 3, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 | 11 |
+| Fechada                    | 2, 11, 12                                    | 3 |
+| Dependem do cliente        | 1, 3, 9, 10, 13, 14, 15, 16, 17, 18          | 10 |
 | Dependem apenas do time    | 4, 5, 6, 7, 8                                | 5 |
 
 Prioridade: **10**, **1** e **9**, nessa ordem.
@@ -27,8 +27,8 @@ Prioridade: **10**, **1** e **9**, nessa ordem.
 | **3** | Faixa de escopo do MVP: cobre só acima de 50 kVA? | Define o recorte. Abaixo de 50 kVA o problema já foi mitigado por simplificação de critérios |
 | **9** | Já existe sistema de submissão e análise, e o que ele faz. Ver desdobramento abaixo | Define se construímos produto novo ou extensão do existente |
 | **10** | Os erros são de aplicação da regra ou de dado de entrada? Existe registro ou classificação das reprovações? | Decide se o produto funciona. Automatizar o cálculo elimina erro de regra e não elimina erro de entrada |
-| **11** | Qual tipo de edificação concentra o problema: residencial, não residencial, misto ou Smart/Studio? | A norma trata cada tipo com um método diferente. Focar em um reduz o escopo sem perder o problema |
-| **12** | A DIS-NOR-053 é a única norma aplicável, ou convive com outras? Qual prevalece em conflito? | Se forem várias, o motor precisa resolver precedência, não apenas aplicar uma tabela |
+| ~~**11**~~ | ~~Qual tipo de edificação concentra o problema: residencial, não residencial, misto ou Smart/Studio?~~ | **Fechada em 18/08.** Abrange edifícios residenciais e comerciais, shoppings e indústrias. O critério é medição individual por unidade consumidora, não o tipo de uso. Reunião com a Neoenergia (Talita Viana Bastos) |
+| ~~**12**~~ | ~~A DIS-NOR-053 é a única norma aplicável, ou convive com outras? Qual prevalece em conflito?~~ | **Fechada em 18/08.** A norma técnica da distribuidora rege sozinha o cálculo; a ANEEL define apenas os prazos regulatórios do processo. Reunião com a Neoenergia (Talita Viana Bastos) |
 | **13** | Como começa o processo e o projetista precisa ser credenciado? Quem contrata é quem elabora? | Define quem entra no sistema e se há cadastro prévio a modelar |
 | **14** | Em que formato o projeto é enviado, e existe formato obrigatório? | Define se o sistema recebe dados estruturados ou precisa extrair de documento |
 | **15** | Como a devolutiva volta e como funciona o reenvio: reinicia o processo ou tem fila própria? | Define se a ferramenta encurta o ciclo de retrabalho ou só o de primeira submissão |
