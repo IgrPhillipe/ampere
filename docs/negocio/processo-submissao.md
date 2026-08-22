@@ -1,6 +1,6 @@
 # Processo de Submissão de Projeto
 
-Como um projeto elétrico chega hoje à Neoenergia Pernambuco, é analisado e volta ao projetista. Levantado em páginas públicas da distribuidora em 17/08/2026.
+Como um projeto elétrico chega hoje à Neoenergia Pernambuco, é analisado e volta ao projetista. Levantado em páginas públicas da distribuidora em 17/08/2026, com o dado de re-submissão confirmado em reunião com a Neoenergia (Talita Viana Bastos) em 18/08/2026.
 
 Fase: Imersão ([`../processo.md`](../processo.md)) · A metodologia normativa do cálculo está em [`../tecnico/fontes-normativas.md`](../tecnico/fontes-normativas.md)
 
@@ -14,7 +14,7 @@ Fase: Imersão ([`../processo.md`](../processo.md)) · A metodologia normativa d
 | Documentos exigidos | Carta de solicitação, **ART** do engenheiro, desenhos assinados e **memorial descritivo contendo o cálculo de demanda**, cálculo de proteção e queda de tensão |
 | Prazo de análise | **30 dias**, suspensos se faltar informação solicitada |
 | Resposta | Enviada ao e-mail cadastrado, **com os motivos da reprovação e as providências corretivas necessárias** |
-| Re-submissão | Mesmo processo, após correção |
+| Re-submissão | Mesmo processo, após correção. Alguns projetos passam por **3 a 4 análises** até a aprovação final |
 | Validade da aprovação | **36 meses** a partir da aprovação |
 
 Fonte: [Projeto Particular](https://www.neoenergia.com/web/pernambuco/seu-negocio/projeto-particular) e [Projetistas e Prestadores de Serviço](https://www.neoenergia.com/web/pernambuco/seu-negocio/projetistas-prestadores-de-servico).
