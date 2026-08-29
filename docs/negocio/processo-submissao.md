@@ -1,6 +1,6 @@
 # Processo de Submissão de Projeto
 
-Como um projeto elétrico chega hoje à Neoenergia Pernambuco, é analisado e volta ao projetista. Levantado em páginas públicas da distribuidora em 17/08/2026, com o dado de re-submissão confirmado em reunião com a Neoenergia (Talita Viana Bastos) em 18/08/2026.
+Como um projeto elétrico chega hoje à Neoenergia Pernambuco, é analisado e volta ao projetista.
 
 Fase: Imersão ([`../processo.md`](../processo.md)) · A metodologia normativa do cálculo está em [`../tecnico/fontes-normativas.md`](../tecnico/fontes-normativas.md)
 
@@ -29,4 +29,4 @@ O ciclo completo, etapa a etapa, está no documento de apoio à reunião: [`../c
 
 ## Em aberto
 
-As questões 9, 13, 14, 15 e 16 do registro de [`questões em aberto`](../produto/questoes-em-aberto.md) tratam deste processo: se existe sistema por trás dos canais, como o projetista é credenciado, em que formato os arquivos chegam, como funciona a fila de reenvio e o que acontece ao fim dos 36 meses.
+As questões 9, 13, 14, 15 e 16 de [`questões em aberto`](../produto/questoes-em-aberto.md) tratam deste processo: se existe sistema por trás dos canais, como o projetista é credenciado, em que formato os arquivos chegam, como funciona a fila de reenvio e o que acontece ao fim dos 36 meses.

@@ -2,7 +2,7 @@
 
 Análise de mercado para o desafio da Neoenergia Pernambuco: como outras concessionárias e a ferramenta do projetista tratam o cálculo de demanda em edificações com múltiplas unidades consumidoras.
 
-Fase: Imersão ([`../processo.md`](../processo.md)) · Responsável: André Montenegro · Última revisão: 18/08/2026
+Fase: Imersão ([`../processo.md`](../processo.md)) · Responsável: André Montenegro
 Fontes: levantamento próprio da equipe e [board no Figma](https://www.figma.com/design/eiw2Pt6gUGCxStE0wVqrKd/Benchmarking)
 
 ---

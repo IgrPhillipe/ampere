@@ -1,14 +1,10 @@
 # Fontes Normativas
 
-Levantamento das fontes públicas que definem o cálculo de demanda para edificações com múltiplas unidades consumidoras na Neoenergia PE. Feito em 17/08/2026 por pesquisa aberta, sem contato com o cliente.
-
-A norma existe, é pública e traz a metodologia completa com exemplos resolvidos. Fecha a questão 2 do registro de [`questões em aberto`](../produto/questoes-em-aberto.md).
+As fontes que definem o cálculo de demanda para edificações com múltiplas unidades consumidoras na Neoenergia PE. A norma é pública e traz a metodologia completa, com exemplos numéricos resolvidos.
 
 ---
 
-## Duas famílias de norma, e elas se comportam diferente
-
-Confusão fácil de fazer, então fica registrado antes de tudo:
+## Duas famílias de norma
 
 | Família | De quem é | Acesso | O que trata |
 | :------------- | :--------------------- | :------------------------------------------ | :------------------------------------------------------------ |
@@ -75,6 +71,8 @@ g = motores, com fator de demanda 1,00 para o maior e 0,50 para os demais
 
 ### Regras por tipo de edificação
 
+O escopo abrange edifícios residenciais, comerciais, shoppings e indústrias. O que determina a aplicação da norma é a **medição individual por unidade consumidora**, não o tipo de uso.
+
 | Tipo | Método |
 | :------------------------------------- | :------------------------------------------------------------------------------ |
 | Uso coletivo residencial               | Área útil para a parte residencial; carga instalada para os serviços do condomínio |
@@ -124,6 +122,8 @@ Canais, documentos exigidos, prazo de análise e validade da aprovação estão 
 
 ## Fontes regulatórias da ANEEL
 
+A norma da distribuidora rege sozinha o cálculo de demanda. A ANEEL define apenas os prazos regulatórios do processo.
+
 - **PRODIST Módulo 3 — Conexão ao Sistema de Distribuição**, aprovado como Anexo III da REN nº 956/2021. Piso regulatório que toda norma de distribuidora respeita. Baixar pela [página oficial do PRODIST](https://www.gov.br/aneel/pt-br/centrais-de-conteudos/procedimentos-regulatorios/prodist), que lista a versão vigente e o histórico. O PDF direto em `www2.aneel.gov.br/cedoc/` responde 403 fora do navegador, então não vale linkar.
 - **Portal de Dados Abertos da ANEEL**, em CKAN, com download em CSV e JSON e **API para consulta automatizada**. Não tem regra de cálculo, mas serve para contexto e possivelmente para a métrica de sucesso. [dadosabertos.aneel.gov.br](https://dadosabertos.aneel.gov.br/)
 
@@ -143,9 +143,3 @@ A DIS-NOR-053 referencia 12 normas ABNT, vendidas e sem API pública. Verificand
 O método de demanda é autocontido entre DIS-NOR-053 e DIS-NOR-030, ambas gratuitas. Não é necessário adquirir norma da ABNT para construir o motor de cálculo.
 
 
-
----
-
-## Efeito no registro de questões
-
-O levantamento fechou a questão 2 e adiantou 1c, 3, 4 e 9. O estado de cada uma está em [`../produto/questoes-em-aberto.md`](../produto/questoes-em-aberto.md), que é o registro único.
