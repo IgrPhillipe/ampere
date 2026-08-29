@@ -27,7 +27,7 @@ Professor: Maurício da Motta Braga (mmb2@cesar.school)
 
 ## Entrega 01 — 31/08/2026
 
-- Histórias de usuário (mínimo 7) em BDD, escrita em `.md` no GitHub — `docs/produto/user-stories.md` (TBD)
+- Histórias de usuário (mínimo 7) em BDD, escrita em `.md` no GitHub — [`produto/user-stories.md`](produto/user-stories.md), 7 histórias
   - Claras, concisas, completas com detalhes de negócio
   - Cenários de validação com BDD
 - Protótipo Lo-Fi no Figma (mínimo 5 histórias), acessível pelo README

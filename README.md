@@ -14,20 +14,35 @@ Mais detalhes em [`docs/negocio/premissas-desafio.md`](docs/negocio/premissas-de
 
 ---
 
+## Tecnologias
+
+| Camada         | Tecnologia             | Papel no projeto                                                       |
+| :------------- | :--------------------- | :--------------------------------------------------------------------- |
+| Back-end       | Java + Spring Boot     | API REST e motor de cálculo de demanda com classes de domínio          |
+| Banco de dados | PostgreSQL             | Entidades persistidas e parâmetros normativos versionados por revisão  |
+| Front-end      | React + Vite           | Interface do projetista e do analista, consumindo a API                |
+| Prototipação   | Figma                  | Protótipo Lo-Fi das telas dos dois perfis                              |
+| Documentação   | Markdown               | Registro de decisões, normas e processo, versionado junto com o código |
+| Gestão         | Trello e GitHub Issues | Backlog, issues e acompanhamento semanal                               |
+
+Detalhamento por camada: [`app/back/README.md`](app/back/README.md) · [`app/front/README.md`](app/front/README.md) · [`docs/tecnico/README.md`](docs/tecnico/README.md)
+
+---
+
 ## Descoberta e análise
 
 O projeto é dividido em três fases — **Imersão**, **Ideação** e **Desenvolvimento do MVP** ([`docs/processo.md`](docs/processo.md)). A Imersão está concluída e produziu:
 
-| Documento                                                                     | O que traz                                                                                       |
-| :---------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------ |
-| [Premissas do desafio](docs/negocio/premissas-desafio.md)                     | O desafio como a Neoenergia PE o apresentou: problema, impacto e proposta de solução.            |
-| [Análise de causa raiz](docs/negocio/analise-causa-raiz.md)                   | 5 Porquês e Ishikawa — por que os projetos são reprovados, até a causa raiz.                     |
-| [Benchmarking](docs/negocio/benchmarking.md)                                  | O que COPEL, CEMIG, Enel, CPFL e AltoQi fazem, comparados em 9 critérios. Ninguém junta cálculo e aprovação. |
-| [Objetivos do projeto](docs/produto/objetivos-projeto.md)                     | O que o MVP precisa alcançar e como isso responde à descoberta.                                   |
-| [Mapa de stakeholders](docs/negocio/mapa-stakeholders.md)                     | Quem é afetado, por grau de proximidade e posição dentro/fora da Neoenergia.                      |
-| [Processo de submissão](docs/negocio/processo-submissao.md)                   | Como o projeto chega hoje à Neoenergia, é analisado e volta ao projetista.                        |
-| [Fontes normativas](docs/tecnico/fontes-normativas.md)                        | A DIS-NOR-053, a metodologia de cálculo e o processo de submissão atual.                          |
-| [Questões em aberto](docs/produto/questoes-em-aberto.md)                      | O que ainda falta decidir para transformar os objetivos em requisitos construíveis.               |
+| Documento                                                   | O que traz                                                                                                   |
+| :---------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
+| [Premissas do desafio](docs/negocio/premissas-desafio.md)   | O desafio como a Neoenergia PE o apresentou: problema, impacto e proposta de solução.                        |
+| [Análise de causa raiz](docs/negocio/analise-causa-raiz.md) | 5 Porquês e Ishikawa — por que os projetos são reprovados, até a causa raiz.                                 |
+| [Benchmarking](docs/negocio/benchmarking.md)                | O que COPEL, CEMIG, Enel, CPFL e AltoQi fazem, comparados em 9 critérios. Ninguém junta cálculo e aprovação. |
+| [Objetivos do projeto](docs/produto/objetivos-projeto.md)   | O que o MVP precisa alcançar e como isso responde à descoberta.                                              |
+| [Mapa de stakeholders](docs/negocio/mapa-stakeholders.md)   | Quem é afetado, por grau de proximidade e posição dentro/fora da Neoenergia.                                 |
+| [Processo de submissão](docs/negocio/processo-submissao.md) | Como o projeto chega hoje à Neoenergia, é analisado e volta ao projetista.                                   |
+| [Fontes normativas](docs/tecnico/fontes-normativas.md)      | A DIS-NOR-053, a metodologia de cálculo e o processo de submissão atual.                                     |
+| [Questões em aberto](docs/produto/questoes-em-aberto.md)    | O que ainda falta decidir para transformar os objetivos em requisitos construíveis.                          |
 
 ---
 
@@ -40,36 +55,97 @@ O projeto é dividido em três fases — **Imersão**, **Ideação** e **Desenvo
 
 ---
 
-## Executando localmente
+## Como rodar o projeto
 
-Documentação detalhada: [app/back/README.md](app/back/README.md) · [app/front/README.md](app/front/README.md)
+O código do produto começa na **Entrega 02** (21/09/2026). A Entrega 01 é composta por documentação, histórias de usuário e protótipo, e não há aplicação executável no repositório até lá.
+
+As instruções de execução de cada camada serão publicadas em [app/back/README.md](app/back/README.md) e [app/front/README.md](app/front/README.md) junto com o primeiro código.
 
 ---
 
-## Entregas e Cronograma
+## Entregas
 
-| Cronograma                                                            | Conteúdo                                                          |
-| :-------------------------------------------------------------------- | :----------------------------------------------------------------- |
-| [`docs/cronograma-projetos3.md`](docs/cronograma-projetos3.md)        | Aulas, conteúdo e entregáveis de Projetos 3.                      |
-| [`docs/cronograma-poo.md`](docs/cronograma-poo.md)                    | Marcos e checklists das entregas avaliadas de POO.                |
+| Entrega    | Data       | Situação     |
+| :--------- | :--------- | :----------- |
+| Entrega 01 | 31/08/2026 | Em andamento |
+| Entrega 02 | 21/09/2026 | Não iniciada |
+| Entrega 03 | 19/10/2026 | Não iniciada |
+| Entrega 04 | 09/11/2026 | Não iniciada |
+
+Critérios de cada marco: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (POO) e [`docs/cronograma-projetos3.md`](docs/cronograma-projetos3.md) (Projetos 3).
+
+### Entrega 01 — 31/08/2026
+
+Histórias de usuário em BDD, protótipo Lo-Fi das telas e screencast de apresentação do protótipo.
+
+| Artefato                          | Link                                                                                                             |
+| :-------------------------------- | :--------------------------------------------------------------------------------------------------------------- |
+| Histórias de usuário (7, em BDD)  | [`docs/produto/user-stories.md`](docs/produto/user-stories.md)                                                   |
+| Protótipo Lo-Fi                   | [Figma — Protótipo LO-FI](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
+| Screencast do protótipo (YouTube) | TBD                                                                                                              |
+
+**Histórias e telas correspondentes**
+
+| História | Título                                            | Perfil     | Tela do protótipo          |
+| :------- | :------------------------------------------------ | :--------- | :------------------------- |
+| US01     | Acompanhamento de projetos e status               | Projetista | H1 · Meus projetos         |
+| US02     | Configuração inicial dos parâmetros da edificação | Projetista | H2 · Novo projeto          |
+| US03     | Cadastro e validação em tempo real de UCs         | Projetista | H3 · Unidades consumidoras |
+| US04     | Conferência do cálculo passo a passo da demanda   | Projetista | H4 · Cálculo de demanda    |
+| US05     | Geração de memorial e envio do projeto            | Projetista | H5 · Memorial e envio      |
+| US06     | Fila de análise técnica priorizada                | Analista   | H6 · Fila de análise       |
+| US07     | Auditoria de memória e registro de apontamentos   | Analista   | H7 · Análise do projeto    |
+
+### Entrega 02 — 21/09/2026
+
+Mínimo de 2 histórias implementadas, com descrição em formato POST-IT, commits semanais e GitHub Issues em uso.
+
+| Artefato                                     | Link |
+| :------------------------------------------- | :--- |
+| Histórias implementadas (POST-IT)            | TBD  |
+| Print do GitHub Issues                       | TBD  |
+| Screencast do sistema rodando (YouTube)      | TBD  |
+| Screencast da explicação do código (YouTube) | TBD  |
+
+### Entrega 03 — 19/10/2026
+
+Mais 2 histórias implementadas, com os mesmos artefatos de acompanhamento.
+
+| Artefato                                     | Link |
+| :------------------------------------------- | :--- |
+| Histórias implementadas (POST-IT)            | TBD  |
+| Print do GitHub Issues                       | TBD  |
+| Screencast do sistema com as novas histórias | TBD  |
+| Screencast da explicação do código           | TBD  |
+
+### Entrega 04 — 09/11/2026
+
+Histórias restantes e fechamento do produto para a apresentação final.
+
+| Artefato                           | Link |
+| :--------------------------------- | :--- |
+| Histórias implementadas (POST-IT)  | TBD  |
+| Print do GitHub Issues             | TBD  |
+| Screencast final do sistema        | TBD  |
+| Screencast da explicação do código | TBD  |
 
 ---
 
 ## Links importantes
 
-| Área                  | Link                                                                                                     |
-| :-------------------- | :------------------------------------------------------------------------------------------------------- |
-| Deploy (front)        | TBD                                                                                                      |
-| Deploy (API)          | TBD                                                                                                      |
-| Site do grupo         | [Google Sites](https://sites.google.com/cesar.school/site-grupo-4/)                                      |
-| Backlog               | [Trello](https://trello.com/b/yd35ygrF/cesar-projetos-3)                                                 |
-| Ideação               | [FigJam](https://www.figma.com/board/H7ZlU9nAbR72LiXVLUBmqo)                                             |
-| Figma (descoberta)    | [Figma](https://www.figma.com/files/team/1541129127160121770/project/636750169?fuid=1543015890914897932) |
-| Wireframes            | TBD                                                                                                      |
-| Drive                 | [Google Drive](https://drive.google.com/drive/u/1/folders/13xm3xImWBu0tH-wV9_ENizb65mgrkQ3l)             |
-| Bugtracker            | [GitHub Issues](TBD)                                                                                     |
-| Cronograma (Projetos 3) | [`docs/cronograma-projetos3.md`](docs/cronograma-projetos3.md)                                         |
-| Cronograma (POO)      | [`docs/cronograma-poo.md`](docs/cronograma-poo.md)                                                       |
+| Área                    | Link                                                                                                             |
+| :---------------------- | :--------------------------------------------------------------------------------------------------------------- |
+| Deploy (front)          | TBD                                                                                                              |
+| Deploy (API)            | TBD                                                                                                              |
+| Site do grupo           | [Google Sites](https://sites.google.com/cesar.school/site-grupo-4/)                                              |
+| Backlog                 | [Trello](https://trello.com/b/yd35ygrF/cesar-projetos-3)                                                         |
+| Ideação                 | [FigJam](https://www.figma.com/board/H7ZlU9nAbR72LiXVLUBmqo)                                                     |
+| Figma (descoberta)      | [Figma](https://www.figma.com/files/team/1541129127160121770/project/636750169?fuid=1543015890914897932)         |
+| Protótipo Lo-Fi         | [Figma — Protótipo LO-FI](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
+| Drive                   | [Google Drive](https://drive.google.com/drive/u/1/folders/13xm3xImWBu0tH-wV9_ENizb65mgrkQ3l)                     |
+| Bugtracker              | [GitHub Issues](TBD)                                                                                             |
+| Cronograma (Projetos 3) | [`docs/cronograma-projetos3.md`](docs/cronograma-projetos3.md)                                                   |
+| Cronograma (POO)        | [`docs/cronograma-poo.md`](docs/cronograma-poo.md)                                                               |
 
 ---
 
@@ -87,5 +163,5 @@ Documentação detalhada: [app/back/README.md](app/back/README.md) · [app/front
 
 ---
 
-Este projeto faz parte das disciplinas **Projetos 3** e **Programação Orientada a Objetos** — CESAR School, 2026.2.  
+Este projeto faz parte das disciplinas **Projetos 3** e **Programação Orientada a Objetos** — CESAR School, 2026.2.
 Empresa parceira: **Neoenergia Pernambuco** (grupo Iberdrola).

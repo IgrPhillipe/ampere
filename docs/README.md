@@ -27,6 +27,7 @@ docs/
 | Negócio    | [negocio/mapa-stakeholders.md](negocio/mapa-stakeholders.md) | Atores por proximidade com o problema e posição dentro ou fora da Neoenergia |
 | Produto    | [produto/ideacao.md](produto/ideacao.md) | Registro da Ideação Parte 1: brainstorming, riscos e proposta final |
 | Produto    | [produto/questoes-em-aberto.md](produto/questoes-em-aberto.md) | Registro único das questões de produto |
+| Produto    | [produto/user-stories.md](produto/user-stories.md) | As 7 histórias de usuário em BDD, com critérios de confirmação e cenários. Entrega 01 de POO |
 | Técnico    | [tecnico/README.md](tecnico/README.md) | Motor de cálculo e requisitos de POO |
 | Técnico    | [tecnico/fontes-normativas.md](tecnico/fontes-normativas.md) | DIS-NOR-053, metodologia de cálculo, revisões e processo de submissão |
 | Cronograma | [cronograma-projetos3.md](cronograma-projetos3.md) | Aulas e entregáveis de Projetos 3 |
@@ -41,6 +42,7 @@ Para evitar que a mesma informação seja mantida em dois lugares:
 | Assunto | Único lugar |
 | :------ | :---------- |
 | Questões de produto e seu estado | [produto/questoes-em-aberto.md](produto/questoes-em-aberto.md) |
+| Histórias de usuário | [produto/user-stories.md](produto/user-stories.md) |
 | Pendências operacionais | [pendencias.md](pendencias.md) |
 | Norma, metodologia e revisões | [tecnico/fontes-normativas.md](tecnico/fontes-normativas.md) |
 | Processo de submissão do cliente | [negocio/processo-submissao.md](negocio/processo-submissao.md) |
