@@ -2,7 +2,7 @@
 
 > Interface web para entrada de dados do projeto elétrico e visualização do cálculo de demanda.
 
-**Stack: a definir — Thymeleaf (servidor) ou frontend separado + API Rest**
+**Stack: React com Vite, consumindo a API REST em Java**
 
 ---
 
@@ -16,9 +16,7 @@
 
 ## Como executar
 
-```bash
-# TBD
-```
+Sem código no repositório até a **Entrega 02** (21/09/2026). Os comandos entram aqui junto com o primeiro commit da aplicação.
 
 ---
 
@@ -26,7 +24,7 @@
 
 | Variável  | Obrigatória | Descrição                   |
 | :-------- | :---------- | :-------------------------- |
-| `API_URL` | TBD         | URL base da API do back-end |
+| `API_URL` | Sim         | URL base da API do back-end |
 
 ---
 

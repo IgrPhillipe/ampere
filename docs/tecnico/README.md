@@ -1,6 +1,6 @@
 # Documentação Técnica
 
-Ponto de entrada da documentação técnica. Back-end definido como Java com Spring Boot; front-end em aberto até a aula 4 (questão 6).
+Ponto de entrada da documentação técnica. Back-end em Java com Spring Boot sobre PostgreSQL; front-end em React com Vite, consumindo a API REST.
 
 ## Motor de Cálculo
 

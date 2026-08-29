@@ -5,8 +5,8 @@
 ```
 projetos3/
 ├── app/
-│   ├── front/          # interface web (stack a definir)
-│   └── back/           # API + motor de cálculo (stack a definir)
+│   ├── front/          # interface web (React + Vite)
+│   └── back/           # API + motor de cálculo (Java, Spring Boot, PostgreSQL)
 ├── docs/               # documentação de negócio, produto e técnica
 └── CONTRIBUTING.md     # este arquivo
 ```
@@ -61,13 +61,13 @@ A disciplina de **Programação Orientada a Objetos** exige que o motor de cálc
 ## Checklist antes do PR
 
 ### Front-end
-> Comandos de validação serão adicionados quando a stack for definida.
+> Comandos de validação serão adicionados quando o projeto for inicializado.
 
 - [ ] Build passa sem erros de tipo
 - [ ] Nenhuma lógica de negócio nas camadas de rota/view
 
 ### Back-end
-> Comandos de validação serão adicionados quando a stack for definida.
+> Comandos de validação serão adicionados quando o projeto for inicializado.
 
 - [ ] Lint e testes passam
 - [ ] Novos endpoints documentados na interface OpenAPI

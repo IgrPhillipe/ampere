@@ -2,7 +2,7 @@
 
 > API + motor de cálculo de demanda elétrica em Java com Spring Boot.
 
-**Stack: Java, Spring Boot, Banco a definir**
+**Stack: Java, Spring Boot, PostgreSQL**
 
 ---
 
@@ -25,9 +25,7 @@
 
 ## Como executar
 
-```bash
-# TBD
-```
+Sem código no repositório até a **Entrega 02** (21/09/2026). Os comandos entram aqui junto com o primeiro commit da aplicação.
 
 ---
 
@@ -35,7 +33,7 @@
 
 | Variável       | Obrigatória | Descrição           |
 | :------------- | :---------- | :------------------ |
-| `DATABASE_URL` | TBD         | Conexão com o banco |
+| `DATABASE_URL` | Sim         | Conexão com o PostgreSQL |
 
 ---
 

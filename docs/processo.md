@@ -65,7 +65,7 @@ Fase de construção da solução.
 | Ideação | Matriz esforço × impacto | TBD |
 | Ideação | Protótipos de baixa fidelidade | TBD — Figma |
 | Ideação | Papéis e responsabilidades | [`../README.md`](../README.md) (tabela Equipe e Papéis) |
-| Ideação | Tecnologias | [`tecnico/README.md`](tecnico/README.md) — parcial, front-end em aberto |
+| Ideação | Tecnologias | [`tecnico/README.md`](tecnico/README.md) |
 | Ideação | Revisão do cronograma | [`cronograma-projetos3.md`](cronograma-projetos3.md) |
 | Desenvolvimento | Priorização e Sprints | TBD |
 | Desenvolvimento | Motor de cálculo | TBD — `tecnico/engine-calculo.md` |
