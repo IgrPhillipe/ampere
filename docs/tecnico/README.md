@@ -13,7 +13,7 @@ Responsabilidades previstas:
 - Executar as fórmulas de demanda (individual e coletiva)
 - Retornar o resultado com indicação das regras aplicadas em cada etapa
 
-O levantamento normativo está feito: as fórmulas, os métodos por tipo de edificação e as tabelas paramétricas estão em [`fontes-normativas.md`](fontes-normativas.md), com origem na **DIS-NOR-053 REV 06** da Neoenergia. A modelagem detalhada do motor será adicionada em `docs/tecnico/engine-calculo.md` (TBD).
+O levantamento normativo está feito: as fórmulas, os métodos por tipo de edificação e as tabelas paramétricas estão em [`fontes-normativas.md`](fontes-normativas.md), com origem na **DIS-NOR-053 REV 06** da Neoenergia. Entradas, saídas e rastreabilidade do motor estão em [`engine-calculo.md`](engine-calculo.md).
 
 A norma foi revisada sete vezes em menos de quatro anos. Os parâmetros normativos são tratados como dados versionados e persistidos, não constantes no código, e cada cálculo registra qual revisão aplicou.
 

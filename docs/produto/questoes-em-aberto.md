@@ -6,7 +6,7 @@ Os números são identificadores estáveis, não ordem. Questão nova recebe o p
 
 Pendências operacionais, como correção de board ou publicação de página, ficam em [`../pendencias.md`](../pendencias.md).
 
-São 14 questões abertas: dez dependem do cliente e quatro dependem apenas do time. Prioridade: **10**, **1** e **9**, nessa ordem.
+São 13 questões abertas: dez dependem do cliente e três dependem apenas do time. Prioridade: **10**, **1** e **9**, nessa ordem.
 
 ## Dependem do cliente
 
@@ -47,7 +47,7 @@ Quais funcionalidades cada perfil teria não é pergunta para o cliente: sai das
 
 | # | Questão | Quando |
 | :-- | :------ | :----- |
-| **4** | Entrada e saída concretas do sistema: quais parâmetros entram e o que sai | Aula 4, 29/08 |
+| ~~**4**~~ | ~~Entrada e saída concretas do sistema: quais parâmetros entram e o que sai~~ | **Fechada em 29/08.** Entradas: dados da edificação (tipo, pavimentos, tensão, ligação, padrão de entrada), grupos de UCs com área útil e carga instalada, documentos de envio. Saídas: Ded em kVA, memória de cálculo passo a passo, memorial PDF, rastreabilidade normativa, apontamentos de reprovação. Ver [`engine-calculo.md`](../tecnico/engine-calculo.md) |
 | **5** | Métrica de sucesso | Aula 4, 29/08 |
 | **7** | Formato, facilitador e duração do brainstorming | Antes da aula 3 |
 | **8** | A restrição de POO entra antes ou depois da rodada divergente | Antes da aula 3 |
