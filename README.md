@@ -67,7 +67,7 @@ As instruções de execução de cada camada serão publicadas em [app/back/READ
 
 | Entrega | Data | Situação |
 | :--- | :--- | :--- |
-| Entrega 01 | 31/08/2026 | Em andamento |
+| Entrega 01 | 31/08/2026 | Finalizada |
 | Entrega 02 | 21/09/2026 | Não iniciada |
 | Entrega 03 | 19/10/2026 | Não iniciada |
 | Entrega 04 | 09/11/2026 | Não iniciada |
