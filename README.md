@@ -83,9 +83,9 @@ Fase inicial focada na estruturação de requisitos, validação de negócio e e
 
 | Artefato | Link |
 | :--- | :--- |
-| Histórias de usuário (7, em BDD) | [`docs/produto/user-stories.md`](docs/produto/user-stories.md) |
+| Histórias de usuário | [`docs/produto/user-stories.md`](docs/produto/user-stories.md) |
 | Protótipo Lo-Fi | [Figma — Protótipo LO-FI](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
-| Screencast do protótipo (YouTube) | [YouTube — Screencast do Protótipo](https://www.youtube.com/watch?v=UC35rx8FPw0) |
+| Screencast do protótipo | [YouTube — Screencast do Protótipo](https://youtu.be/OI0QDboGtk4) |
 
 **Histórias e telas correspondentes**
 
@@ -98,6 +98,39 @@ Fase inicial focada na estruturação de requisitos, validação de negócio e e
 | [US05](docs/produto/user-stories.md#us05--geração-de-memorial-e-envio-do-projeto) | [Geração de memorial e envio do projeto](docs/produto/user-stories.md#us05--geração-de-memorial-e-envio-do-projeto) | Projetista | H5 · Memorial e envio |
 | [US06](docs/produto/user-stories.md#us06--fila-de-análise-técnica-priorizada) | [Fila de análise técnica priorizada](docs/produto/user-stories.md#us06--fila-de-análise-técnica-priorizada) | Analista | H6 · Fila de análise |
 | [US07](docs/produto/user-stories.md#us07--auditoria-de-memória-e-registro-pontual-de-apontamentos) | [Auditoria de memória e registro de apontamentos](docs/produto/user-stories.md#us07--auditoria-de-memória-e-registro-pontual-de-apontamentos) | Analista | H7 · Análise do projeto |
+
+### Entrega 02 — 21/09/2026
+
+Mínimo de 2 histórias implementadas, com descrição em formato POST-IT, commits semanais e GitHub Issues em uso.
+
+| Artefato | Link |
+| :--- | :--- |
+| Histórias implementadas (POST-IT) | TBD |
+| Print do GitHub Issues | TBD |
+| Screencast do sistema rodando (YouTube) | TBD |
+| Screencast da explicação do código (YouTube) | TBD |
+
+### Entrega 03 — 19/10/2026
+
+Mais 2 histórias implementadas, com os mesmos artefatos de acompanhamento.
+
+| Artefato | Link |
+| :--- | :--- |
+| Histórias implementadas (POST-IT) | TBD |
+| Print do GitHub Issues | TBD |
+| Screencast do sistema com as novas histórias | TBD |
+| Screencast da explicação do código | TBD |
+
+### Entrega 04 — 09/11/2026
+
+Histórias restantes e fechamento do produto para a apresentação final.
+
+| Artefato | Link |
+| :--- | :--- |
+| Histórias implementadas (POST-IT) | TBD |
+| Print do GitHub Issues | TBD |
+| Screencast final do sistema | TBD |
+| Screencast da explicação do código | TBD |
 
 ---
 
