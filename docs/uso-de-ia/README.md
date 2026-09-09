@@ -31,6 +31,7 @@ Um arquivo por caso evita conflito de merge entre sete pessoas. Registrar no dia
 | [0007](caso-0007-divergencia-entre-documentos.md) | Documento derivado divergiu da fonte de verdade | Ideação | Inconsistência |
 | [0008](caso-0008-localizacao-da-norma.md) | Localização da DIS-NOR-053 e extração da metodologia | Imersão | Benefício |
 | [0009](caso-0009-mapeamento-do-processo.md) | Mapeamento do processo de submissão por fontes públicas | Imersão | Benefício |
+| [0010](caso-0010-citacao-de-item-normativo-inexistente.md) | Citação de item normativo que não existe na norma citada | Ideação | Resposta incorreta |
 
 ## Como a IA foi utilizada
 
