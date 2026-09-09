@@ -158,6 +158,7 @@ Histórias restantes e fechamento do produto para a apresentação final.
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | _Afonso Araujo_ | Engenheiro de Dados | ahma@cesar.school | 08/08/2026 | — | [LinkedIn](https://www.linkedin.com/in/afonso-araujo-8ab810369/) | [GitHub](https://github.com/araujo1901mx) |
 | _André Montenegro_ | Dev FullStack | agmos@cesar.school | 08/08/2026 | — | [LinkedIn](https://www.linkedin.com/in/andr%C3%A9-montenegro-420132391/) | [GitHub](https://github.com/andre4383) |
+| _Gabriel Boeckmann_ | Dev FullStack | gabs@cesar.school | 08/09/2026 | — | [LinkedIn](https://www.linkedin.com/in/gabriel-araujo-boeckmann-e-silva/) | [GitHub](https://github.com/bielabs) |
 | _Igor Aragão_ | Tech Lead & Dev FullStack | ipara@cesar.school | 08/08/2026 | — | [LinkedIn](https://www.linkedin.com/in/igrphillipe/) | [GitHub](https://github.com/IgrPhillipe) |
 | _Jean Augusto_ | Dev FullStack | jasm2@cesar.school | 08/08/2026 | — | [LinkedIn](https://www.linkedin.com/in/jean-augusto-0562953b4/) | [GitHub](https://github.com/jeanaugustox) |
 | _Kellwen Costa_ | Dev Back-End | kilc@cesar.school | 08/08/2026 | — | [LinkedIn](https://www.linkedin.com/in/kellwencosta/) | [GitHub](https://github.com/kellwencosta) |
