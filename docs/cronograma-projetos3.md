@@ -26,6 +26,9 @@ Responsáveis por acompanhar e atualizar: José Williams e Kellwen Costa.
 | — | 15/11 e 20/11 | Feriados | — |
 | 13 | 21/11 | Retrospectiva do projeto e preparação do SR2 | Retro no board, material parcial do SR2 |
 | 14 | 28/11 | Preparação do SR2 e relatório sobre uso de IA | Ajustes no material do SR2 e o relatório de IA ([`uso-de-ia/`](uso-de-ia/)) |
+| 15 | 05/12 | **Status Report 2** | Apresentação — uma das duas notas de avaliação da disciplina |
+| 16 | 12/12 | Mostra TechDesign | — |
+| — | 19/12 | Prova final | — |
 
 ## Atribuições do time
 
@@ -49,6 +52,6 @@ A definição formal de papéis e responsabilidades é atividade da aula 4.
 
 ## Equipe
 
-Afonso Henrique Martins de Araujo · André Guilherme Montenegro de Oliveira Santos · Igor Phillipe Amorim Rocha Aragão · Jean Augusto dos Santos Mateus · José Williams Lopes de Pontes · Kellwen Igor Liberato da Costa · Lucas Gabriel Cardoso Souza
+Afonso Henrique Martins de Araujo · André Guilherme Montenegro de Oliveira Santos · Gabriel Araújo Boeckmann e Silva · Igor Phillipe Amorim Rocha Aragão · Jean Augusto dos Santos Mateus · José Williams Lopes de Pontes · Kellwen Igor Liberato da Costa · Lucas Gabriel Cardoso Souza
 
 Papéis e contatos: [`../README.md`](../README.md#equipe-e-papéis)
