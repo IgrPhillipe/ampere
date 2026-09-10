@@ -48,15 +48,15 @@ O PDF da 053 está hospedado sob o caminho `/d/rn/` porque é o mesmo documento 
 
 ### Procedência
 
-As duas normas foram **indicadas pela Neoenergia**, não escolhidas pelo time. Talita, da Neoenergia, apontou os documentos no encontro de **18/08/2026**, e a professora Chaina Oliveira repassou os links no Classroom da disciplina em **20/08/2026** — com os mesmos ponteiros que o time já havia localizado por conta própria em 17/08: Anexo I, página 106 na 053, e item 6.27, página 47 na 030.
+As duas normas são indicadas pela **Neoenergia**, com os ponteiros de onde está o cálculo: Anexo I, página 106 na 053, e item 6.27, página 47 na 030. A indicação partiu da equipe técnica da distribuidora, em 18/08/2026, e chegou ao time pela professora da disciplina em 20/08/2026.
 
-Isso fecha uma dúvida de escopo: qual documento rege o cálculo de demanda não é interpretação nossa, é indicação de quem analisa os projetos. O registro da busca independente está em [`../uso-de-ia/caso-0008-localizacao-da-norma.md`](../uso-de-ia/caso-0008-localizacao-da-norma.md).
+Qual documento rege o cálculo de demanda não é, portanto, interpretação do time.
 
 ---
 
 ## A metodologia de cálculo
 
-Está no **Anexo I** da DIS-NOR-053, páginas 106 a 111, com exemplos numéricos resolvidos de ponta a ponta. É exatamente a especificação que o motor precisa. Todos os valores desta seção foram conferidos nos PDFs em 09/09/2026, pelo procedimento descrito em [Como consultamos e verificamos](#como-consultamos-e-verificamos).
+Está no **Anexo I** da DIS-NOR-053, páginas 106 a 111, com cinco exemplos numéricos resolvidos de ponta a ponta. É a especificação do motor.
 
 ### Estrutura geral
 
@@ -136,11 +136,11 @@ D = a + b + c + d + e + f + g + h + i   [kVA]
 
 > **Divergência não resolvida: fator de potência das tomadas.** A DIS-NOR-030, item 6.27.1.2, fixa fator de potência **1,00 para tomadas**. O Exemplo 1 do Anexo I da 053 calcula a parcela `a` de um condomínio usando **0,80 para iluminação e para tomadas**: `a = 3/0,8 × 1 + 1,5/0,8 × 0,5 = 4,69 kVA`. Com o 1,00 da 030, a mesma conta dá 4,50 kVA.
 >
-> Ao contrário da divergência da recarga veicular, esta não se resolve pela leitura das duas normas. O critério adotado é seguir a **030**, porque o Anexo I da 053 manda expressamente usar os fatores de potência da 030 (item 7.2) e é a 030 que detém o método da carga instalada. A consequência é conhecida e está registrada em [Exemplos da norma como suíte de regressão](#exemplos-da-norma-como-suíte-de-regressão): o motor não reproduz a parcela `a` do Exemplo 1 na casa dos centavos. Não muda o resultado final desse exemplo, porque o mínimo por tensão domina.
+> **Vale a 030**, porque o Anexo I da 053 manda usar os fatores de potência dela (item 7.2) e é a 030 que detém o método da carga instalada. Consequência: o motor não reproduz a parcela `a` do Exemplo 1 na casa dos centavos. O resultado final daquele exemplo não muda, porque o mínimo por tensão domina.
 
 **Motores (parcela `g`), Tabela 14:** maior motor com fator 1,00, demais com 0,50. Se os maiores tiverem potências iguais, considera-se apenas um como o maior. Motores que obrigatoriamente partem simultaneamente têm as potências somadas e contam como um só motor.
 
-> **Divergência dentro da própria norma.** O item 6.27 apresenta a fórmula com nove parcelas, de `a` a `i`, mas o item 6.27.10 define uma décima parcela `j` — estação de recarga de veículos elétricos — que não aparece no somatório. Como na 053 a recarga é termo próprio (`Dve`), tratamos `j` fora da soma das nove. Registrado aqui porque quem ler só o 6.27.10 vai somar a recarga duas vezes.
+> **Divergência dentro da própria norma.** O item 6.27 apresenta a fórmula com nove parcelas, de `a` a `i`, mas o item 6.27.10 define uma décima parcela `j`, estação de recarga de veículos elétricos, que não aparece no somatório. Na 053 a recarga é termo próprio (`Dve`). **A parcela `j` fica fora da soma das nove** — somar as duas conta a recarga duas vezes.
 
 ### Conflito entre as duas normas: qual tabela de recarga veicular vale
 
@@ -157,7 +157,7 @@ As duas normas trazem fator de demanda por quantidade de estações de recarga, 
 | 76 a 100 | 0,65 | — |
 | Acima de 100 | 0,60 | — |
 
-Não é preciso perguntar a ninguém: a própria 053 resolve. O **Anexo I, item 13** determina que, independente da potência da estação de recarga e de ela estar ou não inclusa na medição individual, o cálculo de `Dve` para o quadro geral e o transformador usa o fator de demanda do **item 6.26** — o Quadro 33 da 053. O item 6.22.2 dá a mesma direção para a unidade com carregador próprio.
+A 053 resolve a escolha. O **Anexo I, item 13** determina que, independente da potência da estação de recarga e de ela estar ou não inclusa na medição individual, o cálculo de `Dve` para o quadro geral e o transformador usa o fator de demanda do **item 6.26** — o Quadro 33 da 053. O item 6.22.2 dá a mesma direção para a unidade com carregador próprio.
 
 A regra que o motor aplica:
 
@@ -166,7 +166,7 @@ A regra que o motor aplica:
 | `Dve` do agrupamento — quadro geral, transformador, demanda da edificação | **Quadro 33, DIS-NOR-053** |
 | Demanda individual de uma UC pelo método da carga instalada (parcela `j`) | **Tabela 13, DIS-NOR-030** |
 
-Não são a mesma grandeza: uma é o agrupamento do condomínio, a outra é a carga de uma unidade. Uma regra do tipo "prevalece a norma mais recente" levaria o cálculo do agrupamento para a Tabela 13, que é a tabela errada para esse objeto.
+Não são a mesma grandeza: uma é o agrupamento do condomínio, a outra é a carga de uma unidade.
 
 **Duas restrições associadas, que o motor deve validar:**
 
@@ -186,7 +186,7 @@ Onde ficam as regras de recarga em cada norma, já que os itens têm numeração
 | REN nº 1.000/2021, arts. 554 e 555 | **030** · 6.26.4.3 e 6.26.4.4 |
 | Equipamentos especiais | **030** · 6.26.3.2 |
 
-> **A regra dos 3,3 kW é da 030, não da 053, e é restrita.** O item 6.26.4.1 manda usar a potência da placa do fabricante da estação. A nota dos 3,3 kW vale **apenas para estação de recarga incorporada ao veículo cuja potência não seja informada**. Não é valor padrão para estação fixa sem potência declarada.
+> **Valor padrão de 3,3 kW.** O item 6.26.4.1 da **DIS-NOR-030** manda usar a potência da placa do fabricante da estação. A nota dos 3,3 kW vale **apenas para estação de recarga incorporada ao veículo cuja potência não seja informada** — não é valor padrão para estação fixa sem potência declarada.
 
 ### Regras por tipo de edificação
 
@@ -262,7 +262,7 @@ O Anexo I traz **cinco exemplos resolvidos de ponta a ponta**, com os valores in
 | `Df = (Dr × Fr) + Ds` | 32,37 kVA |
 | Mínimo para 380/220 V | **46 kVA aplicado** |
 
-**Exemplo 2, valores esperados** — cobre a regra dos motores de mesma potência, que é onde a implementação costuma errar:
+**Exemplo 2, valores esperados** — cobre a regra dos motores de mesma potência:
 
 | Passo | Valor da norma |
 | :--- | :--- |
@@ -274,27 +274,27 @@ O Anexo I traz **cinco exemplos resolvidos de ponta a ponta**, com os valores in
 | `Df` com `Fr = 1,1` | 196,73 kVA |
 | Mínimo para 220/127 V | **229 kVA aplicado** |
 
-O segundo elevador de 15 cv entra no grupo dos "demais", com 0,50 — é isso que a nota da Tabela 14 quer dizer com considerar apenas um como o maior quando as potências são iguais.
+O segundo elevador de 15 cv entra no grupo dos "demais", com 0,50: é o que a nota da Tabela 14 determina quando as maiores potências são iguais.
 
-Os exemplos 3 a 5 devem ser transcritos lendo as páginas do PDF, e não a extração de texto, pelo motivo explicado abaixo.
+Os valores dos exemplos 3 a 5 devem ser transcritos das páginas do PDF, não da extração de texto.
 
 ---
 
-## Como consultamos e verificamos
+## Consulta e verificação das normas
 
-As normas não dependem de e-mail, cadastro nem de resposta do cliente: são dois PDFs públicos em URL direta.
+As duas normas são PDFs públicos em URL direta: não dependem de cadastro, e-mail nem resposta do cliente.
 
-### A extração de texto não é confiável, e não deve ser tratada como fonte
+### Limites da extração de texto
 
-`pdftotext` serve para localizar item e página rapidamente. **Não serve para transcrever número.** Na extração destes dois PDFs, verificada em 09/09/2026:
+`pdftotext` localiza item e página. **Não serve para transcrever valor.** Nestes dois PDFs a extração perde informação em três pontos conhecidos:
 
-- **Todos os índices das fórmulas do Anexo I foram perdidos.** `Ded = Drf + Ds + Dc + Dve` saiu como `𝐷 =𝐷 +𝐷 +𝐷 + 𝐷`. Os nomes dos termos foram recuperados da legenda "Onde:" logo abaixo da fórmula, não da fórmula.
-- O mesmo aconteceu em `Drf = Dr × Fr` e nas condições do fator de segurança, que saíram como `𝐷 ≤ 25, 𝐹 = 1,5`.
-- No exemplo 3, que tem sub-cálculos por bloco, as colunas se misturaram e os valores intermediários ficaram fora de ordem.
+- **Índices de fórmula.** `Ded = Drf + Ds + Dc + Dve` sai como `𝐷 =𝐷 +𝐷 +𝐷 + 𝐷`; os nomes dos termos só existem na legenda "Onde:" abaixo da fórmula. O mesmo vale para `Drf = Dr × Fr` e para as condições do fator de segurança.
+- **Tabelas com sub-cálculos.** No exemplo 3, as colunas se misturam e os valores intermediários saem fora de ordem.
+- **Diagramação nova.** Cada revisão pode mudar esse comportamento sem aviso.
 
-Qualquer mudança de diagramação numa revisão nova muda esse comportamento, e muda em silêncio: a extração não falha, ela devolve um número plausível e errado. Por isso a regra abaixo.
+A falha é silenciosa: a extração não quebra, devolve um número plausível e errado.
 
-### O procedimento
+### Procedimento
 
 **1. Baixar pela URL direta e registrar o hash.** O hash é o que prova que dois membros do time leram o mesmo arquivo, e o que denuncia uma republicação silenciosa na mesma URL.
 
@@ -304,7 +304,7 @@ curl -sL -o dis-nor-030.pdf "https://www.neoenergia.com/documents/d/pernambuco/d
 shasum -a 256 dis-nor-053.pdf dis-nor-030.pdf
 ```
 
-| Arquivo | SHA-256 em 09/09/2026 |
+| Arquivo | SHA-256 |
 | :--- | :--- |
 | DIS-NOR-053 REV 06 | `8b2158a4761927a5029d27c0fcbeadc44151c4660c2f9edcea6fe28bc416819f` |
 | DIS-NOR-030 REV 07 | `45eaeea05addc18024c53088fc41c7a6b1f3580f96af9ae7f671d753c5e0cc3e` |
@@ -321,11 +321,9 @@ shasum -a 256 dis-nor-053.pdf dis-nor-030.pdf
 
 **7. Os valores entram no sistema pela área administrativa, digitados.** Não há extração automática de PDF alimentando o motor, nem tabela normativa como constante no código. Cada tabela é cadastrada com norma, revisão, item, página e responsável, e passa por dupla leitura antes de sair de rascunho. A especificação da área está em [`engine-calculo.md`](engine-calculo.md).
 
-**8. O portão final são os exemplos da norma.** Nenhuma transcrição é considerada correta porque foi lida com cuidado; é considerada correta quando os cinco exemplos do Anexo I continuam fechando. Publicar uma revisão de norma sem que os cinco fechem não deve ser possível pelo sistema. Enquanto a suíte não existir em código, a conferência é manual contra os valores da seção anterior.
+**8. O portão final são os exemplos da norma.** Uma transcrição é considerada correta quando os cinco exemplos do Anexo I continuam fechando, não por ter sido lida com cuidado. Publicar uma revisão sem que os cinco fechem não é permitido pelo sistema.
 
-**9. Detectar revisão nova.** Comparar o histórico de alterações na abertura de cada PDF com a tabela de revisões abaixo, pelo [índice de normas técnicas da Neoenergia PE](https://www.neoenergia.com/web/pernambuco/normas-tecnicas). Revisão nova é fato registrado no cálculo, não atualização silenciosa de constante: ver a questão 18 em [`../produto/questoes-em-aberto.md`](../produto/questoes-em-aberto.md).
-
-Última verificação completa: **09/09/2026**, contra DIS-NOR-053 REV 06 e DIS-NOR-030 REV 07.
+**9. Detectar revisão nova.** Comparar o histórico de alterações na abertura de cada PDF com a tabela de revisões abaixo, pelo [índice de normas técnicas da Neoenergia PE](https://www.neoenergia.com/web/pernambuco/normas-tecnicas). Revisão nova é registrada no cálculo, não é atualização silenciosa de constante: ver a questão 18 em [`../produto/questoes-em-aberto.md`](../produto/questoes-em-aberto.md).
 
 ---
 

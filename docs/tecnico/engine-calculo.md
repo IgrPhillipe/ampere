@@ -2,14 +2,14 @@
 
 Especificação dos parâmetros que o sistema recebe e do que ele produz, derivada da DIS-NOR-053 REV 06, da DIS-NOR-030 REV 07 e do protótipo LO-FI.
 
-Todas as citações deste documento foram conferidas contra os PDFs das duas normas em 09/09/2026. A metodologia completa, as tabelas paramétricas, as divergências entre as normas e o procedimento de verificação estão em [`fontes-normativas.md`](fontes-normativas.md).
+A metodologia completa, as tabelas paramétricas, as divergências entre as normas e o procedimento de verificação estão em [`fontes-normativas.md`](fontes-normativas.md).
 
 **Fontes primárias:**
 
 - **DIS-NOR-053 REV 06** — Edificações com Múltiplas Unidades Consumidoras até 34,5 kV. Neoenergia, 09/09/2025. Estrutura do cálculo e método da área útil no Anexo I, p. 106.
 - **DIS-NOR-030 REV 07** — Tensão Secundária a Edificações Individuais. Neoenergia, 17/04/2026. Método da carga instalada no item 6.27, p. 47.
 
-As duas foram indicadas pela Neoenergia e repassadas pela professora no Classroom em 20/08/2026.
+Ambas indicadas pela Neoenergia.
 
 ---
 
@@ -40,7 +40,7 @@ A norma usa três notações para a mesma grandeza, e o motor precisa reconhecer
 
 **Os valores das tabelas normativas não são extraídos de PDF nem embutidos no código: são cadastrados manualmente numa área administrativa do sistema.**
 
-A extração automática de texto do PDF não é confiável para transcrever número — na verificação de 09/09/2026, todas as fórmulas do Anexo I perderam os índices na extração, e as colunas de tabela se misturaram em páginas com sub-cálculos. Pior: a extração não falha, devolve valor plausível e errado. Nenhuma revisão de norma pode entrar no sistema por esse caminho.
+A extração automática de texto de PDF não é confiável para transcrever valor: perde índices de fórmula, embaralha colunas de tabela e falha em silêncio, devolvendo número plausível e errado. Nenhuma revisão de norma entra no sistema por esse caminho.
 
 Cada tabela é cadastrada com:
 
@@ -195,7 +195,7 @@ O sistema precisa aceitar entradas para **todas as nove parcelas** que existam n
 | **Estação incorporada ao veículo?** | Única hipótese em que vale o valor padrão | DIS-NOR-030, item 6.26.4.1, nota |
 | **Sistema de gerenciamento de carga?** | Altera a demanda de corte usada no dimensionamento da proteção | DIS-NOR-053, itens 6.26.3 e 6.26.3.1 |
 
-> **Regra do valor padrão de 3,3 kW:** está na **DIS-NOR-030, item 6.26.4.1**, não na 053, e aplica-se **exclusivamente** à estação de recarga incorporada ao veículo cuja potência não seja informada. Não é valor padrão para estação fixa sem potência declarada.
+> **Valor padrão de 3,3 kW:** **DIS-NOR-030, item 6.26.4.1.** Aplica-se **exclusivamente** à estação de recarga incorporada ao veículo cuja potência não seja informada. Não é valor padrão para estação fixa sem potência declarada.
 
 **Qual tabela de fator de demanda usar** — as duas normas trazem tabelas diferentes, e a 053 resolve a escolha no Anexo I, item 13: independente da potência da estação e de ela estar ou não inclusa na medição individual, o `Dve` do quadro geral e do transformador usa o fator do item 6.26 da 053.
 
@@ -204,7 +204,7 @@ O sistema precisa aceitar entradas para **todas as nove parcelas** que existam n
 | `Dve` do agrupamento — quadro geral, transformador, demanda da edificação | **Quadro 33, DIS-NOR-053** |
 | Demanda individual de uma UC pelo método da carga instalada (parcela `j`) | **Tabela 13, DIS-NOR-030** |
 
-> **Atenção à parcela `j`.** A DIS-NOR-030 define a fórmula com nove parcelas (`a` a `i`) e, no item 6.27.10, uma décima parcela `j` para estação de recarga, que não entra no somatório. Como na 053 a recarga é termo próprio (`Dve`), o motor trata `j` fora da soma das nove. Somar as duas coisas é contar a recarga duas vezes.
+> **Parcela `j`.** A DIS-NOR-030 define a fórmula com nove parcelas (`a` a `i`) e, no item 6.27.10, uma décima parcela `j` para estação de recarga, que não entra no somatório. Na 053 a recarga é termo próprio (`Dve`), então o motor trata `j` fora da soma das nove. Somar as duas conta a recarga duas vezes.
 
 ---
 
@@ -302,11 +302,11 @@ Nomes em inglês, conforme a convenção de código do projeto ([`../../app/back
 
 ## Divergências entre as normas e critério adotado
 
-| Divergência | Critério | Situação |
+| Divergência | Regra aplicada | Efeito |
 | :--- | :--- | :--- |
-| Fator de demanda de recarga: Quadro 33 da 053 contra Tabela 13 da 030 | Quadro 33 para o agrupamento, Tabela 13 para a unidade individual | **Resolvida pela norma** — Anexo I, item 13 |
-| Fator de potência de tomadas: 1,00 na 030 contra 0,80 no Exemplo 1 da 053 | Segue a 030, porque o Anexo I item 7.2 manda usar os fatores de potência dela | **Aberta** — o motor não reproduz a parcela `a` do Exemplo 1 na casa dos centavos (4,50 contra 4,69 kVA). Não altera o resultado final daquele exemplo, porque o mínimo por tensão domina |
-| Parcela `j` fora do somatório das nove | Tratada como `Dve`, fora da soma | **Divergência interna da 030**, contornada |
+| Fator de demanda de recarga: Quadro 33 da 053 contra Tabela 13 da 030 | Quadro 33 para o agrupamento, Tabela 13 para a unidade individual (Anexo I, item 13) | Nenhum: as tabelas medem objetos diferentes |
+| Fator de potência de tomadas: 1,00 na 030 contra 0,80 no Exemplo 1 da 053 | Vale a 030, que o Anexo I item 7.2 manda usar | O motor não reproduz a parcela `a` do Exemplo 1 na casa dos centavos: 4,50 contra 4,69 kVA. O resultado final daquele exemplo não muda, porque o mínimo por tensão domina |
+| Parcela `j` definida fora do somatório das nove, na 030 | Tratada como `Dve`, fora da soma | Nenhum, desde que não seja somada duas vezes |
 
 Detalhamento e evidência em [`fontes-normativas.md`](fontes-normativas.md).
 

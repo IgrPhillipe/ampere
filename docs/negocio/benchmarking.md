@@ -118,7 +118,22 @@ O diferencial não está em construir mais uma calculadora, já existem boas. Es
 
 Antecipar para o momento da elaboração o que hoje só chega no fim de um ciclo de até 30 dias é onde está o ganho.
 
-As quatro linhas sem nenhum `✓` do lado das concessionárias são as mesmas capacidades que [`objetivos-projeto.md`](../produto/objetivos-projeto.md) define como objetivo do MVP.
+### A lacuna: ninguém junta cálculo e processo
+
+Os nove critérios se dividem em dois blocos, e cada grupo de ferramenta falha exatamente no bloco que o outro cobre.
+
+| Bloco | Critérios | Quem cobre | Quem falha |
+| :--- | :--- | :--- | :--- |
+| **Calcular** | Calculadora automática · calcula segundo a norma · padroniza o resultado · valida antes do envio · aponta o erro · memória de cálculo | AltoQi cobre os seis; Enel cobre três | **COPEL, CEMIG, CPFL e a própria Neoenergia falham nos seis** |
+| **Estar no processo** | Integrada ao sistema oficial de submissão · apoia a análise interna | COPEL, CEMIG, CPFL e Neoenergia | AltoQi e Enel |
+
+Nenhuma coluna da tabela cobre os dois blocos. **A lacuna não é uma linha, é a interseção que não existe.**
+
+As seis capacidades de cálculo faltam em **todas** as distribuidoras que atendem edificações com múltiplas UCs, Neoenergia inclusive: quem recebe o projeto não calcula. O erro nasce no cálculo manual e só é descoberto na análise, até 30 dias depois.
+
+A Enel delimita o recorte: calcula e padroniza, e ainda assim não atende o caso — está fora do processo oficial e é `✕` no primeiro critério, edificações com múltiplas UCs.
+
+São os dois blocos que [`objetivos-projeto.md`](../produto/objetivos-projeto.md) define como objetivo do MVP, e é contra eles que as propostas são avaliadas em [`ideacao.md`](../produto/ideacao.md#comparativo-das-propostas).
 
 ---
 
