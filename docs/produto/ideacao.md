@@ -8,41 +8,6 @@ Board: [FigJam — Ideação Parte 1](https://www.figma.com/board/H7ZlU9nAbR72Li
 
 Nesta etapa, "solução" é conceito de produto, não funcionalidade. Funcionalidades saem das histórias de usuário, na aula 4.
 
-## To-do
-
-**Preparação**
-
-- [x] Criar o board da sessão e registrar o link no [`README`](../../README.md) do projeto
-- [x] Carregar o board com os insumos da Imersão
-- [ ] Publicar a subpágina *Ideação* no Google Sites
-- [ ] Definir facilitador, formato e duração da sessão (questão 7)
-- [ ] Definir se a restrição de POO entra antes ou depois da rodada divergente (questão 8)
-- [ ] Enviar ao cliente as perguntas de [`questoes-em-aberto.md`](questoes-em-aberto.md#perguntas-para-enviar-ao-cliente)
-
-**Atividade 1 — Brainstorming**
-
-- [ ] Rodada divergente, uma faixa por integrante
-- [ ] Agrupar cada ideia pelo usuário que ela atende
-- [ ] Registrar todas as ideias, incluindo as descartadas e o motivo do descarte
-- [ ] Transcrever na seção 1
-
-**Atividade 2 — Riscos**
-
-- [ ] Levantar no máximo dois riscos por proposta
-- [ ] Transcrever na seção 2
-
-**Atividade 3 — Proposta final**
-
-- [ ] Fechar o comparativo e escolher
-- [ ] Escrever a justificativa
-- [ ] Registrar as premissas assumidas, se houver questão bloqueante sem resposta
-- [ ] Transcrever na seção 3
-
-**Fechamento**
-
-- [ ] Registrar as três atividades no Google Sites
-- [ ] Atualizar o status em [`../cronograma-projetos3.md`](../cronograma-projetos3.md)
-
 ## Insumos da Imersão
 
 Disponíveis na zona de contexto do board durante a sessão:
@@ -55,44 +20,30 @@ Disponíveis na zona de contexto do board durante a sessão:
 
 A solução escolhida precisa caber nos requisitos de POO: Java com Spring Boot, banco de dados, mínimo 3 classes de domínio persistidas e toda história lendo ou escrevendo no banco ([`app/back/README.md`](../../app/back/README.md)).
 
-## 1 — Brainstorming de possíveis soluções
+## Brainstorming de possíveis soluções
 
-A preencher na atividade 1.
+A rodada divergente foi agrupada em cinco conceitos de produto, mais um grupo transversal.
 
-| # | Ideia | Usuário atendido | Autor |
-| :- | :---- | :--------------- | :---- |
+| Grupo | Ideias | Usuário atendido |
+| :--- | :--- | :--- |
+| **Calcula e guia o preenchimento** | Formulário passo a passo que calcula a demanda · Assistente que explica a norma durante o preenchimento · Fluxo no modelo da declaração de imposto de renda · Cada projeto salvo no banco | Projetista |
+| **Confere e aponta erro antes de enviar** | Compara o cálculo do projetista com o da norma · Tela que mostra onde deu erro · Alerta quando o valor fica abaixo do mínimo · Fila com priorização automática e diagnóstico por projeto · Cruzamento de resubmissões, mostrando o que mudou entre versões | Projetista e analista |
+| **Lado da análise interna** | Painel do analista com os projetos organizados · Projetista e analista no mesmo sistema · Login por perfil · Dashboard dos projetos mais reprovados · Sugestão de correção quando o cálculo está errado | Analista |
+| **Entrada automática de dados** | Leitura automática de PDF · Memorial descritivo gerado formatado · Upload dos documentos do projeto · Exportação do cálculo em PDF pronto para envio · Relatório final com os parâmetros usados | Projetista e analista |
+| **Histórico e rastreabilidade** | Cadastro do projetista com histórico de envios e cálculos · Comparação automática entre revisões da norma | Projetista e analista |
+| **Experiência do usuário** — transversal | Filtros e busca rápida de projetos · Alerta de campos esquecidos · Área de comentários e notas · Exportação em múltiplos formatos | Os dois |
 
-Ideias descartadas e o motivo: a preencher.
+### Ideias descartadas
 
-## 2 — Riscos por proposta
-
-A preencher na atividade 2. Máximo de dois riscos por proposta.
-
-| Proposta | Do que depende que não controlamos | O que faríamos a respeito |
-| :------- | :--------------------------------- | :------------------------ |
-
-Riscos que valem para todas as propostas, e por isso não as diferenciam: a norma de cálculo é revisada com frequência, sete vezes em menos de quatro anos ([`fontes-normativas.md`](../tecnico/fontes-normativas.md)).
-
-## 3 — Proposta de solução final
-
-**Solução escolhida:** sistema único, com perfis. O projetista externo guia o preenchimento, calcula e exporta a demanda. O analista interno usa o mesmo sistema, com um painel para revisar e tratar o que foi submetido. Um lugar só, dois perfis.
-
-**Justificativa:** cobre os dois lados da [lacuna do benchmarking](../negocio/benchmarking.md#a-lacuna-ninguém-junta-cálculo-e-processo). Calcula, valida e padroniza como a ferramenta do projetista, e vive dentro do processo de submissão e análise como o portal da concessionária. É a interseção que hoje não existe: os dois perfis usam o mesmo fluxo, do preenchimento até a revisão e a tratativa entre analista e projetista.
-
-**Premissas assumidas:** o que o time está assumindo para poder seguir, e o que cai se a premissa for falsa. Todas dependem de resposta do cliente e estão amarradas ao registro de [`questões em aberto`](questoes-em-aberto.md).
-
-| # | Premissa | O que cai se for falsa | Questão |
-| :- | :--- | :--- | :--- |
-| 1 | O projetista externo pode acessar o mesmo sistema que o analista interno | A solução escolhida. Sem isso, "sistema único" vira dois produtos separados e o argumento da interseção não se sustenta | 1c |
-| 2 | O MVP atende os dois perfis, projetista externo e analista interno | O painel de análise e os apontamentos vinculados à etapa do cálculo | 1a |
-| 3 | O recorte é a faixa acima de 50 kVA, onde a simplificação de critérios ainda não foi aplicada | O escopo. Abaixo de 50 kVA o problema já foi mitigado e o projeto simplificado é permitido pela norma (053, itens 6.27.1 e 6.27.3) | 3 |
-| 4 | Não existe sistema de submissão a integrar; o MVP é autônomo e o envio segue pelo canal oficial atual | O desenho de integração. Se existir sistema, o produto vira extensão dele, não ferramenta nova | 9 |
-| 5 | As reprovações são majoritariamente por aplicação errada da regra, não por dado de entrada errado | **O valor do produto.** Automatizar o cálculo elimina erro de regra e não elimina erro de entrada | 10 |
-| 6 | Os parâmetros normativos são cadastrados e versionados dentro do sistema, não extraídos de PDF nem fixados em código | Nada externo: é decisão técnica do time, registrada em [`fontes-normativas.md`](../tecnico/fontes-normativas.md) | — |
-
-A premissa 5 é a mais perigosa e é a de maior prioridade no registro de questões. As premissas 1 e 4 são as que decidem se a solução escolhida continua sendo a certa.
-
-**Características transversais:** o agrupamento produziu um sexto grupo — *experiência do usuário* — que não é proposta concorrente e sim atributo do sistema único: filtros e busca rápida de projetos, alerta de campos esquecidos, área de comentários e notas, exportação em múltiplos formatos. Dois deles já são parte das propostas: o alerta de campos esquecidos é validação antes do envio, e a exportação é o resultado padronizado. Por isso o grupo não aparece como linha no comparativo nem entre as descartadas.
+| Ideia | Motivo |
+| :--- | :--- |
+| App separado só para tirar dúvida sobre a norma, sem calcular | Não ataca o problema central, que é o cálculo |
+| Sistema que arquiva cálculos antigos como exemplo | Funcionalidade de apoio; não resolve o problema atual |
+| Ferramenta que só confere se os documentos estão completos | A checagem documental já existe hoje e não ataca a causa raiz |
+| Extensão de navegador para preencher o formulário da Neoenergia | Depende de o site da Neoenergia não mudar; risco alto de manutenção |
+| Integração direta com o sistema da Neoenergia para envio automático | Exige acesso e parceria que o time não tem |
+| Painel de estatísticas de reprovação por região | Serve à gestão; não ajuda o projetista a acertar o cálculo |
+| App mobile nativo além do sistema web | Fora do escopo do MVP |
 
 ## Comparativo das propostas
 
@@ -127,6 +78,27 @@ Nenhuma referência do mercado cobre os dois. É esse o critério que separa as 
 
 Risco que vale para todas e por isso não as diferencia: a norma é revisada com frequência, sete vezes em menos de quatro anos ([`fontes-normativas.md`](../tecnico/fontes-normativas.md)).
 
-## Saídas esperadas
+## Proposta de solução final
 
-Ao fim desta etapa, devem estar resolvidas as questões 4 (entrada e saída do sistema) e 5 (métrica de sucesso), registradas em [`questoes-em-aberto.md`](questoes-em-aberto.md). A atividade 1 deve produzir evidência para o cliente fechar a questão 1.
+**Solução escolhida:** sistema único, com perfis. O projetista externo guia o preenchimento, calcula e exporta a demanda. O analista interno usa o mesmo sistema, com um painel para revisar e tratar o que foi submetido. Um lugar só, dois perfis.
+
+**Justificativa:** cobre os dois lados da [lacuna do benchmarking](../negocio/benchmarking.md#a-lacuna-ninguém-junta-cálculo-e-processo). Calcula, valida e padroniza como a ferramenta do projetista, e vive dentro do processo de submissão e análise como o portal da concessionária. É a interseção que hoje não existe: os dois perfis usam o mesmo fluxo, do preenchimento até a revisão e a tratativa entre analista e projetista.
+
+**Premissas assumidas:** todas dependem de resposta do cliente e estão amarradas ao registro de [`questões em aberto`](questoes-em-aberto.md).
+
+| # | Premissa | O que cai se for falsa | Questão |
+| :- | :--- | :--- | :--- |
+| 1 | O projetista externo pode acessar o mesmo sistema que o analista interno | A solução escolhida. Sem isso, "sistema único" vira dois produtos separados e o argumento da interseção não se sustenta | 1c |
+| 2 | O MVP atende os dois perfis, projetista externo e analista interno | O painel de análise e os apontamentos vinculados à etapa do cálculo | 1a |
+| 3 | O recorte é a faixa acima de 50 kVA, onde a simplificação de critérios ainda não foi aplicada | O escopo. Abaixo de 50 kVA o problema já foi mitigado e o projeto simplificado é permitido pela norma (053, itens 6.27.1 e 6.27.3) | 3 |
+| 4 | Não existe sistema de submissão a integrar; o MVP é autônomo e o envio segue pelo canal oficial atual | O desenho de integração. Se existir sistema, o produto vira extensão dele, não ferramenta nova | 9 |
+| 5 | As reprovações são majoritariamente por aplicação errada da regra, não por dado de entrada errado | **O valor do produto.** Automatizar o cálculo elimina erro de regra e não elimina erro de entrada | 10 |
+| 6 | Os parâmetros normativos são cadastrados e versionados dentro do sistema, não extraídos de PDF nem fixados em código | Nada externo: é decisão técnica do time, registrada em [`fontes-normativas.md`](../tecnico/fontes-normativas.md) | — |
+
+A premissa 5 é a mais perigosa e é a de maior prioridade no registro de questões. As premissas 1 e 4 são as que decidem se a solução escolhida continua sendo a certa.
+
+**Características transversais:** o grupo *experiência do usuário* não é proposta concorrente e sim atributo do sistema único: filtros e busca rápida de projetos, alerta de campos esquecidos, área de comentários e notas, exportação em múltiplos formatos. Dois deles já são parte das propostas: o alerta de campos esquecidos é validação antes do envio, e a exportação é o resultado padronizado.
+
+## O que depende desta etapa
+
+As entradas e saídas concretas do sistema, derivadas da solução escolhida, estão em [`../tecnico/engine-calculo.md`](../tecnico/engine-calculo.md). A métrica de sucesso (questão 5) e a definição de quem usa o MVP (questão 1) seguem em aberto no registro de [`questões em aberto`](questoes-em-aberto.md).

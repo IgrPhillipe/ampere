@@ -129,9 +129,9 @@ Os nove critérios se dividem em dois blocos, e cada grupo de ferramenta falha e
 
 Nenhuma coluna da tabela cobre os dois blocos. **A lacuna não é uma linha, é a interseção que não existe.**
 
-Isso explica o problema do desafio melhor do que qualquer critério isolado: as seis capacidades de cálculo faltam em **todas** as distribuidoras que atendem edificações com múltiplas UCs, Neoenergia inclusive. Quem recebe o projeto não calcula nada. O erro nasce no cálculo manual e só é descoberto na análise, até 30 dias depois.
+As seis capacidades de cálculo faltam em **todas** as distribuidoras que atendem edificações com múltiplas UCs, Neoenergia inclusive: quem recebe o projeto não calcula. O erro nasce no cálculo manual e só é descoberto na análise, até 30 dias depois.
 
-A Enel não é exceção a explicar, é a prova do argumento: calcula bem, padroniza, e ainda assim não serve aqui — está fora do processo oficial e é `✕` no primeiro critério, edificações com múltiplas UCs.
+A Enel delimita o recorte: calcula e padroniza, e ainda assim não atende o caso — está fora do processo oficial e é `✕` no primeiro critério, edificações com múltiplas UCs.
 
 São os dois blocos que [`objetivos-projeto.md`](../produto/objetivos-projeto.md) define como objetivo do MVP, e é contra eles que as propostas são avaliadas em [`ideacao.md`](../produto/ideacao.md#comparativo-das-propostas).
 
