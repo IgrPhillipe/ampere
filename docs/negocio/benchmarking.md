@@ -118,20 +118,22 @@ O diferencial não está em construir mais uma calculadora, já existem boas. Es
 
 Antecipar para o momento da elaboração o que hoje só chega no fim de um ciclo de até 30 dias é onde está o ganho.
 
-### As quatro lacunas
+### A lacuna: ninguém junta cálculo e processo
 
-São os quatro critérios que nenhuma referência atende no recorte do desafio — edificações com múltiplas UCs, dentro do processo oficial:
+Os nove critérios se dividem em dois blocos, e cada grupo de ferramenta falha exatamente no bloco que o outro cobre.
 
-| # | Lacuna | Situação na tabela |
-| :- | :--- | :--- |
-| 1 | **Valida erros antes do envio** | `✕` em todas as referências |
-| 2 | **Aponta o erro e como corrigir** | Neoenergia `◐` — avisa, mas só depois de até 30 dias de análise |
-| 3 | **Mostra memória de cálculo** | Enel `◐` — dá o total sem as parcelas e os fatores |
-| 4 | **Padroniza o resultado** | Enel `✓`, mas é `✕` em múltiplas UCs, então não atende o recorte; CPFL `◐` |
+| Bloco | Critérios | Quem cobre | Quem falha |
+| :--- | :--- | :--- | :--- |
+| **Calcular** | Calculadora automática · calcula segundo a norma · padroniza o resultado · valida antes do envio · aponta o erro · memória de cálculo | AltoQi cobre os seis; Enel cobre três | **COPEL, CEMIG, CPFL e a própria Neoenergia falham nos seis** |
+| **Estar no processo** | Integrada ao sistema oficial de submissão · apoia a análise interna | COPEL, CEMIG, CPFL e Neoenergia | AltoQi e Enel |
 
-A quarta merece a ressalva: o simulador da Enel padroniza de verdade, e por isso pontua na linha. Só que ele cobre unidade individual, não edificação com múltiplas UCs. Para o problema deste projeto, a lacuna continua aberta.
+Nenhuma coluna da tabela cobre os dois blocos. **A lacuna não é uma linha, é a interseção que não existe.**
 
-São as mesmas capacidades que [`objetivos-projeto.md`](../produto/objetivos-projeto.md) define como objetivo do MVP, e é contra elas que as propostas são avaliadas em [`ideacao.md`](../produto/ideacao.md#comparativo-das-propostas).
+Isso explica o problema do desafio melhor do que qualquer critério isolado: as seis capacidades de cálculo faltam em **todas** as distribuidoras que atendem edificações com múltiplas UCs, Neoenergia inclusive. Quem recebe o projeto não calcula nada. O erro nasce no cálculo manual e só é descoberto na análise, até 30 dias depois.
+
+A Enel não é exceção a explicar, é a prova do argumento: calcula bem, padroniza, e ainda assim não serve aqui — está fora do processo oficial e é `✕` no primeiro critério, edificações com múltiplas UCs.
+
+São os dois blocos que [`objetivos-projeto.md`](../produto/objetivos-projeto.md) define como objetivo do MVP, e é contra eles que as propostas são avaliadas em [`ideacao.md`](../produto/ideacao.md#comparativo-das-propostas).
 
 ---
 
