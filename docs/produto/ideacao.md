@@ -81,6 +81,8 @@ Riscos que valem para todas as propostas, e por isso não as diferenciam: a norm
 
 **Premissas assumidas:** a preencher.
 
+**Características transversais:** o agrupamento produziu um sexto grupo — *experiência do usuário* — que não é proposta concorrente e sim atributo do sistema único: filtros e busca rápida de projetos, alerta de campos esquecidos, área de comentários e notas, exportação em múltiplos formatos. Dois deles já são parte das propostas: o alerta de campos esquecidos é validação antes do envio, e a exportação é o resultado padronizado. Por isso o grupo não aparece como linha no comparativo nem entre as descartadas.
+
 ## Comparativo das propostas
 
 As cinco propostas saíram do agrupamento das ideias, e a sexta linha é a solução final. A cobertura é avaliada contra os dois blocos do [benchmarking](../negocio/benchmarking.md#a-lacuna-ninguém-junta-cálculo-e-processo):
