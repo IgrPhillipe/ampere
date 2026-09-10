@@ -30,6 +30,7 @@ docs/
 | Produto    | [produto/user-stories.md](produto/user-stories.md) | As 7 histórias de usuário em BDD, com critérios de confirmação e cenários. Entrega 01 de POO |
 | Técnico    | [tecnico/README.md](tecnico/README.md) | Motor de cálculo e requisitos de POO |
 | Técnico    | [tecnico/fontes-normativas.md](tecnico/fontes-normativas.md) | DIS-NOR-053, metodologia de cálculo, revisões e processo de submissão |
+| Produto    | [produto/matriz-esforco-impacto.md](produto/matriz-esforco-impacto.md) | Priorização das histórias e ordem de construção do MVP |
 | Técnico    | [tecnico/engine-calculo.md](tecnico/engine-calculo.md) | Entradas, saídas, validações e rastreabilidade do motor de cálculo |
 | Cronograma | [cronograma-projetos3.md](cronograma-projetos3.md) | Aulas e entregáveis de Projetos 3 |
 | Cronograma | [cronograma-poo.md](cronograma-poo.md) | Entregas avaliadas de POO |
