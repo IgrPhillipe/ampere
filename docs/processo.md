@@ -62,7 +62,7 @@ Fase de construção da solução.
 | Ideação | Análise de riscos | [`produto/ideacao.md`](produto/ideacao.md) |
 | Ideação | Solução final com justificativa | [`produto/ideacao.md`](produto/ideacao.md) |
 | Ideação | Histórias de usuário (BDD) | [`produto/user-stories.md`](produto/user-stories.md) |
-| Ideação | Matriz esforço × impacto | **Pendente** — critério 3 do kick-off |
+| Ideação | Matriz esforço × impacto | [`produto/matriz-esforco-impacto.md`](produto/matriz-esforco-impacto.md) |
 | Ideação | Protótipos de baixa fidelidade | [Figma — Protótipo LO-FI](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
 | Ideação | Papéis e responsabilidades | [`../README.md`](../README.md) (tabela Equipe e Papéis) |
 | Ideação | Tecnologias | [`tecnico/README.md`](tecnico/README.md) |
