@@ -75,24 +75,39 @@ Riscos que valem para todas as propostas, e por isso não as diferenciam: a norm
 
 ## 3 — Proposta de solução final
 
-A preencher na atividade 3.
+**Solução escolhida:** sistema único, com perfis. O projetista externo guia o preenchimento, calcula e exporta a demanda. O analista interno usa o mesmo sistema, com um painel para revisar e tratar o que foi submetido. Um lugar só, dois perfis.
 
-**Solução escolhida:** TBD
-**Justificativa:** TBD
-**Premissas assumidas:** TBD
+**Justificativa:** junta guiar e calcular o preenchimento com o painel do analista, num sistema só. Cobre as quatro lacunas do benchmarking porque os dois perfis usam o mesmo fluxo, do preenchimento até a revisão e a tratativa entre analista e projetista.
+
+**Premissas assumidas:** a preencher.
 
 ## Comparativo das propostas
 
-Preenchido no board durante as atividades 2 e 3. Colunas:
+As cinco propostas saíram do agrupamento das ideias, e a sexta linha é a solução final. A coluna de cobertura é avaliada contra as [quatro lacunas](../negocio/benchmarking.md#as-quatro-lacunas) do benchmarking: **validar antes do envio · apontar o erro · memória de cálculo · padronizar o resultado**.
 
-| Coluna | O que registra |
-| :----- | :------------- |
-| Proposta | O conceito em uma frase |
-| Usuário atendido | Projetista externo, analista interno ou os dois |
-| Cobre as lacunas do mercado? | Contra a tabela do [`benchmarking`](../negocio/benchmarking.md#4-comparativo) |
-| Cabe nas entregas de POO? | Viabilidade no semestre |
-| Do que depende que não controlamos | Coluna de risco |
-| Nota | Espaço livre |
+| Proposta | Usuário | Cobre as lacunas? | Do que depende que não controlamos |
+| :--- | :--- | :--- | :--- |
+| Calcula e guia o preenchimento | Projetista | 3 de 4 — valida antes do envio, memória de cálculo e padroniza. Não aponta o erro | Quem é o usuário do MVP e se ele acessa o sistema de fora (questões 1 e 1c) |
+| Confere e aponta erro antes de enviar | Projetista | 2 de 4 — valida antes do envio e aponta o erro. Sem memória de cálculo nem documento padronizado | Mesmas questões 1 e 1c |
+| Lado da análise interna | Analista | 3 de 4 — aponta o erro, memória de cálculo e padroniza. Não valida antes do envio, chega tarde | Se já existe sistema de submissão para integrar (questão 9) |
+| Entrada automática de dados | Os dois | 2 de 4 — aponta o erro e memória de cálculo. Fraca em validar e padronizar, porque depende do formato de origem | Em que formato o projeto é enviado hoje (questão 14) |
+| Histórico e rastreabilidade | Os dois | 2 de 4 — memória de cálculo e padroniza. Não valida nem aponta erro | Pouco: funciona com qualquer resposta sobre o usuário (questão 1) |
+| **Sistema único, com perfis** | Os dois, com perfis distintos | **4 de 4** — guia e valida antes do envio, mostra a memória de cálculo, exporta o resultado padronizado e dá ao analista um painel para revisar e apontar o erro, no mesmo fluxo | Se o projetista externo pode acessar o mesmo sistema que o analista (questão 1c) e como funciona a revisão interna hoje (questão 9) |
+
+**Perfis:** *projetista externo* é a pessoa ou empresa fora da Neoenergia que monta e envia o cálculo; *analista interno* é a equipe da Neoenergia que recebe e confere o projeto.
+
+### Riscos e gargalos por proposta
+
+| Proposta | Principal risco |
+| :--- | :--- |
+| Calcula e guia o preenchimento | Fluxo guiado longo demais gera abandono; modelar todas as combinações de regras e tabelas no formulário é o gargalo |
+| Confere e aponta erro antes de enviar | Sem memória de cálculo nem documento padronizado, o analista segue sem artefato estruturado para conferir |
+| Lado da análise interna | Não barra o erro antes do envio: o analista continua reanalisando o mesmo projeto várias vezes |
+| Entrada automática de dados | Variação de layout ou formato nos arquivos trava a importação e devolve o preenchimento manual |
+| Histórico e rastreabilidade | Baixo impacto no problema central: registra e audita, mas não impede o cálculo errado de ser submetido |
+| **Sistema único, com perfis** | Junta duas frentes num só MVP e dobra o escopo; amarra as duas pontas à questão 1c |
+
+Risco que vale para todas e por isso não as diferencia: a norma é revisada com frequência, sete vezes em menos de quatro anos ([`fontes-normativas.md`](../tecnico/fontes-normativas.md)).
 
 ## Saídas esperadas
 

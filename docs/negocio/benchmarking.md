@@ -118,7 +118,20 @@ O diferencial não está em construir mais uma calculadora, já existem boas. Es
 
 Antecipar para o momento da elaboração o que hoje só chega no fim de um ciclo de até 30 dias é onde está o ganho.
 
-As quatro linhas sem nenhum `✓` do lado das concessionárias são as mesmas capacidades que [`objetivos-projeto.md`](../produto/objetivos-projeto.md) define como objetivo do MVP.
+### As quatro lacunas
+
+São os quatro critérios que nenhuma referência atende no recorte do desafio — edificações com múltiplas UCs, dentro do processo oficial:
+
+| # | Lacuna | Situação na tabela |
+| :- | :--- | :--- |
+| 1 | **Valida erros antes do envio** | `✕` em todas as referências |
+| 2 | **Aponta o erro e como corrigir** | Neoenergia `◐` — avisa, mas só depois de até 30 dias de análise |
+| 3 | **Mostra memória de cálculo** | Enel `◐` — dá o total sem as parcelas e os fatores |
+| 4 | **Padroniza o resultado** | Enel `✓`, mas é `✕` em múltiplas UCs, então não atende o recorte; CPFL `◐` |
+
+A quarta merece a ressalva: o simulador da Enel padroniza de verdade, e por isso pontua na linha. Só que ele cobre unidade individual, não edificação com múltiplas UCs. Para o problema deste projeto, a lacuna continua aberta.
+
+São as mesmas capacidades que [`objetivos-projeto.md`](../produto/objetivos-projeto.md) define como objetivo do MVP, e é contra elas que as propostas são avaliadas em [`ideacao.md`](../produto/ideacao.md#comparativo-das-propostas).
 
 ---
 
