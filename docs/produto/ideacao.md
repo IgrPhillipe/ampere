@@ -79,7 +79,18 @@ Riscos que valem para todas as propostas, e por isso não as diferenciam: a norm
 
 **Justificativa:** cobre os dois lados da [lacuna do benchmarking](../negocio/benchmarking.md#a-lacuna-ninguém-junta-cálculo-e-processo). Calcula, valida e padroniza como a ferramenta do projetista, e vive dentro do processo de submissão e análise como o portal da concessionária. É a interseção que hoje não existe: os dois perfis usam o mesmo fluxo, do preenchimento até a revisão e a tratativa entre analista e projetista.
 
-**Premissas assumidas:** a preencher.
+**Premissas assumidas:** o que o time está assumindo para poder seguir, e o que cai se a premissa for falsa. Todas dependem de resposta do cliente e estão amarradas ao registro de [`questões em aberto`](questoes-em-aberto.md).
+
+| # | Premissa | O que cai se for falsa | Questão |
+| :- | :--- | :--- | :--- |
+| 1 | O projetista externo pode acessar o mesmo sistema que o analista interno | A solução escolhida. Sem isso, "sistema único" vira dois produtos separados e o argumento da interseção não se sustenta | 1c |
+| 2 | O MVP atende os dois perfis, projetista externo e analista interno | O painel de análise e os apontamentos vinculados à etapa do cálculo | 1a |
+| 3 | O recorte é a faixa acima de 50 kVA, onde a simplificação de critérios ainda não foi aplicada | O escopo. Abaixo de 50 kVA o problema já foi mitigado e o projeto simplificado é permitido pela norma (053, itens 6.27.1 e 6.27.3) | 3 |
+| 4 | Não existe sistema de submissão a integrar; o MVP é autônomo e o envio segue pelo canal oficial atual | O desenho de integração. Se existir sistema, o produto vira extensão dele, não ferramenta nova | 9 |
+| 5 | As reprovações são majoritariamente por aplicação errada da regra, não por dado de entrada errado | **O valor do produto.** Automatizar o cálculo elimina erro de regra e não elimina erro de entrada | 10 |
+| 6 | Os parâmetros normativos são cadastrados e versionados dentro do sistema, não extraídos de PDF nem fixados em código | Nada externo: é decisão técnica do time, registrada em [`fontes-normativas.md`](../tecnico/fontes-normativas.md) | — |
+
+A premissa 5 é a mais perigosa e é a de maior prioridade no registro de questões. As premissas 1 e 4 são as que decidem se a solução escolhida continua sendo a certa.
 
 **Características transversais:** o agrupamento produziu um sexto grupo — *experiência do usuário* — que não é proposta concorrente e sim atributo do sistema único: filtros e busca rápida de projetos, alerta de campos esquecidos, área de comentários e notas, exportação em múltiplos formatos. Dois deles já são parte das propostas: o alerta de campos esquecidos é validação antes do envio, e a exportação é o resultado padronizado. Por isso o grupo não aparece como linha no comparativo nem entre as descartadas.
 
