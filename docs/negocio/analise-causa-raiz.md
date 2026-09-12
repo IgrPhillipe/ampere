@@ -18,10 +18,10 @@ Fontes: [Figma — 5 Por quês](https://www.figma.com/board/XyJzy2WicMqwNtRJcB35
 | # | Pergunta                                | Resposta                                                                                                                                              |
 | :- | :-------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1 | Por que os projetos são rejeitados?     | Os cálculos de demanda elétrica entregues pelos projetistas estão incorretos.                                                                          |
-| 2 | Por que os cálculos estão incorretos?   | As regras normativas são aplicadas manualmente e envolvem múltiplas tabelas e parâmetros sujeitos a interpretações divergentes.                        |
-| 3 | Por que são aplicadas manualmente?      | Não existe ferramenta padronizada que automatize e valide o cálculo conforme as normas da Neoenergia PE.                                               |
-| 4 | Por que não existe essa ferramenta?     | Intervenções anteriores foram pontuais — simplificaram regras apenas para projetos abaixo de 50 kVA, sem atacar a causa raiz.                          |
-| 5 | Por que as intervenções foram pontuais? | Nunca foi desenvolvido um sistema robusto capaz de aplicar toda a complexidade normativa de forma automatizada, rastreável e padronizada.              |
+| 2 | Por que os cálculos estão incorretos?   | Porque os projetistas aplicam as regras normativas manualmente, ficando sujeitos a erros humanos de interpretação e ao uso de versões desatualizadas da DIS-NOR.  |
+| 3 | Por que o cálculo ainda depende desse processo manual e suscetível a erros?      | Porque não existe uma ferramenta oficial e padronizada pela Neoenergia que valide esses parâmetros automaticamente antes da submissão.                      |
+| 4 | Por que as ferramentas e planilhas usadas no mercado não resolvem esse problema?    | Porque as iniciativas existentes são fragmentadas e cobrem apenas casos simples (< 50 kVA), ignorando a complexidade de projetos agrupados e de maior porte.   |
+| 5 | Por que até hoje não se consolidou uma solução abrangente para esses projetos mais complexos? | Porque as regras de validação eram tratadas como regras estáticas, sem um motor de cálculo centralizado e oficial e com versionamento de normas auditável    |
 
 ### Causa raiz identificada
 
