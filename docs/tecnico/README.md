@@ -27,9 +27,23 @@ Ver premissas iniciais em [`docs/negocio/premissas-desafio.md`](../negocio/premi
 
 ---
 
-## Convenções
+## Front-end
 
-A ser definido junto com a stack. Seguirá o mesmo padrão do projeto anterior:
+O scaffold do `app/front` está no repositório. React 19 com Vite 8, TanStack
+Router e Query, Tailwind 4 e shadcn/ui sobre Base UI, com MSW respondendo no
+lugar da API enquanto o back-end não sobe.
+
+| Documento | Conteúdo |
+| :--- | :--- |
+| [`receitas-front.md`](receitas-front.md) | **ponto de partida da equipe** — criar feature, service, rota e componente, passo a passo |
+| [`arquitetura-front.md`](arquitetura-front.md) | camadas, `features/` × `services/`, autenticação, tratamento de erro, tema |
+| [`convencoes-front.md`](convencoes-front.md) | nomes, estrutura de pastas, aliases, regras de código |
+
+Como executar: [`app/front/README.md`](../../app/front/README.md).
+
+---
+
+## Convenções gerais
 
 - Idioma do código: inglês
 - Texto de UI: português

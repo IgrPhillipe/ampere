@@ -57,9 +57,18 @@ O projeto é dividido em três fases — **Imersão**, **Ideação** e **Desenvo
 
 ## Como rodar o projeto
 
-O código do produto começa na **Entrega 02** (21/09/2026). A Entrega 01 é composta por documentação, histórias de usuário e protótipo, e não há aplicação executável no repositório até lá.
+O **front-end já está no repositório** (scaffold, sem telas de domínio):
 
-As instruções de execução de cada camada serão publicadas em [app/back/README.md](app/back/README.md) e [app/front/README.md](app/front/README.md) junto com o primeiro código.
+```bash
+cd app/front && cp .env.example .env && pnpm install && pnpm dev
+```
+
+Sobe em `http://localhost:5173`. Requer Node 24+ e pnpm. Enquanto o back-end não
+existe, o MSW responde no lugar da API em desenvolvimento. Detalhes,
+credenciais de teste e comandos em [app/front/README.md](app/front/README.md).
+
+O **back-end** entra na Entrega 02 (21/09/2026); as instruções serão publicadas
+em [app/back/README.md](app/back/README.md) junto com o primeiro código.
 
 ---
 
