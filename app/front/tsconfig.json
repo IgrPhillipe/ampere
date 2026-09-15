@@ -1,0 +1,29 @@
+{
+	"files": [],
+	"references": [
+		{ "path": "./tsconfig.app.json" },
+		{ "path": "./tsconfig.node.json" }
+	],
+	/**
+	 * Os paths reais vivem em tsconfig.app.json. Estao repetidos aqui porque
+	 * ferramentas que leem so o tsconfig.json da raiz (o CLI do shadcn, entre
+	 * outras) nao enxergam project references. Mantenha os dois em sincronia.
+	 */
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"],
+			"@styles/*": ["./src/styles/*"],
+			"@services/*": ["./src/services/*"],
+			"@config": ["./src/config"],
+			"@config/*": ["./src/config/*"],
+			"@lib/*": ["./src/lib/*"],
+			"@hooks/*": ["./src/hooks/*"],
+			"@components/*": ["./src/components/*"],
+			"@features/*": ["./src/features/*"],
+			"@routes/*": ["./src/routes/*"],
+			"@assets/*": ["./src/assets/*"],
+			"@providers/*": ["./src/providers/*"]
+		}
+	}
+}
