@@ -1,4 +1,6 @@
+import { ErrorBoundary } from "@components/ErrorBoundary";
 import type { ReactNode } from "react";
+import { Toaster } from "sonner";
 
 import { QueryProvider } from "../QueryProvider";
 import { ThemeProvider } from "../ThemeProvider";
@@ -8,7 +10,13 @@ interface ProvidersProps {
 }
 
 export const Providers = ({ children }: ProvidersProps) => (
-	<ThemeProvider>
-		<QueryProvider>{children}</QueryProvider>
-	</ThemeProvider>
+	<ErrorBoundary>
+		<ThemeProvider>
+			<QueryProvider>
+				{children}
+
+				<Toaster richColors closeButton position="top-right" />
+			</QueryProvider>
+		</ThemeProvider>
+	</ErrorBoundary>
 );

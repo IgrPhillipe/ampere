@@ -1,4 +1,5 @@
 import { Providers } from "@/providers";
+import { NotFound } from "@components/NotFound";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -6,7 +7,7 @@ import { createRoot } from "react-dom/client";
 import { routeTree } from "./routeTree.gen";
 import "./styles/index.css";
 
-const router = createRouter({ routeTree });
+const router = createRouter({ routeTree, defaultNotFoundComponent: NotFound });
 
 declare module "@tanstack/react-router" {
 	interface Register {
