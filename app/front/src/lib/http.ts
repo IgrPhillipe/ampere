@@ -1,5 +1,7 @@
-import { AppConfig } from "@/config";
+import { useAuthStore } from "@features/auth/store";
 import ky, { isHTTPError } from "ky";
+
+import { AppConfig } from "@/config";
 
 import { type ApiHTTPError, parseSpringErrorBody } from "./api-error";
 
@@ -8,6 +10,13 @@ export const http = ky.create({
 	timeout: 30_000,
 	retry: { limit: 2, methods: ["get"] },
 	hooks: {
+		beforeRequest: [
+			({ request }) => {
+				const { token } = useAuthStore.getState().user ?? {};
+
+				if (token) request.headers.set("Authorization", `Bearer ${token}`);
+			},
+		],
 		beforeError: [
 			({ error }) => {
 				if (!isHTTPError(error)) return error;
