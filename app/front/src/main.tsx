@@ -1,8 +1,9 @@
-import { Providers } from "@/providers";
 import { NotFound } from "@components/NotFound";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+
+import { Providers } from "@/providers";
 
 import { routeTree } from "./routeTree.gen";
 import "./styles/index.css";
@@ -15,12 +16,27 @@ declare module "@tanstack/react-router" {
 	}
 }
 
+/**
+ * Liga os mocks do MSW em desenvolvimento.
+ *
+ * A falha e deliberadamente nao-fatal: navegadores sem service worker (ou com
+ * ele bloqueado) derrubariam a aplicacao inteira numa tela branca, que e
+ * praticamente impossivel de diagnosticar. Sem mock, as chamadas vao para a
+ * API real via proxy do Vite.
+ */
 const enableMocking = async (): Promise<void> => {
 	if (!import.meta.env.DEV) return;
 
-	const { worker } = await import("@/mocks/browser");
+	try {
+		const { worker } = await import("@/mocks/browser");
 
-	await worker.start({ onUnhandledRequest: "bypass" });
+		await worker.start({ onUnhandledRequest: "bypass" });
+	} catch (error) {
+		console.warn(
+			"[MSW] Mocks desativados: nao foi possivel registrar o service worker.",
+			error,
+		);
+	}
 };
 
 enableMocking().then(() => {
