@@ -3,6 +3,13 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/ibm-plex-sans";
 
+/**
+ * Amarra o variante `dark:` do Tailwind a classe `.dark` no <html>, que o
+ * ThemeProvider controla. Sem isto o `dark:` seguiria o `prefers-color-scheme`
+ * do sistema operacional enquanto as variaveis CSS seguiriam a classe — e o
+ * tema quebra pela metade, com alguns elementos escuros no tema claro.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
 	--background: oklch(1 0 0);
@@ -43,7 +50,7 @@
 	--sidebar-border: oklch(0.922 0 0);
 	--sidebar-ring: oklch(0.708 0 0);
 
-	color-scheme: light dark;
+	color-scheme: light;
 	font-synthesis: none;
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
@@ -51,6 +58,7 @@
 }
 
 .dark {
+	color-scheme: dark;
 	--background: oklch(0.145 0 0);
 	--foreground: oklch(0.985 0 0);
 	--card: oklch(0.205 0 0);
