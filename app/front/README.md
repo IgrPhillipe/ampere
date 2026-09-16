@@ -77,9 +77,7 @@ de `@config` — nunca leia `import.meta.env` diretamente.
 
 | Documento | Conteúdo |
 | :--- | :--- |
-| [Receitas](../../docs/tecnico/receitas-front.md) | **comece por aqui** — criar feature, service, rota e componente, passo a passo |
-| [Arquitetura](../../docs/tecnico/arquitetura-front.md) | camadas, `features/` × `services/`, autenticação, erros, tema |
-| [Convenções](../../docs/tecnico/convencoes-front.md) | nomes, estrutura de pastas, aliases, regras de código |
+| [Convenções](../../docs/tecnico/convencoes-front.md) | **comece por aqui** — estrutura, nomes e aliases; camadas, roteamento, auth, erros e tema; e as receitas passo a passo para criar feature, service, rota e componente |
 | [`.migration/`](.migration/) | registro dos portes de Radix para Base UI |
 
 Documentação técnica geral: [`docs/tecnico/README.md`](../../docs/tecnico/README.md)
