@@ -1,0 +1,45 @@
+# Nome fixo do projeto para os containers saírem como ampere-db-1 e
+# ampere-api-1, sem colidir com containers de outros projetos na máquina.
+name: ampere
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ampere}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ampere}
+      POSTGRES_DB: ${POSTGRES_DB:-ampere}
+
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+    volumes:
+      - ampere_pgdata:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ampere} -d ${POSTGRES_DB:-ampere}"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    restart: unless-stopped
+
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+
+    environment:
+      # Dentro da rede do compose o banco atende pelo nome do serviço.
+      DATABASE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-ampere}
+      DATABASE_USER: ${POSTGRES_USER:-ampere}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-ampere}
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  ampere_pgdata:

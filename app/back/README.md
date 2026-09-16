@@ -2,7 +2,7 @@
 
 > API + motor de cálculo de demanda elétrica em Java com Spring Boot.
 
-**Stack: Java, Spring Boot, PostgreSQL**
+**Stack:** Java 21 · Spring Boot 4.1 · Spring Data JPA · PostgreSQL 16 · Maven · springdoc · Spotless
 
 ---
 
@@ -25,27 +25,96 @@
 
 ## Como executar
 
-Sem código no repositório até a **Entrega 02** (21/09/2026). Os comandos entram aqui junto com o primeiro commit da aplicação.
+Requisitos: **JDK 21** e **Docker**.
+
+### Tudo em container
+
+```bash
+cp .env.example .env
+docker compose up
+```
+
+Um comando, funciona em qualquer máquina mesmo sem JDK instalada.
+
+### Ciclo rápido de edição
+
+```bash
+cp .env.example .env
+docker compose up -d db
+./mvnw spring-boot:run
+```
+
+Só o banco em container; a aplicação roda pela IDE ou pelo wrapper, com reinício rápido.
+
+A API sobe em `http://localhost:8080/api` e a documentação em `http://localhost:8080/api/swagger-ui/index.html`.
+
+> **JDK 21 pelo Homebrew é *keg-only*** e não entra no PATH sozinho. Ou exporte
+> `JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home`,
+> ou registre a JDK no sistema com o `sudo ln -sfn ...` que o `brew install openjdk@21` sugere
+> ao final — aí `/usr/libexec/java_home -v 21` passa a encontrá-la.
+
+---
+
+## Comandos
+
+| Comando | O que faz |
+| :--- | :--- |
+| `docker compose up` | banco e API em container |
+| `docker compose up -d db` | só o banco |
+| `./mvnw spring-boot:run` | roda a aplicação localmente |
+| `./mvnw spotless:apply` | formata o código — **rode antes do PR** |
+| `./mvnw clean verify` | compila, checa formatação e roda os testes |
+| `docker compose down -v` | derruba tudo e **apaga o volume do banco** |
+
+`./mvnw clean verify` precisa do PostgreSQL no ar: o teste `contextLoads` sobe o contexto inteiro do Spring, incluindo a conexão.
 
 ---
 
 ## Variáveis de ambiente
 
-| Variável       | Obrigatória | Descrição           |
-| :------------- | :---------- | :------------------ |
-| `DATABASE_URL` | Sim         | Conexão com o PostgreSQL |
+| Variável | Obrigatória | Padrão | Descrição |
+| :--- | :--- | :--- | :--- |
+| `DATABASE_URL` | Sim | `jdbc:postgresql://localhost:5432/ampere` | Conexão com o PostgreSQL |
+| `DATABASE_USER` | Sim | `ampere` | Usuário do banco |
+| `DATABASE_PASSWORD` | Sim | `ampere` | Senha do banco |
+| `SERVER_PORT` | Não | `8080` | Porta da API |
+
+> `DATABASE_URL` é uma **URL JDBC** e precisa do prefixo `jdbc:`. O Spring não aceita
+> o formato `postgresql://usuario:senha@host/banco`, e usuário e senha vão em
+> variáveis separadas.
 
 ---
 
-## Estrutura de camadas (referência)
+## Estrutura de camadas
 
 ```
-src/
+src/main/java/br/com/ampere/
 ├── controller/   → HTTP: validação de entrada, chama services
 ├── service/      → regras de negócio e orquestração
 ├── domain/       → classes de domínio (entidades persistidas)
-└── repository/   → acesso ao banco (Spring Data ou JDBC)
+├── repository/   → acesso ao banco (Spring Data)
+├── dto/          → entrada e saída da API
+├── error/        → exceções de domínio e tradução para HTTP
+└── config/       → configuração e bootstrap
 ```
 
-Documentação técnica: [`docs/tecnico/README.md`](../../docs/tecnico/README.md)  
-README central do projeto: [`README.md`](../../README.md)
+A fatia `example` existe só para demonstrar a pilha completa e **deve ser apagada** quando as classes de domínio do AMPERE entrarem.
+
+---
+
+## Estado atual
+
+Scaffold. **Sem autenticação** — os endpoints estão abertos, porque os papéis de usuário dependem da Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md), ainda em aberto. **Sem migrations versionadas** — o Hibernate cria o schema a partir das entidades. As duas pendências estão registradas em [`docs/pendencias.md`](../../docs/pendencias.md).
+
+---
+
+## Documentação
+
+| Documento | Conteúdo |
+| :--- | :--- |
+| [Receitas](../../docs/tecnico/receitas-back.md) | **comece por aqui** — criar entidade ponta a ponta, paginar, sinalizar erro |
+| [Arquitetura](../../docs/tecnico/arquitetura-back.md) | camadas, contrato com o front, banco, Docker, Spring Boot 4 |
+| [Convenções](../../docs/tecnico/convencoes-back.md) | nomenclatura, pacotes, o que cada camada pode importar, Lombok |
+
+Documentação técnica: [`docs/tecnico/README.md`](../../docs/tecnico/README.md)
+README central: [`README.md`](../../README.md)

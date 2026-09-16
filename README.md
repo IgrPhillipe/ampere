@@ -57,18 +57,23 @@ O projeto é dividido em três fases — **Imersão**, **Ideação** e **Desenvo
 
 ## Como rodar o projeto
 
-O **front-end já está no repositório** (scaffold, sem telas de domínio):
+Os dois scaffolds já estão no repositório — sem telas nem classes de domínio, mas rodando.
+
+**Back-end** (Java 21, Spring Boot, PostgreSQL). Precisa de Docker:
+
+```bash
+cd app/back && cp .env.example .env && docker compose up
+```
+
+A API sobe em `http://localhost:8080/api` e a documentação em `/api/swagger-ui/index.html`. Com a JDK 21 instalada dá para rodar a aplicação localmente contra o banco em container, o que é mais rápido no dia a dia. Detalhes em [app/back/README.md](app/back/README.md).
+
+**Front-end** (React 19, Vite, TypeScript). Precisa de Node 24+ e pnpm:
 
 ```bash
 cd app/front && cp .env.example .env && pnpm install && pnpm dev
 ```
 
-Sobe em `http://localhost:5173`. Requer Node 24+ e pnpm. Enquanto o back-end não
-existe, o MSW responde no lugar da API em desenvolvimento. Detalhes,
-credenciais de teste e comandos em [app/front/README.md](app/front/README.md).
-
-O **back-end** entra na Entrega 02 (21/09/2026); as instruções serão publicadas
-em [app/back/README.md](app/back/README.md) junto com o primeiro código.
+Sobe em `http://localhost:5173` e faz proxy de `/api` para o back-end. O login ainda responde contra o MSW, porque a autenticação depende de uma questão de produto em aberto. Detalhes, credenciais de teste e comandos em [app/front/README.md](app/front/README.md).
 
 ---
 
