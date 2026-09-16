@@ -21,7 +21,7 @@ Mais detalhes em [`docs/negocio/premissas-desafio.md`](docs/negocio/premissas-de
 | Back-end | Java + Spring Boot | API REST e motor de cálculo de demanda com classes de domínio |
 | Banco de dados | PostgreSQL | Entidades persistidas e parâmetros normativos versionados por revisão |
 | Front-end | React + Vite | Interface do projetista e do analista, consumindo a API |
-| Prototipação | Figma | Protótipo Lo-Fi das telas dos dois perfis |
+| Prototipação | Figma | Protótipos Lo-Fi e Hi-Fi das telas dos dois perfis |
 | Documentação | Markdown | Registro de decisões, normas e processo, versionado junto com o código |
 | Gestão | Trello e GitHub Issues | Backlog, issues e acompanhamento semanal |
 
@@ -103,15 +103,15 @@ Fase inicial focada na estruturação de requisitos, validação de negócio e e
 
 **Histórias e telas correspondentes**
 
-| História | Título | Perfil | Tela do protótipo |
+| História | Título | Perfil | Telas no protótipo Hi-Fi |
 | :---: | :--- | :---: | :--- |
-| [US01](docs/produto/user-stories.md#us01--acompanhamento-de-projetos-e-status) | [Acompanhamento de projetos e status](docs/produto/user-stories.md#us01--acompanhamento-de-projetos-e-status) | Projetista | H1 · Meus projetos |
-| [US02](docs/produto/user-stories.md#us02--configuração-inicial-dos-parâmetros-da-edificação) | [Configuração inicial dos parâmetros da edificação](docs/produto/user-stories.md#us02--configuração-inicial-dos-parâmetros-da-edificação) | Projetista | H2 · Novo projeto |
-| [US03](docs/produto/user-stories.md#us03--cadastro-e-validação-em-tempo-real-de-unidades-consumidoras) | [Cadastro e validação em tempo real de UCs](docs/produto/user-stories.md#us03--cadastro-e-validação-em-tempo-real-de-unidades-consumidoras) | Projetista | H3 · Unidades consumidoras |
-| [US04](docs/produto/user-stories.md#us04--conferência-do-cálculo-passo-a-passo-da-demanda) | [Conferência do cálculo passo a passo da demanda](docs/produto/user-stories.md#us04--conferência-do-cálculo-passo-a-passo-da-demanda) | Projetista | H4 · Cálculo de demanda |
-| [US05](docs/produto/user-stories.md#us05--geração-de-memorial-e-envio-do-projeto) | [Geração de memorial e envio do projeto](docs/produto/user-stories.md#us05--geração-de-memorial-e-envio-do-projeto) | Projetista | H5 · Memorial e envio |
-| [US06](docs/produto/user-stories.md#us06--fila-de-análise-técnica-priorizada) | [Fila de análise técnica priorizada](docs/produto/user-stories.md#us06--fila-de-análise-técnica-priorizada) | Analista | H6 · Fila de análise |
-| [US07](docs/produto/user-stories.md#us07--auditoria-de-memória-e-registro-pontual-de-apontamentos) | [Auditoria de memória e registro de apontamentos](docs/produto/user-stories.md#us07--auditoria-de-memória-e-registro-pontual-de-apontamentos) | Analista | H7 · Análise do projeto |
+| [US01](docs/produto/user-stories.md#us01--acompanhamento-de-projetos-e-status) | [Acompanhamento de projetos e status](docs/produto/user-stories.md#us01--acompanhamento-de-projetos-e-status) | Projetista | [H1 · Meus projetos](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2037-2) · [H1a · busca sem resultados](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2118-2) · [H1b · detalhes](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2155-2) |
+| [US02](docs/produto/user-stories.md#us02--configuração-inicial-dos-parâmetros-da-edificação) | [Configuração inicial dos parâmetros da edificação](docs/produto/user-stories.md#us02--configuração-inicial-dos-parâmetros-da-edificação) | Projetista | [H2 · Novo projeto](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2042-2) |
+| [US03](docs/produto/user-stories.md#us03--cadastro-e-validação-em-tempo-real-de-unidades-consumidoras) | [Cadastro e validação em tempo real de UCs](docs/produto/user-stories.md#us03--cadastro-e-validação-em-tempo-real-de-unidades-consumidoras) | Projetista | [H3 · Unidades consumidoras](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2044-2) · [H3a · adicionar grupo](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2152-2) |
+| [US04](docs/produto/user-stories.md#us04--conferência-do-cálculo-passo-a-passo-da-demanda) | [Conferência do cálculo passo a passo da demanda](docs/produto/user-stories.md#us04--conferência-do-cálculo-passo-a-passo-da-demanda) | Projetista | [H4 · Cálculo de demanda](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2032-2) |
+| [US05](docs/produto/user-stories.md#us05--geração-de-memorial-e-envio-do-projeto) | [Geração de memorial e envio do projeto](docs/produto/user-stories.md#us05--geração-de-memorial-e-envio-do-projeto) | Projetista | [H5 · Memorial](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2045-2) · [H5b · envio concluído](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2147-2) |
+| [US06](docs/produto/user-stories.md#us06--fila-de-análise-técnica-priorizada) | [Fila de análise técnica priorizada](docs/produto/user-stories.md#us06--fila-de-análise-técnica-priorizada) | Analista | [H6 · Fila de análise](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2082-2) |
+| [US07](docs/produto/user-stories.md#us07--auditoria-de-memória-e-registro-pontual-de-apontamentos) | [Auditoria de memória e registro de apontamentos](docs/produto/user-stories.md#us07--auditoria-de-memória-e-registro-pontual-de-apontamentos) | Analista | [H7 · Análise do projeto](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2083-2) · [H8 · histórico do protocolo](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2085-2) |
 
 ### Entrega 02 — 21/09/2026
 
@@ -158,6 +158,7 @@ Histórias restantes e fechamento do produto para a apresentação final.
 | Backlog | [Trello](https://trello.com/b/yd35ygrF/cesar-projetos-3) |
 | Ideação | [FigJam](https://www.figma.com/board/H7ZlU9nAbR72LiXVLUBmqo) |
 | Figma (descoberta) | [Figma](https://www.figma.com/files/team/1541129127160121770/project/636750169?fuid=1543015890914897932) |
+| Protótipo Hi-Fi | [Figma — Protótipo HI-FI](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI) |
 | Protótipo Lo-Fi | [Figma — Protótipo LO-FI](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
 | Drive | [Google Drive](https://drive.google.com/drive/u/1/folders/13xm3xImWBu0tH-wV9_ENizb65mgrkQ3l) |
 | Bugtracker | [GitHub Issues](https://github.com/IgrPhillipe/ampere/issues) |
