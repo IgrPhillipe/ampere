@@ -33,28 +33,37 @@ Use [Conventional Commits](https://www.conventionalcommits.org/) em inglês:
 feat: add demand calculation for residential buildings
 fix: correct power factor rounding in multi-unit calc
 docs: add normative rules reference to premissas-desafio
-refactor: extract UnidadeConsumidora into its own class
+refactor: extract ConsumerUnit into its own class
 ```
 
 ---
 
 ## Convenções
 
-| Tópico                  | Padrão                                             |
-| :---------------------- | :------------------------------------------------- |
-| Nomenclatura de classes | PascalCase                                         |
-| Nomenclatura de funções | camelCase (front) / snake_case (back)              |
-| Arquivos front          | kebab-case                                         |
-| Arquivos back           | snake_case                                         |
-| Idioma do código        | inglês (identificadores, commits)                  |
-| Texto de UI             | português                                          |
-| Mensagens de erro (API) | português quando expostas ao usuário               |
+| Tópico                      | Padrão                                                        |
+| :-------------------------- | :------------------------------------------------------------ |
+| Classes, interfaces e enums | PascalCase — `ExampleService`                                  |
+| Métodos e funções           | camelCase (front e back) — `findById`                          |
+| Variáveis                   | camelCase — `pageSize`                                         |
+| Constantes                  | UPPER_SNAKE_CASE — `MAX_PAGE_SIZE`                             |
+| Pacotes Java                | minúsculo, sem separador — `br.com.ampere.controller`          |
+| Arquivos front              | kebab-case                                                     |
+| Arquivos back               | nome da classe pública — `ExampleService.java`                 |
+| Tabelas e colunas do banco  | snake_case — o Hibernate já converte, não sobrescreva          |
+| Idioma do código            | inglês (identificadores, commits)                              |
+| Texto de UI                 | português                                                      |
+| Mensagens de erro (API)     | português quando expostas ao usuário                           |
+
+> `snake_case` não é convenção de Java em nenhuma parte do código — a regra
+> anterior veio herdada do projeto passado, que era Python. A única exceção é o
+> schema do banco, e ela sai de graça: o Hibernate converte `pageSize` em
+> `page_size` pela estratégia de nomenclatura padrão.
 
 ---
 
 ## Requisito POO
 
-A disciplina de **Programação Orientada a Objetos** exige que o motor de cálculo evidencie design OOP (herança, polimorfismo, encapsulamento). Classes de domínio como `EdificacaoTipo`, `UnidadeConsumidora` e `CalculadoraDemanda` devem ser modeladas explicitamente — sem lógica de negócio dispersa em funções soltas.
+A disciplina de **Programação Orientada a Objetos** exige que o motor de cálculo evidencie design OOP (herança, polimorfismo, encapsulamento). Classes de domínio como `BuildingType` (tipo de edificação), `ConsumerUnit` (unidade consumidora) e `DemandCalculator` (calculadora de demanda) devem ser modeladas explicitamente — sem lógica de negócio dispersa em funções soltas. Os nomes seguem a tabela acima; o termo normativo em português fica entre parênteses na primeira menção, para a rastreabilidade com a norma não se perder.
 
 ---
 
@@ -67,9 +76,12 @@ A disciplina de **Programação Orientada a Objetos** exige que o motor de cálc
 - [ ] Nenhuma lógica de negócio nas camadas de rota/view
 
 ### Back-end
-> Comandos de validação serão adicionados quando o projeto for inicializado.
 
-- [ ] Lint e testes passam
+```bash
+cd app/back && ./mvnw spotless:apply && ./mvnw clean verify
+```
+
+- [ ] `./mvnw spotless:check` e `./mvnw clean verify` passam
 - [ ] Novos endpoints documentados na interface OpenAPI
 - [ ] Design OOP mantido (sem lógica de cálculo fora das classes de domínio)
 
