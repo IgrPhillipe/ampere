@@ -15,6 +15,8 @@
 6. [US05 – Geração de Memorial e Envio do Projeto](#us05--geração-de-memorial-e-envio-do-projeto)
 7. [US06 – Fila de Análise Técnica Priorizada](#us06--fila-de-análise-técnica-priorizada)
 8. [US07 – Auditoria de Memória e Registro Pontual de Apontamentos](#us07--auditoria-de-memória-e-registro-pontual-de-apontamentos)
+9. [US08 – Linha do Tempo e Histórico do Protocolo](#us08--linha-do-tempo-e-histórico-do-protocolo)
+10. [US09 – Correção de Apontamentos e Reenvio com Versionamento](#us09--correção-de-apontamentos-e-reenvio-com-versionamento)
 
 ---
 
@@ -29,6 +31,8 @@
 | **US05** | [Geração de Memorial e Envio do Projeto](#us05--geração-de-memorial-e-envio-do-projeto) | Projetista Externo | `Alta` | `Sprint 3` |
 | **US06** | [Fila de Análise Técnica Priorizada](#us06--fila-de-análise-técnica-priorizada) | Analista da Concessionária | `Alta` | `Sprint 3` |
 | **US07** | [Auditoria de Memória e Registro Pontual de Apontamentos](#us07--auditoria-de-memória-e-registro-pontual-de-apontamentos) | Analista da Concessionária | `Alta` | `Sprint 4` |
+| **US08** | [Linha do Tempo e Histórico do Protocolo](#us08--linha-do-tempo-e-histórico-do-protocolo) | Analista da Concessionária | `Média` | `Sprint 4` |
+| **US09** | [Correção de Apontamentos e Reenvio com Versionamento](#us09--correção-de-apontamentos-e-reenvio-com-versionamento) | Projetista Externo | `Alta` | `Sprint 4` |
 
 ---
 
@@ -313,3 +317,84 @@ Na reprovação, o sistema dispara a notificação e direciona o projetista dire
 ### Checklist de Implementação
 - [ ] Registrar apontamentos categorizados e vinculados à etapa exata da divergência
 - [ ] Concluir decisão de aprovação ou reprovação pontual atualizando o status do projeto
+---
+
+## US08 – Linha do Tempo e Histórico do Protocolo
+
+`US08` `Prioridade: Média` `Sprint 4`
+
+### Descrição
+Painel de rastreabilidade temporal e métricas de retrabalho com histórico cronológico de versões e movimentações do protocolo.
+
+### User Story
+> **Como** analista da Neoenergia,  
+> **Quero** consultar a linha do tempo e os indicadores de retrabalho do protocolo,  
+> **Para que** eu possa acompanhar o histórico de versões e pendências antes de emitir a decisão final.
+
+### Conversação (Regras de Negócio e Interface)
+A tela exibe a linha do tempo dos eventos cronológicos (versões, triagens automáticas, reprovações e reenvios) com opção de alternar a ordenação.  
+Na lateral, apresenta o card de ciclo de aprovação em dias e a tabela de métricas de retrabalho:
+- Versões submetidas
+- Ciclos de análise
+- Apontamentos resolvidos
+- Apontamentos em aberto
+- Etapas do cálculo refeitas
+
+Preserva as ações de aprovação e reprovação no rodapé.
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Visualizar linha do tempo e indicadores de retrabalho
+- **Dado** que o analista está na tela de análise do projeto
+- **Quando** seleciona a aba "Histórico"
+- **Então** o sistema exibe os eventos cronológicos de tramitação do protocolo
+- **E** apresenta o painel com o ciclo em dias e as métricas de retrabalho consolidadas.
+
+#### Cenário 2 (Positivo/Navegação): Inverter a ordenação dos marcos temporais
+- **Dado** que o analista está visualizando a linha do tempo do protocolo
+- **Quando** clica no botão de ordenação "Mais recente primeiro"
+- **Então** a listagem inverte a ordem de exibição, listando os registros mais antigos no topo.
+
+### Checklist de Implementação
+- [ ] Exibir a linha do tempo cronológica com eventos, responsáveis e detalhamento dos marcos
+- [ ] Apresentar os indicadores de dias de ciclo de aprovação e contadores de retrabalho
+
+---
+
+## US09 – Correção de Apontamentos e Reenvio com Versionamento
+
+`US09` `Prioridade: Alta` `Sprint 4`
+
+### Descrição
+Interface de correção pontual das pendências apontadas pela concessionária com controle automático de versionamento e reenvio do projeto sem perda dos dados já validados.
+
+### User Story
+> **Como** projetista externo,  
+> **Quero** acessar a lista de apontamentos da reprovação, corrigir apenas as etapas indicadas e reenviar uma nova versão do projeto,  
+> **Para que** eu não precise refazer o processo do zero.
+
+### Conversação (Regras de Negócio e Interface)
+Ao clicar em "Ver apontamentos" na tela inicial, o projetista abre o painel da nova versão (ex.: Versão 2).  
+A tela lista os apontamentos classificados como:
+- **Bloqueante**
+- **Ajuste**
+
+Conta com atalhos que abrem a etapa exata onde ocorreu a divergência. O projetista faz os ajustes, registra uma justificativa com as alterações feitas e o sistema incrementa a versão do projeto. O botão de reenvio fica desabilitado enquanto houver apontamento bloqueante pendente de resolução.
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Reenvio bem-sucedido de nova versão corrigida
+- **Dado** que o projetista corrigiu todas as pendências bloqueantes e preencheu o resumo das alterações
+- **Quando** clica no botão "Reenviar projeto"
+- **Então** o sistema incrementa o contador de versão do projeto (ex.: Versão 2)
+- **E** atualiza o status na tela inicial para "Em análise", encaminhando o projeto de volta para a fila da concessionária.
+
+#### Cenário 2 (Negativo): Tentativa de reenvio com pendência bloqueante aberta
+- **Dado** que o projetista está na tela de reenvio e possui ao menos um apontamento bloqueante não corrigido
+- **Quando** visualiza as opções de submissão
+- **Então** o botão "Reenviar projeto" permanece desabilitado
+- **E** o sistema exibe alerta indicando a obrigatoriedade de sanar todos os pontos bloqueantes antes de reenviar.
+
+### Checklist de Implementação
+- [ ] Listar todos os apontamentos da análise anterior com links para edição direta nas etapas vinculadas
+- [ ] Incrementar automaticamente o número da versão e bloquear o reenvio enquanto houver pendência bloqueante aberta
