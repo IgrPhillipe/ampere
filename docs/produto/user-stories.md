@@ -95,14 +95,21 @@ O formulário recolhe dados de:
 - **Identificação:** nome, endereço, município
 - **Parâmetros técnicos:** tipo de edificação, pavimentos, tensão, tipo de ligação e padrão de entrada
 
-O sistema bloqueia a seleção manual da norma e atribui automaticamente a NDU correspondente (ex.: **NDU 001 — rev. 5.6**). Permite também o upload prévio de planilha `.xlsx` para autopreenchimento.
+O sistema bloqueia a seleção manual da norma e atribui automaticamente as normas aplicáveis a partir dos parâmetros informados. O método é repartido entre duas normas da Neoenergia Pernambuco, que revisam de forma independente, então **o projeto registra as duas revisões aplicadas**:
+
+- **DIS-NOR-053 REV 06** — estrutura do cálculo e método da área útil; o tipo de edificação define o método pelos itens 6.22 a 6.25
+- **DIS-NOR-030 REV 07** — método da carga instalada, item 6.27
+
+Permite também o upload prévio de planilha `.xlsx` para autopreenchimento.
+
+> Detalhamento do método e das tabelas em [`../tecnico/fontes-normativas.md`](../tecnico/fontes-normativas.md) e [`../tecnico/engine-calculo.md`](../tecnico/engine-calculo.md).
 
 ### Confirmação (Critérios de Aceite - BDD)
 
 #### Cenário 1 (Positivo): Seleção automática da norma regulamentadora
 - **Dado** que o projetista está na etapa "Dados da edificação"
 - **Quando** preenche os parâmetros técnicos selecionando tipo "Residencial multifamiliar", tensão "380/220 V" e padrão "Coletivo"
-- **Então** o sistema define e exibe automaticamente o campo "Norma aplicável: NDU 001 — rev. 5.6"
+- **Então** o sistema define e exibe automaticamente o campo "Norma aplicável: DIS-NOR-053 REV 06 e DIS-NOR-030 REV 07"
 - **E** habilita o botão "Avançar".
 
 #### Cenário 2 (Negativo): Avanço bloqueado por campos obrigatórios não preenchidos

@@ -75,7 +75,7 @@ Descrever US01 e US02 no formato POST-IT visto em sala, dentro da seção "Entre
 `Sprint 1`
 
 **Descrição:**
-A US02 manda exibir "NDU 001 — rev. 5.6", mas os documentos técnicos verificados contra os PDFs estabelecem DIS-NOR-053 REV 06 e DIS-NOR-030 REV 07. A história foi escrita antes da pesquisa normativa. Atualizar o texto antes de implementar, para não codificar uma norma que o projeto não reconhece.
+**Concluído.** A US02 mandava exibir "NDU 001 — rev. 5.6", que não é a norma que a pesquisa normativa verificou — a história foi escrita antes dela. O texto passou a citar DIS-NOR-053 REV 06 e DIS-NOR-030 REV 07, as duas, porque o método é repartido entre elas e cada projeto registra as duas revisões aplicadas.
 
 ---
 
