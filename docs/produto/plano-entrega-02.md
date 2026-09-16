@@ -218,6 +218,8 @@ Acrescentar ao `services/projects` já criado na US01 o request de criação, o 
 **Descrição:**
 Formulário com `useZodForm` e os wrappers de `@components/form`. Campos obrigatórios bloqueiam o envio e são destacados com a mensagem de validação. A norma aplicável aparece em campo somente leitura, preenchido pela resposta da API — sem seleção manual. Ao salvar, volta para a listagem.
 
+**Os oito campos da Conversação entram, todos.** Identificação: nome, endereço e município. Parâmetros técnicos: tipo de edificação, pavimentos, tensão, tipo de ligação e padrão de entrada. Os cenários BDD só citam três deles, mas o conjunto é o que a história define como o formulário — não aparar sob pressão de prazo.
+
 ---
 
 ## Bloco final — Entrega (domingo e segunda)
