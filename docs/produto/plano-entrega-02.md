@@ -49,55 +49,30 @@ O ponto central para o screencast de código: **a atribuição automática da no
 
 ---
 
-## Estrutura no Trello
-
-Labels a existir no board, seguindo o padrão do semestre passado:
-
-- **Sprint:** `Sprint 1` … `Sprint 4`
-- **Épico:** `Épico 1 - Fundação` · `Épico 2 - Submissão de Projeto` · `Épico 3 - Motor de Cálculo` · `Épico 4 - Análise Técnica`
-- **Prioridade:** `Prioridade - Alta` · `Média` · `Baixa`
-- **Dificuldade:** `Nível de dificuldade: Fácil` · `Médio` · `Difícil`
-- **Rastreio:** `US01` … `US07`
-
-Convenção de nome: histórias como `US02 – Título`, tarefas como `AT01-US02: Título [Camada]`.
-
----
-
-## Ordem de ataque: a história fácil primeiro
-
-**US01 antes de US02.** A listagem é leitura pura — tabela, filtro, contador, busca. Muita tela e pouca regra. A US02 é onde mora a hierarquia de tipo de edificação e a resolução da norma, que é a parte que pode travar.
-
-Duas razões práticas para essa ordem:
-
-- **Tem algo na tela no meio da semana.** A US01 fecha na quinta e já é demonstrável. Se a US02 escorregar, existe uma história pronta em vez de duas pela metade.
-- **A US01 não depende da US02.** Ela lê projetos semeados pelo `DataSeeder`; não precisa que o formulário de criação exista. A entidade `Project`, que as duas usam, entra no primeiro card da US01.
-
----
-
 # Cards
 
 ## Bloco 0 — Desbloqueio (terça 15/09)
 
 ### `AT01-INFRA: Integrar os scaffolds de front e back na main [Infra]`
-`Sprint 1` · `Épico 1 - Fundação`
+`Sprint 1`
 
 **Descrição:**
 Revisar e mergear os PRs #9 (scaffold do front) e #10 (scaffold do back) na `main`. Sem isso o repositório não tem código e o critério de commits semanais no `main` não é atendido. Resolver o conflito esperado em `docs/pendencias.md`, mantendo as duas metades da tabela.
 
 ### `AT02-INFRA: Abrir as GitHub Issues da Sprint 1 [Gestão]`
-`Sprint 1` · `Épico 1 - Fundação`
+`Sprint 1`
 
 **Descrição:**
 Criar uma issue por card de atividade desta sprint. É artefato avaliado: o cronograma exige Issues em uso todas as semanas, com print no README.
 
 ### `AT03-INFRA: Seção "Entrega 02" no README com os POST-IT [Gestão]`
-`Sprint 1` · `Épico 1 - Fundação`
+`Sprint 1`
 
 **Descrição:**
 Descrever US01 e US02 no formato POST-IT visto em sala, dentro da seção "Entrega 02" do README.
 
 ### `AT04-INFRA: Atualizar as user stories com a norma vigente [Produto]`
-`Sprint 1` · `Épico 1 - Fundação`
+`Sprint 1`
 
 **Descrição:**
 A US02 manda exibir "NDU 001 — rev. 5.6", mas os documentos técnicos verificados contra os PDFs estabelecem DIS-NOR-053 REV 06 e DIS-NOR-030 REV 07. A história foi escrita antes da pesquisa normativa. Atualizar o texto antes de implementar, para não codificar uma norma que o projeto não reconhece.
@@ -105,24 +80,6 @@ A US02 manda exibir "NDU 001 — rev. 5.6", mas os documentos técnicos verifica
 ---
 
 ## US01 – Acompanhamento de Projetos e Status
-
-`US01` `Sprint 1` `Épico 2 - Submissão de Projeto` `Prioridade - Alta` `Nível de dificuldade: Médio`
-
-**Descrição:**
-
-Painel de gestão centralizada para acompanhamento, filtragem e consulta do status de tramitação dos projetos elétricos submetidos.
-
-**User Story:**
-
-**Como** projetista externo, **Quero** acompanhar todos os meus projetos e o status de cada um em um painel centralizado, **Para que** eu saiba exatamente quais exigem ação sem depender de e-mail ou telefone.
-
-**Conversação:**
-
-A listagem apresenta nome do projeto, endereço, quantidade de UCs, demanda calculada, status e data da última atualização. A barra superior traz filtros por situação com a contagem numérica de cada estado. Projetos reprovados exibem a quantidade de pendências e o atalho "Ver apontamentos". Busca sem resultado mostra "Nenhum projeto encontrado para os critérios informados".
-
-**Combinado para a Sprint 1:** `Quantidade de UCs` e `Demanda calculada` vêm das US03 e US04, que são Sprint 2. Aqui ficam nulos e a tela exibe `—`. O atalho "Ver apontamentos" leva ao detalhe do projeto; a tela de apontamentos é a US07.
-
----
 
 ### `AT01-US01: Modelar Project e o enum ProjectStatus [Backend]`
 `Sprint 1` · `US01`
@@ -170,24 +127,6 @@ Filtros Todos, Rascunho, Aguardando envio, Em análise, Reprovado e Aprovado, ca
 
 ## US02 – Configuração Inicial dos Parâmetros da Edificação
 
-`US02` `Sprint 1` `Épico 2 - Submissão de Projeto` `Prioridade - Alta` `Nível de dificuldade: Difícil`
-
-**Descrição:**
-
-Formulário de parametrização técnica e identificação predial para seleção e aplicação automatizada das normas vigentes da concessionária.
-
-**User Story:**
-
-**Como** projetista externo, **Quero** informar os parâmetros da edificação uma única vez, **Para que** o próprio sistema determine automaticamente a norma e as tabelas aplicadas ao cálculo, eliminando divergências de interpretação.
-
-**Conversação:**
-
-O formulário recolhe identificação (nome, endereço, município) e parâmetros técnicos (tipo de edificação, pavimentos, tensão, tipo de ligação e padrão de entrada). O sistema bloqueia a seleção manual da norma e a atribui automaticamente a partir dos parâmetros. Campos obrigatórios vazios bloqueiam o avanço e são destacados com mensagem de validação.
-
-**Fora do escopo da Sprint 1:** upload de planilha `.xlsx` para autopreenchimento — o texto da história diz "permite também", é adicional e não aparece em nenhum critério de aceite.
-
----
-
 ### `AT01-US02: Hierarquia BuildingType com norma polimórfica [Backend]`
 `Sprint 1` · `US02`
 
@@ -222,53 +161,25 @@ Formulário com `useZodForm` e os wrappers de `@components/form`. Campos obrigat
 
 ---
 
-## Bloco final — Entrega (domingo e segunda)
+## Bloco final — Entrega
 
 ### `AT05-INFRA: Screencast do sistema rodando [Gestão]`
-`Sprint 1` · `Épico 1 - Fundação`
+`Sprint 1`
 
 **Descrição:**
 Vídeo no YouTube, com áudio ou legenda, percorrendo as duas histórias: criar um projeto com a norma sendo atribuída sozinha, e a listagem com filtros, contadores e busca sem resultado.
 
 ### `AT06-INFRA: Screencast da explicação do código Spring Boot [Gestão]`
-`Sprint 1` · `Épico 1 - Fundação`
+`Sprint 1`
 
 **Descrição:**
 Vídeo no YouTube explicando o código. O eixo é a hierarquia `BuildingType` e o `applicableStandard()` polimórfico, mostrando como a regra normativa vira despacho por tipo em vez de condicional, e o caminho de uma requisição pelas quatro camadas.
 
 ### `AT07-INFRA: Print das GitHub Issues no README [Gestão]`
-`Sprint 1` · `Épico 1 - Fundação`
+`Sprint 1`
 
 **Descrição:**
 Captura da aba Issues com as tarefas da sprint, inserida na seção "Entrega 02" do README.
-
----
-
-## Cronograma
-
-A US01 fecha na quinta. Isso é proposital: a partir daí existe uma história pronta e demonstrável, e a US02 — que é a difícil — deixa de ser o único caminho para ter o que mostrar.
-
-| Dia | Foco |
-| :--- | :--- |
-| **Ter 15** | Bloco 0 inteiro. PRs mergeados, issues abertas, README atualizado, USs corrigidas |
-| **Qua 16** | US01 back: AT01 a AT04 (Project, Finding, endpoint, seed). US01 front: AT05 contra MSW |
-| **Qui 17** | US01 front: AT06 e AT07. Integração front ↔ back. **US01 fechada e na tela** |
-| **Sex 18** | US02 back: AT01 a AT03 (hierarquia, Standard, POST) |
-| **Sáb 19** | US02 front: AT04 e AT05. Integração. O cronograma de Projetos 3 marca o MVP da Sprint 1 nesta data |
-| **Dom 20** | Screencasts e print das issues |
-| **Seg 21** | Entrega |
-
-Se algo tiver que cair, que caia a US02 — e nesse caso a US01 entra completa em vez de duas histórias pela metade. O mínimo exigido são duas histórias, então isso é plano de contingência, não meta.
-
-## Sugestão de alocação
-
-| Quem | Papel | Frente |
-| :--- | :--- | :--- |
-| Igor Aragão | Tech Lead | Merge dos scaffolds, revisão de PR, integração |
-| Williams Pontes | PO & Back-End | Bloco 0 de gestão, `GET` e depois `POST /api/projects` |
-| Kellwen Costa | Dev Back-End | `Project` e `Finding` na US01, depois a hierarquia `BuildingType` |
-| Afonso Araujo | Eng. de Dados | Modelagem de `Standard` e os seeds |
-| André, Gabriel, Jean, Lucas | FullStack | Telas. Os quatro na US01 até quinta, depois dois seguem para a US02 |
 
 ---
 
