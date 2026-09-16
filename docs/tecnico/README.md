@@ -27,11 +27,27 @@ Ver premissas iniciais em [`docs/negocio/premissas-desafio.md`](../negocio/premi
 
 ---
 
-## Convenções
+## Back-end
 
-A ser definido junto com a stack. Seguirá o mesmo padrão do projeto anterior:
+O scaffold do `app/back` está no repositório: Java 21 com Spring Boot 4.1, Spring Data JPA sobre PostgreSQL, tudo containerizado.
+
+| Documento | Conteúdo |
+| :--- | :--- |
+| [`receitas-back.md`](receitas-back.md) | **ponto de partida da equipe** — criar entidade ponta a ponta, paginar, sinalizar erro |
+| [`arquitetura-back.md`](arquitetura-back.md) | camadas, contrato com o front, banco, Docker, diferenças do Spring Boot 4 |
+| [`convencoes-back.md`](convencoes-back.md) | nomenclatura, pacotes, o que cada camada pode importar, alternativas ao Lombok |
+
+Como executar: [`app/back/README.md`](../../app/back/README.md).
+
+Estado atual: sem autenticação (depende da Q1c) e sem migrations versionadas. Ver [`pendencias.md`](../pendencias.md).
+
+---
+
+## Convenções gerais
 
 - Idioma do código: inglês
 - Texto de UI: português
 - Rotas finas, lógica centralizada em services/classes de domínio
 - Sem SQL/lógica de negócio nas camadas de entrada HTTP
+
+A tabela completa de nomenclatura está no [`CONTRIBUTING.md`](../../CONTRIBUTING.md).

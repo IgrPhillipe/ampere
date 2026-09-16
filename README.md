@@ -57,9 +57,15 @@ O projeto é dividido em três fases — **Imersão**, **Ideação** e **Desenvo
 
 ## Como rodar o projeto
 
-O código do produto começa na **Entrega 02** (21/09/2026). A Entrega 01 é composta por documentação, histórias de usuário e protótipo, e não há aplicação executável no repositório até lá.
+O **back-end já está no repositório** (scaffold, sem as classes de domínio):
 
-As instruções de execução de cada camada serão publicadas em [app/back/README.md](app/back/README.md) e [app/front/README.md](app/front/README.md) junto com o primeiro código.
+```bash
+cd app/back && cp .env.example .env && docker compose up
+```
+
+A API sobe em `http://localhost:8080/api` e a documentação em `/api/swagger-ui/index.html`. Precisa de Docker; com JDK 21 instalada dá para rodar a aplicação localmente contra o banco em container, o que é mais rápido para desenvolver. Detalhes em [app/back/README.md](app/back/README.md).
+
+As instruções do front entram em [app/front/README.md](app/front/README.md) junto com o primeiro código.
 
 ---
 
