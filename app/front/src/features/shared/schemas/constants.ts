@@ -1,0 +1,10 @@
+export const REQUIRED_ERROR = "Este campo é obrigatório";
+export const REQUIRED_URL = "Insira uma url válida.";
+export const REQUIRED_EMAIL = "Insira um e-mail válido";
+export const REQUIRED_CNPJ = "Insira um CNPJ válido";
+export const REQUIRED_CPF = "Insira um CPF válido";
+export const REQUIRED_RG = "Insira um RG válido";
+export const REQUIRED_CEP = "Insira um CEP válido";
+export const REQUIRED_PHONE = "Insira um telefone válido";
+export const REQUIRED_CPF_CNPJ = "Insira um CPF/CNPJ válido";
+export const REQUIRED_NUMBER = "Insira um número válido";
