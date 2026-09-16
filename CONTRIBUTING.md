@@ -70,10 +70,17 @@ A disciplina de **Programação Orientada a Objetos** exige que o motor de cálc
 ## Checklist antes do PR
 
 ### Front-end
-> Comandos de validação serão adicionados quando o projeto for inicializado.
 
-- [ ] Build passa sem erros de tipo
+```bash
+cd app/front && pnpm validate && pnpm build
+```
+
+- [ ] `pnpm validate` passa (formatação, lint e tipos)
+- [ ] `pnpm build` passa
+- [ ] `src/routeTree.gen.ts` regenerado e commitado, se alguma rota mudou
 - [ ] Nenhuma lógica de negócio nas camadas de rota/view
+- [ ] Componente novo do shadcn portado para Base UI e **verificado no navegador**
+- [ ] Texto de interface em português
 
 ### Back-end
 
