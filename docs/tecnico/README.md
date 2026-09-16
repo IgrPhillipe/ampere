@@ -35,9 +35,7 @@ as chamadas em desenvolvimento.
 
 | Documento | Conteúdo |
 | :--- | :--- |
-| [`receitas-front.md`](receitas-front.md) | **ponto de partida da equipe** — criar feature, service, rota e componente, passo a passo |
-| [`arquitetura-front.md`](arquitetura-front.md) | camadas, `features/` × `services/`, autenticação, tratamento de erro, tema |
-| [`convencoes-front.md`](convencoes-front.md) | nomes, estrutura de pastas, aliases, regras de código |
+| [`convencoes-front.md`](convencoes-front.md) | **documento único da stack** — estrutura, nomes e aliases; camadas, roteamento, auth, erros e tema; e as receitas passo a passo para criar feature, service, rota e componente |
 
 Como executar: [`app/front/README.md`](../../app/front/README.md).
 
@@ -51,9 +49,7 @@ O scaffold do `app/back` está no repositório: Java 21 com Spring Boot 4.1, Spr
 
 | Documento | Conteúdo |
 | :--- | :--- |
-| [`receitas-back.md`](receitas-back.md) | **ponto de partida da equipe** — criar entidade ponta a ponta, paginar, sinalizar erro |
-| [`arquitetura-back.md`](arquitetura-back.md) | camadas, contrato com o front, banco, Docker, diferenças do Spring Boot 4 |
-| [`convencoes-back.md`](convencoes-back.md) | nomenclatura, pacotes, o que cada camada pode importar, alternativas ao Lombok |
+| [`convencoes-back.md`](convencoes-back.md) | **documento único da stack** — nomenclatura e pacotes; camadas, contrato com o front, banco e Docker; e a receita passo a passo para criar uma entidade ponta a ponta |
 
 Como executar: [`app/back/README.md`](../../app/back/README.md).
 

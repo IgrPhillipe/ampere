@@ -30,7 +30,7 @@ Isso é a primeira coisa da semana, não a última.
 
 O front tem **MSW** montado. As telas são construídas contra handlers de mock enquanto o back constrói os endpoints reais — os dois lados avançam no mesmo dia contra o mesmo contrato, e a integração no fim é apagar um handler.
 
-O contrato já está definido e documentado: envelope `{ data, pagination? }`, `id` como string, erro em `ProblemDetail`. Ver [`../tecnico/arquitetura-back.md`](../tecnico/arquitetura-back.md).
+O contrato já está definido e documentado: envelope `{ data, pagination? }`, `id` como string, erro em `ProblemDetail`. Ver [`../tecnico/convencoes-back.md`](../tecnico/convencoes-back.md).
 
 ---
 
@@ -109,7 +109,7 @@ Popular o banco com projetos em todos os cinco status, alguns reprovados com apo
 `Sprint 1` · `US01`
 
 **Descrição:**
-Criar `features/projects` e `services/projects` seguindo a receita em `docs/tecnico/receitas-front.md`: endpoints, requests, query-keys, schema Zod, hook de query e handlers MSW para a tela avançar antes do back estar pronto.
+Criar `features/projects` e `services/projects` seguindo `docs/tecnico/convencoes-front.md`: endpoints, requests, query-keys, schema Zod, hook de query e handlers MSW para a tela avançar antes do back estar pronto.
 
 ### `AT06-US01: Tela "Meus Projetos" [Frontend]`
 `Sprint 1` · `US01`
@@ -185,7 +185,7 @@ Captura da aba Issues com as tarefas da sprint, inserida na seção "Entrega 02"
 
 ## Riscos
 
-**A equipe nunca rodou esta stack.** Spring Boot 4 e TanStack Router/Query são novos, e quase todo tutorial que aparece no Google é de versão anterior. As receitas em [`../tecnico/receitas-front.md`](../tecnico/receitas-front.md) e [`../tecnico/receitas-back.md`](../tecnico/receitas-back.md) existem exatamente para isso, com as diferenças de versão listadas.
+**A equipe nunca rodou esta stack.** Spring Boot 4 e TanStack Router/Query são novos, e quase todo tutorial que aparece no Google é de versão anterior. As convenções em [`../tecnico/convencoes-front.md`](../tecnico/convencoes-front.md) e [`../tecnico/convencoes-back.md`](../tecnico/convencoes-back.md) existem exatamente para isso, com as diferenças de versão listadas.
 
 **O bloco 0 é bloqueante e depende de uma pessoa.** Se os PRs não entrarem terça, toda a semana desliza.
 

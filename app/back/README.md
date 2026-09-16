@@ -112,8 +112,6 @@ Scaffold. **Sem autenticação** — os endpoints estão abertos, porque os pap�
 
 | Documento | Conteúdo |
 | :--- | :--- |
-| [Receitas](../../docs/tecnico/receitas-back.md) | **comece por aqui** — criar entidade ponta a ponta, paginar, sinalizar erro |
-| [Arquitetura](../../docs/tecnico/arquitetura-back.md) | camadas, contrato com o front, banco, Docker, Spring Boot 4 |
 | [Convenções](../../docs/tecnico/convencoes-back.md) | nomenclatura, pacotes, o que cada camada pode importar, Lombok |
 
 Documentação técnica: [`docs/tecnico/README.md`](../../docs/tecnico/README.md)
