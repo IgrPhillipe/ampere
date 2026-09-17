@@ -4,6 +4,7 @@ import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.Pagination;
 import br.com.ampere.dto.ProjectListResponse;
 import br.com.ampere.dto.ProjectResponse;
+import br.com.ampere.dto.ProjectStatusCounts;
 import br.com.ampere.service.ProjectService;
 import br.com.ampere.service.ProjectService.ProjectListing;
 import java.util.List;
@@ -36,7 +37,7 @@ public class ProjectController {
             .toList();
 
     return ApiResponse.of(
-        new ProjectListResponse(projects),
+        new ProjectListResponse(projects, ProjectStatusCounts.from(listing.statusCounts())),
         new Pagination(listing.projects().getTotalElements(), page, pageSize));
   }
 }

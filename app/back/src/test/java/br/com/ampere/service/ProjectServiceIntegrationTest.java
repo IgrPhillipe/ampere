@@ -58,6 +58,9 @@ class ProjectServiceIntegrationTest {
     assertThat(listing.projects().getNumber()).isZero();
     assertThat(listing.projects().getContent()).containsExactly(rejectedProject);
     assertThat(listing.pendingCountFor(rejectedProject)).isEqualTo(2);
+    assertThat(listing.statusCounts())
+        .containsEntry(ProjectStatus.REJECTED, 1L)
+        .containsEntry(ProjectStatus.APPROVED, 1L);
   }
 
   @Test
@@ -91,6 +94,7 @@ class ProjectServiceIntegrationTest {
 
     assertThat(listing.projects()).isEmpty();
     assertThat(listing.pendingCounts()).isEmpty();
+    assertThat(listing.statusCounts()).containsEntry(ProjectStatus.UNDER_REVIEW, 1L);
   }
 
   @Test

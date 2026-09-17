@@ -5,6 +5,7 @@ import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -45,7 +46,8 @@ public class ProjectService {
         projectRepository.findAllByFilters(parsedStatus, normalizedSearch, pageRequest);
 
     Map<Long, Long> pendingCounts = countPendingFindings(projects.getContent());
-    return new ProjectListing(projects, pendingCounts);
+    Map<ProjectStatus, Long> statusCounts = countProjectsByStatus();
+    return new ProjectListing(projects, pendingCounts, statusCounts);
   }
 
   private void validatePagination(int page, int pageSize) {
@@ -82,7 +84,18 @@ public class ProjectService {
                 FindingRepository.FindingCount::getTotal));
   }
 
-  public record ProjectListing(Page<Project> projects, Map<Long, Long> pendingCounts) {
+  private Map<ProjectStatus, Long> countProjectsByStatus() {
+    Map<ProjectStatus, Long> counts = new EnumMap<>(ProjectStatus.class);
+    projectRepository
+        .countByStatus()
+        .forEach(count -> counts.put(count.getStatus(), count.getTotal()));
+    return Map.copyOf(counts);
+  }
+
+  public record ProjectListing(
+      Page<Project> projects,
+      Map<Long, Long> pendingCounts,
+      Map<ProjectStatus, Long> statusCounts) {
 
     public long pendingCountFor(Project project) {
       return pendingCounts.getOrDefault(project.getId(), 0L);

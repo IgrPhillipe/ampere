@@ -33,7 +33,9 @@ class ProjectControllerTest {
     ProjectService service = mock(ProjectService.class);
     ProjectListing listing =
         new ProjectListing(
-            new PageImpl<>(List.of(project), PageRequest.of(0, 20), 1), Map.of(42L, 3L));
+            new PageImpl<>(List.of(project), PageRequest.of(0, 20), 1),
+            Map.of(42L, 3L),
+            Map.of(ProjectStatus.REJECTED, 2L, ProjectStatus.APPROVED, 1L));
     when(service.list(1, 20, "REJECTED", "vila")).thenReturn(listing);
     ProjectController controller = new ProjectController(service);
 
@@ -42,6 +44,10 @@ class ProjectControllerTest {
     assertThat(response.data().projects()).hasSize(1);
     assertThat(response.data().projects().getFirst().id()).isEqualTo("42");
     assertThat(response.data().projects().getFirst().pendingCount()).isEqualTo(3);
+    assertThat(response.data().statusCounts().total()).isEqualTo(3);
+    assertThat(response.data().statusCounts().draft()).isZero();
+    assertThat(response.data().statusCounts().rejected()).isEqualTo(2);
+    assertThat(response.data().statusCounts().approved()).isOne();
     assertThat(response.pagination().total()).isOne();
     assertThat(response.pagination().page()).isOne();
     assertThat(response.pagination().pageSize()).isEqualTo(20);

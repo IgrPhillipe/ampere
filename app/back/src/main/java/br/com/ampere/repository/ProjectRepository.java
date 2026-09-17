@@ -2,6 +2,7 @@ package br.com.ampere.repository;
 
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,4 +25,19 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       """)
   Page<Project> findAllByFilters(
       @Param("status") ProjectStatus status, @Param("search") String search, Pageable pageable);
+
+  @Query(
+      """
+      SELECT project.status AS status, COUNT(project) AS total
+      FROM Project project
+      GROUP BY project.status
+      """)
+  List<ProjectStatusCount> countByStatus();
+
+  interface ProjectStatusCount {
+
+    ProjectStatus getStatus();
+
+    long getTotal();
+  }
 }
