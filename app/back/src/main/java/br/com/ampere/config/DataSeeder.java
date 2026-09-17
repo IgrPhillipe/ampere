@@ -1,10 +1,8 @@
 package br.com.ampere.config;
 
-import br.com.ampere.domain.Example;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
-import br.com.ampere.repository.ExampleRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
 import java.util.List;
@@ -28,15 +26,10 @@ public class DataSeeder implements CommandLineRunner {
 
   private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
 
-  private final ExampleRepository exampleRepository;
   private final ProjectRepository projectRepository;
   private final FindingRepository findingRepository;
 
-  public DataSeeder(
-      ExampleRepository exampleRepository,
-      ProjectRepository projectRepository,
-      FindingRepository findingRepository) {
-    this.exampleRepository = exampleRepository;
+  public DataSeeder(ProjectRepository projectRepository, FindingRepository findingRepository) {
     this.projectRepository = projectRepository;
     this.findingRepository = findingRepository;
   }
@@ -44,19 +37,7 @@ public class DataSeeder implements CommandLineRunner {
   @Override
   @Transactional
   public void run(String... args) {
-    seedExamples();
     seedProjects();
-  }
-
-  private void seedExamples() {
-    if (exampleRepository.count() > 0) {
-      return;
-    }
-
-    exampleRepository.save(new Example("Example One"));
-    exampleRepository.save(new Example("Example Two"));
-
-    log.info("DataSeeder: dois registros de exemplo inseridos.");
   }
 
   private void seedProjects() {

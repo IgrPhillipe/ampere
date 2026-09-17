@@ -11,7 +11,6 @@ import static org.mockito.Mockito.when;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
-import br.com.ampere.repository.ExampleRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
 import java.util.EnumSet;
@@ -23,12 +22,10 @@ class DataSeederTest {
 
   @Test
   void seedsAllStatusesAndFindingsWithoutDuplicatingProjects() throws Exception {
-    ExampleRepository exampleRepository = mock(ExampleRepository.class);
     ProjectRepository projectRepository = mock(ProjectRepository.class);
     FindingRepository findingRepository = mock(FindingRepository.class);
-    when(exampleRepository.count()).thenReturn(1L);
     when(projectRepository.count()).thenReturn(0L, 6L);
-    DataSeeder seeder = new DataSeeder(exampleRepository, projectRepository, findingRepository);
+    DataSeeder seeder = new DataSeeder(projectRepository, findingRepository);
 
     seeder.run();
     seeder.run();
@@ -50,12 +47,10 @@ class DataSeederTest {
 
   @Test
   void leavesExistingProjectDataUntouched() throws Exception {
-    ExampleRepository exampleRepository = mock(ExampleRepository.class);
     ProjectRepository projectRepository = mock(ProjectRepository.class);
     FindingRepository findingRepository = mock(FindingRepository.class);
-    when(exampleRepository.count()).thenReturn(1L);
     when(projectRepository.count()).thenReturn(1L);
-    DataSeeder seeder = new DataSeeder(exampleRepository, projectRepository, findingRepository);
+    DataSeeder seeder = new DataSeeder(projectRepository, findingRepository);
 
     seeder.run();
 
