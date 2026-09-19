@@ -68,6 +68,20 @@ export const createProjectColumns = (
 				</div>
 			),
 		}),
+		columnHelper.accessor("createdAt", {
+			header: "Criado em",
+			cell: ({ row }) =>
+				row.original.createdAt ? (
+					<time
+						dateTime={row.original.createdAt}
+						className="font-mono text-xs text-foreground"
+					>
+						{dayjs(row.original.createdAt).format("DD.MM.YYYY")}
+					</time>
+				) : (
+					<span aria-label="Dado ainda não disponível">—</span>
+				),
+		}),
 		columnHelper.accessor("updatedAt", {
 			header: "Atualizado",
 			cell: ({ row }) => (

@@ -17,6 +17,7 @@ export const projectSchema = z.object({
 	municipality: z.string(),
 	protocol: z.string(),
 	status: projectStatusSchema,
+	createdAt: z.iso.datetime({ local: true }).optional(),
 	updatedAt: z.iso.datetime({ local: true }),
 	pendingCount: z.number().int().nonnegative(),
 });
