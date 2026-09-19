@@ -8,6 +8,7 @@ interface PageLayoutProps {
 	actions?: ReactNode;
 	children: ReactNode;
 	className?: string;
+	headingClassName?: string;
 }
 
 /** Cabecalho padrao de pagina. Usar dentro das rotas sob o `AppShell`. */
@@ -17,10 +18,11 @@ export const PageLayout = ({
 	actions,
 	children,
 	className,
+	headingClassName,
 }: PageLayoutProps) => (
 	<div className={cn("flex flex-col gap-7 p-4 md:p-7", className)}>
 		<div className="flex flex-wrap items-start justify-between gap-3">
-			<div className="flex flex-col gap-2">
+			<div className={cn("flex flex-col gap-2", headingClassName)}>
 				<h1 className="font-heading text-3xl font-semibold tracking-tight">
 					{title}
 				</h1>
