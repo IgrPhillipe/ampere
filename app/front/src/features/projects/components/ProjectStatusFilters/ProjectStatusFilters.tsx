@@ -50,9 +50,9 @@ export const ProjectStatusFilters = ({
 						type="button"
 						aria-pressed={isActive}
 						onClick={() => onValueChange(filter.value)}
-						className="group relative flex min-h-24 flex-col justify-center gap-1 border-r border-primary-foreground/20 px-4 text-left last:border-r-0 focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:outline-none"
+						className="group relative flex min-h-30 flex-col justify-center gap-2 border-r border-primary-foreground/20 px-5 text-left last:border-r-0 focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:outline-none"
 					>
-						<span className="font-mono text-2xl font-semibold">
+						<span className="font-mono text-3xl font-semibold">
 							{formatCount(counts[filter.countKey])}
 						</span>
 						<span className="font-mono text-xs tracking-wider uppercase opacity-80">
