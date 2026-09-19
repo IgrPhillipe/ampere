@@ -2,7 +2,8 @@ import { HttpResponse, http } from "msw";
 
 import { ProjectEndpoints as e } from "../endpoints";
 import { projectStatusSchema } from "../schemas";
-import { MOCK_PROJECT_UCS, MOCK_PROJECTS, makeProjectList } from "./factories";
+import { makeProjectList, makeProjectStatusCountsResponse } from "./factories";
+import { MOCK_PROJECT_UCS, MOCK_PROJECTS } from "./fixtures";
 
 const url = (path: string) => `/api/${path}`;
 
@@ -78,4 +79,8 @@ export const projectHandlers = [
 			}),
 		);
 	}),
+
+	http.get(url(e.statusCounts), () =>
+		HttpResponse.json(makeProjectStatusCountsResponse()),
+	),
 ];

@@ -35,20 +35,25 @@ export const projectStatusCountsSchema = z.object({
 
 export type ProjectStatusCounts = z.infer<typeof projectStatusCountsSchema>;
 
-export const projectListSchema = z.object({
-	projects: z.array(projectSchema),
-	statusCounts: projectStatusCountsSchema,
+const paginationSchema = z.object({
+	total: z.number().int().nonnegative(),
+	page: z.number().int().positive(),
+	pageSize: z.number().int().positive(),
 });
 
-export type ProjectList = z.infer<typeof projectListSchema>;
-
+/** `GET /projects` — a página, sem os contadores. */
 export const projectListResponseSchema = z.object({
-	data: projectListSchema,
-	pagination: z.object({
-		total: z.number().int().nonnegative(),
-		page: z.number().int().positive(),
-		pageSize: z.number().int().positive(),
-	}),
+	data: z.array(projectSchema),
+	pagination: paginationSchema,
 });
 
 export type ProjectListResponse = z.infer<typeof projectListResponseSchema>;
+
+/** `GET /projects/status-counts` — contadores globais, sem paginação. */
+export const projectStatusCountsResponseSchema = z.object({
+	data: projectStatusCountsSchema,
+});
+
+export type ProjectStatusCountsResponse = z.infer<
+	typeof projectStatusCountsResponseSchema
+>;

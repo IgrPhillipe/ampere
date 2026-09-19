@@ -5,6 +5,7 @@ import {
 	type Project,
 	type ProjectStatusCounts,
 	useGetProjectList,
+	useGetProjectStatusCounts,
 } from "@services/projects";
 import { ArrowRight, CircleAlert } from "lucide-react";
 import { useCallback } from "react";
@@ -44,9 +45,11 @@ export const ProjectsPage = () => {
 		status: status === "ALL" ? undefined : status,
 		search: debouncedSearch || undefined,
 	});
+	// Contadores em query própria: são globais e não mudam ao paginar nem ao buscar.
+	const statusCountsQuery = useGetProjectStatusCounts();
 
-	const projects = projectsQuery.data?.data.projects ?? [];
-	const counts = projectsQuery.data?.data.statusCounts ?? emptyStatusCounts;
+	const projects = projectsQuery.data?.data ?? [];
+	const counts = statusCountsQuery.data?.data ?? emptyStatusCounts;
 	const pagination = projectsQuery.data?.pagination;
 
 	const handleViewFindings = useCallback((project: Project) => {

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { projectKeys } from "../../../query-keys";
 import { getProjectList } from "../../../requests";
@@ -8,4 +8,6 @@ export const useGetProjectList = (params: ListProjectsParams = {}) =>
 	useQuery({
 		queryKey: projectKeys.list(params),
 		queryFn: () => getProjectList(params),
+		// Sem isto a tabela esvazia e a paginação some a cada página, filtro ou busca.
+		placeholderData: keepPreviousData,
 	});
