@@ -2,9 +2,15 @@ import { createDataTableColumnHelper } from "@components/DataTable";
 import dayjs from "@lib/dayjs";
 import type { Project } from "@services/projects";
 
-import { ProjectStatusBadge } from "../ProjectStatusBadge";
-
 const columnHelper = createDataTableColumnHelper<Project>();
+
+const projectStatusLabels: Record<Project["status"], string> = {
+	DRAFT: "Rascunho",
+	AWAITING_SUBMISSION: "Aguardando envio",
+	UNDER_REVIEW: "Em análise",
+	REJECTED: "Reprovado",
+	APPROVED: "Aprovado",
+};
 
 export const createProjectColumns = (
 	onViewFindings: (project: Project) => void,
@@ -40,7 +46,9 @@ export const createProjectColumns = (
 			header: "Situação",
 			cell: ({ row }) => (
 				<div className="flex min-w-44 flex-col items-start gap-1.5">
-					<ProjectStatusBadge status={row.original.status} />
+					<span className="font-mono text-xs tracking-[0.08em] text-foreground uppercase">
+						{projectStatusLabels[row.original.status]}
+					</span>
 					{row.original.status === "REJECTED" &&
 					row.original.pendingCount > 0 ? (
 						<>
