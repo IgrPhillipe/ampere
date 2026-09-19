@@ -1,0 +1,43 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/ibm-plex-sans";
+@import "./tokens.css";
+
+/**
+ * Mantem as variantes `dark:` vinculadas ao estado explicito da aplicacao.
+ * A identidade Neoenergia entregue nesta etapa define somente o tema claro.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+	html {
+		min-height: 100%;
+		font-synthesis: none;
+		text-rendering: optimizeLegibility;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+	body {
+		@apply bg-background text-foreground font-sans;
+		min-height: 100vh;
+		margin: 0;
+		font-size: var(--ds-text-sm);
+		line-height: var(--ds-leading-body);
+	}
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		@apply font-heading;
+	}
+	button:not(:disabled),
+	[role="button"]:not(:disabled) {
+		cursor: pointer;
+	}
+}

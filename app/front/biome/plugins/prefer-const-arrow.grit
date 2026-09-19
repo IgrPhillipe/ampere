@@ -1,0 +1,6 @@
+engine biome(1.0)
+language js(typescript, jsx)
+
+`function $name($params) $body` where {
+	register_diagnostic(span=$name, message="Use `const $name = (...) => ...` instead of function declaration", severity="error")
+}

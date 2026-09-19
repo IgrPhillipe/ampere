@@ -1,0 +1,7 @@
+# Roda a validacao do front apenas quando app/front mudou em relacao ao remoto.
+# Push de docs ou do back-end passa direto.
+if git diff --quiet "@{upstream}" HEAD -- app/front 2>/dev/null; then
+	exit 0
+fi
+
+cd app/front && pnpm validate

@@ -30,6 +30,9 @@ docs/
 | Produto    | [produto/user-stories.md](produto/user-stories.md) | As 7 histórias de usuário em BDD, com critérios de confirmação e cenários. Entrega 01 de POO |
 | Técnico    | [tecnico/README.md](tecnico/README.md) | Motor de cálculo e requisitos de POO |
 | Técnico    | [tecnico/fontes-normativas.md](tecnico/fontes-normativas.md) | DIS-NOR-053, metodologia de cálculo, revisões e processo de submissão |
+| Produto    | [produto/matriz-esforco-impacto.md](produto/matriz-esforco-impacto.md) | Priorização das histórias e ordem de construção do MVP |
+| Técnico    | [tecnico/engine-calculo.md](tecnico/engine-calculo.md) | Entradas, saídas, validações e rastreabilidade do motor de cálculo |
+| Técnico    | [tecnico/design-system-front.md](tecnico/design-system-front.md) | Design system do front-end inspirado na identidade visual da Neoenergia |
 | Cronograma | [cronograma-projetos3.md](cronograma-projetos3.md) | Aulas e entregáveis de Projetos 3 |
 | Cronograma | [cronograma-poo.md](cronograma-poo.md) | Entregas avaliadas de POO |
 | Gestão     | [pendencias.md](pendencias.md) | Backlog operacional: correções em boards, sites e configuração |
@@ -45,6 +48,7 @@ Para evitar que a mesma informação seja mantida em dois lugares:
 | Histórias de usuário | [produto/user-stories.md](produto/user-stories.md) |
 | Pendências operacionais | [pendencias.md](pendencias.md) |
 | Norma, metodologia e revisões | [tecnico/fontes-normativas.md](tecnico/fontes-normativas.md) |
+| Design system do front-end | [tecnico/design-system-front.md](tecnico/design-system-front.md) |
 | Processo de submissão do cliente | [negocio/processo-submissao.md](negocio/processo-submissao.md) |
 | Aulas, datas e entregáveis | [cronograma-projetos3.md](cronograma-projetos3.md) e [cronograma-poo.md](cronograma-poo.md) |
 | Casos de uso de IA | [uso-de-ia/](uso-de-ia/) |

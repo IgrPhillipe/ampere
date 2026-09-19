@@ -20,6 +20,14 @@ O histórico de revisões — sete em menos de quatro anos, três delas em dois 
 
 [`tecnico/fontes-normativas.md`](../tecnico/fontes-normativas.md), commit `9d429df`.
 
+## Desfecho — confirmado pela cliente
+
+No encontro de **18/08/2026**, Talita, da Neoenergia, indicou as normas usadas no cálculo de demanda. A professora Chaina repassou os links no Classroom em **20/08/2026**. Vieram as mesmas duas normas, com os mesmos ponteiros que o time havia localizado três dias antes: DIS-NOR-053, Anexo I, página 106, e DIS-NOR-030, item 6.27, página 47.
+
+A busca independente não só antecipou a resposta como acertou o alvo. A reunião do dia 18 foi de validação, e não de descoberta — que era exatamente a aposta registrada abaixo.
+
 ## Aprendizado
 
 Nem toda lacuna precisa do cliente. Antes de transformar uma dúvida em pergunta de reunião, verificar se a resposta é pública. Neste caso, a diferença foi entre uma reunião de "nos expliquem o problema" e uma de "validem nosso entendimento".
+
+O mesmo raciocínio vale para as dúvidas que sobraram sobre a norma: a divergência entre o Quadro 33 da 053 e a Tabela 13 da 030 parecia pergunta para a distribuidora e foi resolvida lendo o Anexo I, item 13. Antes de escrever a pergunta, ler a fonte inteira.
