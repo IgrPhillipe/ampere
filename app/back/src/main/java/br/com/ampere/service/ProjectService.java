@@ -39,8 +39,7 @@ public class ProjectService {
         PageRequest.of(
             page - 1,
             pageSize,
-            Sort.by(Sort.Direction.DESC, "updatedAt")
-                .and(Sort.by(Sort.Direction.DESC, "id")));
+            Sort.by(Sort.Direction.DESC, "updatedAt").and(Sort.by(Sort.Direction.DESC, "id")));
     Page<Project> projects =
         projectRepository.searchProjects(parsedStatus, normalizedSearch, pageRequest);
 

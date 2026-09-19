@@ -33,9 +33,7 @@ public class ProjectController {
   }
 
   @GetMapping
-  @Operation(
-      operationId = "listProjects",
-      summary = "Lista projetos com filtro, busca e paginação")
+  @Operation(operationId = "listProjects", summary = "Lista projetos com filtro, busca e paginação")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",

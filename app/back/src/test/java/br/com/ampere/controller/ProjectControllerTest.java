@@ -33,9 +33,7 @@ class ProjectControllerTest {
 
     mockMvc.perform(get("/projects").param("page", "abc")).andExpect(status().isBadRequest());
     mockMvc.perform(get("/projects").param("page", "0")).andExpect(status().isBadRequest());
-    mockMvc
-        .perform(get("/projects").param("pageSize", "101"))
-        .andExpect(status().isBadRequest());
+    mockMvc.perform(get("/projects").param("pageSize", "101")).andExpect(status().isBadRequest());
   }
 
   @Test

@@ -30,8 +30,7 @@ class ProjectServiceTest {
     service.list(1, 20, null, " %_\\ ");
 
     ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-    verify(projectRepository)
-        .searchProjects(isNull(), eq("\\%\\_\\\\"), pageableCaptor.capture());
+    verify(projectRepository).searchProjects(isNull(), eq("\\%\\_\\\\"), pageableCaptor.capture());
     Pageable pageable = pageableCaptor.getValue();
     assertThat(pageable.getPageNumber()).isZero();
     assertThat(pageable.getPageSize()).isEqualTo(20);
