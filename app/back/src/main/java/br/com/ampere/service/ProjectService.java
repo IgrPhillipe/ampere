@@ -20,10 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ProjectService {
 
-  private static final int MAX_PAGE_SIZE = 100;
-  private static final String INVALID_PAGE_MESSAGE = "A página deve ser maior ou igual a 1.";
-  private static final String INVALID_PAGE_SIZE_MESSAGE =
-      "O tamanho da página deve estar entre 1 e 100.";
   private static final String INVALID_STATUS_MESSAGE = "Status de projeto inválido.";
 
   private final ProjectRepository projectRepository;
@@ -36,8 +32,6 @@ public class ProjectService {
 
   @Transactional(readOnly = true)
   public ProjectListing list(int page, int pageSize, String status, String search) {
-    validatePagination(page, pageSize);
-
     ProjectStatus parsedStatus = parseStatus(status);
     String normalizedSearch = search == null ? "" : search.trim();
     PageRequest pageRequest =
@@ -48,15 +42,6 @@ public class ProjectService {
     Map<Long, Long> pendingCounts = countPendingFindings(projects.getContent());
     Map<ProjectStatus, Long> statusCounts = countProjectsByStatus();
     return new ProjectListing(projects, pendingCounts, statusCounts);
-  }
-
-  private void validatePagination(int page, int pageSize) {
-    if (page < 1) {
-      throw new BusinessException(INVALID_PAGE_MESSAGE);
-    }
-    if (pageSize < 1 || pageSize > MAX_PAGE_SIZE) {
-      throw new BusinessException(INVALID_PAGE_SIZE_MESSAGE);
-    }
   }
 
   private ProjectStatus parseStatus(String status) {

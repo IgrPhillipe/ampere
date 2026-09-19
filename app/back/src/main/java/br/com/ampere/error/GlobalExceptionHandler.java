@@ -9,6 +9,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * Traduz excecao em resposta HTTP, no formato {@code ProblemDetail} da RFC 7807.
@@ -62,6 +63,12 @@ public class GlobalExceptionHandler {
     problem.setProperty("errors", errors);
 
     return problem;
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException exception) {
+    return ProblemDetail.forStatusAndDetail(
+        HttpStatus.BAD_REQUEST, "Parâmetro inválido: " + exception.getName() + ".");
   }
 
   /**

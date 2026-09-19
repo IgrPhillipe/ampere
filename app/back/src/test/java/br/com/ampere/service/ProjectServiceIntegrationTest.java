@@ -98,13 +98,7 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
-  void rejectsInvalidPaginationAndStatus() {
-    assertThatThrownBy(() -> service.list(0, 20, null, null))
-        .isInstanceOf(BusinessException.class)
-        .hasMessage("A página deve ser maior ou igual a 1.");
-    assertThatThrownBy(() -> service.list(1, 101, null, null))
-        .isInstanceOf(BusinessException.class)
-        .hasMessage("O tamanho da página deve estar entre 1 e 100.");
+  void rejectsInvalidStatus() {
     assertThatThrownBy(() -> service.list(1, 20, "unknown", null))
         .isInstanceOf(BusinessException.class)
         .hasMessage("Status de projeto inválido.");
