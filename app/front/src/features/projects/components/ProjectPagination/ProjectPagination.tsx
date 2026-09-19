@@ -32,6 +32,7 @@ export const ProjectPagination = ({
 					type="button"
 					variant="outline"
 					size="icon-xs"
+					className="rounded-none border-border bg-white text-foreground shadow-none hover:bg-muted hover:text-foreground disabled:border-border disabled:bg-white disabled:text-muted-foreground disabled:opacity-40"
 					disabled={page <= 1}
 					onClick={() => onPageChange(page - 1)}
 					aria-label="Página anterior"
@@ -42,6 +43,7 @@ export const ProjectPagination = ({
 					type="button"
 					variant="outline"
 					size="icon-xs"
+					className="rounded-none border-border bg-white text-foreground shadow-none hover:bg-muted hover:text-foreground disabled:border-border disabled:bg-white disabled:text-muted-foreground disabled:opacity-40"
 					disabled={page >= totalPages}
 					onClick={() => onPageChange(page + 1)}
 					aria-label="Próxima página"
