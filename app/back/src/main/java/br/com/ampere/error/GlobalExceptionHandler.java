@@ -67,8 +67,12 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(MethodArgumentTypeMismatchException.class)
   public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException exception) {
-    return ProblemDetail.forStatusAndDetail(
-        HttpStatus.BAD_REQUEST, "Parâmetro inválido: " + exception.getName() + ".");
+    String detail =
+        exception.getRootCause() instanceof BusinessException businessException
+            ? businessException.getMessage()
+            : "O parâmetro '" + exception.getName() + "' tem um valor inválido.";
+
+    return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
   }
 
   /**

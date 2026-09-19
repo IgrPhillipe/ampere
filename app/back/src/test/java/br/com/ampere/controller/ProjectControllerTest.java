@@ -1,11 +1,14 @@
 package br.com.ampere.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.ampere.config.EnumParameterConfig;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.dto.ApiResponse;
@@ -18,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -26,14 +30,22 @@ class ProjectControllerTest {
   @Test
   void rejectsInvalidPaginationParameters() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    MockMvc mockMvc =
-        MockMvcBuilders.standaloneSetup(new ProjectController(service))
-            .setControllerAdvice(new GlobalExceptionHandler())
-            .build();
+    MockMvc mockMvc = mockMvc(service);
 
     mockMvc.perform(get("/projects").param("page", "abc")).andExpect(status().isBadRequest());
     mockMvc.perform(get("/projects").param("page", "0")).andExpect(status().isBadRequest());
     mockMvc.perform(get("/projects").param("pageSize", "101")).andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void returnsAcceptedValuesForInvalidStatus() throws Exception {
+    MockMvc mockMvc = mockMvc(mock(ProjectService.class));
+
+    mockMvc
+        .perform(get("/projects").param("status", "unknown"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail", containsString("DRAFT")))
+        .andExpect(jsonPath("$.detail", containsString("APPROVED")));
   }
 
   @Test
@@ -70,5 +82,15 @@ class ProjectControllerTest {
     assertThat(response.pagination().total()).isOne();
     assertThat(response.pagination().page()).isOne();
     assertThat(response.pagination().pageSize()).isEqualTo(20);
+  }
+
+  private static MockMvc mockMvc(ProjectService service) {
+    DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
+    new EnumParameterConfig().addFormatters(conversionService);
+
+    return MockMvcBuilders.standaloneSetup(new ProjectController(service))
+        .setConversionService(conversionService)
+        .setControllerAdvice(new GlobalExceptionHandler())
+        .build();
   }
 }
