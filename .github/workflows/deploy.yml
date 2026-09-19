@@ -11,11 +11,16 @@ jobs:
     name: vercel
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: app/front
+
     env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_SCOPE: igrph
+      VERCEL_PROJECT: ampere
       # main goes to production, every other branch gets a preview URL.
       ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+      TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -32,24 +37,25 @@ jobs:
 
       - run: npm install --global vercel@latest
 
+      # Linking here keeps VERCEL_TOKEN as the only secret.
+      - name: link
+        run: vercel link --yes --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT" --token "$TOKEN"
+
       - name: pull environment
-        working-directory: app/front
-        run: vercel pull --yes --environment=$ENVIRONMENT --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment="$ENVIRONMENT" --token "$TOKEN"
 
       - name: build
-        working-directory: app/front
         run: |
           if [ "$ENVIRONMENT" = production ]; then
-            vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+            vercel build --prod --token "$TOKEN"
           else
-            vercel build --token=${{ secrets.VERCEL_TOKEN }}
+            vercel build --token "$TOKEN"
           fi
 
       - name: deploy
-        working-directory: app/front
         run: |
           if [ "$ENVIRONMENT" = production ]; then
-            vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+            vercel deploy --prebuilt --prod --token "$TOKEN"
           else
-            vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+            vercel deploy --prebuilt --token "$TOKEN"
           fi
