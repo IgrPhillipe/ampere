@@ -1,5 +1,6 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.PageQuery;
 import br.com.ampere.dto.Pagination;
@@ -46,7 +47,7 @@ public class ProjectController {
       @Valid @ParameterObject PageQuery pagination,
       @Parameter(description = "Situação usada para filtrar os projetos")
           @RequestParam(required = false)
-          String status,
+          ProjectStatus status,
       @Parameter(description = "Termo buscado no nome ou no protocolo")
           @RequestParam(required = false)
           String search) {

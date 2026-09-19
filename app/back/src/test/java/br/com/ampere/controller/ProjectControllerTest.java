@@ -54,11 +54,11 @@ class ProjectControllerTest {
             1,
             Map.of(42L, 3L),
             Map.of(ProjectStatus.REJECTED, 2L, ProjectStatus.APPROVED, 1L));
-    when(service.list(1, 20, "REJECTED", "vila")).thenReturn(listing);
+    when(service.list(1, 20, ProjectStatus.REJECTED, "vila")).thenReturn(listing);
     ProjectController controller = new ProjectController(service);
 
     ApiResponse<ProjectListResponse> response =
-        controller.list(new PageQuery(1, 20), "REJECTED", "vila");
+        controller.list(new PageQuery(1, 20), ProjectStatus.REJECTED, "vila");
 
     assertThat(response.data().projects()).hasSize(1);
     assertThat(response.data().projects().getFirst().id()).isEqualTo("42");

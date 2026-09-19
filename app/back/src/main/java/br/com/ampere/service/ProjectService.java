@@ -2,13 +2,11 @@ package br.com.ampere.service;
 
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
-import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.utils.SearchTerms;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
@@ -21,8 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ProjectService {
 
-  private static final String INVALID_STATUS_MESSAGE = "Status de projeto inválido.";
-
   private final ProjectRepository projectRepository;
   private final FindingRepository findingRepository;
 
@@ -32,8 +28,7 @@ public class ProjectService {
   }
 
   @Transactional(readOnly = true)
-  public ProjectListing list(int page, int pageSize, String status, String search) {
-    ProjectStatus parsedStatus = parseStatus(status);
+  public ProjectListing list(int page, int pageSize, ProjectStatus status, String search) {
     String normalizedSearch = SearchTerms.normalize(search);
     PageRequest pageRequest =
         PageRequest.of(
@@ -41,24 +36,12 @@ public class ProjectService {
             pageSize,
             Sort.by(Sort.Direction.DESC, "updatedAt").and(Sort.by(Sort.Direction.DESC, "id")));
     Page<Project> projects =
-        projectRepository.searchProjects(parsedStatus, normalizedSearch, pageRequest);
+        projectRepository.searchProjects(status, normalizedSearch, pageRequest);
 
     Map<Long, Long> pendingCounts = countPendingFindings(projects.getContent());
     Map<ProjectStatus, Long> statusCounts = countProjectsByStatus();
     return new ProjectListing(
         projects.getContent(), projects.getTotalElements(), pendingCounts, statusCounts);
-  }
-
-  private ProjectStatus parseStatus(String status) {
-    if (status == null || status.isBlank()) {
-      return null;
-    }
-
-    try {
-      return ProjectStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
-    } catch (IllegalArgumentException exception) {
-      throw new BusinessException(INVALID_STATUS_MESSAGE);
-    }
   }
 
   private Map<Long, Long> countPendingFindings(List<Project> projects) {

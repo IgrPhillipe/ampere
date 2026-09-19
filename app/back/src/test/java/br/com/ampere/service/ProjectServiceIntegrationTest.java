@@ -1,12 +1,10 @@
 package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
-import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.service.ProjectService.ProjectListing;
@@ -52,7 +50,7 @@ class ProjectServiceIntegrationTest {
     findingRepository.save(new Finding(rejectedProject));
     findingRepository.save(new Finding(rejectedProject));
 
-    ProjectListing listing = service.list(1, 20, "rejected", "VILA");
+    ProjectListing listing = service.list(1, 20, ProjectStatus.REJECTED, "VILA");
 
     assertThat(listing.totalElements()).isOne();
     assertThat(listing.projects()).containsExactly(rejectedProject);
@@ -109,12 +107,5 @@ class ProjectServiceIntegrationTest {
     assertThat(service.list(1, 20, null, "%").projects()).isEmpty();
     assertThat(service.list(1, 20, null, "_").projects()).isEmpty();
     assertThat(service.list(1, 20, null, "vila%nova").projects()).isEmpty();
-  }
-
-  @Test
-  void rejectsInvalidStatus() {
-    assertThatThrownBy(() -> service.list(1, 20, "unknown", null))
-        .isInstanceOf(BusinessException.class)
-        .hasMessage("Status de projeto inválido.");
   }
 }
