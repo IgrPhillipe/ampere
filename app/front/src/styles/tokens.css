@@ -1,0 +1,194 @@
+/**
+ * AMPERE design tokens.
+ *
+ * The brand primitives below mirror the public Neoenergia visual language.
+ * IberPangea is the institutional typeface, but it is not distributed with
+ * this repository; IBM Plex Sans is the licensed fallback used by the app.
+ */
+:root {
+	color-scheme: light;
+
+	/* Neoenergia brand palette */
+	--neo-green: #00a443;
+	--neo-green-dark: #00402a;
+	--neo-green-deep: #002015;
+	--neo-green-strong: #007f33;
+	--neo-green-pressed: #005b3b;
+	--neo-green-accent: #26bf64;
+	--neo-green-hover: #008c39;
+	--neo-green-soft: #dcebe1;
+	--neo-green-muted: #a2bcb1;
+	--neo-sky: #0da9ff;
+	--neo-sunset: #ff9c1a;
+	--neo-sand: #fff5ec;
+	--neo-sand-soft: #fffaf6;
+	--neo-sand-strong: #d8cfc7;
+	--neo-white: #ffffff;
+	--neo-ink: #002015;
+	--neo-ink-muted: #615d5a;
+	--neo-danger: #c00000;
+
+	/* Semantic colors */
+	--background: var(--neo-sand);
+	--foreground: var(--neo-ink);
+	--card: var(--neo-white);
+	--card-foreground: var(--neo-ink);
+	--popover: var(--neo-white);
+	--popover-foreground: var(--neo-ink);
+	--primary: var(--neo-green-strong);
+	--primary-foreground: var(--neo-white);
+	--primary-hover: var(--neo-green-dark);
+	--primary-active: var(--neo-green-pressed);
+	--secondary: var(--neo-green-dark);
+	--secondary-foreground: var(--neo-white);
+	--muted: var(--neo-sand-soft);
+	--muted-foreground: var(--neo-ink-muted);
+	--accent: var(--neo-green-soft);
+	--accent-foreground: var(--neo-green-dark);
+	--destructive: var(--neo-danger);
+	--destructive-foreground: var(--neo-white);
+	--success: var(--neo-green-strong);
+	--success-foreground: var(--neo-white);
+	--warning: var(--neo-sunset);
+	--warning-foreground: var(--neo-ink);
+	--border: var(--neo-sand-strong);
+	--input: #b0a9a3;
+	--ring: #007f33;
+	--disabled: var(--neo-green-soft);
+	--disabled-foreground: #2f6852;
+	--overlay: rgb(0 32 21 / 48%);
+
+	/* Data visualization */
+	--chart-1: var(--neo-green);
+	--chart-2: var(--neo-green-dark);
+	--chart-3: var(--neo-sky);
+	--chart-4: var(--neo-sunset);
+	--chart-5: #699282;
+
+	/* Application shell */
+	--sidebar: var(--neo-white);
+	--sidebar-foreground: var(--neo-ink);
+	--sidebar-primary: var(--neo-green-strong);
+	--sidebar-primary-foreground: var(--neo-white);
+	--sidebar-accent: var(--neo-green-soft);
+	--sidebar-accent-foreground: var(--neo-green-dark);
+	--sidebar-border: var(--neo-sand-strong);
+	--sidebar-ring: #007f33;
+
+	/* Typography */
+	--ds-font-brand:
+		"IberPangea", "IBM Plex Sans Variable", "Segoe UI", sans-serif;
+	--ds-font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+	--ds-text-xs: 0.75rem;
+	--ds-text-sm: 0.875rem;
+	--ds-text-base: 1rem;
+	--ds-text-lg: 1.25rem;
+	--ds-text-xl: 1.375rem;
+	--ds-text-2xl: 1.625rem;
+	--ds-leading-xs: 1rem;
+	--ds-leading-sm: 1.25rem;
+	--ds-leading-body: 1.4375rem;
+	--ds-leading-lg: 1.625rem;
+	--ds-leading-xl: 2.5rem;
+	--ds-leading-2xl: 2.875rem;
+
+	/* Spacing follows Neoenergia's 4px base rhythm */
+	--ds-space-1: 0.25rem;
+	--ds-space-2: 0.5rem;
+	--ds-space-3: 1rem;
+	--ds-space-4: 1.5rem;
+	--ds-space-5: 3rem;
+	--ds-space-6: 4.5rem;
+	--ds-space-7: 6rem;
+
+	/* Shape, elevation and motion */
+	--ds-radius-sm: 0.5rem;
+	--ds-radius-md: 1rem;
+	--ds-radius-lg: 2rem;
+	--ds-radius-pill: 9999px;
+	--ds-shadow-sm: 0 1px 2px rgb(0 32 21 / 8%);
+	--ds-shadow-md: 0 8px 24px rgb(0 32 21 / 12%);
+	--ds-duration-fast: 150ms;
+	--ds-duration-default: 250ms;
+	--ds-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@theme inline {
+	--font-sans: var(--ds-font-brand);
+	--font-heading: var(--ds-font-brand);
+	--font-mono: var(--ds-font-mono);
+
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-primary-hover: var(--primary-hover);
+	--color-primary-active: var(--primary-active);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+	--color-warning: var(--warning);
+	--color-warning-foreground: var(--warning-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-disabled: var(--disabled);
+	--color-disabled-foreground: var(--disabled-foreground);
+	--color-overlay: var(--overlay);
+
+	--color-brand-green: var(--neo-green);
+	--color-brand-green-dark: var(--neo-green-dark);
+	--color-brand-green-strong: var(--neo-green-strong);
+	--color-brand-green-accent: var(--neo-green-accent);
+	--color-brand-sky: var(--neo-sky);
+	--color-brand-sunset: var(--neo-sunset);
+	--color-brand-sand: var(--neo-sand);
+
+	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
+
+	--color-sidebar: var(--sidebar);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-ring: var(--sidebar-ring);
+
+	--text-xs: var(--ds-text-xs);
+	--text-xs--line-height: var(--ds-leading-xs);
+	--text-sm: var(--ds-text-sm);
+	--text-sm--line-height: var(--ds-leading-sm);
+	--text-base: var(--ds-text-base);
+	--text-base--line-height: var(--ds-leading-body);
+	--text-lg: var(--ds-text-lg);
+	--text-lg--line-height: var(--ds-leading-lg);
+	--text-xl: var(--ds-text-xl);
+	--text-xl--line-height: var(--ds-leading-xl);
+	--text-2xl: var(--ds-text-2xl);
+	--text-2xl--line-height: var(--ds-leading-2xl);
+
+	--spacing: var(--ds-space-1);
+	--radius-sm: var(--ds-radius-sm);
+	--radius-md: var(--ds-radius-md);
+	--radius-lg: var(--ds-radius-lg);
+	--radius-xl: var(--ds-radius-lg);
+	--shadow-sm: var(--ds-shadow-sm);
+	--shadow-md: var(--ds-shadow-md);
+	--ease-standard: var(--ds-ease-standard);
+}
