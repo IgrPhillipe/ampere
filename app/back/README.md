@@ -46,7 +46,7 @@ docker compose up -d db
 
 Só o banco em container; a aplicação roda pela IDE ou pelo wrapper, com reinício rápido.
 
-A API sobe em `http://localhost:8080/api` e a documentação em `http://localhost:8080/api/swagger-ui/index.html`.
+A API sobe em `http://localhost:8080/api` e a documentação em `http://localhost:8080/api/docs`.
 
 > **JDK 21 pelo Homebrew é *keg-only*** e não entra no PATH sozinho. Ou exporte
 > `JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home`,

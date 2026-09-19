@@ -47,7 +47,7 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Swagger UI em /api/swagger-ui/index.html -->
+		<!-- Swagger UI em /api/docs -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>

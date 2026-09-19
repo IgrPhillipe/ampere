@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * Traduz excecao em resposta HTTP, no formato {@code ProblemDetail} da RFC 7807.
@@ -42,6 +43,7 @@ public class GlobalExceptionHandler {
 
   private static final String INTERNAL_MESSAGE = "Erro interno. Tente novamente.";
   private static final String VALIDATION_MESSAGE = "Verifique os dados enviados.";
+  private static final String NOT_FOUND_MESSAGE = "Recurso não encontrado.";
 
   @ExceptionHandler(NotFoundException.class)
   public ProblemDetail handleNotFound(NotFoundException exception) {
@@ -71,6 +73,15 @@ public class GlobalExceptionHandler {
     problem.setProperty("errors", errors);
 
     return problem;
+  }
+
+  /**
+   * Rota inexistente. Sem isto cai na rede de seguranca e vira 500, que diz ao cliente que o
+   * servidor falhou quando o problema e o caminho pedido.
+   */
+  @ExceptionHandler(NoResourceFoundException.class)
+  public ProblemDetail handleNoResource(NoResourceFoundException exception) {
+    return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE);
   }
 
   @ExceptionHandler(MethodArgumentTypeMismatchException.class)

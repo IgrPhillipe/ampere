@@ -28,6 +28,16 @@ class MessageLocalizationTest {
   @MockitoBean private ProjectService projectService;
 
   @Test
+  void answersNotFoundForAnUnknownPath() throws Exception {
+    MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+
+    mockMvc
+        .perform(get("/"))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.detail").value("Recurso não encontrado."));
+  }
+
+  @Test
   void localizesTypeMismatchOnTheResponse() throws Exception {
     MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 

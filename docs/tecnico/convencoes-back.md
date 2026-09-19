@@ -392,7 +392,7 @@ O Hibernate cria a tabela no próximo boot, porque `ddl-auto=update`. Sem migrat
 curl -s localhost:8080/api/project/1 | python3 -m json.tool
 ```
 
-E `/api/swagger-ui/index.html` já lista o endpoint novo.
+E `/api/docs` já lista o endpoint novo.
 
 ---
 
@@ -451,7 +451,7 @@ A mensagem é o que o usuário lê. Em português, sem jargão — o front desca
 | Tradução de erro para HTTP | `error/GlobalExceptionHandler` |
 | Configuração e variáveis | `src/main/resources/application.properties` |
 | Dado inicial de desenvolvimento | `config/DataSeeder` |
-| Documentação da API | `/api/swagger-ui/index.html` |
+| Documentação da API | `/api/docs` |
 
 ---
 

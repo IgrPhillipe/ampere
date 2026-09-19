@@ -1,4 +1,4 @@
-name: ci
+name: CI
 
 on:
   push:
@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   back:
-    name: back-end
+    name: Back-end
     runs-on: ubuntu-latest
 
     # Matches the default in src/test/resources/application.properties.
@@ -38,12 +38,12 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: clean verify
+      - name: Clean verify
         working-directory: app/back
         run: ./mvnw -B clean verify
 
   front:
-    name: front-end
+    name: Front-end
     runs-on: ubuntu-latest
 
     steps:
@@ -60,15 +60,15 @@ jobs:
           cache: pnpm
           cache-dependency-path: app/front/pnpm-lock.yaml
 
-      - name: install
+      - name: Install
         working-directory: app/front
         run: pnpm install --frozen-lockfile
 
       # validate:ci checks; validate writes.
-      - name: validate
+      - name: Validate
         working-directory: app/front
         run: pnpm validate:ci
 
-      - name: build
+      - name: Build
         working-directory: app/front
         run: pnpm build
