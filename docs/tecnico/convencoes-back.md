@@ -91,7 +91,6 @@ Não foi escolhido aqui — o front já o declara, e o back precisa cumprir:
 | :--- | :--- |
 | Envelope `{ data, pagination? }` | `src/features/shared/types/index.ts` |
 | Formato de erro `ProblemDetail` | `src/lib/api-error.ts` |
-| Caminhos e shapes de `example` | `src/services/example/` |
 | Prefixo `/api` e porta 8080 | `vite.config.ts` |
 
 Os três que quebram silenciosamente: o `id` sai como string, sucesso vai embrulhado e erro não, e o `detail` é texto de tela em português.
@@ -162,7 +161,7 @@ Rode `spotless:apply` antes de abrir PR. Indentação de 2 espaços e 100 coluna
 
 **Fluxo:** controller → service → repository → domain. Camada de cima chama a de baixo, nunca o contrário.
 
-A fatia `example` existe para demonstrar isso ponta a ponta e **deve ser apagada** quando as classes de domínio do AMPERE entrarem. Ela implementa o contrato que o front já declara em `app/front/src/services/example`, e não um CRUD inventado — assim a integração é verificável em vez de suposta.
+A fatia `projects` demonstra esse fluxo ponta a ponta com o primeiro domínio real do AMPERE.
 
 As regras de importação entre camadas estão em [`convencoes-back.md`](convencoes-back.md).
 
@@ -170,15 +169,14 @@ As regras de importação entre camadas estão em [`convencoes-back.md`](convenc
 
 ## O caminho de uma requisição
 
-`GET /api/example/1`:
+`GET /api/projects`:
 
-1. O `context-path=/api` tira o prefixo; o `ExampleController` está mapeado em `/example`.
-2. `detail(1L)` chama `service.findById(1L)`.
-3. O service pede ao repository. Não achou, lança `NotFoundException("Registro não encontrado.")`.
-4. O `GlobalExceptionHandler` transforma em `ProblemDetail` com status 404 e o `detail` em português.
-5. Se achou, o controller converte a entidade em `ExampleResponse` e embrulha em `ApiResponse`.
+1. O `context-path=/api` tira o prefixo; o `ProjectController` está mapeado em `/projects`.
+2. `list(...)` chama `service.list(...)` com paginação, filtro e busca.
+3. O service consulta os repositories de projetos e apontamentos.
+4. O controller converte as entidades em `ProjectResponse` e embrulha a listagem em `ApiResponse`.
 
-O passo 3 é o que separa as camadas: o service não sabe que 404 existe. Ele descreve o que aconteceu no vocabulário do domínio, e a tradução para HTTP mora num lugar só.
+O passo 3 é o que separa as camadas: o controller não conhece persistência, e o service não conhece detalhes de HTTP.
 
 ---
 
@@ -235,13 +233,11 @@ Se um exemplo não compila, essa é a primeira coisa a conferir.
 
 ## Receita: criar uma entidade ponta a ponta
 
-> **Modelo completo:** a fatia `example`. Cada passo abaixo aponta o arquivo correspondente.
+> **Exemplo ilustrativo:** adapte os campos e operações ao domínio da história.
 
 Vamos supor uma entidade `Project`.
 
 ### 1.1 Domínio — `domain/Project.java`
-
-> Modelo: `domain/Example.java`
 
 ```java
 @Entity
@@ -275,8 +271,6 @@ Sem Lombok — construtor e getter à mão. O construtor sem argumentos é `prot
 
 ### 1.2 Repository — `repository/ProjectRepository.java`
 
-> Modelo: `repository/ExampleRepository.java`
-
 ```java
 public interface ProjectRepository extends JpaRepository<Project, Long> {
   List<Project> findByStatus(String status);
@@ -286,8 +280,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 O Spring Data implementa a interface em tempo de execução. Só declare o que precisa além do CRUD — e o nome do método é a consulta.
 
 ### 1.3 DTOs — `dto/ProjectRequest.java` e `dto/ProjectResponse.java`
-
-> Modelos: `dto/ExampleRequest.java`, `dto/ExampleResponse.java`
 
 ```java
 public record ProjectRequest(
@@ -306,8 +298,6 @@ public record ProjectResponse(String id, String name) {
 A mensagem do `@NotBlank` é texto de tela: aparece para o usuário como `"name: O nome é obrigatório."`.
 
 ### 1.4 Service — `service/ProjectService.java`
-
-> Modelo: `service/ExampleService.java`
 
 ```java
 @Service
@@ -337,8 +327,6 @@ Injeção por construtor, nunca `@Autowired` em campo. `@Transactional(readOnly 
 **Esta camada não conhece HTTP.** Ela lança `NotFoundException` ou `BusinessException`; quem escolhe o status é o `GlobalExceptionHandler`.
 
 ### 1.5 Controller — `controller/ProjectController.java`
-
-> Modelo: `controller/ExampleController.java`
 
 ```java
 @RestController
