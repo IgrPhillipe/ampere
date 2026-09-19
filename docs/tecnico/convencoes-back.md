@@ -188,7 +188,7 @@ O passo 3 é o que separa as camadas: o controller não conhece persistência, e
 
 `open-in-view=false` porque o default `true` mantém a sessão do Hibernate aberta durante a serialização, o que esconde problema de lazy loading até virar bug em produção.
 
-O `DataSeeder` insere dois registros no primeiro boot e só quando a tabela está vazia. Sem Flyway não há migration para carregar dado inicial, e uma API que sobe com o banco vazio não mostra nada.
+O `DataSeeder` insere seis projetos e quatro apontamentos no primeiro boot e só quando a tabela está vazia. Sem Flyway não há migration para carregar dado inicial, e uma API que sobe com o banco vazio não mostra nada.
 
 ---
 

@@ -14,11 +14,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Popula as tabelas de desenvolvimento no primeiro boot.
+ * Populates development tables on the first application startup.
  *
- * <p>Existe porque, sem Flyway, nao ha migration para carregar dado inicial — e uma API que sobe
- * com o banco vazio nao mostra nada. So roda quando a tabela esta vazia, entao reiniciar nao
- * duplica registro.
+ * <p>Without Flyway there is no migration to load initial data, and an API backed by an empty
+ * database has nothing to display. The seeder only runs when the project table is empty, so
+ * restarting the application does not duplicate data.
  */
 @Component
 @Profile("!prod & !test")
@@ -37,10 +37,10 @@ public class DataSeeder implements CommandLineRunner {
   @Override
   @Transactional
   public void run(String... args) {
-    seedProjects();
+    seedDevelopmentData();
   }
 
-  private void seedProjects() {
+  private void seedDevelopmentData() {
     if (projectRepository.count() > 0) {
       return;
     }
@@ -97,6 +97,6 @@ public class DataSeeder implements CommandLineRunner {
             new Finding(rejected),
             new Finding(anotherRejected)));
 
-    log.info("DataSeeder: seis projetos e quatro apontamentos inseridos.");
+    log.info("DataSeeder: six projects and four findings inserted.");
   }
 }
