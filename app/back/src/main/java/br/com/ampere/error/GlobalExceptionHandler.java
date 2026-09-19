@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -32,6 +34,12 @@ public class GlobalExceptionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+  private final MessageSource messageSource;
+
+  public GlobalExceptionHandler(MessageSource messageSource) {
+    this.messageSource = messageSource;
+  }
+
   private static final String INTERNAL_MESSAGE = "Erro interno. Tente novamente.";
   private static final String VALIDATION_MESSAGE = "Verifique os dados enviados.";
 
@@ -55,7 +63,7 @@ public class GlobalExceptionHandler {
                         "field",
                         error.getField(),
                         "defaultMessage",
-                        String.valueOf(error.getDefaultMessage())))
+                        messageSource.getMessage(error, LocaleContextHolder.getLocale())))
             .toList();
 
     ProblemDetail problem =

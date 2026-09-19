@@ -1,22 +1,40 @@
 package br.com.ampere.error;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Locale;
+import br.com.ampere.service.ProjectService;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
+/**
+ * Exercita o caminho HTTP, nao o arquivo de mensagens.
+ *
+ * <p>O context-path /api nao se aplica ao MockMvc. Verificar que o messages.properties contem a
+ * chave nao prova nada: o handler pode nunca consultar o {@code MessageSource} — foi exatamente o
+ * que aconteceu antes.
+ */
+@SpringBootTest
 class MessageLocalizationTest {
 
-  @Test
-  void localizesIntegerTypeMismatchMessages() {
-    ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-    messageSource.setBasename("messages");
-    messageSource.setDefaultEncoding("UTF-8");
+  @Autowired private WebApplicationContext context;
 
-    assertThat(
-            messageSource.getMessage(
-                "typeMismatch.java.lang.Integer", null, Locale.forLanguageTag("pt-BR")))
-        .isEqualTo("Informe um número inteiro.");
+  @MockitoBean private ProjectService projectService;
+
+  @Test
+  void localizesTypeMismatchOnTheResponse() throws Exception {
+    MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+
+    mockMvc
+        .perform(get("/projects").param("page", "abc"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errors[0].field").value("page"))
+        .andExpect(jsonPath("$.errors[0].defaultMessage").value("Informe um número inteiro."));
   }
 }

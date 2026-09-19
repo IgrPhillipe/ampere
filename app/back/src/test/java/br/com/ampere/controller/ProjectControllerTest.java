@@ -22,6 +22,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.MessageSource;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -91,13 +93,23 @@ class ProjectControllerTest {
     assertThat(response.pagination()).isNull();
   }
 
+  /** Mesmo basename que o Spring Boot registra em producao. */
+  private static MessageSource messageSource() {
+    ResourceBundleMessageSource source = new ResourceBundleMessageSource();
+    source.setBasename("messages");
+    source.setDefaultEncoding("UTF-8");
+    source.setUseCodeAsDefaultMessage(false);
+
+    return source;
+  }
+
   private static MockMvc mockMvc(ProjectService service) {
     DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
     new EnumParameterConfig().addFormatters(conversionService);
 
     return MockMvcBuilders.standaloneSetup(new ProjectController(service))
         .setConversionService(conversionService)
-        .setControllerAdvice(new GlobalExceptionHandler())
+        .setControllerAdvice(new GlobalExceptionHandler(messageSource()))
         .build();
   }
 }
