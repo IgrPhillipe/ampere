@@ -19,6 +19,7 @@ target/
 
 # IDE
 .vscode/
+.vs/
 .idea/
 *.swp
 
