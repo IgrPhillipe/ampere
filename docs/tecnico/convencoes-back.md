@@ -369,7 +369,7 @@ E `/api/swagger-ui/index.html` já lista o endpoint novo.
 ## Receita: devolver uma lista paginada
 
 ```java
-@GetMapping("/list")
+@GetMapping
 public ApiResponse<List<ProjectResponse>> list(
     @RequestParam(defaultValue = "1") int page,
     @RequestParam(defaultValue = "20") int pageSize) {

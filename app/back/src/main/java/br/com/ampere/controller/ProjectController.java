@@ -8,14 +8,20 @@ import br.com.ampere.dto.ProjectResponse;
 import br.com.ampere.dto.ProjectStatusCounts;
 import br.com.ampere.service.ProjectService;
 import br.com.ampere.service.ProjectService.ProjectListing;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** HTTP endpoints for electrical projects. */
+@Tag(name = "Projects", description = "Listagem e acompanhamento de projetos elétricos")
 @RestController
 @RequestMapping("/projects")
 public class ProjectController {
@@ -27,10 +33,25 @@ public class ProjectController {
   }
 
   @GetMapping
+  @Operation(
+      operationId = "listProjects",
+      summary = "Lista projetos com filtro, busca e paginação")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Página de projetos e contadores por situação"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "Paginação ou situação inválida")
+  })
   public ApiResponse<ProjectListResponse> list(
-      @Valid PageQuery pagination,
-      @RequestParam(required = false) String status,
-      @RequestParam(required = false) String search) {
+      @Valid @ParameterObject PageQuery pagination,
+      @Parameter(description = "Situação usada para filtrar os projetos")
+          @RequestParam(required = false)
+          String status,
+      @Parameter(description = "Termo buscado no nome ou no protocolo")
+          @RequestParam(required = false)
+          String search) {
     ProjectListing listing = service.list(pagination.page(), pagination.pageSize(), status, search);
     List<ProjectResponse> projects =
         listing.projects().stream()
