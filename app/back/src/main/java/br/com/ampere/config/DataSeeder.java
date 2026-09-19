@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
  * duplica registro.
  */
 @Component
-@Profile("!prod")
+@Profile("!prod & !test")
 public class DataSeeder implements CommandLineRunner {
 
   private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);

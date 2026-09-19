@@ -30,7 +30,7 @@ public class Project {
   @Column(nullable = false)
   private String municipality;
 
-  @Column(nullable = false)
+  @Column(nullable = false, unique = true)
   private String protocol;
 
   @Enumerated(EnumType.STRING)

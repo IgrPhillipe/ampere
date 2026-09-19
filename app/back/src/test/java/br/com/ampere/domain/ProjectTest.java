@@ -2,6 +2,7 @@ package br.com.ampere.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import jakarta.persistence.Column;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 
@@ -36,5 +37,12 @@ class ProjectTest {
             ProjectStatus.UNDER_REVIEW,
             ProjectStatus.REJECTED,
             ProjectStatus.APPROVED);
+  }
+
+  @Test
+  void requiresUniqueProtocols() throws NoSuchFieldException {
+    Column protocolColumn = Project.class.getDeclaredField("protocol").getAnnotation(Column.class);
+
+    assertThat(protocolColumn.unique()).isTrue();
   }
 }
