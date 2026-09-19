@@ -6,7 +6,7 @@ interface SkeletonTableProps {
 }
 
 export const SkeletonTable = ({ columns, rows = 5 }: SkeletonTableProps) => (
-	<div className="flex flex-col gap-3 rounded-md border border-border bg-card p-4 shadow-sm">
+	<div className="flex flex-col gap-3 bg-card p-4">
 		{Array.from({ length: rows }, (_, row) => (
 			<div key={row} className="flex gap-4">
 				{Array.from({ length: columns }, (_, column) => (
