@@ -7,7 +7,6 @@ import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
-import br.com.ampere.service.ProjectService.ProjectListing;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,9 +54,19 @@ class ProjectServiceIntegrationTest {
     assertThat(listing.totalElements()).isOne();
     assertThat(listing.projects()).containsExactly(rejectedProject);
     assertThat(listing.pendingCountFor(rejectedProject)).isEqualTo(2);
-    assertThat(listing.statusCounts())
+  }
+
+  @Test
+  void countsProjectsPerStatusIgnoringTheListingFilters() {
+    projectRepository.save(
+        new Project("A", "Rua A, 1", "Recife", "2026-9001", ProjectStatus.REJECTED));
+    projectRepository.save(
+        new Project("B", "Rua B, 2", "Recife", "2026-9002", ProjectStatus.APPROVED));
+
+    assertThat(service.countPerStatus())
         .containsEntry(ProjectStatus.REJECTED, 1L)
-        .containsEntry(ProjectStatus.APPROVED, 1L);
+        .containsEntry(ProjectStatus.APPROVED, 1L)
+        .doesNotContainKey(ProjectStatus.DRAFT);
   }
 
   @Test
@@ -91,7 +100,7 @@ class ProjectServiceIntegrationTest {
 
     assertThat(listing.projects()).isEmpty();
     assertThat(listing.pendingCounts()).isEmpty();
-    assertThat(listing.statusCounts()).containsEntry(ProjectStatus.UNDER_REVIEW, 1L);
+    assertThat(service.countPerStatus()).containsEntry(ProjectStatus.UNDER_REVIEW, 1L);
   }
 
   @Test

@@ -13,10 +13,11 @@ import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.PageQuery;
-import br.com.ampere.dto.ProjectListResponse;
+import br.com.ampere.dto.ProjectResponse;
+import br.com.ampere.dto.ProjectStatusCounts;
 import br.com.ampere.error.GlobalExceptionHandler;
+import br.com.ampere.service.ProjectListing;
 import br.com.ampere.service.ProjectService;
-import br.com.ampere.service.ProjectService.ProjectListing;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -60,28 +61,34 @@ class ProjectControllerTest {
     when(project.getUpdatedAt()).thenReturn(LocalDateTime.of(2026, 9, 17, 0, 0));
 
     ProjectService service = mock(ProjectService.class);
-    ProjectListing listing =
-        new ProjectListing(
-            List.of(project),
-            1,
-            Map.of(42L, 3L),
-            Map.of(ProjectStatus.REJECTED, 2L, ProjectStatus.APPROVED, 1L));
+    ProjectListing listing = new ProjectListing(List.of(project), 1, Map.of(42L, 3L));
     when(service.list(1, 20, ProjectStatus.REJECTED, "vila")).thenReturn(listing);
     ProjectController controller = new ProjectController(service);
 
-    ApiResponse<ProjectListResponse> response =
+    ApiResponse<List<ProjectResponse>> response =
         controller.list(new PageQuery(1, 20), ProjectStatus.REJECTED, "vila");
 
-    assertThat(response.data().projects()).hasSize(1);
-    assertThat(response.data().projects().getFirst().id()).isEqualTo("42");
-    assertThat(response.data().projects().getFirst().pendingCount()).isEqualTo(3);
-    assertThat(response.data().statusCounts().total()).isEqualTo(3);
-    assertThat(response.data().statusCounts().draft()).isZero();
-    assertThat(response.data().statusCounts().rejected()).isEqualTo(2);
-    assertThat(response.data().statusCounts().approved()).isOne();
+    assertThat(response.data()).hasSize(1);
+    assertThat(response.data().getFirst().id()).isEqualTo("42");
+    assertThat(response.data().getFirst().pendingCount()).isEqualTo(3);
     assertThat(response.pagination().total()).isOne();
     assertThat(response.pagination().page()).isOne();
     assertThat(response.pagination().pageSize()).isEqualTo(20);
+  }
+
+  @Test
+  void exposesGlobalStatusCountsOnItsOwnEndpoint() {
+    ProjectService service = mock(ProjectService.class);
+    when(service.countPerStatus())
+        .thenReturn(Map.of(ProjectStatus.REJECTED, 2L, ProjectStatus.APPROVED, 1L));
+
+    ApiResponse<ProjectStatusCounts> response = new ProjectController(service).statusCounts();
+
+    assertThat(response.data().total()).isEqualTo(3);
+    assertThat(response.data().rejected()).isEqualTo(2);
+    assertThat(response.data().approved()).isOne();
+    assertThat(response.data().draft()).isZero();
+    assertThat(response.pagination()).isNull();
   }
 
   private static MockMvc mockMvc(ProjectService service) {

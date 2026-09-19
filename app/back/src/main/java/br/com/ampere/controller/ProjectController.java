@@ -4,11 +4,10 @@ import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.PageQuery;
 import br.com.ampere.dto.Pagination;
-import br.com.ampere.dto.ProjectListResponse;
 import br.com.ampere.dto.ProjectResponse;
 import br.com.ampere.dto.ProjectStatusCounts;
+import br.com.ampere.service.ProjectListing;
 import br.com.ampere.service.ProjectService;
-import br.com.ampere.service.ProjectService.ProjectListing;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -38,12 +37,12 @@ public class ProjectController {
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
-        description = "Página de projetos e contadores por situação"),
+        description = "Página de projetos"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
         description = "Paginação ou situação inválida")
   })
-  public ApiResponse<ProjectListResponse> list(
+  public ApiResponse<List<ProjectResponse>> list(
       @Valid @ParameterObject PageQuery pagination,
       @Parameter(description = "Situação usada para filtrar os projetos")
           @RequestParam(required = false)
@@ -58,7 +57,27 @@ public class ProjectController {
             .toList();
 
     return ApiResponse.of(
-        new ProjectListResponse(projects, ProjectStatusCounts.from(listing.statusCounts())),
+        projects,
         new Pagination(listing.totalElements(), pagination.page(), pagination.pageSize()));
+  }
+
+  /**
+   * Totais por situação, para a barra de filtros.
+   *
+   * <p>Endpoint separado porque os contadores são globais e não mudam ao paginar nem ao buscar —
+   * juntá-los à listagem obrigaria a recalcular a agregação a cada tecla digitada, e fazia dois
+   * campos chamados {@code total} conviverem na mesma resposta com significados diferentes.
+   */
+  @GetMapping("/status-counts")
+  @Operation(
+      operationId = "countProjectsPerStatus",
+      summary = "Total de projetos em cada situação, sem filtro")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Contadores por situação")
+  })
+  public ApiResponse<ProjectStatusCounts> statusCounts() {
+    return ApiResponse.of(ProjectStatusCounts.from(service.countPerStatus()));
   }
 }

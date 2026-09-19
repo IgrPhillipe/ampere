@@ -19,6 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ProjectService {
 
+  private static final Sort NEWEST_FIRST =
+      Sort.by(Sort.Direction.DESC, "updatedAt").and(Sort.by(Sort.Direction.DESC, "id"));
+
   private final ProjectRepository projectRepository;
   private final FindingRepository findingRepository;
 
@@ -29,19 +32,30 @@ public class ProjectService {
 
   @Transactional(readOnly = true)
   public ProjectListing list(int page, int pageSize, ProjectStatus status, String search) {
-    String normalizedSearch = SearchTerms.normalize(search);
-    PageRequest pageRequest =
-        PageRequest.of(
-            page - 1,
-            pageSize,
-            Sort.by(Sort.Direction.DESC, "updatedAt").and(Sort.by(Sort.Direction.DESC, "id")));
+    PageRequest pageRequest = PageRequest.of(page - 1, pageSize, NEWEST_FIRST);
     Page<Project> projects =
-        projectRepository.searchProjects(status, normalizedSearch, pageRequest);
+        projectRepository.searchProjects(status, SearchTerms.normalize(search), pageRequest);
 
-    Map<Long, Long> pendingCounts = countPendingFindings(projects.getContent());
-    Map<ProjectStatus, Long> statusCounts = countProjectsByStatus();
     return new ProjectListing(
-        projects.getContent(), projects.getTotalElements(), pendingCounts, statusCounts);
+        projects.getContent(),
+        projects.getTotalElements(),
+        countPendingFindings(projects.getContent()));
+  }
+
+  /**
+   * Total of projects in each status, across the whole base.
+   *
+   * <p>Deliberately ignores the listing filters: the counters exist so the user can leave the
+   * filter that is currently applied, which requires knowing what is outside of it.
+   */
+  @Transactional(readOnly = true)
+  public Map<ProjectStatus, Long> countPerStatus() {
+    Map<ProjectStatus, Long> counts = new EnumMap<>(ProjectStatus.class);
+    projectRepository
+        .countPerStatus()
+        .forEach(count -> counts.put(count.getStatus(), count.getTotal()));
+
+    return Map.copyOf(counts);
   }
 
   private Map<Long, Long> countPendingFindings(List<Project> projects) {
@@ -55,24 +69,5 @@ public class ProjectService {
             Collectors.toUnmodifiableMap(
                 FindingRepository.FindingCount::getProjectId,
                 FindingRepository.FindingCount::getTotal));
-  }
-
-  private Map<ProjectStatus, Long> countProjectsByStatus() {
-    Map<ProjectStatus, Long> counts = new EnumMap<>(ProjectStatus.class);
-    projectRepository
-        .countPerStatus()
-        .forEach(count -> counts.put(count.getStatus(), count.getTotal()));
-    return Map.copyOf(counts);
-  }
-
-  public record ProjectListing(
-      List<Project> projects,
-      long totalElements,
-      Map<Long, Long> pendingCounts,
-      Map<ProjectStatus, Long> statusCounts) {
-
-    public long pendingCountFor(Project project) {
-      return pendingCounts.getOrDefault(project.getId(), 0L);
-    }
   }
 }
