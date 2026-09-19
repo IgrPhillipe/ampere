@@ -17,7 +17,7 @@ import {
 } from "../../components";
 import { useProjectFilters } from "../../hooks";
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 10;
 
 const emptyStatusCounts: ProjectStatusCounts = {
 	total: 0,
