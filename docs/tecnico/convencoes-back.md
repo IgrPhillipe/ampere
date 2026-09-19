@@ -37,10 +37,11 @@ br.com.ampere/
 ├── repository/   acesso ao banco
 ├── dto/          entrada e saída da API
 ├── error/        exceções de domínio e o tradutor para HTTP
+├── utils/        funções puras e reutilizáveis, sem dependências do projeto
 └── config/       configuração e bootstrap
 ```
 
-As quatro primeiras são as que o [`app/back/README.md`](../../app/back/README.md) prescreve. `dto/`, `error/` e `config/` existem porque são inevitáveis, não porque alguém quis mais uma camada.
+As quatro primeiras são as que o [`app/back/README.md`](../../app/back/README.md) prescreve. `dto/`, `error/`, `utils/` e `config/` existem porque são inevitáveis, não porque alguém quis mais uma camada.
 
 ## O que cada camada pode importar
 
@@ -50,8 +51,11 @@ As quatro primeiras são as que o [`app/back/README.md`](../../app/back/README.m
 | `service` | `repository`, `domain`, `error` | qualquer coisa de HTTP |
 | `repository` | `domain` | `service`, `controller` |
 | `domain` | nada do projeto | todas as outras |
+| `utils` | bibliotecas da linguagem | qualquer pacote do projeto |
 
 A regra prática: **se o service importa alguma coisa de `org.springframework.web`, algo está no lugar errado.** Ele lança exceção de domínio; quem decide status HTTP é o `GlobalExceptionHandler`.
+
+`utils` não é uma camada. Qualquer pacote pode importar suas funções, mas elas precisam continuar puras e independentes do domínio, dos repositories e do Spring. Se uma classe em `utils` passar a depender do projeto, ela está no pacote errado.
 
 E o contrário também vale: se o controller está decidindo qualquer coisa além de forma de entrada e saída, a decisão pertence ao service. É o que o [`docs/tecnico/README.md`](README.md) chama de rota fina.
 
@@ -128,6 +132,32 @@ Anote o `record` de entrada e use `@Valid` no controller. As mensagens viram `er
 public record ExampleRequest(
     @NotBlank(message = "O nome é obrigatório.") String name) {}
 ```
+
+### Parâmetros compartilhados de query
+
+Não repita conversão e normalização em cada controller ou service. As peças compartilhadas são:
+
+| Peça | Responsabilidade |
+| :--- | :--- |
+| `PageQuery` | Valores padrão e Bean Validation de `page` e `pageSize` |
+| `SearchTerms` | `trim` e escape de `\`, `%` e `_` antes de consultas com `LIKE` |
+| `EnumParameterConfig` | Conversão case-insensitive de texto para qualquer enum da API |
+| `messages.properties` | Mensagens localizadas para falhas de binding do Spring |
+
+Controllers recebem enums diretamente. Isso mantém a validação no limite HTTP e permite que o OpenAPI publique os valores aceitos:
+
+```java
+public ApiResponse<ProjectListResponse> list(
+    @Valid @ParameterObject PageQuery pagination,
+    @RequestParam(required = false) ProjectStatus status,
+    @RequestParam(required = false) String search) {
+  ProjectListing listing =
+      service.list(pagination.page(), pagination.pageSize(), status, search);
+  // Converte o resultado e monta o ApiResponse.
+}
+```
+
+O service recebe o enum já convertido e usa `SearchTerms.normalize(search)` antes de chamar o repository. Valor de enum inválido deve sair como HTTP 400 com a lista de valores aceitos; erro numérico usa a mensagem localizada em `messages.properties`.
 
 ---
 
