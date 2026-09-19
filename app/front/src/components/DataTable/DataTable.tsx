@@ -45,7 +45,7 @@ export const DataTable = <TData extends RowData>({
 	}
 
 	return (
-		<div className="overflow-hidden rounded-md border border-border bg-card shadow-sm">
+		<div className="overflow-hidden bg-card">
 			<Table>
 				<TableHeader>
 					{table.getHeaderGroups().map((group) => (
