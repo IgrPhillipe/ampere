@@ -20,9 +20,12 @@ target/
 # IDE
 # settings.json e extensions.json sao compartilhados: formatacao no save
 # precisa valer para o time, nao so para quem configurou.
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
+# Configuracao por app continua local.
+app/*/.vscode/
+# Na raiz, os dois arquivos compartilhados sao versionados.
+/.vscode/*
+!/.vscode/settings.json
+!/.vscode/extensions.json
 .idea/
 *.swp
 
