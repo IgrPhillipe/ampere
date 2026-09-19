@@ -29,7 +29,7 @@
 	--neo-danger: #c00000;
 
 	/* Semantic colors */
-	--background: var(--neo-sand);
+	--background: var(--neo-white);
 	--foreground: var(--neo-ink);
 	--card: var(--neo-white);
 	--card-foreground: var(--neo-ink);
