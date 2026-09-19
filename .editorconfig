@@ -1,0 +1,26 @@
+# Base comum a qualquer editor. Não substitui o Spotless nem o Biome — cobre o
+# que os dois exigem e que o editor consegue garantir enquanto você digita.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# google-java-format: 2 espaços, 100 colunas. Não é negociável com a ferramenta.
+[*.java]
+indent_style = space
+indent_size = 2
+max_line_length = 100
+
+# Biome está configurado com indentStyle: tab.
+[*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,css}]
+indent_style = tab
+
+[*.{xml,yml,yaml}]
+indent_style = tab
+
+# Duas linhas em branco no fim são quebra de linha em markdown.
+[*.md]
+trim_trailing_whitespace = false

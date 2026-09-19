@@ -18,7 +18,11 @@ target/
 .gradle/
 
 # IDE
-.vscode/
+# settings.json e extensions.json sao compartilhados: formatacao no save
+# precisa valer para o time, nao so para quem configurou.
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 .idea/
 *.swp
 
