@@ -6,7 +6,7 @@ import {
 	type ProjectStatusCounts,
 	useGetProjectList,
 } from "@services/projects";
-import { CircleAlert } from "lucide-react";
+import { ArrowRight, CircleAlert } from "lucide-react";
 import { useCallback } from "react";
 import { toast } from "sonner";
 
@@ -59,6 +59,12 @@ export const ProjectsPage = () => {
 		<PageLayout
 			title="Meus projetos"
 			description="Acompanhe o andamento dos projetos enviados à Neoenergia Pernambuco."
+			actions={
+				<Button type="button" size="sm" className="rounded-none">
+					Novo projeto
+					<ArrowRight aria-hidden="true" />
+				</Button>
+			}
 			className="mx-auto w-full max-w-[1600px]"
 		>
 			<section
