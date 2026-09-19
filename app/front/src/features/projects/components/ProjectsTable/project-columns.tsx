@@ -19,7 +19,7 @@ export const createProjectColumns = (
 		columnHelper.accessor("name", {
 			header: "Projeto",
 			cell: ({ row }) => (
-				<div className="flex min-w-64 flex-col gap-1 whitespace-normal">
+				<div className="flex min-w-72 flex-col gap-1 whitespace-normal">
 					<span className="font-semibold text-foreground">
 						{row.original.name}
 					</span>
@@ -45,7 +45,7 @@ export const createProjectColumns = (
 		columnHelper.accessor("status", {
 			header: "Situação",
 			cell: ({ row }) => (
-				<div className="flex min-w-44 flex-col items-start gap-1.5">
+				<div className="flex min-w-40 flex-col items-start gap-1.5">
 					<span className="font-mono text-xs tracking-[0.08em] text-foreground uppercase">
 						{projectStatusLabels[row.original.status]}
 					</span>

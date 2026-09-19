@@ -62,7 +62,7 @@ export const ProjectsPage = () => {
 			className="mx-auto w-full max-w-[1600px]"
 		>
 			<section
-				className="overflow-hidden border border-border bg-card shadow-sm"
+				className="overflow-hidden bg-card"
 				aria-label="Listagem de projetos"
 			>
 				<ProjectFilters
@@ -73,7 +73,7 @@ export const ProjectsPage = () => {
 					onSearchChange={(value) => void setSearch(value)}
 				/>
 
-				<div className="p-4 md:p-6">
+				<div className="px-6 py-4 md:px-7 md:py-5">
 					{projectsQuery.isError ? (
 						<EmptyState
 							title="Não foi possível carregar os projetos"
