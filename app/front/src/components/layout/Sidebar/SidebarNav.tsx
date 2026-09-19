@@ -22,24 +22,44 @@ export const SidebarNav = ({ onNavigate }: SidebarNavProps) => {
 
 	return (
 		<nav className="flex flex-col gap-1">
-			{items.map(({ to, label, icon: Icon, exact }) => (
-				<Link
-					key={to}
-					to={to}
-					activeOptions={{ exact }}
-					onClick={onNavigate}
-					className={cn(
-						"flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-					)}
-					activeProps={{
-						className: "bg-sidebar-accent text-sidebar-accent-foreground",
-					}}
-				>
-					<Icon className="size-4 shrink-0" />
+			{items.map(({ to, label, icon: Icon, exact, disabled }) => {
+				const content = (
+					<>
+						{Icon ? <Icon className="size-4 shrink-0" /> : null}
 
-					{label}
-				</Link>
-			))}
+						{label}
+					</>
+				);
+
+				if (disabled || !to) {
+					return (
+						<span
+							key={label}
+							aria-disabled="true"
+							className="flex cursor-not-allowed items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground/45"
+						>
+							{content}
+						</span>
+					);
+				}
+
+				return (
+					<Link
+						key={to}
+						to={to}
+						activeOptions={{ exact }}
+						onClick={onNavigate}
+						className={cn(
+							"flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+						)}
+						activeProps={{
+							className: "bg-sidebar-accent text-sidebar-accent-foreground",
+						}}
+					>
+						{content}
+					</Link>
+				);
+			})}
 		</nav>
 	);
 };

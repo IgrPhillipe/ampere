@@ -26,6 +26,7 @@ app/*/.vscode/
 /.vscode/*
 !/.vscode/settings.json
 !/.vscode/extensions.json
+.vs/
 .idea/
 *.swp
 

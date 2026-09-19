@@ -2,22 +2,27 @@ import type { UserRole } from "@features/auth/types";
 import type { LucideIcon } from "lucide-react";
 
 export interface NavItem {
-	to: string;
+	to?: string;
 	label: string;
-	icon: LucideIcon;
+	icon?: LucideIcon;
 	/** Só casa com a rota exata; use em itens de indice como "/". */
 	exact?: boolean;
 	/** Sem `roles`, o item aparece para todo mundo. */
 	roles?: UserRole[];
+	/** Mantém uma área futura visível sem oferecer uma rota inexistente. */
+	disabled?: boolean;
 }
 
 /**
- * Itens do menu lateral.
- *
- * Vazio de proposito: o scaffold entrega a estrutura, e cada tela acrescenta
- * o seu item junto com a rota. Ver `docs/tecnico/receitas-front.md`.
+ * Itens da navegação principal. As áreas ainda não entregues permanecem
+ * desabilitadas até suas respectivas rotas serem implementadas.
  */
-export const APP_NAV_ITEMS: NavItem[] = [];
+export const APP_NAV_ITEMS: NavItem[] = [
+	{ to: "/", label: "Meus projetos", exact: true },
+	{ label: "Novo projeto", disabled: true },
+	{ label: "Normas e tabelas", disabled: true },
+	{ label: "Ajuda", disabled: true },
+];
 
 export const filterNavItemsByRole = (
 	items: NavItem[],

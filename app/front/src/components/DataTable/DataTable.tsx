@@ -8,6 +8,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@components/ui/table";
+import { cn } from "@lib/utils";
 import {
 	type RowData,
 	type TableOptions,
@@ -23,6 +24,7 @@ interface DataTableProps<TData extends RowData> {
 	isLoading?: boolean;
 	emptyTitle?: string;
 	emptyDescription?: ReactNode;
+	columnClassNames?: Record<string, string>;
 }
 
 /**
@@ -35,6 +37,7 @@ export const DataTable = <TData extends RowData>({
 	isLoading = false,
 	emptyTitle = "Nenhum resultado encontrado",
 	emptyDescription,
+	columnClassNames,
 }: DataTableProps<TData>) => {
 	const table = useTable({ features: dataTableFeatures, columns, data });
 
@@ -45,13 +48,16 @@ export const DataTable = <TData extends RowData>({
 	}
 
 	return (
-		<div className="overflow-hidden rounded-md border bg-background">
-			<Table>
+		<div className="overflow-hidden bg-card">
+			<Table className={cn(columnClassNames && "table-fixed")}>
 				<TableHeader>
 					{table.getHeaderGroups().map((group) => (
 						<TableRow key={group.id}>
 							{group.headers.map((header) => (
-								<TableHead key={header.id}>
+								<TableHead
+									key={header.id}
+									className={columnClassNames?.[header.column.id]}
+								>
 									{header.isPlaceholder ? null : (
 										<table.FlexRender header={header} />
 									)}
@@ -65,7 +71,10 @@ export const DataTable = <TData extends RowData>({
 					{table.getRowModel().rows.map((row) => (
 						<TableRow key={row.id}>
 							{row.getAllCells().map((cell) => (
-								<TableCell key={cell.id}>
+								<TableCell
+									key={cell.id}
+									className={columnClassNames?.[cell.column.id]}
+								>
 									<table.FlexRender cell={cell} />
 								</TableCell>
 							))}
