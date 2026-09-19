@@ -37,6 +37,7 @@ export const ProjectStatusFilters = ({
 	onValueChange,
 }: ProjectStatusFiltersProps) => (
 	<div
+		role="group"
 		className="overflow-x-auto bg-primary text-primary-foreground"
 		aria-label="Filtrar projetos por situação"
 	>

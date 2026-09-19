@@ -16,11 +16,12 @@ export const ProjectPagination = ({
 }: ProjectPaginationProps) => {
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 	const lastItem = Math.min(page * pageSize, total);
+	const firstItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
 
 	return (
 		<div className="-mx-4 mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-border bg-card px-10 py-2 md:-mx-7 md:px-[60px]">
 			<p className="font-mono text-xs tracking-wider text-muted-foreground uppercase">
-				{lastItem} de {total} projetos
+				{firstItem}–{lastItem} de {total} projetos
 			</p>
 
 			<nav className="flex gap-2" aria-label="Paginação de projetos">
