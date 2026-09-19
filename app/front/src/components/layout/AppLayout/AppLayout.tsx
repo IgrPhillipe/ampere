@@ -1,27 +1,18 @@
-import { type ReactNode, useState } from "react";
+import type { ReactNode } from "react";
 
 import { Footer } from "../Footer";
 import { Header } from "../Header";
-import { Sidebar } from "../Sidebar";
 
 interface AppLayoutProps {
 	children: ReactNode;
 }
 
-export const AppLayout = ({ children }: AppLayoutProps) => {
-	const [mobileOpen, setMobileOpen] = useState(false);
+export const AppLayout = ({ children }: AppLayoutProps) => (
+	<div className="flex h-svh flex-col overflow-hidden bg-background">
+		<Header />
 
-	return (
-		<div className="flex h-svh overflow-hidden">
-			<Sidebar mobileOpen={mobileOpen} onMobileOpenChange={setMobileOpen} />
+		<main className="flex-1 overflow-y-auto">{children}</main>
 
-			<div className="flex flex-1 flex-col overflow-hidden">
-				<Header onMenuClick={() => setMobileOpen(true)} />
-
-				<main className="flex-1 overflow-y-auto bg-muted/30">{children}</main>
-
-				<Footer />
-			</div>
-		</div>
-	);
-};
+		<Footer />
+	</div>
+);
