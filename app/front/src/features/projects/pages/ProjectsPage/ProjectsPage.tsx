@@ -60,7 +60,7 @@ export const ProjectsPage = () => {
 			title="Meus projetos"
 			description="Acompanhe o andamento dos projetos enviados à Neoenergia Pernambuco."
 			actions={
-				<Button type="button" size="sm" className="rounded-none">
+				<Button type="button" size="sm" className="rounded-[4px]">
 					Novo projeto
 					<ArrowRight aria-hidden="true" />
 				</Button>
