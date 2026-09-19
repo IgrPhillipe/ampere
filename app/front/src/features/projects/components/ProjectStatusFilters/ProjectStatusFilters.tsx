@@ -59,7 +59,7 @@ export const ProjectStatusFilters = ({
 							{filter.label}
 						</span>
 						<span
-							className="absolute inset-x-4 bottom-0 h-0.5 bg-primary-foreground opacity-0 transition-opacity group-hover:opacity-70 data-active:opacity-100"
+							className="absolute inset-x-4 bottom-4 h-0.5 bg-primary-foreground opacity-0 transition-opacity group-hover:opacity-70 data-active:opacity-100"
 							data-active={isActive || undefined}
 						/>
 					</button>
