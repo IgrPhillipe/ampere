@@ -8,16 +8,18 @@ interface ProjectsTableProps {
 	projects: Project[];
 	isLoading?: boolean;
 	onViewFindings: (project: Project) => void;
+	onResumeSubmission: (project: Project) => void;
 }
 
 export const ProjectsTable = ({
 	projects,
 	isLoading = false,
 	onViewFindings,
+	onResumeSubmission,
 }: ProjectsTableProps) => {
 	const columns = useMemo(
-		() => createProjectColumns(onViewFindings),
-		[onViewFindings],
+		() => createProjectColumns(onViewFindings, onResumeSubmission),
+		[onResumeSubmission, onViewFindings],
 	);
 
 	return (

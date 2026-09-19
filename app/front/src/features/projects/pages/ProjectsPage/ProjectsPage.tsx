@@ -55,6 +55,16 @@ export const ProjectsPage = () => {
 		);
 	}, []);
 
+	const handleResumeSubmission = useCallback((project: Project) => {
+		toast.info(
+			[
+				"A retomada de ",
+				project.name,
+				" será disponibilizada na etapa de edição do projeto.",
+			].join(""),
+		);
+	}, []);
+
 	return (
 		<PageLayout
 			title="Meus projetos"
@@ -97,6 +107,7 @@ export const ProjectsPage = () => {
 							projects={projects}
 							isLoading={projectsQuery.isPending}
 							onViewFindings={handleViewFindings}
+							onResumeSubmission={handleResumeSubmission}
 						/>
 					)}
 				</div>
