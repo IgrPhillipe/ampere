@@ -75,9 +75,12 @@ export const ProjectsPage = () => {
 					<ArrowRight aria-hidden="true" />
 				</Button>
 			}
-			className="mx-auto w-full max-w-[1600px]"
+			className="mx-auto min-h-full w-full max-w-[1600px] pb-0 md:pb-0"
 		>
-			<section className="bg-card" aria-label="Listagem de projetos">
+			<section
+				className="flex flex-1 flex-col bg-card"
+				aria-label="Listagem de projetos"
+			>
 				<ProjectFilters
 					counts={counts}
 					status={status}
@@ -86,7 +89,7 @@ export const ProjectsPage = () => {
 					onSearchChange={(value) => void setSearch(value)}
 				/>
 
-				<div className="px-6 py-4 md:px-7 md:py-5">
+				<div className="flex-1 px-6 py-4 md:px-7 md:py-5">
 					{projectsQuery.isError ? (
 						<EmptyState
 							title="Não foi possível carregar os projetos"

@@ -27,7 +27,7 @@ export const ProjectFilters = ({
 				onValueChange={onStatusChange}
 			/>
 		</div>
-		<div className="border-b border-border px-6 py-4">
+		<div className="-mx-4 border-b border-border px-10 py-4 md:-mx-7 md:px-[52px]">
 			<ProjectSearch value={search} onValueChange={onSearchChange} />
 		</div>
 	</div>
