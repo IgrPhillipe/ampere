@@ -36,6 +36,7 @@ as chamadas em desenvolvimento.
 | Documento | Conteúdo |
 | :--- | :--- |
 | [`convencoes-front.md`](convencoes-front.md) | **documento único da stack** — estrutura, nomes e aliases; camadas, roteamento, auth, erros e tema; e as receitas passo a passo para criar feature, service, rota e componente |
+| [`design-system-front.md`](design-system-front.md) | identidade visual Neoenergia, tokens, componentes compartilhados, navegação e regras de uso da logo |
 
 Como executar: [`app/front/README.md`](../../app/front/README.md).
 
