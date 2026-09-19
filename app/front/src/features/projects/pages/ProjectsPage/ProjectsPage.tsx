@@ -1,0 +1,112 @@
+import { EmptyState } from "@components/EmptyState";
+import { PageLayout } from "@components/layout";
+import { Button } from "@components/ui/button";
+import {
+	type Project,
+	type ProjectStatusCounts,
+	useGetProjectList,
+} from "@services/projects";
+import { CircleAlert } from "lucide-react";
+import { useCallback } from "react";
+import { toast } from "sonner";
+
+import {
+	ProjectFilters,
+	ProjectPagination,
+	ProjectsTable,
+} from "../../components";
+import { useProjectFilters } from "../../hooks";
+
+const PAGE_SIZE = 6;
+
+const emptyStatusCounts: ProjectStatusCounts = {
+	total: 0,
+	draft: 0,
+	awaitingSubmission: 0,
+	underReview: 0,
+	rejected: 0,
+	approved: 0,
+};
+
+export const ProjectsPage = () => {
+	const {
+		status,
+		search,
+		debouncedSearch,
+		page,
+		setStatus,
+		setSearch,
+		setPage,
+	} = useProjectFilters();
+	const projectsQuery = useGetProjectList({
+		page,
+		pageSize: PAGE_SIZE,
+		status: status === "ALL" ? undefined : status,
+		search: debouncedSearch || undefined,
+	});
+
+	const projects = projectsQuery.data?.data.projects ?? [];
+	const counts = projectsQuery.data?.data.statusCounts ?? emptyStatusCounts;
+	const pagination = projectsQuery.data?.pagination;
+
+	const handleViewFindings = useCallback((project: Project) => {
+		toast.info(
+			`Os apontamentos de "${project.name}" serão exibidos na etapa de detalhes do projeto.`,
+		);
+	}, []);
+
+	return (
+		<PageLayout
+			title="Meus projetos"
+			description="Acompanhe o andamento dos projetos enviados à Neoenergia Pernambuco."
+			className="mx-auto w-full max-w-[1600px]"
+		>
+			<section
+				className="overflow-hidden border border-border bg-card shadow-sm"
+				aria-label="Listagem de projetos"
+			>
+				<ProjectFilters
+					counts={counts}
+					status={status}
+					search={search}
+					onStatusChange={(value) => void setStatus(value)}
+					onSearchChange={(value) => void setSearch(value)}
+				/>
+
+				<div className="p-4 md:p-6">
+					{projectsQuery.isError ? (
+						<EmptyState
+							title="Não foi possível carregar os projetos"
+							description="Verifique sua conexão e tente novamente."
+							icon={CircleAlert}
+							action={
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => void projectsQuery.refetch()}
+								>
+									Tentar novamente
+								</Button>
+							}
+						/>
+					) : (
+						<ProjectsTable
+							projects={projects}
+							isLoading={projectsQuery.isPending}
+							onViewFindings={handleViewFindings}
+						/>
+					)}
+				</div>
+
+				{pagination && !projectsQuery.isError ? (
+					<ProjectPagination
+						page={pagination.page}
+						pageSize={pagination.pageSize}
+						total={pagination.total}
+						onPageChange={(nextPage) => void setPage(nextPage)}
+					/>
+				) : null}
+			</section>
+		</PageLayout>
+	);
+};
