@@ -67,10 +67,7 @@ export const ProjectsPage = () => {
 			}
 			className="mx-auto w-full max-w-[1600px]"
 		>
-			<section
-				className="overflow-hidden bg-card"
-				aria-label="Listagem de projetos"
-			>
+			<section className="bg-card" aria-label="Listagem de projetos">
 				<ProjectFilters
 					counts={counts}
 					status={status}

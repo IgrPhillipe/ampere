@@ -40,7 +40,7 @@ export const ProjectStatusFilters = ({
 		className="overflow-x-auto bg-primary text-primary-foreground"
 		aria-label="Filtrar projetos por situação"
 	>
-		<div className="grid min-w-4xl grid-cols-6 px-6">
+		<div className="grid min-w-4xl grid-cols-6">
 			{statusFilters.map((filter) => {
 				const isActive = value === filter.value;
 
@@ -50,9 +50,9 @@ export const ProjectStatusFilters = ({
 						type="button"
 						aria-pressed={isActive}
 						onClick={() => onValueChange(filter.value)}
-						className="group relative flex min-h-30 flex-col justify-center gap-2 border-r border-primary-foreground/20 px-5 text-left last:border-r-0 focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:outline-none"
+						className="group relative flex min-h-30 flex-col justify-center gap-2 border-r border-primary-foreground/20 pr-5 pl-[34px] text-left last:border-r-0 focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:outline-none"
 					>
-						<span className="font-mono text-3xl font-semibold">
+						<span className="font-mono text-4xl font-semibold">
 							{formatCount(counts[filter.countKey])}
 						</span>
 						<span className="font-mono text-xs tracking-wider uppercase opacity-80">
