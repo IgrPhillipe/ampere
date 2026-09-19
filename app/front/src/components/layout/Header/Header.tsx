@@ -31,8 +31,8 @@ export const Header = () => {
 	const [mobileOpen, setMobileOpen] = useState(false);
 
 	return (
-		<header className="h-18 shrink-0 border-b border-border bg-card">
-			<div className="mx-auto flex h-full w-full max-w-[90rem] items-center gap-3 px-4 md:px-6 lg:px-8">
+		<header className="h-16 shrink-0 border-b border-border bg-card">
+			<div className="flex h-full w-full items-center gap-3 px-4 md:px-6">
 				<Button
 					variant="ghost"
 					size="icon-sm"
