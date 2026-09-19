@@ -98,6 +98,21 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
+  void treatsLikeWildcardsAsLiteralSearchCharacters() {
+    projectRepository.save(
+        new Project(
+            "Condomínio Vila Nova",
+            "Avenida Barreto de Menezes, 88",
+            "Jaboatão dos Guararapes",
+            "2026-8475",
+            ProjectStatus.REJECTED));
+
+    assertThat(service.list(1, 20, null, "%").projects()).isEmpty();
+    assertThat(service.list(1, 20, null, "_").projects()).isEmpty();
+    assertThat(service.list(1, 20, null, "vila%nova").projects()).isEmpty();
+  }
+
+  @Test
   void rejectsInvalidStatus() {
     assertThatThrownBy(() -> service.list(1, 20, "unknown", null))
         .isInstanceOf(BusinessException.class)

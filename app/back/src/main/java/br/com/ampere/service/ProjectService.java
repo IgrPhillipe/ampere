@@ -5,6 +5,7 @@ import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.utils.SearchTerms;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
@@ -33,9 +34,13 @@ public class ProjectService {
   @Transactional(readOnly = true)
   public ProjectListing list(int page, int pageSize, String status, String search) {
     ProjectStatus parsedStatus = parseStatus(status);
-    String normalizedSearch = search == null ? "" : search.trim();
+    String normalizedSearch = SearchTerms.normalize(search);
     PageRequest pageRequest =
-        PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.DESC, "updatedAt"));
+        PageRequest.of(
+            page - 1,
+            pageSize,
+            Sort.by(Sort.Direction.DESC, "updatedAt")
+                .and(Sort.by(Sort.Direction.DESC, "id")));
     Page<Project> projects =
         projectRepository.findAllByFilters(parsedStatus, normalizedSearch, pageRequest);
 
