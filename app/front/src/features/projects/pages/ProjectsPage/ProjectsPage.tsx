@@ -69,6 +69,7 @@ export const ProjectsPage = () => {
 		<PageLayout
 			title="Meus projetos"
 			description="Acompanhe o andamento dos projetos enviados à Neoenergia Pernambuco."
+			headingClassName="pl-6 md:pl-5"
 			actions={
 				<Button type="button" size="sm" className="rounded-[4px]">
 					Novo projeto
