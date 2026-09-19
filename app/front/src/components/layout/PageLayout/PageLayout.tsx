@@ -18,10 +18,10 @@ export const PageLayout = ({
 	children,
 	className,
 }: PageLayoutProps) => (
-	<div className={cn("flex flex-col gap-6 p-4 md:p-6", className)}>
+	<div className={cn("flex flex-col gap-7 p-4 md:p-7", className)}>
 		<div className="flex flex-wrap items-start justify-between gap-3">
-			<div className="flex flex-col gap-1">
-				<h1 className="font-heading text-2xl font-semibold tracking-tight">
+			<div className="flex flex-col gap-2">
+				<h1 className="font-heading text-3xl font-semibold tracking-tight">
 					{title}
 				</h1>
 
