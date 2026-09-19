@@ -33,13 +33,12 @@ public class ProjectController {
       @RequestParam(required = false) String search) {
     ProjectListing listing = service.list(pagination.page(), pagination.pageSize(), status, search);
     List<ProjectResponse> projects =
-        listing.projects().getContent().stream()
+        listing.projects().stream()
             .map(project -> ProjectResponse.from(project, listing.pendingCountFor(project)))
             .toList();
 
     return ApiResponse.of(
         new ProjectListResponse(projects, ProjectStatusCounts.from(listing.statusCounts())),
-        new Pagination(
-            listing.projects().getTotalElements(), pagination.page(), pagination.pageSize()));
+        new Pagination(listing.totalElements(), pagination.page(), pagination.pageSize()));
   }
 }

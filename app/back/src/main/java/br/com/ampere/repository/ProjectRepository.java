@@ -23,7 +23,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
           OR LOWER(project.protocol) LIKE LOWER(CONCAT('%', :search, '%')) ESCAPE '\\'
         )
       """)
-  Page<Project> findAllByFilters(
+  Page<Project> searchProjects(
       @Param("status") ProjectStatus status, @Param("search") String search, Pageable pageable);
 
   @Query(
@@ -32,7 +32,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       FROM Project project
       GROUP BY project.status
       """)
-  List<ProjectStatusCount> countByStatus();
+  List<ProjectStatusCount> countPerStatus();
 
   interface ProjectStatusCount {
 

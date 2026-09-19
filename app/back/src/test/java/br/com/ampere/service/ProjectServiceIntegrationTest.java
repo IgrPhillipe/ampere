@@ -54,9 +54,8 @@ class ProjectServiceIntegrationTest {
 
     ProjectListing listing = service.list(1, 20, "rejected", "VILA");
 
-    assertThat(listing.projects().getTotalElements()).isOne();
-    assertThat(listing.projects().getNumber()).isZero();
-    assertThat(listing.projects().getContent()).containsExactly(rejectedProject);
+    assertThat(listing.totalElements()).isOne();
+    assertThat(listing.projects()).containsExactly(rejectedProject);
     assertThat(listing.pendingCountFor(rejectedProject)).isEqualTo(2);
     assertThat(listing.statusCounts())
         .containsEntry(ProjectStatus.REJECTED, 1L)
@@ -76,7 +75,7 @@ class ProjectServiceIntegrationTest {
 
     ProjectListing listing = service.list(1, 20, null, "5231");
 
-    assertThat(listing.projects().getContent()).containsExactly(project);
+    assertThat(listing.projects()).containsExactly(project);
     assertThat(listing.pendingCountFor(project)).isZero();
   }
 

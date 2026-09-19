@@ -10,8 +10,6 @@ import org.springframework.data.repository.query.Param;
 /** Database access for project findings. */
 public interface FindingRepository extends JpaRepository<Finding, Long> {
 
-  long countByProjectId(Long projectId);
-
   @Query(
       """
       SELECT finding.project.id AS projectId, COUNT(finding) AS total
@@ -19,7 +17,7 @@ public interface FindingRepository extends JpaRepository<Finding, Long> {
       WHERE finding.project.id IN :projectIds
       GROUP BY finding.project.id
       """)
-  List<FindingCount> countByProjectIds(@Param("projectIds") Collection<Long> projectIds);
+  List<FindingCount> countPerProject(@Param("projectIds") Collection<Long> projectIds);
 
   interface FindingCount {
 

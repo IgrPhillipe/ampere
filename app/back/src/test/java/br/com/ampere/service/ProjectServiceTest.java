@@ -22,16 +22,16 @@ class ProjectServiceTest {
   void normalizesSearchAndUsesStablePaginationOrder() {
     ProjectRepository projectRepository = mock(ProjectRepository.class);
     FindingRepository findingRepository = mock(FindingRepository.class);
-    when(projectRepository.findAllByFilters(isNull(), eq("\\%\\_\\\\"), any(Pageable.class)))
+    when(projectRepository.searchProjects(isNull(), eq("\\%\\_\\\\"), any(Pageable.class)))
         .thenReturn(Page.empty());
-    when(projectRepository.countByStatus()).thenReturn(List.of());
+    when(projectRepository.countPerStatus()).thenReturn(List.of());
     ProjectService service = new ProjectService(projectRepository, findingRepository);
 
     service.list(1, 20, null, " %_\\ ");
 
     ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
     verify(projectRepository)
-        .findAllByFilters(isNull(), eq("\\%\\_\\\\"), pageableCaptor.capture());
+        .searchProjects(isNull(), eq("\\%\\_\\\\"), pageableCaptor.capture());
     Pageable pageable = pageableCaptor.getValue();
     assertThat(pageable.getPageNumber()).isZero();
     assertThat(pageable.getPageSize()).isEqualTo(20);

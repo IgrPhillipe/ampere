@@ -18,8 +18,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -54,7 +52,8 @@ class ProjectControllerTest {
     ProjectService service = mock(ProjectService.class);
     ProjectListing listing =
         new ProjectListing(
-            new PageImpl<>(List.of(project), PageRequest.of(0, 20), 1),
+            List.of(project),
+            1,
             Map.of(42L, 3L),
             Map.of(ProjectStatus.REJECTED, 2L, ProjectStatus.APPROVED, 1L));
     when(service.list(1, 20, "REJECTED", "vila")).thenReturn(listing);

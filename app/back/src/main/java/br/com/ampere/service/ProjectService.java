@@ -42,11 +42,12 @@ public class ProjectService {
             Sort.by(Sort.Direction.DESC, "updatedAt")
                 .and(Sort.by(Sort.Direction.DESC, "id")));
     Page<Project> projects =
-        projectRepository.findAllByFilters(parsedStatus, normalizedSearch, pageRequest);
+        projectRepository.searchProjects(parsedStatus, normalizedSearch, pageRequest);
 
     Map<Long, Long> pendingCounts = countPendingFindings(projects.getContent());
     Map<ProjectStatus, Long> statusCounts = countProjectsByStatus();
-    return new ProjectListing(projects, pendingCounts, statusCounts);
+    return new ProjectListing(
+        projects.getContent(), projects.getTotalElements(), pendingCounts, statusCounts);
   }
 
   private ProjectStatus parseStatus(String status) {
@@ -67,7 +68,7 @@ public class ProjectService {
       return Map.of();
     }
 
-    return findingRepository.countByProjectIds(projectIds).stream()
+    return findingRepository.countPerProject(projectIds).stream()
         .collect(
             Collectors.toUnmodifiableMap(
                 FindingRepository.FindingCount::getProjectId,
@@ -77,13 +78,14 @@ public class ProjectService {
   private Map<ProjectStatus, Long> countProjectsByStatus() {
     Map<ProjectStatus, Long> counts = new EnumMap<>(ProjectStatus.class);
     projectRepository
-        .countByStatus()
+        .countPerStatus()
         .forEach(count -> counts.put(count.getStatus(), count.getTotal()));
     return Map.copyOf(counts);
   }
 
   public record ProjectListing(
-      Page<Project> projects,
+      List<Project> projects,
+      long totalElements,
       Map<Long, Long> pendingCounts,
       Map<ProjectStatus, Long> statusCounts) {
 
