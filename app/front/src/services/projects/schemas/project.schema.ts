@@ -1,3 +1,4 @@
+import { apiResponseSchema, paginatedResponseSchema } from "@features/shared";
 import { z } from "zod";
 
 export const projectStatusSchema = z.enum([
@@ -37,24 +38,17 @@ export const projectStatusCountsSchema = z.object({
 
 export type ProjectStatusCounts = z.infer<typeof projectStatusCountsSchema>;
 
-const paginationSchema = z.object({
-	total: z.number().int().nonnegative(),
-	page: z.number().int().positive(),
-	pageSize: z.number().int().positive(),
-});
-
 /** `GET /projects` — a página, sem os contadores. */
-export const projectListResponseSchema = z.object({
-	data: z.array(projectSchema),
-	pagination: paginationSchema,
-});
+export const projectListResponseSchema = paginatedResponseSchema(
+	z.array(projectSchema),
+);
 
 export type ProjectListResponse = z.infer<typeof projectListResponseSchema>;
 
 /** `GET /projects/status-counts` — contadores globais, sem paginação. */
-export const projectStatusCountsResponseSchema = z.object({
-	data: projectStatusCountsSchema,
-});
+export const projectStatusCountsResponseSchema = apiResponseSchema(
+	projectStatusCountsSchema,
+);
 
 export type ProjectStatusCountsResponse = z.infer<
 	typeof projectStatusCountsResponseSchema

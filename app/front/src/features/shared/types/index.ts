@@ -1,16 +1,3 @@
-/** Pagination metadata, present on list responses. */
-export interface Pagination {
-	total: number;
-	page: number;
-	pageSize: number;
-}
-
-/** Standard envelope returned by API endpoints. */
-export interface ApiResponse<T> {
-	data: T;
-	pagination?: Pagination;
-}
-
 /**
  * Papeis de usuario.
  *
@@ -30,3 +17,6 @@ export interface CurrentUser {
 	/** JWT usado pelo `beforeRequest` de `@lib/http`. */
 	token: string;
 }
+
+/** O envelope mora em `schemas/api.schema.ts`, inferido do Zod. */
+export type { ApiResponse, Pagination } from "../schemas/api.schema";
