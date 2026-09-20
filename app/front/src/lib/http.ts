@@ -1,4 +1,4 @@
-import { useAuthStore } from "@features/auth/store";
+import { useAuthStore } from "@features/shared";
 import ky, { isHTTPError } from "ky";
 
 import { AppConfig } from "@/config";

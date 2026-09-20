@@ -1,4 +1,4 @@
-import { useAuthStore } from "@features/auth/store";
+import { useAuthStore } from "@features/shared";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback } from "react";

@@ -1,4 +1,4 @@
-import { useAuthStore } from "@features/auth/store";
+import { useAuthStore } from "@features/shared";
 import { getToastErrorMessage } from "@lib/api-error";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";

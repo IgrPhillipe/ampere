@@ -3,6 +3,7 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
+import { AppConfig } from "@/config";
 import { Providers } from "@/providers";
 
 import { routeTree } from "./routeTree.gen";
@@ -25,7 +26,7 @@ declare module "@tanstack/react-router" {
  * API real via proxy do Vite.
  */
 const enableMocking = async (): Promise<void> => {
-	if (!import.meta.env.DEV) return;
+	if (!AppConfig.IS_DEV) return;
 
 	try {
 		const { worker } = await import("@/mocks/browser");
