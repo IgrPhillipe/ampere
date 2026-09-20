@@ -25,6 +25,13 @@ A exceção é o banco, e ela sai de graça: o Hibernate converte `pageSize` em 
 
 Identificadores e comentários em **inglês**; mensagem que chega na tela do usuário em **português**.
 
+Duas palavras portuguesas diferentes caíram no mesmo substantivo inglês, e é fácil trocar uma pela outra:
+
+| Classe | É o quê | Onde a norma define |
+| :--- | :--- | :--- |
+| `Standard` (entidade) | **norma** — DIS-NOR-053, DIS-NOR-030 | AT02-US02 |
+| `EntranceStandard` (enum) | **padrão de entrada** — coletivo ou individual | DIS-NOR-053, item 6.17 |
+
 ---
 
 ## Estrutura de pacotes
@@ -109,6 +116,8 @@ return ApiResponse.of(items, new Pagination(items.size(), 1, items.size()));
 
 O `pagination` é omitido quando nulo. Os nomes dos campos espelham o tipo do front e precisam bater exatamente.
 
+A única exceção é `204 No Content`, que por definição não tem corpo — o `DELETE /projects/{id}` devolve vazio, não um `200` com `data` nulo.
+
 ### `id` sai como String
 
 O schema do front declara `id: z.string()` e rejeita número. A entidade usa `Long`; **o DTO de resposta converte**.
@@ -158,6 +167,15 @@ public ApiResponse<ProjectListResponse> list(
 ```
 
 O service recebe o enum já convertido e usa `SearchTerms.normalize(search)` antes de chamar o repository. Valor de enum inválido deve sair como HTTP 400 com a lista de valores aceitos; erro numérico usa a mensagem localizada em `messages.properties`.
+
+**Enum no corpo da requisição não passa por aí.** O `EnumParameterConfig` converte query string; corpo JSON é desserializado pelo Jackson, que não conhece esse conversor. Duas peças cobrem o corpo, e as duas ficam no mesmo `EnumParameterConfig` para não se perderem:
+
+- o bean `JsonMapperBuilderCustomizer` liga `MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS`, dando ao corpo a mesma tolerância de caixa que a query string tem;
+- o handler de `HttpMessageNotReadableException` transforma valor inexistente em 400 nomeando o campo e listando os valores aceitos. Sem ele a requisição cai na rede de segurança e o usuário lê "Erro interno" por ter digitado o tipo de edificação errado.
+
+Atenção à versão: o Spring Boot 4 usa **Jackson 3**, então a exceção é `tools.jackson.databind.exc.InvalidFormatException` e o método é `getPropertyName()`. Todo exemplo de internet com `com.fasterxml.jackson` e `getFieldName()` compila e nunca casa em tempo de execução.
+
+Outra armadilha do mesmo tipo: `src/test/resources/application.properties` **substitui** o arquivo de `main/resources`, não o complementa. Configuração que muda comportamento precisa estar nos dois, ou virar bean.
 
 ---
 
@@ -216,7 +234,15 @@ O passo 3 é o que separa as camadas: o controller não conhece persistência, e
 
 É um atalho consciente, registrado em [`pendencias.md`](../pendencias.md). O custo aparece quando as tabelas normativas entrarem, porque o [`README técnico`](README.md) exige que os parâmetros normativos sejam *"dados versionados e persistidos, não constantes no código"* — e revisão de norma sem histórico de schema não se sustenta. O caminho é Flyway.
 
-`open-in-view=false` porque o default `true` mantém a sessão do Hibernate aberta durante a serialização, o que esconde problema de lazy loading até virar bug em produção.
+`open-in-view=false` porque o default `true` mantém a sessão do Hibernate aberta durante a serialização, o que esconde problema de lazy loading até virar bug em produção. Com ele desligado, associação lazy tem que ser carregada dentro do service — `@EntityGraph` no repository, como em `findDetailById`.
+
+**Coluna `NOT NULL` nova quebra o `ddl-auto=update`.** O PostgreSQL recusa `ALTER TABLE ... ADD COLUMN ... NOT NULL` sem default numa tabela populada; o Hibernate loga a falha e sobe assim mesmo, deixando a aplicação rodando contra um schema sem a coluna, e o erro só aparece depois, disfarçado. Quando isso acontecer, apague o banco de desenvolvimento uma vez:
+
+```bash
+docker compose down -v && docker compose up -d
+```
+
+O `DataSeeder` repovoa tudo. O único dado em risco é dado de seed — e é exatamente esse custo que justifica o Flyway da pendência 16.
 
 O `DataSeeder` insere seis projetos e quatro apontamentos no primeiro boot e só quando a tabela está vazia. Sem Flyway não há migration para carregar dado inicial, e uma API que sobe com o banco vazio não mostra nada.
 
@@ -258,6 +284,24 @@ O que mais diverge:
 | `springdoc-openapi` 2.x | 3.x |
 
 Se um exemplo não compila, essa é a primeira coisa a conferir.
+
+---
+
+## Norma aplicável: polimorfismo, não condicional
+
+A norma de um projeto não é escolhida por uma cadeia de `if`. `BuildingType` é abstrata, cada subclasse sobrescreve `demandRules()`, e `applicableStandards()` deriva o par de normas das regras que a subclasse declarou:
+
+| Subclasse | Parcelas que declara | Item da DIS-NOR-053 |
+| :--- | :--- | :--- |
+| `ResidentialMultifamily` | `Drf` por área útil, `Ds` por carga instalada | 6.22.1 e 6.22.4 |
+| `NonResidential` | `Dc` por carga instalada | 6.23.1 |
+| `Mixed` | `Drf` por área útil, `Dc` por carga instalada | 6.24.1 |
+
+O par sai igual nas três — as duas normas vigentes, como a US02 exige — **e ainda assim não é constante**: vem de um `flatMap` sobre listas de tamanho 2, 1 e 2 cujo conteúdo difere em todos os campos. Apagar um `StandardName` de uma regra colapsa o par. É isso que faz o teste `derivesTheApplicableStandardsFromItsOwnRules` ter o que verificar.
+
+`BuildingCategory` é o segundo polimorfismo, mais barato: enum com corpo por constante que constrói a subclasse certa, no lugar do `if`-chain que o service teria. E `category()` é método, não `instanceof` — com fetch lazy o que chega é um proxy do Hibernate, e `instanceof` erra.
+
+Tipo de edificação novo (6.25.1 Smart/Studio, 6.22.2 com carregador veicular) entra como subclasse nova. Nenhum `switch` precisa ser tocado.
 
 ---
 
@@ -360,7 +404,7 @@ Injeção por construtor, nunca `@Autowired` em campo. `@Transactional(readOnly 
 
 ```java
 @RestController
-@RequestMapping("/project")
+@RequestMapping("/projects")
 public class ProjectController {
 
   private final ProjectService service;
@@ -389,7 +433,7 @@ O caminho **não repete `/api`** — isso vem do `context-path`. Toda saída de 
 O Hibernate cria a tabela no próximo boot, porque `ddl-auto=update`. Sem migration para escrever.
 
 ```bash
-curl -s localhost:8080/api/project/1 | python3 -m json.tool
+curl -s localhost:8080/api/projects/1 | python3 -m json.tool
 ```
 
 E `/api/docs` já lista o endpoint novo.
@@ -413,6 +457,20 @@ public ApiResponse<List<ProjectResponse>> list(
 ```
 
 O front conta página a partir de **1**, o Spring Data a partir de **0** — daí o `page - 1`.
+
+---
+
+## Receita: CRUD completo
+
+Quatro coisas a observar além do que as receitas acima já cobrem.
+
+**O service não importa `dto`.** O controller converte o request num record do pacote `service` — `ProjectParameters` para a entrada, `ProjectListing` para a saída — e converte de volta na resposta. Um `parametersOf(request)` `private static` no fim do controller basta.
+
+**Retry precisa de bean separado.** O Spring só intercepta `@Transactional` em chamada entre beans. Um laço de retry que chama método do próprio service roda tudo na mesma transação, e uma transação que já violou constraint está marcada para rollback e recusa o segundo insert. Por isso `ProjectCreation` existe separado de `ProjectService`, e usa `saveAndFlush` — com `save` a violação só aparece no commit, fora do `try`, e o retry nunca dispara.
+
+**Guarda de estado fica no service.** `Project.isDraft()` é predicado puro; quem lança `BusinessException` é o service, porque `domain` não pode importar `error`.
+
+**Delete de entidade com filho.** A FK que o `ddl-auto` gera não tem `ON DELETE CASCADE`. Apague o filho explicitamente antes (`findingRepository.deleteAllByProjectId(id)`); `orphanRemoval` só cobre associação que a entidade possui.
 
 ---
 
@@ -451,6 +509,9 @@ A mensagem é o que o usuário lê. Em português, sem jargão — o front desca
 | Tradução de erro para HTTP | `error/GlobalExceptionHandler` |
 | Configuração e variáveis | `src/main/resources/application.properties` |
 | Dado inicial de desenvolvimento | `config/DataSeeder` |
+| Parâmetros de entrada do service | `service/ProjectParameters` |
+| Normas aplicáveis de uma edificação | `service/ApplicableStandards`, `repository/StandardRepository` |
+| Geração de protocolo | `utils/Protocols` |
 | Documentação da API | `/api/docs` |
 
 ---

@@ -19,6 +19,8 @@ public interface FindingRepository extends JpaRepository<Finding, Long> {
       """)
   List<FindingCount> countPerProject(@Param("projectIds") Collection<Long> projectIds);
 
+  void deleteAllByProjectId(Long projectId);
+
   interface FindingCount {
 
     Long getProjectId();
