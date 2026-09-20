@@ -10,7 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 /** Electrical project submitted through AMPERE. */
 @Entity
@@ -37,8 +38,16 @@ public class Project {
   @Column(nullable = false)
   private ProjectStatus status;
 
+  /**
+   * Stored with an offset so the API always answers with one. {@code LocalDateTime} left the client
+   * guessing: the container runs in UTC and the browser in America/Recife, so a relative label read
+   * three hours into the future.
+   */
+  @Column(nullable = false, updatable = false)
+  private OffsetDateTime createdAt;
+
   @Column(nullable = false)
-  private LocalDateTime updatedAt;
+  private OffsetDateTime updatedAt;
 
   protected Project() {}
 
@@ -49,13 +58,23 @@ public class Project {
     this.municipality = municipality;
     this.protocol = protocol;
     this.status = status;
-    this.updatedAt = LocalDateTime.now();
+    this.createdAt = now();
+    this.updatedAt = this.createdAt;
   }
 
   @PrePersist
+  private void onPersist() {
+    createdAt = now();
+    updatedAt = createdAt;
+  }
+
   @PreUpdate
-  private void updateTimestamp() {
-    updatedAt = LocalDateTime.now();
+  private void onUpdate() {
+    updatedAt = now();
+  }
+
+  private static OffsetDateTime now() {
+    return OffsetDateTime.now(ZoneOffset.UTC);
   }
 
   public Long getId() {
@@ -82,7 +101,11 @@ public class Project {
     return status;
   }
 
-  public LocalDateTime getUpdatedAt() {
+  public OffsetDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public OffsetDateTime getUpdatedAt() {
     return updatedAt;
   }
 }

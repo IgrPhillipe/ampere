@@ -17,8 +17,10 @@ export const projectSchema = z.object({
 	municipality: z.string(),
 	protocol: z.string(),
 	status: projectStatusSchema,
-	createdAt: z.iso.datetime({ local: true }).optional(),
-	updatedAt: z.iso.datetime({ local: true }),
+	// `offset: true` aceita `Z` e `±HH:mm`, e recusa timestamp sem fuso: sem o
+	// offset o `fromNow()` resolve pelo relogio do navegador e sai deslocado.
+	createdAt: z.iso.datetime({ offset: true }),
+	updatedAt: z.iso.datetime({ offset: true }),
 	pendingCount: z.number().int().nonnegative(),
 });
 

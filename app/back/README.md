@@ -68,6 +68,11 @@ A API sobe em `http://localhost:8080/api` e a documentação em `http://localhos
 
 `./mvnw clean verify` precisa do PostgreSQL no ar: o teste `contextLoads` sobe o contexto inteiro do Spring, incluindo a conexão.
 
+> **Mudou o tipo de uma coluna?** Sem Flyway, o `ddl-auto=update` do Hibernate cria tabela e
+> coluna novas, mas **não** altera o tipo de uma coluna que já existe. Quem já tinha o volume
+> antes da troca de `LocalDateTime` por `OffsetDateTime` precisa de `docker compose down -v`
+> antes de subir. Ver a pendência 19 em [`docs/pendencias.md`](../../docs/pendencias.md).
+
 ---
 
 ## Variáveis de ambiente
