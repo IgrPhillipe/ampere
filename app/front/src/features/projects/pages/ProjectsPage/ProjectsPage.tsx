@@ -51,6 +51,9 @@ export const ProjectsPage = () => {
 	const projects = projectsQuery.data?.data ?? [];
 	const counts = statusCountsQuery.data?.data ?? emptyStatusCounts;
 	const pagination = projectsQuery.data?.pagination;
+	// Contador que falhou mostra "00" como se fosse dado. As duas queries
+	// respondem pela mesma tela, entao uma falha derruba a tela inteira.
+	const hasError = projectsQuery.isError || statusCountsQuery.isError;
 
 	const handleViewFindings = useCallback((project: Project) => {
 		toast.info(
@@ -89,12 +92,12 @@ export const ProjectsPage = () => {
 					counts={counts}
 					status={status}
 					search={search}
-					onStatusChange={(value) => void setStatus(value)}
-					onSearchChange={(value) => void setSearch(value)}
+					onStatusChange={setStatus}
+					onSearchChange={setSearch}
 				/>
 
 				<div className="flex-1 px-gutter py-4 md:px-gutter-md md:py-5">
-					{projectsQuery.isError ? (
+					{hasError ? (
 						<EmptyState
 							title="Não foi possível carregar os projetos"
 							description="Verifique sua conexão e tente novamente."
@@ -103,7 +106,10 @@ export const ProjectsPage = () => {
 								<Button
 									type="button"
 									variant="outline"
-									onClick={() => void projectsQuery.refetch()}
+									onClick={() => {
+										void projectsQuery.refetch();
+										void statusCountsQuery.refetch();
+									}}
 								>
 									Tentar novamente
 								</Button>
@@ -119,12 +125,12 @@ export const ProjectsPage = () => {
 					)}
 				</div>
 
-				{pagination && !projectsQuery.isError ? (
+				{pagination && !hasError ? (
 					<ProjectPagination
 						page={pagination.page}
 						pageSize={pagination.pageSize}
 						total={pagination.total}
-						onPageChange={(nextPage) => void setPage(nextPage)}
+						onPageChange={setPage}
 					/>
 				) : null}
 			</section>

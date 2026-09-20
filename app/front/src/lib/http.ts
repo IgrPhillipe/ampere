@@ -8,7 +8,12 @@ import { type ApiHTTPError, parseSpringErrorBody } from "./api-error";
 export const http = ky.create({
 	prefix: AppConfig.API_URL,
 	timeout: 30_000,
-	retry: { limit: 2, methods: ["get"] },
+	/**
+	 * Quem decide repeticao e o React Query, que e quem a interface observa
+	 * por `isError` e `refetch`. Somada a dele, a retentativa do ky levava um
+	 * GET com falha a seis tentativas antes de a tela dizer qualquer coisa.
+	 */
+	retry: 0,
 	hooks: {
 		beforeRequest: [
 			({ request }) => {

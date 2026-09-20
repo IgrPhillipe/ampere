@@ -6,6 +6,7 @@ import {
 	parseAsStringLiteral,
 	useQueryState,
 } from "nuqs";
+import { useCallback } from "react";
 
 import type { ProjectStatusFilter } from "../../types";
 import { useDebouncedValue } from "../useDebouncedValue";
@@ -38,16 +39,34 @@ export const useProjectFilters = () => {
 	const status: ProjectStatusFilter = statusQuery ?? "ALL";
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
-	const setStatus = (status: ProjectStatusFilter) =>
-		Promise.all([
-			setStatusQuery(status === "ALL" ? null : status),
-			setPageQuery(null),
-		]);
+	/**
+	 * Os setters devolvem `void`, nao a promessa do nuqs: ninguem aguardava, e
+	 * os quatro `void` que descartavam o retorno so escondiam isso. `useCallback`
+	 * mantem a identidade estavel — os setters do nuqs ja sao — para a pagina
+	 * poder passar a referencia direto, sem arrow recriada a cada render.
+	 */
+	const setStatus = useCallback(
+		(status: ProjectStatusFilter) => {
+			void setStatusQuery(status === "ALL" ? null : status);
+			void setPageQuery(null);
+		},
+		[setStatusQuery, setPageQuery],
+	);
 
-	const setSearch = (value: string) =>
-		Promise.all([setSearchQuery(value || null), setPageQuery(null)]);
+	const setSearch = useCallback(
+		(value: string) => {
+			void setSearchQuery(value || null);
+			void setPageQuery(null);
+		},
+		[setSearchQuery, setPageQuery],
+	);
 
-	const setPage = (nextPage: number) => setPageQuery(nextPage);
+	const setPage = useCallback(
+		(nextPage: number) => {
+			void setPageQuery(nextPage);
+		},
+		[setPageQuery],
+	);
 
 	return {
 		status,
