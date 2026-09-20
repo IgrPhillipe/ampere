@@ -72,14 +72,14 @@ export const ProjectsPage = () => {
 		<PageLayout
 			title="Meus projetos"
 			description="Acompanhe o andamento dos projetos enviados à Neoenergia Pernambuco."
-			headingClassName="pl-6 md:pl-5"
+			bleed
 			actions={
 				<Button type="button" size="sm" className="rounded-xs">
 					Novo projeto
 					<ArrowRight aria-hidden="true" />
 				</Button>
 			}
-			className="mx-auto min-h-full w-full max-w-[1600px] pb-0 md:pb-0"
+			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
 			<section
 				className="flex flex-1 flex-col bg-card"
@@ -93,7 +93,7 @@ export const ProjectsPage = () => {
 					onSearchChange={(value) => void setSearch(value)}
 				/>
 
-				<div className="flex-1 px-6 py-4 md:px-7 md:py-5">
+				<div className="flex-1 px-gutter py-4 md:px-gutter-md md:py-5">
 					{projectsQuery.isError ? (
 						<EmptyState
 							title="Não foi possível carregar os projetos"

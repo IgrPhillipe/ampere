@@ -103,6 +103,11 @@
 	--ds-space-5: 3rem;
 	--ds-space-6: 4.5rem;
 	--ds-space-7: 6rem;
+	/* Recuo lateral do conteudo de pagina. Uma medida so, para o cabecalho e
+	   para as barras que atravessam a largura toda ficarem alinhados. */
+	--ds-size-page: 100rem;
+	--ds-space-gutter: 2.5rem;
+	--ds-space-gutter-md: 3rem;
 
 	/* Shape, elevation and motion */
 	--ds-radius-xs: 0.25rem;
@@ -189,6 +194,9 @@
 	--text-2xl--line-height: var(--ds-leading-2xl);
 
 	--spacing: var(--ds-space-1);
+	--container-page: var(--ds-size-page);
+	--spacing-gutter: var(--ds-space-gutter);
+	--spacing-gutter-md: var(--ds-space-gutter-md);
 	--radius-xs: var(--ds-radius-xs);
 	--radius-sm: var(--ds-radius-sm);
 	--radius-md: var(--ds-radius-md);

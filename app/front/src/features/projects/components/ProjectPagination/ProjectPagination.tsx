@@ -19,7 +19,7 @@ export const ProjectPagination = ({
 	const firstItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
 
 	return (
-		<div className="-mx-4 mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-border bg-card px-10 py-2 md:-mx-7 md:px-[60px]">
+		<div className="mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-border bg-card px-gutter py-2 md:px-gutter-md">
 			<p className="font-mono text-xs tracking-wider text-muted-foreground uppercase">
 				{firstItem}–{lastItem} de {total} projetos
 			</p>

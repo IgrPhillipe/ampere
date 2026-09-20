@@ -20,14 +20,14 @@ export const ProjectFilters = ({
 	onSearchChange,
 }: ProjectFiltersProps) => (
 	<div className="flex flex-col bg-card">
-		<div className="-mx-4 md:-mx-7">
+		<div>
 			<ProjectStatusFilters
 				counts={counts}
 				value={status}
 				onValueChange={onStatusChange}
 			/>
 		</div>
-		<div className="-mx-4 border-b border-border px-10 py-4 md:-mx-7 md:px-[52px]">
+		<div className="border-b border-border px-gutter py-4 md:px-gutter-md">
 			<ProjectSearch value={search} onValueChange={onSearchChange} />
 		</div>
 	</div>
