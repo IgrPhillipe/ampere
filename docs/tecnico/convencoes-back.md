@@ -250,11 +250,35 @@ O `DataSeeder` insere seis projetos e quatro apontamentos no primeiro boot e só
 
 ## Autenticação
 
-**Não existe ainda.** Os endpoints são abertos.
+`POST /api/auth/login` troca e-mail e senha por um **JWT assinado com HS256**, e `GET /api/auth/me` devolve o usuário da sessão. O token vai no header `Authorization: Bearer`, que o front já enviava.
 
-O front já tem a tela de login e continua respondendo contra o MSW em desenvolvimento; o header `Authorization: Bearer` que ele envia é simplesmente ignorado aqui. Nada quebra.
+**Aberto:** o próprio login e a documentação (`/api/docs`, `/api/v3/api-docs`). **Todo o resto exige token** — inclusive `/api/projects`.
 
-Isso é deliberado: os papéis de usuário dependem da **Q1c** em [`questoes-em-aberto.md`](../produto/questoes-em-aberto.md) — *"pessoa de fora da Neoenergia pode acessar um sistema interno?"* — que ainda está aberta e muda o modelo de acesso inteiro. Quando fechar, `POST /api/auth/login` entra aqui e o handler sai do front.
+| Onde | O quê |
+| :--- | :--- |
+| `security/SecurityConfig` | o que é aberto, o que exige token, encoder e decoder do JWT |
+| `security/TokenService` | emissão do token |
+| `security/ProblemDetailAuthenticationHandler` | 401 e 403 no mesmo `ProblemDetail` do resto da API |
+| `security/CorsProperties` | origens de outro domínio, por `CORS_ALLOWED_ORIGINS` |
+| `service/AuthService` | confere credencial e relê o usuário do banco |
+
+Três decisões que valem registrar:
+
+- **Senha é BCrypt**, e `AuthUserResponse` não tem campo de hash — o DTO é o que garante que ele não vaza.
+- **E-mail desconhecido e senha errada respondem igual.** Distinguir os dois diria a quem tenta quais e-mails existem na base.
+- **`/auth/me` relê o usuário do banco** em vez de confiar no que está no token: nome e papel envelhecem dentro dele.
+
+**Nenhuma rota é gateada por papel.** Os papéis atuais (`user` / `admin`) são placeholder, e dependem da **Q1c** em [`questoes-em-aberto.md`](../produto/questoes-em-aberto.md) — *"pessoa de fora da Neoenergia pode acessar um sistema interno?"*. Gatear rota por um placeholder seria inventar regra de negócio. Quando a Q1c fechar, é aqui e na pendência 13 que se resolve.
+
+**Não há segredo versionado.** `JWT_SECRET` resolve em três caminhos, em `security/JwtSecret`:
+
+| `JWT_SECRET` | Fora de produção | Com o profile `prod` |
+| :--- | :--- | :--- |
+| definida (≥ 32 caracteres) | assina com ela | assina com ela |
+| ausente ou vazia | gera uma chave por execução e avisa no log | **não sobe** |
+| menor que 32 caracteres | não sobe | não sobe |
+
+A chave gerada existe para o repositório subir sem configuração: o preço é que o token não sobrevive a um reinício, e quem estava logado entra de novo. Em produção, é melhor não subir do que subir assinando com uma chave que ninguém escolheu.
 
 ---
 

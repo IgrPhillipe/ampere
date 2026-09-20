@@ -22,6 +22,25 @@ export const http = ky.create({
 				if (token) request.headers.set("Authorization", `Bearer ${token}`);
 			},
 		],
+		/**
+		 * Sessao recusada pelo servidor derruba a sessao local.
+		 *
+		 * Sem isto o token expirado fica guardado: a guard de rota le o store,
+		 * ve `isAuthenticated: true` e deixa passar, entao a pessoa fica numa
+		 * tela que so sabe mostrar erro, com um aviso para entrar de novo e sem
+		 * caminho para fazer isso.
+		 *
+		 * O 401 do proprio login e a excecao: ali quem errou foi a credencial, e
+		 * a tela de login ja trata a mensagem.
+		 */
+		afterResponse: [
+			({ request, response }) => {
+				if (response.status !== 401) return;
+				if (new URL(request.url).pathname.endsWith("/auth/login")) return;
+
+				useAuthStore.getState().logout();
+			},
+		],
 		beforeError: [
 			({ error }) => {
 				if (!isHTTPError(error)) return error;
