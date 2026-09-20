@@ -134,12 +134,3 @@ export const MOCK_PROJECTS: Project[] = [
 		pendingCount: 0,
 	},
 ];
-
-export const MOCK_PROJECT_UCS: Record<string, string[]> = {
-	"1": ["UC-58231", "UC-58232"],
-	"2": ["UC-47110"],
-	"3": ["UC-39008"],
-	"4": ["UC-28442"],
-	"5": ["UC-19870", "UC-19871"],
-	"6": ["UC-10456"],
-};

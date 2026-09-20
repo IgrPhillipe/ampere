@@ -45,16 +45,6 @@ export const createProjectColumns = (
 				</div>
 			),
 		}),
-		columnHelper.display({
-			id: "units",
-			header: "UCs",
-			cell: () => <span aria-label="Dado ainda não disponível">—</span>,
-		}),
-		columnHelper.display({
-			id: "demand",
-			header: "Demanda",
-			cell: () => <span aria-label="Dado ainda não disponível">—</span>,
-		}),
 		columnHelper.accessor("status", {
 			header: "Situação",
 			cell: ({ row }) => (

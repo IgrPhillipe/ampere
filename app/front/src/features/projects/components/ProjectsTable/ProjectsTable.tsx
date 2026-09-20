@@ -5,8 +5,6 @@ import { useMemo } from "react";
 import { createProjectColumns } from "./project-columns";
 
 const projectColumnClassNames = {
-	units: "w-24",
-	demand: "w-28",
 	status: "w-96",
 	createdAt: "w-48",
 	updatedAt: "w-48",
@@ -37,7 +35,7 @@ export const ProjectsTable = ({
 			isLoading={isLoading}
 			columnClassNames={projectColumnClassNames}
 			emptyTitle="Nenhum projeto encontrado para os critérios informados"
-			emptyDescription="Verifique o protocolo, o nome do projeto ou a UC e tente novamente."
+			emptyDescription="Verifique o protocolo ou o nome do projeto e tente novamente."
 		/>
 	);
 };

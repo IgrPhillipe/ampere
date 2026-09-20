@@ -22,7 +22,7 @@ export const ProjectSearch = ({ value, onValueChange }: ProjectSearchProps) => {
 				type="search"
 				value={value}
 				onChange={handleChange}
-				placeholder="Buscar por nome, protocolo ou UC"
+				placeholder="Buscar por nome ou protocolo"
 				aria-label="Buscar projetos"
 				className="rounded-none border-x-0 border-t-0 pr-11 pl-10 shadow-none [&::-webkit-search-cancel-button]:appearance-none"
 			/>

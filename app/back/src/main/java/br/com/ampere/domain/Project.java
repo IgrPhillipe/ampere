@@ -1,5 +1,6 @@
 package br.com.ampere.domain;
 
+import br.com.ampere.utils.SearchTerms;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -49,6 +50,14 @@ public class Project {
   @Column(nullable = false)
   private OffsetDateTime updatedAt;
 
+  /**
+   * Name and protocol folded to one accent-free, lowercase string, so the listing search can be
+   * accent-insensitive with a plain {@code LIKE}. Postgres could do it with {@code unaccent}, but
+   * that is an extension and there is no migration tool to create it — see pendency 16.
+   */
+  @Column(nullable = false)
+  private String searchIndex;
+
   protected Project() {}
 
   public Project(
@@ -60,21 +69,28 @@ public class Project {
     this.status = status;
     this.createdAt = now();
     this.updatedAt = this.createdAt;
+    this.searchIndex = searchIndexOf(name, protocol);
   }
 
   @PrePersist
   private void onPersist() {
     createdAt = now();
     updatedAt = createdAt;
+    searchIndex = searchIndexOf(name, protocol);
   }
 
   @PreUpdate
   private void onUpdate() {
     updatedAt = now();
+    searchIndex = searchIndexOf(name, protocol);
   }
 
   private static OffsetDateTime now() {
     return OffsetDateTime.now(ZoneOffset.UTC);
+  }
+
+  private static String searchIndexOf(String name, String protocol) {
+    return SearchTerms.fold(name + " " + protocol);
   }
 
   public Long getId() {
@@ -107,5 +123,9 @@ public class Project {
 
   public OffsetDateTime getUpdatedAt() {
     return updatedAt;
+  }
+
+  public String getSearchIndex() {
+    return searchIndex;
   }
 }

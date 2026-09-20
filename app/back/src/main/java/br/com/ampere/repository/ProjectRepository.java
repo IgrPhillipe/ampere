@@ -19,8 +19,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       WHERE (:status IS NULL OR project.status = :status)
         AND (
           :search = ''
-          OR LOWER(project.name) LIKE LOWER(CONCAT('%', :search, '%')) ESCAPE '\\'
-          OR LOWER(project.protocol) LIKE LOWER(CONCAT('%', :search, '%')) ESCAPE '\\'
+          OR project.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
         )
       """)
   Page<Project> searchProjects(
