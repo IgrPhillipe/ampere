@@ -124,7 +124,7 @@ class ProjectControllerTest {
         .andExpect(jsonPath("$.data.buildingType").value("RESIDENTIAL_MULTIFAMILY"))
         .andExpect(jsonPath("$.data.floors").value(12))
         .andExpect(
-            jsonPath("$.data.applicableStandards").value("DIS-NOR-030 REV 07 e DIS-NOR-053 REV 06"))
+            jsonPath("$.data.applicableStandards").value("DIS-NOR-053 REV 06 e DIS-NOR-030 REV 07"))
         .andExpect(jsonPath("$.data.demandRules", hasSize(2)));
   }
 

@@ -6,8 +6,10 @@ import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,7 +34,10 @@ public record ProjectDetailResponse(
   public static ProjectDetailResponse from(Project project) {
     BuildingType buildingType = project.getBuildingType();
     List<StandardResponse> standards =
-        project.getStandards().stream().map(StandardResponse::from).toList();
+        project.getStandards().stream()
+            .map(StandardResponse::from)
+            .sorted(Comparator.comparing(standard -> StandardName.of(standard.name())))
+            .toList();
 
     return new ProjectDetailResponse(
         String.valueOf(project.getId()),

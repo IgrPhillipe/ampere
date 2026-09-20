@@ -1,9 +1,14 @@
 package br.com.ampere.domain;
 
-/** The standards that govern demand calculation today. */
+import java.util.Arrays;
+
+/**
+ * The standards that govern demand calculation today, in the order the documents cite them: the 053
+ * frames the calculation, the 030 supplies the installed-load method.
+ */
 public enum StandardName {
-  DIS_NOR_030("DIS-NOR-030"),
-  DIS_NOR_053("DIS-NOR-053");
+  DIS_NOR_053("DIS-NOR-053"),
+  DIS_NOR_030("DIS-NOR-030");
 
   private final String code;
 
@@ -13,5 +18,12 @@ public enum StandardName {
 
   public String code() {
     return code;
+  }
+
+  public static StandardName of(String code) {
+    return Arrays.stream(values())
+        .filter(standard -> standard.code.equals(code))
+        .findFirst()
+        .orElseThrow(() -> new IllegalStateException("Unknown standard: " + code));
   }
 }

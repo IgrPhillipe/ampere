@@ -141,7 +141,7 @@ class ProjectServiceIntegrationTest {
     assertThat(created.getProtocol()).matches("\\d{4}-\\d{4}");
     assertThat(created.getStandards())
         .extracting(Standard::getName)
-        .containsExactly("DIS-NOR-030", "DIS-NOR-053");
+        .containsExactlyInAnyOrder("DIS-NOR-053", "DIS-NOR-030");
     assertThat(created.getBuildingType().category())
         .isEqualTo(BuildingCategory.RESIDENTIAL_MULTIFAMILY);
   }
