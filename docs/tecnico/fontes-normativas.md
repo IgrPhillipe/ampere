@@ -200,6 +200,13 @@ O escopo abrange edifícios residenciais, comerciais, shoppings e indústrias. O
 | Smart, Studio, Home Studio, acima de 15 unidades | Área útil com fator de coincidência fixo de **90%**, independentemente do número de unidades. Carga instalada é opcional | 6.25.1 |
 | Unidade com carregador veicular | Demanda da área útil somada à da estação de recarga, multiplicada pelo fator de coincidência conforme a quantidade de carregadores no condomínio | 6.22.2 |
 
+**O que já está no código.** As três primeiras linhas estão modeladas como `demandRules()` nas subclasses de `BuildingType`: `ResidentialMultifamily` (6.22.1 e 6.22.4), `NonResidential` (6.23.1) e `Mixed` (6.24.1). As duas últimas — **6.25.1** e **6.22.2** — não têm subclasse ainda; cada uma entra como uma nova, sem tocar nas existentes.
+
+Duas coisas que esta tabela não responde e o código, por isso, não decide:
+
+- **O padrão de entrada não altera o método.** O parágrafo acima diz que o que determina a aplicação da norma é a medição individual por unidade consumidora, mas a tabela chaveia o método pelo tipo de uso. Nenhum documento diz o que muda quando um prédio residencial tem medição individual. O parâmetro é persistido (item 6.17 da 053 o torna normativamente real) e não é usado para escolher método.
+- **`Mixed` não tem parcela de serviços de condomínio.** O item 6.24.1 fala de comercial e residencial somados, e nada liga o 6.22.4 a ele. Um prédio misto quase certamente tem serviços de condomínio, mas inventar a ligação seria repetir o caso de citação de item inexistente já registrado.
+
 ### Demanda mínima por tensão de fornecimento
 
 Há um mínimo normativo que sobrepõe o cálculo (Anexo I, item 8):

@@ -98,13 +98,17 @@ src/main/java/br/com/ampere/
 └── config/       → configuração e bootstrap
 ```
 
-A fatia `projects` implementa o primeiro fluxo real ponta a ponta, com domínio, persistência, serviço e endpoint de listagem.
+A fatia `projects` implementa o primeiro fluxo real ponta a ponta: domínio, persistência, serviço e o CRUD completo.
+
+As classes de domínio persistidas são **quatro**, acima do mínimo de três da disciplina: `Project`, `BuildingType` (abstrata, com `ResidentialMultifamily`, `NonResidential` e `Mixed`), `Standard` e `Finding`. A herança e o polimorfismo não são decorativos — `BuildingType.demandRules()` é sobrescrito por subclasse e é dele que a norma aplicável de cada projeto é derivada.
 
 ---
 
 ## Estado atual
 
-Listagem de projetos implementada. **Sem autenticação** — os endpoints estão abertos, porque os papéis de usuário dependem da Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md), ainda em aberto. **Sem migrations versionadas** — o Hibernate cria o schema a partir das entidades. As duas pendências estão registradas em [`docs/pendencias.md`](../../docs/pendencias.md).
+CRUD completo de projetos, com atribuição automática das normas aplicáveis a partir do tipo de edificação. **Sem autenticação** — os endpoints estão abertos, porque os papéis de usuário dependem da Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md), ainda em aberto. **Sem migrations versionadas** — o Hibernate cria o schema a partir das entidades. As duas pendências estão registradas em [`docs/pendencias.md`](../../docs/pendencias.md).
+
+> **Ao puxar esta branch, apague o banco de desenvolvimento uma vez.** O `project` ganhou colunas `NOT NULL`, e o PostgreSQL recusa adicioná-las a uma tabela populada — o `ddl-auto=update` loga a falha e sobe mesmo assim, contra um schema incompleto. `docker compose down -v` e o `DataSeeder` repovoa tudo.
 
 ---
 
