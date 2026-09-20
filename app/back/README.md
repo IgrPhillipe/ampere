@@ -93,6 +93,7 @@ curl -s -X POST http://localhost:8080/api/auth/login \
 | :--- | :--- |
 | `JWT_SECRET` | assina o token, mínimo 32 caracteres. **Obrigatória em produção** — sem ela o profile `prod` não sobe. Fora de produção, sem ela a API gera uma chave por execução e o login cai a cada reinício |
 | `JWT_EXPIRATION` | validade do token; padrão `8h` |
+| `DDL_AUTO` | **alavanca de recuperação, não configuração normal.** `create` apaga o schema e recria pelas entidades, e o `DataSeeder` repovoa. Use uma vez e **remova a variável** — enquanto ela estiver definida, todo restart apaga os dados |
 | `CORS_ALLOWED_ORIGINS` | origens que podem chamar a API de outro domínio, separadas por vírgula. Vazio = só mesma origem. Aceita padrão: `https://ampere.vercel.app,https://*-igrph.vercel.app` |
 
 Gerando uma:
@@ -105,6 +106,32 @@ openssl rand -base64 48
 > recusa a resposta, e com o Spring Security no caminho o preflight `OPTIONS` volta
 > 401 antes de chegar em qualquer controller. Não vale para o front saindo por um
 > proxy do próprio deploy — aí é mesma origem.
+
+### Schema meio-migrado
+
+Sem Flyway, o `ddl-auto=update` **não altera tipo de coluna** e **não consegue
+acrescentar coluna `NOT NULL` a tabela que já tem linhas**. Nos dois casos ele
+registra um `WARN` no boot e sobe assim mesmo, com a coluna faltando. A API
+atende normalmente até a primeira consulta que toca nela, e aí responde `500`
+sem dizer por quê:
+
+```
+GenerationTarget encountered exception accepting command :
+  Error executing DDL "add column created_at ... not null"
+  [ERROR: column "created_at" of relation "project" contains null values]
+...
+ERROR: column p1_0.created_at does not exist
+```
+
+Com acesso ao banco, derrube as tabelas afetadas e reinicie — o seeder recria.
+**Sem acesso ao banco**, que é o caso de um deploy gerenciado:
+
+1. defina `DDL_AUTO=create` no ambiente e reinicie
+2. o schema é recriado do zero e o `DataSeeder` repovoa (usuários inclusive)
+3. **remova a variável** e reinicie de novo
+
+O passo 3 não é opcional: com `DDL_AUTO=create` fixado, cada restart apaga tudo
+— e um serviço que hiberna reinicia sozinho.
 
 > **Mudou o tipo de uma coluna?** Sem Flyway, o `ddl-auto=update` do Hibernate cria tabela e
 > coluna novas, mas **não** altera o tipo de uma coluna que já existe. Quem já tinha o volume
