@@ -2,13 +2,13 @@ import { DataTable } from "@components/DataTable";
 import type { Project } from "@services/projects";
 import { useMemo } from "react";
 
-import { createProjectColumns } from "./project-columns";
+import { createProjectColumns, type ProjectColumnId } from "./project-columns";
 
 const projectColumnClassNames = {
 	status: "w-96",
 	createdAt: "w-48",
 	updatedAt: "w-48",
-};
+} satisfies Partial<Record<ProjectColumnId, string>>;
 
 interface ProjectsTableProps {
 	projects: Project[];
@@ -26,7 +26,7 @@ export const ProjectsTable = ({
 	className,
 }: ProjectsTableProps) => {
 	const columns = useMemo(
-		() => createProjectColumns(onViewFindings, onResumeSubmission),
+		() => createProjectColumns({ onViewFindings, onResumeSubmission }),
 		[onResumeSubmission, onViewFindings],
 	);
 

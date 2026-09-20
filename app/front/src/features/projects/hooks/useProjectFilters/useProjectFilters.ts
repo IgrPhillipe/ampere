@@ -1,5 +1,5 @@
 import { useDebouncedValue } from "@features/shared";
-import type { ProjectStatus } from "@services/projects";
+import { type ProjectStatus, projectStatusSchema } from "@services/projects";
 import {
 	debounce,
 	parseAsInteger,
@@ -9,22 +9,14 @@ import {
 } from "nuqs";
 import { useCallback } from "react";
 
-import type { ProjectStatusFilter } from "../../types";
-
-const projectStatuses = [
-	"DRAFT",
-	"AWAITING_SUBMISSION",
-	"UNDER_REVIEW",
-	"REJECTED",
-	"APPROVED",
-] as const satisfies readonly ProjectStatus[];
-
 const SEARCH_DEBOUNCE_MS = 350;
 
 export const useProjectFilters = () => {
-	const [statusQuery, setStatusQuery] = useQueryState(
+	// `null` e "todos": o parser do nuqs ja devolve null quando a chave nao
+	// esta na URL, entao nao ha sentinela "ALL" para converter em tres pontos.
+	const [status, setStatusQuery] = useQueryState(
 		"status",
-		parseAsStringLiteral(projectStatuses),
+		parseAsStringLiteral(projectStatusSchema.options),
 	);
 	const [search, setSearchQuery] = useQueryState(
 		"search",
@@ -36,7 +28,6 @@ export const useProjectFilters = () => {
 		"page",
 		parseAsInteger.withDefault(1),
 	);
-	const status: ProjectStatusFilter = statusQuery ?? "ALL";
 	/**
 	 * Dois debounces, trabalhos diferentes: o `limitUrlUpdates` adia a escrita
 	 * na URL (o valor devolvido e imediato, entao o campo responde na tecla) e
@@ -51,8 +42,8 @@ export const useProjectFilters = () => {
 	 * poder passar a referencia direto, sem arrow recriada a cada render.
 	 */
 	const setStatus = useCallback(
-		(status: ProjectStatusFilter) => {
-			void setStatusQuery(status === "ALL" ? null : status);
+		(status: ProjectStatus | null) => {
+			void setStatusQuery(status);
 			void setPageQuery(null);
 		},
 		[setStatusQuery, setPageQuery],

@@ -18,13 +18,17 @@ import type { ReactNode } from "react";
 
 import { type DataTableFeatures, dataTableFeatures } from "./table-features";
 
-interface DataTableProps<TData extends RowData> {
+interface DataTableProps<TData extends RowData, TColumnId extends string> {
 	columns: TableOptions<DataTableFeatures, TData>["columns"];
 	data: TData[];
 	isLoading?: boolean;
 	emptyTitle?: string;
 	emptyDescription?: ReactNode;
-	columnClassNames?: Record<string, string>;
+	/**
+	 * Classe por coluna, com a chave presa aos ids declarados por quem chama.
+	 * Com `Record<string, string>` um id errado nao fazia nada e nao avisava.
+	 */
+	columnClassNames?: Partial<Record<TColumnId, string>>;
 	className?: string;
 }
 
@@ -32,7 +36,7 @@ interface DataTableProps<TData extends RowData> {
  * Tabela padrao do projeto. Cuida de cabecalho, corpo, carregamento e vazio.
  * As colunas vem de `createDataTableColumnHelper`.
  */
-export const DataTable = <TData extends RowData>({
+export const DataTable = <TData extends RowData, TColumnId extends string>({
 	columns,
 	data,
 	isLoading = false,
@@ -40,7 +44,7 @@ export const DataTable = <TData extends RowData>({
 	emptyDescription,
 	columnClassNames,
 	className,
-}: DataTableProps<TData>) => {
+}: DataTableProps<TData, TColumnId>) => {
 	const table = useTable({ features: dataTableFeatures, columns, data });
 
 	if (isLoading) return <SkeletonTable columns={columns.length} />;
@@ -50,7 +54,7 @@ export const DataTable = <TData extends RowData>({
 	}
 
 	return (
-		<div className={cn("overflow-hidden bg-card", className)}>
+		<div className={cn("overflow-x-auto bg-card", className)}>
 			<Table className={cn(columnClassNames && "table-fixed")}>
 				<TableHeader>
 					{table.getHeaderGroups().map((group) => (
@@ -58,7 +62,7 @@ export const DataTable = <TData extends RowData>({
 							{group.headers.map((header) => (
 								<TableHead
 									key={header.id}
-									className={columnClassNames?.[header.column.id]}
+									className={columnClassNames?.[header.column.id as TColumnId]}
 								>
 									{header.isPlaceholder ? null : (
 										<table.FlexRender header={header} />
@@ -75,7 +79,7 @@ export const DataTable = <TData extends RowData>({
 							{row.getAllCells().map((cell) => (
 								<TableCell
 									key={cell.id}
-									className={columnClassNames?.[cell.column.id]}
+									className={columnClassNames?.[cell.column.id as TColumnId]}
 								>
 									<table.FlexRender cell={cell} />
 								</TableCell>

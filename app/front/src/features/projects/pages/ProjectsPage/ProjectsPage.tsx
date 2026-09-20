@@ -44,7 +44,7 @@ export const ProjectsPage = () => {
 	const projectsQuery = useGetProjectList({
 		page,
 		pageSize: PAGE_SIZE,
-		status: status === "ALL" ? undefined : status,
+		status: status ?? undefined,
 		search: debouncedSearch || undefined,
 	});
 	// Contadores em query própria: são globais e não mudam ao paginar nem ao buscar.
