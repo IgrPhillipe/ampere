@@ -1,6 +1,8 @@
 package br.com.ampere.security;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import java.time.Duration;
+import java.util.List;
 import javax.crypto.SecretKey;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +20,9 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * Quem entra sem token e quem nao entra.
@@ -29,14 +34,21 @@ import org.springframework.security.web.SecurityFilterChain;
  * por um placeholder seria inventar regra de negocio.
  */
 @Configuration
-@EnableConfigurationProperties(JwtProperties.class)
+@EnableConfigurationProperties({JwtProperties.class, CorsProperties.class})
 public class SecurityConfig {
 
   /** Sem sessao e sem CSRF: o cliente e uma SPA que manda o token em cada requisicao. */
   @Bean
   public SecurityFilterChain filterChain(
-      HttpSecurity http, ProblemDetailAuthenticationHandler handler) throws Exception {
+      HttpSecurity http,
+      ProblemDetailAuthenticationHandler handler,
+      CorsConfigurationSource corsConfigurationSource)
+      throws Exception {
     return http.csrf(csrf -> csrf.disable())
+        // Sem isto o Spring Security recusa o preflight `OPTIONS` com 401 e o
+        // navegador bloqueia toda chamada de outra origem — inclusive as que
+        // antes chegavam ao controller.
+        .cors(cors -> cors.configurationSource(corsConfigurationSource))
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
@@ -61,6 +73,31 @@ public class SecurityConfig {
         .exceptionHandling(
             exceptions -> exceptions.authenticationEntryPoint(handler).accessDeniedHandler(handler))
         .build();
+  }
+
+  /**
+   * Sem origem configurada nao ha CORS: a API so responde a quem esta na mesma origem, que e o caso
+   * do front saindo por um proxy do proprio deploy.
+   *
+   * <p>Nao habilita credenciais: o token vem no header `Authorization`, nao em cookie, entao nao ha
+   * nada para o navegador anexar sozinho.
+   */
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource(CorsProperties properties) {
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
+    if (!properties.isEnabled()) {
+      return source;
+    }
+
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedOriginPatterns(properties.allowedOrigins());
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    configuration.setMaxAge(Duration.ofHours(1));
+    source.registerCorsConfiguration("/**", configuration);
+
+    return source;
   }
 
   @Bean

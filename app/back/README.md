@@ -93,12 +93,18 @@ curl -s -X POST http://localhost:8080/api/auth/login \
 | :--- | :--- |
 | `JWT_SECRET` | assina o token, mínimo 32 caracteres. **Obrigatória em produção** — sem ela o profile `prod` não sobe. Fora de produção, sem ela a API gera uma chave por execução e o login cai a cada reinício |
 | `JWT_EXPIRATION` | validade do token; padrão `8h` |
+| `CORS_ALLOWED_ORIGINS` | origens que podem chamar a API de outro domínio, separadas por vírgula. Vazio = só mesma origem. Aceita padrão: `https://ampere.vercel.app,https://*-igrph.vercel.app` |
 
 Gerando uma:
 
 ```bash
 openssl rand -base64 48
 ```
+
+> **Front em outro domínio precisa de `CORS_ALLOWED_ORIGINS`.** Sem isso o navegador
+> recusa a resposta, e com o Spring Security no caminho o preflight `OPTIONS` volta
+> 401 antes de chegar em qualquer controller. Não vale para o front saindo por um
+> proxy do próprio deploy — aí é mesma origem.
 
 > **Mudou o tipo de uma coluna?** Sem Flyway, o `ddl-auto=update` do Hibernate cria tabela e
 > coluna novas, mas **não** altera o tipo de uma coluna que já existe. Quem já tinha o volume

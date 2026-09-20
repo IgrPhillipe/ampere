@@ -259,6 +259,7 @@ O `DataSeeder` insere seis projetos e quatro apontamentos no primeiro boot e só
 | `security/SecurityConfig` | o que é aberto, o que exige token, encoder e decoder do JWT |
 | `security/TokenService` | emissão do token |
 | `security/ProblemDetailAuthenticationHandler` | 401 e 403 no mesmo `ProblemDetail` do resto da API |
+| `security/CorsProperties` | origens de outro domínio, por `CORS_ALLOWED_ORIGINS` |
 | `service/AuthService` | confere credencial e relê o usuário do banco |
 
 Três decisões que valem registrar:
