@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-	"group/button inline-flex shrink-0 items-center justify-center rounded-sm border border-transparent bg-clip-padding text-sm font-semibold whitespace-nowrap transition-[background-color,border-color,color,box-shadow,transform] outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+	"group/button inline-flex shrink-0 items-center justify-center rounded-xs border border-transparent bg-clip-padding text-sm font-semibold whitespace-nowrap transition-[background-color,border-color,color,box-shadow,transform] outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:bg-disabled disabled:text-disabled-foreground disabled:opacity-100 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 	{
 		variants: {
 			variant: {
@@ -20,7 +20,7 @@ const buttonVariants = cva(
 					"bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/85 focus-visible:border-destructive focus-visible:ring-destructive/20",
 				link: "rounded-none px-0 text-primary underline-offset-4 hover:underline",
 				neutral:
-					"rounded-xs border-border bg-card text-foreground shadow-none hover:bg-surface-hover hover:text-foreground disabled:border-border disabled:bg-card disabled:text-muted-foreground disabled:opacity-40",
+					"border-border bg-card text-foreground shadow-none hover:bg-surface-hover hover:text-foreground disabled:border-border disabled:bg-card disabled:text-muted-foreground disabled:opacity-40",
 			},
 			size: {
 				default:
