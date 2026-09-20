@@ -86,3 +86,26 @@ jobs:
       - name: Build
         working-directory: app/front
         run: pnpm build
+
+  deploy:
+    name: Deploy
+    # Production only. Previews keep coming straight from the Vercel Git
+    # integration, on every push, for every contributor, with no secret here.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [back, front]
+    runs-on: ubuntu-latest
+
+    permissions: {}
+
+    steps:
+      # The hook can only rebuild main from Git: it cannot read the project or
+      # mint credentials, so the worst a leak buys is an extra build.
+      - name: Trigger the Vercel deploy hook
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo '::error::VERCEL_DEPLOY_HOOK is not set; production was not deployed.'
+            exit 1
+          fi
+          curl -fsS -X POST "$HOOK" | jq -r '"job \(.job.id): \(.job.state)"'
