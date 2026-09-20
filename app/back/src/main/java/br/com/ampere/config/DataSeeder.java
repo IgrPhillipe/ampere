@@ -12,9 +12,12 @@ import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
+import br.com.ampere.domain.User;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
+import br.com.ampere.repository.UserRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -23,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,20 +46,54 @@ public class DataSeeder implements CommandLineRunner {
   private final ProjectRepository projectRepository;
   private final FindingRepository findingRepository;
   private final StandardRepository standardRepository;
+  private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
+
+  /**
+   * Senha unica dos usuarios de desenvolvimento. E a mesma do mock do MSW no front, para quem
+   * alterna entre mock e API real nao precisar trocar o que digita.
+   */
+  public static final String DEVELOPMENT_PASSWORD = "senha@123";
 
   public DataSeeder(
       ProjectRepository projectRepository,
       FindingRepository findingRepository,
-      StandardRepository standardRepository) {
+      StandardRepository standardRepository,
+      UserRepository userRepository,
+      PasswordEncoder passwordEncoder) {
     this.projectRepository = projectRepository;
     this.findingRepository = findingRepository;
     this.standardRepository = standardRepository;
+    this.userRepository = userRepository;
+    this.passwordEncoder = passwordEncoder;
   }
 
   @Override
   @Transactional
   public void run(String... args) {
+    seedUsers();
     seedDevelopmentData(seedStandards());
+  }
+
+  /**
+   * Usuarios de desenvolvimento. Sem eles nao ha como entrar: o front troca e-mail e senha por um
+   * token, e uma base vazia nao tem por quem trocar.
+   *
+   * <p>Os papeis sao os mesmos placeholders do front e nao gateiam rota nenhuma — ver a Q1c.
+   */
+  private void seedUsers() {
+    if (userRepository.count() > 0) {
+      return;
+    }
+
+    String hash = passwordEncoder.encode(DEVELOPMENT_PASSWORD);
+
+    userRepository.saveAll(
+        List.of(
+            new User("Usuário Teste", "user@ampere.local", hash, UserRole.USER),
+            new User("Admin Teste", "admin@ampere.local", hash, UserRole.ADMIN)));
+
+    log.info("DataSeeder: two development users inserted.");
   }
 
   private List<Standard> seedStandards() {

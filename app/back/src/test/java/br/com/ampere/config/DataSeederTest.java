@@ -14,14 +14,19 @@ import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.Standard;
+import br.com.ampere.domain.User;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
+import br.com.ampere.repository.UserRepository;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 class DataSeederTest {
 
@@ -149,7 +154,72 @@ class DataSeederTest {
       ProjectRepository projectRepository,
       FindingRepository findingRepository,
       StandardRepository standardRepository) {
-    return new DataSeeder(projectRepository, findingRepository, standardRepository);
+    return seeder(
+        projectRepository, findingRepository, standardRepository, mock(UserRepository.class));
+  }
+
+  private static DataSeeder seeder(
+      ProjectRepository projectRepository,
+      FindingRepository findingRepository,
+      StandardRepository standardRepository,
+      UserRepository userRepository) {
+    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    return new DataSeeder(
+        projectRepository, findingRepository, standardRepository, userRepository, passwordEncoder);
+  }
+
+  @Test
+  void seedsTheTwoDevelopmentUsersWithHashedPasswords() {
+    UserRepository userRepository = mock(UserRepository.class);
+    when(userRepository.count()).thenReturn(0L);
+    DataSeeder seeder =
+        seeder(
+            projectRepositoryWithProjects(),
+            mock(FindingRepository.class),
+            seededStandards(),
+            userRepository);
+
+    seeder.run();
+
+    ArgumentCaptor<Iterable<User>> usersCaptor = iterableCaptor();
+    verify(userRepository).saveAll(usersCaptor.capture());
+    List<User> users = StreamSupport.stream(usersCaptor.getValue().spliterator(), false).toList();
+
+    assertThat(users)
+        .extracting(User::getEmail, User::getRole)
+        .containsExactly(
+            tuple("user@ampere.local", UserRole.USER), tuple("admin@ampere.local", UserRole.ADMIN));
+    assertThat(users)
+        .allSatisfy(
+            user -> {
+              assertThat(user.getPasswordHash()).isNotEqualTo(DataSeeder.DEVELOPMENT_PASSWORD);
+              assertThat(
+                      new BCryptPasswordEncoder()
+                          .matches(DataSeeder.DEVELOPMENT_PASSWORD, user.getPasswordHash()))
+                  .isTrue();
+            });
+  }
+
+  @Test
+  void doesNotDuplicateUsersOnRestart() {
+    UserRepository userRepository = mock(UserRepository.class);
+    when(userRepository.count()).thenReturn(2L);
+    DataSeeder seeder =
+        seeder(
+            projectRepositoryWithProjects(),
+            mock(FindingRepository.class),
+            seededStandards(),
+            userRepository);
+
+    seeder.run();
+
+    verify(userRepository, never()).saveAll(any());
+  }
+
+  private static ProjectRepository projectRepositoryWithProjects() {
+    ProjectRepository projectRepository = mock(ProjectRepository.class);
+    when(projectRepository.count()).thenReturn(6L);
+    return projectRepository;
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
