@@ -9,10 +9,15 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   back:
     name: Back-end
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
 
     # Matches the default in src/test/resources/application.properties.
     services:
@@ -31,6 +36,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-java@v4
         with:
@@ -46,8 +53,30 @@ jobs:
     name: Front-end
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+
+    outputs:
+      changed: ${{ steps.changes.outputs.front }}
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so the diff below can reach the base branch.
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Tells the preview job whether a deploy is worth its slot in the Hobby
+      # queue: a back-end-only pull request would ship an identical front-end.
+      - name: Detect front-end changes
+        id: changes
+        if: github.event_name == 'pull_request'
+        run: |
+          if git diff --quiet "origin/$GITHUB_BASE_REF...HEAD" -- app/front; then
+            echo 'front=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'front=true' >> "$GITHUB_OUTPUT"
+          fi
 
       # packageManager lives in app/front, not at the repository root.
       - uses: pnpm/action-setup@v4
@@ -64,11 +93,80 @@ jobs:
         working-directory: app/front
         run: pnpm install --frozen-lockfile
 
-      # validate:ci checks; validate writes.
+      # validate:ci checks; validate writes. It already runs tsc, so the only
+      # bundle of the front-end is the one the preview job deploys.
       - name: Validate
         working-directory: app/front
         run: pnpm validate:ci
 
-      - name: Build
+  preview:
+    name: Preview
+    # Deploying what failed review wastes the one concurrent Hobby deploy.
+    needs: front
+    # Pull requests from branches of this repository: a fork never receives the
+    # secrets below, and handing them over would leak the Vercel token.
+    if: >-
+      github.event_name == 'pull_request'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && needs.front.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+
+    environment:
+      name: preview
+      url: ${{ steps.deploy.outputs.url }}
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    defaults:
+      run:
         working-directory: app/front
-        run: pnpm build
+
+    env:
+      # Project-scoped token: it can only reach the ampere project.
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      # Identifiers, not secrets: they replace `vercel link`.
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: app/front/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: app/front/pnpm-lock.yaml
+
+      - run: npm install --global vercel@latest
+
+      - name: Pull environment
+        run: vercel pull --yes --environment=preview --git-branch "$GITHUB_HEAD_REF"
+
+      # The single front-end build of the run.
+      - name: Build
+        run: vercel build
+
+      - name: Deploy
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Comment the preview URL
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          body="Preview: $URL (${GITHUB_SHA::7})"
+          # Reuse the bot's own comment so a long review keeps a single thread.
+          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --edit-last --body "$body" \
+            || gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "$body"

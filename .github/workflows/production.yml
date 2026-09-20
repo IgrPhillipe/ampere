@@ -1,0 +1,69 @@
+name: Production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/front/**'
+      - '.github/workflows/production.yml'
+  workflow_dispatch:
+
+# Hobby allows a single concurrent deploy, so production queues instead of
+# cancelling: every commit on main should reach the live site.
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  vercel:
+    name: Vercel
+    runs-on: ubuntu-latest
+
+    # The environment holds the token and is restricted to main, so a workflow
+    # pushed to any other branch cannot reach production.
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+
+    permissions:
+      contents: read
+
+    defaults:
+      run:
+        working-directory: app/front
+
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: app/front/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: app/front/pnpm-lock.yaml
+
+      - run: npm install --global vercel@latest
+
+      - name: Pull environment
+        run: vercel pull --yes --environment=production
+
+      - name: Build
+        run: vercel build --prod
+
+      - name: Deploy
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt --prod)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
