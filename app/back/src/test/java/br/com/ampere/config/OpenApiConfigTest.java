@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import br.com.ampere.controller.ProjectController;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.dto.PageQuery;
+import br.com.ampere.dto.ProjectRequest;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,5 +31,21 @@ class OpenApiConfigTest {
 
     assertThat(tag.name()).isEqualTo("Projects");
     assertThat(operation.operationId()).isEqualTo("listProjects");
+  }
+
+  @Test
+  void documentsTheProjectCrudWithStableNames() throws NoSuchMethodException {
+    assertThat(operationId("create", ProjectRequest.class)).isEqualTo("createProject");
+    assertThat(operationId("detail", Long.class)).isEqualTo("getProject");
+    assertThat(operationId("update", Long.class, ProjectRequest.class)).isEqualTo("updateProject");
+    assertThat(operationId("delete", Long.class)).isEqualTo("deleteProject");
+  }
+
+  private static String operationId(String method, Class<?>... parameters)
+      throws NoSuchMethodException {
+    return ProjectController.class
+        .getMethod(method, parameters)
+        .getAnnotation(Operation.class)
+        .operationId();
   }
 }
