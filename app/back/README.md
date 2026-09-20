@@ -46,7 +46,7 @@ docker compose up -d db
 
 Só o banco em container; a aplicação roda pela IDE ou pelo wrapper, com reinício rápido.
 
-A API sobe em `http://localhost:8080/api` e a documentação em `http://localhost:8080/api/swagger-ui/index.html`.
+A API sobe em `http://localhost:8080/api` e a documentação em `http://localhost:8080/api/docs`.
 
 > **JDK 21 pelo Homebrew é *keg-only*** e não entra no PATH sozinho. Ou exporte
 > `JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home`,
@@ -98,13 +98,13 @@ src/main/java/br/com/ampere/
 └── config/       → configuração e bootstrap
 ```
 
-A fatia `example` existe só para demonstrar a pilha completa e **deve ser apagada** quando as classes de domínio do AMPERE entrarem.
+A fatia `projects` implementa o primeiro fluxo real ponta a ponta, com domínio, persistência, serviço e endpoint de listagem.
 
 ---
 
 ## Estado atual
 
-Scaffold. **Sem autenticação** — os endpoints estão abertos, porque os papéis de usuário dependem da Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md), ainda em aberto. **Sem migrations versionadas** — o Hibernate cria o schema a partir das entidades. As duas pendências estão registradas em [`docs/pendencias.md`](../../docs/pendencias.md).
+Listagem de projetos implementada. **Sem autenticação** — os endpoints estão abertos, porque os papéis de usuário dependem da Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md), ainda em aberto. **Sem migrations versionadas** — o Hibernate cria o schema a partir das entidades. As duas pendências estão registradas em [`docs/pendencias.md`](../../docs/pendencias.md).
 
 ---
 

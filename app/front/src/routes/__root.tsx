@@ -5,6 +5,7 @@ import {
 	Outlet,
 	useRouterState,
 } from "@tanstack/react-router";
+import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
 
 /** Rotas que dispensam sessao. Tudo fora desta lista passa pela guard. */
 const PUBLIC_PATHS = ["/login"];
@@ -17,9 +18,11 @@ const RootComponent = () => {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 
 	// A tela de login nao usa a casca do app.
-	if (PUBLIC_PATHS.includes(pathname)) return <Outlet />;
-
-	return <AppShell />;
+	return (
+		<NuqsAdapter>
+			{PUBLIC_PATHS.includes(pathname) ? <Outlet /> : <AppShell />}
+		</NuqsAdapter>
+	);
 };
 
 export const Route = createRootRoute({

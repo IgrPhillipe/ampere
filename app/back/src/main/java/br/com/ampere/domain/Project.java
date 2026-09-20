@@ -1,15 +1,18 @@
 package br.com.ampere.domain;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
+/** Electrical project submitted through AMPERE. */
 @Entity
 @Table(name = "project")
 public class Project {
@@ -21,17 +24,38 @@ public class Project {
   @Column(nullable = false)
   private String name;
 
-  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-  private BuildingType buildingType;
+  @Column(nullable = false)
+  private String address;
 
-  @ManyToOne private Standard standard;
+  @Column(nullable = false)
+  private String municipality;
+
+  @Column(nullable = false, unique = true)
+  private String protocol;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private ProjectStatus status;
+
+  @Column(nullable = false)
+  private LocalDateTime updatedAt;
 
   protected Project() {}
 
-  public Project(String name, BuildingType buildingType, Standard standard) {
+  public Project(
+      String name, String address, String municipality, String protocol, ProjectStatus status) {
     this.name = name;
-    this.buildingType = buildingType;
-    this.standard = standard;
+    this.address = address;
+    this.municipality = municipality;
+    this.protocol = protocol;
+    this.status = status;
+    this.updatedAt = LocalDateTime.now();
+  }
+
+  @PrePersist
+  @PreUpdate
+  private void updateTimestamp() {
+    updatedAt = LocalDateTime.now();
   }
 
   public Long getId() {
@@ -42,23 +66,23 @@ public class Project {
     return name;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public String getAddress() {
+    return address;
   }
 
-  public BuildingType getBuildingType() {
-    return buildingType;
+  public String getMunicipality() {
+    return municipality;
   }
 
-  public void setBuildingType(BuildingType buildingType) {
-    this.buildingType = buildingType;
+  public String getProtocol() {
+    return protocol;
   }
 
-  public Standard getStandard() {
-    return standard;
+  public ProjectStatus getStatus() {
+    return status;
   }
 
-  public void setStandard(Standard standard) {
-    this.standard = standard;
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
   }
 }

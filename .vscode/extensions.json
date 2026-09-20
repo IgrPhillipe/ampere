@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "biomejs.biome",
+    "emeraldwalk.runonsave",
+    "redhat.java",
+    "vscjava.vscode-java-debug",
+    "editorconfig.editorconfig"
+  ]
+}

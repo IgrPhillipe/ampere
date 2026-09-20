@@ -8,9 +8,14 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTitle } from "@components/ui/sheet";
 import { useAuthStore } from "@features/auth/store";
 import { useLogout } from "@services/auth";
-import { LogOut, MenuIcon } from "lucide-react";
+import { BellIcon, ChevronDownIcon, LogOutIcon, MenuIcon } from "lucide-react";
+import { useState } from "react";
+
+import { AppBrand } from "./AppBrand";
+import { HeaderNav } from "./HeaderNav";
 
 const initialsOf = (name: string) =>
 	name
@@ -20,60 +25,97 @@ const initialsOf = (name: string) =>
 		.map((part) => part[0]?.toUpperCase())
 		.join("");
 
-interface HeaderProps {
-	onMenuClick: () => void;
-}
-
-export const Header = ({ onMenuClick }: HeaderProps) => {
+export const Header = () => {
 	const user = useAuthStore((state) => state.user);
 	const logout = useLogout();
+	const [mobileOpen, setMobileOpen] = useState(false);
 
 	return (
-		<header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b bg-background px-4">
-			<Button
-				variant="ghost"
-				size="icon"
-				onClick={onMenuClick}
-				className="md:hidden"
-				aria-label="Abrir menu"
-			>
-				<MenuIcon />
-			</Button>
+		<header className="h-16 shrink-0 border-b border-border bg-card">
+			<div className="flex h-full w-full items-center gap-3 px-4 md:px-6">
+				<Button
+					variant="ghost"
+					size="icon-sm"
+					onClick={() => setMobileOpen(true)}
+					className="lg:hidden"
+					aria-label="Abrir menu"
+				>
+					<MenuIcon />
+				</Button>
 
-			<div className="ml-auto">
-				<DropdownMenu>
-					<DropdownMenuTrigger
-						render={
-							<Button variant="ghost" size="sm" className="h-9 gap-2 px-2" />
-						}
+				<AppBrand />
+
+				<HeaderNav className="mx-auto hidden lg:flex" />
+
+				<div className="ml-auto flex items-center gap-2">
+					<span
+						aria-hidden="true"
+						className="hidden size-9 items-center justify-center text-muted-foreground sm:flex"
 					>
-						<Avatar className="size-6">
-							{user?.avatarUrl ? (
-								<AvatarImage src={user.avatarUrl} alt={user.name} />
-							) : null}
+						<BellIcon className="size-4" />
+					</span>
 
-							<AvatarFallback>
-								{user ? initialsOf(user.name) : "?"}
-							</AvatarFallback>
-						</Avatar>
+					<DropdownMenu>
+						<DropdownMenuTrigger
+							render={
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-10 max-w-52 gap-2 px-2 sm:px-3"
+								/>
+							}
+						>
+							<Avatar className="size-7">
+								{user?.avatarUrl ? (
+									<AvatarImage src={user.avatarUrl} alt={user.name} />
+								) : null}
 
-						<span className="hidden text-sm sm:inline">{user?.name}</span>
-					</DropdownMenuTrigger>
+								<AvatarFallback className="bg-accent text-accent-foreground">
+									{user ? initialsOf(user.name) : "?"}
+								</AvatarFallback>
+							</Avatar>
 
-					<DropdownMenuContent align="end" className="min-w-48">
-						<DropdownMenuLabel className="text-muted-foreground">
-							{user?.email}
-						</DropdownMenuLabel>
+							<span className="hidden truncate text-xs tracking-[0.08em] uppercase md:inline">
+								{user?.name}
+							</span>
 
-						<DropdownMenuSeparator />
+							<ChevronDownIcon className="hidden size-3.5 text-muted-foreground sm:block" />
+						</DropdownMenuTrigger>
 
-						<DropdownMenuItem onClick={logout}>
-							<LogOut />
-							Sair
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
+						<DropdownMenuContent align="end" className="min-w-52">
+							<DropdownMenuLabel className="text-muted-foreground">
+								{user?.email}
+							</DropdownMenuLabel>
+
+							<DropdownMenuSeparator />
+
+							<DropdownMenuItem onClick={logout}>
+								<LogOutIcon />
+								Sair
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
 			</div>
+
+			<Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+				<SheetContent
+					side="left"
+					className="w-[min(20rem,85vw)] gap-0 border-r border-border bg-card p-0"
+				>
+					<SheetTitle className="sr-only">Menu de navegação</SheetTitle>
+
+					<div className="border-b border-border px-5 py-5">
+						<AppBrand />
+					</div>
+
+					<HeaderNav
+						orientation="vertical"
+						onNavigate={() => setMobileOpen(false)}
+						className="p-4"
+					/>
+				</SheetContent>
+			</Sheet>
 		</header>
 	);
 };

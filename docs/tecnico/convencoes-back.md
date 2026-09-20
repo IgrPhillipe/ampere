@@ -37,10 +37,11 @@ br.com.ampere/
 ├── repository/   acesso ao banco
 ├── dto/          entrada e saída da API
 ├── error/        exceções de domínio e o tradutor para HTTP
+├── utils/        funções puras e reutilizáveis, sem dependências do projeto
 └── config/       configuração e bootstrap
 ```
 
-As quatro primeiras são as que o [`app/back/README.md`](../../app/back/README.md) prescreve. `dto/`, `error/` e `config/` existem porque são inevitáveis, não porque alguém quis mais uma camada.
+As quatro primeiras são as que o [`app/back/README.md`](../../app/back/README.md) prescreve. `dto/`, `error/`, `utils/` e `config/` existem porque são inevitáveis, não porque alguém quis mais uma camada.
 
 ## O que cada camada pode importar
 
@@ -50,8 +51,11 @@ As quatro primeiras são as que o [`app/back/README.md`](../../app/back/README.m
 | `service` | `repository`, `domain`, `error` | qualquer coisa de HTTP |
 | `repository` | `domain` | `service`, `controller` |
 | `domain` | nada do projeto | todas as outras |
+| `utils` | bibliotecas da linguagem | qualquer pacote do projeto |
 
 A regra prática: **se o service importa alguma coisa de `org.springframework.web`, algo está no lugar errado.** Ele lança exceção de domínio; quem decide status HTTP é o `GlobalExceptionHandler`.
+
+`utils` não é uma camada. Qualquer pacote pode importar suas funções, mas elas precisam continuar puras e independentes do domínio, dos repositories e do Spring. Se uma classe em `utils` passar a depender do projeto, ela está no pacote errado.
 
 E o contrário também vale: se o controller está decidindo qualquer coisa além de forma de entrada e saída, a decisão pertence ao service. É o que o [`docs/tecnico/README.md`](README.md) chama de rota fina.
 
@@ -91,7 +95,6 @@ Não foi escolhido aqui — o front já o declara, e o back precisa cumprir:
 | :--- | :--- |
 | Envelope `{ data, pagination? }` | `src/features/shared/types/index.ts` |
 | Formato de erro `ProblemDetail` | `src/lib/api-error.ts` |
-| Caminhos e shapes de `example` | `src/services/example/` |
 | Prefixo `/api` e porta 8080 | `vite.config.ts` |
 
 Os três que quebram silenciosamente: o `id` sai como string, sucesso vai embrulhado e erro não, e o `detail` é texto de tela em português.
@@ -130,6 +133,32 @@ public record ExampleRequest(
     @NotBlank(message = "O nome é obrigatório.") String name) {}
 ```
 
+### Parâmetros compartilhados de query
+
+Não repita conversão e normalização em cada controller ou service. As peças compartilhadas são:
+
+| Peça | Responsabilidade |
+| :--- | :--- |
+| `PageQuery` | Valores padrão e Bean Validation de `page` e `pageSize` |
+| `SearchTerms` | `trim` e escape de `\`, `%` e `_` antes de consultas com `LIKE` |
+| `EnumParameterConfig` | Conversão case-insensitive de texto para qualquer enum da API |
+| `messages.properties` | Mensagens localizadas para falhas de binding do Spring |
+
+Controllers recebem enums diretamente. Isso mantém a validação no limite HTTP e permite que o OpenAPI publique os valores aceitos:
+
+```java
+public ApiResponse<ProjectListResponse> list(
+    @Valid @ParameterObject PageQuery pagination,
+    @RequestParam(required = false) ProjectStatus status,
+    @RequestParam(required = false) String search) {
+  ProjectListing listing =
+      service.list(pagination.page(), pagination.pageSize(), status, search);
+  // Converte o resultado e monta o ApiResponse.
+}
+```
+
+O service recebe o enum já convertido e usa `SearchTerms.normalize(search)` antes de chamar o repository. Valor de enum inválido deve sair como HTTP 400 com a lista de valores aceitos; erro numérico usa a mensagem localizada em `messages.properties`.
+
 ---
 
 ## Formatação
@@ -162,7 +191,7 @@ Rode `spotless:apply` antes de abrir PR. Indentação de 2 espaços e 100 coluna
 
 **Fluxo:** controller → service → repository → domain. Camada de cima chama a de baixo, nunca o contrário.
 
-A fatia `example` existe para demonstrar isso ponta a ponta e **deve ser apagada** quando as classes de domínio do AMPERE entrarem. Ela implementa o contrato que o front já declara em `app/front/src/services/example`, e não um CRUD inventado — assim a integração é verificável em vez de suposta.
+A fatia `projects` demonstra esse fluxo ponta a ponta com o primeiro domínio real do AMPERE.
 
 As regras de importação entre camadas estão em [`convencoes-back.md`](convencoes-back.md).
 
@@ -170,15 +199,14 @@ As regras de importação entre camadas estão em [`convencoes-back.md`](convenc
 
 ## O caminho de uma requisição
 
-`GET /api/example/1`:
+`GET /api/projects`:
 
-1. O `context-path=/api` tira o prefixo; o `ExampleController` está mapeado em `/example`.
-2. `detail(1L)` chama `service.findById(1L)`.
-3. O service pede ao repository. Não achou, lança `NotFoundException("Registro não encontrado.")`.
-4. O `GlobalExceptionHandler` transforma em `ProblemDetail` com status 404 e o `detail` em português.
-5. Se achou, o controller converte a entidade em `ExampleResponse` e embrulha em `ApiResponse`.
+1. O `context-path=/api` tira o prefixo; o `ProjectController` está mapeado em `/projects`.
+2. `list(...)` chama `service.list(...)` com paginação, filtro e busca.
+3. O service consulta os repositories de projetos e apontamentos.
+4. O controller converte as entidades em `ProjectResponse` e embrulha a listagem em `ApiResponse`.
 
-O passo 3 é o que separa as camadas: o service não sabe que 404 existe. Ele descreve o que aconteceu no vocabulário do domínio, e a tradução para HTTP mora num lugar só.
+O passo 3 é o que separa as camadas: o controller não conhece persistência, e o service não conhece detalhes de HTTP.
 
 ---
 
@@ -190,7 +218,7 @@ O passo 3 é o que separa as camadas: o service não sabe que 404 existe. Ele de
 
 `open-in-view=false` porque o default `true` mantém a sessão do Hibernate aberta durante a serialização, o que esconde problema de lazy loading até virar bug em produção.
 
-O `DataSeeder` insere dois registros no primeiro boot e só quando a tabela está vazia. Sem Flyway não há migration para carregar dado inicial, e uma API que sobe com o banco vazio não mostra nada.
+O `DataSeeder` insere seis projetos e quatro apontamentos no primeiro boot e só quando a tabela está vazia. Sem Flyway não há migration para carregar dado inicial, e uma API que sobe com o banco vazio não mostra nada.
 
 ---
 
@@ -235,13 +263,11 @@ Se um exemplo não compila, essa é a primeira coisa a conferir.
 
 ## Receita: criar uma entidade ponta a ponta
 
-> **Modelo completo:** a fatia `example`. Cada passo abaixo aponta o arquivo correspondente.
+> **Exemplo ilustrativo:** adapte os campos e operações ao domínio da história.
 
 Vamos supor uma entidade `Project`.
 
 ### 1.1 Domínio — `domain/Project.java`
-
-> Modelo: `domain/Example.java`
 
 ```java
 @Entity
@@ -275,8 +301,6 @@ Sem Lombok — construtor e getter à mão. O construtor sem argumentos é `prot
 
 ### 1.2 Repository — `repository/ProjectRepository.java`
 
-> Modelo: `repository/ExampleRepository.java`
-
 ```java
 public interface ProjectRepository extends JpaRepository<Project, Long> {
   List<Project> findByStatus(String status);
@@ -286,8 +310,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 O Spring Data implementa a interface em tempo de execução. Só declare o que precisa além do CRUD — e o nome do método é a consulta.
 
 ### 1.3 DTOs — `dto/ProjectRequest.java` e `dto/ProjectResponse.java`
-
-> Modelos: `dto/ExampleRequest.java`, `dto/ExampleResponse.java`
 
 ```java
 public record ProjectRequest(
@@ -306,8 +328,6 @@ public record ProjectResponse(String id, String name) {
 A mensagem do `@NotBlank` é texto de tela: aparece para o usuário como `"name: O nome é obrigatório."`.
 
 ### 1.4 Service — `service/ProjectService.java`
-
-> Modelo: `service/ExampleService.java`
 
 ```java
 @Service
@@ -337,8 +357,6 @@ Injeção por construtor, nunca `@Autowired` em campo. `@Transactional(readOnly 
 **Esta camada não conhece HTTP.** Ela lança `NotFoundException` ou `BusinessException`; quem escolhe o status é o `GlobalExceptionHandler`.
 
 ### 1.5 Controller — `controller/ProjectController.java`
-
-> Modelo: `controller/ExampleController.java`
 
 ```java
 @RestController
@@ -374,14 +392,14 @@ O Hibernate cria a tabela no próximo boot, porque `ddl-auto=update`. Sem migrat
 curl -s localhost:8080/api/project/1 | python3 -m json.tool
 ```
 
-E `/api/swagger-ui/index.html` já lista o endpoint novo.
+E `/api/docs` já lista o endpoint novo.
 
 ---
 
 ## Receita: devolver uma lista paginada
 
 ```java
-@GetMapping("/list")
+@GetMapping
 public ApiResponse<List<ProjectResponse>> list(
     @RequestParam(defaultValue = "1") int page,
     @RequestParam(defaultValue = "20") int pageSize) {
@@ -433,7 +451,7 @@ A mensagem é o que o usuário lê. Em português, sem jargão — o front desca
 | Tradução de erro para HTTP | `error/GlobalExceptionHandler` |
 | Configuração e variáveis | `src/main/resources/application.properties` |
 | Dado inicial de desenvolvimento | `config/DataSeeder` |
-| Documentação da API | `/api/swagger-ui/index.html` |
+| Documentação da API | `/api/docs` |
 
 ---
 

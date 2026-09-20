@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  back:
+    name: Back-end
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    # Matches the default in src/test/resources/application.properties.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ampere
+          POSTGRES_PASSWORD: ampere
+          POSTGRES_DB: ampere_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Clean verify
+        working-directory: app/back
+        run: ./mvnw -B clean verify
+
+  front:
+    name: Front-end
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # packageManager lives in app/front, not at the repository root.
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: app/front/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: app/front/pnpm-lock.yaml
+
+      - name: Install
+        working-directory: app/front
+        run: pnpm install --frozen-lockfile
+
+      # validate:ci checks; validate writes.
+      - name: Validate
+        working-directory: app/front
+        run: pnpm validate:ci
+
+      # Deploys come from the Vercel Git integration, not from here. This keeps
+      # a broken bundle failing on our own check instead of only on theirs.
+      - name: Build
+        working-directory: app/front
+        run: pnpm build
+
+  deploy:
+    name: Deploy
+    # Production only. Previews keep coming straight from the Vercel Git
+    # integration, on every push, for every contributor, with no secret here.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [back, front]
+    runs-on: ubuntu-latest
+
+    permissions: {}
+
+    steps:
+      # The hook can only rebuild main from Git: it cannot read the project or
+      # mint credentials, so the worst a leak buys is an extra build.
+      - name: Trigger the Vercel deploy hook
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo '::error::VERCEL_DEPLOY_HOOK is not set; production was not deployed.'
+            exit 1
+          fi
+          curl -fsS -X POST "$HOOK" | jq -r '"job \(.job.id): \(.job.state)"'

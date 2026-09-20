@@ -1,64 +1,73 @@
 package br.com.ampere.service;
 
-import br.com.ampere.domain.BuildingType;
-import br.com.ampere.domain.Mixed;
-import br.com.ampere.domain.NonResidential;
 import br.com.ampere.domain.Project;
-import br.com.ampere.domain.ResidentialMultifamily;
-import br.com.ampere.domain.Standard;
-import br.com.ampere.dto.ProjectRequest;
-import br.com.ampere.error.BusinessException;
+import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
-import br.com.ampere.repository.StandardRepository;
-import org.springframework.http.HttpStatus;
+import br.com.ampere.utils.SearchTerms;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+/** Project listing rules and orchestration. */
 @Service
 public class ProjectService {
 
+  private static final Sort NEWEST_FIRST =
+      Sort.by(Sort.Direction.DESC, "updatedAt").and(Sort.by(Sort.Direction.DESC, "id"));
+
   private final ProjectRepository projectRepository;
-  private final StandardRepository standardRepository;
+  private final FindingRepository findingRepository;
 
-  public ProjectService(
-      ProjectRepository projectRepository, StandardRepository standardRepository) {
+  public ProjectService(ProjectRepository projectRepository, FindingRepository findingRepository) {
     this.projectRepository = projectRepository;
-    this.standardRepository = standardRepository;
+    this.findingRepository = findingRepository;
   }
 
-  public Project createProject(ProjectRequest request) {
-    BuildingType buildingType = createBuildingType(request);
+  @Transactional(readOnly = true)
+  public ProjectListing list(int page, int pageSize, ProjectStatus status, String search) {
+    PageRequest pageRequest = PageRequest.of(page - 1, pageSize, NEWEST_FIRST);
+    Page<Project> projects =
+        projectRepository.searchProjects(status, SearchTerms.normalize(search), pageRequest);
 
-    String standardName = buildingType.applicableStandard();
-
-    Standard standard =
-        standardRepository
-            .findByName(standardName)
-            .orElseThrow(
-                () ->
-                    new BusinessException(
-                        "Norma " + standardName + " não encontrada no sistema",
-                        HttpStatus.INTERNAL_SERVER_ERROR));
-
-    Project project = new Project(request.getName(), buildingType, standard);
-
-    return projectRepository.save(project);
+    return new ProjectListing(
+        projects.getContent(),
+        projects.getTotalElements(),
+        countPendingFindings(projects.getContent()));
   }
 
-  private BuildingType createBuildingType(ProjectRequest request) {
-    String type = request.getType();
-    Double voltage = request.getVoltage();
-    String entranceStandard = request.getEntranceStandard();
+  /**
+   * Total of projects in each status, across the whole base.
+   *
+   * <p>Deliberately ignores the listing filters: the counters exist so the user can leave the
+   * filter that is currently applied, which requires knowing what is outside of it.
+   */
+  @Transactional(readOnly = true)
+  public Map<ProjectStatus, Long> countPerStatus() {
+    Map<ProjectStatus, Long> counts = new EnumMap<>(ProjectStatus.class);
+    projectRepository
+        .countPerStatus()
+        .forEach(count -> counts.put(count.getStatus(), count.getTotal()));
 
-    if ("RESIDENTIAL_MULTIFAMILY".equalsIgnoreCase(type)) {
-      return new ResidentialMultifamily(voltage, entranceStandard);
-    }
-    if ("NON_RESIDENTIAL".equalsIgnoreCase(type)) {
-      return new NonResidential(voltage, entranceStandard);
-    }
-    if ("MIXED".equalsIgnoreCase(type)) {
-      return new Mixed(voltage, entranceStandard);
+    return Map.copyOf(counts);
+  }
+
+  private Map<Long, Long> countPendingFindings(List<Project> projects) {
+    List<Long> projectIds = projects.stream().map(Project::getId).toList();
+    if (projectIds.isEmpty()) {
+      return Map.of();
     }
 
-    throw new BusinessException("Tipo de edificação inválido", HttpStatus.BAD_REQUEST);
+    return findingRepository.countPerProject(projectIds).stream()
+        .collect(
+            Collectors.toUnmodifiableMap(
+                FindingRepository.FindingCount::getProjectId,
+                FindingRepository.FindingCount::getTotal));
   }
 }

@@ -4,11 +4,15 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * Traduz excecao em resposta HTTP, no formato {@code ProblemDetail} da RFC 7807.
@@ -31,8 +35,15 @@ public class GlobalExceptionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+  private final MessageSource messageSource;
+
+  public GlobalExceptionHandler(MessageSource messageSource) {
+    this.messageSource = messageSource;
+  }
+
   private static final String INTERNAL_MESSAGE = "Erro interno. Tente novamente.";
   private static final String VALIDATION_MESSAGE = "Verifique os dados enviados.";
+  private static final String NOT_FOUND_MESSAGE = "Recurso não encontrado.";
 
   @ExceptionHandler(NotFoundException.class)
   public ProblemDetail handleNotFound(NotFoundException exception) {
@@ -54,7 +65,7 @@ public class GlobalExceptionHandler {
                         "field",
                         error.getField(),
                         "defaultMessage",
-                        String.valueOf(error.getDefaultMessage())))
+                        messageSource.getMessage(error, LocaleContextHolder.getLocale())))
             .toList();
 
     ProblemDetail problem =
@@ -62,6 +73,25 @@ public class GlobalExceptionHandler {
     problem.setProperty("errors", errors);
 
     return problem;
+  }
+
+  /**
+   * Rota inexistente. Sem isto cai na rede de seguranca e vira 500, que diz ao cliente que o
+   * servidor falhou quando o problema e o caminho pedido.
+   */
+  @ExceptionHandler(NoResourceFoundException.class)
+  public ProblemDetail handleNoResource(NoResourceFoundException exception) {
+    return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE);
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException exception) {
+    String detail =
+        exception.getRootCause() instanceof BusinessException businessException
+            ? businessException.getMessage()
+            : "O parâmetro '" + exception.getName() + "' tem um valor inválido.";
+
+    return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
   }
 
   /**

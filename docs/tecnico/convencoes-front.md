@@ -18,7 +18,7 @@ src/
 ├── components/
 │   ├── ui/                 # primitivos do shadcn — kebab-case, sem pasta propria
 │   ├── form/               # wrappers de formulario ligados ao react-hook-form
-│   ├── layout/             # AppShell, Sidebar, Header, Footer, PageLayout
+│   ├── layout/             # AppShell, Header, navegação, Footer, PageLayout
 │   └── <ComponentName>/    # componente compartilhado — pasta PascalCase + barrel
 ├── config/                 # variaveis de ambiente validadas (config.ts)
 ├── features/
@@ -29,7 +29,7 @@ src/
 ├── providers/              # providers globais, compostos em <Providers>
 ├── routes/                 # TanStack Router, roteamento por arquivo
 ├── services/               # camada de API, uma pasta por entidade
-└── styles/                 # index.css com os tokens
+└── styles/                 # tokens.css + estilos globais em index.css
 ```
 
 ---
@@ -38,9 +38,9 @@ src/
 
 | Contexto | Padrão | Exemplo |
 | :--- | :--- | :--- |
-| Componentes e páginas | PascalCase | `ProjectListPage`, `DataTable` |
+| Componentes e páginas | PascalCase | `ProjectsPage`, `DataTable` |
 | Hooks | `use<Ação><Entidade>` | `useGetProjects`, `useZodForm` |
-| Requests | camelCase verbo+substantivo | `getProjects`, `createProject` |
+| Requests | camelCase verbo+substantivo | `getProjectList`, `createProject` |
 | Variáveis | camelCase | `pageCount`, `isLoading` |
 | Constantes | UPPER_SNAKE_CASE | `PAGE_SIZE`, `PUBLIC_PATHS` |
 | Arquivos de schema | `<entidade>.schema.ts` | `project.schema.ts` |
@@ -137,6 +137,10 @@ nas receitas abaixo e em `app/front/.migration/`.
 Já portados e prontos para uso: `avatar`, `badge`, `button`, `card`, `checkbox`,
 `dialog`, `dropdown-menu`, `field`, `input`, `label`, `popover`, `select`,
 `separator`, `sheet`, `skeleton`, `switch`, `table`, `tabs`, `textarea`.
+
+As regras visuais, tokens e variantes estão em
+[`design-system-front.md`](design-system-front.md). Componentes de feature não
+devem declarar uma paleta paralela.
 
 ---
 
@@ -299,16 +303,17 @@ aplicação inteira numa tela branca.
 
 ## Tema
 
-Os tokens são variáveis CSS em `src/styles/index.css`, em `:root` e `.dark`.
-O `ThemeProvider` reflete `useAppStore.theme` na classe do `<html>`.
+Os tokens são variáveis CSS em `src/styles/tokens.css`; `src/styles/index.css`
+apenas reúne os imports e estilos-base. Cores de componentes devem usar tokens
+semânticos como `primary`, `card`, `muted`, `border` e `destructive`.
 
 `@custom-variant dark (&:where(.dark, .dark *))` no topo do arquivo é
-**obrigatório**: sem ele os utilitários `dark:` do Tailwind v4 seguiriam o
-`prefers-color-scheme` do sistema operacional enquanto os tokens seguiriam a
-classe, e o tema quebra pela metade.
+mantido para compatibilidade com a infraestrutura existente. O design system
+atual define apenas tema claro: ainda não há uma paleta `.dark` completa.
 
-Para aplicar a identidade visual do AMPERE, mexa só nas variáveis de `:root` e
-`.dark`. Nenhum componente tem cor fixa.
+Não corrija componentes individualmente com `dark:`. Um futuro tema escuro deve
+ser implementado de uma vez em `tokens.css`, com validação de contraste. Veja a
+especificação completa em [`design-system-front.md`](design-system-front.md).
 
 ---
 
@@ -331,12 +336,12 @@ mkdir -p projects/{pages,components,hooks,schemas,types,store}
 export {};
 ```
 
-3. Crie a página em `pages/ProjectListPage/`, sempre pasta + barrel:
+3. Crie a página em `pages/ProjectsPage/`, sempre pasta + barrel:
 
 ```
-pages/ProjectListPage/ProjectListPage.tsx   ← export const ProjectListPage = () => ...
-pages/ProjectListPage/index.ts              ← export * from "./ProjectListPage";
-pages/index.ts                              ← export * from "./ProjectListPage";
+pages/ProjectsPage/ProjectsPage.tsx   ← export const ProjectsPage = () => ...
+pages/ProjectsPage/index.ts           ← export * from "./ProjectsPage";
+pages/index.ts                        ← export * from "./ProjectsPage";
 ```
 
 4. Crie o barrel da feature em `projects/index.ts`:
@@ -355,7 +360,7 @@ export * from "./types";
 ```tsx
 import { PageLayout } from "@components/layout";
 
-export const ProjectListPage = () => (
+export const ProjectsPage = () => (
 	<PageLayout title="Projetos" description="Todos os seus projetos elétricos.">
 		{/* conteúdo */}
 	</PageLayout>
@@ -415,7 +420,7 @@ import { http } from "@lib/http";
 import { ProjectsEndpoints as e } from "./endpoints";
 import type { Project } from "./schemas";
 
-export const getProjects = () => http.get(e.list).json<ApiResponse<Project[]>>();
+export const getProjectList = () => http.get(e.list).json<ApiResponse<Project[]>>();
 ```
 
 5. **`query-keys.ts`** — fábrica hierárquica, para invalidar em bloco:
@@ -434,10 +439,10 @@ export const projectKeys = {
 import { useQuery } from "@tanstack/react-query";
 
 import { projectKeys } from "../../../query-keys";
-import { getProjects } from "../../../requests";
+import { getProjectList } from "../../../requests";
 
 export const useGetProjects = () =>
-	useQuery({ queryKey: projectKeys.lists(), queryFn: getProjects });
+	useQuery({ queryKey: projectKeys.lists(), queryFn: getProjectList });
 ```
 
 7. **Hook de mutation** — aqui o erro é tratado, porque sucesso e navegação são específicos:
@@ -485,11 +490,11 @@ export const projectHandlers = [
 2. Rota só faz fiação — a tela vem da feature:
 
 ```tsx
-import { ProjectListPage } from "@features/projects";
+import { ProjectsPage } from "@features/projects";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/projetos")({
-	component: ProjectListPage,
+	component: ProjectsPage,
 });
 ```
 
@@ -524,14 +529,17 @@ export const Route = createFileRoute("/admin")({
 5. O `src/routeTree.gen.ts` é regenerado sozinho com o `pnpm dev` rodando.
    **Commite o arquivo gerado** — o `pnpm type-check` depende dele.
 
-6. Para o item aparecer no menu lateral, acrescente em
+6. Para o item aparecer na navegação principal, acrescente em
    `src/components/layout/Sidebar/nav-items.ts`:
 
 ```ts
 export const APP_NAV_ITEMS: NavItem[] = [
-	{ to: "/projetos", label: "Projetos", icon: FolderIcon },
+	{ to: "/projetos", label: "Projetos" },
 ];
 ```
+
+O caminho `Sidebar` é legado, mas o array é compartilhado pelo cabeçalho
+horizontal e pelo painel móvel. Não habilite um item antes de a rota existir.
 
 ---
 
@@ -589,6 +597,7 @@ usando a tabela de equivalências em `app/front/.migration/2026-09-base-ui-batch
 | Tabela | `@components/DataTable` (`DataTable`, `createDataTableColumnHelper`) |
 | Estado vazio / esqueleto | `@components/EmptyState`, `@components/SkeletonTable` |
 | Cabeçalho de página | `@components/layout` (`PageLayout`) |
+| Tokens e regras visuais | [`design-system-front.md`](design-system-front.md) |
 | Máscaras e validadores BR | `@features/shared` (CPF, CNPJ, CEP, telefone, BRL) |
 | Variável de ambiente | `@config` (`AppConfig`) |
 
@@ -613,5 +622,5 @@ usando a tabela de equivalências em `app/front/.migration/2026-09-base-ui-batch
   quase todo tutorial é v8 (`useReactTable`, `getCoreRowModel`). O pacote traz
   um guia de migração em `node_modules/@tanstack/react-table/skills/`.
 - **Componente do shadcn copiado da internet não funciona** — é Radix. Veja a receita 4.
-- **Cor errada só no seu computador** — confira se o sistema está em modo escuro
-  e leia a seção *Tema* acima.
+- **Cor ou espaçamento diferente do restante** — confirme se o componente usa
+  os tokens semânticos e leia o design system antes de criar uma classe local.

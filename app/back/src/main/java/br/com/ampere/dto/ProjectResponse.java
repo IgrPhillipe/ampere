@@ -1,36 +1,29 @@
 package br.com.ampere.dto;
 
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectStatus;
+import java.time.LocalDateTime;
 
-public class ProjectResponse {
+/** Project data required by the listing screen. */
+public record ProjectResponse(
+    String id,
+    String name,
+    String address,
+    String municipality,
+    String protocol,
+    ProjectStatus status,
+    LocalDateTime updatedAt,
+    long pendingCount) {
 
-  private Long id;
-  private String name;
-  private String buildingType;
-  private String standardName;
-
-  public ProjectResponse(Project project) {
-    this.id = project.getId();
-    this.name = project.getName();
-    this.buildingType = project.getBuildingType().getClass().getSimpleName();
-    if (project.getStandard() != null) {
-      this.standardName = project.getStandard().getName();
-    }
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public String getBuildingType() {
-    return buildingType;
-  }
-
-  public String getStandardName() {
-    return standardName;
+  public static ProjectResponse from(Project project, long pendingCount) {
+    return new ProjectResponse(
+        String.valueOf(project.getId()),
+        project.getName(),
+        project.getAddress(),
+        project.getMunicipality(),
+        project.getProtocol(),
+        project.getStatus(),
+        project.getUpdatedAt(),
+        pendingCount);
   }
 }

@@ -47,7 +47,7 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Swagger UI em /api/swagger-ui/index.html -->
+		<!-- Swagger UI em /api/docs -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -87,7 +87,17 @@
 				<groupId>com.diffplug.spotless</groupId>
 				<artifactId>spotless-maven-plugin</artifactId>
 				<version>${spotless.version}</version>
+				<executions>
+					<execution>
+						<id>spotless-check</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
+					<lineEndings>UNIX</lineEndings>
 					<java>
 						<googleJavaFormat/>
 						<removeUnusedImports/>
