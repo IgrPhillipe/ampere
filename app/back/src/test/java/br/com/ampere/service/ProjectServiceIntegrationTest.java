@@ -2,11 +2,17 @@ package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.ampere.domain.BuildingType;
+import br.com.ampere.domain.ConnectionType;
+import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.ResidentialMultifamily;
+import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,14 +39,14 @@ class ProjectServiceIntegrationTest {
   void listsProjectsWithPaginationFiltersSearchAndPendingCounts() {
     Project rejectedProject =
         projectRepository.save(
-            new Project(
+            project(
                 "Condomínio Vila Nova",
                 "Avenida Barreto de Menezes, 88",
                 "Jaboatão dos Guararapes",
                 "2026-8475",
                 ProjectStatus.REJECTED));
     projectRepository.save(
-        new Project(
+        project(
             "Comercial Praça Sul",
             "Rua do Sol, 302",
             "Olinda",
@@ -58,10 +64,8 @@ class ProjectServiceIntegrationTest {
 
   @Test
   void countsProjectsPerStatusIgnoringTheListingFilters() {
-    projectRepository.save(
-        new Project("A", "Rua A, 1", "Recife", "2026-9001", ProjectStatus.REJECTED));
-    projectRepository.save(
-        new Project("B", "Rua B, 2", "Recife", "2026-9002", ProjectStatus.APPROVED));
+    projectRepository.save(project("A", "Rua A, 1", "Recife", "2026-9001", ProjectStatus.REJECTED));
+    projectRepository.save(project("B", "Rua B, 2", "Recife", "2026-9002", ProjectStatus.APPROVED));
 
     assertThat(service.countPerStatus())
         .containsEntry(ProjectStatus.REJECTED, 1L)
@@ -73,7 +77,7 @@ class ProjectServiceIntegrationTest {
   void searchesProjectsByProtocol() {
     Project project =
         projectRepository.save(
-            new Project(
+            project(
                 "Edifício Residencial Aurora",
                 "Rua da Aurora, 1240",
                 "Recife",
@@ -89,7 +93,7 @@ class ProjectServiceIntegrationTest {
   @Test
   void returnsEmptyPageForUnknownSearch() {
     projectRepository.save(
-        new Project(
+        project(
             "Edifício Residencial Aurora",
             "Rua da Aurora, 1240",
             "Recife",
@@ -106,7 +110,7 @@ class ProjectServiceIntegrationTest {
   @Test
   void treatsLikeWildcardsAsLiteralSearchCharacters() {
     projectRepository.save(
-        new Project(
+        project(
             "Condomínio Vila Nova",
             "Avenida Barreto de Menezes, 88",
             "Jaboatão dos Guararapes",
@@ -116,5 +120,15 @@ class ProjectServiceIntegrationTest {
     assertThat(service.list(1, 20, null, "%").projects()).isEmpty();
     assertThat(service.list(1, 20, null, "_").projects()).isEmpty();
     assertThat(service.list(1, 20, null, "vila%nova").projects()).isEmpty();
+  }
+
+  private static Project project(
+      String name, String address, String municipality, String protocol, ProjectStatus status) {
+    return new Project(name, address, municipality, protocol, status, buildingType(), List.of());
+  }
+
+  private static BuildingType buildingType() {
+    return new ResidentialMultifamily(
+        6, SupplyVoltage.V220_127, ConnectionType.TWO_PHASE, EntranceStandard.INDIVIDUAL);
   }
 }

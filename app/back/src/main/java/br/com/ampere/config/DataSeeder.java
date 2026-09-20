@@ -1,13 +1,24 @@
 package br.com.ampere.config;
 
+import br.com.ampere.domain.BuildingType;
+import br.com.ampere.domain.ConnectionType;
+import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.Mixed;
+import br.com.ampere.domain.NonResidential;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
+import br.com.ampere.domain.StandardName;
+import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -19,8 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
  * Populates development tables on the first application startup.
  *
  * <p>Without Flyway there is no migration to load initial data, and an API backed by an empty
- * database has nothing to display. The seeder only runs when the project table is empty, so
- * restarting the application does not duplicate data.
+ * database has nothing to display. Standards and projects are guarded independently, so a database
+ * that already has projects but no standards still gets them.
  */
 @Component
 @Profile("!prod & !test")
@@ -44,8 +55,7 @@ public class DataSeeder implements CommandLineRunner {
   @Override
   @Transactional
   public void run(String... args) {
-    seedStandards();
-    seedDevelopmentData();
+    seedDevelopmentData(seedStandards());
   }
 
   private List<Standard> seedStandards() {
@@ -61,53 +71,86 @@ public class DataSeeder implements CommandLineRunner {
     return standards;
   }
 
-  private void seedDevelopmentData() {
+  private void seedDevelopmentData(List<Standard> standards) {
     if (projectRepository.count() > 0) {
       return;
     }
 
+    Map<String, Standard> byName =
+        standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()));
+
     Project draft =
-        new Project(
+        seed(
             "Residencial Monte Verde",
             "Rodovia BR-101, km 8",
             "Cabo de Santo Agostinho",
             "2026-1001",
-            ProjectStatus.DRAFT);
+            ProjectStatus.DRAFT,
+            new ResidentialMultifamily(
+                12,
+                SupplyVoltage.V380_220,
+                ConnectionType.THREE_PHASE,
+                EntranceStandard.COLLECTIVE),
+            byName);
     Project awaitingSubmission =
-        new Project(
+        seed(
             "Edifício Torre Norte",
             "Avenida Norte, 4501",
             "Recife",
             "2026-1002",
-            ProjectStatus.AWAITING_SUBMISSION);
+            ProjectStatus.AWAITING_SUBMISSION,
+            new Mixed(
+                18,
+                SupplyVoltage.V380_220,
+                ConnectionType.THREE_PHASE,
+                EntranceStandard.COLLECTIVE),
+            byName);
     Project underReview =
-        new Project(
+        seed(
             "Edifício Residencial Aurora",
             "Rua da Aurora, 1240",
             "Recife",
             "2026-1003",
-            ProjectStatus.UNDER_REVIEW);
+            ProjectStatus.UNDER_REVIEW,
+            new ResidentialMultifamily(
+                9, SupplyVoltage.V220_127, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
+            byName);
     Project rejected =
-        new Project(
+        seed(
             "Condomínio Vila Nova",
             "Avenida Barreto de Menezes, 88",
             "Jaboatão dos Guararapes",
             "2026-1004",
-            ProjectStatus.REJECTED);
+            ProjectStatus.REJECTED,
+            new ResidentialMultifamily(
+                6, SupplyVoltage.V220_127, ConnectionType.TWO_PHASE, EntranceStandard.INDIVIDUAL),
+            byName);
     Project anotherRejected =
-        new Project(
+        seed(
             "Centro Empresarial Recife",
             "Avenida Guararapes, 250",
             "Recife",
             "2026-1005",
-            ProjectStatus.REJECTED);
+            ProjectStatus.REJECTED,
+            new NonResidential(
+                14,
+                SupplyVoltage.V380_220,
+                ConnectionType.THREE_PHASE,
+                EntranceStandard.INDIVIDUAL),
+            byName);
     Project approved =
-        new Project(
+        seed(
             "Comercial Praça Sul",
             "Rua do Sol, 302",
             "Olinda",
             "2026-1006",
-            ProjectStatus.APPROVED);
+            ProjectStatus.APPROVED,
+            new NonResidential(
+                3,
+                SupplyVoltage.V220_127,
+                ConnectionType.SINGLE_PHASE,
+                EntranceStandard.INDIVIDUAL),
+            byName);
 
     projectRepository.saveAll(
         List.of(draft, awaitingSubmission, underReview, rejected, anotherRejected, approved));
@@ -119,5 +162,22 @@ public class DataSeeder implements CommandLineRunner {
             new Finding(anotherRejected)));
 
     log.info("DataSeeder: six projects and four findings inserted.");
+  }
+
+  private static Project seed(
+      String name,
+      String address,
+      String municipality,
+      String protocol,
+      ProjectStatus status,
+      BuildingType buildingType,
+      Map<String, Standard> standardsByName) {
+    List<Standard> standards =
+        buildingType.applicableStandards().stream()
+            .map(StandardName::code)
+            .map(standardsByName::get)
+            .toList();
+
+    return new Project(name, address, municipality, protocol, status, buildingType, standards);
   }
 }

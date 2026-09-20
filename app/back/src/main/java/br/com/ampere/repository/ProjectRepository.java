@@ -3,8 +3,10 @@ package br.com.ampere.repository;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,6 +35,9 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       GROUP BY project.status
       """)
   List<ProjectStatusCount> countPerStatus();
+
+  @EntityGraph(attributePaths = {"buildingType", "standards"})
+  Optional<Project> findDetailById(Long id);
 
   interface ProjectStatusCount {
 

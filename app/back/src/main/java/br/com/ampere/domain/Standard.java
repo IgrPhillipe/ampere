@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+/** A published standard revision a calculation is carried out under. */
 @Entity
 @Table(name = "standard")
 public class Standard {
@@ -36,15 +37,7 @@ public class Standard {
     return name;
   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
   public String getRevision() {
     return revision;
-  }
-
-  public void setRevision(String revision) {
-    this.revision = revision;
   }
 }

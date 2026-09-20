@@ -9,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
@@ -17,6 +18,7 @@ import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -27,7 +29,7 @@ class DataSeederTest {
   void seedsAllStatusesAndFindingsWithoutDuplicatingProjects() throws Exception {
     ProjectRepository projectRepository = mock(ProjectRepository.class);
     FindingRepository findingRepository = mock(FindingRepository.class);
-    StandardRepository standardRepository = mock(StandardRepository.class);
+    StandardRepository standardRepository = seededStandards();
     when(projectRepository.count()).thenReturn(0L, 6L);
     DataSeeder seeder = seeder(projectRepository, findingRepository, standardRepository);
 
@@ -94,6 +96,53 @@ class DataSeederTest {
 
     verify(standardRepository, times(1)).saveAll(any());
     verify(projectRepository, never()).saveAll(any());
+  }
+
+  @Test
+  void seedsEveryBuildingTypeSubclass() throws Exception {
+    ProjectRepository projectRepository = mock(ProjectRepository.class);
+    FindingRepository findingRepository = mock(FindingRepository.class);
+    when(projectRepository.count()).thenReturn(0L);
+    DataSeeder seeder = seeder(projectRepository, findingRepository, seededStandards());
+
+    seeder.run();
+
+    ArgumentCaptor<Iterable<Project>> captor = iterableCaptor();
+    verify(projectRepository).saveAll(captor.capture());
+    assertThat(StreamSupport.stream(captor.getValue().spliterator(), false))
+        .extracting(project -> project.getBuildingType().category())
+        .contains(
+            BuildingCategory.RESIDENTIAL_MULTIFAMILY,
+            BuildingCategory.NON_RESIDENTIAL,
+            BuildingCategory.MIXED);
+  }
+
+  @Test
+  void appliesBothStandardsToEverySeededProject() throws Exception {
+    ProjectRepository projectRepository = mock(ProjectRepository.class);
+    FindingRepository findingRepository = mock(FindingRepository.class);
+    when(projectRepository.count()).thenReturn(0L);
+    DataSeeder seeder = seeder(projectRepository, findingRepository, seededStandards());
+
+    seeder.run();
+
+    ArgumentCaptor<Iterable<Project>> captor = iterableCaptor();
+    verify(projectRepository).saveAll(captor.capture());
+    assertThat(StreamSupport.stream(captor.getValue().spliterator(), false))
+        .allSatisfy(
+            project ->
+                assertThat(project.getStandards())
+                    .extracting(Standard::getName)
+                    .containsExactlyInAnyOrder("DIS-NOR-053", "DIS-NOR-030"));
+  }
+
+  private static StandardRepository seededStandards() {
+    StandardRepository standardRepository = mock(StandardRepository.class);
+    when(standardRepository.count()).thenReturn(2L);
+    when(standardRepository.findAll())
+        .thenReturn(
+            List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
+    return standardRepository;
   }
 
   private static DataSeeder seeder(
