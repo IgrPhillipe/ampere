@@ -36,6 +36,14 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       """)
   List<ProjectStatusCount> countPerStatus();
 
+  @Query(
+      """
+      SELECT MAX(project.protocol)
+      FROM Project project
+      WHERE project.protocol LIKE CONCAT(:year, '-%')
+      """)
+  Optional<String> findHighestProtocolOfYear(@Param("year") String year);
+
   @EntityGraph(attributePaths = {"buildingType", "standards"})
   Optional<Project> findDetailById(Long id);
 
