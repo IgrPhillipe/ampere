@@ -1,8 +1,7 @@
 package br.com.ampere.security;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
-import java.nio.charset.StandardCharsets;
-import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.SecretKey;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -69,32 +68,25 @@ public class SecurityConfig {
     return new BCryptPasswordEncoder();
   }
 
-  private static SecretKeySpec key(JwtProperties properties) {
-    return new SecretKeySpec(properties.secret().getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-  }
-
-  @Bean
-  public JwtEncoder jwtEncoder(JwtProperties properties, Environment environment) {
-    rejectDevelopmentSecretOutsideDevelopment(properties, environment);
-
-    return new NimbusJwtEncoder(new ImmutableSecret<>(key(properties)));
-  }
-
-  @Bean
-  public JwtDecoder jwtDecoder(JwtProperties properties) {
-    return NimbusJwtDecoder.withSecretKey(key(properties)).macAlgorithm(MacAlgorithm.HS256).build();
-  }
-
   /**
-   * Um segredo versionado no repositorio nao protege ninguem: qualquer um que leia o codigo assina
-   * um token valido. Fora de desenvolvimento e teste, subir com ele e erro de configuracao, e e
-   * melhor a aplicacao nao subir do que subir aberta.
+   * Uma chave so, resolvida uma vez.
+   *
+   * <p>Resolver dentro do codificador e do decodificador separadamente daria duas chaves aleatorias
+   * diferentes quando {@code JWT_SECRET} nao esta definida, e nada do que fosse assinado seria
+   * aceito de volta.
    */
-  private static void rejectDevelopmentSecretOutsideDevelopment(
-      JwtProperties properties, Environment environment) {
-    if (properties.usesDevelopmentSecret() && environment.matchesProfiles("prod")) {
-      throw new IllegalStateException(
-          "ampere.jwt.secret esta com o valor de desenvolvimento. Defina JWT_SECRET no ambiente.");
-    }
+  @Bean
+  public SecretKey jwtSigningKey(JwtProperties properties, Environment environment) {
+    return JwtSecret.resolve(properties.secret(), environment.matchesProfiles("prod"));
+  }
+
+  @Bean
+  public JwtEncoder jwtEncoder(SecretKey jwtSigningKey) {
+    return new NimbusJwtEncoder(new ImmutableSecret<>(jwtSigningKey));
+  }
+
+  @Bean
+  public JwtDecoder jwtDecoder(SecretKey jwtSigningKey) {
+    return NimbusJwtDecoder.withSecretKey(jwtSigningKey).macAlgorithm(MacAlgorithm.HS256).build();
   }
 }

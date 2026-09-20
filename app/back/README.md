@@ -91,8 +91,14 @@ curl -s -X POST http://localhost:8080/api/auth/login \
 
 | Variável | Para quê |
 | :--- | :--- |
-| `JWT_SECRET` | assina o token. **Obrigatória em produção** — o default é de desenvolvimento e está versionado, então não protege nada. Mínimo 32 caracteres (HS256) |
+| `JWT_SECRET` | assina o token, mínimo 32 caracteres. **Obrigatória em produção** — sem ela o profile `prod` não sobe. Fora de produção, sem ela a API gera uma chave por execução e o login cai a cada reinício |
 | `JWT_EXPIRATION` | validade do token; padrão `8h` |
+
+Gerando uma:
+
+```bash
+openssl rand -base64 48
+```
 
 > **Mudou o tipo de uma coluna?** Sem Flyway, o `ddl-auto=update` do Hibernate cria tabela e
 > coluna novas, mas **não** altera o tipo de uma coluna que já existe. Quem já tinha o volume

@@ -269,7 +269,15 @@ Três decisões que valem registrar:
 
 **Nenhuma rota é gateada por papel.** Os papéis atuais (`user` / `admin`) são placeholder, e dependem da **Q1c** em [`questoes-em-aberto.md`](../produto/questoes-em-aberto.md) — *"pessoa de fora da Neoenergia pode acessar um sistema interno?"*. Gatear rota por um placeholder seria inventar regra de negócio. Quando a Q1c fechar, é aqui e na pendência 13 que se resolve.
 
-> **O segredo versionado não protege nada.** `ampere.jwt.secret` tem default de desenvolvimento para o repositório subir sem configuração — mas quem lê o código assina um token válido. Em produção defina `JWT_SECRET`; com o profile `prod` a aplicação recusa subir com o default.
+**Não há segredo versionado.** `JWT_SECRET` resolve em três caminhos, em `security/JwtSecret`:
+
+| `JWT_SECRET` | Fora de produção | Com o profile `prod` |
+| :--- | :--- | :--- |
+| definida (≥ 32 caracteres) | assina com ela | assina com ela |
+| ausente ou vazia | gera uma chave por execução e avisa no log | **não sobe** |
+| menor que 32 caracteres | não sobe | não sobe |
+
+A chave gerada existe para o repositório subir sem configuração: o preço é que o token não sobrevive a um reinício, e quem estava logado entra de novo. Em produção, é melhor não subir do que subir assinando com uma chave que ninguém escolheu.
 
 ---
 
