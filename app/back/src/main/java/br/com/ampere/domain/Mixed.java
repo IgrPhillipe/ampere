@@ -3,22 +3,29 @@ package br.com.ampere.domain;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
+/** Building that mixes residential and non-residential consumer units. */
 @Entity
 @DiscriminatorValue("MIXED")
 public class Mixed extends BuildingType {
 
   protected Mixed() {}
 
-  public Mixed(Double voltage, String entranceStandard) {
-    super(voltage, entranceStandard);
+  public Mixed(
+      Integer floors,
+      SupplyVoltage voltage,
+      ConnectionType connectionType,
+      EntranceStandard entranceStandard) {
+    super(floors, voltage, connectionType, entranceStandard);
+  }
+
+  @Override
+  public BuildingCategory category() {
+    return BuildingCategory.MIXED;
   }
 
   @Override
   public String applicableStandard() {
-    // Decisão para uso misto também avalia a tensão e padrão
-    if (getVoltage() != null
-        && getVoltage() <= 380
-        && "INDIVIDUAL".equalsIgnoreCase(getEntranceStandard())) {
+    if (getEntranceStandard() == EntranceStandard.INDIVIDUAL) {
       return "DIS-NOR-030";
     }
     return "DIS-NOR-053";

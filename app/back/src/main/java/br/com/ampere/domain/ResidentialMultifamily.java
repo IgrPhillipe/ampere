@@ -3,24 +3,31 @@ package br.com.ampere.domain;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
+/** Residential building with multiple consumer units. */
 @Entity
 @DiscriminatorValue("RESIDENTIAL_MULTIFAMILY")
 public class ResidentialMultifamily extends BuildingType {
 
   protected ResidentialMultifamily() {}
 
-  public ResidentialMultifamily(Double voltage, String entranceStandard) {
-    super(voltage, entranceStandard);
+  public ResidentialMultifamily(
+      Integer floors,
+      SupplyVoltage voltage,
+      ConnectionType connectionType,
+      EntranceStandard entranceStandard) {
+    super(floors, voltage, connectionType, entranceStandard);
+  }
+
+  @Override
+  public BuildingCategory category() {
+    return BuildingCategory.RESIDENTIAL_MULTIFAMILY;
   }
 
   @Override
   public String applicableStandard() {
-    // Decisão baseada no tipo (ResidentialMultifamily) cruzado com tensão e padrão
-    if (getVoltage() != null && getVoltage() <= 380) {
-      // Padrões de baixa tensão podem cair em exceções dependendo do padrão de entrada
-      if ("INDIVIDUAL".equalsIgnoreCase(getEntranceStandard())) {
-        return "DIS-NOR-030";
-      }
+    if (getVoltage() == SupplyVoltage.V380_220
+        && getEntranceStandard() == EntranceStandard.INDIVIDUAL) {
+      return "DIS-NOR-030";
     }
     return "DIS-NOR-053";
   }

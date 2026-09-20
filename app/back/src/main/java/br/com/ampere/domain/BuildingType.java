@@ -3,17 +3,21 @@ package br.com.ampere.domain;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
+import java.util.Objects;
 
+/** Technical parameters of a building, which decide how its demand is calculated. */
 @Entity
 @Table(name = "building_type")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "type")
+@DiscriminatorColumn(name = "category")
 public abstract class BuildingType {
 
   @Id
@@ -21,37 +25,54 @@ public abstract class BuildingType {
   private Long id;
 
   @Column(nullable = false)
-  private Double voltage;
+  private Integer floors;
 
-  @Column(name = "entrance_standard", nullable = false)
-  private String entranceStandard;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private SupplyVoltage voltage;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private ConnectionType connectionType;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private EntranceStandard entranceStandard;
 
   protected BuildingType() {}
 
-  protected BuildingType(Double voltage, String entranceStandard) {
-    this.voltage = voltage;
-    this.entranceStandard = entranceStandard;
+  protected BuildingType(
+      Integer floors,
+      SupplyVoltage voltage,
+      ConnectionType connectionType,
+      EntranceStandard entranceStandard) {
+    this.floors = Objects.requireNonNull(floors, "floors");
+    this.voltage = Objects.requireNonNull(voltage, "voltage");
+    this.connectionType = Objects.requireNonNull(connectionType, "connectionType");
+    this.entranceStandard = Objects.requireNonNull(entranceStandard, "entranceStandard");
   }
 
   public Long getId() {
     return id;
   }
 
-  public Double getVoltage() {
+  public Integer getFloors() {
+    return floors;
+  }
+
+  public SupplyVoltage getVoltage() {
     return voltage;
   }
 
-  public void setVoltage(Double voltage) {
-    this.voltage = voltage;
+  public ConnectionType getConnectionType() {
+    return connectionType;
   }
 
-  public String getEntranceStandard() {
+  public EntranceStandard getEntranceStandard() {
     return entranceStandard;
   }
 
-  public void setEntranceStandard(String entranceStandard) {
-    this.entranceStandard = entranceStandard;
-  }
+  public abstract BuildingCategory category();
 
   public abstract String applicableStandard();
 }
