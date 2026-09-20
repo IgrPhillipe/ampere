@@ -80,10 +80,14 @@ semântico correspondente:
 | Texto secundário | `--muted-foreground` | `text-muted-foreground` |
 | Ação principal | `--primary` | `bg-primary`, `text-primary` |
 | Realce suave | `--accent` | `bg-accent` |
+| Hover de superfície | `--surface-hover` | `bg-surface-hover` |
 | Erro | `--destructive` | `text-destructive` |
 | Alerta | `--warning` | `bg-warning` |
 | Contorno e separador | `--border` | `border-border` |
 | Foco de teclado | `--ring` | `ring-ring` |
+
+`--accent` é verde: serve para realçar, não para o hover de uma linha de tabela.
+Hover neutro é `--surface-hover`.
 
 Se a identidade mudar, altere os tokens; não percorra componentes substituindo
 cores fixas.
@@ -96,12 +100,17 @@ próximo.
 
 | Token | Valor | Uso típico |
 | :--- | :--- | :--- |
+| `--ds-radius-xs` | 4 px | botões e checkbox da listagem |
 | `--ds-radius-sm` | 8 px | campos e itens internos |
 | `--ds-radius-md` | 16 px | cartões, tabelas e estados vazios |
 | `--ds-radius-lg` | 32 px | blocos de destaque |
-| `--ds-radius-pill` | circular | botões e badges |
+| `--ds-radius-pill` | circular | badges |
 | `--ds-shadow-sm` | elevação discreta | campos, cartões e tabelas |
 | `--ds-shadow-md` | elevação intermediária | menus e camadas flutuantes |
+
+> **Raio de botão.** A marca prevê botão em pílula, mas as telas aprovadas da
+> listagem usam 4 px. O valor que vale no código é `--ds-radius-xs`; a pílula
+> fica para badge. Se o desenho mudar, muda o token, não a chamada.
 
 Transições devem ser curtas e funcionais. Não use animação para conteúdo que
 precisa aparecer imediatamente.

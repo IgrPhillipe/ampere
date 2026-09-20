@@ -27,9 +27,8 @@ export const ProjectPagination = ({
 			<nav className="flex gap-2" aria-label="Paginação de projetos">
 				<Button
 					type="button"
-					variant="outline"
+					variant="neutral"
 					size="icon-xs"
-					className="rounded-[4px] border-border bg-white text-foreground shadow-none hover:bg-neutral-100 hover:text-foreground disabled:border-border disabled:bg-white disabled:text-muted-foreground disabled:opacity-40"
 					disabled={page <= 1}
 					onClick={() => onPageChange(page - 1)}
 					aria-label="Página anterior"
@@ -38,9 +37,8 @@ export const ProjectPagination = ({
 				</Button>
 				<Button
 					type="button"
-					variant="outline"
+					variant="neutral"
 					size="icon-xs"
-					className="rounded-[4px] border-border bg-white text-foreground shadow-none hover:bg-neutral-100 hover:text-foreground disabled:border-border disabled:bg-white disabled:text-muted-foreground disabled:opacity-40"
 					disabled={page >= totalPages}
 					onClick={() => onPageChange(page + 1)}
 					aria-label="Próxima página"
