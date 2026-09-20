@@ -68,6 +68,32 @@ A API sobe em `http://localhost:8080/api` e a documentação em `http://localhos
 
 `./mvnw clean verify` precisa do PostgreSQL no ar: o teste `contextLoads` sobe o contexto inteiro do Spring, incluindo a conexão.
 
+---
+
+## Entrar
+
+`/api/projects` exige token. O `DataSeeder` cria dois usuários de desenvolvimento
+na primeira subida com o banco vazio:
+
+| E-mail | Senha | Papel |
+| :--- | :--- | :--- |
+| `user@ampere.local` | `senha@123` | `user` |
+| `admin@ampere.local` | `senha@123` | `admin` |
+
+São os mesmos do mock do MSW no front, para quem alterna entre mock e API real
+não precisar trocar o que digita. Nenhum papel gateia rota — ver a Q1c.
+
+```bash
+curl -s -X POST http://localhost:8080/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"user@ampere.local","password":"senha@123"}'
+```
+
+| Variável | Para quê |
+| :--- | :--- |
+| `JWT_SECRET` | assina o token. **Obrigatória em produção** — o default é de desenvolvimento e está versionado, então não protege nada. Mínimo 32 caracteres (HS256) |
+| `JWT_EXPIRATION` | validade do token; padrão `8h` |
+
 > **Mudou o tipo de uma coluna?** Sem Flyway, o `ddl-auto=update` do Hibernate cria tabela e
 > coluna novas, mas **não** altera o tipo de uma coluna que já existe. Quem já tinha o volume
 > antes da troca de `LocalDateTime` por `OffsetDateTime` precisa de `docker compose down -v`
