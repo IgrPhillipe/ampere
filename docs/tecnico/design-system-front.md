@@ -86,8 +86,8 @@ semântico correspondente:
 | Contorno e separador | `--border` | `border-border` |
 | Foco de teclado | `--ring` | `ring-ring` |
 
-`--accent` é verde: serve para realçar, não para o hover de uma linha de tabela.
-Hover neutro é `--surface-hover`.
+`--accent` é verde: serve para realçar, não para interações neutras. Linhas de
+tabela e controles neutros usam `--surface-hover`.
 
 Se a identidade mudar, altere os tokens; não percorra componentes substituindo
 cores fixas.
@@ -100,7 +100,7 @@ próximo.
 
 | Token | Valor | Uso típico |
 | :--- | :--- | :--- |
-| `--ds-radius-xs` | 4 px | botões e checkbox da listagem |
+| `--ds-radius-xs` | 4 px | botões e controles compactos |
 | `--ds-radius-sm` | 8 px | campos e itens internos |
 | `--ds-radius-md` | 16 px | cartões, tabelas e estados vazios |
 | `--ds-radius-lg` | 32 px | blocos de destaque |
@@ -108,9 +108,9 @@ próximo.
 | `--ds-shadow-sm` | elevação discreta | campos, cartões e tabelas |
 | `--ds-shadow-md` | elevação intermediária | menus e camadas flutuantes |
 
-> **Raio de botão.** A marca prevê botão em pílula, mas as telas aprovadas da
-> listagem usam 4 px. O valor que vale no código é `--ds-radius-xs`; a pílula
-> fica para badge. Se o desenho mudar, muda o token, não a chamada.
+> **Raio de botão.** Todos os botões herdam 4 px de `--ds-radius-xs`. A pílula
+> fica para badge. Se o desenho mudar, muda o token ou a primitiva compartilhada,
+> não cada chamada de `Button`.
 
 Transições devem ser curtas e funcionais. Não use animação para conteúdo que
 precisa aparecer imediatamente.
@@ -128,9 +128,14 @@ mas foram portados para Base UI e ajustados ao design system.
 - `ghost`: ação discreta em barras e menus.
 - `destructive`: operação perigosa.
 - `link`: ação textual.
+- `neutral`: controle com contorno e hover cinza, usado em paginação e navegação.
 
-Não crie um botão com classes locais de cor ou altura. Escolha `variant` e
-`size`; complemente `className` apenas para posicionamento ou largura.
+Não crie um botão com classes locais de cor, altura ou raio. Escolha `variant`
+e `size`; complemente `className` apenas para posicionamento ou largura.
+
+O design system define a aparência desabilitada. O componente consumidor define
+quando o controle fica desabilitado; por exemplo, a paginação bloqueia a seta
+anterior na primeira página e a próxima seta na última página.
 
 ```tsx
 <Button>Novo projeto</Button>
