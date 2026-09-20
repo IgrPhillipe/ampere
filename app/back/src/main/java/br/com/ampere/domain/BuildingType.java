@@ -11,7 +11,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /** Technical parameters of a building, which decide how its demand is calculated. */
 @Entity
@@ -74,5 +79,15 @@ public abstract class BuildingType {
 
   public abstract BuildingCategory category();
 
-  public abstract String applicableStandard();
+  /**
+   * The shares that make up this building's demand. The only point of variation between subtypes.
+   */
+  public abstract List<DemandRule> demandRules();
+
+  /** The standards this project is calculated under, derived from its own rules. */
+  public final Set<StandardName> applicableStandards() {
+    return demandRules().stream()
+        .flatMap(rule -> Stream.of(rule.prescribedBy(), rule.methodFrom()))
+        .collect(Collectors.toCollection(() -> EnumSet.noneOf(StandardName.class)));
+  }
 }

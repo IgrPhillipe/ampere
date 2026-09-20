@@ -2,6 +2,7 @@ package br.com.ampere.domain;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import java.util.List;
 
 /** Commercial or industrial building with multiple consumer units. */
 @Entity
@@ -24,10 +25,14 @@ public class NonResidential extends BuildingType {
   }
 
   @Override
-  public String applicableStandard() {
-    if (getEntranceStandard() == EntranceStandard.COLLECTIVE) {
-      return "DIS-NOR-053";
-    }
-    return "DIS-NOR-030";
+  public List<DemandRule> demandRules() {
+    return List.of(
+        new DemandRule(
+            DemandComponent.NON_RESIDENTIAL_UNITS,
+            DemandMethod.INSTALLED_LOAD,
+            StandardName.DIS_NOR_053,
+            "6.23.1",
+            StandardName.DIS_NOR_030,
+            "6.27"));
   }
 }

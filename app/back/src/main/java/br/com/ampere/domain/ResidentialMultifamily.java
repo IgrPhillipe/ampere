@@ -2,6 +2,7 @@ package br.com.ampere.domain;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import java.util.List;
 
 /** Residential building with multiple consumer units. */
 @Entity
@@ -24,11 +25,21 @@ public class ResidentialMultifamily extends BuildingType {
   }
 
   @Override
-  public String applicableStandard() {
-    if (getVoltage() == SupplyVoltage.V380_220
-        && getEntranceStandard() == EntranceStandard.INDIVIDUAL) {
-      return "DIS-NOR-030";
-    }
-    return "DIS-NOR-053";
+  public List<DemandRule> demandRules() {
+    return List.of(
+        new DemandRule(
+            DemandComponent.RESIDENTIAL_UNITS,
+            DemandMethod.FLOOR_AREA,
+            StandardName.DIS_NOR_053,
+            "6.22.1",
+            StandardName.DIS_NOR_053,
+            "Anexo I"),
+        new DemandRule(
+            DemandComponent.CONDOMINIUM_SERVICES,
+            DemandMethod.INSTALLED_LOAD,
+            StandardName.DIS_NOR_053,
+            "6.22.4",
+            StandardName.DIS_NOR_030,
+            "6.27"));
   }
 }
