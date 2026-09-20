@@ -1,4 +1,5 @@
 import { Button } from "@components/ui/button";
+import { cn } from "@lib/utils";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 interface ProjectPaginationProps {
@@ -6,6 +7,7 @@ interface ProjectPaginationProps {
 	pageSize: number;
 	total: number;
 	onPageChange: (page: number) => void;
+	className?: string;
 }
 
 export const ProjectPagination = ({
@@ -13,13 +15,19 @@ export const ProjectPagination = ({
 	pageSize,
 	total,
 	onPageChange,
+	className,
 }: ProjectPaginationProps) => {
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 	const lastItem = Math.min(page * pageSize, total);
 	const firstItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
 
 	return (
-		<div className="mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-border bg-card px-gutter py-2 md:px-gutter-md">
+		<div
+			className={cn(
+				"mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-border bg-card px-gutter py-2 md:px-gutter-md",
+				className,
+			)}
+		>
 			<p className="font-mono text-xs tracking-wider text-muted-foreground uppercase">
 				{firstItem}–{lastItem} de {total} projetos
 			</p>

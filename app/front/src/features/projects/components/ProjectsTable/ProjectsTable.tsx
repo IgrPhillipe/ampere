@@ -15,6 +15,7 @@ interface ProjectsTableProps {
 	isLoading?: boolean;
 	onViewFindings: (project: Project) => void;
 	onResumeSubmission: (project: Project) => void;
+	className?: string;
 }
 
 export const ProjectsTable = ({
@@ -22,6 +23,7 @@ export const ProjectsTable = ({
 	isLoading = false,
 	onViewFindings,
 	onResumeSubmission,
+	className,
 }: ProjectsTableProps) => {
 	const columns = useMemo(
 		() => createProjectColumns(onViewFindings, onResumeSubmission),
@@ -34,6 +36,7 @@ export const ProjectsTable = ({
 			data={projects}
 			isLoading={isLoading}
 			columnClassNames={projectColumnClassNames}
+			className={className}
 			emptyTitle="Nenhum projeto encontrado para os critérios informados"
 			emptyDescription="Verifique o protocolo ou o nome do projeto e tente novamente."
 		/>

@@ -1,19 +1,25 @@
 import { Input } from "@components/ui/input";
+import { cn } from "@lib/utils";
 import { Search, X } from "lucide-react";
 import type { ChangeEvent } from "react";
 
 interface ProjectSearchProps {
 	value: string;
 	onValueChange: (value: string) => void;
+	className?: string;
 }
 
-export const ProjectSearch = ({ value, onValueChange }: ProjectSearchProps) => {
+export const ProjectSearch = ({
+	value,
+	onValueChange,
+	className,
+}: ProjectSearchProps) => {
 	const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
 		onValueChange(event.target.value);
 	};
 
 	return (
-		<div className="relative w-full max-w-xl">
+		<div className={cn("relative w-full max-w-xl", className)}>
 			<Search
 				className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground"
 				aria-hidden="true"

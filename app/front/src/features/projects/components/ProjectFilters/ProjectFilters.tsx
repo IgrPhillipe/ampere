@@ -1,3 +1,4 @@
+import { cn } from "@lib/utils";
 import type { ProjectStatusCounts } from "@services/projects";
 
 import type { ProjectStatusFilter } from "../../types";
@@ -10,6 +11,7 @@ interface ProjectFiltersProps {
 	search: string;
 	onStatusChange: (value: ProjectStatusFilter) => void;
 	onSearchChange: (value: string) => void;
+	className?: string;
 }
 
 export const ProjectFilters = ({
@@ -18,8 +20,9 @@ export const ProjectFilters = ({
 	search,
 	onStatusChange,
 	onSearchChange,
+	className,
 }: ProjectFiltersProps) => (
-	<div className="flex flex-col bg-card">
+	<div className={cn("flex flex-col bg-card", className)}>
 		<div>
 			<ProjectStatusFilters
 				counts={counts}

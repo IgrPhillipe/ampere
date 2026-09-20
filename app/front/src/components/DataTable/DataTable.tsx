@@ -25,6 +25,7 @@ interface DataTableProps<TData extends RowData> {
 	emptyTitle?: string;
 	emptyDescription?: ReactNode;
 	columnClassNames?: Record<string, string>;
+	className?: string;
 }
 
 /**
@@ -38,6 +39,7 @@ export const DataTable = <TData extends RowData>({
 	emptyTitle = "Nenhum resultado encontrado",
 	emptyDescription,
 	columnClassNames,
+	className,
 }: DataTableProps<TData>) => {
 	const table = useTable({ features: dataTableFeatures, columns, data });
 
@@ -48,7 +50,7 @@ export const DataTable = <TData extends RowData>({
 	}
 
 	return (
-		<div className="overflow-hidden bg-card">
+		<div className={cn("overflow-hidden bg-card", className)}>
 			<Table className={cn(columnClassNames && "table-fixed")}>
 				<TableHeader>
 					{table.getHeaderGroups().map((group) => (

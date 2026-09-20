@@ -1,3 +1,4 @@
+import { cn } from "@lib/utils";
 import type { ProjectStatusCounts } from "@services/projects";
 
 import type { ProjectStatusFilter } from "../../types";
@@ -6,6 +7,7 @@ interface ProjectStatusFiltersProps {
 	counts: ProjectStatusCounts;
 	value: ProjectStatusFilter;
 	onValueChange: (value: ProjectStatusFilter) => void;
+	className?: string;
 }
 
 const statusFilters = [
@@ -35,10 +37,14 @@ export const ProjectStatusFilters = ({
 	counts,
 	value,
 	onValueChange,
+	className,
 }: ProjectStatusFiltersProps) => (
 	<div
 		role="group"
-		className="overflow-x-auto bg-primary text-primary-foreground"
+		className={cn(
+			"overflow-x-auto bg-primary text-primary-foreground",
+			className,
+		)}
 		aria-label="Filtrar projetos por situação"
 	>
 		<div className="grid min-w-4xl grid-cols-6">
