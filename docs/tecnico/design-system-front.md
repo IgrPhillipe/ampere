@@ -173,11 +173,11 @@ duas configurações distintas de navegação.
 Os itens vivem em:
 
 ```text
-app/front/src/components/layout/Sidebar/nav-items.ts
+app/front/src/components/layout/nav-items.ts
 ```
 
-Apesar do caminho legado `Sidebar`, `APP_NAV_ITEMS` é a fonte única tanto para
-o cabeçalho quanto para o painel móvel. Uma área sem rota pode aparecer com
+`APP_NAV_ITEMS` é a fonte única tanto para o cabeçalho quanto para o painel
+móvel. Uma área sem rota pode aparecer com
 `disabled: true`; ela só se torna interativa no mesmo commit que cria a rota.
 
 ```ts
