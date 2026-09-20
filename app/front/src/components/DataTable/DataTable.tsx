@@ -18,37 +18,53 @@ import type { ReactNode } from "react";
 
 import { type DataTableFeatures, dataTableFeatures } from "./table-features";
 
-interface DataTableProps<TData extends RowData> {
+interface DataTableProps<TData extends RowData, TColumnId extends string> {
 	columns: TableOptions<DataTableFeatures, TData>["columns"];
 	data: TData[];
 	isLoading?: boolean;
 	emptyTitle?: string;
 	emptyDescription?: ReactNode;
-	columnClassNames?: Record<string, string>;
+	/**
+	 * Substitui o EmptyState montado por props. Existe porque o EmptyState
+	 * aceita `icon` e `action` e a tabela nao tinha por onde passar: a listagem
+	 * nao conseguia oferecer "Limpar filtros" quando o filtro esvaziava a lista,
+	 * que e a acao certa e o que o Cenario 2 da US01 descreve.
+	 */
+	empty?: ReactNode;
+	/**
+	 * Classe por coluna, com a chave presa aos ids declarados por quem chama.
+	 * Com `Record<string, string>` um id errado nao fazia nada e nao avisava.
+	 */
+	columnClassNames?: Partial<Record<TColumnId, string>>;
+	className?: string;
 }
 
 /**
  * Tabela padrao do projeto. Cuida de cabecalho, corpo, carregamento e vazio.
  * As colunas vem de `createDataTableColumnHelper`.
  */
-export const DataTable = <TData extends RowData>({
+export const DataTable = <TData extends RowData, TColumnId extends string>({
 	columns,
 	data,
 	isLoading = false,
 	emptyTitle = "Nenhum resultado encontrado",
 	emptyDescription,
+	empty,
 	columnClassNames,
-}: DataTableProps<TData>) => {
+	className,
+}: DataTableProps<TData, TColumnId>) => {
 	const table = useTable({ features: dataTableFeatures, columns, data });
 
 	if (isLoading) return <SkeletonTable columns={columns.length} />;
 
 	if (data.length === 0) {
-		return <EmptyState title={emptyTitle} description={emptyDescription} />;
+		return (
+			empty ?? <EmptyState title={emptyTitle} description={emptyDescription} />
+		);
 	}
 
 	return (
-		<div className="overflow-hidden bg-card">
+		<div className={cn("overflow-x-auto bg-card", className)}>
 			<Table className={cn(columnClassNames && "table-fixed")}>
 				<TableHeader>
 					{table.getHeaderGroups().map((group) => (
@@ -56,7 +72,7 @@ export const DataTable = <TData extends RowData>({
 							{group.headers.map((header) => (
 								<TableHead
 									key={header.id}
-									className={columnClassNames?.[header.column.id]}
+									className={columnClassNames?.[header.column.id as TColumnId]}
 								>
 									{header.isPlaceholder ? null : (
 										<table.FlexRender header={header} />
@@ -73,7 +89,7 @@ export const DataTable = <TData extends RowData>({
 							{row.getAllCells().map((cell) => (
 								<TableCell
 									key={cell.id}
-									className={columnClassNames?.[cell.column.id]}
+									className={columnClassNames?.[cell.column.id as TColumnId]}
 								>
 									<table.FlexRender cell={cell} />
 								</TableCell>

@@ -1,33 +1,35 @@
-import type { ProjectStatusCounts } from "@services/projects";
+import { cn } from "@lib/utils";
+import {
+	type ProjectStatus,
+	type ProjectStatusCounts,
+	projectStatusSchema,
+} from "@services/projects";
 
-import type { ProjectStatusFilter } from "../../types";
+import { projectStatusCountKeys, projectStatusLabels } from "../../constants";
 
 interface ProjectStatusFiltersProps {
 	counts: ProjectStatusCounts;
-	value: ProjectStatusFilter;
-	onValueChange: (value: ProjectStatusFilter) => void;
+	/** `null` e o chip "Todos os projetos". */
+	value: ProjectStatus | null;
+	onValueChange: (value: ProjectStatus | null) => void;
+	className?: string;
 }
 
-const statusFilters = [
-	{ value: "ALL", label: "Todos os projetos", countKey: "total" },
-	{ value: "DRAFT", label: "Rascunho", countKey: "draft" },
-	{
-		value: "AWAITING_SUBMISSION",
-		label: "Aguardando envio",
-		countKey: "awaitingSubmission",
-	},
-	{
-		value: "UNDER_REVIEW",
-		label: "Em análise",
-		countKey: "underReview",
-	},
-	{ value: "REJECTED", label: "Reprovado", countKey: "rejected" },
-	{ value: "APPROVED", label: "Aprovado", countKey: "approved" },
-] as const satisfies ReadonlyArray<{
-	value: ProjectStatusFilter;
+interface StatusFilter {
+	value: ProjectStatus | null;
 	label: string;
 	countKey: keyof ProjectStatusCounts;
-}>;
+}
+
+/** A ordem e a do enum: a fonte da lista e o schema, nao uma copia literal. */
+const statusFilters: StatusFilter[] = [
+	{ value: null, label: "Todos os projetos", countKey: "total" },
+	...projectStatusSchema.options.map((status) => ({
+		value: status,
+		label: projectStatusLabels[status],
+		countKey: projectStatusCountKeys[status],
+	})),
+];
 
 const formatCount = (count: number) => String(count).padStart(2, "0");
 
@@ -35,10 +37,14 @@ export const ProjectStatusFilters = ({
 	counts,
 	value,
 	onValueChange,
+	className,
 }: ProjectStatusFiltersProps) => (
 	<div
 		role="group"
-		className="overflow-x-auto bg-primary text-primary-foreground"
+		className={cn(
+			"overflow-x-auto bg-primary text-primary-foreground",
+			className,
+		)}
 		aria-label="Filtrar projetos por situação"
 	>
 		<div className="grid min-w-4xl grid-cols-6">
@@ -47,11 +53,11 @@ export const ProjectStatusFilters = ({
 
 				return (
 					<button
-						key={filter.value}
+						key={filter.value ?? "ALL"}
 						type="button"
 						aria-pressed={isActive}
 						onClick={() => onValueChange(filter.value)}
-						className="group relative flex min-h-30 flex-col justify-center gap-2 border-r border-primary-foreground/20 pr-5 pl-12 text-left last:border-r-0 focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:outline-none"
+						className="group relative flex min-h-30 flex-col justify-center gap-2 border-r border-primary-foreground/20 pr-5 pl-gutter text-left last:border-r-0 focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:outline-none md:pl-gutter-md"
 					>
 						<span className="font-mono text-4xl font-semibold">
 							{formatCount(counts[filter.countKey])}

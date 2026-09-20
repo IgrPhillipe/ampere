@@ -1,19 +1,39 @@
 import { Input } from "@components/ui/input";
+import { cn } from "@lib/utils";
 import { Search, X } from "lucide-react";
 import type { ChangeEvent } from "react";
 
-interface ProjectSearchProps {
+interface SearchInputProps {
 	value: string;
 	onValueChange: (value: string) => void;
+	placeholder?: string;
+	/** Rotulo do campo para leitor de tela. O placeholder nao serve de nome. */
+	label: string;
+	className?: string;
 }
 
-export const ProjectSearch = ({ value, onValueChange }: ProjectSearchProps) => {
+/**
+ * `appearance-none` no cancel-button: `type="search"` desenha o proprio botao de
+ * limpar no navegador, que colidia com o desenhado abaixo. Os dois estao certos
+ * sozinhos; so se atropelam juntos.
+ */
+const inputClassName =
+	"rounded-none border-x-0 border-t-0 pr-11 pl-10 shadow-none [&::-webkit-search-cancel-button]:appearance-none";
+
+/** Campo de busca com lupa e botao de limpar. */
+export const SearchInput = ({
+	value,
+	onValueChange,
+	placeholder,
+	label,
+	className,
+}: SearchInputProps) => {
 	const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
 		onValueChange(event.target.value);
 	};
 
 	return (
-		<div className="relative w-full max-w-xl">
+		<div className={cn("relative w-full max-w-xl", className)}>
 			<Search
 				className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground"
 				aria-hidden="true"
@@ -22,9 +42,9 @@ export const ProjectSearch = ({ value, onValueChange }: ProjectSearchProps) => {
 				type="search"
 				value={value}
 				onChange={handleChange}
-				placeholder="Buscar por nome, protocolo ou UC"
-				aria-label="Buscar projetos"
-				className="rounded-none border-x-0 border-t-0 pr-11 pl-10 shadow-none [&::-webkit-search-cancel-button]:appearance-none"
+				placeholder={placeholder}
+				aria-label={label}
+				className={inputClassName}
 			/>
 			{value ? (
 				<button

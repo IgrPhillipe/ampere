@@ -1,5 +1,5 @@
-import { useAuthStore, waitForAuthHydration } from "@features/auth/store";
-import type { UserRole } from "@features/auth/types";
+import type { UserRole } from "@features/shared";
+import { useAuthStore, waitForAuthHydration } from "@features/shared";
 import { redirect } from "@tanstack/react-router";
 
 /** Para onde mandar cada papel quando ele cai numa rota que nao pode ver. */

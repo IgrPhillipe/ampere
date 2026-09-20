@@ -2,7 +2,7 @@ package br.com.ampere.dto;
 
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /** Project data required by the listing screen. */
 public record ProjectResponse(
@@ -12,7 +12,8 @@ public record ProjectResponse(
     String municipality,
     String protocol,
     ProjectStatus status,
-    LocalDateTime updatedAt,
+    OffsetDateTime createdAt,
+    OffsetDateTime updatedAt,
     long pendingCount) {
 
   public static ProjectResponse from(Project project, long pendingCount) {
@@ -23,6 +24,7 @@ public record ProjectResponse(
         project.getMunicipality(),
         project.getProtocol(),
         project.getStatus(),
+        project.getCreatedAt(),
         project.getUpdatedAt(),
         pendingCount);
   }

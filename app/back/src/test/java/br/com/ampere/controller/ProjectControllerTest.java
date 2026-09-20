@@ -34,7 +34,8 @@ import br.com.ampere.error.GlobalExceptionHandler;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.service.ProjectListing;
 import br.com.ampere.service.ProjectService;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -78,7 +79,10 @@ class ProjectControllerTest {
     when(project.getMunicipality()).thenReturn("Jaboatão dos Guararapes");
     when(project.getProtocol()).thenReturn("2026-8475");
     when(project.getStatus()).thenReturn(ProjectStatus.REJECTED);
-    when(project.getUpdatedAt()).thenReturn(LocalDateTime.of(2026, 9, 17, 0, 0));
+    when(project.getCreatedAt())
+        .thenReturn(OffsetDateTime.of(2026, 9, 12, 0, 0, 0, 0, ZoneOffset.UTC));
+    when(project.getUpdatedAt())
+        .thenReturn(OffsetDateTime.of(2026, 9, 17, 0, 0, 0, 0, ZoneOffset.UTC));
 
     ProjectService service = mock(ProjectService.class);
     ProjectListing listing = new ProjectListing(List.of(project), 1, Map.of(42L, 3L));

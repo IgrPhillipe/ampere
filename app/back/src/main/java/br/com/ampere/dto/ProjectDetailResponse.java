@@ -8,7 +8,7 @@ import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,7 +21,7 @@ public record ProjectDetailResponse(
     String municipality,
     String protocol,
     ProjectStatus status,
-    LocalDateTime updatedAt,
+    OffsetDateTime updatedAt,
     BuildingCategory buildingType,
     Integer floors,
     SupplyVoltage voltage,

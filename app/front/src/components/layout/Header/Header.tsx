@@ -9,7 +9,7 @@ import {
 	DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTitle } from "@components/ui/sheet";
-import { useAuthStore } from "@features/auth/store";
+import { useAuthStore } from "@features/shared";
 import { useLogout } from "@services/auth";
 import { BellIcon, ChevronDownIcon, LogOutIcon, MenuIcon } from "lucide-react";
 import { useState } from "react";

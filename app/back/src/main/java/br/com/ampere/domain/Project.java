@@ -1,5 +1,6 @@
 package br.com.ampere.domain;
 
+import br.com.ampere.utils.SearchTerms;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,7 +18,8 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -63,8 +65,24 @@ public class Project {
   @OrderBy("name")
   private final List<Standard> standards = new ArrayList<>();
 
+  /**
+   * Stored with an offset so the API always answers with one. {@code LocalDateTime} left the client
+   * guessing: the container runs in UTC and the browser in America/Recife, so a relative label read
+   * three hours into the future.
+   */
+  @Column(nullable = false, updatable = false)
+  private OffsetDateTime createdAt;
+
   @Column(nullable = false)
-  private LocalDateTime updatedAt;
+  private OffsetDateTime updatedAt;
+
+  /**
+   * Name and protocol folded to one accent-free, lowercase string, so the listing search can be
+   * accent-insensitive with a plain {@code LIKE}. Postgres could do it with {@code unaccent}, but
+   * that is an extension and there is no migration tool to create it — see pendency 16.
+   */
+  @Column(nullable = false)
+  private String searchIndex;
 
   protected Project() {}
 
@@ -83,7 +101,9 @@ public class Project {
     this.status = status;
     this.buildingType = Objects.requireNonNull(buildingType, "buildingType");
     this.standards.addAll(standards);
-    this.updatedAt = LocalDateTime.now();
+    this.createdAt = now();
+    this.updatedAt = this.createdAt;
+    this.searchIndex = searchIndexOf(name, protocol);
   }
 
   /** A newly created project: a draft, with the protocol the system assigned it. */
@@ -99,9 +119,24 @@ public class Project {
   }
 
   @PrePersist
+  private void onPersist() {
+    createdAt = now();
+    updatedAt = createdAt;
+    searchIndex = searchIndexOf(name, protocol);
+  }
+
   @PreUpdate
-  private void updateTimestamp() {
-    updatedAt = LocalDateTime.now();
+  private void onUpdate() {
+    updatedAt = now();
+    searchIndex = searchIndexOf(name, protocol);
+  }
+
+  private static OffsetDateTime now() {
+    return OffsetDateTime.now(ZoneOffset.UTC);
+  }
+
+  private static String searchIndexOf(String name, String protocol) {
+    return SearchTerms.fold(name + " " + protocol);
   }
 
   public void rename(String name, String address, String municipality) {
@@ -155,7 +190,15 @@ public class Project {
     return List.copyOf(standards);
   }
 
-  public LocalDateTime getUpdatedAt() {
+  public OffsetDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public OffsetDateTime getUpdatedAt() {
     return updatedAt;
+  }
+
+  public String getSearchIndex() {
+    return searchIndex;
   }
 }

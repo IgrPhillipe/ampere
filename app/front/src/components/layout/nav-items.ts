@@ -1,4 +1,4 @@
-import type { UserRole } from "@features/auth/types";
+import type { UserRole } from "@features/shared";
 import type { LucideIcon } from "lucide-react";
 
 export interface NavItem {

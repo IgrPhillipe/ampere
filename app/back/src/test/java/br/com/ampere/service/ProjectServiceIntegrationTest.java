@@ -118,6 +118,36 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
+  void searchesWithoutAccentsAndRegardlessOfCase() {
+    Project project =
+        projectRepository.save(
+            project(
+                "Edifício Residencial Aurora",
+                "Rua da Aurora, 1240",
+                "Recife",
+                "2026-5231",
+                ProjectStatus.UNDER_REVIEW));
+
+    assertThat(service.list(1, 20, null, "edificio").projects()).containsExactly(project);
+    assertThat(service.list(1, 20, null, "EDIFÍCIO").projects()).containsExactly(project);
+    assertThat(service.list(1, 20, null, "Edifício").projects()).containsExactly(project);
+  }
+
+  @Test
+  void doesNotSearchOutsideNameAndProtocol() {
+    projectRepository.save(
+        project(
+            "Edifício Residencial Aurora",
+            "Rua da Aurora, 1240",
+            "Recife",
+            "2026-5231",
+            ProjectStatus.UNDER_REVIEW));
+
+    // O endereco e o municipio estao fora do contrato de busca.
+    assertThat(service.list(1, 20, null, "Recife").projects()).isEmpty();
+  }
+
+  @Test
   void treatsLikeWildcardsAsLiteralSearchCharacters() {
     projectRepository.save(
         project(
