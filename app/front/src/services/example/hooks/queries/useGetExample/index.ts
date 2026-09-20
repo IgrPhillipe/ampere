@@ -1,1 +1,0 @@
-export { useGetExample } from "./useGetExample";

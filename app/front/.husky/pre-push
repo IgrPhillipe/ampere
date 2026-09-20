@@ -1,7 +1,10 @@
-# Roda a validacao do front apenas quando app/front mudou em relacao ao remoto.
-# Push de docs ou do back-end passa direto.
-if git diff --quiet "@{upstream}" HEAD -- app/front 2>/dev/null; then
-	exit 0
+# Valida so o que mudou em relacao ao remoto. Push de docs passa direto.
+changed() { ! git diff --quiet "@{upstream}" HEAD -- "$1" 2>/dev/null; }
+
+if changed app/front; then
+	(cd app/front && pnpm validate:ci) || exit 1
 fi
 
-cd app/front && pnpm validate
+if changed app/back; then
+	(cd app/back && ./mvnw -B -q validate) || exit 1
+fi

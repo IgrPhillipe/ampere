@@ -38,9 +38,9 @@ src/
 
 | Contexto | Padrão | Exemplo |
 | :--- | :--- | :--- |
-| Componentes e páginas | PascalCase | `ProjectListPage`, `DataTable` |
+| Componentes e páginas | PascalCase | `ProjectsPage`, `DataTable` |
 | Hooks | `use<Ação><Entidade>` | `useGetProjects`, `useZodForm` |
-| Requests | camelCase verbo+substantivo | `getProjects`, `createProject` |
+| Requests | camelCase verbo+substantivo | `getProjectList`, `createProject` |
 | Variáveis | camelCase | `pageCount`, `isLoading` |
 | Constantes | UPPER_SNAKE_CASE | `PAGE_SIZE`, `PUBLIC_PATHS` |
 | Arquivos de schema | `<entidade>.schema.ts` | `project.schema.ts` |
@@ -336,12 +336,12 @@ mkdir -p projects/{pages,components,hooks,schemas,types,store}
 export {};
 ```
 
-3. Crie a página em `pages/ProjectListPage/`, sempre pasta + barrel:
+3. Crie a página em `pages/ProjectsPage/`, sempre pasta + barrel:
 
 ```
-pages/ProjectListPage/ProjectListPage.tsx   ← export const ProjectListPage = () => ...
-pages/ProjectListPage/index.ts              ← export * from "./ProjectListPage";
-pages/index.ts                              ← export * from "./ProjectListPage";
+pages/ProjectsPage/ProjectsPage.tsx   ← export const ProjectsPage = () => ...
+pages/ProjectsPage/index.ts           ← export * from "./ProjectsPage";
+pages/index.ts                        ← export * from "./ProjectsPage";
 ```
 
 4. Crie o barrel da feature em `projects/index.ts`:
@@ -360,7 +360,7 @@ export * from "./types";
 ```tsx
 import { PageLayout } from "@components/layout";
 
-export const ProjectListPage = () => (
+export const ProjectsPage = () => (
 	<PageLayout title="Projetos" description="Todos os seus projetos elétricos.">
 		{/* conteúdo */}
 	</PageLayout>
@@ -420,7 +420,7 @@ import { http } from "@lib/http";
 import { ProjectsEndpoints as e } from "./endpoints";
 import type { Project } from "./schemas";
 
-export const getProjects = () => http.get(e.list).json<ApiResponse<Project[]>>();
+export const getProjectList = () => http.get(e.list).json<ApiResponse<Project[]>>();
 ```
 
 5. **`query-keys.ts`** — fábrica hierárquica, para invalidar em bloco:
@@ -439,10 +439,10 @@ export const projectKeys = {
 import { useQuery } from "@tanstack/react-query";
 
 import { projectKeys } from "../../../query-keys";
-import { getProjects } from "../../../requests";
+import { getProjectList } from "../../../requests";
 
 export const useGetProjects = () =>
-	useQuery({ queryKey: projectKeys.lists(), queryFn: getProjects });
+	useQuery({ queryKey: projectKeys.lists(), queryFn: getProjectList });
 ```
 
 7. **Hook de mutation** — aqui o erro é tratado, porque sucesso e navegação são específicos:
@@ -490,11 +490,11 @@ export const projectHandlers = [
 2. Rota só faz fiação — a tela vem da feature:
 
 ```tsx
-import { ProjectListPage } from "@features/projects";
+import { ProjectsPage } from "@features/projects";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/projetos")({
-	component: ProjectListPage,
+	component: ProjectsPage,
 });
 ```
 

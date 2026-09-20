@@ -18,7 +18,14 @@ target/
 .gradle/
 
 # IDE
-.vscode/
+# settings.json e extensions.json sao compartilhados: formatacao no save
+# precisa valer para o time, nao so para quem configurou.
+# Configuracao por app continua local.
+app/*/.vscode/
+# Na raiz, os dois arquivos compartilhados sao versionados.
+/.vscode/*
+!/.vscode/settings.json
+!/.vscode/extensions.json
 .vs/
 .idea/
 *.swp
@@ -29,3 +36,5 @@ Thumbs.db
 
 # Logs
 *.log
+.vercel
+.env*

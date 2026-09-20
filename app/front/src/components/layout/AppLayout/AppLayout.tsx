@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-import { Footer } from "../Footer";
 import { Header } from "../Header";
 
 interface AppLayoutProps {
@@ -12,7 +11,5 @@ export const AppLayout = ({ children }: AppLayoutProps) => (
 		<Header />
 
 		<main className="flex-1 overflow-y-auto">{children}</main>
-
-		<Footer />
 	</div>
 );
