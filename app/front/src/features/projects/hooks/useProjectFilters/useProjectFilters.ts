@@ -1,3 +1,4 @@
+import { useDebouncedValue } from "@features/shared";
 import type { ProjectStatus } from "@services/projects";
 import {
 	debounce,
@@ -9,7 +10,6 @@ import {
 import { useCallback } from "react";
 
 import type { ProjectStatusFilter } from "../../types";
-import { useDebouncedValue } from "../useDebouncedValue";
 
 const projectStatuses = [
 	"DRAFT",
@@ -37,6 +37,11 @@ export const useProjectFilters = () => {
 		parseAsInteger.withDefault(1),
 	);
 	const status: ProjectStatusFilter = statusQuery ?? "ALL";
+	/**
+	 * Dois debounces, trabalhos diferentes: o `limitUrlUpdates` adia a escrita
+	 * na URL (o valor devolvido e imediato, entao o campo responde na tecla) e
+	 * este segura a query. Tirar um nao substitui o outro.
+	 */
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
 	/**

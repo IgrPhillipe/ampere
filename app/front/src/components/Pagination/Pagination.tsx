@@ -2,22 +2,30 @@ import { Button } from "@components/ui/button";
 import { cn } from "@lib/utils";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
-interface ProjectPaginationProps {
+interface PaginationProps {
 	page: number;
 	pageSize: number;
 	total: number;
 	onPageChange: (page: number) => void;
+	/** Plural do que esta sendo paginado: "projetos", "análises". */
+	itemLabel?: string;
 	className?: string;
 }
 
-export const ProjectPagination = ({
+/** Anterior / proxima mais o intervalo exibido. */
+export const Pagination = ({
 	page,
 	pageSize,
 	total,
 	onPageChange,
+	itemLabel = "itens",
 	className,
-}: ProjectPaginationProps) => {
+}: PaginationProps) => {
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
+	/**
+	 * Intervalo, nao o indice do ultimo item: a pagina 2 de 21 com dez linhas na
+	 * tela dizia "20 de 21", como se vinte estivessem visiveis.
+	 */
 	const lastItem = Math.min(page * pageSize, total);
 	const firstItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
 
@@ -29,10 +37,10 @@ export const ProjectPagination = ({
 			)}
 		>
 			<p className="font-mono text-xs tracking-wider text-muted-foreground uppercase">
-				{firstItem}–{lastItem} de {total} projetos
+				{firstItem}–{lastItem} de {total} {itemLabel}
 			</p>
 
-			<nav className="flex gap-2" aria-label="Paginação de projetos">
+			<nav className="flex gap-2" aria-label={`Paginação de ${itemLabel}`}>
 				<Button
 					type="button"
 					variant="neutral"

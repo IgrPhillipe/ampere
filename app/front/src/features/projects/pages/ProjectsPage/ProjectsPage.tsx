@@ -1,5 +1,7 @@
 import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
+import { Pagination } from "@components/Pagination";
+import { SearchInput } from "@components/SearchInput";
 import { Button } from "@components/ui/button";
 import {
 	type Project,
@@ -12,9 +14,9 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 
 import {
-	ProjectFilters,
-	ProjectPagination,
+	ProjectStatusFilters,
 	ProjectsTable,
+	ProjectToolbar,
 } from "../../components";
 import { useProjectFilters } from "../../hooks";
 
@@ -88,12 +90,22 @@ export const ProjectsPage = () => {
 				className="flex flex-1 flex-col bg-card"
 				aria-label="Listagem de projetos"
 			>
-				<ProjectFilters
-					counts={counts}
-					status={status}
-					search={search}
-					onStatusChange={setStatus}
-					onSearchChange={setSearch}
+				<ProjectToolbar
+					filters={
+						<ProjectStatusFilters
+							counts={counts}
+							value={status}
+							onValueChange={setStatus}
+						/>
+					}
+					search={
+						<SearchInput
+							value={search}
+							onValueChange={setSearch}
+							placeholder="Buscar por nome ou protocolo"
+							label="Buscar projetos"
+						/>
+					}
 				/>
 
 				<div className="flex-1 px-gutter py-4 md:px-gutter-md md:py-5">
@@ -126,11 +138,12 @@ export const ProjectsPage = () => {
 				</div>
 
 				{pagination && !hasError ? (
-					<ProjectPagination
+					<Pagination
 						page={pagination.page}
 						pageSize={pagination.pageSize}
 						total={pagination.total}
 						onPageChange={setPage}
+						itemLabel="projetos"
 					/>
 				) : null}
 			</section>
