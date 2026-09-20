@@ -81,7 +81,7 @@ export const ProjectsPage = () => {
 			description="Acompanhe o andamento dos projetos enviados à Neoenergia Pernambuco."
 			bleed
 			actions={
-				<Button type="button" size="sm" className="rounded-xs">
+				<Button type="button" size="sm">
 					Novo projeto
 					<ArrowRight aria-hidden="true" />
 				</Button>
