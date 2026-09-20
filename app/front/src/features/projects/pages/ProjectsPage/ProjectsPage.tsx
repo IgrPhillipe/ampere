@@ -37,9 +37,11 @@ export const ProjectsPage = () => {
 		search,
 		debouncedSearch,
 		page,
+		hasActiveFilters,
 		setStatus,
 		setSearch,
 		setPage,
+		clearFilters,
 	} = useProjectFilters();
 	const projectsQuery = useGetProjectList({
 		page,
@@ -133,6 +135,7 @@ export const ProjectsPage = () => {
 							isLoading={projectsQuery.isPending}
 							onViewFindings={handleViewFindings}
 							onResumeSubmission={handleResumeSubmission}
+							onClearFilters={hasActiveFilters ? clearFilters : undefined}
 						/>
 					)}
 				</div>

@@ -25,6 +25,13 @@ interface DataTableProps<TData extends RowData, TColumnId extends string> {
 	emptyTitle?: string;
 	emptyDescription?: ReactNode;
 	/**
+	 * Substitui o EmptyState montado por props. Existe porque o EmptyState
+	 * aceita `icon` e `action` e a tabela nao tinha por onde passar: a listagem
+	 * nao conseguia oferecer "Limpar filtros" quando o filtro esvaziava a lista,
+	 * que e a acao certa e o que o Cenario 2 da US01 descreve.
+	 */
+	empty?: ReactNode;
+	/**
 	 * Classe por coluna, com a chave presa aos ids declarados por quem chama.
 	 * Com `Record<string, string>` um id errado nao fazia nada e nao avisava.
 	 */
@@ -42,6 +49,7 @@ export const DataTable = <TData extends RowData, TColumnId extends string>({
 	isLoading = false,
 	emptyTitle = "Nenhum resultado encontrado",
 	emptyDescription,
+	empty,
 	columnClassNames,
 	className,
 }: DataTableProps<TData, TColumnId>) => {
@@ -50,7 +58,9 @@ export const DataTable = <TData extends RowData, TColumnId extends string>({
 	if (isLoading) return <SkeletonTable columns={columns.length} />;
 
 	if (data.length === 0) {
-		return <EmptyState title={emptyTitle} description={emptyDescription} />;
+		return (
+			empty ?? <EmptyState title={emptyTitle} description={emptyDescription} />
+		);
 	}
 
 	return (

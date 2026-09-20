@@ -64,13 +64,22 @@ export const useProjectFilters = () => {
 		[setPageQuery],
 	);
 
+	const clearFilters = useCallback(() => {
+		void setStatusQuery(null);
+		void setSearchQuery(null);
+		void setPageQuery(null);
+	}, [setStatusQuery, setSearchQuery, setPageQuery]);
+
 	return {
 		status,
 		search,
 		debouncedSearch,
 		page,
+		// Lista vazia com filtro ativo pede "Limpar filtros"; sem filtro, nao.
+		hasActiveFilters: status !== null || search.trim() !== "",
 		setStatus,
 		setSearch,
 		setPage,
+		clearFilters,
 	};
 };

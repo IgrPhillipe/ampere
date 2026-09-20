@@ -1,4 +1,6 @@
 import { DataTable } from "@components/DataTable";
+import { EmptyState } from "@components/EmptyState";
+import { Button } from "@components/ui/button";
 import type { Project } from "@services/projects";
 import { useMemo } from "react";
 
@@ -15,6 +17,8 @@ interface ProjectsTableProps {
 	isLoading?: boolean;
 	onViewFindings: (project: Project) => void;
 	onResumeSubmission: (project: Project) => void;
+	/** Sem isto o vazio nao oferece saida para quem filtrou demais. */
+	onClearFilters?: () => void;
 	className?: string;
 }
 
@@ -23,6 +27,7 @@ export const ProjectsTable = ({
 	isLoading = false,
 	onViewFindings,
 	onResumeSubmission,
+	onClearFilters,
 	className,
 }: ProjectsTableProps) => {
 	const columns = useMemo(
@@ -39,6 +44,19 @@ export const ProjectsTable = ({
 			className={className}
 			emptyTitle="Nenhum projeto encontrado para os critérios informados"
 			emptyDescription="Verifique o protocolo ou o nome do projeto e tente novamente."
+			empty={
+				onClearFilters ? (
+					<EmptyState
+						title="Nenhum projeto encontrado para os critérios informados"
+						description="Verifique o protocolo ou o nome do projeto, ou limpe os filtros para ver todos."
+						action={
+							<Button type="button" variant="outline" onClick={onClearFilters}>
+								Limpar filtros
+							</Button>
+						}
+					/>
+				) : undefined
+			}
 		/>
 	);
 };
