@@ -1,4 +1,5 @@
 import { LoginPage } from "@features/auth";
+import { pageTitle } from "@lib/page-title";
 import { createFileRoute } from "@tanstack/react-router";
 
 interface LoginSearch {
@@ -16,5 +17,6 @@ export const Route = createFileRoute("/login")({
 	validateSearch: (search: Record<string, unknown>): LoginSearch => ({
 		redirect: typeof search.redirect === "string" ? search.redirect : undefined,
 	}),
+	head: () => ({ meta: [{ title: pageTitle("Entrar") }] }),
 	component: LoginRoute,
 });
