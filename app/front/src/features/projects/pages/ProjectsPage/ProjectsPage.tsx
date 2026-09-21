@@ -86,7 +86,7 @@ export const ProjectsPage = () => {
 				<Button
 					type="button"
 					size="sm"
-					onClick={() => void navigate({ to: "/projects/new" })}
+					onClick={() => void navigate({ to: "/projetos/novo" })}
 				>
 					Novo projeto
 					<ArrowRight aria-hidden="true" />
