@@ -105,14 +105,14 @@ openssl rand -base64 48
 > **Front em outro domínio precisa de `CORS_ALLOWED_ORIGINS`.** Sem isso o navegador
 > recusa a resposta, e com o Spring Security no caminho o preflight `OPTIONS` volta
 > 401 antes de chegar em qualquer controller. Não vale para o front saindo por um
-> proxy do próprio deploy — aí é mesma origem.
+> proxy do próprio deploy: nesse caso a origem é a mesma e a variável não se aplica.
 
-### Schema meio-migrado
+### Schema desatualizado
 
-Sem Flyway, o `ddl-auto=update` **não altera tipo de coluna** e **não consegue
-acrescentar coluna `NOT NULL` a tabela que já tem linhas**. Nos dois casos ele
-registra um `WARN` no boot e sobe assim mesmo, com a coluna faltando. A API
-atende até a primeira consulta que toca na coluna, e então responde `500`:
+Sem Flyway, o `ddl-auto=update` **não altera tipo de coluna** e **não acrescenta
+coluna `NOT NULL` a tabela que já tem linhas**. Nos dois casos registra um `WARN`
+no boot e sobe com o schema incompleto. A API responde `500` na primeira consulta
+que toca a coluna:
 
 ```
 GenerationTarget encountered exception accepting command :
@@ -122,20 +122,29 @@ GenerationTarget encountered exception accepting command :
 ERROR: column p1_0.created_at does not exist
 ```
 
-Com acesso ao banco, derrube as tabelas afetadas e reinicie; o seeder recria.
-**Sem acesso ao banco**, caso de um deploy gerenciado:
+Com acesso ao banco, recrie o volume:
+
+```bash
+docker compose down -v
+```
+
+O `DataSeeder` repovoa na subida seguinte. O `-v` apaga também o banco de testes,
+que mora no mesmo container; recrie-o antes de `./mvnw clean verify`:
+
+```bash
+docker exec ampere-db-1 psql -U ampere -d ampere -c "CREATE DATABASE ampere_test OWNER ampere;"
+```
+
+Sem acesso ao banco, caso de um deploy gerenciado:
 
 1. defina `DDL_AUTO=create` no ambiente e reinicie
-2. o schema é recriado do zero e o `DataSeeder` repovoa (usuários inclusive)
+2. o schema é recriado do zero e o `DataSeeder` repovoa, usuários inclusive
 3. **remova a variável** e reinicie de novo
 
-O passo 3 não é opcional: com `DDL_AUTO=create` fixado, cada restart apaga os
+O passo 3 é obrigatório: com `DDL_AUTO=create` definido, todo restart apaga os
 dados, e um serviço que hiberna reinicia sozinho.
 
-> **Mudança de tipo de coluna.** Sem Flyway, o `ddl-auto=update` do Hibernate cria tabela e
-> coluna novas, mas **não** altera o tipo de uma coluna que já existe. Quem já tinha o volume
-> antes da troca de `LocalDateTime` por `OffsetDateTime` precisa de `docker compose down -v`
-> antes de subir. Ver a pendência 23 em [`docs/pendencias.md`](../../docs/pendencias.md).
+Ver a pendência 23 em [`docs/pendencias.md`](../../docs/pendencias.md).
 
 ---
 
@@ -167,23 +176,15 @@ src/main/java/br/com/ampere/
 └── config/       → configuração e bootstrap
 ```
 
-A fatia `projects` implementa o primeiro fluxo real ponta a ponta: domínio, persistência, serviço e o CRUD completo.
+A fatia `projects` cobre as quatro camadas: domínio, persistência, serviço e controller.
 
-As classes de domínio persistidas são **quatro**, acima do mínimo de três da disciplina: `Project`, `BuildingType` (abstrata, com `ResidentialMultifamily`, `NonResidential` e `Mixed`), `Standard` e `Finding`. `BuildingType.demandRules()` é sobrescrito por subclasse, e dele deriva a norma aplicável de cada projeto.
+As classes de domínio persistidas são **cinco**, acima do mínimo de três da disciplina: `Project`, `BuildingType` (abstrata, com `ResidentialMultifamily`, `NonResidential` e `Mixed`), `Standard`, `Finding` e `User`. `BuildingType.demandRules()` é sobrescrito por subclasse, e dele deriva a norma aplicável de cada projeto.
 
 ---
 
 ## Estado atual
 
-CRUD completo de projetos, com atribuição automática das normas aplicáveis a partir do tipo de edificação. Autenticação por JWT: `/api/projects` exige token, e nenhum papel restringe rota enquanto a Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md) estiver aberta. **Sem migrations versionadas**: o Hibernate cria o schema a partir das entidades, pendência registrada em [`docs/pendencias.md`](../../docs/pendencias.md).
-
-> **Bancos de desenvolvimento anteriores à Entrega 02 precisam ser apagados uma vez.** O `project` ganhou colunas `NOT NULL`, e o PostgreSQL recusa adicioná-las a uma tabela populada — o `ddl-auto=update` loga a falha e sobe mesmo assim, contra um schema incompleto. `docker compose down -v` e o `DataSeeder` repovoa tudo.
->
-> O `-v` leva junto o banco de testes, que mora no mesmo container. Recrie antes de rodar o `verify`:
->
-> ```bash
-> docker exec ampere-db-1 psql -U ampere -d ampere -c "CREATE DATABASE ampere_test OWNER ampere;"
-> ```
+CRUD completo de projetos, com atribuição automática das normas aplicáveis a partir do tipo de edificação. Autenticação por JWT: `/api/projects` exige token, e nenhum papel restringe rota enquanto a Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md) estiver aberta. **Sem migrations versionadas**: o Hibernate cria o schema a partir das entidades, e schema desatualizado se resolve pelo procedimento acima. Pendências em [`docs/pendencias.md`](../../docs/pendencias.md).
 
 ---
 
