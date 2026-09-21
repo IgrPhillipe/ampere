@@ -318,17 +318,39 @@ navegação costumam ser específicos.
 
 ## Mocks (MSW)
 
-O back-end Java ainda não existe, então o MSW responde no lugar dele em
-desenvolvimento. Handlers ficam em `services/<entidade>/mocks/handlers.ts` e são
-agregados em `src/mocks/handlers/index.ts`.
+O back-end existe, então **o caminho normal de desenvolvimento é falar com ele**:
 
-O worker só sobe em `import.meta.env.DEV`, e **a falha é não-fatal**: navegador
-sem service worker apenas registra um aviso e as chamadas seguem para a API real
-via proxy. Isso é proposital — antes, qualquer falha ao registrar derrubava a
-aplicação inteira numa tela branca.
+```bash
+cd app/back && docker compose up -d
+cd app/front && pnpm dev
+```
+
+O MSW fica **desligado por padrão**. Para mexer no front sem subir o back, ligue
+no `.env`:
+
+```bash
+VITE_ENABLE_MSW=true
+```
+
+Handlers ficam em `services/<entidade>/mocks/handlers.ts` e são agregados em
+`src/mocks/handlers/index.ts` — sem esse registro o handler não vale nada.
+
+O worker só sobe com `AppConfig.ENABLE_MSW` **e** `import.meta.env.DEV`, e **a
+falha é não-fatal**: navegador sem service worker apenas registra um aviso e as
+chamadas seguem para a API real via proxy. Isso é proposital — antes, qualquer
+falha ao registrar derrubava a aplicação inteira numa tela branca.
 
 > O mock é andaime de desenvolvimento. A Entrega 02 exige que as histórias leiam
-> e escrevam no banco de verdade.
+> e escrevam no banco de verdade. Ele ficou ligado por padrão enquanto o back não
+> existia, e com isso não havia como exercitar a API real sem editar código: um
+> `POST` sem handler caía no proxy e voltava 502.
+
+### Quando a API devolve 500 em toda consulta
+
+`ddl-auto=update` não acrescenta coluna a tabela que já tem linhas. Um banco de
+desenvolvimento antigo sobe com o schema defasado, o login funciona e a listagem
+quebra. A saída está no `app/back/README.md`: `DDL_AUTO=create`, **uma vez**, e
+depois remova a variável — enquanto ela existir, todo restart apaga os dados.
 
 ---
 
