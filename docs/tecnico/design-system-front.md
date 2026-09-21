@@ -160,6 +160,32 @@ português; valores da API são convertidos antes de chegar ao componente.
 contorno, foco e estado desabilitado. Em formulários, prefira os wrappers de
 `@components/form`, que já conectam rótulo, descrição e erro acessível.
 
+`Input` e `SelectTrigger` têm duas variantes:
+
+- `default`: campo em caixa, com contorno e sombra. É o padrão.
+- `underline`: campo sem caixa, só com a linha de base e o rótulo em
+  sobrescrita. Para formulários longos, em que a moldura de cada campo compete
+  com a hierarquia das seções. Usado na criação de projeto.
+
+Passe a variante ao wrapper, não ao primitivo: `ControlledInput` e
+`ControlledSelect` aceitam `variant` e aplicam a mesma escolha ao rótulo e ao
+controle, então os dois nunca saem trocados.
+
+```tsx
+<ControlledInput control={form.control} name="name" label="Nome" variant="underline" />
+```
+
+No `underline`, foco e erro ficam na própria linha e nunca no anel: um `ring`
+em volta de um campo sem moldura desenha uma caixa arredondada do nada. A linha
+é sempre `border-b-2` para a troca de cor no foco não deslocar o layout, e usa
+o mesmo token `ring` que esta seção pede para indicar foco.
+
+Não recrie esse visual com classes locais numa página de feature. A tentativa
+anterior usava seletores de descendente (`[&_input]:…`) passados como
+`className` do próprio `input`: o seletor virava `input input`, não casava com
+nada, e só os selects — envolvidos numa `div` — recebiam o estilo. As duas
+metades do mesmo formulário renderizavam diferentes.
+
 ### Dados e estados
 
 - `DataTable` padroniza cabeçalho, linhas, carregamento e resultado vazio.

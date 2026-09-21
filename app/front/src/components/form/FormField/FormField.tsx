@@ -6,11 +6,15 @@ import {
 } from "@components/ui/field";
 import type { ReactNode } from "react";
 
+export type FieldVariant = "default" | "underline";
+
 interface FormFieldProps {
 	label?: ReactNode;
 	description?: ReactNode;
 	/** Mensagem vinda do `fieldState.error` do react-hook-form. */
 	error?: string;
+	/** Casa o rotulo com a variante do controle; ver `components/ui/input`. */
+	variant?: FieldVariant;
 	children: ReactNode;
 	className?: string;
 }
@@ -26,11 +30,12 @@ export const FormField = ({
 	label,
 	description,
 	error,
+	variant = "default",
 	children,
 	className,
 }: FormFieldProps) => (
 	<Field className={className} invalid={Boolean(error)}>
-		{label ? <FieldLabel>{label}</FieldLabel> : null}
+		{label ? <FieldLabel variant={variant}>{label}</FieldLabel> : null}
 
 		{children}
 

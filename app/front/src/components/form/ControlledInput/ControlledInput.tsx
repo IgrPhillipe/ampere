@@ -1,4 +1,4 @@
-import { FormField } from "@components/form/FormField";
+import { type FieldVariant, FormField } from "@components/form/FormField";
 import { FieldControl } from "@components/ui/field";
 import { Input } from "@components/ui/input";
 import type { ComponentProps, ReactNode } from "react";
@@ -10,11 +10,18 @@ import {
 } from "react-hook-form";
 
 interface ControlledInputProps<T extends FieldValues>
-	extends Omit<ComponentProps<typeof Input>, "name" | "defaultValue"> {
+	extends Omit<
+		ComponentProps<typeof Input>,
+		"name" | "defaultValue" | "variant"
+	> {
 	control: Control<T>;
 	name: FieldPath<T>;
 	label?: ReactNode;
 	description?: ReactNode;
+	/** Aplica a mesma variante ao rotulo e ao controle. */
+	variant?: FieldVariant;
+	/** Classe do campo inteiro (o `Field`), nao do `input`. */
+	fieldClassName?: string;
 }
 
 /**
@@ -26,7 +33,9 @@ export const ControlledInput = <T extends FieldValues>({
 	name,
 	label,
 	description,
+	variant = "default",
 	className,
+	fieldClassName,
 	...inputProps
 }: ControlledInputProps<T>) => (
 	<Controller
@@ -37,9 +46,11 @@ export const ControlledInput = <T extends FieldValues>({
 				label={label}
 				description={description}
 				error={fieldState.error?.message}
+				variant={variant}
+				className={fieldClassName}
 			>
 				<FieldControl
-					render={<Input className={className} />}
+					render={<Input variant={variant} className={className} />}
 					{...inputProps}
 					name={field.name}
 					value={field.value ?? ""}

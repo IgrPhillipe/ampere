@@ -1,4 +1,4 @@
-import { FormField } from "@components/form/FormField";
+import { type FieldVariant, FormField } from "@components/form/FormField";
 import { FieldControl } from "@components/ui/field";
 import {
 	Select,
@@ -21,10 +21,27 @@ interface ControlledSelectProps<T extends FieldValues> {
 	label?: ReactNode;
 	description?: ReactNode;
 	placeholder?: string;
+	/**
+	 * Mapa `valor -> rotulo`. O `Select` do Base UI precisa dele para o gatilho
+	 * mostrar o texto do item em vez do valor cru; ver `components/ui/select`.
+	 */
 	items: Record<string, string>;
 	disabled?: boolean;
+	/** Aplica a mesma variante ao rotulo e ao gatilho. */
+	variant?: FieldVariant;
+	/** Classe do gatilho. */
+	className?: string;
+	/** Classe do campo inteiro (o `Field`), nao do gatilho. */
+	fieldClassName?: string;
 }
 
+/**
+ * Select ligado ao react-hook-form, par do `ControlledInput`.
+ *
+ * O `Select` do Base UI trata a ausencia de valor como `null`, mas o
+ * react-hook-form entrega `""` no primeiro render; a conversao nos dois
+ * sentidos fica aqui para o schema continuar vendo apenas `""` ou o literal.
+ */
 export const ControlledSelect = <T extends FieldValues>({
 	control,
 	name,
@@ -33,6 +50,9 @@ export const ControlledSelect = <T extends FieldValues>({
 	placeholder = "Selecione uma opção",
 	items,
 	disabled,
+	variant = "default",
+	className,
+	fieldClassName,
 }: ControlledSelectProps<T>) => (
 	<Controller
 		control={control}
@@ -42,6 +62,8 @@ export const ControlledSelect = <T extends FieldValues>({
 				label={label}
 				description={description}
 				error={fieldState.error?.message}
+				variant={variant}
+				className={fieldClassName}
 			>
 				<Select
 					items={items}
@@ -51,7 +73,7 @@ export const ControlledSelect = <T extends FieldValues>({
 				>
 					<FieldControl
 						render={
-							<SelectTrigger>
+							<SelectTrigger variant={variant} className={className}>
 								<SelectValue placeholder={placeholder} />
 							</SelectTrigger>
 						}
@@ -61,9 +83,9 @@ export const ControlledSelect = <T extends FieldValues>({
 					/>
 
 					<SelectContent>
-						{Object.entries(items).map(([value, label]) => (
+						{Object.entries(items).map(([value, itemLabel]) => (
 							<SelectItem key={value} value={value}>
-								{label}
+								{itemLabel}
 							</SelectItem>
 						))}
 					</SelectContent>

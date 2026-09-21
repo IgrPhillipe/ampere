@@ -1,5 +1,6 @@
 import { Field as FieldPrimitive } from "@base-ui/react/field";
 import { cn } from "@lib/utils";
+import { cva, type VariantProps } from "class-variance-authority";
 
 function Field({ className, ...props }: FieldPrimitive.Root.Props) {
 	return (
@@ -11,14 +12,31 @@ function Field({ className, ...props }: FieldPrimitive.Root.Props) {
 	);
 }
 
-function FieldLabel({ className, ...props }: FieldPrimitive.Label.Props) {
+const fieldLabelVariants = cva(
+	"flex items-center gap-2 leading-none select-none data-disabled:opacity-50",
+	{
+		variants: {
+			variant: {
+				default: "text-sm font-medium",
+				/** Rotulo do campo `underline`: sobrescrita curta acima da linha. */
+				underline:
+					"text-xs font-normal tracking-wider text-muted-foreground uppercase",
+			},
+		},
+		defaultVariants: {
+			variant: "default",
+		},
+	},
+);
+
+type FieldLabelProps = FieldPrimitive.Label.Props &
+	VariantProps<typeof fieldLabelVariants>;
+
+function FieldLabel({ className, variant, ...props }: FieldLabelProps) {
 	return (
 		<FieldPrimitive.Label
 			data-slot="field-label"
-			className={cn(
-				"flex items-center gap-2 text-sm leading-none font-medium select-none data-disabled:opacity-50",
-				className,
-			)}
+			className={cn(fieldLabelVariants({ variant }), className)}
 			{...props}
 		/>
 	);
@@ -58,4 +76,11 @@ function FieldError({ className, ...props }: FieldPrimitive.Error.Props) {
 	);
 }
 
-export { Field, FieldControl, FieldDescription, FieldError, FieldLabel };
+export {
+	Field,
+	FieldControl,
+	FieldDescription,
+	FieldError,
+	FieldLabel,
+	fieldLabelVariants,
+};
