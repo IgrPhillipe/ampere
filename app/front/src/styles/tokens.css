@@ -24,6 +24,7 @@
 	--neo-sand-soft: #fffaf6;
 	--neo-sand-strong: #d8cfc7;
 	--neo-white: #ffffff;
+	--neo-gray-soft: #f5f5f5;
 	--neo-ink: #002015;
 	--neo-ink-muted: #615d5a;
 	--neo-danger: #c00000;
@@ -43,6 +44,8 @@
 	--secondary-foreground: var(--neo-white);
 	--muted: var(--neo-sand-soft);
 	--muted-foreground: var(--neo-ink-muted);
+	/* `accent` e verde: nao serve de hover neutro para linha de tabela. */
+	--surface-hover: var(--neo-gray-soft);
 	--accent: var(--neo-green-soft);
 	--accent-foreground: var(--neo-green-dark);
 	--destructive: var(--neo-danger);
@@ -100,8 +103,14 @@
 	--ds-space-5: 3rem;
 	--ds-space-6: 4.5rem;
 	--ds-space-7: 6rem;
+	/* Recuo lateral do conteudo de pagina. Uma medida so, para o cabecalho e
+	   para as barras que atravessam a largura toda ficarem alinhados. */
+	--ds-size-page: 100rem;
+	--ds-space-gutter: 2.5rem;
+	--ds-space-gutter-md: 3rem;
 
 	/* Shape, elevation and motion */
+	--ds-radius-xs: 0.25rem;
 	--ds-radius-sm: 0.5rem;
 	--ds-radius-md: 1rem;
 	--ds-radius-lg: 2rem;
@@ -133,6 +142,7 @@
 	--color-muted: var(--muted);
 	--color-muted-foreground: var(--muted-foreground);
 	--color-accent: var(--accent);
+	--color-surface-hover: var(--surface-hover);
 	--color-accent-foreground: var(--accent-foreground);
 	--color-destructive: var(--destructive);
 	--color-destructive-foreground: var(--destructive-foreground);
@@ -184,6 +194,10 @@
 	--text-2xl--line-height: var(--ds-leading-2xl);
 
 	--spacing: var(--ds-space-1);
+	--container-page: var(--ds-size-page);
+	--spacing-gutter: var(--ds-space-gutter);
+	--spacing-gutter-md: var(--ds-space-gutter-md);
+	--radius-xs: var(--ds-radius-xs);
 	--radius-sm: var(--ds-radius-sm);
 	--radius-md: var(--ds-radius-md);
 	--radius-lg: var(--ds-radius-lg);

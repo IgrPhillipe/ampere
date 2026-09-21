@@ -131,7 +131,9 @@ Filtros Todos, Rascunho, Aguardando envio, Em análise, Reprovado e Aprovado, ca
 `Sprint 1` · `US02`
 
 **Descrição:**
-Classe abstrata `BuildingType` com as subclasses `ResidentialMultifamily`, `NonResidential` e `Mixed`, mapeadas com `@Inheritance`. Cada subclasse sobrescreve `applicableStandard()`, que decide a norma a partir do tipo, da tensão e do padrão de entrada. É esta classe que satisfaz o requisito de herança e polimorfismo da disciplina, e é o eixo do screencast de código.
+Classe abstrata `BuildingType` com as subclasses `ResidentialMultifamily`, `NonResidential` e `Mixed`, mapeadas com `@Inheritance`. Cada subclasse sobrescreve `demandRules()`, declarando quais parcelas compõem a demanda daquele tipo e sob qual item de qual norma cada uma é calculada — 6.22.1 e 6.22.4 para residencial, 6.23.1 para não residencial, 6.24.1 para misto. As normas aplicáveis são **derivadas** dessas regras, não escolhidas por condicional. É esta classe que satisfaz o requisito de herança e polimorfismo da disciplina, e é o eixo do screencast de código.
+
+> **Correção.** Este card dizia que `applicableStandard()` "decide a norma a partir do tipo, da tensão e do padrão de entrada" — no singular, e por tensão. Isso contradiz a própria US02, cujo critério de aceite exige *"Norma aplicável: DIS-NOR-053 REV 06 e DIS-NOR-030 REV 07"*, e [`fontes-normativas.md`](../tecnico/fontes-normativas.md), que registra que cada cálculo aplica as duas revisões. Nenhum documento do repositório usa tensão para escolher norma: ela define o mínimo normativo do Anexo I, item 8, e nada além disso. O card foi escrito antes da correção registrada no `AT04-INFRA` acima.
 
 ### `AT02-US02: Entidade Standard e seed das normas vigentes [Backend]`
 `Sprint 1` · `US02`

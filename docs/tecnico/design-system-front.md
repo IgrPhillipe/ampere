@@ -80,10 +80,14 @@ semântico correspondente:
 | Texto secundário | `--muted-foreground` | `text-muted-foreground` |
 | Ação principal | `--primary` | `bg-primary`, `text-primary` |
 | Realce suave | `--accent` | `bg-accent` |
+| Hover de superfície | `--surface-hover` | `bg-surface-hover` |
 | Erro | `--destructive` | `text-destructive` |
 | Alerta | `--warning` | `bg-warning` |
 | Contorno e separador | `--border` | `border-border` |
 | Foco de teclado | `--ring` | `ring-ring` |
+
+`--accent` é verde: serve para realçar, não para interações neutras. Linhas de
+tabela e controles neutros usam `--surface-hover`.
 
 Se a identidade mudar, altere os tokens; não percorra componentes substituindo
 cores fixas.
@@ -96,12 +100,17 @@ próximo.
 
 | Token | Valor | Uso típico |
 | :--- | :--- | :--- |
+| `--ds-radius-xs` | 4 px | botões e controles compactos |
 | `--ds-radius-sm` | 8 px | campos e itens internos |
 | `--ds-radius-md` | 16 px | cartões, tabelas e estados vazios |
 | `--ds-radius-lg` | 32 px | blocos de destaque |
-| `--ds-radius-pill` | circular | botões e badges |
+| `--ds-radius-pill` | circular | badges |
 | `--ds-shadow-sm` | elevação discreta | campos, cartões e tabelas |
 | `--ds-shadow-md` | elevação intermediária | menus e camadas flutuantes |
+
+> **Raio de botão.** Todos os botões herdam 4 px de `--ds-radius-xs`. A pílula
+> fica para badge. Se o desenho mudar, muda o token ou a primitiva compartilhada,
+> não cada chamada de `Button`.
 
 Transições devem ser curtas e funcionais. Não use animação para conteúdo que
 precisa aparecer imediatamente.
@@ -119,9 +128,14 @@ mas foram portados para Base UI e ajustados ao design system.
 - `ghost`: ação discreta em barras e menus.
 - `destructive`: operação perigosa.
 - `link`: ação textual.
+- `neutral`: controle com contorno e hover cinza, usado em paginação e navegação.
 
-Não crie um botão com classes locais de cor ou altura. Escolha `variant` e
-`size`; complemente `className` apenas para posicionamento ou largura.
+Não crie um botão com classes locais de cor, altura ou raio. Escolha `variant`
+e `size`; complemente `className` apenas para posicionamento ou largura.
+
+O design system define a aparência desabilitada. O componente consumidor define
+quando o controle fica desabilitado; por exemplo, a paginação bloqueia a seta
+anterior na primeira página e a próxima seta na última página.
 
 ```tsx
 <Button>Novo projeto</Button>
@@ -164,11 +178,11 @@ duas configurações distintas de navegação.
 Os itens vivem em:
 
 ```text
-app/front/src/components/layout/Sidebar/nav-items.ts
+app/front/src/components/layout/nav-items.ts
 ```
 
-Apesar do caminho legado `Sidebar`, `APP_NAV_ITEMS` é a fonte única tanto para
-o cabeçalho quanto para o painel móvel. Uma área sem rota pode aparecer com
+`APP_NAV_ITEMS` é a fonte única tanto para o cabeçalho quanto para o painel
+móvel. Uma área sem rota pode aparecer com
 `disabled: true`; ela só se torna interativa no mesmo commit que cria a rota.
 
 ```ts

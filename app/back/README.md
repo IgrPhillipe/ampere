@@ -46,7 +46,7 @@ docker compose up -d db
 
 Só o banco em container; a aplicação roda pela IDE ou pelo wrapper, com reinício rápido.
 
-A API sobe em `http://localhost:8080/api` e a documentação em `http://localhost:8080/api/swagger-ui/index.html`.
+A API sobe em `http://localhost:8080/api` e a documentação em `http://localhost:8080/api/docs`.
 
 > **JDK 21 pelo Homebrew é *keg-only*** e não entra no PATH sozinho. Ou exporte
 > `JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home`,
@@ -67,6 +67,76 @@ A API sobe em `http://localhost:8080/api` e a documentação em `http://localhos
 | `docker compose down -v` | derruba tudo e **apaga o volume do banco** |
 
 `./mvnw clean verify` precisa do PostgreSQL no ar: o teste `contextLoads` sobe o contexto inteiro do Spring, incluindo a conexão.
+
+---
+
+## Entrar
+
+`/api/projects` exige token. O `DataSeeder` cria dois usuários de desenvolvimento
+na primeira subida com o banco vazio:
+
+| E-mail | Senha | Papel |
+| :--- | :--- | :--- |
+| `user@ampere.local` | `senha@123` | `user` |
+| `admin@ampere.local` | `senha@123` | `admin` |
+
+São os mesmos do mock do MSW no front, para quem alterna entre mock e API real
+não precisar trocar o que digita. Nenhum papel gateia rota — ver a Q1c.
+
+```bash
+curl -s -X POST http://localhost:8080/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"user@ampere.local","password":"senha@123"}'
+```
+
+| Variável | Para quê |
+| :--- | :--- |
+| `JWT_SECRET` | assina o token, mínimo 32 caracteres. **Obrigatória em produção** — sem ela o profile `prod` não sobe. Fora de produção, sem ela a API gera uma chave por execução e o login cai a cada reinício |
+| `JWT_EXPIRATION` | validade do token; padrão `8h` |
+| `DDL_AUTO` | **alavanca de recuperação, não configuração normal.** `create` apaga o schema e recria pelas entidades, e o `DataSeeder` repovoa. Use uma vez e **remova a variável** — enquanto ela estiver definida, todo restart apaga os dados |
+| `CORS_ALLOWED_ORIGINS` | origens que podem chamar a API de outro domínio, separadas por vírgula. Vazio = só mesma origem. Aceita padrão: `https://ampere.vercel.app,https://*-igrph.vercel.app` |
+
+Gerando uma:
+
+```bash
+openssl rand -base64 48
+```
+
+> **Front em outro domínio precisa de `CORS_ALLOWED_ORIGINS`.** Sem isso o navegador
+> recusa a resposta, e com o Spring Security no caminho o preflight `OPTIONS` volta
+> 401 antes de chegar em qualquer controller. Não vale para o front saindo por um
+> proxy do próprio deploy — aí é mesma origem.
+
+### Schema meio-migrado
+
+Sem Flyway, o `ddl-auto=update` **não altera tipo de coluna** e **não consegue
+acrescentar coluna `NOT NULL` a tabela que já tem linhas**. Nos dois casos ele
+registra um `WARN` no boot e sobe assim mesmo, com a coluna faltando. A API
+atende normalmente até a primeira consulta que toca nela, e aí responde `500`
+sem dizer por quê:
+
+```
+GenerationTarget encountered exception accepting command :
+  Error executing DDL "add column created_at ... not null"
+  [ERROR: column "created_at" of relation "project" contains null values]
+...
+ERROR: column p1_0.created_at does not exist
+```
+
+Com acesso ao banco, derrube as tabelas afetadas e reinicie — o seeder recria.
+**Sem acesso ao banco**, que é o caso de um deploy gerenciado:
+
+1. defina `DDL_AUTO=create` no ambiente e reinicie
+2. o schema é recriado do zero e o `DataSeeder` repovoa (usuários inclusive)
+3. **remova a variável** e reinicie de novo
+
+O passo 3 não é opcional: com `DDL_AUTO=create` fixado, cada restart apaga tudo
+— e um serviço que hiberna reinicia sozinho.
+
+> **Mudou o tipo de uma coluna?** Sem Flyway, o `ddl-auto=update` do Hibernate cria tabela e
+> coluna novas, mas **não** altera o tipo de uma coluna que já existe. Quem já tinha o volume
+> antes da troca de `LocalDateTime` por `OffsetDateTime` precisa de `docker compose down -v`
+> antes de subir. Ver a pendência 23 em [`docs/pendencias.md`](../../docs/pendencias.md).
 
 ---
 
@@ -98,13 +168,23 @@ src/main/java/br/com/ampere/
 └── config/       → configuração e bootstrap
 ```
 
-A fatia `example` existe só para demonstrar a pilha completa e **deve ser apagada** quando as classes de domínio do AMPERE entrarem.
+A fatia `projects` implementa o primeiro fluxo real ponta a ponta: domínio, persistência, serviço e o CRUD completo.
+
+As classes de domínio persistidas são **quatro**, acima do mínimo de três da disciplina: `Project`, `BuildingType` (abstrata, com `ResidentialMultifamily`, `NonResidential` e `Mixed`), `Standard` e `Finding`. A herança e o polimorfismo não são decorativos — `BuildingType.demandRules()` é sobrescrito por subclasse e é dele que a norma aplicável de cada projeto é derivada.
 
 ---
 
 ## Estado atual
 
-Scaffold. **Sem autenticação** — os endpoints estão abertos, porque os papéis de usuário dependem da Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md), ainda em aberto. **Sem migrations versionadas** — o Hibernate cria o schema a partir das entidades. As duas pendências estão registradas em [`docs/pendencias.md`](../../docs/pendencias.md).
+CRUD completo de projetos, com atribuição automática das normas aplicáveis a partir do tipo de edificação. **Sem autenticação** — os endpoints estão abertos, porque os papéis de usuário dependem da Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md), ainda em aberto. **Sem migrations versionadas** — o Hibernate cria o schema a partir das entidades. As duas pendências estão registradas em [`docs/pendencias.md`](../../docs/pendencias.md).
+
+> **Ao puxar esta branch, apague o banco de desenvolvimento uma vez.** O `project` ganhou colunas `NOT NULL`, e o PostgreSQL recusa adicioná-las a uma tabela populada — o `ddl-auto=update` loga a falha e sobe mesmo assim, contra um schema incompleto. `docker compose down -v` e o `DataSeeder` repovoa tudo.
+>
+> O `-v` leva junto o banco de testes, que mora no mesmo container. Recrie antes de rodar o `verify`:
+>
+> ```bash
+> docker exec ampere-db-1 psql -U ampere -d ampere -c "CREATE DATABASE ampere_test OWNER ampere;"
+> ```
 
 ---
 

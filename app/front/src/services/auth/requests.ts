@@ -1,11 +1,27 @@
-import type { ApiResponse } from "@features/shared";
+import { apiResponseSchema } from "@features/shared";
 import { http } from "@lib/http";
 
 import { AuthEndpoints as e } from "./endpoints";
-import type { AuthUser, LoginResponse } from "./schemas";
+import { authUserSchema, loginResponseSchema } from "./schemas";
 import type { LoginPayload } from "./types";
 
-export const login = (payload: LoginPayload) =>
-	http.post(e.login, { json: payload }).json<ApiResponse<LoginResponse>>();
+const loginEnvelopeSchema = apiResponseSchema(loginResponseSchema);
+const meEnvelopeSchema = apiResponseSchema(authUserSchema);
 
-export const getMe = () => http.get(e.me).json<ApiResponse<AuthUser>>();
+/**
+ * `.parse()` e nao `.json<T>()`: a versao com generico e promessa de tipo, nao
+ * verificacao. Se o back mudar a forma do login, o TypeScript continua
+ * satisfeito e a falha aparece longe dali, como `undefined` no meio de um
+ * componente — que e o modo de falha que o Zod existe para evitar.
+ */
+export const login = async (payload: LoginPayload) => {
+	const response = await http.post(e.login, { json: payload }).json<unknown>();
+
+	return loginEnvelopeSchema.parse(response);
+};
+
+export const getMe = async () => {
+	const response = await http.get(e.me).json<unknown>();
+
+	return meEnvelopeSchema.parse(response);
+};

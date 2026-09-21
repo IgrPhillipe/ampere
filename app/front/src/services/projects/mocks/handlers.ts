@@ -2,7 +2,8 @@ import { HttpResponse, http } from "msw";
 
 import { ProjectEndpoints as e } from "../endpoints";
 import { projectStatusSchema } from "../schemas";
-import { MOCK_PROJECT_UCS, MOCK_PROJECTS, makeProjectList } from "./factories";
+import { makeProjectList, makeProjectStatusCountsResponse } from "./factories";
+import { MOCK_PROJECTS } from "./fixtures";
 
 const url = (path: string) => `/api/${path}`;
 
@@ -55,11 +56,8 @@ export const projectHandlers = [
 
 			if (!search) return true;
 
-			const searchableContent = [
-				project.name,
-				project.protocol,
-				...(MOCK_PROJECT_UCS[project.id] ?? []),
-			]
+			// Nome e protocolo, e so: e o que `GET /projects` promete buscar.
+			const searchableContent = [project.name, project.protocol]
 				.map(normalize)
 				.join(" ");
 
@@ -78,4 +76,8 @@ export const projectHandlers = [
 			}),
 		);
 	}),
+
+	http.get(url(e.statusCounts), () =>
+		HttpResponse.json(makeProjectStatusCountsResponse()),
+	),
 ];

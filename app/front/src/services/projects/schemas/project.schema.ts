@@ -1,3 +1,4 @@
+import { apiResponseSchema, paginatedResponseSchema } from "@features/shared";
 import { z } from "zod";
 
 export const projectStatusSchema = z.enum([
@@ -17,8 +18,10 @@ export const projectSchema = z.object({
 	municipality: z.string(),
 	protocol: z.string(),
 	status: projectStatusSchema,
-	createdAt: z.iso.datetime({ local: true }).optional(),
-	updatedAt: z.iso.datetime({ local: true }),
+	// `offset: true` aceita `Z` e `±HH:mm`, e recusa timestamp sem fuso: sem o
+	// offset o `fromNow()` resolve pelo relogio do navegador e sai deslocado.
+	createdAt: z.iso.datetime({ offset: true }),
+	updatedAt: z.iso.datetime({ offset: true }),
 	pendingCount: z.number().int().nonnegative(),
 });
 
@@ -35,20 +38,18 @@ export const projectStatusCountsSchema = z.object({
 
 export type ProjectStatusCounts = z.infer<typeof projectStatusCountsSchema>;
 
-export const projectListSchema = z.object({
-	projects: z.array(projectSchema),
-	statusCounts: projectStatusCountsSchema,
-});
-
-export type ProjectList = z.infer<typeof projectListSchema>;
-
-export const projectListResponseSchema = z.object({
-	data: projectListSchema,
-	pagination: z.object({
-		total: z.number().int().nonnegative(),
-		page: z.number().int().positive(),
-		pageSize: z.number().int().positive(),
-	}),
-});
+/** `GET /projects` — a página, sem os contadores. */
+export const projectListResponseSchema = paginatedResponseSchema(
+	z.array(projectSchema),
+);
 
 export type ProjectListResponse = z.infer<typeof projectListResponseSchema>;
+
+/** `GET /projects/status-counts` — contadores globais, sem paginação. */
+export const projectStatusCountsResponseSchema = apiResponseSchema(
+	projectStatusCountsSchema,
+);
+
+export type ProjectStatusCountsResponse = z.infer<
+	typeof projectStatusCountsResponseSchema
+>;

@@ -2,26 +2,36 @@ import { createDataTableColumnHelper } from "@components/DataTable";
 import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
 import type { Project } from "@services/projects";
-import { ArrowRight } from "lucide-react";
+
+import { projectStatusLabels } from "../../constants";
+import { InlineActionButton } from "./InlineActionButton";
 
 const columnHelper = createDataTableColumnHelper<Project>();
 
-const projectStatusLabels: Record<Project["status"], string> = {
-	DRAFT: "Rascunho",
-	AWAITING_SUBMISSION: "Aguardando envio",
-	UNDER_REVIEW: "Em análise",
-	REJECTED: "Reprovado",
-	APPROVED: "Aprovado",
-};
+/** Ids das colunas, para `columnClassNames` nao aceitar chave inventada. */
+export type ProjectColumnId = "name" | "status" | "createdAt" | "updatedAt";
+
+/** Reprovado com pendencia oferece "Ver apontamentos". */
+const isRejectedWithFindings = (project: Project) =>
+	project.status === "REJECTED" && project.pendingCount > 0;
 
 const hasProjectAction = (project: Project) =>
-	project.status === "AWAITING_SUBMISSION" ||
-	(project.status === "REJECTED" && project.pendingCount > 0);
+	project.status === "AWAITING_SUBMISSION" || isRejectedWithFindings(project);
 
-export const createProjectColumns = (
-	onViewFindings: (project: Project) => void,
-	onResumeSubmission: (project: Project) => void,
-) =>
+interface ProjectColumnActions {
+	onViewFindings: (project: Project) => void;
+	onResumeSubmission: (project: Project) => void;
+}
+
+/**
+ * Objeto, nao dois parametros posicionais: os dois callbacks tem a mesma
+ * assinatura, entao trocar a ordem compilava e quebrava em silencio — "Ver
+ * apontamentos" abriria a retomada de envio.
+ */
+export const createProjectColumns = ({
+	onViewFindings,
+	onResumeSubmission,
+}: ProjectColumnActions) =>
 	columnHelper.columns([
 		columnHelper.accessor("name", {
 			header: "Projeto",
@@ -45,24 +55,13 @@ export const createProjectColumns = (
 				</div>
 			),
 		}),
-		columnHelper.display({
-			id: "units",
-			header: "UCs",
-			cell: () => <span aria-label="Dado ainda não disponível">—</span>,
-		}),
-		columnHelper.display({
-			id: "demand",
-			header: "Demanda",
-			cell: () => <span aria-label="Dado ainda não disponível">—</span>,
-		}),
 		columnHelper.accessor("status", {
 			header: "Situação",
 			cell: ({ row }) => (
 				<div className="flex min-w-40 flex-col items-start gap-1.5">
 					<span className="font-mono text-xs tracking-[0.08em] text-foreground uppercase">
 						{projectStatusLabels[row.original.status]}
-						{row.original.status === "REJECTED" &&
-						row.original.pendingCount > 0 ? (
+						{isRejectedWithFindings(row.original) ? (
 							<>
 								{" — "}
 								{row.original.pendingCount}{" "}
@@ -70,42 +69,30 @@ export const createProjectColumns = (
 							</>
 						) : null}
 					</span>
-					{row.original.status === "REJECTED" &&
-					row.original.pendingCount > 0 ? (
-						<button
-							type="button"
-							onClick={() => onViewFindings(row.original)}
-							className="inline-flex items-center gap-2 text-xs text-foreground underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-						>
+					{isRejectedWithFindings(row.original) ? (
+						<InlineActionButton onClick={() => onViewFindings(row.original)}>
 							Ver apontamentos
-							<ArrowRight className="size-3.5" aria-hidden="true" />
-						</button>
+						</InlineActionButton>
 					) : row.original.status === "AWAITING_SUBMISSION" ? (
-						<button
-							type="button"
+						<InlineActionButton
 							onClick={() => onResumeSubmission(row.original)}
-							className="inline-flex items-center gap-2 text-xs text-foreground underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
 						>
 							Retomar e enviar
-							<ArrowRight className="size-3.5" aria-hidden="true" />
-						</button>
+						</InlineActionButton>
 					) : null}
 				</div>
 			),
 		}),
 		columnHelper.accessor("createdAt", {
 			header: "Criado em",
-			cell: ({ row }) =>
-				row.original.createdAt ? (
-					<time
-						dateTime={row.original.createdAt}
-						className="font-mono text-xs text-foreground"
-					>
-						{dayjs(row.original.createdAt).format("DD.MM.YYYY")}
-					</time>
-				) : (
-					<span aria-label="Dado ainda não disponível">—</span>
-				),
+			cell: ({ row }) => (
+				<time
+					dateTime={row.original.createdAt}
+					className="font-mono text-xs text-foreground"
+				>
+					{dayjs(row.original.createdAt).format("DD.MM.YYYY")}
+				</time>
+			),
 		}),
 		columnHelper.accessor("updatedAt", {
 			header: "Atualizado",

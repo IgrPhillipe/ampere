@@ -1,8 +1,10 @@
-import { useAuthStore } from "@features/auth/store";
+import {
+	APP_NAV_ITEMS,
+	filterNavItemsByRole,
+} from "@components/layout/nav-items";
+import { useAuthStore } from "@features/shared";
 import { cn } from "@lib/utils";
 import { Link } from "@tanstack/react-router";
-
-import { APP_NAV_ITEMS, filterNavItemsByRole } from "../Sidebar/nav-items";
 
 interface HeaderNavProps {
 	orientation?: "horizontal" | "vertical";

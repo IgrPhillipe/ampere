@@ -33,10 +33,10 @@ O scaffold do `app/front` está no repositório. React 19 com Vite 8, TanStack
 Router e Query, Tailwind 4 e shadcn/ui sobre Base UI, com MSW interceptando
 as chamadas em desenvolvimento.
 
-| Documento | Conteúdo |
-| :--- | :--- |
-| [`convencoes-front.md`](convencoes-front.md) | **documento único da stack** — estrutura, nomes e aliases; camadas, roteamento, auth, erros e tema; e as receitas passo a passo para criar feature, service, rota e componente |
-| [`design-system-front.md`](design-system-front.md) | identidade visual Neoenergia, tokens, componentes compartilhados, navegação e regras de uso da logo |
+| Documento                                          | Conteúdo                                                                                                                                                                       |
+| :------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`convencoes-front.md`](convencoes-front.md)       | **documento único da stack** — estrutura, nomes e aliases; camadas, roteamento, auth, erros e tema; e as receitas passo a passo para criar feature, service, rota e componente |
+| [`design-system-front.md`](design-system-front.md) | identidade visual Neoenergia, tokens, componentes compartilhados, navegação e regras de uso da logo                                                                            |
 
 Como executar: [`app/front/README.md`](../../app/front/README.md).
 
@@ -48,8 +48,8 @@ Estado atual: o login ainda responde contra o MSW, porque a autenticação depen
 
 O scaffold do `app/back` está no repositório: Java 21 com Spring Boot 4.1, Spring Data JPA sobre PostgreSQL, tudo containerizado.
 
-| Documento | Conteúdo |
-| :--- | :--- |
+| Documento                                  | Conteúdo                                                                                                                                                              |
+| :----------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`convencoes-back.md`](convencoes-back.md) | **documento único da stack** — nomenclatura e pacotes; camadas, contrato com o front, banco e Docker; e a receita passo a passo para criar uma entidade ponta a ponta |
 
 Como executar: [`app/back/README.md`](../../app/back/README.md).

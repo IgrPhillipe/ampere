@@ -1,10 +1,13 @@
 import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
+import { Pagination } from "@components/Pagination";
+import { SearchInput } from "@components/SearchInput";
 import { Button } from "@components/ui/button";
 import {
 	type Project,
 	type ProjectStatusCounts,
 	useGetProjectList,
+	useGetProjectStatusCounts,
 } from "@services/projects";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, CircleAlert } from "lucide-react";
@@ -12,9 +15,9 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 
 import {
-	ProjectFilters,
-	ProjectPagination,
+	ProjectStatusFilters,
 	ProjectsTable,
+	ProjectToolbar,
 } from "../../components";
 import { useProjectFilters } from "../../hooks";
 
@@ -36,20 +39,27 @@ export const ProjectsPage = () => {
 		search,
 		debouncedSearch,
 		page,
+		hasActiveFilters,
 		setStatus,
 		setSearch,
 		setPage,
+		clearFilters,
 	} = useProjectFilters();
 	const projectsQuery = useGetProjectList({
 		page,
 		pageSize: PAGE_SIZE,
-		status: status === "ALL" ? undefined : status,
+		status: status ?? undefined,
 		search: debouncedSearch || undefined,
 	});
+	// Contadores em query própria: são globais e não mudam ao paginar nem ao buscar.
+	const statusCountsQuery = useGetProjectStatusCounts();
 
-	const projects = projectsQuery.data?.data.projects ?? [];
-	const counts = projectsQuery.data?.data.statusCounts ?? emptyStatusCounts;
+	const projects = projectsQuery.data?.data ?? [];
+	const counts = statusCountsQuery.data?.data ?? emptyStatusCounts;
 	const pagination = projectsQuery.data?.pagination;
+	// Contador que falhou mostra "00" como se fosse dado. As duas queries
+	// respondem pela mesma tela, entao uma falha derruba a tela inteira.
+	const hasError = projectsQuery.isError || statusCountsQuery.isError;
 
 	const handleViewFindings = useCallback((project: Project) => {
 		toast.info(
@@ -71,34 +81,43 @@ export const ProjectsPage = () => {
 		<PageLayout
 			title="Meus projetos"
 			description="Acompanhe o andamento dos projetos enviados à Neoenergia Pernambuco."
-			headingClassName="pl-6 md:pl-5"
+			bleed
 			actions={
 				<Button
 					type="button"
 					size="sm"
-					className="rounded-[4px]"
 					onClick={() => void navigate({ to: "/projects/new" })}
 				>
 					Novo projeto
 					<ArrowRight aria-hidden="true" />
 				</Button>
 			}
-			className="mx-auto min-h-full w-full max-w-[1600px] pb-0 md:pb-0"
+			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
 			<section
 				className="flex flex-1 flex-col bg-card"
 				aria-label="Listagem de projetos"
 			>
-				<ProjectFilters
-					counts={counts}
-					status={status}
-					search={search}
-					onStatusChange={(value) => void setStatus(value)}
-					onSearchChange={(value) => void setSearch(value)}
+				<ProjectToolbar
+					filters={
+						<ProjectStatusFilters
+							counts={counts}
+							value={status}
+							onValueChange={setStatus}
+						/>
+					}
+					search={
+						<SearchInput
+							value={search}
+							onValueChange={setSearch}
+							placeholder="Buscar por nome ou protocolo"
+							label="Buscar projetos"
+						/>
+					}
 				/>
 
-				<div className="flex-1 px-6 py-4 md:px-7 md:py-5">
-					{projectsQuery.isError ? (
+				<div className="flex-1 px-gutter py-4 md:px-gutter-md md:py-5">
+					{hasError ? (
 						<EmptyState
 							title="Não foi possível carregar os projetos"
 							description="Verifique sua conexão e tente novamente."
@@ -107,7 +126,10 @@ export const ProjectsPage = () => {
 								<Button
 									type="button"
 									variant="outline"
-									onClick={() => void projectsQuery.refetch()}
+									onClick={() => {
+										void projectsQuery.refetch();
+										void statusCountsQuery.refetch();
+									}}
 								>
 									Tentar novamente
 								</Button>
@@ -119,16 +141,18 @@ export const ProjectsPage = () => {
 							isLoading={projectsQuery.isPending}
 							onViewFindings={handleViewFindings}
 							onResumeSubmission={handleResumeSubmission}
+							onClearFilters={hasActiveFilters ? clearFilters : undefined}
 						/>
 					)}
 				</div>
 
-				{pagination && !projectsQuery.isError ? (
-					<ProjectPagination
+				{pagination && !hasError ? (
+					<Pagination
 						page={pagination.page}
 						pageSize={pagination.pageSize}
 						total={pagination.total}
-						onPageChange={(nextPage) => void setPage(nextPage)}
+						onPageChange={setPage}
+						itemLabel="projetos"
 					/>
 				) : null}
 			</section>

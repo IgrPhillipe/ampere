@@ -41,13 +41,28 @@
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
+		<!--
+			Autenticacao. O `oauth2-resource-server` entra pelo decodificador e pelo
+			codificador de JWT do Nimbus: evita uma biblioteca de JWT de terceiro,
+			e o token e assinado com segredo simetrico (HS256), nao com par de
+			chaves — nao ha outro servico emitindo token aqui.
+		-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Swagger UI em /api/swagger-ui/index.html -->
+		<!-- Swagger UI em /api/docs -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -69,6 +84,11 @@
 			<artifactId>spring-boot-starter-validation-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -87,7 +107,17 @@
 				<groupId>com.diffplug.spotless</groupId>
 				<artifactId>spotless-maven-plugin</artifactId>
 				<version>${spotless.version}</version>
+				<executions>
+					<execution>
+						<id>spotless-check</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
+					<lineEndings>UNIX</lineEndings>
 					<java>
 						<googleJavaFormat/>
 						<removeUnusedImports/>

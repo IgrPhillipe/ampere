@@ -18,7 +18,7 @@ src/
 ├── components/
 │   ├── ui/                 # primitivos do shadcn — kebab-case, sem pasta propria
 │   ├── form/               # wrappers de formulario ligados ao react-hook-form
-│   ├── layout/             # AppShell, Header, navegação, Footer, PageLayout
+│   ├── layout/             # AppShell, AppLayout, Header, nav-items, PageLayout
 │   └── <ComponentName>/    # componente compartilhado — pasta PascalCase + barrel
 ├── config/                 # variaveis de ambiente validadas (config.ts)
 ├── features/
@@ -38,9 +38,9 @@ src/
 
 | Contexto | Padrão | Exemplo |
 | :--- | :--- | :--- |
-| Componentes e páginas | PascalCase | `ProjectListPage`, `DataTable` |
+| Componentes e páginas | PascalCase | `ProjectsPage`, `DataTable` |
 | Hooks | `use<Ação><Entidade>` | `useGetProjects`, `useZodForm` |
-| Requests | camelCase verbo+substantivo | `getProjects`, `createProject` |
+| Requests | camelCase verbo+substantivo | `getProjectList`, `createProject` |
 | Variáveis | camelCase | `pageCount`, `isLoading` |
 | Constantes | UPPER_SNAKE_CASE | `PAGE_SIZE`, `PUBLIC_PATHS` |
 | Arquivos de schema | `<entidade>.schema.ts` | `project.schema.ts` |
@@ -124,6 +124,34 @@ como o CLI do shadcn leem, já que elas não enxergam project references). O
 - Nunca leia `import.meta.env` fora de `src/config/config.ts` — importe `AppConfig` de `@config`.
 - Nunca instancie `ky` ou `QueryClient` fora de `src/lib`.
 - Rotas são só fiação: nada de regra de negócio em `src/routes`.
+- Todo componente compartilhado aceita `className?: string` e funde com `cn()`
+  **por último** — quem consome precisa conseguir sobrescrever.
+- Resposta de API se valida com `.parse()` do schema Zod, nunca com
+  `.json<T>()`: genérico é promessa de tipo, não verificação.
+
+### Props
+
+| Camada | Convenção | Exemplo |
+| :--- | :--- | :--- |
+| Componente-folha | `value` / `onValueChange` (convenção Base UI) | `SearchInput`, `ProjectStatusFilters` |
+| Container | nomes de domínio | `status` / `onStatusChange` |
+| Ação específica | `on<Verbo><Substantivo>` | `onViewFindings`, `onResumeSubmission` |
+
+- Dois callbacks com a **mesma assinatura** viram objeto de opções. Posicionais,
+  trocar a ordem compila e quebra em silêncio.
+- Mais de dois filhos fixos: use `children` ou slots `ReactNode`, não props de
+  pass-through. `PageLayout` (`actions` + `children`), `EmptyState` (`icon`,
+  `action`) e `ProjectToolbar` (`filters`, `search`) são o modelo.
+
+### Onde cada tipo mora
+
+| Arquivo | O que guarda |
+| :--- | :--- |
+| `services/<e>/schemas/` | inferido do Zod: o que **vem** da API |
+| `services/<e>/types.ts` | o que **vai** para a API (parâmetros de request) |
+| `features/<f>/types/` | o que só existe na tela |
+| `features/shared/types/` | o que atravessa features |
+| `features/shared/schemas/api.schema.ts` | o envelope de resposta, um lugar só |
 
 ---
 
@@ -180,16 +208,19 @@ automaticamente, mas só quando `app/front` mudou.
 **Fluxo de dependência:** routes → features → services → lib → config.
 Camada de cima importa camada de baixo, nunca o contrário.
 
-### As duas inversões sancionadas
+### A inversão sancionada
 
-Existem exatamente duas, e são deliberadas:
+Existe exatamente uma: `services/` importa o envelope de resposta
+(`apiResponseSchema`, `ApiResponse`) de `@features/shared`. O envelope é
+contrato compartilhado, não lógica de domínio, e a store zustand é singleton de
+módulo, então não há ciclo.
 
-1. `services/` importa `ApiResponse` de `@features/shared`. O envelope de
-   resposta é um tipo compartilhado, não lógica de domínio.
-2. `lib/http` e `lib/route-guard` importam `@features/auth/store`. O cliente
-   HTTP precisa do token para o header `Authorization` e as guards precisam
-   saber se há sessão. A store zustand é um singleton de módulo, então isso não
-   cria ciclo — o store não importa nada de `lib`.
+Estado que **todas** as camadas precisam — a sessão, os papéis de usuário — mora
+em `features/shared/store` e `features/shared/types`, não dentro da feature que
+o consome mais. Foi de lá que vieram as dez violações da primeira regra: o
+`lib/http` precisa do token, o `route-guard` precisa saber se há sessão e o
+`Header` precisa do usuário, e nenhum dos três conseguia respeitar a regra
+enquanto a store morasse em `features/auth`.
 
 Qualquer outra inversão é bug.
 
@@ -279,7 +310,7 @@ navegação costumam ser específicos.
 | Servidor / cache | TanStack Query | `services/<entidade>/hooks/` |
 | Global do app | zustand `useAppStore` | `features/shared/store/` |
 | Global de uma feature | slice zustand | `features/<feature>/store/` |
-| Na URL (filtros, paginação) | nuqs | `features/<feature>/search-params.ts` |
+| Na URL (filtros, paginação) | nuqs | `features/<feature>/hooks/use<Feature>Filters/` |
 | Local simples | `useState` | no componente |
 | Local persistido | `useLocalStorage` | `@features/shared` |
 
@@ -336,12 +367,12 @@ mkdir -p projects/{pages,components,hooks,schemas,types,store}
 export {};
 ```
 
-3. Crie a página em `pages/ProjectListPage/`, sempre pasta + barrel:
+3. Crie a página em `pages/ProjectsPage/`, sempre pasta + barrel:
 
 ```
-pages/ProjectListPage/ProjectListPage.tsx   ← export const ProjectListPage = () => ...
-pages/ProjectListPage/index.ts              ← export * from "./ProjectListPage";
-pages/index.ts                              ← export * from "./ProjectListPage";
+pages/ProjectsPage/ProjectsPage.tsx   ← export const ProjectsPage = () => ...
+pages/ProjectsPage/index.ts           ← export * from "./ProjectsPage";
+pages/index.ts                        ← export * from "./ProjectsPage";
 ```
 
 4. Crie o barrel da feature em `projects/index.ts`:
@@ -360,7 +391,7 @@ export * from "./types";
 ```tsx
 import { PageLayout } from "@components/layout";
 
-export const ProjectListPage = () => (
+export const ProjectsPage = () => (
 	<PageLayout title="Projetos" description="Todos os seus projetos elétricos.">
 		{/* conteúdo */}
 	</PageLayout>
@@ -373,7 +404,8 @@ export const ProjectListPage = () => (
 
 > Service é **API**. Uma pasta por entidade.
 
-**Modelo do padrão:** `src/services/example/` · **caso real:** `src/services/auth/`
+**Modelo do padrão:** `src/services/projects/` — é a fatia que valida a resposta
+com Zod, que é o comportamento esperado de toda fatia.
 
 1. Estrutura:
 
@@ -414,14 +446,24 @@ export type Project = z.infer<typeof projectSchema>;
 4. **`requests.ts`** — funções puras, sem React:
 
 ```ts
-import type { ApiResponse } from "@features/shared";
+import { apiResponseSchema } from "@features/shared";
 import { http } from "@lib/http";
 
 import { ProjectsEndpoints as e } from "./endpoints";
-import type { Project } from "./schemas";
+import { projectSchema } from "./schemas";
 
-export const getProjects = () => http.get(e.list).json<ApiResponse<Project[]>>();
+const listResponseSchema = apiResponseSchema(z.array(projectSchema));
+
+export const getProjectList = async () => {
+	const response = await http.get(e.list).json<unknown>();
+
+	return listResponseSchema.parse(response);
+};
 ```
+
+> `.json<T>()` seria promessa de tipo, não verificação: se o back mudar a forma
+> da resposta, o TypeScript continua satisfeito e a falha aparece longe dali,
+> como `undefined` no meio de um componente.
 
 5. **`query-keys.ts`** — fábrica hierárquica, para invalidar em bloco:
 
@@ -439,10 +481,10 @@ export const projectKeys = {
 import { useQuery } from "@tanstack/react-query";
 
 import { projectKeys } from "../../../query-keys";
-import { getProjects } from "../../../requests";
+import { getProjectList } from "../../../requests";
 
 export const useGetProjects = () =>
-	useQuery({ queryKey: projectKeys.lists(), queryFn: getProjects });
+	useQuery({ queryKey: projectKeys.lists(), queryFn: getProjectList });
 ```
 
 7. **Hook de mutation** — aqui o erro é tratado, porque sucesso e navegação são específicos:
@@ -490,11 +532,11 @@ export const projectHandlers = [
 2. Rota só faz fiação — a tela vem da feature:
 
 ```tsx
-import { ProjectListPage } from "@features/projects";
+import { ProjectsPage } from "@features/projects";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/projetos")({
-	component: ProjectListPage,
+	component: ProjectsPage,
 });
 ```
 
@@ -530,7 +572,7 @@ export const Route = createFileRoute("/admin")({
    **Commite o arquivo gerado** — o `pnpm type-check` depende dele.
 
 6. Para o item aparecer na navegação principal, acrescente em
-   `src/components/layout/Sidebar/nav-items.ts`:
+   `src/components/layout/nav-items.ts`:
 
 ```ts
 export const APP_NAV_ITEMS: NavItem[] = [
@@ -538,8 +580,8 @@ export const APP_NAV_ITEMS: NavItem[] = [
 ];
 ```
 
-O caminho `Sidebar` é legado, mas o array é compartilhado pelo cabeçalho
-horizontal e pelo painel móvel. Não habilite um item antes de a rota existir.
+O array é a fonte única do cabeçalho horizontal e do painel móvel. Não habilite
+um item antes de a rota existir.
 
 ---
 
@@ -591,14 +633,16 @@ usando a tabela de equivalências em `app/front/.migration/2026-09-base-ui-batch
 | Cliente HTTP | `@lib/http` (`http`) |
 | Mensagem de erro para toast | `@lib/api-error` (`getToastErrorMessage`) |
 | Guard de rota | `@lib/route-guard` (`requireAuth`, `requireRoles`) |
-| Sessão do usuário | `@features/auth/store` (`useAuthStore`) |
+| Sessão do usuário | `@features/shared` (`useAuthStore`) |
 | Formulário com Zod | `@features/shared` (`useZodForm`) |
 | Campo de formulário | `@components/form` (`ControlledInput`, `FormField`) |
 | Tabela | `@components/DataTable` (`DataTable`, `createDataTableColumnHelper`) |
 | Estado vazio / esqueleto | `@components/EmptyState`, `@components/SkeletonTable` |
 | Cabeçalho de página | `@components/layout` (`PageLayout`) |
 | Tokens e regras visuais | [`design-system-front.md`](design-system-front.md) |
-| Máscaras e validadores BR | `@features/shared` (CPF, CNPJ, CEP, telefone, BRL) |
+| Busca com atraso | `@features/shared` (`useDebouncedValue`) |
+| Campo de busca / paginação | `@components/SearchInput`, `@components/Pagination` |
+| Envelope de resposta | `@features/shared` (`apiResponseSchema`, `paginatedResponseSchema`) |
 | Variável de ambiente | `@config` (`AppConfig`) |
 
 ---

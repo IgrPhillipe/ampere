@@ -1,4 +1,5 @@
-import type { ProjectStatus } from "@services/projects";
+import { useDebouncedValue } from "@features/shared";
+import { type ProjectStatus, projectStatusSchema } from "@services/projects";
 import {
 	debounce,
 	parseAsInteger,
@@ -6,24 +7,16 @@ import {
 	parseAsStringLiteral,
 	useQueryState,
 } from "nuqs";
-
-import type { ProjectStatusFilter } from "../../types";
-import { useDebouncedValue } from "../useDebouncedValue";
-
-const projectStatuses = [
-	"DRAFT",
-	"AWAITING_SUBMISSION",
-	"UNDER_REVIEW",
-	"REJECTED",
-	"APPROVED",
-] as const satisfies readonly ProjectStatus[];
+import { useCallback } from "react";
 
 const SEARCH_DEBOUNCE_MS = 350;
 
 export const useProjectFilters = () => {
-	const [statusQuery, setStatusQuery] = useQueryState(
+	// `null` e "todos": o parser do nuqs ja devolve null quando a chave nao
+	// esta na URL, entao nao ha sentinela "ALL" para converter em tres pontos.
+	const [status, setStatusQuery] = useQueryState(
 		"status",
-		parseAsStringLiteral(projectStatuses),
+		parseAsStringLiteral(projectStatusSchema.options),
 	);
 	const [search, setSearchQuery] = useQueryState(
 		"search",
@@ -35,27 +28,58 @@ export const useProjectFilters = () => {
 		"page",
 		parseAsInteger.withDefault(1),
 	);
-	const status: ProjectStatusFilter = statusQuery ?? "ALL";
+	/**
+	 * Dois debounces, trabalhos diferentes: o `limitUrlUpdates` adia a escrita
+	 * na URL (o valor devolvido e imediato, entao o campo responde na tecla) e
+	 * este segura a query. Tirar um nao substitui o outro.
+	 */
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
-	const setStatus = (status: ProjectStatusFilter) =>
-		Promise.all([
-			setStatusQuery(status === "ALL" ? null : status),
-			setPageQuery(null),
-		]);
+	/**
+	 * Os setters devolvem `void`, nao a promessa do nuqs: ninguem aguardava, e
+	 * os quatro `void` que descartavam o retorno so escondiam isso. `useCallback`
+	 * mantem a identidade estavel — os setters do nuqs ja sao — para a pagina
+	 * poder passar a referencia direto, sem arrow recriada a cada render.
+	 */
+	const setStatus = useCallback(
+		(status: ProjectStatus | null) => {
+			void setStatusQuery(status);
+			void setPageQuery(null);
+		},
+		[setStatusQuery, setPageQuery],
+	);
 
-	const setSearch = (value: string) =>
-		Promise.all([setSearchQuery(value || null), setPageQuery(null)]);
+	const setSearch = useCallback(
+		(value: string) => {
+			void setSearchQuery(value || null);
+			void setPageQuery(null);
+		},
+		[setSearchQuery, setPageQuery],
+	);
 
-	const setPage = (nextPage: number) => setPageQuery(nextPage);
+	const setPage = useCallback(
+		(nextPage: number) => {
+			void setPageQuery(nextPage);
+		},
+		[setPageQuery],
+	);
+
+	const clearFilters = useCallback(() => {
+		void setStatusQuery(null);
+		void setSearchQuery(null);
+		void setPageQuery(null);
+	}, [setStatusQuery, setSearchQuery, setPageQuery]);
 
 	return {
 		status,
 		search,
 		debouncedSearch,
 		page,
+		// Lista vazia com filtro ativo pede "Limpar filtros"; sem filtro, nao.
+		hasActiveFilters: status !== null || search.trim() !== "",
 		setStatus,
 		setSearch,
 		setPage,
+		clearFilters,
 	};
 };
