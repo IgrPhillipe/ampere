@@ -17,7 +17,6 @@ interface ControlledInputProps<T extends FieldValues>
 	description?: ReactNode;
 }
 
-/** Input wired to react-hook-form. */
 export const ControlledInput = <T extends FieldValues>({
 	control,
 	name,

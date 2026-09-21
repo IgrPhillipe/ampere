@@ -15,7 +15,6 @@ interface SearchInputProps {
 const inputClassName =
 	"rounded-none border-x-0 border-t-0 pr-11 pl-10 shadow-none [&::-webkit-search-cancel-button]:appearance-none";
 
-/** Search field with a magnifier and a clear button. */
 export const SearchInput = ({
 	value,
 	onValueChange,

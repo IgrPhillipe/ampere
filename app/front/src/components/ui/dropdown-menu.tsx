@@ -118,7 +118,7 @@ function DropdownMenuRadioItem({
 	);
 }
 
-/** Standalone menu label. */
+/** Standalone label: Base UI's `Menu.GroupLabel` throws outside a `Menu.Group`. */
 function DropdownMenuLabel({
 	className,
 	...props

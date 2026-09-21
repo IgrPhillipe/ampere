@@ -37,7 +37,6 @@ const clean = (value: unknown): string | undefined => {
 	return trimmed && !NOISE.has(trimmed.toLowerCase()) ? trimmed : undefined;
 };
 
-/** Normalizes Spring's error JSON into a single string. */
 export const parseSpringErrorBody = (
 	body: SpringErrorBody,
 ): string | undefined => {

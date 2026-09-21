@@ -12,7 +12,6 @@ interface PaginationProps {
 	className?: string;
 }
 
-/** Previous / next plus the range on display. */
 export const Pagination = ({
 	page,
 	pageSize,

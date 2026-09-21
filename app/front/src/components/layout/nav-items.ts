@@ -13,7 +13,6 @@ export interface NavItem {
 	disabled?: boolean;
 }
 
-/** Items of the main navigation. */
 export const APP_NAV_ITEMS: NavItem[] = [
 	{ to: "/", label: "Meus projetos", exact: true },
 	{ label: "Novo projeto", disabled: true },

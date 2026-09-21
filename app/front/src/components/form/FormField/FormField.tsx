@@ -15,7 +15,6 @@ interface FormFieldProps {
 	className?: string;
 }
 
-/** Shell of a field: label, control, description and error. */
 export const FormField = ({
 	label,
 	description,

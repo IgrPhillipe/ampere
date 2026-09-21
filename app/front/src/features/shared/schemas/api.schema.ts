@@ -6,7 +6,6 @@ export const paginationSchema = z.object({
 	pageSize: z.number().int().positive(),
 });
 
-/** Standard envelope of the API responses, in one place. */
 export const apiResponseSchema = <T extends z.ZodType>(data: T) =>
 	z.object({ data, pagination: paginationSchema.optional() });
 

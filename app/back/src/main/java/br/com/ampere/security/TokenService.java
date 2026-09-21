@@ -9,7 +9,6 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
-/** Issues the JWT the front stores and sends back in the {@code Authorization} header. */
 @Service
 public class TokenService {
 

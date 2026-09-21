@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-/** Database access for project findings. */
 public interface FindingRepository extends JpaRepository<Finding, Long> {
 
   @Query(

@@ -4,7 +4,6 @@ import { useEffect } from "react";
 
 import { AppLayout } from "../AppLayout";
 
-/** Shell of the authenticated routes: header and content. */
 export const AppShell = () => {
 	const navigate = useNavigate();
 	const isAuthenticated = useAuthStore((state) => state.isAuthenticated);

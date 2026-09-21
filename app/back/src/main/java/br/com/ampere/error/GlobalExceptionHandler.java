@@ -68,7 +68,6 @@ public class GlobalExceptionHandler {
     return problem;
   }
 
-  /** Route that does not exist. */
   @ExceptionHandler(NoResourceFoundException.class)
   public ProblemDetail handleNoResource(NoResourceFoundException exception) {
     return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE);
@@ -117,7 +116,6 @@ public class GlobalExceptionHandler {
     return "O campo '" + field + "' tem um valor inválido. Valores aceitos: " + accepted + ".";
   }
 
-  /** Safety net. */
   @ExceptionHandler(Exception.class)
   public ProblemDetail handleUnexpected(Exception exception) {
     log.error("Erro nao tratado", exception);

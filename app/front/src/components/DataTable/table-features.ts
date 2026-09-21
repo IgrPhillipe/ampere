@@ -8,7 +8,6 @@ import {
 	tableFeatures,
 } from "@tanstack/react-table";
 
-/** Features enabled on the `DataTable`. */
 export const dataTableFeatures = tableFeatures({
 	columnFilteringFeature,
 	globalFilteringFeature,

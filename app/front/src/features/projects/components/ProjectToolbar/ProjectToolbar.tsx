@@ -9,7 +9,6 @@ interface ProjectToolbarProps {
 	className?: string;
 }
 
-/** Filter bar of the listing. */
 export const ProjectToolbar = ({
 	filters,
 	search,

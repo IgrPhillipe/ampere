@@ -13,7 +13,6 @@ const PUBLIC_PATHS = ["/login"];
 const RootComponent = () => {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-	// The login screen does not use the app shell.
 	return (
 		<NuqsAdapter>
 			{PUBLIC_PATHS.includes(pathname) ? <Outlet /> : <AppShell />}

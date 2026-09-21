@@ -24,7 +24,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-/** Who gets in without a token and who does not. */
 @Configuration
 @EnableConfigurationProperties({JwtProperties.class, CorsProperties.class})
 public class SecurityConfig {
@@ -82,7 +81,7 @@ public class SecurityConfig {
     return new BCryptPasswordEncoder();
   }
 
-  /** A single key, resolved once. */
+  /** One key: resolved twice, the encoder and the decoder would get different ones. */
   @Bean
   public SecretKey jwtSigningKey(JwtProperties properties, Environment environment) {
     return JwtSecret.resolve(properties.secret(), environment.matchesProfiles("prod"));

@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** HTTP endpoints for electrical projects. */
 @Tag(name = "Projects", description = "Cadastro e acompanhamento de projetos elétricos")
 @RestController
 @RequestMapping("/projects")
@@ -71,7 +70,6 @@ public class ProjectController {
         new Pagination(listing.totalElements(), pagination.page(), pagination.pageSize()));
   }
 
-  /** Totals per status, for the filter bar. */
   @GetMapping("/status-counts")
   @Operation(
       operationId = "countProjectsPerStatus",

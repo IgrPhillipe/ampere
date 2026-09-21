@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/** Electrical project submitted through AMPERE. */
 @Entity
 @Table(name = "project")
 public class Project {

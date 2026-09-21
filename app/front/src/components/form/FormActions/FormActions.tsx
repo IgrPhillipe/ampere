@@ -6,7 +6,6 @@ interface FormActionsProps {
 	className?: string;
 }
 
-/** Form action bar: right-aligned, reversed on mobile. */
 export const FormActions = ({ children, className }: FormActionsProps) => (
 	<div
 		className={cn(

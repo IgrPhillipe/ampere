@@ -4,7 +4,6 @@ import java.text.Normalizer;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-/** Normalizes user-provided terms before they are used in database searches. */
 public final class SearchTerms {
 
   private static final Pattern DIACRITICS = Pattern.compile("\\p{M}+");
@@ -31,7 +30,6 @@ public final class SearchTerms {
     return raw.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
   }
 
-  /** Term ready for the {@code LIKE} of the listing query. */
   public static String normalize(String raw) {
     return escapeLike(fold(raw));
   }
