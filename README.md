@@ -95,8 +95,8 @@ Critérios de cada marco: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (PO
 | Artefato | Link |
 | :--- | :--- |
 | Histórias de usuário | [`docs/produto/user-stories.md`](docs/produto/user-stories.md) |
-| Protótipo Lo-Fi | [Figma — Protótipo LO-FI](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
-| Screencast do protótipo | [YouTube — Screencast do Protótipo](https://youtu.be/OI0QDboGtk4) |
+| Protótipo Lo-Fi | [Figma](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
+| Screencast do protótipo | [YouTube](https://youtu.be/OI0QDboGtk4) |
 
 **Histórias e telas correspondentes**
 
