@@ -94,7 +94,7 @@ curl -s -X POST http://localhost:8080/api/auth/login \
 | `JWT_SECRET` | assina o token, mínimo 32 caracteres. **Obrigatória em produção** — sem ela o profile `prod` não sobe. Fora de produção, sem ela a API gera uma chave por execução e o login cai a cada reinício |
 | `JWT_EXPIRATION` | validade do token; padrão `8h` |
 | `DDL_AUTO` | **alavanca de recuperação, não configuração normal.** `create` apaga o schema e recria pelas entidades, e o `DataSeeder` repovoa. Use uma vez e **remova a variável** — enquanto ela estiver definida, todo restart apaga os dados |
-| `CORS_ALLOWED_ORIGINS` | origens que podem chamar a API de outro domínio, separadas por vírgula. Vazio = só mesma origem. Aceita padrão: `https://ampere.vercel.app,https://*-igrph.vercel.app` |
+| `CORS_ALLOWED_ORIGINS` | origens que podem chamar a API de outro domínio, separadas por vírgula. Vazio = só mesma origem. Aceita padrão: `https://ampere-igrph.vercel.app,https://*-igrph.vercel.app` |
 
 Gerando uma:
 
