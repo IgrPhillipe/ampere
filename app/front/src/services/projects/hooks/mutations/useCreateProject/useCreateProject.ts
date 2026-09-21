@@ -11,8 +11,11 @@ export const useCreateProject = () => {
 	return useMutation({
 		mutationFn: createProject,
 		onSuccess: async () => {
+			// `all()` e nao `lists()`: os contadores por situacao sao uma query
+			// propria e ficariam ate 60s (o `staleTime` padrao) mostrando um
+			// total sem o rascunho recem-criado.
 			await queryClient.invalidateQueries({
-				queryKey: projectKeys.lists(),
+				queryKey: projectKeys.all(),
 			});
 
 			toast.success("Projeto criado.");
