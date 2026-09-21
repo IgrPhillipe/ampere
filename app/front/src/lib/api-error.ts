@@ -16,11 +16,6 @@ interface SpringFieldError {
 	message?: string;
 }
 
-/**
- * Cobre os dois formatos que o Spring Boot devolve:
- * - `ProblemDetail` (RFC 7807): `{ type, title, status, detail, instance }`
- * - corpo padrao do Boot: `{ timestamp, status, error, message, path }`
- */
 interface SpringErrorBody {
 	detail?: string;
 	title?: string;
@@ -67,8 +62,6 @@ const isTechnicalMessage = (message: string): boolean => {
 		lower.startsWith("http error") ||
 		lower.includes("status code") ||
 		lower.startsWith("failed to fetch") ||
-		// Falha ao ler o corpo como JSON: o servidor devolveu HTML (pagina de
-		// erro do proxy, login de gateway) em vez da resposta da API.
 		lower.includes("is not valid json") ||
 		lower.includes("unexpected end of json input") ||
 		lower.startsWith("unexpected token")
@@ -125,10 +118,6 @@ interface ToastErrorOptions {
 	fallback: string;
 }
 
-/**
- * Mensagem pronta para toast. Erro 5xx, falha de rede e detalhe tecnico
- * viram texto generico: o usuario nunca ve stack trace.
- */
 export const getToastErrorMessage = (
 	error: unknown,
 	options: ToastErrorOptions,
@@ -137,8 +126,6 @@ export const getToastErrorMessage = (
 		return NETWORK_ERROR_MESSAGE;
 	}
 
-	// Corpo ilegivel: a resposta nao seguiu o contrato da API. Nada disso
-	// significa alguma coisa para quem esta usando a tela.
 	if (error instanceof SyntaxError) return INTERNAL_ERROR_MESSAGE;
 
 	const status = getHttpStatus(error);

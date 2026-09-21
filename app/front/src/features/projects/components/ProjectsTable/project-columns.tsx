@@ -23,11 +23,6 @@ interface ProjectColumnActions {
 	onResumeSubmission: (project: Project) => void;
 }
 
-/**
- * Objeto, nao dois parametros posicionais: os dois callbacks tem a mesma
- * assinatura, entao trocar a ordem compilava e quebrava em silencio — "Ver
- * apontamentos" abriria a retomada de envio.
- */
 export const createProjectColumns = ({
 	onViewFindings,
 	onResumeSubmission,

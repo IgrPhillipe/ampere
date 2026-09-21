@@ -17,10 +17,7 @@ interface ControlledInputProps<T extends FieldValues>
 	description?: ReactNode;
 }
 
-/**
- * Input ligado ao react-hook-form. Sempre prefira este wrapper a montar
- * `Controller` + `Input` na mao: ele garante o rotulo, o aria e o erro.
- */
+/** Input ligado ao react-hook-form. */
 export const ControlledInput = <T extends FieldValues>({
 	control,
 	name,

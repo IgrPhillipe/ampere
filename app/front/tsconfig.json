@@ -4,11 +4,7 @@
 		{ "path": "./tsconfig.app.json" },
 		{ "path": "./tsconfig.node.json" }
 	],
-	/**
-	 * Os paths reais vivem em tsconfig.app.json. Estao repetidos aqui porque
-	 * ferramentas que leem so o tsconfig.json da raiz (o CLI do shadcn, entre
-	 * outras) nao enxergam project references. Mantenha os dois em sincronia.
-	 */
+	/** Repetidos de tsconfig.app.json: ha ferramenta que le so a raiz. */
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {

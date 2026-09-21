@@ -16,10 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AuthService {
 
-  /**
-   * Mensagem unica para e-mail inexistente e senha errada. Distinguir as duas diria a quem tenta
-   * quais e-mails existem na base.
-   */
+  /** Mensagem unica para e-mail inexistente e senha errada. */
   private static final String INVALID_CREDENTIALS = "E-mail ou senha inválidos.";
 
   private final UserRepository userRepository;
@@ -44,12 +41,7 @@ public class AuthService {
     return new LoginResponse(tokenService.issue(user), AuthUserResponse.from(user));
   }
 
-  /**
-   * O usuario do token, relido do banco.
-   *
-   * <p>O token carrega nome e papel, mas eles envelhecem: quem foi renomeado ou teve o papel
-   * trocado continuaria com o valor antigo ate o token expirar.
-   */
+  /** O usuario do token, relido do banco. */
   @Transactional(readOnly = true)
   public AuthUserResponse currentUser(String userId) {
     return userRepository

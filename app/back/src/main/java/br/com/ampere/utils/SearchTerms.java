@@ -4,14 +4,7 @@ import java.text.Normalizer;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-/**
- * Normalizes user-provided terms before they are used in database searches.
- *
- * <p>Two separate jobs, deliberately named apart: {@link #fold} makes the comparison
- * accent-insensitive and case-insensitive, {@link #escapeLike} keeps a typed {@code %} from acting
- * as a wildcard. {@link #normalize} composes both and is what the query path uses; the same {@code
- * fold} also builds the column it compares against, so both sides are folded the same way.
- */
+/** Normalizes user-provided terms before they are used in database searches. */
 public final class SearchTerms {
 
   private static final Pattern DIACRITICS = Pattern.compile("\\p{M}+");

@@ -24,10 +24,7 @@ public class TokenService {
     this.properties = properties;
   }
 
-  /**
-   * O {@code subject} e o id do usuario, nao o e-mail: e-mail pode mudar, id nao. O papel viaja
-   * como claim so para leitura; quem decide acesso continua consultando o banco.
-   */
+  /** O {@code subject} e o id do usuario, nao o e-mail: e-mail pode mudar, id nao. */
   public String issue(User user) {
     Instant now = Instant.now();
 

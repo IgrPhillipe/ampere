@@ -1,10 +1,4 @@
-/**
- * AMPERE design tokens.
- *
- * The brand primitives below mirror the public Neoenergia visual language.
- * IberPangea is the institutional typeface, but it is not distributed with
- * this repository; IBM Plex Sans is the licensed fallback used by the app.
- */
+/** AMPERE design tokens. */
 :root {
 	color-scheme: light;
 
@@ -103,8 +97,6 @@
 	--ds-space-5: 3rem;
 	--ds-space-6: 4.5rem;
 	--ds-space-7: 6rem;
-	/* Recuo lateral do conteudo de pagina. Uma medida so, para o cabecalho e
-	   para as barras que atravessam a largura toda ficarem alinhados. */
 	--ds-size-page: 100rem;
 	--ds-space-gutter: 2.5rem;
 	--ds-space-gutter-md: 3rem;

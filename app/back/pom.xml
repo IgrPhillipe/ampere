@@ -23,11 +23,7 @@
 	</properties>
 
 	<dependencies>
-		<!--
-			Spring Boot 4 renomeou os starters: o web virou `webmvc` e cada modulo
-			tem o proprio starter de teste, no lugar do antigo `spring-boot-starter-test`.
-			Tutorial de Boot 3 vai divergir aqui.
-		-->
+		<!-- Spring Boot 4 renomeou os starters: o web virou `webmvc`. -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
@@ -41,12 +37,7 @@
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
-		<!--
-			Autenticacao. O `oauth2-resource-server` entra pelo decodificador e pelo
-			codificador de JWT do Nimbus: evita uma biblioteca de JWT de terceiro,
-			e o token e assinado com segredo simetrico (HS256), nao com par de
-			chaves — nao ha outro servico emitindo token aqui.
-		-->
+		<!-- Autenticacao com JWT do Nimbus, assinado por segredo simetrico (HS256). -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
@@ -98,11 +89,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
-			<!--
-				Formatador unico do projeto, equivalente ao Biome no front.
-				`./mvnw spotless:apply` formata, `spotless:check` falha se algo
-				estiver fora do padrao.
-			-->
+			<!-- Formatador do projeto: `./mvnw spotless:apply` formata, `spotless:check` valida. -->
 			<plugin>
 				<groupId>com.diffplug.spotless</groupId>
 				<artifactId>spotless-maven-plugin</artifactId>

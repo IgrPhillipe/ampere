@@ -32,9 +32,7 @@ export default defineConfig([
 		},
 	},
 	{
-		// Arquivos de rota do TanStack Router exportam `Route` e mantem o
-		// componente local para o `autoCodeSplitting` conseguir extrai-lo.
-		// O HMR destes arquivos e responsabilidade do plugin do router.
+		// O HMR dos arquivos de rota e responsabilidade do plugin do router.
 		files: ["src/routes/**/*.{ts,tsx}"],
 		rules: {
 			"react-refresh/only-export-components": "off",

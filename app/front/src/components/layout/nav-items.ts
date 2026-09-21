@@ -13,10 +13,7 @@ export interface NavItem {
 	disabled?: boolean;
 }
 
-/**
- * Itens da navegação principal. As áreas ainda não entregues permanecem
- * desabilitadas até suas respectivas rotas serem implementadas.
- */
+/** Itens da navegação principal. */
 export const APP_NAV_ITEMS: NavItem[] = [
 	{ to: "/", label: "Meus projetos", exact: true },
 	{ label: "Novo projeto", disabled: true },

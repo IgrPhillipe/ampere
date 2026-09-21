@@ -4,15 +4,7 @@ import { useEffect } from "react";
 
 import { AppLayout } from "../AppLayout";
 
-/**
- * Casca das rotas autenticadas: cabeçalho e conteúdo.
- *
- * Também é onde a sessão que cai no meio do caminho vira navegação. A guard de
- * rota só roda no `beforeLoad`, então o token que o servidor recusa enquanto a
- * pessoa já está numa tela derrubava a sessão sem tirar ninguém do lugar: a tela
- * ficava mostrando erro, com um aviso para entrar de novo e sem caminho para
- * fazer isso.
- */
+/** Casca das rotas autenticadas: cabeçalho e conteúdo. */
 export const AppShell = () => {
 	const navigate = useNavigate();
 	const isAuthenticated = useAuthStore((state) => state.isAuthenticated);

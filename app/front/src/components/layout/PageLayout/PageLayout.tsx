@@ -8,12 +8,6 @@ interface PageLayoutProps {
 	actions?: ReactNode;
 	children: ReactNode;
 	className?: string;
-	/**
-	 * Conteudo ocupa a largura toda e cuida do proprio recuo; so o cabecalho
-	 * recebe o gutter. Sem isto, telas com barra de filtro ou de paginacao de
-	 * ponta a ponta furavam o padding daqui por fora, com margem negativa
-	 * espelhando este arquivo a mao.
-	 */
 	bleed?: boolean;
 }
 

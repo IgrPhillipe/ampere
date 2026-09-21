@@ -17,14 +17,7 @@ declare module "@tanstack/react-router" {
 	}
 }
 
-/**
- * Liga os mocks do MSW em desenvolvimento.
- *
- * A falha e deliberadamente nao-fatal: navegadores sem service worker (ou com
- * ele bloqueado) derrubariam a aplicacao inteira numa tela branca, que e
- * praticamente impossivel de diagnosticar. Sem mock, as chamadas vao para a
- * API real via proxy do Vite.
- */
+/** Liga os mocks do MSW em desenvolvimento. */
 const enableMocking = async (): Promise<void> => {
 	if (!AppConfig.IS_DEV) return;
 

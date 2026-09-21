@@ -1,11 +1,6 @@
 package br.com.ampere.utils;
 
-/**
- * Builds the protocol a project is filed under: the year, a dash, and a four digit sequence.
- *
- * <p>The padding is what lets the highest protocol of a year be found with a plain MAX: with a
- * fixed width, alphabetical order and numeric order are the same.
- */
+/** Builds the protocol a project is filed under: the year, a dash, and a four digit sequence. */
 public final class Protocols {
 
   private static final String SEQUENCE_FORMAT = "%04d";

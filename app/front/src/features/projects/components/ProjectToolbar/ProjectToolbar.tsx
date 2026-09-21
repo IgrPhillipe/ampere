@@ -9,12 +9,7 @@ interface ProjectToolbarProps {
 	className?: string;
 }
 
-/**
- * Barra de filtros da listagem. Recebe os dois blocos como slots em vez de
- * repassar as props deles: como container de pass-through eram cinco props
- * entrando e as mesmas cinco saindo, e a pagina nao mostrava o que montava.
- * Mesmo desenho do `PageLayout` e do `EmptyState`.
- */
+/** Barra de filtros da listagem. */
 export const ProjectToolbar = ({
 	filters,
 	search,

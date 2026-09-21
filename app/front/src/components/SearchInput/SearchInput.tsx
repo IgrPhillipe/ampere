@@ -12,11 +12,6 @@ interface SearchInputProps {
 	className?: string;
 }
 
-/**
- * `appearance-none` no cancel-button: `type="search"` desenha o proprio botao de
- * limpar no navegador, que colidia com o desenhado abaixo. Os dois estao certos
- * sozinhos; so se atropelam juntos.
- */
 const inputClassName =
 	"rounded-none border-x-0 border-t-0 pr-11 pl-10 shadow-none [&::-webkit-search-cancel-button]:appearance-none";
 

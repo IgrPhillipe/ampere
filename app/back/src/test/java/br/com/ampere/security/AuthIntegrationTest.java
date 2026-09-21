@@ -19,12 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-/**
- * Exercita a cadeia de filtros de verdade.
- *
- * <p>O {@code ProjectControllerTest} usa {@code standaloneSetup}, que nao monta o Spring Security —
- * a protecao das rotas so aparece num contexto completo, e sem este arquivo ela nao teria teste.
- */
+/** Exercita a cadeia de filtros de verdade. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional

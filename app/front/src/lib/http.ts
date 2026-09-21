@@ -8,11 +8,6 @@ import { type ApiHTTPError, parseSpringErrorBody } from "./api-error";
 export const http = ky.create({
 	prefix: AppConfig.API_URL,
 	timeout: 30_000,
-	/**
-	 * Quem decide repeticao e o React Query, que e quem a interface observa
-	 * por `isError` e `refetch`. Somada a dele, a retentativa do ky levava um
-	 * GET com falha a seis tentativas antes de a tela dizer qualquer coisa.
-	 */
 	retry: 0,
 	hooks: {
 		beforeRequest: [
@@ -22,17 +17,7 @@ export const http = ky.create({
 				if (token) request.headers.set("Authorization", `Bearer ${token}`);
 			},
 		],
-		/**
-		 * Sessao recusada pelo servidor derruba a sessao local.
-		 *
-		 * Sem isto o token expirado fica guardado: a guard de rota le o store,
-		 * ve `isAuthenticated: true` e deixa passar, entao a pessoa fica numa
-		 * tela que so sabe mostrar erro, com um aviso para entrar de novo e sem
-		 * caminho para fazer isso.
-		 *
-		 * O 401 do proprio login e a excecao: ali quem errou foi a credencial, e
-		 * a tela de login ja trata a mensagem.
-		 */
+		/** Sessao recusada pelo servidor derruba a sessao local. */
 		afterResponse: [
 			({ request, response }) => {
 				if (response.status !== 401) return;

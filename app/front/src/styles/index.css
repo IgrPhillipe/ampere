@@ -4,10 +4,7 @@
 @import "@fontsource-variable/ibm-plex-sans";
 @import "./tokens.css";
 
-/**
- * Mantem as variantes `dark:` vinculadas ao estado explicito da aplicacao.
- * A identidade Neoenergia entregue nesta etapa define somente o tema claro.
- */
+/** Mantem as variantes `dark:` vinculadas ao estado explicito da aplicacao. */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {

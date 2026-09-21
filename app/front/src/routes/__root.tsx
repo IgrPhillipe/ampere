@@ -10,10 +10,6 @@ import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
 /** Rotas que dispensam sessao. Tudo fora desta lista passa pela guard. */
 const PUBLIC_PATHS = ["/login"];
 
-/**
- * Declarado antes de `Route`: `createRootRoute` roda na avaliacao do modulo
- * e leria a const antes da inicializacao.
- */
 const RootComponent = () => {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 

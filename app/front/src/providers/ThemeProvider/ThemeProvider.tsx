@@ -6,10 +6,6 @@ interface ThemeProviderProps {
 	children: ReactNode;
 }
 
-/**
- * Reflete o tema do `useAppStore` na classe do `<html>`, que e o que ativa
- * o bloco `.dark` dos tokens em `src/styles/index.css`.
- */
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
 	const theme = useAppStore((state) => state.theme);
 

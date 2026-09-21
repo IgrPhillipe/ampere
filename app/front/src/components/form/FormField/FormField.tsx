@@ -15,13 +15,7 @@ interface FormFieldProps {
 	className?: string;
 }
 
-/**
- * Casca de um campo: rotulo, controle, descricao e erro.
- *
- * Usa o `Field` do Base UI, que amarra sozinho os ids de `label`,
- * `aria-describedby` e `aria-invalid`. O `match` no erro entrega o controle
- * de visibilidade ao react-hook-form em vez da validacao nativa do browser.
- */
+/** Casca de um campo: rotulo, controle, descricao e erro. */
 export const FormField = ({
 	label,
 	description,

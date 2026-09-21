@@ -62,12 +62,6 @@ public class ProjectService {
         countPendingFindings(projects.getContent()));
   }
 
-  /**
-   * Total of projects in each status, across the whole base.
-   *
-   * <p>Deliberately ignores the listing filters: the counters exist so the user can leave the
-   * filter that is currently applied, which requires knowing what is outside of it.
-   */
   @Transactional(readOnly = true)
   public Map<ProjectStatus, Long> countPerStatus() {
     Map<ProjectStatus, Long> counts = new EnumMap<>(ProjectStatus.class);
@@ -83,10 +77,6 @@ public class ProjectService {
     return projectRepository.findDetailById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND));
   }
 
-  /**
-   * Not transactional on purpose: each attempt needs its own transaction, because one that already
-   * violated the unique constraint is marked for rollback and refuses a second insert.
-   */
   public Project create(ProjectParameters parameters) {
     for (int attempt = 1; attempt <= PROTOCOL_ATTEMPTS; attempt++) {
       try {

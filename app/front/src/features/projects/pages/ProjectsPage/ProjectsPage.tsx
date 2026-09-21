@@ -55,8 +55,6 @@ export const ProjectsPage = () => {
 	const projects = projectsQuery.data?.data ?? [];
 	const counts = statusCountsQuery.data?.data ?? emptyStatusCounts;
 	const pagination = projectsQuery.data?.pagination;
-	// Contador que falhou mostra "00" como se fosse dado. As duas queries
-	// respondem pela mesma tela, entao uma falha derruba a tela inteira.
 	const hasError = projectsQuery.isError || statusCountsQuery.isError;
 
 	const handleViewFindings = useCallback((project: Project) => {

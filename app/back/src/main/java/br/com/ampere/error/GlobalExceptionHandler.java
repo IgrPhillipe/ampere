@@ -19,22 +19,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import tools.jackson.databind.exc.InvalidFormatException;
 
-/**
- * Traduz excecao em resposta HTTP, no formato {@code ProblemDetail} da RFC 7807.
- *
- * <p>O front-end ja espera exatamente isto: {@code app/front/src/lib/api-error.ts} le {@code
- * detail} e, na falha de validacao, a propriedade {@code errors} com {@code field} e {@code
- * defaultMessage}.
- *
- * <p>Duas regras valem para toda mensagem que sai daqui:
- *
- * <ul>
- *   <li>Texto para humano, em portugues. O front descarta qualquer mensagem com nome de pacote Java
- *       ou stack trace e cai num texto generico, entao detalhe tecnico nao chega na tela — e tambem
- *       nao ajuda ninguem.
- *   <li>Erro nunca vai embrulhado em {@code ApiResponse}. O envelope e so para sucesso.
- * </ul>
- */
+/** Traduz excecao em resposta HTTP, no formato {@code ProblemDetail} da RFC 7807. */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -83,10 +68,7 @@ public class GlobalExceptionHandler {
     return problem;
   }
 
-  /**
-   * Rota inexistente. Sem isto cai na rede de seguranca e vira 500, que diz ao cliente que o
-   * servidor falhou quando o problema e o caminho pedido.
-   */
+  /** Rota inexistente. */
   @ExceptionHandler(NoResourceFoundException.class)
   public ProblemDetail handleNoResource(NoResourceFoundException exception) {
     return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE);
@@ -102,10 +84,7 @@ public class GlobalExceptionHandler {
     return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
   }
 
-  /**
-   * Corpo ilegivel: JSON malformado, corpo ausente, ou valor que nao existe no enum do campo. Sem
-   * este handler a rede de seguranca transforma erro do cliente em 500.
-   */
+  /** Corpo ilegivel: JSON malformado, corpo ausente, ou valor que nao existe no enum do campo. */
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ProblemDetail handleUnreadableBody(HttpMessageNotReadableException exception) {
     String detail =
@@ -138,10 +117,7 @@ public class GlobalExceptionHandler {
     return "O campo '" + field + "' tem um valor inválido. Valores aceitos: " + accepted + ".";
   }
 
-  /**
-   * Rede de seguranca. Registra o erro real no log do servidor e devolve texto generico, para nao
-   * vazar detalhe interno na resposta.
-   */
+  /** Rede de seguranca. */
   @ExceptionHandler(Exception.class)
   public ProblemDetail handleUnexpected(Exception exception) {
     log.error("Erro nao tratado", exception);

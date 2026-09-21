@@ -18,10 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-/**
- * Deliberately not transactional: with open-in-view disabled, this is the only way to prove the
- * entity graph works. Inside a transaction the assertions would pass without it.
- */
 @SpringBootTest
 class ProjectDetailIntegrationTest {
 

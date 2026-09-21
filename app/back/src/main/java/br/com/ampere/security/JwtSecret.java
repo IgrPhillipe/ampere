@@ -8,17 +8,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Resolve a chave que assina o token.
- *
- * <p>Nao ha segredo versionado no repositorio: um segredo que esta no codigo nao protege ninguem,
- * porque quem le o codigo assina um token valido. Em troca, quem nao define {@code JWT_SECRET} fora
- * de producao recebe uma chave aleatoria por execucao — a aplicacao sobe sem configuracao, e o
- * preco e que o token nao sobrevive a um reinicio.
- *
- * <p>Em producao, sem {@code JWT_SECRET} a aplicacao nao sobe. E melhor nao subir do que subir
- * assinando com uma chave que ninguem escolheu.
- */
+/** Resolve a chave que assina o token. */
 public final class JwtSecret {
 
   private static final Logger log = LoggerFactory.getLogger(JwtSecret.class);

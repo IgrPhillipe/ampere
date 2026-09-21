@@ -11,8 +11,6 @@ export const useLogout = () => {
 	return useCallback(() => {
 		clearSession();
 
-		// Sem isso os dados do usuario anterior ficam no cache e reaparecem
-		// no proximo login antes do refetch.
 		queryClient.clear();
 
 		navigate({ to: "/login" });
