@@ -82,7 +82,7 @@ export const projectHandlers = [
 
 			if (!search) return true;
 
-			// Nome e protocolo, e so: e o que `GET /projects` promete buscar.
+			// Name and protocol, nothing else: it is what `GET /projects` promises to search.
 			const searchableContent = [project.name, project.protocol]
 				.map(normalize)
 				.join(" ");

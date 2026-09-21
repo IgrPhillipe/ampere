@@ -6,7 +6,6 @@ interface FormActionsProps {
 	className?: string;
 }
 
-/** Barra de acoes de formulario: alinhada a direita, invertida no mobile. */
 export const FormActions = ({ children, className }: FormActionsProps) => (
 	<div
 		className={cn(

@@ -143,7 +143,7 @@ class ProjectServiceIntegrationTest {
             "2026-5231",
             ProjectStatus.UNDER_REVIEW));
 
-    // O endereco e o municipio estao fora do contrato de busca.
+    // Address and municipality are outside the search contract.
     assertThat(service.list(1, 20, null, "Recife").projects()).isEmpty();
   }
 

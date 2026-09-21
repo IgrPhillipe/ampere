@@ -26,7 +26,7 @@ interface ProjectsTableProps {
 	isLoading?: boolean;
 	onViewFindings: (project: Project) => void;
 	onResumeSubmission: (project: Project) => void;
-	/** Sem isto o vazio nao oferece saida para quem filtrou demais. */
+	/** Without it the empty state offers no way out of an over-narrow filter. */
 	onClearFilters?: () => void;
 	className?: string;
 }

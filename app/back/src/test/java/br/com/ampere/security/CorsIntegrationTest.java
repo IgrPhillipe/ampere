@@ -11,14 +11,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * Front e API em dominios diferentes — Vercel chamando Render — dependem disto.
- *
- * <p>O preflight vai sem o header `Authorization`, entao sem CORS configurado o Spring Security o
- * recusa com 401 antes de qualquer controller, e o navegador bloqueia a chamada de verdade que
- * viria depois. E uma falha que so aparece no deploy cross-origin: em desenvolvimento o front sai
- * pelo proxy do Vite e nunca e outra origem.
- */
+/** Front and API on different domains — Vercel calling Render — depend on this. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(properties = "ampere.cors.allowed-origins=https://exemplo.vercel.app")

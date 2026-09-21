@@ -20,8 +20,6 @@ export const authHandlers = [
 		const user = findUser(email);
 
 		if (!user || password !== MOCK_PASSWORD) {
-			// Mesmo formato do ProblemDetail que o Spring Boot devolve,
-			// para o caminho de erro ser exercitado de verdade.
 			return HttpResponse.json(
 				{
 					type: "about:blank",

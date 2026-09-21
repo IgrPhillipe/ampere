@@ -1,11 +1,6 @@
 import type { UserRole } from "@features/shared";
 import { z } from "zod";
 
-/**
- * `satisfies` amarra o schema a uniao `UserRole`: se um papel for adicionado
- * la e esquecido aqui, o type-check quebra. O import e `type`, entao some no
- * build e nao cria ciclo com `@lib/http`.
- */
 export const userRoleSchema = z.enum([
 	"user",
 	"admin",

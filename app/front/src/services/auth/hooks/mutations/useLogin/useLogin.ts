@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { login } from "../../../requests";
 
 interface UseLoginOptions {
-	/** Rota para onde voltar depois do login, vinda de `?redirect=`. */
+	/** Route to return to after login, taken from `?redirect=`. */
 	redirectTo?: string;
 }
 

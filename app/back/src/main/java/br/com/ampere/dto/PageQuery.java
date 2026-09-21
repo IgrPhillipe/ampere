@@ -3,7 +3,6 @@ package br.com.ampere.dto;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
-/** Pagination parameters accepted by listing endpoints. */
 public record PageQuery(
     @Min(value = MIN_PAGE, message = "A página deve ser maior ou igual a {value}.") Integer page,
     @Min(value = MIN_PAGE_SIZE, message = "O tamanho da página deve ser maior ou igual a {value}.")

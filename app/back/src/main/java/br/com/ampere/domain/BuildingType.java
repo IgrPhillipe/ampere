@@ -79,9 +79,6 @@ public abstract class BuildingType {
 
   public abstract BuildingCategory category();
 
-  /**
-   * The shares that make up this building's demand. The only point of variation between subtypes.
-   */
   public abstract List<DemandRule> demandRules();
 
   /** The standards this project is calculated under, derived from its own rules. */

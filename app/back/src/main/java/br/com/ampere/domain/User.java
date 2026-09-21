@@ -12,7 +12,6 @@ import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
-/** Someone who signs in to AMPERE. */
 @Entity
 @Table(name = "app_user")
 public class User {

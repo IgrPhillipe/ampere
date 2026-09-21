@@ -7,20 +7,14 @@ interface SearchInputProps {
 	value: string;
 	onValueChange: (value: string) => void;
 	placeholder?: string;
-	/** Rotulo do campo para leitor de tela. O placeholder nao serve de nome. */
+	/** Field label for screen readers. The placeholder is not a name. */
 	label: string;
 	className?: string;
 }
 
-/**
- * `appearance-none` no cancel-button: `type="search"` desenha o proprio botao de
- * limpar no navegador, que colidia com o desenhado abaixo. Os dois estao certos
- * sozinhos; so se atropelam juntos.
- */
 const inputClassName =
 	"rounded-none border-x-0 border-t-0 pr-11 pl-10 shadow-none [&::-webkit-search-cancel-button]:appearance-none";
 
-/** Campo de busca com lupa e botao de limpar. */
 export const SearchInput = ({
 	value,
 	onValueChange,

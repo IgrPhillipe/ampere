@@ -24,25 +24,13 @@ interface DataTableProps<TData extends RowData, TColumnId extends string> {
 	isLoading?: boolean;
 	emptyTitle?: string;
 	emptyDescription?: ReactNode;
-	/**
-	 * Substitui o EmptyState montado por props. Existe porque o EmptyState
-	 * aceita `icon` e `action` e a tabela nao tinha por onde passar: a listagem
-	 * nao conseguia oferecer "Limpar filtros" quando o filtro esvaziava a lista,
-	 * que e a acao certa e o que o Cenario 2 da US01 descreve.
-	 */
+	/** Replaces the EmptyState built from props. */
 	empty?: ReactNode;
-	/**
-	 * Classe por coluna, com a chave presa aos ids declarados por quem chama.
-	 * Com `Record<string, string>` um id errado nao fazia nada e nao avisava.
-	 */
+	/** Class per column, keyed to the ids the caller declared. */
 	columnClassNames?: Partial<Record<TColumnId, string>>;
 	className?: string;
 }
 
-/**
- * Tabela padrao do projeto. Cuida de cabecalho, corpo, carregamento e vazio.
- * As colunas vem de `createDataTableColumnHelper`.
- */
 export const DataTable = <TData extends RowData, TColumnId extends string>({
 	columns,
 	data,

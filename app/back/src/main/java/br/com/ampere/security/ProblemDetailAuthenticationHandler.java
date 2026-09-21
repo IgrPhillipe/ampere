@@ -13,13 +13,6 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
-/**
- * Recusa de acesso no formato que o resto da API usa.
- *
- * <p>O Spring Security devolve 401 e 403 com corpo vazio, e o {@code GlobalExceptionHandler} nao os
- * ve — a recusa acontece no filtro, antes do controller. Sem isto o front recebe um 401 sem {@code
- * detail} e cai na mensagem generica, em vez de dizer que a sessao expirou.
- */
 @Component
 public class ProblemDetailAuthenticationHandler
     implements AuthenticationEntryPoint, AccessDeniedHandler {

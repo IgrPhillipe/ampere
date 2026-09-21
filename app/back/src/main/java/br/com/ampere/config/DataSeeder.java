@@ -30,13 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Populates development tables on the first application startup.
- *
- * <p>Without Flyway there is no migration to load initial data, and an API backed by an empty
- * database has nothing to display. Standards and projects are guarded independently, so a database
- * that already has projects but no standards still gets them.
- */
+/** Populates development tables on the first application startup. */
 @Component
 @Profile("!prod & !test")
 public class DataSeeder implements CommandLineRunner {
@@ -49,10 +43,6 @@ public class DataSeeder implements CommandLineRunner {
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
 
-  /**
-   * Senha unica dos usuarios de desenvolvimento. E a mesma do mock do MSW no front, para quem
-   * alterna entre mock e API real nao precisar trocar o que digita.
-   */
   public static final String DEVELOPMENT_PASSWORD = "senha@123";
 
   public DataSeeder(
@@ -75,12 +65,6 @@ public class DataSeeder implements CommandLineRunner {
     seedDevelopmentData(seedStandards());
   }
 
-  /**
-   * Usuarios de desenvolvimento. Sem eles nao ha como entrar: o front troca e-mail e senha por um
-   * token, e uma base vazia nao tem por quem trocar.
-   *
-   * <p>Os papeis sao os mesmos placeholders do front e nao gateiam rota nenhuma — ver a Q1c.
-   */
   private void seedUsers() {
     if (userRepository.count() > 0) {
       return;

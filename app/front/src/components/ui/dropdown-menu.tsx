@@ -118,12 +118,7 @@ function DropdownMenuRadioItem({
 	);
 }
 
-/**
- * Rotulo solto do menu. Renderiza um `div` porque o `Menu.GroupLabel` do
- * Base UI lanca se nao estiver dentro de um `Menu.Group` — diferente do
- * Radix, onde o Label funciona sozinho. Para rotular um grupo de verdade,
- * use `DropdownMenuGroupLabel` dentro de `DropdownMenuGroup`.
- */
+/** Standalone label: Base UI's `Menu.GroupLabel` throws outside a `Menu.Group`. */
 function DropdownMenuLabel({
 	className,
 	...props

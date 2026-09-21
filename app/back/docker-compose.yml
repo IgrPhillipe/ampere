@@ -1,5 +1,4 @@
-# Nome fixo do projeto para os containers saírem como ampere-db-1 e
-# ampere-api-1, sem colidir com containers de outros projetos na máquina.
+# Fixed project name, so the containers do not collide with other projects'.
 name: ampere
 
 services:
@@ -32,13 +31,11 @@ services:
       - "${SERVER_PORT:-8080}:8080"
 
     environment:
-      # Dentro da rede do compose o banco atende pelo nome do serviço.
+      # Inside the compose network the database answers by its service name.
       DATABASE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-ampere}
       DATABASE_USER: ${POSTGRES_USER:-ampere}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-ampere}
-      # Sem valor aqui de proposito: um segredo com default no compose estaria
-      # versionado do mesmo jeito. Definido, assina os tokens; em branco, a API
-      # gera uma chave por execucao e o login cai a cada `docker compose up`.
+      # No default on purpose: left blank, the API generates a key per run.
       JWT_SECRET: ${JWT_SECRET:-}
       # Alavanca de recuperacao de schema, repassada para o container. Sem esta
       # linha `DDL_AUTO=create docker compose up` nao surtia efeito nenhum: a

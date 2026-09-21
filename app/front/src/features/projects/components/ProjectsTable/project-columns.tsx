@@ -8,14 +8,9 @@ import { hasProjectAction, type ProjectRowActions } from "./project-row";
 
 const columnHelper = createDataTableColumnHelper<Project>();
 
-/** Ids das colunas, para `columnClassNames` nao aceitar chave inventada. */
+/** Column ids, so `columnClassNames` does not accept a made-up key. */
 export type ProjectColumnId = "name" | "status" | "createdAt" | "updatedAt";
 
-/**
- * Objeto, nao dois parametros posicionais: os dois callbacks tem a mesma
- * assinatura, entao trocar a ordem compilava e quebrava em silencio — "Ver
- * apontamentos" abriria a retomada de envio.
- */
 export const createProjectColumns = ({
 	onViewFindings,
 	onResumeSubmission,

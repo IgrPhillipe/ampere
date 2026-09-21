@@ -51,14 +51,12 @@ export const ProjectsPage = () => {
 		status: status ?? undefined,
 		search: debouncedSearch || undefined,
 	});
-	// Contadores em query própria: são globais e não mudam ao paginar nem ao buscar.
+	// Counters get their own query: they are global and change with neither page nor search.
 	const statusCountsQuery = useGetProjectStatusCounts();
 
 	const projects = projectsQuery.data?.data ?? [];
 	const counts = statusCountsQuery.data?.data ?? emptyStatusCounts;
 	const pagination = projectsQuery.data?.pagination;
-	// Contador que falhou mostra "00" como se fosse dado. As duas queries
-	// respondem pela mesma tela, entao uma falha derruba a tela inteira.
 	const hasError = projectsQuery.isError || statusCountsQuery.isError;
 
 	const handleViewFindings = useCallback((project: Project) => {

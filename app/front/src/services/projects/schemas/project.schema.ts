@@ -18,8 +18,6 @@ export const projectSchema = z.object({
 	municipality: z.string(),
 	protocol: z.string(),
 	status: projectStatusSchema,
-	// `offset: true` aceita `Z` e `±HH:mm`, e recusa timestamp sem fuso: sem o
-	// offset o `fromNow()` resolve pelo relogio do navegador e sai deslocado.
 	createdAt: z.iso.datetime({ offset: true }),
 	updatedAt: z.iso.datetime({ offset: true }),
 	pendingCount: z.number().int().nonnegative(),
@@ -38,14 +36,14 @@ export const projectStatusCountsSchema = z.object({
 
 export type ProjectStatusCounts = z.infer<typeof projectStatusCountsSchema>;
 
-/** `GET /projects` — a página, sem os contadores. */
+/** `GET /projects` — the page, without the counters. */
 export const projectListResponseSchema = paginatedResponseSchema(
 	z.array(projectSchema),
 );
 
 export type ProjectListResponse = z.infer<typeof projectListResponseSchema>;
 
-/** `GET /projects/status-counts` — contadores globais, sem paginação. */
+/** `GET /projects/status-counts` — global counters, no pagination. */
 export const projectStatusCountsResponseSchema = apiResponseSchema(
 	projectStatusCountsSchema,
 );

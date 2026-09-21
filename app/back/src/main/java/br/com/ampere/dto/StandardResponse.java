@@ -2,7 +2,6 @@ package br.com.ampere.dto;
 
 import br.com.ampere.domain.Standard;
 
-/** A standard revision applied to a project. */
 public record StandardResponse(String name, String revision) {
 
   public static StandardResponse from(Standard standard) {

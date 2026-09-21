@@ -3,23 +3,6 @@ import { cn } from "@lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { CheckIcon, ChevronDownIcon } from "lucide-react";
 
-/**
- * Diferenca importante em relacao ao Radix: o `SelectValue` do Base UI mostra
- * o **valor** selecionado, nao o texto do item. Passe `items` para o `Select`
- * e o rotulo aparece sozinho no gatilho.
- *
- * ```tsx
- * <Select items={{ a: "Opcao A", b: "Opcao B" }}>
- *   <SelectTrigger><SelectValue placeholder="Escolha" /></SelectTrigger>
- *   <SelectContent>
- *     <SelectItem value="a">Opcao A</SelectItem>
- *     <SelectItem value="b">Opcao B</SelectItem>
- *   </SelectContent>
- * </Select>
- * ```
- *
- * Sem `items`, o gatilho mostraria "b" em vez de "Opcao B".
- */
 function Select<T>(props: SelectPrimitive.Root.Props<T>) {
 	return <SelectPrimitive.Root {...props} />;
 }

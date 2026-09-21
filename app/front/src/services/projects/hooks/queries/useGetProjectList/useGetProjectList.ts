@@ -8,6 +8,6 @@ export const useGetProjectList = (params: ListProjectsParams = {}) =>
 	useQuery({
 		queryKey: projectKeys.list(params),
 		queryFn: () => getProjectList(params),
-		// Sem isto a tabela esvazia e a paginação some a cada página, filtro ou busca.
+		// Without it the table empties and the pagination vanishes on every page, filter or search.
 		placeholderData: keepPreviousData,
 	});

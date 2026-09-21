@@ -17,18 +17,7 @@ declare module "@tanstack/react-router" {
 	}
 }
 
-/**
- * Liga os mocks do MSW, quando `VITE_ENABLE_MSW=true`.
- *
- * Desligado por padrao: com o mock sempre ligado em desenvolvimento nao havia
- * como exercitar a API de verdade, e as historias da Entrega 02 precisam ler e
- * escrever no banco. Ligue para mexer no front sem subir o back.
- *
- * A falha e deliberadamente nao-fatal: navegadores sem service worker (ou com
- * ele bloqueado) derrubariam a aplicacao inteira numa tela branca, que e
- * praticamente impossivel de diagnosticar. Sem mock, as chamadas vao para a
- * API real via proxy do Vite.
- */
+/** Failing is deliberately non-fatal: a blocked service worker must not blank the app. */
 const enableMocking = async (): Promise<void> => {
 	if (!AppConfig.IS_DEV || !AppConfig.ENABLE_MSW) return;
 

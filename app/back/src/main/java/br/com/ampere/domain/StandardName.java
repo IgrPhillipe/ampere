@@ -2,10 +2,6 @@ package br.com.ampere.domain;
 
 import java.util.Arrays;
 
-/**
- * The standards that govern demand calculation today, in the order the documents cite them: the 053
- * frames the calculation, the 030 supplies the installed-load method.
- */
 public enum StandardName {
   DIS_NOR_053("DIS-NOR-053"),
   DIS_NOR_030("DIS-NOR-030");

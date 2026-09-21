@@ -19,12 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-/**
- * Exercita a cadeia de filtros de verdade.
- *
- * <p>O {@code ProjectControllerTest} usa {@code standaloneSetup}, que nao monta o Spring Security —
- * a protecao das rotas so aparece num contexto completo, e sem este arquivo ela nao teria teste.
- */
+/** Exercises the real filter chain. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -56,7 +51,7 @@ class AuthIntegrationTest {
         .andExpect(jsonPath("$.data.token").isNotEmpty())
         .andExpect(jsonPath("$.data.user.email").value("user@ampere.local"))
         .andExpect(jsonPath("$.data.user.name").value("Usuário Teste"))
-        // Minusculo: e o contrato que o `userRoleSchema` do front valida.
+        // Lowercase: it is the contract the front's `userRoleSchema` validates.
         .andExpect(jsonPath("$.data.user.role").value("user"))
         .andExpect(jsonPath("$.data.user.id").isString());
   }
@@ -81,7 +76,7 @@ class AuthIntegrationTest {
     mockMvc.perform(login("  USER@Ampere.Local  ", PASSWORD)).andExpect(status().isOk());
   }
 
-  /** E-mail desconhecido e senha errada respondem igual: a diferenca revelaria quem existe. */
+  /** Unknown e-mail and wrong password answer alike: the difference would reveal who exists. */
   @Test
   void refusesWrongPasswordAndUnknownEmailWithTheSameAnswer() throws Exception {
     String wrongPassword =
@@ -121,7 +116,7 @@ class AuthIntegrationTest {
     mockMvc
         .perform(get("/projects"))
         .andExpect(status().isUnauthorized())
-        // Sem `detail` o front cai na mensagem generica em vez de dizer que a sessao expirou.
+        // Without `detail` the front shows the generic message, not "session expired".
         .andExpect(
             jsonPath("$.detail").value(ProblemDetailAuthenticationHandler.UNAUTHENTICATED_MESSAGE));
   }

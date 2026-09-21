@@ -9,17 +9,12 @@ import {
 } from "@tanstack/react-router";
 import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
 
-/** Rotas que dispensam sessao. Tudo fora desta lista passa pela guard. */
+/** Routes that need no session. Everything else goes through the guard. */
 const PUBLIC_PATHS = ["/login"];
 
-/**
- * Declarado antes de `Route`: `createRootRoute` roda na avaliacao do modulo
- * e leria a const antes da inicializacao.
- */
 const RootComponent = () => {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-	// A tela de login nao usa a casca do app.
 	return (
 		<NuqsAdapter>
 			{/* Escreve title e meta da rota ativa no documento. Sem isto o `head`

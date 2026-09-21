@@ -34,8 +34,7 @@ export default defineConfig(({ mode }) => {
 		},
 		server: {
 			proxy: {
-				// AppConfig.API_URL vale "/api" por padrao; aqui ele sai para o
-				// back-end Spring Boot. Em producao quem resolve /api e o deploy.
+				// In production the deploy is what resolves /api.
 				"/api": {
 					target: env.VITE_PROXY_TARGET || "http://localhost:8080",
 					changeOrigin: true,

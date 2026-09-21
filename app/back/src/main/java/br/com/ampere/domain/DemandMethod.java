@@ -1,6 +1,5 @@
 package br.com.ampere.domain;
 
-/** How a demand component is calculated. */
 public enum DemandMethod {
   FLOOR_AREA("Área útil"),
   INSTALLED_LOAD("Carga instalada");

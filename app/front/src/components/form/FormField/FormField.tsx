@@ -11,7 +11,7 @@ export type FieldVariant = "default" | "underline";
 interface FormFieldProps {
 	label?: ReactNode;
 	description?: ReactNode;
-	/** Mensagem vinda do `fieldState.error` do react-hook-form. */
+	/** Message coming from react-hook-form's `fieldState.error`. */
 	error?: string;
 	/** Casa o rotulo com a variante do controle; ver `components/ui/input`. */
 	variant?: FieldVariant;
@@ -21,13 +21,6 @@ interface FormFieldProps {
 	className?: string;
 }
 
-/**
- * Casca de um campo: rotulo, controle, descricao e erro.
- *
- * Usa o `Field` do Base UI, que amarra sozinho os ids de `label`,
- * `aria-describedby` e `aria-invalid`. O `match` no erro entrega o controle
- * de visibilidade ao react-hook-form em vez da validacao nativa do browser.
- */
 export const FormField = ({
 	label,
 	description,

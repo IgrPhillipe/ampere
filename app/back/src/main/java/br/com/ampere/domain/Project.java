@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/** Electrical project submitted through AMPERE. */
 @Entity
 @Table(name = "project")
 public class Project {
@@ -65,22 +64,13 @@ public class Project {
   @OrderBy("name")
   private final List<Standard> standards = new ArrayList<>();
 
-  /**
-   * Stored with an offset so the API always answers with one. {@code LocalDateTime} left the client
-   * guessing: the container runs in UTC and the browser in America/Recife, so a relative label read
-   * three hours into the future.
-   */
+  /** Stored with an offset so the API always answers with one. */
   @Column(nullable = false, updatable = false)
   private OffsetDateTime createdAt;
 
   @Column(nullable = false)
   private OffsetDateTime updatedAt;
 
-  /**
-   * Name and protocol folded to one accent-free, lowercase string, so the listing search can be
-   * accent-insensitive with a plain {@code LIKE}. Postgres could do it with {@code unaccent}, but
-   * that is an extension and there is no migration tool to create it — see pendency 16.
-   */
   @Column(nullable = false)
   private String searchIndex;
 

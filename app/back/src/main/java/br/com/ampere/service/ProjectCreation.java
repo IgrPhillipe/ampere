@@ -8,13 +8,7 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * One attempt at creating a project, in its own transaction.
- *
- * <p>Separate bean because Spring only applies {@code @Transactional} across beans: called from
- * inside {@link ProjectService}, every retry would land in the transaction the collision already
- * invalidated.
- */
+/** One attempt at creating a project, in its own transaction. */
 @Service
 public class ProjectCreation {
 

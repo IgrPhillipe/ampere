@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** HTTP endpoints for electrical projects. */
 @Tag(name = "Projects", description = "Cadastro e acompanhamento de projetos elétricos")
 @RestController
 @RequestMapping("/projects")
@@ -71,13 +70,6 @@ public class ProjectController {
         new Pagination(listing.totalElements(), pagination.page(), pagination.pageSize()));
   }
 
-  /**
-   * Totais por situação, para a barra de filtros.
-   *
-   * <p>Endpoint separado porque os contadores são globais e não mudam ao paginar nem ao buscar —
-   * juntá-los à listagem obrigaria a recalcular a agregação a cada tecla digitada, e fazia dois
-   * campos chamados {@code total} conviverem na mesma resposta com significados diferentes.
-   */
   @GetMapping("/status-counts")
   @Operation(
       operationId = "countProjectsPerStatus",
@@ -149,9 +141,6 @@ public class ProjectController {
     return ApiResponse.of(ProjectDetailResponse.from(service.update(id, parametersOf(request))));
   }
 
-  /**
-   * Sem envelope: 204 não tem corpo, e embrulhar obrigaria a responder 200 com {@code data} nulo.
-   */
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(operationId = "deleteProject", summary = "Exclui um projeto em rascunho")

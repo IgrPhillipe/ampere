@@ -9,18 +9,13 @@ export const INTERNAL_ERROR_MESSAGE = "Erro interno. Tente novamente.";
 export const NETWORK_ERROR_MESSAGE =
 	"Nao foi possivel falar com o servidor. Verifique sua conexao.";
 
-/** Item de erro de bean validation (`MethodArgumentNotValidException`). */
+/** Bean validation error item (`MethodArgumentNotValidException`). */
 interface SpringFieldError {
 	field?: string;
 	defaultMessage?: string;
 	message?: string;
 }
 
-/**
- * Cobre os dois formatos que o Spring Boot devolve:
- * - `ProblemDetail` (RFC 7807): `{ type, title, status, detail, instance }`
- * - corpo padrao do Boot: `{ timestamp, status, error, message, path }`
- */
 interface SpringErrorBody {
 	detail?: string;
 	title?: string;
@@ -31,7 +26,7 @@ interface SpringErrorBody {
 
 export type ApiHTTPError = HTTPError & { apiDetail?: string };
 
-/** Mensagens que o Boot devolve quando nao ha nada util a dizer. */
+/** Messages Boot returns when it has nothing useful to say. */
 const NOISE = new Set(["no message available", "no description available", ""]);
 
 const clean = (value: unknown): string | undefined => {
@@ -42,7 +37,6 @@ const clean = (value: unknown): string | undefined => {
 	return trimmed && !NOISE.has(trimmed.toLowerCase()) ? trimmed : undefined;
 };
 
-/** Normaliza o JSON de erro do Spring numa unica string. */
 export const parseSpringErrorBody = (
 	body: SpringErrorBody,
 ): string | undefined => {
@@ -58,7 +52,7 @@ export const parseSpringErrorBody = (
 	return clean(body.detail) ?? clean(body.message) ?? clean(body.title);
 };
 
-/** Ruido de transporte que nao deve chegar ao usuario. */
+/** Transport noise that must not reach the user. */
 const isTechnicalMessage = (message: string): boolean => {
 	const lower = message.toLowerCase();
 
@@ -67,15 +61,13 @@ const isTechnicalMessage = (message: string): boolean => {
 		lower.startsWith("http error") ||
 		lower.includes("status code") ||
 		lower.startsWith("failed to fetch") ||
-		// Falha ao ler o corpo como JSON: o servidor devolveu HTML (pagina de
-		// erro do proxy, login de gateway) em vez da resposta da API.
 		lower.includes("is not valid json") ||
 		lower.includes("unexpected end of json input") ||
 		lower.startsWith("unexpected token")
 	);
 };
 
-/** Stack trace ou detalhe interno vazado pelo back-end. */
+/** Stack trace or internal detail leaked by the back-end. */
 const isInternalLeakMessage = (message: string): boolean => {
 	const lower = message.toLowerCase();
 
@@ -125,10 +117,6 @@ interface ToastErrorOptions {
 	fallback: string;
 }
 
-/**
- * Mensagem pronta para toast. Erro 5xx, falha de rede e detalhe tecnico
- * viram texto generico: o usuario nunca ve stack trace.
- */
 export const getToastErrorMessage = (
 	error: unknown,
 	options: ToastErrorOptions,
@@ -137,8 +125,6 @@ export const getToastErrorMessage = (
 		return NETWORK_ERROR_MESSAGE;
 	}
 
-	// Corpo ilegivel: a resposta nao seguiu o contrato da API. Nada disso
-	// significa alguma coisa para quem esta usando a tela.
 	if (error instanceof SyntaxError) return INTERNAL_ERROR_MESSAGE;
 
 	const status = getHttpStatus(error);

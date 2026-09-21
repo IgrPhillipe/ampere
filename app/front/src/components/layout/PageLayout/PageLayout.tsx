@@ -9,20 +9,14 @@ interface PageLayoutProps {
 	 */
 	title?: string;
 	description?: ReactNode;
-	/** Botoes do canto superior direito (criar, exportar, etc.). */
+	/** Buttons in the top right corner (create, export, etc.). */
 	actions?: ReactNode;
 	children: ReactNode;
 	className?: string;
-	/**
-	 * Conteudo ocupa a largura toda e cuida do proprio recuo; so o cabecalho
-	 * recebe o gutter. Sem isto, telas com barra de filtro ou de paginacao de
-	 * ponta a ponta furavam o padding daqui por fora, com margem negativa
-	 * espelhando este arquivo a mao.
-	 */
 	bleed?: boolean;
 }
 
-/** Cabecalho padrao de pagina. Usar dentro das rotas sob o `AppShell`. */
+/** Standard page header. Use inside the routes under `AppShell`. */
 export const PageLayout = ({
 	title,
 	description,

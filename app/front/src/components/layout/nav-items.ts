@@ -5,18 +5,14 @@ export interface NavItem {
 	to?: string;
 	label: string;
 	icon?: LucideIcon;
-	/** Só casa com a rota exata; use em itens de indice como "/". */
+	/** Matches the exact route only; use it on index items like "/". */
 	exact?: boolean;
-	/** Sem `roles`, o item aparece para todo mundo. */
+	/** Without `roles`, the item shows for everyone. */
 	roles?: UserRole[];
-	/** Mantém uma área futura visível sem oferecer uma rota inexistente. */
+	/** Keeps a future area visible without offering a route that does not exist. */
 	disabled?: boolean;
 }
 
-/**
- * Itens da navegação principal. As áreas ainda não entregues permanecem
- * desabilitadas até suas respectivas rotas serem implementadas.
- */
 export const APP_NAV_ITEMS: NavItem[] = [
 	{ to: "/", label: "Meus projetos", exact: true },
 	{ to: "/projetos/novo", label: "Novo projeto" },

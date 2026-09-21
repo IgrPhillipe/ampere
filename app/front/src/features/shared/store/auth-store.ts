@@ -35,13 +35,7 @@ export const useAuthStore = create<AuthState>()(
 	),
 );
 
-/**
- * Espera a re-hidratacao do storage antes das guards de rota rodarem.
- *
- * Com `localStorage` a hidratacao e sincrona e isto resolve na hora. O helper
- * existe para que trocar por um storage assincrono (por exemplo criptografado)
- * no futuro nao exija tocar em `@lib/route-guard`.
- */
+/** Waits for the storage to rehydrate before the route guards run. */
 export const waitForAuthHydration = (): Promise<void> => {
 	if (useAuthStore.persist.hasHydrated()) return Promise.resolve();
 
