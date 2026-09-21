@@ -57,7 +57,7 @@ O projeto é dividido em três fases — **Imersão**, **Ideação** e **Desenvo
 
 ## Como rodar o projeto
 
-Os dois scaffolds já estão no repositório — sem telas nem classes de domínio, mas rodando.
+O sistema roda de ponta a ponta: API com as classes de domínio persistidas e front consumindo a API real.
 
 **Back-end** (Java 21, Spring Boot, PostgreSQL). Precisa de Docker:
 
@@ -73,7 +73,7 @@ A API sobe em `http://localhost:8080/api` e a documentação em `/api/docs`. Com
 cd app/front && cp .env.example .env && pnpm install && pnpm dev
 ```
 
-Sobe em `http://localhost:5173` e faz proxy de `/api` para o back-end. O login ainda responde contra o MSW, porque a autenticação depende de uma questão de produto em aberto. Detalhes, credenciais de teste e comandos em [app/front/README.md](app/front/README.md).
+Sobe em `http://localhost:5173` e faz proxy de `/api` para o back-end, que precisa estar rodando. Detalhes, credenciais de teste e comandos em [app/front/README.md](app/front/README.md).
 
 ---
 
@@ -82,7 +82,7 @@ Sobe em `http://localhost:5173` e faz proxy de `/api` para o back-end. O login a
 | Entrega | Data | Situação |
 | :--- | :--- | :--- |
 | Entrega 01 | 31/08/2026 | Finalizada |
-| Entrega 02 | 21/09/2026 | Não iniciada |
+| Entrega 02 | 21/09/2026 | Em andamento |
 | Entrega 03 | 19/10/2026 | Não iniciada |
 | Entrega 04 | 09/11/2026 | Não iniciada |
 
@@ -115,11 +115,50 @@ Fase inicial focada na estruturação de requisitos, validação de negócio e e
 
 ### Entrega 02 — 21/09/2026
 
-Mínimo de 2 histórias implementadas, com descrição em formato POST-IT, commits semanais e GitHub Issues em uso.
+Duas histórias implementadas de ponta a ponta — US01 e US02 — com back-end Spring Boot, front-end React e PostgreSQL. As classes de domínio do cálculo cobrem os requisitos de herança, polimorfismo e encapsulamento da disciplina.
+
+#### POST-IT · US01 — Acompanhamento de projetos e status
+
+> **Como** projetista externo,
+> **Quero** acompanhar todos os meus projetos e o status de cada um em um painel centralizado,
+> **Para que** eu saiba exatamente quais exigem ação sem depender de e-mail ou telefone.
+
+| | |
+| :--- | :--- |
+| **Entregue** | Listagem com nome, endereço, quantidade de UCs, demanda, status e última atualização · filtros por situação com contagem numérica, preservados na URL · busca por nome ou protocolo · empty state "Nenhum projeto encontrado para os critérios informados" · atalho "Ver apontamentos" nos reprovados |
+| **Back-end** | [`ProjectController`](app/back/src/main/java/br/com/ampere/controller/ProjectController.java) · [`ProjectListing`](app/back/src/main/java/br/com/ampere/service/ProjectListing.java) |
+| **Front-end** | [`ProjectsPage`](app/front/src/features/projects/pages/ProjectsPage/ProjectsPage.tsx) |
+| **Issues** | [#13](https://github.com/IgrPhillipe/ampere/issues/13) · [#19](https://github.com/IgrPhillipe/ampere/issues/19) · [#23](https://github.com/IgrPhillipe/ampere/issues/23) |
+
+#### POST-IT · US02 — Configuração inicial dos parâmetros da edificação
+
+> **Como** projetista externo,
+> **Quero** informar os parâmetros da edificação uma única vez,
+> **Para que** o próprio sistema determine automaticamente a norma e as tabelas aplicadas ao cálculo, eliminando divergências de interpretação.
+
+| | |
+| :--- | :--- |
+| **Entregue** | Formulário de identificação e parâmetros técnicos · validação dos campos obrigatórios bloqueando o avanço · atribuição automática de DIS-NOR-053 REV 06 e DIS-NOR-030 REV 07 a partir do tipo de edificação, sem seleção manual · norma persistida junto do projeto |
+| **Back-end** | [`BuildingType`](app/back/src/main/java/br/com/ampere/domain/BuildingType.java) e subclasses · [`ApplicableStandards`](app/back/src/main/java/br/com/ampere/service/ApplicableStandards.java) · [`ProjectCreation`](app/back/src/main/java/br/com/ampere/service/ProjectCreation.java) |
+| **Front-end** | [`NewProjectPage`](app/front/src/features/projects/pages/NewProjectPage/NewProjectPage.tsx) |
+| **Issues** | [#14](https://github.com/IgrPhillipe/ampere/issues/14) · [#26](https://github.com/IgrPhillipe/ampere/issues/26) · [#30](https://github.com/IgrPhillipe/ampere/issues/30) |
+
+#### Requisitos de POO no código
+
+| Requisito | Onde é atendido |
+| :--- | :--- |
+| Mínimo de 3 classes de domínio persistidas | `Project`, `BuildingType`, `Standard`, `Finding`, `User` |
+| Histórias que leem e escrevem no banco | US02 escreve, US01 lê |
+| **Herança** | `BuildingType` abstrata → `ResidentialMultifamily`, `NonResidential`, `Mixed` |
+| **Polimorfismo** | `demandRules()` sobrescrito por subclasse; a norma aplicável é derivada das regras, não escolhida por condicional |
+| **Encapsulamento** | Campos privados, invariantes validadas no construtor, sem setter onde não faz sentido |
+| Sem geração automática de boilerplate | Lombok proibido; `record` para DTO, getters escritos à mão nas entidades |
+
+#### Artefatos
 
 | Artefato | Link |
 | :--- | :--- |
-| Histórias implementadas (POST-IT) | TBD |
+| Histórias implementadas (POST-IT) | Acima nesta seção |
 | Print do GitHub Issues | TBD |
 | Screencast do sistema rodando (YouTube) | TBD |
 | Screencast da explicação do código (YouTube) | TBD |
