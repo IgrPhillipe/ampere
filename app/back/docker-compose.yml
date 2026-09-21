@@ -40,6 +40,11 @@ services:
       # versionado do mesmo jeito. Definido, assina os tokens; em branco, a API
       # gera uma chave por execucao e o login cai a cada `docker compose up`.
       JWT_SECRET: ${JWT_SECRET:-}
+      # Alavanca de recuperacao de schema, repassada para o container. Sem esta
+      # linha `DDL_AUTO=create docker compose up` nao surtia efeito nenhum: a
+      # variavel ficava no shell e o `application.properties` caia no default,
+      # justamente no caminho que o README manda usar.
+      DDL_AUTO: ${DDL_AUTO:-update}
 
     depends_on:
       db:
