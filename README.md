@@ -155,13 +155,14 @@ Histórias restantes e fechamento do produto para a apresentação final.
 | Deploy (front) | TBD |
 | Deploy (API) | TBD |
 | Site do grupo | [Google Sites](https://sites.google.com/cesar.school/site-grupo-4/) |
-| Backlog | [Trello](https://trello.com/b/yd35ygrF/cesar-projetos-3) |
+| Backlog e progresso | [GitHub Project — AMPERE Sprint 1](https://github.com/users/IgrPhillipe/projects/4) |
+| Issues | [GitHub Issues](https://github.com/IgrPhillipe/ampere/issues) · [milestone Entrega 02](https://github.com/IgrPhillipe/ampere/milestone/1) |
+| Gestão do projeto | [Trello](https://trello.com/b/yd35ygrF/cesar-projetos-3) |
 | Ideação | [FigJam](https://www.figma.com/board/H7ZlU9nAbR72LiXVLUBmqo) |
 | Figma (descoberta) | [Figma](https://www.figma.com/files/team/1541129127160121770/project/636750169?fuid=1543015890914897932) |
 | Protótipo Hi-Fi | [Figma — Protótipo HI-FI](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI) |
 | Protótipo Lo-Fi | [Figma — Protótipo LO-FI](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
 | Drive | [Google Drive](https://drive.google.com/drive/u/1/folders/13xm3xImWBu0tH-wV9_ENizb65mgrkQ3l) |
-| Bugtracker | [GitHub Issues](https://github.com/IgrPhillipe/ampere/issues) |
 | Cronograma (Projetos 3) | [`docs/cronograma-projetos3.md`](docs/cronograma-projetos3.md) |
 | Cronograma (POO) | [`docs/cronograma-poo.md`](docs/cronograma-poo.md) |
 
