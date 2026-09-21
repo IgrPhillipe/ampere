@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
 		},
 		server: {
 			proxy: {
-				// Em producao quem resolve /api e o deploy.
+				// In production the deploy is what resolves /api.
 				"/api": {
 					target: env.VITE_PROXY_TARGET || "http://localhost:8080",
 					changeOrigin: true,

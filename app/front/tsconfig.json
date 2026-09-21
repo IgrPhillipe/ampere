@@ -4,7 +4,7 @@
 		{ "path": "./tsconfig.app.json" },
 		{ "path": "./tsconfig.node.json" }
 	],
-	/** Repetidos de tsconfig.app.json: ha ferramenta que le so a raiz. */
+	/** Repeated from tsconfig.app.json: some tools read only the root. */
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {

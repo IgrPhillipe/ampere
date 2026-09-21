@@ -1,4 +1,4 @@
-# Valida so o que mudou em relacao ao remoto. Push de docs passa direto.
+# Validates only what changed against the remote. A docs-only push goes straight through.
 changed() { ! git diff --quiet "@{upstream}" HEAD -- "$1" 2>/dev/null; }
 
 if changed app/front; then

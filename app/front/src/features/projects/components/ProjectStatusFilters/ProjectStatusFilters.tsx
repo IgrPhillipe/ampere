@@ -9,7 +9,7 @@ import { projectStatusCountKeys, projectStatusLabels } from "../../constants";
 
 interface ProjectStatusFiltersProps {
 	counts: ProjectStatusCounts;
-	/** `null` e o chip "Todos os projetos". */
+	/** `null` is the "Todos os projetos" chip. */
 	value: ProjectStatus | null;
 	onValueChange: (value: ProjectStatus | null) => void;
 	className?: string;
@@ -21,7 +21,7 @@ interface StatusFilter {
 	countKey: keyof ProjectStatusCounts;
 }
 
-/** A ordem e a do enum: a fonte da lista e o schema, nao uma copia literal. */
+/** Order comes from the enum: the schema is the source, not a literal copy. */
 const statusFilters: StatusFilter[] = [
 	{ value: null, label: "Todos os projetos", countKey: "total" },
 	...projectStatusSchema.options.map((status) => ({

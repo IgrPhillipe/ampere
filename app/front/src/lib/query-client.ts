@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { getToastErrorMessage } from "./api-error";
 
 export const queryClient = new QueryClient({
-	/** Erro de query vira toast sem que cada hook precise de um `onError`. */
+	/** A query error becomes a toast without every hook needing an `onError`. */
 	queryCache: new QueryCache({
 		onError: (error) => {
 			const message = getToastErrorMessage(error, {

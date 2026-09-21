@@ -118,7 +118,7 @@ function DropdownMenuRadioItem({
 	);
 }
 
-/** Rotulo solto do menu. */
+/** Standalone menu label. */
 function DropdownMenuLabel({
 	className,
 	...props

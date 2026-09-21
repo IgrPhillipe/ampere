@@ -38,7 +38,7 @@
 	--secondary-foreground: var(--neo-white);
 	--muted: var(--neo-sand-soft);
 	--muted-foreground: var(--neo-ink-muted);
-	/* `accent` e verde: nao serve de hover neutro para linha de tabela. */
+	/* `accent` is green: not a neutral hover for a table row. */
 	--surface-hover: var(--neo-gray-soft);
 	--accent: var(--neo-green-soft);
 	--accent-foreground: var(--neo-green-dark);

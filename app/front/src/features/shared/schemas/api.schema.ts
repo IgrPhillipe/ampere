@@ -6,11 +6,11 @@ export const paginationSchema = z.object({
 	pageSize: z.number().int().positive(),
 });
 
-/** Envelope padrao das respostas da API, num lugar so. */
+/** Standard envelope of the API responses, in one place. */
 export const apiResponseSchema = <T extends z.ZodType>(data: T) =>
 	z.object({ data, pagination: paginationSchema.optional() });
 
-/** Envelope de resposta paginada: a paginacao deixa de ser opcional. */
+/** Paginated response envelope: pagination stops being optional. */
 export const paginatedResponseSchema = <T extends z.ZodType>(data: T) =>
 	z.object({ data, pagination: paginationSchema });
 

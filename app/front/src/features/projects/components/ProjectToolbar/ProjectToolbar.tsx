@@ -2,14 +2,14 @@ import { cn } from "@lib/utils";
 import type { ReactNode } from "react";
 
 interface ProjectToolbarProps {
-	/** Chips de situação, de ponta a ponta. */
+	/** Status chips, edge to edge. */
 	filters: ReactNode;
-	/** Campo de busca. A barra cuida do recuo lateral e da divisória. */
+	/** Search field. The bar handles the side gutter and the divider. */
 	search: ReactNode;
 	className?: string;
 }
 
-/** Barra de filtros da listagem. */
+/** Filter bar of the listing. */
 export const ProjectToolbar = ({
 	filters,
 	search,

@@ -248,7 +248,7 @@ class ProjectControllerTest {
         List.of(new Standard("DIS-NOR-030", "REV 07"), new Standard("DIS-NOR-053", "REV 06")));
   }
 
-  /** Mesmo basename que o Spring Boot registra em producao. */
+  /** Same basename Spring Boot registers in production. */
   private static MessageSource messageSource() {
     ResourceBundleMessageSource source = new ResourceBundleMessageSource();
     source.setBasename("messages");

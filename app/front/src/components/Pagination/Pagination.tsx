@@ -7,12 +7,12 @@ interface PaginationProps {
 	pageSize: number;
 	total: number;
 	onPageChange: (page: number) => void;
-	/** Plural do que esta sendo paginado: "projetos", "análises". */
+	/** Plural of what is being paginated: "projetos", "análises". */
 	itemLabel?: string;
 	className?: string;
 }
 
-/** Anterior / proxima mais o intervalo exibido. */
+/** Previous / next plus the range on display. */
 export const Pagination = ({
 	page,
 	pageSize,

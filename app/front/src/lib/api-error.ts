@@ -9,7 +9,7 @@ export const INTERNAL_ERROR_MESSAGE = "Erro interno. Tente novamente.";
 export const NETWORK_ERROR_MESSAGE =
 	"Nao foi possivel falar com o servidor. Verifique sua conexao.";
 
-/** Item de erro de bean validation (`MethodArgumentNotValidException`). */
+/** Bean validation error item (`MethodArgumentNotValidException`). */
 interface SpringFieldError {
 	field?: string;
 	defaultMessage?: string;
@@ -26,7 +26,7 @@ interface SpringErrorBody {
 
 export type ApiHTTPError = HTTPError & { apiDetail?: string };
 
-/** Mensagens que o Boot devolve quando nao ha nada util a dizer. */
+/** Messages Boot returns when it has nothing useful to say. */
 const NOISE = new Set(["no message available", "no description available", ""]);
 
 const clean = (value: unknown): string | undefined => {
@@ -37,7 +37,7 @@ const clean = (value: unknown): string | undefined => {
 	return trimmed && !NOISE.has(trimmed.toLowerCase()) ? trimmed : undefined;
 };
 
-/** Normaliza o JSON de erro do Spring numa unica string. */
+/** Normalizes Spring's error JSON into a single string. */
 export const parseSpringErrorBody = (
 	body: SpringErrorBody,
 ): string | undefined => {
@@ -53,7 +53,7 @@ export const parseSpringErrorBody = (
 	return clean(body.detail) ?? clean(body.message) ?? clean(body.title);
 };
 
-/** Ruido de transporte que nao deve chegar ao usuario. */
+/** Transport noise that must not reach the user. */
 const isTechnicalMessage = (message: string): boolean => {
 	const lower = message.toLowerCase();
 
@@ -68,7 +68,7 @@ const isTechnicalMessage = (message: string): boolean => {
 	);
 };
 
-/** Stack trace ou detalhe interno vazado pelo back-end. */
+/** Stack trace or internal detail leaked by the back-end. */
 const isInternalLeakMessage = (message: string): boolean => {
 	const lower = message.toLowerCase();
 

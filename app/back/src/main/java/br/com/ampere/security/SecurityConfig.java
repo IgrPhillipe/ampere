@@ -24,12 +24,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-/** Quem entra sem token e quem nao entra. */
+/** Who gets in without a token and who does not. */
 @Configuration
 @EnableConfigurationProperties({JwtProperties.class, CorsProperties.class})
 public class SecurityConfig {
 
-  /** Sem sessao e sem CSRF: o cliente e uma SPA que manda o token em cada requisicao. */
+  /** No session and no CSRF: the client is a SPA that sends the token on every request. */
   @Bean
   public SecurityFilterChain filterChain(
       HttpSecurity http,
@@ -82,7 +82,7 @@ public class SecurityConfig {
     return new BCryptPasswordEncoder();
   }
 
-  /** Uma chave so, resolvida uma vez. */
+  /** A single key, resolved once. */
   @Bean
   public SecretKey jwtSigningKey(JwtProperties properties, Environment environment) {
     return JwtSecret.resolve(properties.secret(), environment.matchesProfiles("prod"));

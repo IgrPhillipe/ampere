@@ -25,7 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-/** Exercita o caminho HTTP, nao o arquivo de mensagens. */
+/** Exercises the HTTP path, not the messages file. */
 @SpringBootTest
 class MessageLocalizationTest {
 

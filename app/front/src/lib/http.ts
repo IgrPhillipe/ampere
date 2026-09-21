@@ -17,7 +17,7 @@ export const http = ky.create({
 				if (token) request.headers.set("Authorization", `Bearer ${token}`);
 			},
 		],
-		/** Sessao recusada pelo servidor derruba a sessao local. */
+		/** A session the server refuses tears down the local session. */
 		afterResponse: [
 			({ request, response }) => {
 				if (response.status !== 401) return;

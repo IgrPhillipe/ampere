@@ -4,7 +4,7 @@
 @import "@fontsource-variable/ibm-plex-sans";
 @import "./tokens.css";
 
-/** Mantem as variantes `dark:` vinculadas ao estado explicito da aplicacao. */
+/** Keeps the `dark:` variants tied to the app's explicit state. */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {

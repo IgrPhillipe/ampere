@@ -31,7 +31,7 @@ const badgeVariants = cva(
 
 type BadgeProps = React.ComponentProps<"span"> &
 	VariantProps<typeof badgeVariants> & {
-		/** Troca o `<span>` por outro elemento. Equivale ao `asChild` do Radix. */
+		/** Swaps the `<span>` for another element. Equivalent to Radix's `asChild`. */
 		render?: useRender.RenderProp;
 	};
 

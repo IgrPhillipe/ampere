@@ -13,7 +13,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
-/** Recusa de acesso no formato que o resto da API usa. */
+/** Access refusal in the format the rest of the API uses. */
 @Component
 public class ProblemDetailAuthenticationHandler
     implements AuthenticationEntryPoint, AccessDeniedHandler {

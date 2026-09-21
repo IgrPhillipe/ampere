@@ -9,11 +9,11 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
-/** Emite o JWT que o front guarda e devolve no header {@code Authorization}. */
+/** Issues the JWT the front stores and sends back in the {@code Authorization} header. */
 @Service
 public class TokenService {
 
-  /** Emissor gravado no token, para o decodificador recusar token de outra origem. */
+  /** Issuer written into the token, so the decoder refuses a token from elsewhere. */
   public static final String ISSUER = "ampere-api";
 
   private final JwtEncoder encoder;
@@ -24,7 +24,7 @@ public class TokenService {
     this.properties = properties;
   }
 
-  /** O {@code subject} e o id do usuario, nao o e-mail: e-mail pode mudar, id nao. */
+  /** The {@code subject} is the user id, not the e-mail: e-mail changes, id does not. */
   public String issue(User user) {
     Instant now = Instant.now();
 

@@ -17,7 +17,7 @@ declare module "@tanstack/react-router" {
 	}
 }
 
-/** Liga os mocks do MSW em desenvolvimento. */
+/** Turns the MSW mocks on in development. */
 const enableMocking = async (): Promise<void> => {
 	if (!AppConfig.IS_DEV) return;
 

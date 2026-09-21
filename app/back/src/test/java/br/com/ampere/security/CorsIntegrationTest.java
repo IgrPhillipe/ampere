@@ -11,7 +11,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** Front e API em dominios diferentes — Vercel chamando Render — dependem disto. */
+/** Front and API on different domains — Vercel calling Render — depend on this. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(properties = "ampere.cors.allowed-origins=https://exemplo.vercel.app")

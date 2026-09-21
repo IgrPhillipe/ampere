@@ -9,13 +9,13 @@ import type { ReactNode } from "react";
 interface FormFieldProps {
 	label?: ReactNode;
 	description?: ReactNode;
-	/** Mensagem vinda do `fieldState.error` do react-hook-form. */
+	/** Message coming from react-hook-form's `fieldState.error`. */
 	error?: string;
 	children: ReactNode;
 	className?: string;
 }
 
-/** Casca de um campo: rotulo, controle, descricao e erro. */
+/** Shell of a field: label, control, description and error. */
 export const FormField = ({
 	label,
 	description,

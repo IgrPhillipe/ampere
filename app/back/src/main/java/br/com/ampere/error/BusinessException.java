@@ -2,7 +2,7 @@ package br.com.ampere.error;
 
 import org.springframework.http.HttpStatus;
 
-/** Regra de negocio violada. */
+/** A business rule was violated. */
 public class BusinessException extends RuntimeException {
 
   private final HttpStatus status;

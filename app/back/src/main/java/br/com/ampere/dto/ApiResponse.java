@@ -2,7 +2,7 @@ package br.com.ampere.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-/** Envelope de toda resposta de sucesso da API. */
+/** Envelope of every successful API response. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ApiResponse<T>(T data, Pagination pagination) {
 

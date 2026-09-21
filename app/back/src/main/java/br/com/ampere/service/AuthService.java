@@ -12,11 +12,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Autenticacao: conferir credencial e emitir token. */
+/** Authentication: check the credentials and issue a token. */
 @Service
 public class AuthService {
 
-  /** Mensagem unica para e-mail inexistente e senha errada. */
+  /** One message for both unknown e-mail and wrong password. */
   private static final String INVALID_CREDENTIALS = "E-mail ou senha inválidos.";
 
   private final UserRepository userRepository;
@@ -41,7 +41,7 @@ public class AuthService {
     return new LoginResponse(tokenService.issue(user), AuthUserResponse.from(user));
   }
 
-  /** O usuario do token, relido do banco. */
+  /** The token's user, read back from the database. */
   @Transactional(readOnly = true)
   public AuthUserResponse currentUser(String userId) {
     return userRepository

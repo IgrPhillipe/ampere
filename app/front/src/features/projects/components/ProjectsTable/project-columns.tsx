@@ -8,10 +8,10 @@ import { InlineActionButton } from "./InlineActionButton";
 
 const columnHelper = createDataTableColumnHelper<Project>();
 
-/** Ids das colunas, para `columnClassNames` nao aceitar chave inventada. */
+/** Column ids, so `columnClassNames` does not accept a made-up key. */
 export type ProjectColumnId = "name" | "status" | "createdAt" | "updatedAt";
 
-/** Reprovado com pendencia oferece "Ver apontamentos". */
+/** Rejected with a pending finding offers "Ver apontamentos". */
 const isRejectedWithFindings = (project: Project) =>
 	project.status === "REJECTED" && project.pendingCount > 0;
 

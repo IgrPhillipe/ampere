@@ -32,7 +32,7 @@ export default defineConfig([
 		},
 	},
 	{
-		// O HMR dos arquivos de rota e responsabilidade do plugin do router.
+		// HMR for the route files is the router plugin's responsibility.
 		files: ["src/routes/**/*.{ts,tsx}"],
 		rules: {
 			"react-refresh/only-export-components": "off",

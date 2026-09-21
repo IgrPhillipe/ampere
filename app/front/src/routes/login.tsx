@@ -2,7 +2,7 @@ import { LoginPage } from "@features/auth";
 import { createFileRoute } from "@tanstack/react-router";
 
 interface LoginSearch {
-	/** Rota de origem, para voltar depois de entrar. */
+	/** Originating route, to return to after signing in. */
 	redirect?: string;
 }
 

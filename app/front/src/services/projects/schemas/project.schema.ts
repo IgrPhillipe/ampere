@@ -36,14 +36,14 @@ export const projectStatusCountsSchema = z.object({
 
 export type ProjectStatusCounts = z.infer<typeof projectStatusCountsSchema>;
 
-/** `GET /projects` — a página, sem os contadores. */
+/** `GET /projects` — the page, without the counters. */
 export const projectListResponseSchema = paginatedResponseSchema(
 	z.array(projectSchema),
 );
 
 export type ProjectListResponse = z.infer<typeof projectListResponseSchema>;
 
-/** `GET /projects/status-counts` — contadores globais, sem paginação. */
+/** `GET /projects/status-counts` — global counters, no pagination. */
 export const projectStatusCountsResponseSchema = apiResponseSchema(
 	projectStatusCountsSchema,
 );

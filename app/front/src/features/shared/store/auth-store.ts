@@ -35,7 +35,7 @@ export const useAuthStore = create<AuthState>()(
 	),
 );
 
-/** Espera a re-hidratacao do storage antes das guards de rota rodarem. */
+/** Waits for the storage to rehydrate before the route guards run. */
 export const waitForAuthHydration = (): Promise<void> => {
 	if (useAuthStore.persist.hasHydrated()) return Promise.resolve();
 

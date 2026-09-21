@@ -28,7 +28,7 @@ class JwtSecretTest {
         .hasMessageContaining("JWT_SECRET");
   }
 
-  /** HS256 assina com 256 bits; segredo curto passaria e falharia so na primeira emissao. */
+  /** HS256 signs with 256 bits; a short secret would only fail at the first issue. */
   @Test
   void refusesASecretShorterThanTheAlgorithmNeeds() {
     assertThatThrownBy(() -> JwtSecret.resolve("curto-demais", false))
@@ -43,7 +43,7 @@ class JwtSecretTest {
     assertThat(key.getEncoded()).hasSizeGreaterThanOrEqualTo(JwtSecret.MINIMUM_BYTES);
   }
 
-  /** Chave gerada e por execucao: duas resolucoes nao podem coincidir. */
+  /** A generated key is per run: two resolutions must not coincide. */
   @Test
   void generatesADifferentKeyEveryTime() {
     assertThat(JwtSecret.resolve("", false).getEncoded())

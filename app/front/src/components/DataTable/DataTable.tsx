@@ -24,9 +24,9 @@ interface DataTableProps<TData extends RowData, TColumnId extends string> {
 	isLoading?: boolean;
 	emptyTitle?: string;
 	emptyDescription?: ReactNode;
-	/** Substitui o EmptyState montado por props. */
+	/** Replaces the EmptyState built from props. */
 	empty?: ReactNode;
-	/** Classe por coluna, com a chave presa aos ids declarados por quem chama. */
+	/** Class per column, keyed to the ids the caller declared. */
 	columnClassNames?: Partial<Record<TColumnId, string>>;
 	className?: string;
 }

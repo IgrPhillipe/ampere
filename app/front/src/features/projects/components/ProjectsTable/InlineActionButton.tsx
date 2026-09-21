@@ -6,7 +6,7 @@ interface InlineActionButtonProps {
 	onClick: () => void;
 }
 
-/** Acao textual de dentro de uma celula: "Ver apontamentos", "Retomar e enviar". */
+/** Text action inside a cell: "Ver apontamentos", "Retomar e enviar". */
 export const InlineActionButton = ({
 	children,
 	onClick,

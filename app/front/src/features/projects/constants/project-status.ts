@@ -1,6 +1,6 @@
 import type { ProjectStatus, ProjectStatusCounts } from "@services/projects";
 
-/** Rotulo de cada situacao, num lugar so. */
+/** Label of each status, in one place. */
 export const projectStatusLabels = {
 	DRAFT: "Rascunho",
 	AWAITING_SUBMISSION: "Aguardando envio",
@@ -9,7 +9,7 @@ export const projectStatusLabels = {
 	APPROVED: "Aprovado",
 } as const satisfies Record<ProjectStatus, string>;
 
-/** Campo dos contadores que corresponde a cada situacao. */
+/** Counter field matching each status. */
 export const projectStatusCountKeys = {
 	DRAFT: "draft",
 	AWAITING_SUBMISSION: "awaitingSubmission",

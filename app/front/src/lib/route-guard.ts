@@ -2,13 +2,13 @@ import type { UserRole } from "@features/shared";
 import { useAuthStore, waitForAuthHydration } from "@features/shared";
 import { redirect } from "@tanstack/react-router";
 
-/** Para onde mandar cada papel quando ele cai numa rota que nao pode ver. */
+/** Where to send each role when it lands on a route it cannot see. */
 const ROLE_FALLBACK: Record<UserRole, string> = {
 	admin: "/",
 	user: "/",
 };
 
-/** Usar em `beforeLoad` de rota que exige sessao. */
+/** Use in the `beforeLoad` of a route that requires a session. */
 export const requireAuth = () => async () => {
 	await waitForAuthHydration();
 
@@ -19,7 +19,7 @@ export const requireAuth = () => async () => {
 	}
 };
 
-/** Usar em `beforeLoad` de rota restrita a papeis especificos. */
+/** Use in the `beforeLoad` of a route restricted to specific roles. */
 export const requireRoles =
 	(roles: UserRole[], fallback?: string) => async () => {
 		await waitForAuthHydration();

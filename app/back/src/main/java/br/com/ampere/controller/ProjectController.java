@@ -71,7 +71,7 @@ public class ProjectController {
         new Pagination(listing.totalElements(), pagination.page(), pagination.pageSize()));
   }
 
-  /** Totais por situação, para a barra de filtros. */
+  /** Totals per status, for the filter bar. */
   @GetMapping("/status-counts")
   @Operation(
       operationId = "countProjectsPerStatus",

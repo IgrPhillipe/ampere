@@ -7,7 +7,7 @@ interface SearchInputProps {
 	value: string;
 	onValueChange: (value: string) => void;
 	placeholder?: string;
-	/** Rotulo do campo para leitor de tela. O placeholder nao serve de nome. */
+	/** Field label for screen readers. The placeholder is not a name. */
 	label: string;
 	className?: string;
 }
@@ -15,7 +15,7 @@ interface SearchInputProps {
 const inputClassName =
 	"rounded-none border-x-0 border-t-0 pr-11 pl-10 shadow-none [&::-webkit-search-cancel-button]:appearance-none";
 
-/** Campo de busca com lupa e botao de limpar. */
+/** Search field with a magnifier and a clear button. */
 export const SearchInput = ({
 	value,
 	onValueChange,

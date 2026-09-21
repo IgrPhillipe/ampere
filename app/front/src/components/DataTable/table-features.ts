@@ -8,7 +8,7 @@ import {
 	tableFeatures,
 } from "@tanstack/react-table";
 
-/** Features ligadas no `DataTable`. */
+/** Features enabled on the `DataTable`. */
 export const dataTableFeatures = tableFeatures({
 	columnFilteringFeature,
 	globalFilteringFeature,
@@ -18,6 +18,6 @@ export const dataTableFeatures = tableFeatures({
 
 export type DataTableFeatures = typeof dataTableFeatures;
 
-/** Cria o helper de colunas ja amarrado nas features acima. */
+/** Creates the column helper already bound to the features above. */
 export const createDataTableColumnHelper = <TData extends RowData>() =>
 	createColumnHelper<DataTableFeatures, TData>();

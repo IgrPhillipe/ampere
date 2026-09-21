@@ -19,7 +19,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import tools.jackson.databind.exc.InvalidFormatException;
 
-/** Traduz excecao em resposta HTTP, no formato {@code ProblemDetail} da RFC 7807. */
+/** Translates an exception into an HTTP response, as an RFC 7807 {@code ProblemDetail}. */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -68,7 +68,7 @@ public class GlobalExceptionHandler {
     return problem;
   }
 
-  /** Rota inexistente. */
+  /** Route that does not exist. */
   @ExceptionHandler(NoResourceFoundException.class)
   public ProblemDetail handleNoResource(NoResourceFoundException exception) {
     return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE);
@@ -84,7 +84,7 @@ public class GlobalExceptionHandler {
     return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
   }
 
-  /** Corpo ilegivel: JSON malformado, corpo ausente, ou valor que nao existe no enum do campo. */
+  /** Unreadable body: malformed JSON, missing body, or a value outside the field's enum. */
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ProblemDetail handleUnreadableBody(HttpMessageNotReadableException exception) {
     String detail =
@@ -117,7 +117,7 @@ public class GlobalExceptionHandler {
     return "O campo '" + field + "' tem um valor inválido. Valores aceitos: " + accepted + ".";
   }
 
-  /** Rede de seguranca. */
+  /** Safety net. */
   @ExceptionHandler(Exception.class)
   public ProblemDetail handleUnexpected(Exception exception) {
     log.error("Erro nao tratado", exception);

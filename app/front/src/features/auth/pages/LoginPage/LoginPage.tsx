@@ -13,7 +13,7 @@ import { useLogin } from "@services/auth";
 import { type LoginFormValues, loginSchema } from "../../schemas";
 
 interface LoginPageProps {
-	/** Rota para onde voltar apos entrar, vinda de `?redirect=`. */
+	/** Route to return to after signing in, taken from `?redirect=`. */
 	redirectTo?: string;
 }
 

@@ -49,7 +49,7 @@ export const ProjectsPage = () => {
 		status: status ?? undefined,
 		search: debouncedSearch || undefined,
 	});
-	// Contadores em query própria: são globais e não mudam ao paginar nem ao buscar.
+	// Counters get their own query: they are global and change with neither page nor search.
 	const statusCountsQuery = useGetProjectStatusCounts();
 
 	const projects = projectsQuery.data?.data ?? [];
