@@ -28,17 +28,17 @@ pnpm dev
 ```
 
 A aplicação sobe em `http://localhost:5173`. As chamadas para `/api` passam pelo
-proxy do Vite para `http://localhost:8080`, onde ficará o back-end Spring Boot.
+proxy do Vite para `http://localhost:8080`, onde roda o back-end Spring Boot.
 
-Enquanto o back-end não existe, o **MSW** responde no lugar dele em
-desenvolvimento. Usuários de teste:
+O front fala com a API real por padrão. Com `VITE_ENABLE_MSW=true`, o **MSW**
+responde no lugar dela. Usuários de teste, os mesmos do seeder do back-end:
 
 | E-mail | Senha | Papel |
 | :--- | :--- | :--- |
 | `user@ampere.local` | `senha@123` | user |
 | `admin@ampere.local` | `senha@123` | admin |
 
-> Os papéis são placeholders. Os papéis reais dependem da Q1c em
+> Os papéis são placeholders. Os definitivos dependem da Q1c em
 > [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md).
 
 ---
@@ -53,8 +53,7 @@ desenvolvimento. Usuários de teste:
 | `pnpm lint` | Biome + ESLint, sem corrigir |
 | `pnpm preview` | serve o build de produção localmente |
 
-Um hook de `pre-push` roda o `pnpm validate`, mas só quando `app/front` mudou —
-push de documentação ou do back-end passa direto.
+Um hook de `pre-push` roda o `pnpm validate` apenas quando `app/front` mudou.
 
 ---
 
@@ -64,6 +63,7 @@ push de documentação ou do back-end passa direto.
 | :--- | :--- | :--- |
 | `VITE_API_URL` | Não (padrão `/api`) | URL base da API |
 | `VITE_PROXY_TARGET` | Não (padrão `http://localhost:8080`) | destino do proxy de `/api` em desenvolvimento |
+| `VITE_ENABLE_MSW` | Não (padrão `false`) | liga os mocks do MSW no lugar da API real |
 
 São validadas na inicialização por `src/config/config.ts`. Importe `AppConfig`
 de `@config` — nunca leia `import.meta.env` diretamente.

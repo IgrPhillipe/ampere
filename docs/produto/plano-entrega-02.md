@@ -11,12 +11,14 @@ Este documento é o plano de execução da Sprint 1 e, ao mesmo tempo, a especif
 
 | Artefato | Estado |
 | :--- | :--- |
-| Mínimo 2 histórias implementadas | US01 e US02 |
-| Descrição em formato POST-IT na seção "Entrega 02" do README | Pendente |
-| Commits semanais de código no `main` | **Em atraso — `main` está sem código** |
-| GitHub Issues em uso, com print no README | **Pendente — zero issues abertas** |
+| Mínimo 2 histórias implementadas | Concluído: US01 e US02 |
+| Descrição em formato POST-IT na seção "Entrega 02" do README | Concluído |
+| Commits semanais de código no `main` | Concluído |
+| GitHub Issues em uso, com print no README | Issues em uso; print pendente |
 | Screencast do sistema rodando | Pendente |
 | Screencast da explicação do código Spring Boot | Pendente |
+
+> O restante deste documento é o plano como foi escrito no início da sprint, mantido como registro. O estado atual do código está no [README](../../README.md).
 
 ---
 

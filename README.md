@@ -57,7 +57,7 @@ O projeto é dividido em três fases — **Imersão**, **Ideação** e **Desenvo
 
 ## Como rodar o projeto
 
-O sistema roda de ponta a ponta: API com as classes de domínio persistidas e front consumindo a API real.
+A API persiste as classes de domínio no PostgreSQL e o front consome a API real.
 
 **Back-end** (Java 21, Spring Boot, PostgreSQL). Precisa de Docker:
 
@@ -65,7 +65,7 @@ O sistema roda de ponta a ponta: API com as classes de domínio persistidas e fr
 cd app/back && cp .env.example .env && docker compose up
 ```
 
-A API sobe em `http://localhost:8080/api` e a documentação em `/api/docs`. Com a JDK 21 instalada dá para rodar a aplicação localmente contra o banco em container, o que é mais rápido no dia a dia. Detalhes em [app/back/README.md](app/back/README.md).
+A API sobe em `http://localhost:8080/api` e a documentação em `/api/docs`. Com a JDK 21 instalada, a aplicação roda localmente contra o banco em container. Detalhes em [app/back/README.md](app/back/README.md).
 
 **Front-end** (React 19, Vite, TypeScript). Precisa de Node 24+ e pnpm:
 
@@ -115,7 +115,7 @@ Fase inicial focada na estruturação de requisitos, validação de negócio e e
 
 ### Entrega 02 — 21/09/2026
 
-Duas histórias implementadas de ponta a ponta — US01 e US02 — com back-end Spring Boot, front-end React e PostgreSQL. As classes de domínio do cálculo cobrem os requisitos de herança, polimorfismo e encapsulamento da disciplina.
+US01 e US02 implementadas em back-end Spring Boot, front-end React e PostgreSQL.
 
 #### POST-IT · US01 — Acompanhamento de projetos e status
 
@@ -158,7 +158,7 @@ Duas histórias implementadas de ponta a ponta — US01 e US02 — com back-end 
 
 | Artefato | Link |
 | :--- | :--- |
-| Histórias implementadas (POST-IT) | Acima nesta seção |
+| Histórias implementadas (POST-IT) | Nesta seção |
 | Print do GitHub Issues | TBD |
 | Screencast do sistema rodando (YouTube) | TBD |
 | Screencast da explicação do código (YouTube) | TBD |

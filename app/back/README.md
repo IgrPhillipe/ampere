@@ -34,7 +34,7 @@ cp .env.example .env
 docker compose up
 ```
 
-Um comando, funciona em qualquer máquina mesmo sem JDK instalada.
+Não exige JDK instalada na máquina.
 
 ### Ciclo rápido de edição
 
@@ -44,14 +44,14 @@ docker compose up -d db
 ./mvnw spring-boot:run
 ```
 
-Só o banco em container; a aplicação roda pela IDE ou pelo wrapper, com reinício rápido.
+Só o banco em container. A aplicação roda pela IDE ou pelo wrapper.
 
 A API sobe em `http://localhost:8080/api` e a documentação em `http://localhost:8080/api/docs`.
 
 > **JDK 21 pelo Homebrew é *keg-only*** e não entra no PATH sozinho. Ou exporte
 > `JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home`,
 > ou registre a JDK no sistema com o `sudo ln -sfn ...` que o `brew install openjdk@21` sugere
-> ao final — aí `/usr/libexec/java_home -v 21` passa a encontrá-la.
+> ao final; `/usr/libexec/java_home -v 21` passa a encontrá-la.
 
 ---
 
@@ -80,8 +80,8 @@ na primeira subida com o banco vazio:
 | `user@ampere.local` | `senha@123` | `user` |
 | `admin@ampere.local` | `senha@123` | `admin` |
 
-São os mesmos do mock do MSW no front, para quem alterna entre mock e API real
-não precisar trocar o que digita. Nenhum papel gateia rota — ver a Q1c.
+São os mesmos do mock do MSW no front. Nenhum papel restringe rota; ver a Q1c em
+[`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md).
 
 ```bash
 curl -s -X POST http://localhost:8080/api/auth/login \
@@ -112,8 +112,7 @@ openssl rand -base64 48
 Sem Flyway, o `ddl-auto=update` **não altera tipo de coluna** e **não consegue
 acrescentar coluna `NOT NULL` a tabela que já tem linhas**. Nos dois casos ele
 registra um `WARN` no boot e sobe assim mesmo, com a coluna faltando. A API
-atende normalmente até a primeira consulta que toca nela, e aí responde `500`
-sem dizer por quê:
+atende até a primeira consulta que toca na coluna, e então responde `500`:
 
 ```
 GenerationTarget encountered exception accepting command :
@@ -123,17 +122,17 @@ GenerationTarget encountered exception accepting command :
 ERROR: column p1_0.created_at does not exist
 ```
 
-Com acesso ao banco, derrube as tabelas afetadas e reinicie — o seeder recria.
-**Sem acesso ao banco**, que é o caso de um deploy gerenciado:
+Com acesso ao banco, derrube as tabelas afetadas e reinicie; o seeder recria.
+**Sem acesso ao banco**, caso de um deploy gerenciado:
 
 1. defina `DDL_AUTO=create` no ambiente e reinicie
 2. o schema é recriado do zero e o `DataSeeder` repovoa (usuários inclusive)
 3. **remova a variável** e reinicie de novo
 
-O passo 3 não é opcional: com `DDL_AUTO=create` fixado, cada restart apaga tudo
-— e um serviço que hiberna reinicia sozinho.
+O passo 3 não é opcional: com `DDL_AUTO=create` fixado, cada restart apaga os
+dados, e um serviço que hiberna reinicia sozinho.
 
-> **Mudou o tipo de uma coluna?** Sem Flyway, o `ddl-auto=update` do Hibernate cria tabela e
+> **Mudança de tipo de coluna.** Sem Flyway, o `ddl-auto=update` do Hibernate cria tabela e
 > coluna novas, mas **não** altera o tipo de uma coluna que já existe. Quem já tinha o volume
 > antes da troca de `LocalDateTime` por `OffsetDateTime` precisa de `docker compose down -v`
 > antes de subir. Ver a pendência 23 em [`docs/pendencias.md`](../../docs/pendencias.md).
@@ -170,15 +169,15 @@ src/main/java/br/com/ampere/
 
 A fatia `projects` implementa o primeiro fluxo real ponta a ponta: domínio, persistência, serviço e o CRUD completo.
 
-As classes de domínio persistidas são **quatro**, acima do mínimo de três da disciplina: `Project`, `BuildingType` (abstrata, com `ResidentialMultifamily`, `NonResidential` e `Mixed`), `Standard` e `Finding`. A herança e o polimorfismo não são decorativos — `BuildingType.demandRules()` é sobrescrito por subclasse e é dele que a norma aplicável de cada projeto é derivada.
+As classes de domínio persistidas são **quatro**, acima do mínimo de três da disciplina: `Project`, `BuildingType` (abstrata, com `ResidentialMultifamily`, `NonResidential` e `Mixed`), `Standard` e `Finding`. `BuildingType.demandRules()` é sobrescrito por subclasse, e dele deriva a norma aplicável de cada projeto.
 
 ---
 
 ## Estado atual
 
-CRUD completo de projetos, com atribuição automática das normas aplicáveis a partir do tipo de edificação. **Sem autenticação** — os endpoints estão abertos, porque os papéis de usuário dependem da Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md), ainda em aberto. **Sem migrations versionadas** — o Hibernate cria o schema a partir das entidades. As duas pendências estão registradas em [`docs/pendencias.md`](../../docs/pendencias.md).
+CRUD completo de projetos, com atribuição automática das normas aplicáveis a partir do tipo de edificação. Autenticação por JWT: `/api/projects` exige token, e nenhum papel restringe rota enquanto a Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md) estiver aberta. **Sem migrations versionadas**: o Hibernate cria o schema a partir das entidades, pendência registrada em [`docs/pendencias.md`](../../docs/pendencias.md).
 
-> **Ao puxar esta branch, apague o banco de desenvolvimento uma vez.** O `project` ganhou colunas `NOT NULL`, e o PostgreSQL recusa adicioná-las a uma tabela populada — o `ddl-auto=update` loga a falha e sobe mesmo assim, contra um schema incompleto. `docker compose down -v` e o `DataSeeder` repovoa tudo.
+> **Bancos de desenvolvimento anteriores à Entrega 02 precisam ser apagados uma vez.** O `project` ganhou colunas `NOT NULL`, e o PostgreSQL recusa adicioná-las a uma tabela populada — o `ddl-auto=update` loga a falha e sobe mesmo assim, contra um schema incompleto. `docker compose down -v` e o `DataSeeder` repovoa tudo.
 >
 > O `-v` leva junto o banco de testes, que mora no mesmo container. Recrie antes de rodar o `verify`:
 >

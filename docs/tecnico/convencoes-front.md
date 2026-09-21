@@ -337,8 +337,8 @@ Handlers ficam em `services/<entidade>/mocks/handlers.ts` e são agregados em
 
 O worker só sobe com `AppConfig.ENABLE_MSW` **e** `import.meta.env.DEV`, e **a
 falha é não-fatal**: navegador sem service worker apenas registra um aviso e as
-chamadas seguem para a API real via proxy. Isso é proposital — antes, qualquer
-falha ao registrar derrubava a aplicação inteira numa tela branca.
+chamadas seguem para a API real via proxy. O comportamento é proposital: antes,
+qualquer falha ao registrar derrubava a aplicação inteira numa tela branca.
 
 > O mock é andaime de desenvolvimento. A Entrega 02 exige que as histórias leiam
 > e escrevam no banco de verdade. Ele ficou ligado por padrão enquanto o back não
