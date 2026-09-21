@@ -20,6 +20,8 @@ interface ControlledInputProps<T extends FieldValues>
 	description?: ReactNode;
 	/** Aplica a mesma variante ao rotulo e ao controle. */
 	variant?: FieldVariant;
+	/** Marca o campo no rotulo e expoe `aria-required` no controle. */
+	required?: boolean;
 	/** Classe do campo inteiro (o `Field`), nao do `input`. */
 	fieldClassName?: string;
 }
@@ -34,6 +36,7 @@ export const ControlledInput = <T extends FieldValues>({
 	label,
 	description,
 	variant = "default",
+	required = false,
 	className,
 	fieldClassName,
 	...inputProps
@@ -47,11 +50,13 @@ export const ControlledInput = <T extends FieldValues>({
 				description={description}
 				error={fieldState.error?.message}
 				variant={variant}
+				required={required}
 				className={fieldClassName}
 			>
 				<FieldControl
 					render={<Input variant={variant} className={className} />}
 					{...inputProps}
+					required={required}
 					name={field.name}
 					value={field.value ?? ""}
 					onValueChange={undefined}

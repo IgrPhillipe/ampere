@@ -29,6 +29,8 @@ interface ControlledSelectProps<T extends FieldValues> {
 	disabled?: boolean;
 	/** Aplica a mesma variante ao rotulo e ao gatilho. */
 	variant?: FieldVariant;
+	/** Marca o campo no rotulo e expoe `aria-required` no gatilho. */
+	required?: boolean;
 	/** Classe do gatilho. */
 	className?: string;
 	/** Classe do campo inteiro (o `Field`), nao do gatilho. */
@@ -51,6 +53,7 @@ export const ControlledSelect = <T extends FieldValues>({
 	items,
 	disabled,
 	variant = "default",
+	required = false,
 	className,
 	fieldClassName,
 }: ControlledSelectProps<T>) => (
@@ -63,6 +66,7 @@ export const ControlledSelect = <T extends FieldValues>({
 				description={description}
 				error={fieldState.error?.message}
 				variant={variant}
+				required={required}
 				className={fieldClassName}
 			>
 				<Select
@@ -73,7 +77,13 @@ export const ControlledSelect = <T extends FieldValues>({
 				>
 					<FieldControl
 						render={
-							<SelectTrigger variant={variant} className={className}>
+							// O gatilho e um `button`: `required` nativo nao vale nele,
+							// entao o estado vai pelo aria.
+							<SelectTrigger
+								variant={variant}
+								className={className}
+								aria-required={required || undefined}
+							>
 								<SelectValue placeholder={placeholder} />
 							</SelectTrigger>
 						}

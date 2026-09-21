@@ -171,6 +171,12 @@ Passe a variante ao wrapper, não ao primitivo: `ControlledInput` e
 `ControlledSelect` aceitam `variant` e aplicam a mesma escolha ao rótulo e ao
 controle, então os dois nunca saem trocados.
 
+Campo obrigatório usa `required`, nunca um asterisco digitado no texto do
+rótulo: o marcador visual é `aria-hidden` e quem usa leitor de tela ouve a
+palavra "obrigatório", em vez de "asterisco". O `required` também chega ao
+controle — atributo nativo no `input`, `aria-required` no gatilho do select,
+que é um `button` e não aceita o nativo.
+
 ```tsx
 <ControlledInput control={form.control} name="name" label="Nome" variant="underline" />
 ```

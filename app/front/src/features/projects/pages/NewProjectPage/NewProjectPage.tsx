@@ -163,37 +163,41 @@ export const NewProjectPage = () => {
 								<ControlledInput
 									control={form.control}
 									name="name"
-									label="Nome do projeto *"
+									label="Nome do projeto"
 									placeholder="Digite o nome do projeto"
+									required
 									variant="underline"
 								/>
 
 								<ControlledInput
 									control={form.control}
 									name="municipality"
-									label="Município *"
+									label="Município"
 									placeholder="Digite o município"
+									required
 									variant="underline"
 								/>
 
 								<ControlledInput
 									control={form.control}
 									name="address"
-									label="Endereço *"
+									label="Endereço"
 									placeholder="Digite o endereço"
+									required
 									variant="underline"
 								/>
 
 								<ControlledInput
 									control={form.control}
 									name="floors"
-									label="Nº de pavimentos *"
+									label="Nº de pavimentos"
 									type="number"
 									min={1}
 									max={200}
 									step={1}
 									inputMode="numeric"
 									placeholder="Ex.: 8"
+									required
 									variant="underline"
 								/>
 							</div>
@@ -208,36 +212,40 @@ export const NewProjectPage = () => {
 								<ControlledSelect
 									control={form.control}
 									name="buildingType"
-									label="Tipo de edificação *"
+									label="Tipo de edificação"
 									placeholder="Selecione o tipo de edificação"
 									items={buildingTypeItems}
+									required
 									variant="underline"
 								/>
 
 								<ControlledSelect
 									control={form.control}
 									name="voltage"
-									label="Tensão de fornecimento *"
+									label="Tensão de fornecimento"
 									placeholder="Selecione a tensão"
 									items={voltageItems}
+									required
 									variant="underline"
 								/>
 
 								<ControlledSelect
 									control={form.control}
 									name="connectionType"
-									label="Tipo de ligação *"
+									label="Tipo de ligação"
 									placeholder="Selecione o tipo de ligação"
 									items={connectionTypeItems}
+									required
 									variant="underline"
 								/>
 
 								<ControlledSelect
 									control={form.control}
 									name="entranceStandard"
-									label="Padrão de entrada *"
+									label="Padrão de entrada"
 									placeholder="Selecione o padrão de entrada"
 									items={entranceStandardItems}
+									required
 									variant="underline"
 								/>
 							</div>
