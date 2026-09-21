@@ -30,7 +30,7 @@ pnpm dev
 A aplicação sobe em `http://localhost:5173`. As chamadas para `/api` passam pelo
 proxy do Vite para `http://localhost:8080`, onde roda o back-end Spring Boot.
 
-O front fala com a API real por padrão. Com `VITE_ENABLE_MSW=true`, o **MSW**
+O front consome a API real por padrão. Com `VITE_ENABLE_MSW=true` o **MSW**
 responde no lugar dela. Usuários de teste, os mesmos do seeder do back-end:
 
 | E-mail | Senha | Papel |
@@ -38,8 +38,8 @@ responde no lugar dela. Usuários de teste, os mesmos do seeder do back-end:
 | `user@ampere.local` | `senha@123` | user |
 | `admin@ampere.local` | `senha@123` | admin |
 
-> Os papéis são placeholders. Os definitivos dependem da Q1c em
-> [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md).
+Os papéis são placeholders; os definitivos dependem da Q1c em
+[`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md).
 
 ---
 
@@ -65,11 +65,9 @@ Um hook de `pre-push` roda o `pnpm validate` apenas quando `app/front` mudou.
 | `VITE_PROXY_TARGET` | Não (padrão `http://localhost:8080`) | destino do proxy de `/api` em desenvolvimento |
 | `VITE_ENABLE_MSW` | Não (padrão `false`) | liga os mocks do MSW no lugar da API real |
 
-São validadas na inicialização por `src/config/config.ts`. Importe `AppConfig`
-de `@config` — nunca leia `import.meta.env` diretamente.
-
-> O prefixo `VITE_` é obrigatório: o Vite só expõe ao navegador variáveis com
-> esse prefixo.
+Validadas na inicialização por `src/config/config.ts`. Importe `AppConfig` de
+`@config`; não leia `import.meta.env` diretamente. O prefixo `VITE_` é
+obrigatório.
 
 ---
 
@@ -77,7 +75,7 @@ de `@config` — nunca leia `import.meta.env` diretamente.
 
 | Documento | Conteúdo |
 | :--- | :--- |
-| [Convenções](../../docs/tecnico/convencoes-front.md) | **comece por aqui** — estrutura, nomes e aliases; camadas, roteamento, auth, erros e tema; e as receitas passo a passo para criar feature, service, rota e componente |
+| [Convenções](../../docs/tecnico/convencoes-front.md) | estrutura, nomes e aliases, camadas, roteamento, auth, erros, tema e as receitas de feature, service, rota e componente |
 | [Design system](../../docs/tecnico/design-system-front.md) | identidade Neoenergia, tokens, componentes, navegação, logo e checklist visual |
 | [`.migration/`](.migration/) | registro dos portes de Radix para Base UI |
 

@@ -50,8 +50,8 @@ O projeto é dividido em três fases — **Imersão**, **Ideação** e **Desenvo
 
 | Ambiente | URL |
 | :--- | :--- |
-| Front-end | [ampere-igrph.vercel.app](https://ampere-igrph.vercel.app) |
-| Back-end (API) | TBD |
+| Front-end | https://ampere-virid.vercel.app |
+| Back-end (API) | https://ampere-4eyz.onrender.com/api |
 
 ---
 
@@ -90,10 +90,7 @@ Critérios de cada marco: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (PO
 
 ### Entrega 01 — 31/08/2026
 
-Fase inicial focada na estruturação de requisitos, validação de negócio e especificação da experiência do usuário:
-- **Histórias de Usuário (7 USs completas):** Especificadas no documento [`docs/produto/user-stories.md`](docs/produto/user-stories.md) com detalhes de negócio na descrição, regras de interface e cenários de validação com entrega de valor usando **BDD (Dado/Quando/Então)**.
-- **Protótipo Lo-Fi (Figma):** Interface completa cobrindo a jornada dos dois perfis em todas as 7 histórias de usuário mapeadas (mínimo de 5 exigidas).
-- **Screencast do Protótipo (YouTube):** Vídeo gravado apresentando o protótipo no Figma e explicando cada história implementada (com áudio/legenda).
+7 histórias de usuário em BDD, protótipo Lo-Fi cobrindo as duas jornadas e screencast do protótipo.
 
 | Artefato | Link |
 | :--- | :--- |
@@ -191,16 +188,16 @@ Histórias restantes e fechamento do produto para a apresentação final.
 
 | Área | Link |
 | :--- | :--- |
-| Deploy (front) | [ampere-igrph.vercel.app](https://ampere-igrph.vercel.app) |
-| Deploy (API) | TBD |
+| Deploy (front) | [Vercel](https://ampere-virid.vercel.app) |
+| Deploy (API) | [Render](https://ampere-4eyz.onrender.com/api) |
 | Site do grupo | [Google Sites](https://sites.google.com/cesar.school/site-grupo-4/) |
-| Backlog e progresso | [GitHub Project — AMPERE Sprint 1](https://github.com/users/IgrPhillipe/projects/4) |
-| Issues | [GitHub Issues](https://github.com/IgrPhillipe/ampere/issues) · [milestone Entrega 02](https://github.com/IgrPhillipe/ampere/milestone/1) |
+| Backlog | [GitHub Project](https://github.com/users/IgrPhillipe/projects/4) |
+| Issues | [GitHub Issues](https://github.com/IgrPhillipe/ampere/issues) |
 | Gestão do projeto | [Trello](https://trello.com/b/yd35ygrF/cesar-projetos-3) |
 | Ideação | [FigJam](https://www.figma.com/board/H7ZlU9nAbR72LiXVLUBmqo) |
 | Figma (descoberta) | [Figma](https://www.figma.com/files/team/1541129127160121770/project/636750169?fuid=1543015890914897932) |
-| Protótipo Hi-Fi | [Figma — Protótipo HI-FI](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI) |
-| Protótipo Lo-Fi | [Figma — Protótipo LO-FI](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
+| Protótipo Hi-Fi | [Figma](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI) |
+| Protótipo Lo-Fi | [Figma](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
 | Drive | [Google Drive](https://drive.google.com/drive/u/1/folders/13xm3xImWBu0tH-wV9_ENizb65mgrkQ3l) |
 | Cronograma (Projetos 3) | [`docs/cronograma-projetos3.md`](docs/cronograma-projetos3.md) |
 | Cronograma (POO) | [`docs/cronograma-poo.md`](docs/cronograma-poo.md) |
