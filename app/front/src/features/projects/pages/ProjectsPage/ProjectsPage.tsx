@@ -9,6 +9,7 @@ import {
 	useGetProjectList,
 	useGetProjectStatusCounts,
 } from "@services/projects";
+import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, CircleAlert } from "lucide-react";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -32,6 +33,7 @@ const emptyStatusCounts: ProjectStatusCounts = {
 };
 
 export const ProjectsPage = () => {
+	const navigate = useNavigate();
 	const {
 		status,
 		search,
@@ -81,7 +83,11 @@ export const ProjectsPage = () => {
 			description="Acompanhe o andamento dos projetos enviados à Neoenergia Pernambuco."
 			bleed
 			actions={
-				<Button type="button" size="sm">
+				<Button
+					type="button"
+					size="sm"
+					onClick={() => void navigate({ to: "/projetos/novo" })}
+				>
 					Novo projeto
 					<ArrowRight aria-hidden="true" />
 				</Button>
