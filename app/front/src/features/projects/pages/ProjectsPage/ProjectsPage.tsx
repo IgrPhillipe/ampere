@@ -6,6 +6,7 @@ import {
 	type ProjectStatusCounts,
 	useGetProjectList,
 } from "@services/projects";
+import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, CircleAlert } from "lucide-react";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -29,6 +30,7 @@ const emptyStatusCounts: ProjectStatusCounts = {
 };
 
 export const ProjectsPage = () => {
+	const navigate = useNavigate();
 	const {
 		status,
 		search,
@@ -71,7 +73,12 @@ export const ProjectsPage = () => {
 			description="Acompanhe o andamento dos projetos enviados à Neoenergia Pernambuco."
 			headingClassName="pl-6 md:pl-5"
 			actions={
-				<Button type="button" size="sm" className="rounded-[4px]">
+				<Button
+					type="button"
+					size="sm"
+					className="rounded-[4px]"
+					onClick={() => void navigate({ to: "/projects/new" })}
+				>
 					Novo projeto
 					<ArrowRight aria-hidden="true" />
 				</Button>

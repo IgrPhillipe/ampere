@@ -19,22 +19,34 @@ export const PageLayout = ({
 	children,
 	className,
 	headingClassName,
-}: PageLayoutProps) => (
-	<div className={cn("flex flex-col gap-7 p-4 md:p-7", className)}>
-		<div className="flex flex-wrap items-start justify-between gap-3">
-			<div className={cn("flex flex-col gap-2", headingClassName)}>
-				<h1 className="font-heading text-3xl font-semibold tracking-tight">
-					{title}
-				</h1>
+}: PageLayoutProps) => {
+	const hasHeader = Boolean(title || description || actions);
 
-				{description ? (
-					<p className="text-sm text-muted-foreground">{description}</p>
-				) : null}
-			</div>
+	return (
+		<div
+			className={cn(
+				"flex flex-col p-4 md:p-7",
+				hasHeader && "gap-7",
+				className,
+			)}
+		>
+			{hasHeader ? (
+				<div className="flex flex-wrap items-start justify-between gap-3">
+					<div className={cn("flex flex-col gap-2", headingClassName)}>
+						<h1 className="font-heading text-3xl font-semibold tracking-tight">
+							{title}
+						</h1>
 
-			{actions ? <div className="flex gap-2">{actions}</div> : null}
+						{description ? (
+							<p className="text-sm text-muted-foreground">{description}</p>
+						) : null}
+					</div>
+
+					{actions ? <div className="flex gap-2">{actions}</div> : null}
+				</div>
+			) : null}
+
+			{children}
 		</div>
-
-		{children}
-	</div>
-);
+	);
+};
