@@ -66,6 +66,9 @@ const PROGRESS_SECTIONS: {
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
+/** Alvo do `aria-describedby` do botao quando ele esta desabilitado. */
+const progressCounterId = "novo-projeto-preenchimento";
+
 const isFilled = (value: unknown) =>
 	value !== undefined && value !== null && value !== "" && !Number.isNaN(value);
 
@@ -279,7 +282,10 @@ export const NewProjectPage = () => {
 								) : null}
 							</p>
 
-							<p className="mt-1 text-xs tracking-wider text-muted-foreground uppercase">
+							<p
+								id={progressCounterId}
+								className="mt-1 text-xs tracking-wider text-muted-foreground uppercase"
+							>
 								Campos obrigatórios preenchidos
 							</p>
 
@@ -322,7 +328,16 @@ export const NewProjectPage = () => {
 						<ArrowLeft aria-hidden="true" />
 					</Button>
 
-					<Button type="submit" disabled={createProject.isPending}>
+					{/* Preso ao contador do painel, e nao ao `formState`: aqui a
+					    pergunta e "faltou preencher?", nao "o que foi preenchido e
+					    valido?". Validade continua sendo do submit, que marca os
+					    campos. O `aria-describedby` existe porque botao desabilitado
+					    nao explica sozinho por que esta assim. */}
+					<Button
+						type="submit"
+						disabled={!isComplete || createProject.isPending}
+						aria-describedby={isComplete ? undefined : progressCounterId}
+					>
 						{createProject.isPending ? "Salvando..." : "Avançar para unidades"}
 						<ArrowRight aria-hidden="true" />
 					</Button>
