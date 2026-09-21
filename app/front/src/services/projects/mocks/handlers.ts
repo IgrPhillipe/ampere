@@ -1,8 +1,19 @@
 import { HttpResponse, http } from "msw";
+import { z } from "zod";
 
 import { ProjectEndpoints as e } from "../endpoints";
-import { projectStatusSchema } from "../schemas";
-import { makeProjectList, makeProjectStatusCountsResponse } from "./factories";
+import {
+	buildingCategorySchema,
+	connectionTypeSchema,
+	entranceStandardSchema,
+	projectStatusSchema,
+	supplyVoltageSchema,
+} from "../schemas";
+import {
+	makeCreatedProjectResponse,
+	makeProjectList,
+	makeProjectStatusCountsResponse,
+} from "./factories";
 import { MOCK_PROJECTS } from "./fixtures";
 
 const url = (path: string) => `/api/${path}`;
@@ -13,17 +24,32 @@ const normalize = (value: string) =>
 		.replace(/\p{Diacritic}/gu, "")
 		.toLowerCase();
 
-const problem = (detail: string) =>
+const problem = (detail: string, instance: string = e.list) =>
 	HttpResponse.json(
 		{
 			type: "about:blank",
 			title: "Bad Request",
 			status: 400,
 			detail,
-			instance: `/${e.list}`,
+			instance: `/${instance}`,
 		},
 		{ status: 400 },
 	);
+
+/**
+ * Espelha o `ProjectRequest` do back, limites e mensagens inclusive. O mock so
+ * vale como andaime se recusar o que a API recusaria.
+ */
+const createProjectSchema = z.object({
+	name: z.string().trim().min(1).max(120),
+	address: z.string().trim().min(1).max(200),
+	municipality: z.string().trim().min(1).max(100),
+	buildingType: buildingCategorySchema,
+	floors: z.number().int().min(1).max(200),
+	voltage: supplyVoltageSchema,
+	connectionType: connectionTypeSchema,
+	entranceStandard: entranceStandardSchema,
+});
 
 export const projectHandlers = [
 	http.get(url(e.list), ({ request }) => {
@@ -80,4 +106,16 @@ export const projectHandlers = [
 	http.get(url(e.statusCounts), () =>
 		HttpResponse.json(makeProjectStatusCountsResponse()),
 	),
+
+	http.post(url(e.create), async ({ request }) => {
+		const payload = createProjectSchema.safeParse(await request.json());
+
+		if (!payload.success) {
+			return problem("Dados da edificação inválidos.", e.create);
+		}
+
+		return HttpResponse.json(makeCreatedProjectResponse(payload.data), {
+			status: 201,
+		});
+	}),
 ];

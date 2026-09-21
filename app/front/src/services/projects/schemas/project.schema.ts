@@ -51,3 +51,76 @@ export const projectStatusCountsResponseSchema = apiResponseSchema(
 export type ProjectStatusCountsResponse = z.infer<
 	typeof projectStatusCountsResponseSchema
 >;
+
+/**
+ * Parametros tecnicos da edificacao. Espelham os enums do back
+ * (`BuildingCategory`, `SupplyVoltage`, `ConnectionType`, `EntranceStandard`):
+ * atravessam o contrato nos dois sentidos, entao moram aqui e o payload de
+ * criacao deriva deles em vez de redeclarar `string`.
+ */
+export const buildingCategorySchema = z.enum([
+	"RESIDENTIAL_MULTIFAMILY",
+	"NON_RESIDENTIAL",
+	"MIXED",
+]);
+
+export type BuildingCategory = z.infer<typeof buildingCategorySchema>;
+
+export const supplyVoltageSchema = z.enum(["V220_127", "V380_220"]);
+
+export type SupplyVoltage = z.infer<typeof supplyVoltageSchema>;
+
+export const connectionTypeSchema = z.enum([
+	"SINGLE_PHASE",
+	"TWO_PHASE",
+	"THREE_PHASE",
+]);
+
+export type ConnectionType = z.infer<typeof connectionTypeSchema>;
+
+export const entranceStandardSchema = z.enum(["COLLECTIVE", "INDIVIDUAL"]);
+
+export type EntranceStandard = z.infer<typeof entranceStandardSchema>;
+
+export const standardSchema = z.object({
+	name: z.string(),
+	revision: z.string(),
+});
+
+export type Standard = z.infer<typeof standardSchema>;
+
+export const demandRuleSchema = z.object({
+	component: z.string(),
+	symbol: z.string(),
+	method: z.string(),
+	prescribedBy: z.string(),
+	methodFrom: z.string(),
+});
+
+export type DemandRule = z.infer<typeof demandRuleSchema>;
+
+/** `POST /projects` e `GET /projects/{id}` — o projeto com as normas aplicadas. */
+export const projectDetailSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	address: z.string(),
+	municipality: z.string(),
+	protocol: z.string(),
+	status: projectStatusSchema,
+	updatedAt: z.iso.datetime({ offset: true }),
+	buildingType: buildingCategorySchema,
+	floors: z.number().int().positive(),
+	voltage: supplyVoltageSchema,
+	connectionType: connectionTypeSchema,
+	entranceStandard: entranceStandardSchema,
+	standards: z.array(standardSchema),
+	applicableStandards: z.string(),
+	demandRules: z.array(demandRuleSchema),
+});
+
+export type ProjectDetail = z.infer<typeof projectDetailSchema>;
+
+export const projectDetailResponseSchema =
+	apiResponseSchema(projectDetailSchema);
+
+export type ProjectDetailResponse = z.infer<typeof projectDetailResponseSchema>;

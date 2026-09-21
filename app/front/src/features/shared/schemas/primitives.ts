@@ -12,3 +12,9 @@ export const textFieldSchema = z
 	.string({ error: REQUIRED_ERROR })
 	.trim()
 	.min(1, { error: REQUIRED_ERROR });
+
+/**
+ * Campo numerico obrigatorio. O `undefined` de um input vazio cai no
+ * `REQUIRED_ERROR` em vez da mensagem crua do Zod para tipo invalido.
+ */
+export const numberFieldSchema = z.number({ error: REQUIRED_ERROR });

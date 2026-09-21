@@ -37,6 +37,11 @@ services:
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-ampere}
       # No default on purpose: left blank, the API generates a key per run.
       JWT_SECRET: ${JWT_SECRET:-}
+      # Alavanca de recuperacao de schema, repassada para o container. Sem esta
+      # linha `DDL_AUTO=create docker compose up` nao surtia efeito nenhum: a
+      # variavel ficava no shell e o `application.properties` caia no default,
+      # justamente no caminho que o README manda usar.
+      DDL_AUTO: ${DDL_AUTO:-update}
 
     depends_on:
       db:

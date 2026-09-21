@@ -17,8 +17,9 @@ declare module "@tanstack/react-router" {
 	}
 }
 
+/** Failing is deliberately non-fatal: a blocked service worker must not blank the app. */
 const enableMocking = async (): Promise<void> => {
-	if (!AppConfig.IS_DEV) return;
+	if (!AppConfig.IS_DEV || !AppConfig.ENABLE_MSW) return;
 
 	try {
 		const { worker } = await import("@/mocks/browser");
