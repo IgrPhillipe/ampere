@@ -1,6 +1,19 @@
 import { numberFieldSchema, textFieldSchema } from "@features/shared";
+import {
+	buildingCategorySchema,
+	connectionTypeSchema,
+	entranceStandardSchema,
+	supplyVoltageSchema,
+} from "@services/projects";
 import { z } from "zod";
 
+/**
+ * Os oito campos da etapa 01. Espelha o `ProjectRequest` do back, limites
+ * inclusive, para o formulario recusar o que a API recusaria.
+ *
+ * Os enums reaproveitam `.options` dos schemas do service em vez de repetir os
+ * literais: aqui muda so a mensagem, nunca o conjunto de valores.
+ */
 export const projectCreationSchema = z.object({
 	name: textFieldSchema.max(120, {
 		error: "O nome deve ter no máximo 120 caracteres.",
@@ -14,6 +27,8 @@ export const projectCreationSchema = z.object({
 		error: "O município deve ter no máximo 100 caracteres.",
 	}),
 
+	// O input numerico entrega `""` enquanto vazio e string depois; o
+	// `preprocess` normaliza antes de o `z.number()` julgar o valor.
 	floors: z.preprocess(
 		(value) => (value === "" ? undefined : Number(value)),
 		numberFieldSchema
@@ -28,22 +43,19 @@ export const projectCreationSchema = z.object({
 			}),
 	),
 
-	buildingType: z.enum(
-		["RESIDENTIAL_MULTIFAMILY", "NON_RESIDENTIAL", "MIXED"],
-		{
-			error: "O tipo de edificação é obrigatório.",
-		},
-	),
+	buildingType: z.enum(buildingCategorySchema.options, {
+		error: "O tipo de edificação é obrigatório.",
+	}),
 
-	voltage: z.enum(["V220_127", "V380_220"], {
+	voltage: z.enum(supplyVoltageSchema.options, {
 		error: "A tensão de fornecimento é obrigatória.",
 	}),
 
-	connectionType: z.enum(["SINGLE_PHASE", "TWO_PHASE", "THREE_PHASE"], {
+	connectionType: z.enum(connectionTypeSchema.options, {
 		error: "O tipo de ligação é obrigatório.",
 	}),
 
-	entranceStandard: z.enum(["COLLECTIVE", "INDIVIDUAL"], {
+	entranceStandard: z.enum(entranceStandardSchema.options, {
 		error: "O padrão de entrada é obrigatório.",
 	}),
 });
