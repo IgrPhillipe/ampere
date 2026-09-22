@@ -134,7 +134,7 @@ Abaixo constam as descrições em formato POST-IT das duas histórias implementa
 | Artefato | Link |
 | :--- | :--- |
 | Histórias implementadas (POST-IT) | Descritas na seção acima |
-| Print do GitHub Issues | ![Print do bug tracker (GitHub Issues)](Issues.png) |
+| Print do GitHub Issues | ![Print do bug tracker (GitHub Issues)](docs/produto/Issues.png) |
 | Screencast do sistema rodando (YouTube) | [Apresentação Parte 1](https://youtu.be/YMnBWUuncdQ) <br> [Apresentação Parte 2](https://youtu.be/6X58x5Wv9ho) |
 | Screencast da explicação do código (YouTube) | [Explicação do Código Spring Boot 1](https://youtu.be/_4FRXZAnfkg) ([Explicação do Código Spring Boot 1](https://youtu.be/_nDhOTqJTPY)). |
 
