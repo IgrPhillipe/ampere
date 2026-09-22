@@ -115,14 +115,28 @@ Fase inicial focada na estruturação de requisitos, validação de negócio e e
 
 ### Entrega 02 — 21/09/2026
 
-Mínimo de 2 histórias implementadas, com descrição em formato POST-IT, commits semanais e GitHub Issues em uso.
+Fase focada na implementação inicial, contando com ambiente de versionamento atuante por meio de commits frequentes (semanais e de código) aplicados diretamente na branch `main`. O sistema de issue/bug tracker foi atualizado e utilizado em todas as semanas correspondentes à entrega. 
+
+#### Histórias implementadas
+
+Abaixo constam as descrições em formato POST-IT das duas histórias implementadas nesta entrega, que contaram com tarefas no Back-end e no Front-end:
+
+**US01 — Acompanhamento de Projetos e Status**
+* **Como:** Projetista
+* **Quero:** Visualizar uma listagem com todos os meus projetos e seus respectivos status
+* **Para:** Que eu consiga acompanhar e gerenciar o andamento das minhas submissões.
+
+**US02 — Configuração Inicial dos Parâmetros da Edificação**
+* **Como:** Projetista
+* **Quero:** Inserir os parâmetros e configurações básicas ao iniciar um novo projeto
+* **Para:** Começar a etapa de cadastro e avançar posteriormente para o cálculo de demanda da edificação.
 
 | Artefato | Link |
 | :--- | :--- |
-| Histórias implementadas (POST-IT) | TBD |
-| Print do GitHub Issues | TBD |
-| Screencast do sistema rodando (YouTube) | TBD |
-| Screencast da explicação do código (YouTube) | TBD |
+| Histórias implementadas (POST-IT) | Descritas na seção acima |
+| Print do GitHub Issues | ![Print do bug tracker (GitHub Issues)](Issues.png) |
+| Screencast do sistema rodando (YouTube) | [Apresentação Parte 1](https://youtu.be/YMnBWUuncdQ) <br> [Apresentação Parte 2](https://youtu.be/6X58x5Wv9ho) |
+| Screencast da explicação do código (YouTube) | [Explicação do Código Spring Boot 1](https://youtu.be/_4FRXZAnfkg) ([Explicação do Código Spring Boot 1](https://youtu.be/_nDhOTqJTPY)). |
 
 ### Entrega 03 — 19/10/2026
 
