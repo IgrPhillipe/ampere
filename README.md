@@ -156,9 +156,9 @@ US01 e US02 implementadas em back-end Spring Boot, front-end React e PostgreSQL.
 | Artefato | Link |
 | :--- | :--- |
 | Histórias implementadas (POST-IT) | Nesta seção |
-| Print do GitHub Issues | TBD |
-| Screencast do sistema rodando (YouTube) | TBD |
-| Screencast da explicação do código (YouTube) | TBD |
+| Print do GitHub Issues | ![Print das GitHub Issues](docs/produto/Issues.png) |
+| Screencast do sistema rodando | [YouTube, parte 1](https://youtu.be/YMnBWUuncdQ) · [YouTube, parte 2](https://youtu.be/6X58x5Wv9ho) |
+| Screencast da explicação do código | [YouTube, parte 1](https://youtu.be/_4FRXZAnfkg) · [YouTube, parte 2](https://youtu.be/_nDhOTqJTPY) |
 
 ### Entrega 03 — 19/10/2026
 
