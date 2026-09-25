@@ -82,8 +82,8 @@ Sobe em `http://localhost:5173` e faz proxy de `/api` para o back-end, que preci
 | Entrega | Data | Situação |
 | :--- | :--- | :--- |
 | Entrega 01 | 31/08/2026 | Finalizada |
-| Entrega 02 | 21/09/2026 | Em andamento |
-| Entrega 03 | 19/10/2026 | Não iniciada |
+| Entrega 02 | 21/09/2026 | Finalizada |
+| Entrega 03 | 19/10/2026 | Em andamento |
 | Entrega 04 | 09/11/2026 | Não iniciada |
 
 Critérios de cada marco: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (POO) e [`docs/cronograma-projetos3.md`](docs/cronograma-projetos3.md) (Projetos 3).
@@ -162,7 +162,7 @@ US01 e US02 implementadas em back-end Spring Boot, front-end React e PostgreSQL.
 
 ### Entrega 03 — 19/10/2026
 
-Mais 2 histórias implementadas, com os mesmos artefatos de acompanhamento.
+US03 e US04 na Sprint 2 (20/09 a 26/09), US05 e US06 na Sprint 3 (27/09 a 03/10). Plano e escopo de cada história em [`docs/produto/plano-entrega-03.md`](docs/produto/plano-entrega-03.md); tarefas no [milestone Entrega 03](https://github.com/IgrPhillipe/ampere/milestone/2).
 
 | Artefato | Link |
 | :--- | :--- |
