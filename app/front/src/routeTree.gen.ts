@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjetosNovoRouteImport } from './routes/projetos/novo'
+import { Route as AdminNormasRouteImport } from './routes/admin/normas'
 import { Route as ProjetosIdUnidadesRouteImport } from './routes/projetos/$id/unidades'
 import { Route as ProjetosIdCalculoRouteImport } from './routes/projetos/$id/calculo'
 
@@ -30,6 +31,11 @@ const ProjetosNovoRoute = ProjetosNovoRouteImport.update({
   path: '/projetos/novo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminNormasRoute = AdminNormasRouteImport.update({
+  id: '/admin/normas',
+  path: '/admin/normas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProjetosIdUnidadesRoute = ProjetosIdUnidadesRouteImport.update({
   id: '/projetos/$id/unidades',
   path: '/projetos/$id/unidades',
@@ -44,6 +50,7 @@ const ProjetosIdCalculoRoute = ProjetosIdCalculoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/admin/normas': typeof AdminNormasRoute
   '/projetos/novo': typeof ProjetosNovoRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/unidades': typeof ProjetosIdUnidadesRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/admin/normas': typeof AdminNormasRoute
   '/projetos/novo': typeof ProjetosNovoRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/unidades': typeof ProjetosIdUnidadesRoute
@@ -59,6 +67,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/admin/normas': typeof AdminNormasRoute
   '/projetos/novo': typeof ProjetosNovoRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/unidades': typeof ProjetosIdUnidadesRoute
@@ -68,6 +77,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/admin/normas'
     | '/projetos/novo'
     | '/projetos/$id/calculo'
     | '/projetos/$id/unidades'
@@ -75,6 +85,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/admin/normas'
     | '/projetos/novo'
     | '/projetos/$id/calculo'
     | '/projetos/$id/unidades'
@@ -82,6 +93,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
+    | '/admin/normas'
     | '/projetos/novo'
     | '/projetos/$id/calculo'
     | '/projetos/$id/unidades'
@@ -90,6 +102,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  AdminNormasRoute: typeof AdminNormasRoute
   ProjetosNovoRoute: typeof ProjetosNovoRoute
   ProjetosIdCalculoRoute: typeof ProjetosIdCalculoRoute
   ProjetosIdUnidadesRoute: typeof ProjetosIdUnidadesRoute
@@ -118,6 +131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjetosNovoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/normas': {
+      id: '/admin/normas'
+      path: '/admin/normas'
+      fullPath: '/admin/normas'
+      preLoaderRoute: typeof AdminNormasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/projetos/$id/unidades': {
       id: '/projetos/$id/unidades'
       path: '/projetos/$id/unidades'
@@ -138,6 +158,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  AdminNormasRoute: AdminNormasRoute,
   ProjetosNovoRoute: ProjetosNovoRoute,
   ProjetosIdCalculoRoute: ProjetosIdCalculoRoute,
   ProjetosIdUnidadesRoute: ProjetosIdUnidadesRoute,

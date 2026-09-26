@@ -30,6 +30,8 @@ interface DataTableProps<TData extends RowData, TColumnId extends string> {
 	columnClassNames?: Partial<Record<TColumnId, string>>;
 	/** Rows after the data; while present, an empty `data` still renders the table. */
 	trailingRows?: ReactNode;
+	/** Mouse shortcut only: keep a button inside the row for keyboard users. */
+	onRowClick?: (row: TData) => void;
 	className?: string;
 }
 
@@ -42,6 +44,7 @@ export const DataTable = <TData extends RowData, TColumnId extends string>({
 	empty,
 	columnClassNames,
 	trailingRows,
+	onRowClick,
 	className,
 }: DataTableProps<TData, TColumnId>) => {
 	const table = useTable({ features: dataTableFeatures, columns, data });
@@ -76,7 +79,11 @@ export const DataTable = <TData extends RowData, TColumnId extends string>({
 
 				<TableBody>
 					{table.getRowModel().rows.map((row) => (
-						<TableRow key={row.id}>
+						<TableRow
+							key={row.id}
+							onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+							className={cn(onRowClick && "cursor-pointer")}
+						>
 							{row.getAllCells().map((cell) => (
 								<TableCell
 									key={cell.id}
