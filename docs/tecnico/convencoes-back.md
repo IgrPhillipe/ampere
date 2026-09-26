@@ -548,3 +548,10 @@ A mensagem é o que o usuário lê. Em português, sem jargão — o front desca
 - **`JAVA_HOME` apontando para a JDK errada** — o projeto exige a 21. `java -version` confirma, e o [`README`](../../app/back/README.md) mostra como apontar.
 - **Tutorial não compila** — provavelmente é Spring Boot 3.x. Ver a tabela de diferenças na seção *Antes de seguir tutorial da internet*.
 - **O front recebe a resposta e não renderiza** — confira se o `id` está saindo como string e se o sucesso está embrulhado em `data`.
+- **JDK 21 do Homebrew fora do PATH** — é *keg-only*. Exporte `JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home` ou registre a JDK com o `sudo ln -sfn ...` que o `brew install openjdk@21` imprime.
+- **Preflight `OPTIONS` voltando 401** — front em outro domínio sem `CORS_ALLOWED_ORIGINS`. Front servido por proxy do próprio deploy é mesma origem e não precisa da variável.
+- **`500` em toda consulta a uma coluna nova** — `ddl-auto=update` não altera tipo de coluna nem acrescenta coluna `NOT NULL` a tabela com linhas; registra `WARN` no boot e sobe com o schema incompleto. Com acesso ao banco, `docker compose down -v` e o `DataSeeder` repovoa. O `-v` apaga o banco de testes, no mesmo container; recrie antes do `verify`:
+  ```bash
+  docker exec ampere-db-1 psql -U ampere -d ampere -c "CREATE DATABASE ampere_test OWNER ampere;"
+  ```
+  Sem acesso ao banco, como num deploy gerenciado: defina `DDL_AUTO=create`, reinicie, e **remova a variável** antes de reiniciar de novo — enquanto ela existir, todo restart apaga os dados. Pendência 23 em [`../pendencias.md`](../pendencias.md).

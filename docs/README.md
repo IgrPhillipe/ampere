@@ -8,7 +8,7 @@ Documentação do projeto organizada por tema. Visão geral do produto e da equi
 docs/
 ├── ciclo-projeto-eletrico.html   documento visual de apoio à reunião com o cliente
 ├── negocio/      o desafio, a causa raiz, o mercado e o processo atual do cliente
-├── produto/      o que vamos construir: objetivos, ideação e questões em aberto
+├── produto/      o que será construído: objetivos, ideação e questões em aberto
 ├── tecnico/      norma, metodologia de cálculo, motor e design OOP
 └── uso-de-ia/    registro de uso de IA, para o relatório da aula 14
 ```

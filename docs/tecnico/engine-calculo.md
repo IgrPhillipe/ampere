@@ -58,7 +58,7 @@ Cada tabela é cadastrada com:
 Regras da área administrativa:
 
 - **Dupla leitura obrigatória.** Uma revisão só sai de rascunho depois de conferida por pessoa diferente de quem cadastrou.
-- **Os cinco exemplos do Anexo I são o portão de publicação.** Antes de publicar uma revisão, o sistema roda os cinco exemplos resolvidos da norma com os parâmetros recém-cadastrados. Se algum deixar de fechar, a revisão não é publicada — é assim que erro de digitação aparece.
+- **Os cinco exemplos do Anexo I são o portão de publicação.** Antes de publicar uma revisão, o sistema roda os cinco exemplos resolvidos da norma com os parâmetros recém-cadastrados. Se algum deixar de fechar, a revisão não é publicada, o que barra erro de digitação nos parâmetros.
 - **Revisão publicada não é editada.** Norma nova gera revisão nova, e a anterior fica como substituída. Cálculo antigo continua apontando para a revisão sob a qual foi feito.
 
 Tabelas a cadastrar:

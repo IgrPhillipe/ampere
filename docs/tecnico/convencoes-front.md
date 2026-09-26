@@ -335,15 +335,13 @@ VITE_ENABLE_MSW=true
 Handlers ficam em `services/<entidade>/mocks/handlers.ts` e são agregados em
 `src/mocks/handlers/index.ts` — sem esse registro o handler não vale nada.
 
-O worker só sobe com `AppConfig.ENABLE_MSW` **e** `import.meta.env.DEV`, e **a
-falha é não-fatal**: navegador sem service worker apenas registra um aviso e as
-chamadas seguem para a API real via proxy. Isso é proposital — antes, qualquer
-falha ao registrar derrubava a aplicação inteira numa tela branca.
+O worker só sobe com `AppConfig.ENABLE_MSW` **e** `import.meta.env.DEV`. A falha
+ao registrar é **não-fatal**: navegador sem service worker registra um aviso e as
+chamadas seguem para a API real via proxy, em vez de derrubar a aplicação.
 
-> O mock é andaime de desenvolvimento. A Entrega 02 exige que as histórias leiam
-> e escrevam no banco de verdade. Ele ficou ligado por padrão enquanto o back não
-> existia, e com isso não havia como exercitar a API real sem editar código: um
-> `POST` sem handler caía no proxy e voltava 502.
+> O mock é andaime de desenvolvimento e não substitui a API: as histórias da
+> disciplina precisam ler e escrever no banco. Com o MSW ligado, um `POST` sem
+> handler cai no proxy e volta 502.
 
 ### Quando a API devolve 500 em toda consulta
 

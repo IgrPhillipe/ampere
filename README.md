@@ -50,14 +50,14 @@ O projeto é dividido em três fases — **Imersão**, **Ideação** e **Desenvo
 
 | Ambiente | URL |
 | :--- | :--- |
-| Front-end | TBD |
-| Back-end (API) | TBD |
+| Front-end | https://ampere-virid.vercel.app |
+| Back-end (API) | https://ampere-4eyz.onrender.com/api |
 
 ---
 
 ## Como rodar o projeto
 
-Os dois scaffolds já estão no repositório — sem telas nem classes de domínio, mas rodando.
+A API persiste as classes de domínio no PostgreSQL e o front consome a API real.
 
 **Back-end** (Java 21, Spring Boot, PostgreSQL). Precisa de Docker:
 
@@ -65,7 +65,7 @@ Os dois scaffolds já estão no repositório — sem telas nem classes de domín
 cd app/back && cp .env.example .env && docker compose up
 ```
 
-A API sobe em `http://localhost:8080/api` e a documentação em `/api/docs`. Com a JDK 21 instalada dá para rodar a aplicação localmente contra o banco em container, o que é mais rápido no dia a dia. Detalhes em [app/back/README.md](app/back/README.md).
+A API sobe em `http://localhost:8080/api` e a documentação em `/api/docs`. Com a JDK 21 instalada, a aplicação roda localmente contra o banco em container. Detalhes em [app/back/README.md](app/back/README.md).
 
 **Front-end** (React 19, Vite, TypeScript). Precisa de Node 24+ e pnpm:
 
@@ -73,7 +73,7 @@ A API sobe em `http://localhost:8080/api` e a documentação em `/api/docs`. Com
 cd app/front && cp .env.example .env && pnpm install && pnpm dev
 ```
 
-Sobe em `http://localhost:5173` e faz proxy de `/api` para o back-end. O login ainda responde contra o MSW, porque a autenticação depende de uma questão de produto em aberto. Detalhes, credenciais de teste e comandos em [app/front/README.md](app/front/README.md).
+Sobe em `http://localhost:5173` e faz proxy de `/api` para o back-end, que precisa estar rodando. Detalhes, credenciais de teste e comandos em [app/front/README.md](app/front/README.md).
 
 ---
 
@@ -82,24 +82,21 @@ Sobe em `http://localhost:5173` e faz proxy de `/api` para o back-end. O login a
 | Entrega | Data | Situação |
 | :--- | :--- | :--- |
 | Entrega 01 | 31/08/2026 | Finalizada |
-| Entrega 02 | 21/09/2026 | Não iniciada |
-| Entrega 03 | 19/10/2026 | Não iniciada |
+| Entrega 02 | 21/09/2026 | Finalizada |
+| Entrega 03 | 19/10/2026 | Em andamento |
 | Entrega 04 | 09/11/2026 | Não iniciada |
 
 Critérios de cada marco: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (POO) e [`docs/cronograma-projetos3.md`](docs/cronograma-projetos3.md) (Projetos 3).
 
 ### Entrega 01 — 31/08/2026
 
-Fase inicial focada na estruturação de requisitos, validação de negócio e especificação da experiência do usuário:
-- **Histórias de Usuário (7 USs completas):** Especificadas no documento [`docs/produto/user-stories.md`](docs/produto/user-stories.md) com detalhes de negócio na descrição, regras de interface e cenários de validação com entrega de valor usando **BDD (Dado/Quando/Então)**.
-- **Protótipo Lo-Fi (Figma):** Interface completa cobrindo a jornada dos dois perfis em todas as 7 histórias de usuário mapeadas (mínimo de 5 exigidas).
-- **Screencast do Protótipo (YouTube):** Vídeo gravado apresentando o protótipo no Figma e explicando cada história implementada (com áudio/legenda).
+7 histórias de usuário em BDD, protótipo Lo-Fi cobrindo as duas jornadas e screencast do protótipo.
 
 | Artefato | Link |
 | :--- | :--- |
 | Histórias de usuário | [`docs/produto/user-stories.md`](docs/produto/user-stories.md) |
-| Protótipo Lo-Fi | [Figma — Protótipo LO-FI](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
-| Screencast do protótipo | [YouTube — Screencast do Protótipo](https://youtu.be/OI0QDboGtk4) |
+| Protótipo Lo-Fi | [Figma](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
+| Screencast do protótipo | [YouTube](https://youtu.be/OI0QDboGtk4) |
 
 **Histórias e telas correspondentes**
 
@@ -115,32 +112,57 @@ Fase inicial focada na estruturação de requisitos, validação de negócio e e
 
 ### Entrega 02 — 21/09/2026
 
-Fase focada na implementação inicial, contando com ambiente de versionamento atuante por meio de commits frequentes (semanais e de código) aplicados diretamente na branch `main`. O sistema de issue/bug tracker foi atualizado e utilizado em todas as semanas correspondentes à entrega. 
+US01 e US02 implementadas em back-end Spring Boot, front-end React e PostgreSQL.
 
-#### Histórias implementadas
+#### POST-IT · US01 — Acompanhamento de projetos e status
 
-Abaixo constam as descrições em formato POST-IT das duas histórias implementadas nesta entrega, que contaram com tarefas no Back-end e no Front-end:
+> **Como** projetista externo,
+> **Quero** acompanhar todos os meus projetos e o status de cada um em um painel centralizado,
+> **Para que** eu saiba exatamente quais exigem ação sem depender de e-mail ou telefone.
 
-**US01 — Acompanhamento de Projetos e Status**
-* **Como:** Projetista
-* **Quero:** Visualizar uma listagem com todos os meus projetos e seus respectivos status
-* **Para:** Que eu consiga acompanhar e gerenciar o andamento das minhas submissões.
+| | |
+| :--- | :--- |
+| **Entregue** | Listagem com nome, endereço, quantidade de UCs, demanda, status e última atualização · filtros por situação com contagem numérica, preservados na URL · busca por nome ou protocolo · empty state "Nenhum projeto encontrado para os critérios informados" · atalho "Ver apontamentos" nos reprovados |
+| **Back-end** | [`ProjectController`](app/back/src/main/java/br/com/ampere/controller/ProjectController.java) · [`ProjectListing`](app/back/src/main/java/br/com/ampere/service/ProjectListing.java) |
+| **Front-end** | [`ProjectsPage`](app/front/src/features/projects/pages/ProjectsPage/ProjectsPage.tsx) |
+| **Issues** | [#13](https://github.com/IgrPhillipe/ampere/issues/13) · [#19](https://github.com/IgrPhillipe/ampere/issues/19) · [#23](https://github.com/IgrPhillipe/ampere/issues/23) |
 
-**US02 — Configuração Inicial dos Parâmetros da Edificação**
-* **Como:** Projetista
-* **Quero:** Inserir os parâmetros e configurações básicas ao iniciar um novo projeto
-* **Para:** Começar a etapa de cadastro e avançar posteriormente para o cálculo de demanda da edificação.
+#### POST-IT · US02 — Configuração inicial dos parâmetros da edificação
+
+> **Como** projetista externo,
+> **Quero** informar os parâmetros da edificação uma única vez,
+> **Para que** o próprio sistema determine automaticamente a norma e as tabelas aplicadas ao cálculo, eliminando divergências de interpretação.
+
+| | |
+| :--- | :--- |
+| **Entregue** | Formulário de identificação e parâmetros técnicos · validação dos campos obrigatórios bloqueando o avanço · atribuição automática de DIS-NOR-053 REV 06 e DIS-NOR-030 REV 07 a partir do tipo de edificação, sem seleção manual · norma persistida junto do projeto |
+| **Back-end** | [`BuildingType`](app/back/src/main/java/br/com/ampere/domain/BuildingType.java) e subclasses · [`ApplicableStandards`](app/back/src/main/java/br/com/ampere/service/ApplicableStandards.java) · [`ProjectCreation`](app/back/src/main/java/br/com/ampere/service/ProjectCreation.java) |
+| **Front-end** | [`NewProjectPage`](app/front/src/features/projects/pages/NewProjectPage/NewProjectPage.tsx) |
+| **Issues** | [#14](https://github.com/IgrPhillipe/ampere/issues/14) · [#26](https://github.com/IgrPhillipe/ampere/issues/26) · [#30](https://github.com/IgrPhillipe/ampere/issues/30) |
+
+#### Requisitos de POO no código
+
+| Requisito | Onde é atendido |
+| :--- | :--- |
+| Mínimo de 3 classes de domínio persistidas | `Project`, `BuildingType`, `Standard`, `Finding`, `User` |
+| Histórias que leem e escrevem no banco | US02 escreve, US01 lê |
+| **Herança** | `BuildingType` abstrata → `ResidentialMultifamily`, `NonResidential`, `Mixed` |
+| **Polimorfismo** | `demandRules()` sobrescrito por subclasse; a norma aplicável é derivada das regras, não escolhida por condicional |
+| **Encapsulamento** | Campos privados, invariantes validadas no construtor, sem setter onde não faz sentido |
+| Sem geração automática de boilerplate | Lombok proibido; `record` para DTO, getters escritos à mão nas entidades |
+
+#### Artefatos
 
 | Artefato | Link |
 | :--- | :--- |
-| Histórias implementadas (POST-IT) | Descritas na seção acima |
-| Print do GitHub Issues | ![Print do bug tracker (GitHub Issues)](docs/produto/Issues.png) |
-| Screencast do sistema rodando (YouTube) | [Apresentação Parte 1](https://youtu.be/YMnBWUuncdQ) <br> [Apresentação Parte 2](https://youtu.be/6X58x5Wv9ho) |
-| Screencast da explicação do código (YouTube) | [Explicação do Código Spring Boot 1](https://youtu.be/_4FRXZAnfkg) ([Explicação do Código Spring Boot 1](https://youtu.be/_nDhOTqJTPY)). |
+| Histórias implementadas (POST-IT) | Nesta seção |
+| Print do GitHub Issues | ![Print das GitHub Issues](docs/produto/Issues.png) |
+| Screencast do sistema rodando | [YouTube, parte 1](https://youtu.be/YMnBWUuncdQ) · [YouTube, parte 2](https://youtu.be/6X58x5Wv9ho) |
+| Screencast da explicação do código | [YouTube, parte 1](https://youtu.be/_4FRXZAnfkg) · [YouTube, parte 2](https://youtu.be/_nDhOTqJTPY) |
 
 ### Entrega 03 — 19/10/2026
 
-Mais 2 histórias implementadas, com os mesmos artefatos de acompanhamento.
+US03 e US04 na Sprint 2 (20/09 a 26/09), US05 e US06 na Sprint 3 (27/09 a 03/10). Plano e escopo de cada história em [`docs/produto/plano-entrega-03.md`](docs/produto/plano-entrega-03.md); tarefas no [milestone Entrega 03](https://github.com/IgrPhillipe/ampere/milestone/2).
 
 | Artefato | Link |
 | :--- | :--- |
@@ -166,16 +188,16 @@ Histórias restantes e fechamento do produto para a apresentação final.
 
 | Área | Link |
 | :--- | :--- |
-| Deploy (front) | TBD |
-| Deploy (API) | TBD |
+| Deploy (front) | [Vercel](https://ampere-virid.vercel.app) |
+| Deploy (API) | [Render](https://ampere-4eyz.onrender.com/api) |
 | Site do grupo | [Google Sites](https://sites.google.com/cesar.school/site-grupo-4/) |
-| Backlog e progresso | [GitHub Project — AMPERE Sprint 1](https://github.com/users/IgrPhillipe/projects/4) |
-| Issues | [GitHub Issues](https://github.com/IgrPhillipe/ampere/issues) · [milestone Entrega 02](https://github.com/IgrPhillipe/ampere/milestone/1) |
+| Backlog | [GitHub Project](https://github.com/users/IgrPhillipe/projects/4) |
+| Issues | [GitHub Issues](https://github.com/IgrPhillipe/ampere/issues) |
 | Gestão do projeto | [Trello](https://trello.com/b/yd35ygrF/cesar-projetos-3) |
 | Ideação | [FigJam](https://www.figma.com/board/H7ZlU9nAbR72LiXVLUBmqo) |
 | Figma (descoberta) | [Figma](https://www.figma.com/files/team/1541129127160121770/project/636750169?fuid=1543015890914897932) |
-| Protótipo Hi-Fi | [Figma — Protótipo HI-FI](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI) |
-| Protótipo Lo-Fi | [Figma — Protótipo LO-FI](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
+| Protótipo Hi-Fi | [Figma](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI) |
+| Protótipo Lo-Fi | [Figma](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
 | Drive | [Google Drive](https://drive.google.com/drive/u/1/folders/13xm3xImWBu0tH-wV9_ENizb65mgrkQ3l) |
 | Cronograma (Projetos 3) | [`docs/cronograma-projetos3.md`](docs/cronograma-projetos3.md) |
 | Cronograma (POO) | [`docs/cronograma-poo.md`](docs/cronograma-poo.md) |
