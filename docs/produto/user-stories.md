@@ -7,16 +7,16 @@
 
 ## Tabela de Conteúdos
 
-1. [Visão Geral e Matriz de Rastreabilidade](#-visão-geral-e-matriz-de-rastreabilidade)
-2. [US01 – Acompanhamento de Projetos e Status](#us01--acompanhamento-de-projetos-e-status)
-3. [US02 – Configuração Inicial dos Parâmetros da Edificação](#us02--configuração-inicial-dos-parâmetros-da-edificação)
-4. [US03 – Cadastro e Validação em Tempo Real de Unidades Consumidoras](#us03--cadastro-e-validação-em-tempo-real-de-unidades-consumidoras)
-5. [US04 – Conferência do Cálculo Passo a Passo da Demanda](#us04--conferência-do-cálculo-passo-a-passo-da-demanda)
-6. [US05 – Geração de Memorial e Envio do Projeto](#us05--geração-de-memorial-e-envio-do-projeto)
-7. [US06 – Fila de Análise Técnica Priorizada](#us06--fila-de-análise-técnica-priorizada)
-8. [US07 – Auditoria de Memória e Registro Pontual de Apontamentos](#us07--auditoria-de-memória-e-registro-pontual-de-apontamentos)
-9. [US08 – Linha do Tempo e Histórico do Protocolo](#us08--linha-do-tempo-e-histórico-do-protocolo)
-10. [US09 – Correção de Apontamentos e Reenvio com Versionamento](#us09--correção-de-apontamentos-e-reenvio-com-versionamento)
+1. [Visão Geral e Matriz de Rastreabilidade](#visão-geral-e-matriz-de-rastreabilidade)
+2. [US01: Acompanhamento de Projetos e Status](#us01-acompanhamento-de-projetos-e-status)
+3. [US02: Configuração Inicial dos Parâmetros da Edificação](#us02-configuração-inicial-dos-parâmetros-da-edificação)
+4. [US03: Cadastro e Validação em Tempo Real de Unidades Consumidoras](#us03-cadastro-e-validação-em-tempo-real-de-unidades-consumidoras)
+5. [US04: Conferência do Cálculo Passo a Passo da Demanda](#us04-conferência-do-cálculo-passo-a-passo-da-demanda)
+6. [US05: Geração de Memorial e Envio do Projeto](#us05-geração-de-memorial-e-envio-do-projeto)
+7. [US06: Fila de Análise Técnica Priorizada](#us06-fila-de-análise-técnica-priorizada)
+8. [US07: Auditoria de Memória e Registro Pontual de Apontamentos](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos)
+9. [US08: Linha do Tempo e Histórico do Protocolo](#us08-linha-do-tempo-e-histórico-do-protocolo)
+10. [US09: Correção de Apontamentos e Reenvio com Versionamento](#us09-correção-de-apontamentos-e-reenvio-com-versionamento)
 
 ---
 
@@ -24,19 +24,19 @@
 
 | ID | Título da História | Persona / Papel | Prioridade | Sprint |
 | :--- | :--- | :--- | :---: | :---: |
-| **US01** | [Acompanhamento de Projetos e Status](#us01--acompanhamento-de-projetos-e-status) | Projetista Externo | `Alta` | `Sprint 1` |
-| **US02** | [Configuração Inicial dos Parâmetros da Edificação](#us02--configuração-inicial-dos-parâmetros-da-edificação) | Projetista Externo | `Alta` | `Sprint 1` |
-| **US03** | [Cadastro e Validação em Tempo Real de Unidades Consumidoras](#us03--cadastro-e-validação-em-tempo-real-de-unidades-consumidoras) | Projetista Externo | `Alta` | `Sprint 2` |
-| **US04** | [Conferência do Cálculo Passo a Passo da Demanda](#us04--conferência-do-cálculo-passo-a-passo-da-demanda) | Projetista Externo | `Alta` | `Sprint 2` |
-| **US05** | [Geração de Memorial e Envio do Projeto](#us05--geração-de-memorial-e-envio-do-projeto) | Projetista Externo | `Alta` | `Sprint 3` |
-| **US06** | [Fila de Análise Técnica Priorizada](#us06--fila-de-análise-técnica-priorizada) | Analista da Concessionária | `Alta` | `Sprint 3` |
-| **US07** | [Auditoria de Memória e Registro Pontual de Apontamentos](#us07--auditoria-de-memória-e-registro-pontual-de-apontamentos) | Analista da Concessionária | `Alta` | `Sprint 4` |
-| **US08** | [Linha do Tempo e Histórico do Protocolo](#us08--linha-do-tempo-e-histórico-do-protocolo) | Analista da Concessionária | `Média` | `Sprint 4` |
-| **US09** | [Correção de Apontamentos e Reenvio com Versionamento](#us09--correção-de-apontamentos-e-reenvio-com-versionamento) | Projetista Externo | `Alta` | `Sprint 4` |
+| **US01** | [Acompanhamento de Projetos e Status](#us01-acompanhamento-de-projetos-e-status) | Projetista Externo | `Alta` | `Sprint 1` |
+| **US02** | [Configuração Inicial dos Parâmetros da Edificação](#us02-configuração-inicial-dos-parâmetros-da-edificação) | Projetista Externo | `Alta` | `Sprint 1` |
+| **US03** | [Cadastro e Validação em Tempo Real de Unidades Consumidoras](#us03-cadastro-e-validação-em-tempo-real-de-unidades-consumidoras) | Projetista Externo | `Alta` | `Sprint 2` |
+| **US04** | [Conferência do Cálculo Passo a Passo da Demanda](#us04-conferência-do-cálculo-passo-a-passo-da-demanda) | Projetista Externo | `Alta` | `Sprint 2` |
+| **US05** | [Geração de Memorial e Envio do Projeto](#us05-geração-de-memorial-e-envio-do-projeto) | Projetista Externo | `Alta` | `Sprint 3` |
+| **US06** | [Fila de Análise Técnica Priorizada](#us06-fila-de-análise-técnica-priorizada) | Analista da Concessionária | `Alta` | `Sprint 3` |
+| **US07** | [Auditoria de Memória e Registro Pontual de Apontamentos](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos) | Analista da Concessionária | `Alta` | `Sprint 4` |
+| **US08** | [Linha do Tempo e Histórico do Protocolo](#us08-linha-do-tempo-e-histórico-do-protocolo) | Analista da Concessionária | `Média` | `Sprint 4` |
+| **US09** | [Correção de Apontamentos e Reenvio com Versionamento](#us09-correção-de-apontamentos-e-reenvio-com-versionamento) | Projetista Externo | `Alta` | `Sprint 4` |
 
 ---
 
-## US01 – Acompanhamento de Projetos e Status
+## US01: Acompanhamento de Projetos e Status
 
 `US01` `Prioridade: Alta` `Sprint 1`
 
@@ -46,7 +46,7 @@ Painel de gestão centralizada para acompanhamento, filtragem e consulta do stat
 ### User Story
 > **Como** projetista externo,  
 > **Quero** acompanhar todos os meus projetos e o status de cada um em um painel centralizado,  
-> **Para que** eu saiba exatamente quais exigem ação sem depender de e-mail ou telefone.
+> **Para que** eu saiba quais exigem ação sem depender de e-mail ou telefone.
 
 ### Conversação (Regras de Negócio e Interface)
 A listagem deve apresentar:
@@ -61,13 +61,13 @@ A barra superior deve contar com filtros por situação (**Todos**, **Rascunho**
 
 ### Confirmação (Critérios de Aceite - BDD)
 
-#### Cenário 1 (Positivo): Visualizar projetos com apontamentos de reprovação
+#### Cenário 1 (Positivo): Visualizar Projetos com Apontamentos de Reprovação
 - **Dado** que o projetista está autenticado na tela "Meus Projetos"
 - **Quando** clica no filtro "Reprovado"
 - **Então** o sistema exibe apenas os projetos reprovados
 - **E** apresenta a quantidade de pendências de cada um com o link "Ver apontamentos".
 
-#### Cenário 2 (Negativo): Busca por projeto inexistente
+#### Cenário 2 (Negativo): Busca por Projeto Inexistente
 - **Dado** que o projetista está na tela "Meus Projetos"
 - **Quando** digita um nome ou protocolo inexistente no campo de busca
 - **Então** a tabela não retorna registros e exibe a mensagem *"Nenhum projeto encontrado para os critérios informados"*.
@@ -78,7 +78,7 @@ A barra superior deve contar com filtros por situação (**Todos**, **Rascunho**
 
 ---
 
-## US02 – Configuração Inicial dos Parâmetros da Edificação
+## US02: Configuração Inicial dos Parâmetros da Edificação
 
 `US02` `Prioridade: Alta` `Sprint 1`
 
@@ -95,10 +95,10 @@ O formulário recolhe dados de:
 - **Identificação:** nome, endereço, município
 - **Parâmetros técnicos:** tipo de edificação, pavimentos, tensão, tipo de ligação e padrão de entrada
 
-O sistema bloqueia a seleção manual da norma e atribui automaticamente as normas aplicáveis a partir dos parâmetros informados. O método é repartido entre duas normas da Neoenergia Pernambuco, que revisam de forma independente, então **o projeto registra as duas revisões aplicadas**:
+O sistema bloqueia a seleção manual da norma e atribui automaticamente as normas aplicáveis a partir dos parâmetros informados. O método se divide entre duas normas da Neoenergia Pernambuco, revisadas de forma independente. O projeto registra as duas revisões aplicadas:
 
-- **DIS-NOR-053 REV 06** — estrutura do cálculo e método da área útil; o tipo de edificação define o método pelos itens 6.22 a 6.25
-- **DIS-NOR-030 REV 07** — método da carga instalada, item 6.27
+- **DIS-NOR-053 REV 06**: estrutura do cálculo e método da área útil. O tipo de edificação define o método pelos itens 6.22 a 6.25.
+- **DIS-NOR-030 REV 07**: método da carga instalada, item 6.27.
 
 Permite também o upload prévio de planilha `.xlsx` para autopreenchimento.
 
@@ -106,13 +106,13 @@ Permite também o upload prévio de planilha `.xlsx` para autopreenchimento.
 
 ### Confirmação (Critérios de Aceite - BDD)
 
-#### Cenário 1 (Positivo): Seleção automática da norma regulamentadora
+#### Cenário 1 (Positivo): Seleção Automática da Norma Regulamentadora
 - **Dado** que o projetista está na etapa "Dados da edificação"
 - **Quando** preenche os parâmetros técnicos selecionando tipo "Residencial multifamiliar", tensão "380/220 V" e padrão "Coletivo"
 - **Então** o sistema define e exibe automaticamente o campo "Norma aplicável: DIS-NOR-053 REV 06 e DIS-NOR-030 REV 07"
 - **E** habilita o botão "Avançar".
 
-#### Cenário 2 (Negativo): Avanço bloqueado por campos obrigatórios não preenchidos
+#### Cenário 2 (Negativo): Avanço Bloqueado por Campos Obrigatórios Não Preenchidos
 - **Dado** que o projetista iniciou um novo projeto
 - **Quando** tenta avançar sem informar o "Tipo de edificação" ou "Padrão de entrada"
 - **Então** o avanço para a etapa 2 é bloqueado
@@ -124,7 +124,7 @@ Permite também o upload prévio de planilha `.xlsx` para autopreenchimento.
 
 ---
 
-## US03 – Cadastro e Validação em Tempo Real de Unidades Consumidoras
+## US03: Cadastro e Validação em Tempo Real de Unidades Consumidoras
 
 `US03` `Prioridade: Alta` `Sprint 2`
 
@@ -141,13 +141,13 @@ Permite adicionar ou importar UCs agrupadas (apartamentos, áreas comuns, recarg
 
 ### Confirmação (Critérios de Aceite - BDD)
 
-#### Cenário 1 (Positivo): Importação de planilha de UCs sem inconsistências
+#### Cenário 1 (Positivo): Importação de Planilha de UCs sem Inconsistências
 - **Dado** que o projetista está na etapa "Unidades consumidoras"
 - **Quando** faz o upload de uma planilha `.xlsx` com todas as cargas e fatores em conformidade
 - **Então** a tabela é preenchida com o status "Validado" em cada grupo de UCs
 - **E** o botão "Calcular demanda" fica ativo para prosseguir.
 
-#### Cenário 2 (Negativo): Inconsistência técnica ou pendência bloqueia o cálculo
+#### Cenário 2 (Negativo): Inconsistência Técnica ou Pendência Bloqueia o Cálculo
 - **Dado** que o projetista possui grupos com dados pendentes de validação técnica ou confirmação de potência
 - **Quando** visualiza o painel de validação em tempo real
 - **Então** os grupos recebem o status "Revisar" ou "Falta dado"
@@ -159,7 +159,7 @@ Permite adicionar ou importar UCs agrupadas (apartamentos, áreas comuns, recarg
 
 ---
 
-## US04 – Conferência do Cálculo Passo a Passo da Demanda
+## US04: Conferência do Cálculo Passo a Passo da Demanda
 
 `US04` `Prioridade: Alta` `Sprint 2`
 
@@ -172,12 +172,12 @@ Detalhamento transparente da memória de cálculo de demanda, exibindo fórmulas
 > **Para que** eu possa auditar o dimensionamento e sustentá-lo tecnicamente.
 
 ### Conversação (Regras de Negócio e Interface)
-A tela divide o cálculo em 5 etapas visíveis, na notação do Anexo I da DIS-NOR-053. Cada parcela já sai em kVA, com o fator de potência que a DIS-NOR-030 define para ela, então não há etapa de conversão:
-1. `Drf` — demanda das unidades residenciais (Quadros 35, 36 e 37)
-2. `Ds` — demanda das áreas comuns (DIS-NOR-030, item 6.27)
-3. `Dc` — demanda das cargas comerciais (DIS-NOR-030, item 6.27)
-4. `Dve` — demanda da recarga de veículos elétricos (Quadro 33)
-5. `Ded` — demanda total da edificação, com o mínimo por tensão (Tabelas 1 e 2)
+A tela divide o cálculo em 5 etapas visíveis, na notação do Anexo I da DIS-NOR-053. Cada parcela é expressa em kVA, com o fator de potência definido pela DIS-NOR-030. Não há etapa de conversão:
+1. `Drf`: demanda das unidades residenciais (Quadros 35, 36 e 37)
+2. `Ds`: demanda das áreas comuns (DIS-NOR-030, item 6.27)
+3. `Dc`: demanda das cargas comerciais (DIS-NOR-030, item 6.27)
+4. `Dve`: demanda da recarga de veículos elétricos (Quadro 33)
+5. `Ded`: demanda total da edificação, com o mínimo por tensão (Tabelas 1 e 2)
 
 Ao lado, exibe o painel de rastreabilidade técnica com:
 - Demanda calculada (kVA)
@@ -190,13 +190,13 @@ Ao lado, exibe o painel de rastreabilidade técnica com:
 
 ### Confirmação (Critérios de Aceite - BDD)
 
-#### Cenário 1 (Positivo): Visualização completa da memória de cálculo
+#### Cenário 1 (Positivo): Visualização Completa da Memória de Cálculo
 - **Dado** que todas as UCs foram validadas na etapa anterior
 - **Quando** o projetista acessa a etapa "Cálculo de demanda"
 - **Então** o sistema exibe o painel consolidado com a Demanda Total em kVA (ex.: 165,0 kVA) e as 5 etapas abertas com suas respectivas fórmulas
 - **E** habilita o botão "Gerar memorial".
 
-#### Cenário 2 (Positivo/Navegação): Retornar para ajuste sem perda de dados
+#### Cenário 2 (Positivo/Navegação): Retornar para Ajuste sem Perda de Dados
 - **Dado** que o projetista está conferindo o cálculo na etapa 3
 - **Quando** clica no botão "Voltar" para alterar a quantidade de UCs
 - **Então** o sistema retorna à etapa 2 mantendo os dados preenchidos anteriormente para edição.
@@ -207,7 +207,7 @@ Ao lado, exibe o painel de rastreabilidade técnica com:
 
 ---
 
-## US05 – Geração de Memorial e Envio do Projeto
+## US05: Geração de Memorial e Envio do Projeto
 
 `US05` `Prioridade: Alta` `Sprint 3`
 
@@ -230,13 +230,13 @@ Libera o botão de submissão após validação para concluir o protocolo do pro
 
 ### Confirmação (Critérios de Aceite - BDD)
 
-#### Cenário 1 (Positivo): Submissão concluída com checklist completo
+#### Cenário 1 (Positivo): Submissão Concluída com Checklist Completo
 - **Dado** que o memorial foi gerado e todos os itens do checklist (incluindo ART, diagrama unifilar e planta) estão checados/anexados
 - **Quando** o projetista clica em "Enviar para análise"
 - **Então** o projeto é submetido à fila da concessionária
 - **E** o status do projeto muda para "Em análise" na tela inicial.
 
-#### Cenário 2 (Negativo): Envio impedido por pendência em documento técnico obrigatório
+#### Cenário 2 (Negativo): Envio Impedido por Pendência em Documento Técnico Obrigatório
 - **Dado** que o projetista está na etapa "Memorial e envio" e o "Diagrama unifilar (PDF)" ainda não foi anexado
 - **Quando** visualiza a lista de checagem antes do envio
 - **Então** o item exibe o ícone de alerta com o botão "anexar"
@@ -248,7 +248,7 @@ Libera o botão de submissão após validação para concluir o protocolo do pro
 
 ---
 
-## US06 – Fila de Análise Técnica Priorizada
+## US06: Fila de Análise Técnica Priorizada
 
 `US06` `Prioridade: Alta` `Sprint 3`
 
@@ -271,16 +271,16 @@ A tabela traz a listagem ordenada pela urgência de prazo de atendimento (ex.: v
 
 ### Confirmação (Critérios de Aceite - BDD)
 
-#### Cenário 1 (Positivo): Filtrar projetos prioritários com prazo crítico
+#### Cenário 1 (Positivo): Filtrar Projetos Prioritários com Prazo Crítico
 - **Dado** que o analista está autenticado na "Fila de análise"
 - **Quando** clica no filtro "Vencendo prazo"
 - **Então** a listagem exibe apenas projetos com status de SLA urgente ("vence hoje" ou "atrasado")
 - **E** exibe a indicação de alertas automáticos levantados pelo sistema.
 
-#### Cenário 2 (Positivo/Acesso): Iniciar análise de projeto da fila
+#### Cenário 2 (Positivo/Acesso): Iniciar Análise de Projeto da Fila
 - **Dado** que o analista seleciona o projeto com protocolo "2026-0481"
 - **Quando** clica no botão "Analisar"
-- **Então** é redirecionado para o ambiente de conferência e apontamentos do projeto ([US07](#us07--auditoria-de-memória-e-registro-pontual-de-apontamentos)).
+- **Então** é redirecionado para o ambiente de conferência e apontamentos do projeto ([US07](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos)).
 
 ### Checklist de Implementação
 - [ ] Ordenar fila de análise por urgência de prazo de atendimento
@@ -288,7 +288,7 @@ A tabela traz a listagem ordenada pela urgência de prazo de atendimento (ex.: v
 
 ---
 
-## US07 – Auditoria de Memória e Registro Pontual de Apontamentos
+## US07: Auditoria de Memória e Registro Pontual de Apontamentos
 
 `US07` `Prioridade: Alta` `Sprint 4`
 
@@ -310,24 +310,25 @@ Na reprovação, o sistema dispara a notificação e direciona o projetista dire
 
 ### Confirmação (Critérios de Aceite - BDD)
 
-#### Cenário 1 (Positivo): Aprovação de projeto regular
+#### Cenário 1 (Positivo): Aprovação de Projeto Regular
 - **Dado** que o analista conferiu a memória de cálculo e os documentos anexos sem inconsistências
 - **Quando** clica no botão "Aprovar projeto" e confirma a decisão
 - **Então** o status do projeto é alterado para "Aprovado"
 - **E** o histórico da auditoria é registrado com sucesso.
 
-#### Cenário 2 (Negativo/Fluxo de Reprovação): Reprovação com apontamento específico vinculado
+#### Cenário 2 (Negativo/Fluxo de Reprovação): Reprovação com Apontamento Específico Vinculado
 - **Dado** que o analista identificou a ausência de comprovação do sistema de gerenciamento de recarga veicular
-- **Quando** cadastra o apontamento bloqueante vinculado à "Etapa 3 — cargas especiais" e clica em "Reprovar com apontamentos"
+- **Quando** cadastra o apontamento bloqueante vinculado à "Etapa 3: cargas especiais" e clica em "Reprovar com apontamentos"
 - **Então** o projeto tem o status alterado para "Reprovado" com o número de pendências registrado
 - **E** o projetista recebe o apontamento direcionado exclusivamente para a etapa vinculada no seu painel.
 
 ### Checklist de Implementação
 - [ ] Registrar apontamentos categorizados e vinculados à etapa exata da divergência
 - [ ] Concluir decisão de aprovação ou reprovação pontual atualizando o status do projeto
+
 ---
 
-## US08 – Linha do Tempo e Histórico do Protocolo
+## US08: Linha do Tempo e Histórico do Protocolo
 
 `US08` `Prioridade: Média` `Sprint 4`
 
@@ -352,13 +353,13 @@ Preserva as ações de aprovação e reprovação no rodapé.
 
 ### Confirmação (Critérios de Aceite - BDD)
 
-#### Cenário 1 (Positivo): Visualizar linha do tempo e indicadores de retrabalho
+#### Cenário 1 (Positivo): Visualizar Linha do Tempo e Indicadores de Retrabalho
 - **Dado** que o analista está na tela de análise do projeto
 - **Quando** seleciona a aba "Histórico"
 - **Então** o sistema exibe os eventos cronológicos de tramitação do protocolo
 - **E** apresenta o painel com o ciclo em dias e as métricas de retrabalho consolidadas.
 
-#### Cenário 2 (Positivo/Navegação): Inverter a ordenação dos marcos temporais
+#### Cenário 2 (Positivo/Navegação): Inverter a Ordenação dos Marcos Temporais
 - **Dado** que o analista está visualizando a linha do tempo do protocolo
 - **Quando** clica no botão de ordenação "Mais recente primeiro"
 - **Então** a listagem inverte a ordem de exibição, listando os registros mais antigos no topo.
@@ -369,7 +370,7 @@ Preserva as ações de aprovação e reprovação no rodapé.
 
 ---
 
-## US09 – Correção de Apontamentos e Reenvio com Versionamento
+## US09: Correção de Apontamentos e Reenvio com Versionamento
 
 `US09` `Prioridade: Alta` `Sprint 4`
 
@@ -391,13 +392,13 @@ Conta com atalhos que abrem a etapa exata onde ocorreu a divergência. O projeti
 
 ### Confirmação (Critérios de Aceite - BDD)
 
-#### Cenário 1 (Positivo): Reenvio bem-sucedido de nova versão corrigida
+#### Cenário 1 (Positivo): Reenvio Bem-Sucedido de Nova Versão Corrigida
 - **Dado** que o projetista corrigiu todas as pendências bloqueantes e preencheu o resumo das alterações
 - **Quando** clica no botão "Reenviar projeto"
 - **Então** o sistema incrementa o contador de versão do projeto (ex.: Versão 2)
 - **E** atualiza o status na tela inicial para "Em análise", encaminhando o projeto de volta para a fila da concessionária.
 
-#### Cenário 2 (Negativo): Tentativa de reenvio com pendência bloqueante aberta
+#### Cenário 2 (Negativo): Tentativa de Reenvio com Pendência Bloqueante Aberta
 - **Dado** que o projetista está na tela de reenvio e possui ao menos um apontamento bloqueante não corrigido
 - **Quando** visualiza as opções de submissão
 - **Então** o botão "Reenviar projeto" permanece desabilitado

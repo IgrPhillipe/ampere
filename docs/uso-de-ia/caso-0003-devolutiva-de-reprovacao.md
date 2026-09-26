@@ -1,12 +1,12 @@
-# Caso 0003 — Suposição sobre a devolutiva de reprovação
+# Caso 0003: Suposição sobre a Devolutiva de Reprovação
 
-Data: 17/08/2026 · Fase: Ideação · Tipo: suposição não verificada
+Data: 17/08/2026. Fase: Ideação. Tipo: suposição não verificada.
 
 ## Atividade
 
 Mapeamento do ciclo de vida do projeto elétrico, da contratação ao retrabalho.
 
-## O que a IA fez
+## O que a IA Fez
 
 Marcou a etapa de retorno como desconhecida e escreveu, por analogia com o benchmarking, que provavelmente a Neoenergia não informava ao projetista onde estava o erro, já que nenhuma concessionária comparada oferecia esse recurso.
 
@@ -22,4 +22,4 @@ Versão v1 do documento "Ciclo do Projeto Elétrico" marcava a etapa 07 como nã
 
 ## Aprendizado
 
-Analogia entre contextos diferentes não é evidência. Antes de inferir comportamento do cliente a partir de concorrentes, checar se existe fonte direta — neste caso, ela estava a uma busca de distância.
+Analogia entre contextos diferentes não é evidência. Antes de inferir comportamento do cliente a partir de concorrentes, é preciso checar se existe fonte direta. Neste caso, ela estava a uma busca de distância.

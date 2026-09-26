@@ -8,13 +8,13 @@ Pendências operacionais, como correção de board ou publicação de página, f
 
 São 13 questões abertas: dez dependem do cliente e três dependem apenas do time. Prioridade: **10**, **1** e **9**, nessa ordem.
 
-## Dependem do cliente
+## Dependem do Cliente
 
 | # | Questão | Impacto |
 | :-- | :------ | :------ |
 | **1** | Quem usa o MVP e como trabalha hoje. Ver desdobramento abaixo | Define o produto. Entrada, saída, autenticação e fluxo mudam conforme a resposta |
 | **3** | Faixa de escopo do MVP: cobre só acima de 50 kVA? | Define o recorte. Abaixo de 50 kVA o problema já foi mitigado por simplificação de critérios |
-| **9** | Já existe sistema de submissão e análise, e o que ele faz. Ver desdobramento abaixo | Define se construímos produto novo ou extensão do existente |
+| **9** | Já existe sistema de submissão e análise, e o que ele faz. Ver desdobramento abaixo | Define se o produto é novo ou extensão do existente |
 | **10** | Os erros são de aplicação da regra ou de dado de entrada? Existe registro ou classificação das reprovações? | Decide se o produto funciona. Automatizar o cálculo elimina erro de regra e não elimina erro de entrada |
 | **13** | Como começa o processo e o projetista precisa ser credenciado? Quem contrata é quem elabora? | Define quem entra no sistema e se há cadastro prévio a modelar |
 | **14** | Em que formato o projeto é enviado, e existe formato obrigatório? | Define se o sistema recebe dados estruturados ou precisa extrair de documento |
@@ -23,7 +23,7 @@ São 13 questões abertas: dez dependem do cliente e três dependem apenas do ti
 | **17** | Existe acervo de projetos anteriores? Um sistema novo precisaria importar? | Muda o esforço e abre a possibilidade de aprender com o histórico de reprovações |
 | **18** | Como equipe e projetistas acompanham as revisões da norma? Projeto em trânsito é avaliado por qual revisão? | Define como o sistema versiona regras e trata projeto submetido sob revisão anterior |
 
-### Desdobramento da questão 1
+### Desdobramento da Questão 1
 
 | Sub | Questão |
 | :-- | :------ |
@@ -31,9 +31,9 @@ São 13 questões abertas: dez dependem do cliente e três dependem apenas do ti
 | **1b** | Como cada um trabalha hoje? Em que o projetista calcula e com que material? O que a análise recebe, confere e devolve? |
 | **1c** | Pessoa de fora da Neoenergia pode acessar um sistema interno? |
 
-Quais funcionalidades cada perfil teria não é pergunta para o cliente: sai das histórias de usuário, na aula 4.
+As funcionalidades de cada perfil não são pergunta para o cliente: derivam das histórias de usuário, na aula 4.
 
-### Desdobramento da questão 9
+### Desdobramento da Questão 9
 
 | Sub | Questão |
 | :-- | :------ |
@@ -43,7 +43,7 @@ Quais funcionalidades cada perfil teria não é pergunta para o cliente: sai das
 | **9d** | Reprovação e re-submissão já são fluxo do sistema, ou são manuais? |
 | **9e** | Como o canal de e-mail dá conta do volume: há protocolo, triagem, fila? |
 
-## Dependem apenas do time
+## Dependem Apenas do Time
 
 | # | Questão | Quando |
 | :-- | :------ | :----- |
@@ -52,11 +52,11 @@ Quais funcionalidades cada perfil teria não é pergunta para o cliente: sai das
 | **7** | Formato, facilitador e duração do brainstorming | Antes da aula 3 |
 | **8** | A restrição de POO entra antes ou depois da rodada divergente | Antes da aula 3 |
 
-## Hipótese de solução a validar
+## Hipótese de Solução a Validar
 
-Sistema com área interna de revisão, onde o analista registra a conferência e monta a devolutiva de forma estruturada, e área externa de retorno, onde quem submeteu vê o apontamento e reenvia pelo mesmo lugar. Levar à reunião como hipótese do time, não como proposta fechada.
+Sistema com área interna de revisão, onde o analista registra a conferência e monta a devolutiva de forma estruturada, e área externa de retorno, onde quem submeteu vê o apontamento e reenvia pelo mesmo lugar. Apresentada na reunião como hipótese do time, não como proposta fechada.
 
-## Perguntas para enviar ao cliente
+## Perguntas para Enviar ao Cliente
 
 A pauta formatada para conduzir a reunião está em [`../ciclo-projeto-eletrico.html`](../ciclo-projeto-eletrico.html), na ordem do ciclo:
 

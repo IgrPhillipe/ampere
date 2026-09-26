@@ -1,29 +1,29 @@
 # Processo do Projeto
 
-O trabalho é dividido em três fases: **Imersão**, **Ideação** e **Desenvolvimento do MVP**. Cada artefato produzido pela equipe pertence a uma delas.
+O trabalho é dividido em três fases: **Imersão**, **Ideação** e **Desenvolvimento do MVP**. Cada artefato da equipe pertence a uma delas.
 
-Fonte: [Google Sites do Grupo 4 — Processo](https://sites.google.com/cesar.school/site-grupo-4/processo)
+Fonte: [Google Sites do Grupo 4, página Processo](https://sites.google.com/cesar.school/site-grupo-4/processo)
 
 ---
 
 ## Imersão
 
-Fase dedicada ao aprofundamento do entendimento sobre o desafio. Buscamos compreender de forma estruturada as origens do problema e o contexto em que ele está inserido.
+Fase de entendimento do desafio: origens do problema e contexto em que ele está inserido.
 
-- **Definição e exploração do problema** — o que é o desafio e por que ele existe
-- **Análise de causa raiz (5 Porquês e Ishikawa)** — identificação da causa raiz a partir da investigação sucessiva dos fatores que contribuem para o problema
-- **Benchmarking** — análise de soluções, práticas e referências existentes que possam contribuir para o desenvolvimento do projeto
-- **Definição dos objetivos do projeto** — o que o MVP precisa alcançar
-- **Mapa de stakeholders** — principais atores envolvidos, seus interesses, níveis de influência e relação com o problema
-- **Cronograma inicial** — organização e acompanhamento das atividades
+- **Definição e exploração do problema**: o que é o desafio e por que ele existe
+- **Análise de causa raiz (5 Porquês e Ishikawa)**: investigação sucessiva dos fatores que contribuem para o problema
+- **Benchmarking**: soluções, práticas e referências existentes aplicáveis ao projeto
+- **Definição dos objetivos do projeto**: o que o MVP precisa alcançar
+- **Mapa de stakeholders**: atores envolvidos, interesses, níveis de influência e relação com o problema
+- **Cronograma inicial**: organização e acompanhamento das atividades
 
-Essa fase é fundamental para ampliar a compreensão do cenário e fornecer uma base consistente para a definição das próximas etapas.
+A Imersão fornece a base para as fases seguintes.
 
 ---
 
 ## Ideação
 
-Fase de desenvolvimento e escolha das alternativas de solução.
+Fase de geração e escolha das alternativas de solução.
 
 - **Brainstorming** de alternativas de solução
 - **Análise de riscos** de cada proposta levantada
@@ -47,7 +47,7 @@ Fase de construção da solução.
 
 ---
 
-## Rastreabilidade — fase → documento
+## Rastreabilidade: Fase → Documento
 
 | Fase | Atividade | Documento |
 | :------------ | :---------------------------------- | :---------------------------------------------------------------------- |
@@ -63,12 +63,12 @@ Fase de construção da solução.
 | Ideação | Solução final com justificativa | [`produto/ideacao.md`](produto/ideacao.md) |
 | Ideação | Histórias de usuário (BDD) | [`produto/user-stories.md`](produto/user-stories.md) |
 | Ideação | Matriz esforço × impacto | [`produto/matriz-esforco-impacto.md`](produto/matriz-esforco-impacto.md) |
-| Ideação | Protótipos de baixa fidelidade | [Figma — Protótipo LO-FI](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
+| Ideação | Protótipos de baixa fidelidade | [Figma: Protótipo LO-FI](https://www.figma.com/design/gSwTyjY0iSzmDNAe4s6XeE/Prot%C3%B3tipo-LO-FI?node-id=18-4) |
 | Ideação | Papéis e responsabilidades | [`../README.md`](../README.md) (tabela Equipe e Papéis) |
 | Ideação | Tecnologias | [`tecnico/README.md`](tecnico/README.md) |
 | Ideação | Revisão do cronograma | [`cronograma-projetos3.md`](cronograma-projetos3.md) |
-| Desenvolvimento | Priorização e Sprints | TBD |
-| Desenvolvimento | Motor de cálculo | TBD — `tecnico/engine-calculo.md` |
+| Desenvolvimento | Priorização e Sprints | [`produto/plano-entrega-03.md`](produto/plano-entrega-03.md) |
+| Desenvolvimento | Motor de cálculo | [`tecnico/engine-calculo.md`](tecnico/engine-calculo.md) |
 
-Questões ainda não respondidas que afetam as fases de Ideação e Desenvolvimento: [`produto/questoes-em-aberto.md`](produto/questoes-em-aberto.md).
+Questões não respondidas que afetam Ideação e Desenvolvimento: [`produto/questoes-em-aberto.md`](produto/questoes-em-aberto.md).
 

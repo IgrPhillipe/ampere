@@ -1,30 +1,30 @@
-# Plano da Entrega 03 — Sprints 2, 3 e 4
+# Plano da Entrega 03: Sprints 2, 3 e 4
 
 > **Prazo:** segunda-feira, 19/10/2026. **Histórias:** US03, US04, US05 e US06, duas por sprint.
-> A entrega exige no mínimo 2; as quatro deixam a US07 e a US08 para a Entrega 04.
+> A entrega exige no mínimo 2. Com as quatro, a US07 e a US08 ficam para a Entrega 04.
 > Critérios completos em [`../cronograma-poo.md`](../cronograma-poo.md). Issues das Sprints 2 e 3 no [milestone Entrega 03](https://github.com/IgrPhillipe/ampere/milestone/2), #53 a #68.
 
 | Sprint | Período | Foco |
 | :--- | :--- | :--- |
 | Sprint 2 | 20/09 a 26/09 | US03 e US04 |
-| Sprint 3 | 27/09 a 03/10 | US05 e US06. A semana de provas cai dentro desta sprint, e ela fecha no Status Report 1 |
+| Sprint 3 | 27/09 a 03/10 | US05 e US06. Inclui a semana de provas e termina no Status Report 1 |
 | Sprint 4 | 04/10 a 10/10 | README, screencasts e ajustes da Entrega 03 (issues ainda não abertas) |
 
 | Data | Entrega | Responsável |
 | :--- | :--- | :--- |
 | Sáb 26/09 | Projetos 3, Sprint 2: GitHub e Google Sites atualizados | Sites: André |
 | Sáb 03/10 | Projetos 3, Status Report 1: roteiro e slides | Jean e Kellwen |
-| Seg 19/10 | POO, Entrega 03 | README e screencasts: Will · código: Afonso, Gabriel, Igor e Lucas |
+| Seg 19/10 | POO, Entrega 03 | README e screencasts: Will; código: Afonso, Gabriel, Igor e Lucas |
 
 ---
 
-## Como as issues estão organizadas
+## Organização das Issues
 
-O padrão é o mesmo da Sprint 1: uma issue por história, que funciona como épico, e duas tarefas por história, uma de **Backend** e uma de **Frontend**. Tudo vai no milestone **Entrega 03**. As labels novas são `Sprint 2`, `Sprint 3`, `US03`, `US04`, `US05` e `US06`.
+O padrão é o mesmo da Sprint 1: uma issue por história, que funciona como épico, e duas tarefas por história, uma de **Backend** e uma de **Frontend**. Todas ficam no milestone **Entrega 03**. As labels novas são `Sprint 2`, `Sprint 3`, `US03`, `US04`, `US05` e `US06`.
 
-**São 4 tarefas de código por sprint**, abertas sem responsável: quem pega se atribui.
+**São 4 tarefas de código por sprint**, abertas sem responsável. Cada pessoa se atribui ao assumir a tarefa.
 
-**Back e front andam em paralelo.** O contrato de cada endpoint está escrito na própria issue. O front constrói contra handlers MSW com esse contrato, e a integração no fim é só apagar o handler, como foi feito na Sprint 1.
+**Back e front andam em paralelo.** O contrato de cada endpoint está escrito na própria issue. O front é desenvolvido sobre handlers MSW com esse contrato. Na integração, o handler é removido, como na Sprint 1.
 
 As issues de Gestão não dependem de código.
 
@@ -33,37 +33,37 @@ As issues de Gestão não dependem de código.
 # Gestão
 
 ## `AT01-INFRA: Abrir as GitHub Issues da Entrega 03 [Gestão]`
-`Sprint 2` · `Gestão`
+`Sprint 2`, `Gestão`
 
-Criar o milestone Entrega 03, as labels `Sprint 2`, `Sprint 3`, `US03`, `US04`, `US05` e `US06` e as issues das Sprints 2 e 3. Precisa sair até sábado, 26/09.
+Criar o milestone Entrega 03, as labels `Sprint 2`, `Sprint 3`, `US03`, `US04`, `US05` e `US06` e as issues das Sprints 2 e 3. Prazo: sábado, 26/09.
 
-## `AT02-INFRA: Status Report 1 — roteiro e slides [Gestão]`
-`Sprint 3` · `Gestão`
+## `AT02-INFRA: Status Report 1 (roteiro e slides) [Gestão]`
+`Sprint 3`, `Gestão`
 
-Apresentação de sábado, 03/10. A semana anterior é de provas, então o ideal é fechar no fim de semana de 26 e 27/09.
+Apresentação de sábado, 03/10. A semana anterior é de provas. A meta é concluir no fim de semana de 26 e 27/09.
 
 ## `AT03-INFRA: Atualizar o Google Sites com a Sprint 2 [Gestão]`
-`Sprint 2` · `Gestão`
+`Sprint 2`, `Gestão`
 
 Entregável de Projetos 3 do sábado, 26/09.
 
 ## `AT04-INFRA: Alinhar US03 e US04 às normas [Gestão]`
-`Sprint 2` · `Gestão`
+`Sprint 2`, `Gestão`
 
-O texto das duas histórias foi escrito antes da pesquisa normativa, o mesmo caso do `AT04-INFRA` da Sprint 1. O código segue o [`engine-calculo.md`](../tecnico/engine-calculo.md), então esta correção não bloqueia nenhuma tarefa.
+O texto das duas histórias foi escrito antes da pesquisa normativa, o mesmo caso do `AT04-INFRA` da Sprint 1. O código segue o [`engine-calculo.md`](../tecnico/engine-calculo.md). Esta correção não bloqueia nenhuma tarefa.
 
 - [ ] US03: trocar "Tabela 3, Tabela 5, Tabela 6" por Quadro 35 (DIS-NOR-053) para residencial, Tabelas 6 a 18 (DIS-NOR-030) para áreas comuns e comercial, e Quadro 33 (DIS-NOR-053) para recarga
-- [x] US04: a etapa "Conversão para kVA" não existe, porque cada parcela já sai em kVA. As etapas passam a ser `Drf`, `Ds`, `Dc`, `Dve` e `Ded` final com o mínimo por tensão
+- [x] US04: a etapa "Conversão para kVA" não existe, porque cada parcela já é expressa em kVA. As etapas passam a ser `Drf`, `Ds`, `Dc`, `Dve` e `Ded` final com o mínimo por tensão
 
 ## `AT05-INFRA: Seção "Entrega 03" no README com os POST-IT [Gestão]`
-`Sprint 4` · `Gestão`
+`Sprint 4`, `Gestão`
 
 - [ ] POST-IT da US03, US04, US05 e US06 na seção "Entrega 03"
 - [ ] Print das GitHub Issues
 - [ ] Tabela de Entregas: marcar a Entrega 02 como "Finalizada" (hoje está "Não iniciada")
 
 ## `AT06-INFRA: Screencast do sistema rodando [Gestão]`
-`Sprint 4` · `Gestão`
+`Sprint 4`, `Gestão`
 
 Vídeo no YouTube, com áudio ou legenda. Roteiro:
 1. Como projetista, adicionar um grupo, ver a pendência dele bloquear o "Calcular demanda" e resolvê-la pelo painel (US03).
@@ -72,15 +72,15 @@ Vídeo no YouTube, com áudio ou legenda. Roteiro:
 4. Como analista, abrir a fila, filtrar "Vencendo prazo" e clicar em "Analisar" (US06).
 
 ## `AT07-INFRA: Screencast da explicação do código [Gestão]`
-`Sprint 4` · `Gestão`
+`Sprint 4`, `Gestão`
 
 Vídeo no YouTube explicando o código. O eixo é a hierarquia `ConsumerUnitGroup`, com `validate()` e `demand()` sobrescritos em cada tipo de grupo, e o motor de cálculo somando os grupos sem nenhum `if` por tipo. Também entra o status do SLA calculado a partir da data de envio, na US06.
 
 ---
 
-# US03 – Cadastro e Validação em Tempo Real de Unidades Consumidoras
+# US03: Cadastro e Validação em Tempo Real de Unidades Consumidoras
 
-`Sprint 2` · `US03`
+`Sprint 2`, `US03`
 
 ## Descrição
 
@@ -96,7 +96,7 @@ Interface de agrupamento de cargas por tipologia, com validação em tempo real 
 
 O projetista adiciona grupos de UCs de três tipos: apartamentos, áreas comuns ou cargas comerciais, e recarga de veículo elétrico. Cada grupo recebe um status: Validado, Revisar ou Falta dado. Pendências críticas travam o cálculo, por exemplo motor acima de 5 CV sem dado de partida ou recarga sem indicação de gerenciamento de carga.
 
-## Critérios de aceite (BDD)
+## Critérios de Aceite (BDD)
 
 **Cenário 1 (Positivo): Grupos cadastrados sem inconsistências**
 - **Dado** que o projetista está na etapa "Unidades consumidoras"
@@ -113,12 +113,12 @@ O projetista adiciona grupos de UCs de três tipos: apartamentos, áreas comuns 
 ## Recorte
 
 - **Sem importação `.xlsx`.** O Cenário 1 passa a ser atendido pelo cadastro manual; o ajuste do texto da história está na #68.
-- **Adicionar grupo é a linha do H3a**, dentro da tabela: nome, tipo de uso, quantidade e carga. Os dados específicos de cada tipo (área útil, cargas, potência por ponto, gerenciamento de carga) ficam num `Sheet`, que não existe no protótipo. É para ele que levam o nome do grupo e os atalhos do painel.
-- **Carimbo e coluna FATOR como no protótipo, com placeholder:** o responsável técnico mostra "—" até a ART da US05, e o FATOR mostra "AUTO" até o cálculo da US04.
+- **Adicionar grupo é a linha do H3a**, dentro da tabela: nome, tipo de uso, quantidade e carga. Os dados específicos de cada tipo (área útil, cargas, potência por ponto, gerenciamento de carga) ficam em um `Sheet`, que não existe no protótipo. O nome do grupo e os atalhos do painel abrem esse `Sheet`.
+- **Carimbo e coluna FATOR como no protótipo, com placeholder:** o responsável técnico mostra um traço até a ART da US05, e o FATOR mostra "AUTO" até o cálculo da US04.
 - **As regras de validação ficam só no back.** O front consulta o status e não repete as regras no Zod.
 - **Uma torre só.** O agrupamento de torres (Anexo I, item 9) fica fora.
 
-## Por que esta história carrega o requisito de POO
+## Relação com o Requisito de POO
 
 Os grupos formam uma hierarquia nova: `ConsumerUnitGroup` → `ResidentialGroup` / `LoadGroup` / `EvChargingGroup`. Cada tipo sobrescreve `validate()` com as suas regras. Na US04 a mesma hierarquia ganha o `demand()`.
 
@@ -131,29 +131,29 @@ Os grupos formam uma hierarquia nova: `ConsumerUnitGroup` → `ResidentialGroup`
 
 | Tela | Para quê |
 | :--- | :--- |
-| [H3 · Unidades consumidoras](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2044-2) | tabela de grupos, status e painel de validação |
-| [H3a · adicionar grupo](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2152-2) | a linha de adição dentro da tabela |
+| [H3: Unidades consumidoras](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2044-2) | tabela de grupos, status e painel de validação |
+| [H3a: Adicionar grupo](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2152-2) | a linha de adição dentro da tabela |
 
 ---
 
 ## `AT01-US03: Back-end dos grupos de unidades consumidoras [Backend]`
-`Sprint 2` · `US03` · `Backend`
+`Sprint 2`, `US03`, `Backend`
 
 O domínio dos grupos e a validação.
 
 ### Passos
 
 - [x] Classe abstrata `ConsumerUnitGroup`, relação N-1 com `Project`, mapeada com `@Inheritance`
-- [x] Subclasses `ResidentialGroup`, `LoadGroup` (com itens por parcela a–i da 030) e `EvChargingGroup`, com os campos das seções 3 a 5 do [`engine-calculo.md`](../tecnico/engine-calculo.md)
+- [x] Subclasses `ResidentialGroup`, `LoadGroup` (com itens por parcela, de a até i, da 030) e `EvChargingGroup`, com os campos das seções 3 a 5 do [`engine-calculo.md`](../tecnico/engine-calculo.md)
 - [x] `validate()` sobrescrito em cada subclasse, devolvendo o status `VALIDATED`, `REVIEW` ou `MISSING_DATA` e as mensagens; as regras de cada parcela ficam no corpo da constante de `LoadCategory`
 - [x] CRUD em `/api/projects/{id}/groups`; grupo incompleto é salvo e volta com a pendência
 - [x] `GET /api/projects/{id}/groups/validation`, com `canCalculate`, pendências e totais da etapa
 - [x] Seed com os cinco grupos do H3 no projeto rascunho
 - [x] Testes de domínio, controller e integração
 
-### Por que isto importa além da história
+### Relevância Além da História
 
-**É aqui que a disciplina vê a segunda hierarquia.** A regra "cada tipo de grupo tem a sua validação" vira despacho por tipo, e não uma cadeia de `if`.
+**Esta tarefa apresenta a segunda hierarquia de classes do projeto.** A regra "cada tipo de grupo tem a sua validação" vira despacho por tipo, e não uma cadeia de `if`.
 
 ### Notas
 
@@ -165,7 +165,7 @@ Parte da US03
 ---
 
 ## `AT02-US03: Tela "Unidades consumidoras" [Frontend]`
-`Sprint 2` · `US03` · `Frontend`
+`Sprint 2`, `US03`, `Frontend`
 
 A etapa 2 do projeto, do service à interface.
 
@@ -173,7 +173,7 @@ A etapa 2 do projeto, do service à interface.
 
 - [x] Service `consumer-units` com endpoints, requests, query-keys, schema Zod e hooks, integrado direto à API (sem mocks do MSW)
 - [x] Carimbo, índice das etapas (extraído para `ProjectStepper`) e tabela de grupos como no H3, com a situação em caixa alta mono
-- [x] Linha "Adicionar grupo" do H3a dentro da tabela, com o rodapé trocando para "Cancelar · Salvar grupo"
+- [x] Linha "Adicionar grupo" do H3a dentro da tabela, com o rodapé trocando para os botões "Cancelar" e "Salvar grupo"
 - [x] Painel verde de validação, com os atalhos "Corrigir agora" e "Informar dado" abrindo o `Sheet` do grupo no campo da pendência
 - [x] "Calcular demanda" desabilitado enquanto `canCalculate` for falso
 - [x] O "Avançar" da tela Novo Projeto passa a levar para esta tela
@@ -186,9 +186,9 @@ Parte da US03
 
 ---
 
-# US04 – Conferência do Cálculo Passo a Passo da Demanda
+# US04: Conferência do Cálculo Passo a Passo da Demanda
 
-`Sprint 2` · `US04`
+`Sprint 2`, `US04`
 
 ## Descrição
 
@@ -204,7 +204,7 @@ Memória de cálculo de demanda detalhada, com as fórmulas, os critérios norma
 
 O cálculo aparece em etapas: `Drf` (residencial), `Ds` (áreas comuns), `Dc` (comercial), `Dve` (recarga) e `Ded` final com o mínimo por tensão. Cada etapa mostra a fórmula e o item da norma. Ao lado fica o painel de rastreabilidade: demanda total, corrente, padrão de entrada, disjuntor e seção do ramal.
 
-## Critérios de aceite (BDD)
+## Critérios de Aceite (BDD)
 
 **Cenário 1 (Positivo): Visualização completa da memória de cálculo**
 - **Dado** que todas as UCs foram validadas na etapa anterior
@@ -219,13 +219,13 @@ O cálculo aparece em etapas: `Drf` (residencial), `Ds` (áreas comuns), `Dc` (c
 
 ## Recorte
 
-- **As tabelas normativas são cadastradas numa área administrativa**, "Normas e tabelas", só do papel `admin`: quem digita uma tabela não a publica, e tabela publicada não é editada. Em desenvolvimento, o seed publica as tabelas que o cálculo lê (pendência 31).
+- **As tabelas normativas são cadastradas em uma área administrativa**, "Normas e tabelas", restrita ao papel `admin`. Quem digita uma tabela não a publica, e tabela publicada não é editada. Em desenvolvimento, o seed publica as tabelas que o cálculo lê (pendência 31).
 - **Painel de rastreabilidade com os campos da metodologia**: demanda calculada, mínimo por tensão, tensão, corrente, padrão de entrada, proteção geral e ramal. O H4 mostrava demanda ativa em kW e fator de potência, que a metodologia não tem.
 - **Do H4 ficam a barra "Composição das cargas" e o aviso "Verificação automática concluída"**, com as cinco conferências normativas de cada cálculo.
 - **`Fr` só no valor recomendado** pelo Quadro 37. Fator acima do recomendado, com justificativa, fica fora.
 - **"Gerar memorial" fica habilitado, mas sem ação.** Gerar o memorial é a US05.
 
-## Por que esta história carrega o requisito de POO
+## Relação com o Requisito de POO
 
 O motor percorre os grupos e chama `demand()` sem saber de que tipo cada um é. Cada subclasse de `ConsumerUnitGroup` sabe qual norma e qual tabela usar.
 
@@ -239,12 +239,12 @@ O motor percorre os grupos e chama `demand()` sem saber de que tipo cada um é. 
 
 | Tela | Para quê |
 | :--- | :--- |
-| [H4 · Cálculo de demanda](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2032-2) | as etapas, as fórmulas e o painel de rastreabilidade |
+| [H4: Cálculo de demanda](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2032-2) | as etapas, as fórmulas e o painel de rastreabilidade |
 
 ---
 
 ## `AT01-US04: Back-end do motor de cálculo [Backend]`
-`Sprint 2` · `US04` · `Backend`
+`Sprint 2`, `US04`, `Backend`
 
 As tabelas normativas, o cálculo e o registro de cada execução.
 
@@ -260,13 +260,13 @@ As tabelas normativas, o cálculo e o registro de cada execução.
 - [x] `GET` do último cálculo, com as etapas, as fórmulas e a referência normativa de cada linha
 - [ ] Os cinco exemplos resolvidos do Anexo I como testes de regressão: os Exemplos 1 e 2 passam; 3 a 5 estão na pendência 32
 
-### Por que isto importa além da história
+### Relevância Além da História
 
-**Um valor de tabela digitado errado continua parecendo plausível.** Os cinco exemplos do Anexo I pegam esse tipo de erro, então a tarefa só fecha com os cinco passando.
+**Um valor de tabela digitado errado continua plausível.** Os cinco exemplos do Anexo I detectam esse tipo de erro. A tarefa só é concluída com os cinco passando.
 
 ### Notas
 
-- **Único ponto de contato com a US03:** o `demand()` vive nas subclasses de `ConsumerUnitGroup`. Quem pegar a `AT01-US03` sobe primeiro o esqueleto das classes (campos e assinaturas), num PR pequeno no primeiro dia. Até lá, esta tarefa começa pelo seed das tabelas, que não depende de nada
+- **Único ponto de contato com a US03:** o `demand()` vive nas subclasses de `ConsumerUnitGroup`. O responsável pela `AT01-US03` publica primeiro o esqueleto das classes (campos e assinaturas), em um PR pequeno no primeiro dia. Até lá, esta tarefa começa pelo seed das tabelas, que não tem dependências
 - Cada valor do seed é conferido contra o PDF por uma segunda pessoa, usando a página impressa no rodapé da norma
 
 Parte da US04
@@ -274,7 +274,7 @@ Parte da US04
 ---
 
 ## `AT02-US04: Tela "Cálculo de demanda" [Frontend]`
-`Sprint 2` · `US04` · `Frontend`
+`Sprint 2`, `US04`, `Frontend`
 
 A etapa 3 do projeto, do service à interface.
 
@@ -292,9 +292,9 @@ Parte da US04
 
 ---
 
-# US05 – Geração de Memorial e Envio do Projeto
+# US05: Geração de Memorial e Envio do Projeto
 
-`Sprint 3` · `US05`
+`Sprint 3`, `US05`
 
 ## Descrição
 
@@ -310,7 +310,7 @@ Geração do memorial descritivo no formato da Neoenergia, com checklist documen
 
 A etapa "Memorial e envio" mostra o preview do memorial em PDF, com download. A seção "Checagem antes do envio" exige três anexos: ART, diagrama unifilar e planta de situação. O botão de envio só é liberado com o checklist completo.
 
-## Critérios de aceite (BDD)
+## Critérios de Aceite (BDD)
 
 **Cenário 1 (Positivo): Submissão concluída com checklist completo**
 - **Dado** que o memorial foi gerado e todos os documentos obrigatórios estão anexados
@@ -339,13 +339,13 @@ A etapa "Memorial e envio" mostra o preview do memorial em PDF, com download. A 
 
 | Tela | Para quê |
 | :--- | :--- |
-| [H5 · Memorial](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2045-2) | preview, download e checklist |
-| [H5b · envio concluído](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2147-2) | a confirmação do envio |
+| [H5: Memorial](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2045-2) | preview, download e checklist |
+| [H5b: Envio concluído](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2147-2) | a confirmação do envio |
 
 ---
 
 ## `AT01-US05: Back-end do memorial e do envio [Backend]`
-`Sprint 3` · `US05` · `Backend`
+`Sprint 3`, `US05`, `Backend`
 
 A geração do PDF, os anexos e a submissão.
 
@@ -360,7 +360,7 @@ A geração do PDF, os anexos e a submissão.
 
 ### Notas
 
-- O memorial lê o último cálculo da US04. Enquanto a US04 não entra, o PDF é montado sobre um cálculo do seed
+- O memorial lê o último cálculo da US04. Até a US04 ser integrada, o PDF é montado sobre um cálculo do seed
 - O `submittedAt` também é usado pela US06, no SLA. É coluna **nullable** em `project`, porque projeto em rascunho não tem data de envio (e por causa das pendências 16 e 23)
 
 Parte da US05
@@ -368,7 +368,7 @@ Parte da US05
 ---
 
 ## `AT02-US05: Tela "Memorial e envio" [Frontend]`
-`Sprint 3` · `US05` · `Frontend`
+`Sprint 3`, `US05`, `Frontend`
 
 A etapa 4 do projeto, do service à interface.
 
@@ -386,9 +386,9 @@ Parte da US05
 
 ---
 
-# US06 – Fila de Análise Técnica Priorizada
+# US06: Fila de Análise Técnica Priorizada
 
-`Sprint 3` · `US06`
+`Sprint 3`, `US06`
 
 ## Descrição
 
@@ -404,7 +404,7 @@ Painel de triagem do analista, com indicadores, ordenação por prazo e os alert
 
 No topo ficam os indicadores: total na fila, vencendo o prazo, analisados no dia e taxa de reprovação no mês. A tabela é ordenada pela urgência do prazo (atrasado, vence hoje, dias restantes) e mostra um badge com a quantidade de alertas da pré-validação.
 
-## Critérios de aceite (BDD)
+## Critérios de Aceite (BDD)
 
 **Cenário 1 (Positivo): Filtrar projetos com prazo crítico**
 - **Dado** que o analista está na "Fila de análise"
@@ -432,12 +432,12 @@ No topo ficam os indicadores: total na fila, vencendo o prazo, analisados no dia
 
 | Tela | Para quê |
 | :--- | :--- |
-| [H6 · Fila de análise](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2082-2) | indicadores, filtros, ordenação e badges |
+| [H6: Fila de análise](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2082-2) | indicadores, filtros, ordenação e badges |
 
 ---
 
 ## `AT01-US06: Back-end da fila de análise [Backend]`
-`Sprint 3` · `US06` · `Backend`
+`Sprint 3`, `US06`, `Backend`
 
 A listagem do analista, com os indicadores e o prazo.
 
@@ -452,15 +452,15 @@ A listagem do analista, com os indicadores e o prazo.
 
 ### Notas
 
-- Esta tarefa não espera a US05: os projetos da fila vêm do seed. Se a coluna `submittedAt` ainda não existir, quem chegar primeiro a cria (nullable), e a outra tarefa reaproveita
-- Sem seed com datas variadas, o filtro "Vencendo prazo" não mostra nada no screencast
+- Esta tarefa não espera a US05: os projetos da fila vêm do seed. Se a coluna `submittedAt` ainda não existir, a primeira tarefa a precisar dela a cria (nullable), e a outra a reaproveita
+- Sem seed com datas variadas, o filtro "Vencendo prazo" não exibe resultados no screencast
 
 Parte da US06
 
 ---
 
 ## `AT02-US06: Tela "Fila de análise" [Frontend]`
-`Sprint 3` · `US06` · `Frontend`
+`Sprint 3`, `US06`, `Frontend`
 
 A tela inicial do analista, do service à interface.
 
@@ -471,6 +471,6 @@ A tela inicial do analista, do service à interface.
 - [ ] Tabela ordenada pelo prazo, com badge da situação e badge de alertas
 - [ ] Filtro "Vencendo prazo" na URL via nuqs
 - [ ] Botão "Analisar" levando à rota da análise do projeto
-- [ ] Depois do login, o analista cai na fila, e o projetista, em "Meus projetos"
+- [ ] Após o login, o analista é direcionado à fila e o projetista a "Meus projetos"
 
 Parte da US06

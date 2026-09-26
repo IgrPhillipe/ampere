@@ -13,52 +13,54 @@ Responsabilidades previstas:
 - Executar as fórmulas de demanda (individual e coletiva)
 - Retornar o resultado com indicação das regras aplicadas em cada etapa
 
-O levantamento normativo está feito e verificado contra os PDFs: as fórmulas, os métodos por tipo de edificação, as treze tabelas paramétricas e os cinco exemplos resolvidos que servem de suíte de regressão estão em [`fontes-normativas.md`](fontes-normativas.md). O método é repartido entre duas normas — **DIS-NOR-053 REV 06** para a estrutura do cálculo e o método da área útil, **DIS-NOR-030 REV 07** para o método da carga instalada — e as duas revisam de forma independente, então cada cálculo registra as duas revisões aplicadas. Entradas, saídas, validações normativas e o registro de rastreabilidade por cálculo estão em [`engine-calculo.md`](engine-calculo.md).
+O levantamento normativo está concluído e verificado contra os PDFs. As fórmulas, os métodos por tipo de edificação, as treze tabelas paramétricas e os cinco exemplos resolvidos que servem de suíte de regressão estão em [`fontes-normativas.md`](fontes-normativas.md).
 
-A norma foi revisada sete vezes em menos de quatro anos. Os parâmetros normativos são tratados como dados versionados e persistidos, não constantes no código, e cada cálculo registra qual revisão aplicou.
+O método é repartido entre duas normas: **DIS-NOR-053 REV 06** para a estrutura do cálculo e o método da área útil; **DIS-NOR-030 REV 07** para o método da carga instalada. As duas são revisadas de forma independente, por isso cada cálculo registra as duas revisões aplicadas. Entradas, saídas, validações normativas e o registro de rastreabilidade por cálculo estão em [`engine-calculo.md`](engine-calculo.md).
+
+A norma foi revisada sete vezes em menos de quatro anos. Os parâmetros normativos são dados versionados e persistidos, não constantes no código, e cada cálculo registra a revisão aplicada.
 
 ---
 
-## Design OOP (requisito POO)
+## Design OOP (Requisito POO)
 
-A disciplina de **Programação Orientada a Objetos** exige que o motor seja modelado explicitamente com classes de domínio. O diagrama de classes e a justificativa de design serão documentados aqui.
+A disciplina de **Programação Orientada a Objetos** exige que o motor seja modelado explicitamente com classes de domínio. O diagrama de classes e a justificativa de design ficam nesta seção.
 
-Ver premissas iniciais em [`docs/negocio/premissas-desafio.md`](../negocio/premissas-desafio.md#requisito-poo).
+Premissas iniciais em [`docs/negocio/premissas-desafio.md`](../negocio/premissas-desafio.md#requisito-poo).
 
 ---
 
 ## Front-end
 
-O scaffold do `app/front` está no repositório. React 19 com Vite 8, TanStack
-Router e Query, Tailwind 4 e shadcn/ui sobre Base UI, com MSW interceptando
-as chamadas em desenvolvimento.
+Scaffold em `app/front`: React 19 com Vite 8, TanStack Router e Query,
+Tailwind 4 e shadcn/ui sobre Base UI. O front consome a API real; o MSW é
+opcional em desenvolvimento, ativado por `VITE_ENABLE_MSW`.
 
 | Documento                                          | Conteúdo                                                                                                                                                                       |
 | :------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`convencoes-front.md`](convencoes-front.md)       | **documento único da stack** — estrutura, nomes e aliases; camadas, roteamento, auth, erros e tema; e as receitas passo a passo para criar feature, service, rota e componente |
-| [`design-system-front.md`](design-system-front.md) | identidade visual Neoenergia, tokens, componentes compartilhados, navegação e regras de uso da logo                                                                            |
+| [`convencoes-front.md`](convencoes-front.md)       | **Documento único da stack.** Estrutura, nomes e aliases; camadas, roteamento, auth, erros e tema; receitas passo a passo para criar feature, service, rota e componente |
+| [`design-system-front.md`](design-system-front.md) | Identidade visual Neoenergia, tokens, componentes compartilhados, navegação e regras de uso da logo                                                                            |
 
 Como executar: [`app/front/README.md`](../../app/front/README.md).
 
-Estado atual: o login ainda responde contra o MSW, porque a autenticação depende da Q1c. Ver [`pendencias.md`](../pendencias.md).
+Estado atual: login pela API, com o token JWT guardado no cliente. Pendências em [`pendencias.md`](../pendencias.md).
 
 ---
 
 ## Back-end
 
-O scaffold do `app/back` está no repositório: Java 21 com Spring Boot 4.1, Spring Data JPA sobre PostgreSQL, tudo containerizado.
+Scaffold em `app/back`: Java 21 com Spring Boot 4.1 e Spring Data JPA sobre PostgreSQL, tudo containerizado.
 
 | Documento                                  | Conteúdo                                                                                                                                                              |
 | :----------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`convencoes-back.md`](convencoes-back.md) | **documento único da stack** — nomenclatura e pacotes; camadas, contrato com o front, banco e Docker; e a receita passo a passo para criar uma entidade ponta a ponta |
+| [`convencoes-back.md`](convencoes-back.md) | **Documento único da stack.** Nomenclatura e pacotes; camadas, contrato com o front, banco e Docker; receita passo a passo para criar uma entidade ponta a ponta |
 
 Como executar: [`app/back/README.md`](../../app/back/README.md).
 
-Estado atual: sem autenticação (depende da Q1c) e sem migrations versionadas. Ver [`pendencias.md`](../pendencias.md).
+Estado atual: autenticação por JWT, com a rota `/admin/**` restrita ao papel `ADMIN`. O schema é gerado pelo Hibernate (`ddl-auto=update`), sem migrations versionadas. Pendências em [`pendencias.md`](../pendencias.md).
 
 ---
 
-## Convenções gerais
+## Convenções Gerais
 
 - Idioma do código: inglês
 - Texto de UI: português

@@ -1,12 +1,12 @@
 # Premissas do Desafio
 
-O desafio como a Neoenergia Pernambuco o apresentou: empresa, problema, impacto, quem é afetado e a proposta de solução esperada.
+Desafio conforme apresentado pela Neoenergia Pernambuco: empresa, problema, impacto, stakeholders afetados e proposta de solução esperada.
 
-Fase: Imersão ([`../processo.md`](../processo.md))
+Fase: **Imersão** ([`../processo.md`](../processo.md)).
 
 ## Empresa
 
-**Neoenergia Pernambuco** é a concessionária responsável pela distribuição de energia elétrica em todo o estado de Pernambuco e no município de Pedras de Fogo (PB). Atende cerca de **4,1 milhões de clientes** em **184 municípios**, além do arquipélago de Fernando de Noronha. Área de concessão de mais de **98 mil km²**. Integra o grupo **Neoenergia**, controlado pela espanhola **Iberdrola**, um dos maiores grupos de energia do mundo.
+**Neoenergia Pernambuco** é a concessionária responsável pela distribuição de energia elétrica em todo o estado de Pernambuco e no município de Pedras de Fogo (PB). Atende cerca de **4,1 milhões de clientes** em **184 municípios**, além do arquipélago de Fernando de Noronha. A área de concessão tem mais de **98 mil km²**. Integra o grupo **Neoenergia**, controlado pela espanhola **Iberdrola**, um dos maiores grupos de energia do mundo.
 
 O grupo está no Brasil desde 1997 e atua em **geração, transmissão, distribuição e comercialização de energia**, com operações em 18 estados e no Distrito Federal. Por meio de suas distribuidoras, atende cerca de **17 milhões de clientes**, alcançando uma população de aproximadamente 40 milhões de pessoas. Também investe em energia renovável, desenvolvimento sustentável e iniciativas socioambientais.
 
@@ -14,9 +14,9 @@ O grupo está no Brasil desde 1997 e atua em **geração, transmissão, distribu
 
 ## Problema
 
-Há um elevado número de erros nos cálculos de demanda apresentados em projetos elétricos de edificações com **múltiplas unidades consumidoras**. A complexidade dos critérios técnicos — associada à grande quantidade de parâmetros, tabelas e regras normativas — aumenta significativamente a probabilidade de equívocos, tanto por parte dos clientes quanto internamente durante a análise dos projetos.
+Os cálculos de demanda apresentados em projetos elétricos de edificações com **múltiplas unidades consumidoras** têm elevado número de erros. A complexidade dos critérios técnicos, somada à quantidade de parâmetros, tabelas e regras normativas, aumenta a probabilidade de equívocos. Os erros ocorrem tanto nos clientes quanto na análise interna dos projetos.
 
-Trata-se de um problema **recorrente**, presente há muitos anos no processo de análise e aprovação.
+O problema é **recorrente** e está presente há muitos anos no processo de análise e aprovação.
 
 ---
 
@@ -29,7 +29,7 @@ Trata-se de um problema **recorrente**, presente há muitos anos no processo de 
 
 ---
 
-## Stakeholders afetados
+## Stakeholders Afetados
 
 | Stakeholder      | Impacto                                                      |
 | :--------------- | :----------------------------------------------------------- |
@@ -38,15 +38,15 @@ Trata-se de um problema **recorrente**, presente há muitos anos no processo de 
 
 ---
 
-## Tentativas anteriores
+## Tentativas Anteriores
 
-Foram implementadas simplificações nos critérios de cálculo para projetos com **demanda inferior a 50 kVA**. Como resultado, houve redução significativa no número de reprovações nessa faixa. O problema persiste para projetos acima desse limite.
+Os critérios de cálculo foram simplificados para projetos com **demanda inferior a 50 kVA**. O número de reprovações nessa faixa caiu significativamente. O problema persiste para projetos acima desse limite.
 
 ---
 
-## Proposta de solução
+## Proposta de Solução
 
-Desenvolver uma ferramenta ou sistema capaz de realizar os cálculos de forma **automática**, aplicando as regras normativas vigentes, tabelas e critérios técnicos de maneira **padronizada**.
+Ferramenta ou sistema que realiza os cálculos de forma **automática**, aplicando as regras normativas vigentes, tabelas e critérios técnicos de maneira **padronizada**.
 
 A solução deve:
 
@@ -57,17 +57,17 @@ A solução deve:
 
 ---
 
-## Contexto acadêmico
+## Contexto Acadêmico
 
-Este projeto é desenvolvido no âmbito das disciplinas:
+O projeto é desenvolvido nas disciplinas:
 
 - **Projetos 3** (desafio real proposto pela Neoenergia Pernambuco via CESAR School)
-- **Programação Orientada a Objetos — POO** (2026.2, CESAR School)
+- **Programação Orientada a Objetos (POO)** (2026.2, CESAR School)
 
 ### Requisito POO
 
 O motor de cálculo deve ser modelado com design **orientado a objetos**, evidenciando:
 
 - **Encapsulamento**: regras normativas encapsuladas em classes de domínio
-- **Herança / Polimorfismo**: tipos de edificação e unidades consumidoras como hierarquia de classes
+- **Herança e polimorfismo**: tipos de edificação e unidades consumidoras como hierarquia de classes
 - **Separação de responsabilidades**: cálculo, validação e persistência em camadas distintas
