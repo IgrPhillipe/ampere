@@ -13,6 +13,9 @@ import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.GroupStatus;
+import br.com.ampere.domain.NormativeTable;
+import br.com.ampere.domain.NormativeTableCode;
+import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.Standard;
@@ -20,6 +23,7 @@ import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
+import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
@@ -171,6 +175,7 @@ class DataSeederTest {
         findingRepository,
         mock(ConsumerUnitGroupRepository.class),
         standardRepository,
+        existingNormativeTables(),
         userRepository,
         new BCryptPasswordEncoder());
   }
@@ -182,14 +187,64 @@ class DataSeederTest {
         mock(FindingRepository.class),
         groupRepository,
         seededStandards(),
+        existingNormativeTables(),
         mock(UserRepository.class),
         new BCryptPasswordEncoder());
   }
 
+  private static DataSeeder seeder(NormativeTableRepository normativeTableRepository) {
+    return new DataSeeder(
+        projectRepositoryWithProjects(),
+        mock(FindingRepository.class),
+        mock(ConsumerUnitGroupRepository.class),
+        seededStandards(),
+        normativeTableRepository,
+        mock(UserRepository.class),
+        new BCryptPasswordEncoder());
+  }
+
+  private static NormativeTableRepository existingNormativeTables() {
+    NormativeTableRepository repository = mock(NormativeTableRepository.class);
+    when(repository.count()).thenReturn((long) NormativeTableCode.values().length);
+    return repository;
+  }
+
   @Test
-  void seedsTheTwoDevelopmentUsersWithHashedPasswords() {
+  void seedsEveryTableTheCalculationReadsAlreadyPublished() {
+    NormativeTableRepository repository = mock(NormativeTableRepository.class);
+    when(repository.count()).thenReturn(0L);
+
+    seeder(repository).run();
+
+    ArgumentCaptor<Iterable<NormativeTable>> captor = iterableCaptor();
+    verify(repository).saveAll(captor.capture());
+    List<NormativeTable> tables =
+        StreamSupport.stream(captor.getValue().spliterator(), false).toList();
+    assertThat(tables)
+        .extracting(NormativeTable::getCode)
+        .containsExactlyInAnyOrder(NormativeTableCode.values());
+    assertThat(tables)
+        .allSatisfy(
+            table -> {
+              assertThat(table.getStatus()).isEqualTo(NormativeTableStatus.PUBLISHED);
+              assertThat(table.problems()).isEmpty();
+              assertThat(table.getStandard().getName())
+                  .isEqualTo(table.getCode().standard().code());
+            });
+  }
+
+  @Test
+  void leavesNormativeTablesUntouchedOnRestart() {
+    NormativeTableRepository repository = existingNormativeTables();
+
+    seeder(repository).run();
+
+    verify(repository, never()).saveAll(any());
+  }
+
+  @Test
+  void seedsTheDevelopmentUsersWithHashedPasswords() {
     UserRepository userRepository = mock(UserRepository.class);
-    when(userRepository.count()).thenReturn(0L);
     DataSeeder seeder =
         seeder(
             projectRepositoryWithProjects(),
@@ -206,7 +261,9 @@ class DataSeederTest {
     assertThat(users)
         .extracting(User::getEmail, User::getRole)
         .containsExactly(
-            tuple("user@ampere.local", UserRole.USER), tuple("admin@ampere.local", UserRole.ADMIN));
+            tuple("user@ampere.local", UserRole.USER),
+            tuple("admin@ampere.local", UserRole.ADMIN),
+            tuple("revisor@ampere.local", UserRole.ADMIN));
     assertThat(users)
         .allSatisfy(
             user -> {
@@ -221,7 +278,7 @@ class DataSeederTest {
   @Test
   void doesNotDuplicateUsersOnRestart() {
     UserRepository userRepository = mock(UserRepository.class);
-    when(userRepository.count()).thenReturn(2L);
+    when(userRepository.findByEmail(any())).thenReturn(Optional.of(mock(User.class)));
     DataSeeder seeder =
         seeder(
             projectRepositoryWithProjects(),
@@ -232,6 +289,27 @@ class DataSeederTest {
     seeder.run();
 
     verify(userRepository, never()).saveAll(any());
+  }
+
+  @Test
+  void addsTheReviewerToADatabaseSeededBeforeIt() {
+    UserRepository userRepository = mock(UserRepository.class);
+    when(userRepository.findByEmail(any())).thenReturn(Optional.of(mock(User.class)));
+    when(userRepository.findByEmail("revisor@ampere.local")).thenReturn(Optional.empty());
+    DataSeeder seeder =
+        seeder(
+            projectRepositoryWithProjects(),
+            mock(FindingRepository.class),
+            seededStandards(),
+            userRepository);
+
+    seeder.run();
+
+    ArgumentCaptor<Iterable<User>> captor = iterableCaptor();
+    verify(userRepository).saveAll(captor.capture());
+    assertThat(StreamSupport.stream(captor.getValue().spliterator(), false))
+        .extracting(User::getEmail)
+        .containsExactly("revisor@ampere.local");
   }
 
   @Test

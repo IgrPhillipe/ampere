@@ -16,6 +16,11 @@ public enum StandardName {
     return code;
   }
 
+  /** "053", as the calculation screen abbreviates it. */
+  public String shortCode() {
+    return code.substring(code.lastIndexOf('-') + 1);
+  }
+
   public static StandardName of(String code) {
     return Arrays.stream(values())
         .filter(standard -> standard.code.equals(code))

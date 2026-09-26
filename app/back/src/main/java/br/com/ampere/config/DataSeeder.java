@@ -8,11 +8,13 @@ import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
+import br.com.ampere.domain.LampTechnology;
 import br.com.ampere.domain.LoadCategory;
 import br.com.ampere.domain.LoadItem;
 import br.com.ampere.domain.LoadUsage;
 import br.com.ampere.domain.Mixed;
 import br.com.ampere.domain.NonResidential;
+import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
@@ -24,6 +26,7 @@ import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
+import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
@@ -51,6 +54,7 @@ public class DataSeeder implements CommandLineRunner {
   private final FindingRepository findingRepository;
   private final ConsumerUnitGroupRepository groupRepository;
   private final StandardRepository standardRepository;
+  private final NormativeTableRepository normativeTableRepository;
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
 
@@ -63,12 +67,14 @@ public class DataSeeder implements CommandLineRunner {
       FindingRepository findingRepository,
       ConsumerUnitGroupRepository groupRepository,
       StandardRepository standardRepository,
+      NormativeTableRepository normativeTableRepository,
       UserRepository userRepository,
       PasswordEncoder passwordEncoder) {
     this.projectRepository = projectRepository;
     this.findingRepository = findingRepository;
     this.groupRepository = groupRepository;
     this.standardRepository = standardRepository;
+    this.normativeTableRepository = normativeTableRepository;
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
   }
@@ -77,23 +83,42 @@ public class DataSeeder implements CommandLineRunner {
   @Transactional
   public void run(String... args) {
     seedUsers();
-    seedDevelopmentData(seedStandards());
+    List<Standard> standards = seedStandards();
+    seedDevelopmentData(standards);
     seedGroups();
+    seedNormativeTables(standards);
   }
 
+  /** Per e-mail, so an older database also gets the reviewer the second reading needs. */
   private void seedUsers() {
-    if (userRepository.count() > 0) {
+    String hash = passwordEncoder.encode(DEVELOPMENT_PASSWORD);
+    List<User> missing =
+        List.of(
+                new User("Usuário Teste", "user@ampere.local", hash, UserRole.USER),
+                new User("Admin Teste", "admin@ampere.local", hash, UserRole.ADMIN),
+                new User("Revisor Teste", "revisor@ampere.local", hash, UserRole.ADMIN))
+            .stream()
+            .filter(user -> userRepository.findByEmail(user.getEmail()).isEmpty())
+            .toList();
+    if (missing.isEmpty()) {
       return;
     }
 
-    String hash = passwordEncoder.encode(DEVELOPMENT_PASSWORD);
+    userRepository.saveAll(missing);
+    log.info("DataSeeder: {} development users inserted.", missing.size());
+  }
 
-    userRepository.saveAll(
-        List.of(
-            new User("Usuário Teste", "user@ampere.local", hash, UserRole.USER),
-            new User("Admin Teste", "admin@ampere.local", hash, UserRole.ADMIN)));
+  private void seedNormativeTables(List<Standard> standards) {
+    if (normativeTableRepository.count() > 0) {
+      return;
+    }
 
-    log.info("DataSeeder: two development users inserted.");
+    List<NormativeTable> tables =
+        normativeTableRepository.saveAll(
+            NormativeTableSeed.all(
+                standards.stream()
+                    .collect(Collectors.toMap(Standard::getName, Function.identity()))));
+    log.info("DataSeeder: {} published normative tables inserted.", tables.size());
   }
 
   private List<Standard> seedStandards() {
@@ -247,9 +272,17 @@ public class DataSeeder implements CommandLineRunner {
                                       null),
                                   new LoadItem(
                                       LoadCategory.LIGHTING_AND_OUTLETS,
-                                      "Iluminação e tomadas",
+                                      "Iluminação",
                                       1,
-                                      new BigDecimal("25.80"),
+                                      new BigDecimal("10.00"),
+                                      PowerUnit.KW,
+                                      LampTechnology.COMPACT_FLUORESCENT_LED,
+                                      null),
+                                  new LoadItem(
+                                      LoadCategory.LIGHTING_AND_OUTLETS,
+                                      "Tomadas",
+                                      1,
+                                      new BigDecimal("15.80"),
                                       PowerUnit.KW,
                                       null,
                                       null)),
