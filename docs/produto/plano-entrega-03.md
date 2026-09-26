@@ -53,7 +53,7 @@ Entregável de Projetos 3 do sábado, 26/09.
 O texto das duas histórias foi escrito antes da pesquisa normativa, o mesmo caso do `AT04-INFRA` da Sprint 1. O código segue o [`engine-calculo.md`](../tecnico/engine-calculo.md), então esta correção não bloqueia nenhuma tarefa.
 
 - [ ] US03: trocar "Tabela 3, Tabela 5, Tabela 6" por Quadro 35 (DIS-NOR-053) para residencial, Tabelas 6 a 18 (DIS-NOR-030) para áreas comuns e comercial, e Quadro 33 (DIS-NOR-053) para recarga
-- [ ] US04: a etapa "Conversão para kVA" não existe, porque cada parcela já sai em kVA. As etapas passam a ser `Drf`, `Ds`, `Dc`, `Dve` e `Ded` final com o mínimo por tensão
+- [x] US04: a etapa "Conversão para kVA" não existe, porque cada parcela já sai em kVA. As etapas passam a ser `Drf`, `Ds`, `Dc`, `Dve` e `Ded` final com o mínimo por tensão
 
 ## `AT05-INFRA: Seção "Entrega 03" no README com os POST-IT [Gestão]`
 `Sprint 4` · `Gestão`
@@ -219,7 +219,9 @@ O cálculo aparece em etapas: `Drf` (residencial), `Ds` (áreas comuns), `Dc` (c
 
 ## Recorte
 
-- **As tabelas normativas entram por seed**, ligadas ao `Standard` e à sua revisão. A área administrativa fica para depois.
+- **As tabelas normativas são cadastradas numa área administrativa**, "Normas e tabelas", só do papel `admin`: quem digita uma tabela não a publica, e tabela publicada não é editada. Em desenvolvimento, o seed publica as tabelas que o cálculo lê (pendência 31).
+- **Painel de rastreabilidade com os campos da metodologia**: demanda calculada, mínimo por tensão, tensão, corrente, padrão de entrada, proteção geral e ramal. O H4 mostrava demanda ativa em kW e fator de potência, que a metodologia não tem.
+- **Do H4 ficam a barra "Composição das cargas" e o aviso "Verificação automática concluída"**, com as cinco conferências normativas de cada cálculo.
 - **`Fr` só no valor recomendado** pelo Quadro 37. Fator acima do recomendado, com justificativa, fica fora.
 - **"Gerar memorial" fica habilitado, mas sem ação.** Gerar o memorial é a US05.
 
@@ -229,8 +231,9 @@ O motor percorre os grupos e chama `demand()` sem saber de que tipo cada um é. 
 
 ## Tarefas
 
-- [ ] Back-end do motor de cálculo
-- [ ] Tela "Cálculo de demanda"
+- [x] Back-end do motor de cálculo
+- [x] Tela "Cálculo de demanda"
+- [x] Tela "Normas e tabelas"
 
 ## Protótipo (Hi-Fi)
 
@@ -247,14 +250,15 @@ As tabelas normativas, o cálculo e o registro de cada execução.
 
 ### Passos
 
-- [ ] Entidade de tabela paramétrica com norma, revisão, identificação da tabela, item e página
-- [ ] Seed dos Quadros 33, 35, 36 e 37 e das Tabelas 1 e 2 da DIS-NOR-053, e das Tabelas 6 a 18 da DIS-NOR-030
-- [ ] `demand()` sobrescrito em cada subclasse de `ConsumerUnitGroup`
-- [ ] `Fc` calculado sobre o total de apartamentos da edificação, e não por grupo
-- [ ] `Ded` calculada, `Ded` mínima por tensão, `Ded` final e categoria (disjuntor e ramal)
-- [ ] `POST /api/projects/{id}/calculation` persiste um `Calculation` com os campos de rastreabilidade do [`engine-calculo.md`](../tecnico/engine-calculo.md). Devolve 422 se algum grupo não estiver validado
-- [ ] `GET` do último cálculo, com as etapas, as fórmulas e a referência normativa de cada linha
-- [ ] Os cinco exemplos resolvidos do Anexo I como testes de regressão
+- [x] Entidade de tabela paramétrica com norma, revisão, identificação da tabela, item e página
+- [x] Área administrativa em `/api/admin/normative-tables`, só `admin`, com a publicação conferida por outra pessoa
+- [x] Seed dos Quadros 33, 35, 36 e 37 e das Tabelas 1 e 2 da DIS-NOR-053, e das Tabelas 6 a 19 e 22 da DIS-NOR-030
+- [x] `demand()` sobrescrito em cada subclasse de `ConsumerUnitGroup`
+- [x] `Fc` calculado sobre o total de apartamentos da edificação, e não por grupo
+- [x] `Ded` calculada, `Ded` mínima por tensão, `Ded` final e categoria (disjuntor e ramal)
+- [x] `POST /api/projects/{id}/calculation` persiste um `Calculation` com os campos de rastreabilidade do [`engine-calculo.md`](../tecnico/engine-calculo.md). Devolve 422 se algum grupo não estiver validado
+- [x] `GET` do último cálculo, com as etapas, as fórmulas e a referência normativa de cada linha
+- [ ] Os cinco exemplos resolvidos do Anexo I como testes de regressão: os Exemplos 1 e 2 passam; 3 a 5 estão na pendência 32
 
 ### Por que isto importa além da história
 
@@ -276,12 +280,13 @@ A etapa 3 do projeto, do service à interface.
 
 ### Passos
 
-- [ ] Service `calculation` com hooks e handlers MSW seguindo o contrato da `AT01-US04`
-- [ ] Etapas abertas, cada uma com a fórmula e a referência normativa
-- [ ] Painel de rastreabilidade com demanda total, corrente, padrão de entrada, disjuntor e ramal
-- [ ] "Voltar" retorna à etapa 2 sem perder dados
-- [ ] "Gerar memorial" habilitado, sem ação
-- [ ] Colunas "UCs" e "Demanda" de volta na listagem de projetos (pendência 24)
+- [x] Service `calculation` com hooks, integrado direto à API (sem mocks do MSW)
+- [x] Etapas abertas, cada uma com a fórmula e a referência normativa
+- [x] Painel de rastreabilidade com demanda total, corrente, padrão de entrada, disjuntor e ramal
+- [x] "Voltar" retorna à etapa 2 sem perder dados
+- [x] "Gerar memorial" habilitado, sem ação
+- [x] Colunas "UCs" e "Demanda" de volta na listagem de projetos (pendência 24)
+- [x] Tela "Normas e tabelas" para o `admin`, no lugar do item desabilitado do cabeçalho
 
 Parte da US04
 

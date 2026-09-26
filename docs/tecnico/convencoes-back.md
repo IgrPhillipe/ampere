@@ -268,7 +268,9 @@ Três decisões que valem registrar:
 - **E-mail desconhecido e senha errada respondem igual.** Distinguir os dois diria a quem tenta quais e-mails existem na base.
 - **`/auth/me` relê o usuário do banco** em vez de confiar no que está no token: nome e papel envelhecem dentro dele.
 
-**Nenhuma rota é gateada por papel.** Os papéis atuais (`user` / `admin`) são placeholder, e dependem da **Q1c** em [`questoes-em-aberto.md`](../produto/questoes-em-aberto.md) — *"pessoa de fora da Neoenergia pode acessar um sistema interno?"*. Gatear rota por um placeholder seria inventar regra de negócio. Quando a Q1c fechar, é aqui e na pendência 13 que se resolve.
+**Só `/admin/**` é gateado por papel.** É a área das tabelas normativas, que não é do projetista: `SecurityConfig` converte o claim `role` do token em `ROLE_ADMIN` ou `ROLE_USER` e exige `hasRole("ADMIN")` nesse prefixo. Quem não tem o papel recebe 403 no mesmo `ProblemDetail` do resto da API. Rota nova de analista (a fila da US06) entra no mesmo `requestMatchers`.
+
+As outras rotas continuam sem papel. Os papéis atuais (`user` / `admin`) são placeholder e dependem da **Q1c** em [`questoes-em-aberto.md`](../produto/questoes-em-aberto.md) — *"pessoa de fora da Neoenergia pode acessar um sistema interno?"*. Quando a Q1c fechar, é aqui e na pendência 13 que se resolve.
 
 **Não há segredo versionado.** `JWT_SECRET` resolve em três caminhos, em `security/JwtSecret`:
 
@@ -326,6 +328,22 @@ O par sai igual nas três — as duas normas vigentes, como a US02 exige — **e
 `BuildingCategory` é o segundo polimorfismo, mais barato: enum com corpo por constante que constrói a subclasse certa, no lugar do `if`-chain que o service teria. E `category()` é método, não `instanceof` — com fetch lazy o que chega é um proxy do Hibernate, e `instanceof` erra.
 
 Tipo de edificação novo (6.25.1 Smart/Studio, 6.22.2 com carregador veicular) entra como subclasse nova. Nenhum `switch` precisa ser tocado.
+
+## Cálculo de demanda: `demand()` por tipo de grupo
+
+O motor (`DemandEngine`) soma `Drf + Ds + Dc + Dve` sem perguntar o tipo de nenhum grupo. Cada subclasse de `ConsumerUnitGroup` sobrescreve `demand()` e devolve a própria parcela:
+
+| Subclasse | O que calcula | Tabela |
+| :--- | :--- | :--- |
+| `ResidentialGroup` | demanda do apartamento × quantidade | Quadro 35 |
+| `LoadGroup` | cada parcela `a` a `i` da DIS-NOR-030 item 6.27, no corpo da constante de `LoadCategory` | Tabelas 7, 8, 9, 12, 14, 15, 16, 18/19 e 22 |
+| `EvChargingGroup` | pontos × potência | — (o fator vem depois) |
+
+O que vale para o prédio inteiro não fica no grupo: fica no corpo de cada constante de `DemandComponent`, em `combine()`. É onde o `Fc` do Quadro 36 é tirado do total de apartamentos (Anexo I, item 3), o `Fr` do Quadro 37 e o fator do Quadro 33 sobre todos os pontos de recarga (Anexo I, item 13).
+
+O `domain` não pode importar `repository`, então lê as tabelas pela interface `NormativeTables`; o service entrega um `NormativeTableSet` com as tabelas publicadas. Tabela ou linha que falta vira `MissingNormativeValueException`, que o service transforma em 422 com o nome da tabela.
+
+Cada execução grava um `Calculation` com as fórmulas, as referências e as duas revisões de norma: cálculo antigo continua apontando para a revisão sob a qual foi feito.
 
 ---
 
@@ -535,6 +553,9 @@ A mensagem é o que o usuário lê. Em português, sem jargão — o front desca
 | Dado inicial de desenvolvimento | `config/DataSeeder` |
 | Parâmetros de entrada do service | `service/ProjectParameters` |
 | Normas aplicáveis de uma edificação | `service/ApplicableStandards`, `repository/StandardRepository` |
+| Tabelas normativas e seus códigos | `domain/NormativeTable`, `domain/NormativeTableCode`, `service/NormativeTableService` |
+| Motor de cálculo | `domain/DemandEngine`, `domain/DemandComponent`, `service/DemandCalculationService` |
+| Seed das tabelas em desenvolvimento | `config/NormativeTableSeed` |
 | Geração de protocolo | `utils/Protocols` |
 | Documentação da API | `/api/docs` |
 

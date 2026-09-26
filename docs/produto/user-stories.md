@@ -172,19 +172,20 @@ Detalhamento transparente da memória de cálculo de demanda, exibindo fórmulas
 > **Para que** eu possa auditar o dimensionamento e sustentá-lo tecnicamente.
 
 ### Conversação (Regras de Negócio e Interface)
-A tela divide o cálculo em 5 etapas visíveis:
-1. Demanda residencial
-2. Demanda de áreas comuns
-3. Cargas especiais
-4. Fator de diversidade
-5. Conversão para kVA
+A tela divide o cálculo em 5 etapas visíveis, na notação do Anexo I da DIS-NOR-053. Cada parcela já sai em kVA, com o fator de potência que a DIS-NOR-030 define para ela, então não há etapa de conversão:
+1. `Drf` — demanda das unidades residenciais (Quadros 35, 36 e 37)
+2. `Ds` — demanda das áreas comuns (DIS-NOR-030, item 6.27)
+3. `Dc` — demanda das cargas comerciais (DIS-NOR-030, item 6.27)
+4. `Dve` — demanda da recarga de veículos elétricos (Quadro 33)
+5. `Ded` — demanda total da edificação, com o mínimo por tensão (Tabelas 1 e 2)
 
 Ao lado, exibe o painel de rastreabilidade técnica com:
-- Demanda ativa total (kW)
-- Fator de potência
+- Demanda calculada (kVA)
+- Mínimo por tensão (kVA)
+- Tensão de fornecimento
 - Corrente projetada (A)
-- Padrão de entrada sugerido
-- Disjuntor de proteção
+- Padrão de entrada
+- Proteção geral (disjuntor)
 - Seção do ramal de entrada
 
 ### Confirmação (Critérios de Aceite - BDD)
@@ -192,7 +193,7 @@ Ao lado, exibe o painel de rastreabilidade técnica com:
 #### Cenário 1 (Positivo): Visualização completa da memória de cálculo
 - **Dado** que todas as UCs foram validadas na etapa anterior
 - **Quando** o projetista acessa a etapa "Cálculo de demanda"
-- **Então** o sistema exibe o painel consolidado com a Demanda Total em kVA (ex.: 236,0 kVA) e as 5 etapas abertas com suas respectivas fórmulas
+- **Então** o sistema exibe o painel consolidado com a Demanda Total em kVA (ex.: 165,0 kVA) e as 5 etapas abertas com suas respectivas fórmulas
 - **E** habilita o botão "Gerar memorial".
 
 #### Cenário 2 (Positivo/Navegação): Retornar para ajuste sem perda de dados
@@ -201,8 +202,8 @@ Ao lado, exibe o painel de rastreabilidade técnica com:
 - **Então** o sistema retorna à etapa 2 mantendo os dados preenchidos anteriormente para edição.
 
 ### Checklist de Implementação
-- [ ] Exibir memória de cálculo aberta em 5 etapas com fórmulas e referências normativas
-- [ ] Apresentar dados de rastreabilidade elétrica (demanda ativa, disjuntor e ramal sugerido)
+- [x] Exibir memória de cálculo aberta em 5 etapas com fórmulas e referências normativas
+- [x] Apresentar dados de rastreabilidade elétrica (demanda, disjuntor e ramal)
 
 ---
 

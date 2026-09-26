@@ -128,7 +128,7 @@ D = a + b + c + d + e + f + g + h + i   [kVA]
 | `d` | Secadora, lava-roupas, lava-louças, micro-ondas | Tabela 9 | **0,92** ou conforme fabricante |
 | `e` | Fornos e fogões elétricos | Tabela 9 | 1,00 |
 | `f` | Condicionadores de ar | Tabela 12 — potência por aparelho na Tabela 11 | unidade central: fator de demanda 1,00 |
-| `g` | Motores e máquinas de solda a motor | Tabela 14 | potência de placa em CV/HP convertida pela **Tabela 18** |
+| `g` | Motores e máquinas de solda a motor | Tabela 14 | potência de placa em CV/HP convertida pela **Tabela 19** (trifásico) ou **Tabela 18** (monofásico) |
 | `h` | Equipamentos especiais | Tabela 15 — maior 1,00, demais **0,60** | conforme placa do equipamento |
 | `i` | Bombas e hidromassagem | Tabela 16 — 1 → 1,00 · 2 → 0,56 · 3 → 0,47 · acima de 3 → 0,39 | 1,00 |
 
@@ -218,6 +218,10 @@ Há um mínimo normativo que sobrepõe o cálculo (Anexo I, item 8):
 
 No exemplo 1 da norma, uma edificação com demanda calculada de 32,37 kVA em 380/220 V tem o mínimo de 46 kVA aplicado.
 
+As Tabelas 1 e 2 estão no **Anexo II, p. 123/353**, e vão além do mínimo: cada faixa de demanda até 300 kVA dá o número de circuitos, a seção do ramal subterrâneo e o disjuntor geral. Os exemplos tratam o teto da faixa como "o valor mínimo a ser considerado" (196,73 kVA em 220/127 V vira 229 kVA, 3 × 185 mm² e 600 A), e é assim que o motor dimensiona.
+
+> **Tabela 18 ou 19.** O item 6.27.7 da 030 cita só a Tabela 18, que é de motores **monofásicos**. Os valores dos exemplos da 053 (1 cv = 1,52 kVA, 3 cv = 4,04 kVA, 15 cv = 16,65 kVA) são os da **Tabela 19, motores trifásicos**, p. 70. O motor usa a 19 em ligação trifásica e a 18 nas demais.
+
 O item **6.27.1 da 053** define ainda o corte de porte que aparece no desafio: edificações com demanda total **até 50 kVA**, ramal aéreo e um único centro de medição podem apresentar projeto simplificado. Acima de 50 kVA, projeto completo analisado pela distribuidora (item 6.27.3).
 
 ### Tabelas paramétricas a persistir
@@ -238,7 +242,8 @@ Todas versionadas por revisão de norma, nunca como constante no código:
 | Tabela 14 | 030 | Fator de demanda de motores |
 | Tabela 15 | 030 | Fator de demanda de equipamentos especiais |
 | Tabela 16 | 030 | Fator de demanda de bombas e hidromassagem |
-| Tabela 18 | 030 | Conversão de potência de motor em CV/HP para kW e kVA |
+| Tabela 18 | 030 | Conversão de potência de motor monofásico em CV/HP para kW e kVA |
+| Tabela 19 | 030 | Conversão de potência de motor trifásico em CV/HP para kW e kVA |
 
 ---
 
@@ -249,7 +254,7 @@ O Anexo I traz **cinco exemplos resolvidos de ponta a ponta**, com os valores in
 | # | Página | Caso | Cobre |
 | :-- | :--- | :--- | :--- |
 | 1 | 113–115 | Residencial, 4 andares, 20 aptos de 40 m², 380/220 V | Quadro 35, Quadro 36, Quadro 37, parcelas `a` e `g`, mínimo por tensão |
-| 2 | 116–118 | Residencial, 19 andares, 76 aptos de 128 m², 2 elevadores de 15 cv e 2 bombas de 3 cv, 220/127 V | `Fc` no piso de 68,23%, `Fr` de 1,1, regra de motores de potência igual, Tabela 18 |
+| 2 | 116–118 | Residencial, 19 andares, 76 aptos de 128 m², 2 elevadores de 15 cv e 2 bombas de 3 cv, 220/127 V | `Fc` no piso de 68,23%, `Fr` de 1,1, regra de motores de potência igual, Tabela 19 |
 | 3 | 119–125 | Conjunto de três blocos, apartamento tipo e cobertura | Agrupamento entre blocos (`Dte`), áreas úteis distintas no mesmo empreendimento |
 | 4 | 126–130 | Comercial, 4 andares com 8 salas cada | `Dc`, parcela `f` de ar-condicionado, fator de demanda de tomadas comerciais |
 | 5 | 131–133 | Residencial pequeno, 19 aptos de 30 m², 380/220 V | Faixa de menor porte e o piso normativo |
