@@ -66,7 +66,7 @@ O texto das duas histórias foi escrito antes da pesquisa normativa, o mesmo cas
 `Sprint 4` · `Gestão`
 
 Vídeo no YouTube, com áudio ou legenda. Roteiro:
-1. Como projetista, importar a planilha com um grupo em "Falta dado" e mostrar que ele bloqueia o "Calcular demanda" (US03).
+1. Como projetista, adicionar um grupo, ver a pendência dele bloquear o "Calcular demanda" e resolvê-la pelo painel (US03).
 2. Corrigir o grupo e abrir o cálculo passo a passo (US04).
 3. Gerar o memorial, anexar os documentos e enviar para análise (US05).
 4. Como analista, abrir a fila, filtrar "Vencendo prazo" e clicar em "Analisar" (US06).
@@ -94,14 +94,14 @@ Interface de agrupamento de cargas por tipologia, com validação em tempo real 
 
 ## Conversação
 
-O projetista adiciona ou importa grupos de UCs de três tipos: apartamentos, áreas comuns ou cargas comerciais, e recarga de veículo elétrico. Cada grupo recebe um status: Validado, Revisar ou Falta dado. Pendências críticas travam o cálculo, por exemplo motor acima de 5 CV sem dado de partida ou recarga sem indicação de gerenciamento de carga.
+O projetista adiciona grupos de UCs de três tipos: apartamentos, áreas comuns ou cargas comerciais, e recarga de veículo elétrico. Cada grupo recebe um status: Validado, Revisar ou Falta dado. Pendências críticas travam o cálculo, por exemplo motor acima de 5 CV sem dado de partida ou recarga sem indicação de gerenciamento de carga.
 
 ## Critérios de aceite (BDD)
 
-**Cenário 1 (Positivo): Importação de planilha de UCs sem inconsistências**
+**Cenário 1 (Positivo): Grupos cadastrados sem inconsistências**
 - **Dado** que o projetista está na etapa "Unidades consumidoras"
-- **Quando** faz o upload de uma planilha `.xlsx` com todas as cargas e fatores em conformidade
-- **Então** a tabela é preenchida com o status "Validado" em cada grupo de UCs
+- **Quando** cadastra os grupos com todas as cargas e fatores em conformidade
+- **Então** a tabela mostra o status "Validado" em cada grupo de UCs
 - **E** o botão "Calcular demanda" fica ativo
 
 **Cenário 2 (Negativo): Pendência bloqueia o cálculo**
@@ -112,7 +112,9 @@ O projetista adiciona ou importa grupos de UCs de três tipos: apartamentos, ár
 
 ## Recorte
 
-- **Entram os dois caminhos, o manual e a planilha.** Na US02 o upload ficou fora porque não aparecia em nenhum cenário. Aqui ele é o Cenário 1.
+- **Sem importação `.xlsx`.** O Cenário 1 passa a ser atendido pelo cadastro manual; o ajuste do texto da história está na #68.
+- **Adicionar grupo é a linha do H3a**, dentro da tabela: nome, tipo de uso, quantidade e carga. Os dados específicos de cada tipo (área útil, cargas, potência por ponto, gerenciamento de carga) ficam num `Sheet`, que não existe no protótipo. É para ele que levam o nome do grupo e os atalhos do painel.
+- **Carimbo e coluna FATOR como no protótipo, com placeholder:** o responsável técnico mostra "—" até a ART da US05, e o FATOR mostra "AUTO" até o cálculo da US04.
 - **As regras de validação ficam só no back.** O front consulta o status e não repete as regras no Zod.
 - **Uma torre só.** O agrupamento de torres (Anexo I, item 9) fica fora.
 
@@ -130,25 +132,24 @@ Os grupos formam uma hierarquia nova: `ConsumerUnitGroup` → `ResidentialGroup`
 | Tela | Para quê |
 | :--- | :--- |
 | [H3 · Unidades consumidoras](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2044-2) | tabela de grupos, status e painel de validação |
-| [H3a · adicionar grupo](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2152-2) | o formulário de cada tipo de grupo |
+| [H3a · adicionar grupo](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2152-2) | a linha de adição dentro da tabela |
 
 ---
 
 ## `AT01-US03: Back-end dos grupos de unidades consumidoras [Backend]`
 `Sprint 2` · `US03` · `Backend`
 
-O domínio dos grupos, a validação e a importação da planilha.
+O domínio dos grupos e a validação.
 
 ### Passos
 
-- [ ] Classe abstrata `ConsumerUnitGroup`, relação N-1 com `Project`, mapeada com `@Inheritance`
-- [ ] Subclasses `ResidentialGroup`, `LoadGroup` e `EvChargingGroup`, com os campos das seções 3 a 5 do [`engine-calculo.md`](../tecnico/engine-calculo.md)
-- [ ] `validate()` sobrescrito em cada subclasse, devolvendo o status `VALIDATED`, `REVIEW` ou `MISSING_DATA` e as mensagens
-- [ ] CRUD em `/api/projects/{id}/groups`
-- [ ] `GET /api/projects/{id}/groups/validation`, que devolve o status de cada grupo e o `canCalculate`
-- [ ] `POST /api/projects/{id}/groups/import` com Apache POI. Uma linha inválida vira erro com o número da linha, sem descartar as outras
-- [ ] Modelo da planilha disponível para download
-- [ ] Testes do `validate()` de cada subclasse
+- [x] Classe abstrata `ConsumerUnitGroup`, relação N-1 com `Project`, mapeada com `@Inheritance`
+- [x] Subclasses `ResidentialGroup`, `LoadGroup` (com itens por parcela a–i da 030) e `EvChargingGroup`, com os campos das seções 3 a 5 do [`engine-calculo.md`](../tecnico/engine-calculo.md)
+- [x] `validate()` sobrescrito em cada subclasse, devolvendo o status `VALIDATED`, `REVIEW` ou `MISSING_DATA` e as mensagens; as regras de cada parcela ficam no corpo da constante de `LoadCategory`
+- [x] CRUD em `/api/projects/{id}/groups`; grupo incompleto é salvo e volta com a pendência
+- [x] `GET /api/projects/{id}/groups/validation`, com `canCalculate`, pendências e totais da etapa
+- [x] Seed com os cinco grupos do H3 no projeto rascunho
+- [x] Testes de domínio, controller e integração
 
 ### Por que isto importa além da história
 
@@ -166,17 +167,16 @@ Parte da US03
 ## `AT02-US03: Tela "Unidades consumidoras" [Frontend]`
 `Sprint 2` · `US03` · `Frontend`
 
-A etapa 2 do projeto, do service à interface, incluindo o upload da planilha.
+A etapa 2 do projeto, do service à interface.
 
 ### Passos
 
-- [ ] Service `groups` com endpoints, requests, query-keys, schema Zod, hooks e handlers MSW seguindo o contrato da `AT01-US03`
-- [ ] Tabela de grupos com badge de status Validado, Revisar ou Falta dado
-- [ ] Modal "Adicionar grupo" com os campos de cada tipo
-- [ ] Painel de validação, com os atalhos "Corrigir agora" e "Informar dado"
-- [ ] Upload de `.xlsx` com link para o modelo e erros exibidos por linha
-- [ ] "Calcular demanda" desabilitado enquanto `canCalculate` for falso
-- [ ] O "Avançar" da tela Novo Projeto passa a levar para esta tela
+- [x] Service `consumer-units` com endpoints, requests, query-keys, schema Zod e hooks, integrado direto à API (sem mocks do MSW)
+- [x] Carimbo, índice das etapas (extraído para `ProjectStepper`) e tabela de grupos como no H3, com a situação em caixa alta mono
+- [x] Linha "Adicionar grupo" do H3a dentro da tabela, com o rodapé trocando para "Cancelar · Salvar grupo"
+- [x] Painel verde de validação, com os atalhos "Corrigir agora" e "Informar dado" abrindo o `Sheet` do grupo no campo da pendência
+- [x] "Calcular demanda" desabilitado enquanto `canCalculate` for falso
+- [x] O "Avançar" da tela Novo Projeto passa a levar para esta tela
 
 ### Notas
 

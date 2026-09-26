@@ -95,6 +95,7 @@ export const makeCreatedProject = (
 		municipality: payload.municipality,
 		protocol: `2026-${id.padStart(4, "0")}`,
 		status: "DRAFT",
+		createdAt: now,
 		updatedAt: now,
 		buildingType: payload.buildingType,
 		floors: payload.floors,

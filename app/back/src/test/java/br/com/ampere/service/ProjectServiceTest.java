@@ -20,6 +20,7 @@ import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
+import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
 import java.util.List;
@@ -45,6 +46,7 @@ class ProjectServiceTest {
         new ProjectService(
             projectRepository,
             findingRepository,
+            mock(ConsumerUnitGroupRepository.class),
             mock(ProjectCreation.class),
             mock(ApplicableStandards.class));
 
@@ -155,6 +157,7 @@ class ProjectServiceTest {
     return new ProjectService(
         mock(ProjectRepository.class),
         mock(FindingRepository.class),
+        mock(ConsumerUnitGroupRepository.class),
         creation,
         mock(ApplicableStandards.class));
   }
@@ -164,6 +167,7 @@ class ProjectServiceTest {
     return new ProjectService(
         projectRepository,
         findingRepository,
+        mock(ConsumerUnitGroupRepository.class),
         mock(ProjectCreation.class),
         mock(ApplicableStandards.class));
   }
