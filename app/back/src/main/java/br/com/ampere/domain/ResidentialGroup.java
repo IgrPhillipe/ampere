@@ -1,6 +1,5 @@
 package br.com.ampere.domain;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import java.math.BigDecimal;
@@ -24,8 +23,8 @@ public class ResidentialGroup extends ConsumerUnitGroup {
 
   private BigDecimal unitLoadKw;
 
-  @Column(nullable = false)
-  private boolean compactUnit;
+  // Nullable in the table: SINGLE_TABLE shares the row with the other kinds.
+  private Boolean compactUnit;
 
   protected ResidentialGroup() {}
 
@@ -42,6 +41,23 @@ public class ResidentialGroup extends ConsumerUnitGroup {
     this.compactUnit = Boolean.TRUE.equals(spec.compactUnit());
   }
 
+  @Override
+  public GroupSpec spec() {
+    return new GroupSpec(
+        getName(),
+        getQuantity(),
+        usefulArea,
+        bedrooms,
+        unitLoadKw,
+        compactUnit,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null);
+  }
+
   public BigDecimal getUsefulArea() {
     return usefulArea;
   }
@@ -56,7 +72,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
 
   /** Smart, studio or home studio: above 15 units the coincidence factor is fixed (6.25.1). */
   public boolean isCompactUnit() {
-    return compactUnit;
+    return Boolean.TRUE.equals(compactUnit);
   }
 
   @Override

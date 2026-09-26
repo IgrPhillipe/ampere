@@ -45,7 +45,15 @@ public class LoadGroup extends ConsumerUnitGroup {
   protected void applySpec(GroupSpec spec) {
     this.usage = spec.usage();
     this.items.clear();
-    this.items.addAll(spec.items());
+    if (spec.items() != null) {
+      this.items.addAll(spec.items());
+    }
+  }
+
+  @Override
+  public GroupSpec spec() {
+    return new GroupSpec(
+        getName(), getQuantity(), null, null, null, null, usage, items, null, null, null, null);
   }
 
   public LoadUsage getUsage() {

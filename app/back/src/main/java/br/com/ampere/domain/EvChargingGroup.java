@@ -46,6 +46,23 @@ public class EvChargingGroup extends ConsumerUnitGroup {
     this.stationType = spec.stationType();
   }
 
+  @Override
+  public GroupSpec spec() {
+    return new GroupSpec(
+        getName(),
+        getQuantity(),
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        powerPerPointKw,
+        incorporatedInVehicle,
+        loadManagement,
+        stationType);
+  }
+
   public BigDecimal getPowerPerPointKw() {
     return powerPerPointKw;
   }

@@ -2,10 +2,18 @@ package br.com.ampere.config;
 
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.ConnectionType;
+import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.EntranceStandard;
+import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.GroupKind;
+import br.com.ampere.domain.GroupSpec;
+import br.com.ampere.domain.LoadCategory;
+import br.com.ampere.domain.LoadItem;
+import br.com.ampere.domain.LoadUsage;
 import br.com.ampere.domain.Mixed;
 import br.com.ampere.domain.NonResidential;
+import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
@@ -14,10 +22,12 @@ import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
+import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -39,20 +49,26 @@ public class DataSeeder implements CommandLineRunner {
 
   private final ProjectRepository projectRepository;
   private final FindingRepository findingRepository;
+  private final ConsumerUnitGroupRepository groupRepository;
   private final StandardRepository standardRepository;
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
 
   public static final String DEVELOPMENT_PASSWORD = "senha@123";
 
+  /** The draft project, the one that receives the consumer unit groups of prototype H3. */
+  public static final String DRAFT_PROTOCOL = "2026-1001";
+
   public DataSeeder(
       ProjectRepository projectRepository,
       FindingRepository findingRepository,
+      ConsumerUnitGroupRepository groupRepository,
       StandardRepository standardRepository,
       UserRepository userRepository,
       PasswordEncoder passwordEncoder) {
     this.projectRepository = projectRepository;
     this.findingRepository = findingRepository;
+    this.groupRepository = groupRepository;
     this.standardRepository = standardRepository;
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
@@ -63,6 +79,7 @@ public class DataSeeder implements CommandLineRunner {
   public void run(String... args) {
     seedUsers();
     seedDevelopmentData(seedStandards());
+    seedGroups();
   }
 
   private void seedUsers() {
@@ -106,7 +123,7 @@ public class DataSeeder implements CommandLineRunner {
             "Residencial Monte Verde",
             "Rodovia BR-101, km 8",
             "Cabo de Santo Agostinho",
-            "2026-1001",
+            DRAFT_PROTOCOL,
             ProjectStatus.DRAFT,
             new ResidentialMultifamily(
                 12,
@@ -184,6 +201,109 @@ public class DataSeeder implements CommandLineRunner {
             new Finding(anotherRejected)));
 
     log.info("DataSeeder: six projects and four findings inserted.");
+  }
+
+  /**
+   * The five groups of prototype H3: three apartment types already validated, a common area with a
+   * motor to review and a charging group missing data. Separate from the projects, so a database
+   * seeded before the consumer units existed gets them too.
+   */
+  private void seedGroups() {
+    if (groupRepository.count() > 0) {
+      return;
+    }
+
+    projectRepository
+        .findByProtocol(DRAFT_PROTOCOL)
+        .filter(Project::isDraft)
+        .ifPresent(
+            draft -> {
+              groupRepository.saveAll(
+                  List.of(
+                      apartments(draft, "Apartamento tipo A", 24, "68", 2, "6.50"),
+                      apartments(draft, "Apartamento tipo B", 20, "92", 3, "8.20"),
+                      apartments(draft, "Cobertura duplex", 4, "140", 4, "11.40"),
+                      GroupKind.LOAD.create(
+                          draft,
+                          new GroupSpec(
+                              "Área comum",
+                              1,
+                              null,
+                              null,
+                              null,
+                              null,
+                              LoadUsage.COMMON_AREA,
+                              List.of(
+                                  new LoadItem(
+                                      LoadCategory.MOTORS,
+                                      "Elevador",
+                                      1,
+                                      new BigDecimal("12"),
+                                      PowerUnit.CV,
+                                      null,
+                                      null),
+                                  new LoadItem(
+                                      LoadCategory.PUMPS_AND_HOT_TUBS,
+                                      "Bombas de recalque",
+                                      2,
+                                      new BigDecimal("5"),
+                                      PowerUnit.CV,
+                                      null,
+                                      null),
+                                  new LoadItem(
+                                      LoadCategory.LIGHTING_AND_OUTLETS,
+                                      "Iluminação e tomadas",
+                                      1,
+                                      new BigDecimal("25.80"),
+                                      PowerUnit.KW,
+                                      null,
+                                      null)),
+                              null,
+                              null,
+                              null,
+                              null)),
+                      GroupKind.EV_CHARGING.create(
+                          draft,
+                          new GroupSpec(
+                              "Recarga de veículo elétrico",
+                              6,
+                              null,
+                              null,
+                              null,
+                              null,
+                              null,
+                              null,
+                              new BigDecimal("7.40"),
+                              false,
+                              null,
+                              EvStationType.COLLECTIVE))));
+
+              log.info("DataSeeder: five consumer unit groups inserted in the draft project.");
+            });
+  }
+
+  private static ConsumerUnitGroup apartments(
+      Project project,
+      String name,
+      int quantity,
+      String usefulArea,
+      int bedrooms,
+      String unitLoadKw) {
+    return GroupKind.RESIDENTIAL.create(
+        project,
+        new GroupSpec(
+            name,
+            quantity,
+            new BigDecimal(usefulArea),
+            bedrooms,
+            new BigDecimal(unitLoadKw),
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null));
   }
 
   private static Project seed(

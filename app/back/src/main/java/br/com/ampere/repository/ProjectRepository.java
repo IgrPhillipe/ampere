@@ -45,6 +45,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
   @EntityGraph(attributePaths = {"buildingType", "standards"})
   Optional<Project> findDetailById(Long id);
 
+  Optional<Project> findByProtocol(String protocol);
+
   interface ProjectStatusCount {
 
     ProjectStatus getStatus();

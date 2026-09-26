@@ -74,6 +74,9 @@ public abstract class ConsumerUnitGroup {
 
   protected abstract void applySpec(GroupSpec spec);
 
+  /** What the designer declared, as it would be sent again to update the group. */
+  public abstract GroupSpec spec();
+
   public abstract GroupKind kind();
 
   /** What still blocks the calculation, in the order the designer should fix it. */

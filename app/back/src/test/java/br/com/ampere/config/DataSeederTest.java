@@ -10,23 +10,26 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.ampere.domain.BuildingCategory;
+import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.GroupStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
+import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 class DataSeederTest {
 
@@ -163,9 +166,24 @@ class DataSeederTest {
       FindingRepository findingRepository,
       StandardRepository standardRepository,
       UserRepository userRepository) {
-    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     return new DataSeeder(
-        projectRepository, findingRepository, standardRepository, userRepository, passwordEncoder);
+        projectRepository,
+        findingRepository,
+        mock(ConsumerUnitGroupRepository.class),
+        standardRepository,
+        userRepository,
+        new BCryptPasswordEncoder());
+  }
+
+  private static DataSeeder seeder(
+      ProjectRepository projectRepository, ConsumerUnitGroupRepository groupRepository) {
+    return new DataSeeder(
+        projectRepository,
+        mock(FindingRepository.class),
+        groupRepository,
+        seededStandards(),
+        mock(UserRepository.class),
+        new BCryptPasswordEncoder());
   }
 
   @Test
@@ -214,6 +232,40 @@ class DataSeederTest {
     seeder.run();
 
     verify(userRepository, never()).saveAll(any());
+  }
+
+  @Test
+  void seedsTheGroupsOfPrototypeH3InTheDraftProject() {
+    ProjectRepository projectRepository = projectRepositoryWithProjects();
+    Project draft = mock(Project.class);
+    when(draft.isDraft()).thenReturn(true);
+    when(projectRepository.findByProtocol(DataSeeder.DRAFT_PROTOCOL))
+        .thenReturn(Optional.of(draft));
+    ConsumerUnitGroupRepository groupRepository = mock(ConsumerUnitGroupRepository.class);
+    when(groupRepository.count()).thenReturn(0L);
+
+    seeder(projectRepository, groupRepository).run();
+
+    ArgumentCaptor<Iterable<ConsumerUnitGroup>> captor = iterableCaptor();
+    verify(groupRepository).saveAll(captor.capture());
+    assertThat(StreamSupport.stream(captor.getValue().spliterator(), false))
+        .extracting(ConsumerUnitGroup::getName, ConsumerUnitGroup::status)
+        .containsExactly(
+            tuple("Apartamento tipo A", GroupStatus.VALIDATED),
+            tuple("Apartamento tipo B", GroupStatus.VALIDATED),
+            tuple("Cobertura duplex", GroupStatus.VALIDATED),
+            tuple("Área comum", GroupStatus.REVIEW),
+            tuple("Recarga de veículo elétrico", GroupStatus.MISSING_DATA));
+  }
+
+  @Test
+  void doesNotDuplicateGroupsOnRestart() {
+    ConsumerUnitGroupRepository groupRepository = mock(ConsumerUnitGroupRepository.class);
+    when(groupRepository.count()).thenReturn(5L);
+
+    seeder(projectRepositoryWithProjects(), groupRepository).run();
+
+    verify(groupRepository, never()).saveAll(any());
   }
 
   private static ProjectRepository projectRepositoryWithProjects() {

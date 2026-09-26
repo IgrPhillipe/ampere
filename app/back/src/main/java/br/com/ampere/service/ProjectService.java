@@ -5,6 +5,7 @@ import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
+import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.utils.SearchTerms;
@@ -35,16 +36,19 @@ public class ProjectService {
 
   private final ProjectRepository projectRepository;
   private final FindingRepository findingRepository;
+  private final ConsumerUnitGroupRepository groupRepository;
   private final ProjectCreation projectCreation;
   private final ApplicableStandards applicableStandards;
 
   public ProjectService(
       ProjectRepository projectRepository,
       FindingRepository findingRepository,
+      ConsumerUnitGroupRepository groupRepository,
       ProjectCreation projectCreation,
       ApplicableStandards applicableStandards) {
     this.projectRepository = projectRepository;
     this.findingRepository = findingRepository;
+    this.groupRepository = groupRepository;
     this.projectCreation = projectCreation;
     this.applicableStandards = applicableStandards;
   }
@@ -106,10 +110,12 @@ public class ProjectService {
     Project project = draftOrFail(id, "Só é possível excluir um projeto em rascunho.");
 
     findingRepository.deleteAllByProjectId(id);
+    groupRepository.deleteAllByProjectId(id);
     projectRepository.delete(project);
   }
 
-  private Project draftOrFail(Long id, String message) {
+  /** The project, as long as it is still a draft: nothing after submission is edited. */
+  Project draftOrFail(Long id, String message) {
     Project project = findById(id);
     if (!project.isDraft()) {
       throw new BusinessException(message, HttpStatus.CONFLICT);
