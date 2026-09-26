@@ -11,12 +11,10 @@ const PROJECT_STAGES = [
 ];
 
 interface ProjectStepperProps {
-	/** Indice da etapa atual, a partir de 0. As anteriores aparecem concluidas. */
 	current: number;
 	className?: string;
 }
 
-/** Indice das cinco etapas do projeto, o mesmo em todas as telas do fluxo. */
 export const ProjectStepper = ({ current, className }: ProjectStepperProps) => (
 	<nav
 		aria-label="Etapas do projeto"

@@ -13,12 +13,7 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * A consumer unit group. {@code kind} says which of the other fields are read.
- *
- * <p>Only the shape of the data is validated here. Normative data left empty is accepted and comes
- * back as a validation issue, so the designer can save a group and complete it later.
- */
+/** Only the shape is validated; missing normative data comes back as an issue. */
 public record ConsumerUnitGroupRequest(
     @NotNull(message = "O tipo do grupo é obrigatório.") GroupKind kind,
     @NotBlank(message = "O nome do grupo é obrigatório.")

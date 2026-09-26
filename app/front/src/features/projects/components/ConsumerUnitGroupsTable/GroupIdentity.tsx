@@ -3,16 +3,11 @@ import type { ConsumerUnitGroup } from "@services/consumer-units";
 
 interface GroupIdentityProps {
 	group: ConsumerUnitGroup;
-	/** Fatia do grupo na carga declarada, de 0 a 100. */
 	share: number;
 	onOpen: () => void;
 	className?: string;
 }
 
-/**
- * Nome, resumo e medidor do grupo. O resumo vem pronto da API, com a tabela
- * da norma que se aplica ao tipo: o front nao monta texto normativo.
- */
 export const GroupIdentity = ({
 	group,
 	share,

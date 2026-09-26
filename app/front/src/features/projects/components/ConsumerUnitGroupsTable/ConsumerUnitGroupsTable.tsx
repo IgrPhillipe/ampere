@@ -13,7 +13,6 @@ import { createGroupColumns, type GroupColumnId } from "./group-columns";
 import type { GroupRowActions } from "./group-row";
 import { NewGroupRow } from "./NewGroupRow";
 
-/** `table-fixed`: estas larguras mandam, e a sobra fica com "Grupo". */
 const groupColumnClassNames = {
 	quantity: "w-20 text-right",
 	load: "w-28 text-right",
@@ -25,9 +24,7 @@ interface ConsumerUnitGroupsTableProps extends GroupRowActions {
 	groups: ConsumerUnitGroup[];
 	totalLoadKw: number;
 	isLoading?: boolean;
-	/** O estado vazio; a tela decide a acao dele. */
 	empty: ReactNode;
-	/** Presente enquanto a linha nova do H3a esta aberta. */
 	newGroupControl?: Control<NewGroupFormValues>;
 	newGroupUsageType?: GroupUsageType;
 	className?: string;
@@ -48,8 +45,6 @@ export const ConsumerUnitGroupsTable = ({
 		[onOpenGroup, totalLoadKw],
 	);
 
-	// Como na listagem de projetos: carregamento e vazio ficam aqui porque a
-	// tabela e os cartoes sao duas renderizacoes da mesma lista.
 	if (isLoading) return <SkeletonTable columns={5} />;
 
 	if (groups.length === 0 && !newGroupControl) return empty;

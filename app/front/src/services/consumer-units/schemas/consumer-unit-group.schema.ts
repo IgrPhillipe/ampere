@@ -1,11 +1,6 @@
 import { apiResponseSchema } from "@features/shared";
 import { z } from "zod";
 
-/**
- * Enums do back (`GroupKind`, `GroupStatus`, `LoadCategory`...). Atravessam o
- * contrato nos dois sentidos, entao o payload deriva deles em vez de
- * redeclarar `string`.
- */
 export const groupKindSchema = z.enum(["RESIDENTIAL", "LOAD", "EV_CHARGING"]);
 
 export type GroupKind = z.infer<typeof groupKindSchema>;
@@ -26,7 +21,6 @@ export const loadUsageSchema = z.enum(["COMMON_AREA", "COMMERCIAL"]);
 
 export type LoadUsage = z.infer<typeof loadUsageSchema>;
 
-/** As nove parcelas da DIS-NOR-030, item 6.27, de `a` a `i`. */
 export const loadCategorySchema = z.enum([
 	"LIGHTING_AND_OUTLETS",
 	"INSTANT_HEATING",
@@ -56,7 +50,6 @@ export const evStationTypeSchema = z.enum(["INDIVIDUAL", "COLLECTIVE"]);
 
 export type EvStationType = z.infer<typeof evStationTypeSchema>;
 
-/** `field` aponta o campo a corrigir, ex.: `loadManagement`, `items[0].power`. */
 export const validationIssueSchema = z.object({
 	severity: issueSeveritySchema,
 	field: z.string(),
@@ -77,10 +70,7 @@ export const loadItemSchema = z.object({
 
 export type LoadItem = z.infer<typeof loadItemSchema>;
 
-/**
- * O back omite do JSON o que e de outro tipo e o que nao foi informado, entao
- * todo campo proprio de um tipo e `nullish`: ausente e "nao informado".
- */
+/** The back omits fields that were not informed, so every kind field is `nullish`. */
 const groupBaseSchema = z.object({
 	id: z.string(),
 	name: z.string(),
@@ -128,7 +118,6 @@ export type LoadGroup = z.infer<typeof loadGroupSchema>;
 
 export type EvChargingGroup = z.infer<typeof evChargingGroupSchema>;
 
-/** `GET /projects/{id}/groups`. */
 export const consumerUnitGroupListResponseSchema = apiResponseSchema(
 	z.array(consumerUnitGroupSchema),
 );
@@ -137,7 +126,6 @@ export type ConsumerUnitGroupListResponse = z.infer<
 	typeof consumerUnitGroupListResponseSchema
 >;
 
-/** `POST` e `PUT` de um grupo. */
 export const consumerUnitGroupResponseSchema = apiResponseSchema(
 	consumerUnitGroupSchema,
 );
@@ -146,7 +134,6 @@ export type ConsumerUnitGroupResponse = z.infer<
 	typeof consumerUnitGroupResponseSchema
 >;
 
-/** `pendingCount` soma as pendencias de todos os grupos; cada uma bloqueia o calculo. */
 export const groupValidationSchema = z.object({
 	canCalculate: z.boolean(),
 	pendingCount: z.number().int().nonnegative(),
@@ -157,7 +144,6 @@ export const groupValidationSchema = z.object({
 
 export type GroupValidation = z.infer<typeof groupValidationSchema>;
 
-/** `GET /projects/{id}/groups/validation`. */
 export const groupValidationResponseSchema = apiResponseSchema(
 	groupValidationSchema,
 );

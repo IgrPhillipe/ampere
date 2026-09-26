@@ -3,12 +3,7 @@ package br.com.ampere.domain;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-/**
- * Unit a nameplate power is declared in.
- *
- * <p>The conversion is the physical one and only feeds the declared installed load. Converting a
- * motor to kVA for the demand is Tabela 18 of DIS-NOR-030, and belongs to the calculation.
- */
+/** Physical conversion only; the kVA of a motor (Tabela 18) belongs to the calculation. */
 public enum PowerUnit {
   KW("kW", BigDecimal.ONE),
   CV("CV", new BigDecimal("0.7355")),

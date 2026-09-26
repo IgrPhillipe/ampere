@@ -14,7 +14,6 @@ import { newGroupStatus } from "./new-group";
 interface ConsumerUnitGroupCardsProps extends GroupRowActions {
 	groups: ConsumerUnitGroup[];
 	totalLoadKw: number;
-	/** Presente enquanto a linha nova esta aberta. */
 	newGroupControl?: Control<NewGroupFormValues>;
 	newGroupUsageType?: GroupUsageType;
 	className?: string;
@@ -29,10 +28,6 @@ const Figure = ({ label, value }: { label: string; value: string }) => (
 	</div>
 );
 
-/**
- * Os mesmos grupos em largura estreita. Cinco colunas nao cabem num celular:
- * cada grupo vira um bloco, na ordem de leitura da tabela.
- */
 export const ConsumerUnitGroupCards = ({
 	groups,
 	totalLoadKw,
@@ -78,7 +73,6 @@ export const ConsumerUnitGroupCards = ({
 			<li className="relative flex flex-col gap-3 border-b border-border bg-muted/40 px-4 py-4 before:absolute before:top-4 before:left-0 before:h-6 before:w-0.5 before:bg-brand-sunset">
 				<NameAndUsageFields control={newGroupControl} />
 
-				{/* Sem as colunas da tabela, os numeros precisam do rotulo a vista. */}
 				<div className="grid grid-cols-2 items-start gap-4">
 					<div className="flex flex-col gap-1">
 						<span

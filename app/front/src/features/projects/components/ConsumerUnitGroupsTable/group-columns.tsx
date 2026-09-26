@@ -49,7 +49,6 @@ export const createGroupColumns = ({
 		}),
 		columnHelper.accessor("loadPerUnitKw", {
 			id: "load",
-			// A unidade fica em minusculas, como no prototipo: "kW", nao "KW".
 			header: () => (
 				<>
 					Carga <span className="normal-case">kW</span>
@@ -63,8 +62,6 @@ export const createGroupColumns = ({
 				</span>
 			),
 		}),
-		// O fator e resultado do calculo (US04). Ate la a coluna existe, como no
-		// prototipo, e diz o que o sistema vai fazer: aplicar sozinho.
 		columnHelper.display({
 			id: "factor",
 			header: "Fator",

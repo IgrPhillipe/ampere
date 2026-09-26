@@ -8,10 +8,6 @@ interface GroupStatusLabelProps {
 	className?: string;
 }
 
-/**
- * Situacao em caixa alta mono, como na listagem de projetos e no prototipo:
- * nao e badge. O que ja esta validado recua para o tom secundario.
- */
 export const GroupStatusLabel = ({
 	status,
 	className,

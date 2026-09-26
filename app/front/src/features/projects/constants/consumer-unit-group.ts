@@ -8,9 +8,6 @@ import type {
 	PowerUnit,
 } from "@services/consumer-units";
 
-// Os mapas sao `Record<Enum, string>` de proposito: um caso novo do back sem
-// rotulo aqui quebra o type-check, em vez de aparecer vazio na tela.
-
 export const groupStatusLabels = {
 	VALIDATED: "Validado",
 	REVIEW: "Revisar",
@@ -23,11 +20,6 @@ export const groupKindLabels = {
 	EV_CHARGING: "Recarga de veículo elétrico",
 } as const satisfies Record<GroupKind, string>;
 
-/**
- * O "Tipo de uso" do prototipo H3a. Junta o tipo do grupo e, na carga
- * instalada, se ela e do condominio ou comercial: para quem preenche sao
- * quatro escolhas, nao duas perguntas.
- */
 export const GROUP_USAGE_TYPES = {
 	APARTMENT: { label: "Apartamento", kind: "RESIDENTIAL", usage: null },
 	COMMON_AREA: { label: "Área comum", kind: "LOAD", usage: "COMMON_AREA" },
@@ -53,7 +45,6 @@ export const loadUsageItems = {
 	COMMERCIAL: "Carga comercial",
 } as const satisfies Record<LoadUsage, string>;
 
-/** Parcelas da DIS-NOR-030, item 6.27, com a letra da norma. */
 export const loadCategoryItems = {
 	LIGHTING_AND_OUTLETS: "a · Iluminação e tomadas",
 	INSTANT_HEATING: "b · Chuveiros, torneiras e aquecedores de passagem",
@@ -82,8 +73,5 @@ export const evStationTypeItems = {
 	COLLECTIVE: "Coletivo",
 } as const satisfies Record<EvStationType, string>;
 
-/**
- * Sim e nao como select, e nao checkbox: "nao informado" precisa existir, e e
- * ele que o back devolve como pendencia.
- */
+/** A select, not a checkbox: "not informed" has to exist. */
 export const yesNoItems = { true: "Sim", false: "Não" } as const;

@@ -1,6 +1,6 @@
 package br.com.ampere.domain;
 
-/** The kind of a consumer unit group. Each constant builds its own subclass. */
+/** Each constant builds its own subclass. */
 public enum GroupKind {
   RESIDENTIAL {
     @Override

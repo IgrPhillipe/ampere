@@ -10,10 +10,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * A group with its validation. Fields of the other kinds are left out of the JSON; a field of its
- * own kind that was not informed is left out too, and the screen reads both as "not informed".
- */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ConsumerUnitGroupResponse(
     String id,

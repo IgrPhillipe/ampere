@@ -28,11 +28,7 @@ interface DataTableProps<TData extends RowData, TColumnId extends string> {
 	empty?: ReactNode;
 	/** Class per column, keyed to the ids the caller declared. */
 	columnClassNames?: Partial<Record<TColumnId, string>>;
-	/**
-	 * `TableRow`s rendered after the data, inside the same body: a row being
-	 * filled in, for instance. While present, an empty `data` still renders
-	 * the table instead of the empty state.
-	 */
+	/** Rows after the data; while present, an empty `data` still renders the table. */
 	trailingRows?: ReactNode;
 	className?: string;
 }

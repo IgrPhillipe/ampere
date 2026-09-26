@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
 
-/** Formats declared values the way the designer reads them on screen. */
 final class DeclaredValues {
 
   private static final Locale BRAZIL = Locale.forLanguageTag("pt-BR");

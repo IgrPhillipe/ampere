@@ -11,22 +11,15 @@ interface NewGroupRowProps {
 	usageType?: GroupUsageType;
 }
 
-/**
- * A linha "novo (preenchendo)" do prototipo H3a, dentro da propria tabela. So
- * os quatro campos da linha; o resto do tipo se completa depois, pelo painel.
- */
 export const NewGroupRow = ({ control, usageType }: NewGroupRowProps) => (
 	<TableRow className="bg-muted/40 align-top hover:bg-muted/40">
-		{/* A marca fica dentro da celula: um `::before` na `tr` vira uma celula
-		    anonima e empurra as colunas. */}
 		<TableCell className="whitespace-normal">
+			{/* Marker inside the cell: a `::before` on the `tr` becomes an extra cell. */}
 			<div className="relative before:absolute before:top-2 before:-left-4 before:h-6 before:w-0.5 before:bg-brand-sunset">
 				<NameAndUsageFields control={control} />
 			</div>
 		</TableCell>
 
-		{/* `whitespace-normal`: a mensagem de erro quebra dentro da coluna
-		    estreita em vez de invadir a vizinha. */}
 		<TableCell className="text-right whitespace-normal">
 			<QuantityField control={control} />
 		</TableCell>

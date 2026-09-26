@@ -14,10 +14,8 @@ interface NewGroupFieldsProps {
 	usageType?: GroupUsageType;
 }
 
-/** Alinhado a direita, como os numeros das linhas de cima. */
 const numericInputClassName = "text-right font-mono";
 
-/** Rotulo so para leitor de tela: na linha do prototipo, o campo e o rotulo. */
 const hiddenLabel = (text: string) => <span className="sr-only">{text}</span>;
 
 export const NameAndUsageFields = ({ control }: NewGroupFieldsProps) => (

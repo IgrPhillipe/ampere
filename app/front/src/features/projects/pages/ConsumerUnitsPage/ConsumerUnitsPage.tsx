@@ -28,13 +28,8 @@ import {
 import { GROUP_USAGE_TYPES } from "../../constants";
 import { type NewGroupFormValues, newGroupSchema } from "../../schemas";
 
-/** Alvo do `aria-describedby` do "Calcular demanda" enquanto desabilitado. */
 const pendingCounterId = "unidades-pendencias";
 
-/**
- * O que a carga da linha nova vira no payload de cada tipo. Na carga
- * instalada ela nao existe: a carga e a soma dos itens, informados depois.
- */
 const newGroupLoad: Record<
 	GroupKind,
 	(load: number | null) => Partial<ConsumerUnitGroupPayload>
@@ -48,7 +43,6 @@ interface ConsumerUnitsPageProps {
 	projectId: string;
 }
 
-/** Etapa 02 do projeto: o cadastro dos grupos de unidades (prototipos H3 e H3a). */
 export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 	const navigate = useNavigate();
 	const projectQuery = useGetProject(projectId);
@@ -66,15 +60,12 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 		load: null,
 	});
 
-	// `useWatch`, e nao `form.watch`: com o React Compiler o `watch` e
-	// memoizado e a linha nova nao via o tipo escolhido.
+	// `form.watch` is memoized by the React Compiler.
 	const usageType = useWatch({ control: form.control, name: "usageType" });
 	const project = projectQuery.data?.data;
 	const groups = groupsQuery.data?.data ?? [];
 	const validation = validationQuery.data?.data;
 	const canCalculate = validation?.canCalculate ?? false;
-	// Depois do envio as unidades nao mudam mais (o back responde 409). A tela
-	// nao oferece o que vai ser recusado.
 	const isEditable = project?.status === "DRAFT";
 	const hasError =
 		projectQuery.isError || groupsQuery.isError || validationQuery.isError;
@@ -269,8 +260,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 							</Button>
 						</div>
 					) : (
-						// O calculo e a US04: a rota ainda nao existe, entao o botao
-						// liberado so avisa. O que importa aqui e quando ele libera.
+						// The calculation route arrives with US04.
 						<Button
 							type="button"
 							variant="outline"

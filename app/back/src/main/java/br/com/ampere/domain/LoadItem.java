@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
-/** One declared load of a load group, filed under its parcel of DIS-NOR-030 item 6.27. */
+/** One declared load, filed under its parcel of DIS-NOR-030 item 6.27. */
 @Embeddable
 public class LoadItem {
 
@@ -80,7 +80,6 @@ public class LoadItem {
     return simultaneousStart;
   }
 
-  /** Installed load of every unit of this item, in kW. Zero while the power is not informed. */
   public BigDecimal declaredLoadKw() {
     if (!DeclaredValues.isPositive(power)) {
       return BigDecimal.ZERO;
@@ -88,7 +87,6 @@ public class LoadItem {
     return powerUnit.toKilowatts(power).multiply(BigDecimal.valueOf(quantity));
   }
 
-  /** What this item still lacks. {@code path} is where it sits in the group, e.g. items[2]. */
   List<ValidationIssue> validate(String path, LoadUsage usage) {
     if (!DeclaredValues.isPositive(power)) {
       return List.of(

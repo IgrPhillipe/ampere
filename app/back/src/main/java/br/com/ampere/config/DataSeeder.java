@@ -56,7 +56,6 @@ public class DataSeeder implements CommandLineRunner {
 
   public static final String DEVELOPMENT_PASSWORD = "senha@123";
 
-  /** The draft project, the one that receives the consumer unit groups of prototype H3. */
   public static final String DRAFT_PROTOCOL = "2026-1001";
 
   public DataSeeder(
@@ -203,11 +202,7 @@ public class DataSeeder implements CommandLineRunner {
     log.info("DataSeeder: six projects and four findings inserted.");
   }
 
-  /**
-   * The five groups of prototype H3: three apartment types already validated, a common area with a
-   * motor to review and a charging group missing data. Separate from the projects, so a database
-   * seeded before the consumer units existed gets them too.
-   */
+  /** Own guard, so a database seeded before the groups existed also gets them. */
   private void seedGroups() {
     if (groupRepository.count() > 0) {
       return;

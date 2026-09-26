@@ -11,8 +11,7 @@ export const useCreateConsumerUnitGroup = (projectId: string) => {
 	return useMutation({
 		mutationFn: createConsumerUnitGroup,
 		onSuccess: async () => {
-			// `project()` e nao so `list()`: a validacao da etapa e uma query
-			// propria, e e ela que libera o "Calcular demanda".
+			// `project()` also refreshes the step validation.
 			await queryClient.invalidateQueries({
 				queryKey: consumerUnitGroupKeys.project(projectId),
 			});

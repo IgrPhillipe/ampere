@@ -10,13 +10,6 @@ import { z } from "zod";
 
 import { GROUP_USAGE_TYPES, type GroupUsageType } from "../constants";
 
-/**
- * Os formularios so validam a forma do dado, como o `ConsumerUnitGroupRequest`
- * do back. Dado normativo pode ficar vazio: o grupo e salvo e a pendencia
- * aparece no painel de validacao. Por isso quase tudo aqui e opcional.
- */
-
-/** Input numerico vazio entrega `""`; vira `null`, que e "nao informado". */
 const optionalNumber = (schema: z.ZodNumber) =>
 	z.preprocess(
 		(value) => (value === "" || value == null ? null : Number(value)),
@@ -26,11 +19,7 @@ const optionalNumber = (schema: z.ZodNumber) =>
 const optionalPositive = (message: string) =>
 	optionalNumber(z.number().positive({ error: message }));
 
-/**
- * Select "Sim / Não". Continua string no formulario porque o `ControlledSelect`
- * trata `false` como vazio; vira booleano so no payload (`toBoolean`). `""` e
- * `null`, "nao informado".
- */
+/** Stays a string in the form: `ControlledSelect` treats `false` as empty. */
 const optionalYesNo = z.preprocess(
 	(value) => (value === "" || value == null ? null : String(value)),
 	z.enum(["true", "false"]).nullable(),
@@ -59,10 +48,6 @@ const quantitySchema = z.preprocess(
 		.max(10000, { error: "A quantidade deve ser no máximo 10.000." }),
 );
 
-/**
- * A linha de adicao do H3a: nome, tipo de uso, quantidade e carga. Quantidade
- * e carga ficam em colunas estreitas, entao as mensagens delas sao curtas.
- */
 export const newGroupSchema = z.object({
 	name: nameSchema,
 	usageType: z.enum(

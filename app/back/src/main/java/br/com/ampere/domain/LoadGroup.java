@@ -14,15 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
-/**
- * Common areas or a commercial unit, calculated by installed load: DIS-NOR-030 item 6.27, the
- * method DIS-NOR-053 points to for condominium services (6.22.4) and commercial loads.
- */
+/** Common areas or a commercial unit, by installed load (DIS-NOR-030 item 6.27). */
 @Entity
 @DiscriminatorValue("LOAD")
 public class LoadGroup extends ConsumerUnitGroup {
 
-  /** How many item descriptions the summary lists before it stops. */
   private static final int SUMMARY_ITEMS = 3;
 
   @Enumerated(EnumType.STRING)

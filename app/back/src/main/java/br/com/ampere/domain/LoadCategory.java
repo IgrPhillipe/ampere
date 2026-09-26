@@ -3,15 +3,9 @@ package br.com.ampere.domain;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * The nine parcels of the installed load method, DIS-NOR-030 item 6.27 (a to i).
- *
- * <p>A parcel with its own rule overrides {@link #issues}, so a new rule is a new constant body and
- * not one more branch somewhere else.
- */
+/** The nine parcels of the installed load method, DIS-NOR-030 item 6.27. */
 public enum LoadCategory {
   LIGHTING_AND_OUTLETS("a", "Iluminação e tomadas") {
-    /** The lamp sets the power factor of the parcel outside residential occupancy (6.27.1). */
     @Override
     List<ValidationIssue> issues(LoadItem item, String path, LoadUsage usage) {
       if (usage == LoadUsage.COMMERCIAL && item.getLampTechnology() == null) {
@@ -31,7 +25,6 @@ public enum LoadCategory {
   COOKING("e", "Fornos e fogões elétricos"),
   AIR_CONDITIONING("f", "Condicionadores de ar"),
   MOTORS("g", "Motores e máquinas de solda a motor") {
-    /** Above 5 CV the starting condition changes the demand of the parcel (Tabela 14). */
     @Override
     List<ValidationIssue> issues(LoadItem item, String path, LoadUsage usage) {
       BigDecimal power = item.getPowerUnit().toCv(item.getPower());
@@ -71,7 +64,6 @@ public enum LoadCategory {
     return label;
   }
 
-  /** What this parcel asks of an item whose power is already informed. */
   List<ValidationIssue> issues(LoadItem item, String path, LoadUsage usage) {
     return List.of();
   }

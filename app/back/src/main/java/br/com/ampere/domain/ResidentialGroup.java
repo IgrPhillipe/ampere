@@ -6,15 +6,12 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Apartments of the same useful area. Their demand comes from the useful area method, DIS-NOR-053
- * Anexo I, Quadro 35; the installed load per unit feeds the individual calculation of item 6.22.3.
- */
+/** Apartments of the same useful area (DIS-NOR-053 Anexo I, Quadro 35). */
 @Entity
 @DiscriminatorValue("RESIDENTIAL")
 public class ResidentialGroup extends ConsumerUnitGroup {
 
-  /** Last row of Quadro 35: 901 to 1000 m². */
+  /** Last row of Quadro 35. */
   private static final BigDecimal LARGEST_TABULATED_AREA = new BigDecimal("1000");
 
   private BigDecimal usefulArea;
@@ -23,7 +20,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
 
   private BigDecimal unitLoadKw;
 
-  // Nullable in the table: SINGLE_TABLE shares the row with the other kinds.
+  // Nullable: SINGLE_TABLE shares the row with the other kinds.
   private Boolean compactUnit;
 
   protected ResidentialGroup() {}
@@ -70,7 +67,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
     return unitLoadKw;
   }
 
-  /** Smart, studio or home studio: above 15 units the coincidence factor is fixed (6.25.1). */
+  /** Smart, studio or home studio (item 6.25.1). */
   public boolean isCompactUnit() {
     return Boolean.TRUE.equals(compactUnit);
   }

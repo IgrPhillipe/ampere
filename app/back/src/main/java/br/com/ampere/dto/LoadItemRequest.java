@@ -12,7 +12,6 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
-/** One load of a load group. The power may be missing: the group is then reported as such. */
 public record LoadItemRequest(
     @NotNull(message = "A parcela da carga é obrigatória.") LoadCategory category,
     @NotBlank(message = "A descrição da carga é obrigatória.")

@@ -6,9 +6,7 @@ import type { ReactNode } from "react";
 
 interface ProjectStampProps {
 	project?: ProjectDetail;
-	/** Enquanto carrega, as celulas mostram esqueleto; depois, o traco. */
 	isLoading?: boolean;
-	/** "55 em 5 grupos". Fica com a tela, que e quem sabe contar as unidades. */
 	units?: ReactNode;
 	className?: string;
 }
@@ -30,13 +28,6 @@ const StampCell = ({ label, isLoading, children }: StampCellProps) => (
 	</div>
 );
 
-/**
- * O carimbo do projeto: norma, responsavel tecnico, unidades e emissao, no
- * topo das etapas depois da primeira.
- *
- * O responsavel tecnico e a ART anexada no envio (US05); ate la o campo fica
- * com o traco, e nao some, para a tela nao mudar de forma quando ele chegar.
- */
 export const ProjectStamp = ({
 	project,
 	isLoading = false,

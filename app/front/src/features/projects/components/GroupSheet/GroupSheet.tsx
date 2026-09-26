@@ -19,19 +19,16 @@ import { ResidentialGroupForm } from "./ResidentialGroupForm";
 
 export interface OpenedGroup {
 	group: ConsumerUnitGroup;
-	/** Campo da pendencia que abriu o painel, para receber o foco. */
 	focusField?: string;
 }
 
 interface GroupSheetProps {
 	projectId: string;
-	/** Projeto ja enviado: o grupo so e consultado. */
 	readOnly?: boolean;
 	opened: OpenedGroup | null;
 	onClose: () => void;
 }
 
-/** Cada tipo de grupo pede os proprios dados; o formulario segue o tipo. */
 const renderGroupForm = (
 	group: ConsumerUnitGroup,
 	props: Omit<GroupFormProps<ConsumerUnitGroup>, "group">,
@@ -46,13 +43,6 @@ const renderGroupForm = (
 	}
 };
 
-/**
- * Dados do tipo de um grupo: area util, cargas, potencia por ponto. E para
- * onde levam o nome do grupo na tabela e os atalhos do painel de validacao.
- *
- * Nao existe no prototipo, que so desenha a linha de adicao (H3a); fica num
- * `Sheet` para a tabela e o painel continuarem a vista.
- */
 export const GroupSheet = ({
 	projectId,
 	readOnly = false,
@@ -99,8 +89,7 @@ export const GroupSheet = ({
 							<SheetDescription>{group.summary}</SheetDescription>
 						</SheetHeader>
 
-						{/* `key`: trocar de grupo com o painel aberto recria o
-						    formulario com os valores do novo grupo. */}
+						{/* `key` resets the form when another group opens. */}
 						<div key={group.id} className="flex min-h-0 flex-1 flex-col">
 							{renderGroupForm(group, {
 								focusField: opened?.focusField,

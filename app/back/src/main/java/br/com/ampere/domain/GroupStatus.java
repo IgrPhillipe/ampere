@@ -1,6 +1,5 @@
 package br.com.ampere.domain;
 
-/** Where a consumer unit group stands before the demand can be calculated. */
 public enum GroupStatus {
   VALIDATED("Validado"),
   REVIEW("Revisar"),

@@ -9,7 +9,6 @@ import type {
 
 import { InlineActionButton } from "../ProjectsTable/InlineActionButton";
 
-/** O que o atalho de cada pendencia diz: confirmar um valor ou informar um que falta. */
 const issueActionLabels = {
 	REVIEW: "Corrigir agora",
 	MISSING_DATA: "Informar dado",
@@ -19,17 +18,11 @@ interface ValidationPanelProps {
 	groups: ConsumerUnitGroup[];
 	validation?: GroupValidation;
 	isLoading?: boolean;
-	/** Alvo do `aria-describedby` do "Calcular demanda" enquanto desabilitado. */
 	counterId: string;
 	onOpenIssue: (group: ConsumerUnitGroup, issue: ValidationIssue) => void;
 	className?: string;
 }
 
-/**
- * O painel "Validação em tempo real" do prototipo H3. As pendencias e as
- * mensagens vem prontas da API: a regra normativa mora no back, e o painel so
- * leva quem preenche ate o campo a corrigir.
- */
 export const ValidationPanel = ({
 	groups,
 	validation,

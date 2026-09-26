@@ -17,11 +17,6 @@ export interface LoadItemPayload {
 	simultaneousStart?: boolean | null;
 }
 
-/**
- * Corpo de `POST` e `PUT /projects/{id}/groups`. `kind` diz quais dos demais
- * campos o back le. Dado normativo pode ir vazio: o grupo e salvo e volta com
- * a pendencia.
- */
 export interface ConsumerUnitGroupPayload {
 	kind: GroupKind;
 	name: string;

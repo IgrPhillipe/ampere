@@ -114,7 +114,6 @@ public class ProjectService {
     projectRepository.delete(project);
   }
 
-  /** The project, as long as it is still a draft: nothing after submission is edited. */
   Project draftOrFail(Long id, String message) {
     Project project = findById(id);
     if (!project.isDraft()) {

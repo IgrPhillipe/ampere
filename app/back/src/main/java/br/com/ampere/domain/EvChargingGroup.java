@@ -8,18 +8,12 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Electric vehicle charging points. Their demand (Dve) uses the factor of DIS-NOR-053 item 6.26,
- * Quadro 33, whatever the power of each station (Anexo I, item 13).
- */
+/** Electric vehicle charging points (DIS-NOR-053 Quadro 33). */
 @Entity
 @DiscriminatorValue("EV_CHARGING")
 public class EvChargingGroup extends ConsumerUnitGroup {
 
-  /**
-   * DIS-NOR-030 item 6.26.4.1: only for a station built into the vehicle whose power is not
-   * informed. It is not a default for a fixed station.
-   */
+  /** DIS-NOR-030 item 6.26.4.1: only for a station built into the vehicle. */
   static final BigDecimal INCORPORATED_STATION_KW = new BigDecimal("3.3");
 
   private BigDecimal powerPerPointKw;

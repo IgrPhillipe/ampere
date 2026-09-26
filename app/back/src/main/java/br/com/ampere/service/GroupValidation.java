@@ -4,12 +4,6 @@ import br.com.ampere.domain.ConsumerUnitGroup;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * Whether the groups of a project are ready for the demand calculation.
- *
- * @param pendingIssues validation issues across all groups; every one of them blocks the
- *     calculation
- */
 public record GroupValidation(
     boolean canCalculate,
     int pendingIssues,
@@ -17,7 +11,6 @@ public record GroupValidation(
     int totalUnits,
     BigDecimal totalDeclaredLoadKw) {
 
-  /** The calculation needs at least one group, and no issue left in any of them. */
   public static GroupValidation of(List<ConsumerUnitGroup> groups) {
     int pending = groups.stream().mapToInt(group -> group.validate().size()).sum();
 

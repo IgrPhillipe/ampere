@@ -32,11 +32,6 @@ const EMPTY_ITEM: LoadGroupFormValues["items"][number] = {
 	simultaneousStart: null,
 };
 
-/**
- * Carga instalada de area comum ou comercial: DIS-NOR-030, item 6.27. Cada
- * carga entra na sua parcela, e a parcela decide o que mais pede — a lampada
- * na iluminacao, a partida no motor.
- */
 export const LoadGroupForm = ({
 	group,
 	focusField,
@@ -63,8 +58,7 @@ export const LoadGroupForm = ({
 	});
 
 	const items = useFieldArray({ control: form.control, name: "items" });
-	// `useWatch`: com o React Compiler o `form.watch` e memoizado e a troca de
-	// parcela nao mostraria o campo que ela pede.
+	// `form.watch` is memoized by the React Compiler.
 	const categories = useWatch({ control: form.control, name: "items" }).map(
 		({ category }) => category,
 	);
