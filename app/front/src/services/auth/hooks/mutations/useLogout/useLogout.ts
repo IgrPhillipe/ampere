@@ -8,11 +8,11 @@ export const useLogout = () => {
 	const queryClient = useQueryClient();
 	const clearSession = useAuthStore((state) => state.logout);
 
+	// Navigate first: clearing the token under mounted queries refetches them and toasts a 401.
 	return useCallback(() => {
-		clearSession();
-
-		queryClient.clear();
-
-		navigate({ to: "/login" });
+		void navigate({ to: "/login" }).then(() => {
+			clearSession();
+			queryClient.clear();
+		});
 	}, [clearSession, queryClient, navigate]);
 };
