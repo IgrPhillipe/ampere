@@ -30,7 +30,7 @@ class NormativeTableTest {
         "Anexo I, item 5",
         "108",
         rows,
-        "admin@ampere.local");
+        "admin@ampere.com");
   }
 
   private static final NormativeTable QUADRO_37 =
@@ -67,7 +67,7 @@ class NormativeTableTest {
             "Anexo I, item 1",
             "107",
             List.of(band(null, "40", "1.00"), band("41", "45", "1.05")),
-            "admin@ampere.local");
+            "admin@ampere.com");
 
     assertThat(quadro35.find(null, new BigDecimal("40.5")))
         .get()
@@ -119,7 +119,7 @@ class NormativeTableTest {
             List.of(
                 new NormativeTableRow("LARGEST", null, null, BigDecimal.ONE, null, null, null),
                 new NormativeTableRow("SMALLEST", null, null, BigDecimal.ONE, null, null, null)),
-            "admin@ampere.local");
+            "admin@ampere.com");
 
     assertThat(tabela14.problems())
         .containsExactly("Linha 2: escolha uma das chaves de Tabela 14.");
@@ -135,7 +135,7 @@ class NormativeTableTest {
             "Anexo I, item 8.2",
             "123",
             List.of(band("0", "46", "1")),
-            "admin@ampere.local");
+            "admin@ampere.com");
 
     assertThat(tabela2.problems())
         .containsExactly(
@@ -145,20 +145,20 @@ class NormativeTableTest {
   @Test
   void onlyADraftIsRevisedOrPublished() {
     NormativeTable table = quadro37(List.of(band(null, "25", "1.5")));
-    table.publish("revisor@ampere.local");
+    table.publish("revisor@ampere.com");
 
     assertThat(table.getStatus()).isEqualTo(NormativeTableStatus.PUBLISHED);
-    assertThat(table.getVerifiedBy()).isEqualTo("revisor@ampere.local");
+    assertThat(table.getVerifiedBy()).isEqualTo("revisor@ampere.com");
     assertThatThrownBy(() -> table.revise("Quadro 37", "item 5", "108", List.of()))
         .isInstanceOf(IllegalStateException.class);
-    assertThatThrownBy(() -> table.publish("revisor@ampere.local"))
+    assertThatThrownBy(() -> table.publish("revisor@ampere.com"))
         .isInstanceOf(IllegalStateException.class);
   }
 
   @Test
   void whoTypedATableDoesNotVerifyIt() {
-    assertThat(QUADRO_37.isVerifiableBy("ADMIN@ampere.local")).isFalse();
-    assertThat(QUADRO_37.isVerifiableBy("revisor@ampere.local")).isTrue();
+    assertThat(QUADRO_37.isVerifiableBy("ADMIN@ampere.com")).isFalse();
+    assertThat(QUADRO_37.isVerifiableBy("revisor@ampere.com")).isTrue();
   }
 
   @Test
@@ -179,8 +179,8 @@ class NormativeTableTest {
             "Anexo I, item 3",
             "107",
             rows,
-            "admin@ampere.local");
-    table.publish("revisor@ampere.local");
+            "admin@ampere.com");
+    table.publish("revisor@ampere.com");
     return table;
   }
 }

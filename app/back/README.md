@@ -65,16 +65,16 @@ API em `http://localhost:8080/api`, documentação em `http://localhost:8080/api
 
 | E-mail | Senha | Papel |
 | :--- | :--- | :--- |
-| `user@ampere.local` | `senha@123` | `user` |
-| `admin@ampere.local` | `senha@123` | `admin` |
-| `revisor@ampere.local` | `senha@123` | `admin` |
+| `user@ampere.com` | `senha@123` | `user` |
+| `admin@ampere.com` | `senha@123` | `admin` |
+| `revisor@ampere.com` | `senha@123` | `admin` |
 
 O revisor existe para a dupla leitura das tabelas normativas: quem cadastra uma tabela não a publica.
 
 ```bash
 curl -s -X POST http://localhost:8080/api/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"email":"user@ampere.local","password":"senha@123"}'
+  -d '{"email":"user@ampere.com","password":"senha@123"}'
 ```
 
 Apenas a área `/api/admin/**` (tabelas normativas) exige o papel `admin`. As demais rotas ignoram o papel enquanto a Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md) estiver aberta.

@@ -82,16 +82,15 @@ class AdminAccessIntegrationTest {
     String hash = passwordEncoder.encode(PASSWORD);
     userRepository.saveAll(
         List.of(
-            new User("Usuário", "user@ampere.local", hash, UserRole.USER),
-            new User("Admin", "admin@ampere.local", hash, UserRole.ADMIN),
-            new User("Revisor", "revisor@ampere.local", hash, UserRole.ADMIN)));
+            new User("Usuário", "user@ampere.com", hash, UserRole.USER),
+            new User("Admin", "admin@ampere.com", hash, UserRole.ADMIN),
+            new User("Revisor", "revisor@ampere.com", hash, UserRole.ADMIN)));
   }
 
   @Test
   void aDesignerCannotSeeTheNormativeTables() throws Exception {
     mockMvc
-        .perform(
-            get("/admin/normative-tables").header("Authorization", bearer("user@ampere.local")))
+        .perform(get("/admin/normative-tables").header("Authorization", bearer("user@ampere.com")))
         .andExpect(status().isForbidden())
         .andExpect(
             jsonPath("$.detail").value(ProblemDetailAuthenticationHandler.FORBIDDEN_MESSAGE));
@@ -99,7 +98,7 @@ class AdminAccessIntegrationTest {
 
   @Test
   void anAdminListsTheTablesAndTheirColumns() throws Exception {
-    String admin = bearer("admin@ampere.local");
+    String admin = bearer("admin@ampere.com");
 
     mockMvc
         .perform(get("/admin/normative-tables").header("Authorization", admin))
@@ -114,7 +113,7 @@ class AdminAccessIntegrationTest {
 
   @Test
   void whoTypesATableIsNotWhoPublishesIt() throws Exception {
-    String admin = bearer("admin@ampere.local");
+    String admin = bearer("admin@ampere.com");
     String id = create(admin);
 
     mockMvc
@@ -129,10 +128,10 @@ class AdminAccessIntegrationTest {
     mockMvc
         .perform(
             post("/admin/normative-tables/" + id + "/publish")
-                .header("Authorization", bearer("revisor@ampere.local")))
+                .header("Authorization", bearer("revisor@ampere.com")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.status").value("PUBLISHED"))
-        .andExpect(jsonPath("$.data.verifiedBy").value("revisor@ampere.local"));
+        .andExpect(jsonPath("$.data.verifiedBy").value("revisor@ampere.com"));
 
     mockMvc
         .perform(
@@ -145,8 +144,8 @@ class AdminAccessIntegrationTest {
 
   @Test
   void publishingANewRevisionSupersedesThePreviousOne() throws Exception {
-    String admin = bearer("admin@ampere.local");
-    String reviewer = bearer("revisor@ampere.local");
+    String admin = bearer("admin@ampere.com");
+    String reviewer = bearer("revisor@ampere.com");
     String first = create(admin);
     mockMvc.perform(
         post("/admin/normative-tables/" + first + "/publish").header("Authorization", reviewer));
@@ -168,7 +167,7 @@ class AdminAccessIntegrationTest {
     mockMvc
         .perform(
             post("/admin/normative-tables")
-                .header("Authorization", bearer("admin@ampere.local"))
+                .header("Authorization", bearer("admin@ampere.com"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """

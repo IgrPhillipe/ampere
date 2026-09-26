@@ -93,8 +93,8 @@ class DemandCalculationIntegrationTest {
             List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
     userRepository.save(
         new User(
-            "Usuário Teste", "user@ampere.local", passwordEncoder.encode(PASSWORD), UserRole.USER));
-    token = token("user@ampere.local");
+            "Usuário Teste", "user@ampere.com", passwordEncoder.encode(PASSWORD), UserRole.USER));
+    token = token("user@ampere.com");
   }
 
   @Test
