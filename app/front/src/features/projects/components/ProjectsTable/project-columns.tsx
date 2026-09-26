@@ -11,6 +11,7 @@ const columnHelper = createDataTableColumnHelper<Project>();
 
 /** Column ids, so `columnClassNames` does not accept a made-up key. */
 export type ProjectColumnId =
+	| "protocol"
 	| "name"
 	| "status"
 	| "units"
@@ -23,29 +24,27 @@ export const createProjectColumns = ({
 	onResumeSubmission,
 }: ProjectRowActions) =>
 	columnHelper.columns([
-		columnHelper.accessor("name", {
-			header: "Projeto",
+		columnHelper.accessor("protocol", {
+			header: "Protocolo",
 			cell: ({ row }) => (
-				// Sem `min-w`: a tabela e `table-fixed`, entao um minimo aqui nao
-				// alarga a coluna — vaza para fora dela e escreve por cima da
-				// vizinha. O texto quebra em linha e a coluna fica com a sobra.
-				<div
+				<span
 					className={cn(
-						"relative flex flex-col gap-1 whitespace-normal",
+						"relative font-mono text-sm text-foreground",
 						hasProjectAction(row.original) &&
 							"before:absolute before:top-1/2 before:-left-4 before:h-6 before:w-0.5 before:-translate-y-1/2 before:bg-brand-sunset",
 					)}
 				>
-					<span className="font-semibold text-foreground">
-						{row.original.name}
-					</span>
-					<span className="text-xs text-muted-foreground">
-						{row.original.address}, {row.original.municipality}
-					</span>
-					<span className="font-mono text-xs text-muted-foreground">
-						Protocolo {row.original.protocol}
-					</span>
-				</div>
+					{row.original.protocol}
+				</span>
+			),
+		}),
+		columnHelper.accessor("name", {
+			header: "Projeto",
+			// No `min-w`: the table is `table-fixed`, so the name wraps instead.
+			cell: ({ row }) => (
+				<span className="font-semibold whitespace-normal text-foreground">
+					{row.original.name}
+				</span>
 			),
 		}),
 		columnHelper.accessor("status", {

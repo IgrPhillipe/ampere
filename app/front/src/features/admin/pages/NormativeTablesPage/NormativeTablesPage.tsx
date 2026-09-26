@@ -34,7 +34,7 @@ export const NormativeTablesPage = () => {
 			actions={
 				<Button type="button" size="sm" onClick={openNewTable}>
 					<Plus aria-hidden="true" />
-					Nova tabela
+					Nova Tabela
 				</Button>
 			}
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
@@ -55,7 +55,7 @@ export const NormativeTablesPage = () => {
 									variant="outline"
 									onClick={() => void tablesQuery.refetch()}
 								>
-									Tentar novamente
+									Tentar Novamente
 								</Button>
 							}
 						/>

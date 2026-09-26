@@ -3,4 +3,5 @@ export const ProjectEndpoints = {
 	create: "projects",
 	statusCounts: "projects/status-counts",
 	detail: (id: string) => `projects/${id}`,
+	update: (id: string) => `projects/${id}`,
 } as const;

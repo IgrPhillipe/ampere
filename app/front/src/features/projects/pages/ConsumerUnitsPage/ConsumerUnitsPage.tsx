@@ -152,7 +152,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 										void validationQuery.refetch();
 									}}
 								>
-									Tentar novamente
+									Tentar Novamente
 								</Button>
 							}
 						/>
@@ -180,7 +180,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 										disabled={isAdding}
 									>
 										<Plus aria-hidden="true" />
-										Adicionar grupo
+										Adicionar Grupo
 									</Button>
 								) : null}
 							</div>
@@ -210,7 +210,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 														onClick={startAdding}
 													>
 														<Plus aria-hidden="true" />
-														Adicionar grupo
+														Adicionar Grupo
 													</Button>
 												) : undefined
 											}
@@ -237,8 +237,13 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 						type="button"
 						variant="outline"
 						size="icon"
-						aria-label="Voltar para Meus Projetos"
-						onClick={() => void navigate({ to: "/" })}
+						aria-label="Voltar para Dados da Edificação"
+						onClick={() =>
+							void navigate({
+								to: "/projetos/$id/dados",
+								params: { id: projectId },
+							})
+						}
 					>
 						<ArrowLeft aria-hidden="true" />
 					</Button>
@@ -254,7 +259,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 								variant="outline"
 								disabled={createGroup.isPending}
 							>
-								{createGroup.isPending ? "Salvando..." : "Salvar grupo"}
+								{createGroup.isPending ? "Salvando..." : "Salvar Grupo"}
 								<ArrowRight aria-hidden="true" />
 							</Button>
 						</div>
@@ -271,7 +276,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 								})
 							}
 						>
-							Calcular demanda
+							Calcular Demanda
 							<ArrowRight aria-hidden="true" />
 						</Button>
 					)}

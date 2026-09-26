@@ -131,7 +131,7 @@ export const LoadGroupForm = ({
 							onClick={() => items.append(EMPTY_ITEM)}
 						>
 							<Plus aria-hidden="true" />
-							Adicionar carga
+							Adicionar Carga
 						</Button>
 					</div>
 
@@ -231,13 +231,13 @@ export const LoadGroupForm = ({
 
 									<Button
 										type="button"
-										variant="ghost"
+										variant="destructive-ghost"
 										size="sm"
 										onClick={() => items.remove(index)}
-										className="justify-self-start text-destructive sm:col-span-2"
+										className="justify-self-start sm:col-span-2"
 									>
 										<Trash2 aria-hidden="true" />
-										Remover carga
+										Remover Carga
 									</Button>
 								</div>
 							</li>

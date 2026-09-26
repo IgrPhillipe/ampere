@@ -34,3 +34,17 @@ export const createProject = async (payload: CreateProjectPayload) => {
 
 	return projectDetailResponseSchema.parse(response);
 };
+
+export const updateProject = async ({
+	id,
+	payload,
+}: {
+	id: string;
+	payload: CreateProjectPayload;
+}) => {
+	const response = await http
+		.put(e.update(id), { json: payload })
+		.json<unknown>();
+
+	return projectDetailResponseSchema.parse(response);
+};

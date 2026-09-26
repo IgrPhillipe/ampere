@@ -1,7 +1,7 @@
 package br.com.ampere.domain;
 
 public enum NormativeTableStatus {
-  DRAFT("Rascunho"),
+  DRAFT("Aguardando revisão"),
   PUBLISHED("Publicada"),
   SUPERSEDED("Substituída");
 

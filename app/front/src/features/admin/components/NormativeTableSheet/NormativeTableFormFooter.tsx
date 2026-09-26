@@ -16,28 +16,40 @@ interface NormativeTableFormFooterProps {
 	onPublish: () => void;
 }
 
-const dateOf = (value: string) => (
-	<time dateTime={value} className="font-mono">
-		{dayjs(value).format("DD.MM.YYYY")}
-	</time>
-);
+interface HistoryEntryProps {
+	label: string;
+	person: string;
+	at: string;
+}
 
-const TableHistory = ({ table }: { table: NormativeTable }) => (
-	<div className="flex flex-col gap-1 text-sm text-muted-foreground">
-		<p>
-			Cadastrada por {table.registeredBy} em {dateOf(table.registeredAt)}
-		</p>
-		{table.verifiedBy && table.verifiedAt ? (
-			<p>
-				Aprovada por {table.verifiedBy} em {dateOf(table.verifiedAt)}
-			</p>
-		) : (
-			<p>Aguardando a aprovação de um revisor</p>
-		)}
+const HistoryEntry = ({ label, person, at }: HistoryEntryProps) => (
+	<div className="flex min-w-0 flex-col gap-0.5">
+		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+			{label}
+		</dt>
+		<dd className="truncate text-sm font-medium text-foreground">{person}</dd>
+		<dd className="font-mono text-xs text-muted-foreground">
+			<time dateTime={at}>{dayjs(at).format("DD.MM.YYYY")}</time>
+		</dd>
 	</div>
 );
 
-const footerClassName = "flex-col gap-4 border-t border-border px-6 py-4";
+const TableHistory = ({ table }: { table: NormativeTable }) => (
+	<dl className="flex min-w-0 flex-wrap gap-x-8 gap-y-3">
+		<HistoryEntry
+			label="Cadastro"
+			person={table.registeredBy}
+			at={table.registeredAt}
+		/>
+		{table.verifiedBy && table.verifiedAt ? (
+			<HistoryEntry
+				label="Revisão"
+				person={table.verifiedBy}
+				at={table.verifiedAt}
+			/>
+		) : null}
+	</dl>
+);
 
 export const NormativeTableFormFooter = ({
 	table,
@@ -53,18 +65,17 @@ export const NormativeTableFormFooter = ({
 	const isBusy = isSaving || isDeleting;
 
 	return (
-		<SheetFooter className={footerClassName}>
+		<SheetFooter className="flex-row flex-wrap items-center justify-between gap-x-6 gap-y-4 border-t border-border px-6 py-4">
 			{table ? <TableHistory table={table} /> : null}
 
-			<div className="flex flex-wrap items-center justify-end gap-2">
+			<div className="ml-auto flex flex-wrap items-center justify-end gap-2">
 				{table && !readOnly ? (
 					<Button
 						type="button"
-						variant="ghost"
+						variant="destructive-ghost"
 						size="sm"
 						onClick={onDelete}
 						disabled={isBusy}
-						className="mr-auto text-destructive"
 					>
 						<Trash2 aria-hidden="true" />
 						{isDeleting ? "Excluindo..." : "Excluir"}
@@ -91,7 +102,7 @@ export const NormativeTableFormFooter = ({
 								onClick={onPublish}
 								disabled={isBusy || !canPublish}
 							>
-								Aprovar e publicar
+								Aprovar e Publicar
 							</Button>
 						) : null}
 					</>

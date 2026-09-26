@@ -16,6 +16,7 @@ import { createProjectColumns, type ProjectColumnId } from "./project-columns";
  * quebrar em cinco linhas.
  */
 const projectColumnClassNames = {
+	protocol: "w-32 lg:w-36",
 	status: "w-56 lg:w-96",
 	units: "hidden w-20 lg:table-cell",
 	demand: "w-28 lg:w-32",
@@ -49,7 +50,7 @@ export const ProjectsTable = ({
 	// Carregamento e vazio ficam aqui, e nao dentro do `DataTable`, porque a
 	// tabela e os cartoes sao duas renderizacoes da mesma lista: deixar para o
 	// `DataTable` faria o estado vazio aparecer duas vezes, uma por breakpoint.
-	if (isLoading) return <SkeletonTable columns={6} />;
+	if (isLoading) return <SkeletonTable columns={7} />;
 
 	if (projects.length === 0) {
 		return onClearFilters ? (
@@ -58,7 +59,7 @@ export const ProjectsTable = ({
 				description="Verifique o protocolo ou o nome do projeto, ou limpe os filtros para ver todos."
 				action={
 					<Button type="button" variant="outline" onClick={onClearFilters}>
-						Limpar filtros
+						Limpar Filtros
 					</Button>
 				}
 			/>

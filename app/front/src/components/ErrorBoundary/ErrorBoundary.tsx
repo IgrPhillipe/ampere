@@ -14,7 +14,7 @@ const ErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => (
 			</p>
 		</div>
 
-		<Button onClick={resetErrorBoundary}>Tentar novamente</Button>
+		<Button onClick={resetErrorBoundary}>Tentar Novamente</Button>
 	</div>
 );
 

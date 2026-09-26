@@ -2,17 +2,23 @@ import { ControlledInput, ControlledSelect } from "@components/form";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { useZodForm } from "@features/shared";
-import type {
-	BuildingCategory,
-	ConnectionType,
-	EntranceStandard,
-	SupplyVoltage,
+import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
+import {
+	type BuildingCategory,
+	type ConnectionType,
+	type EntranceStandard,
+	type ProjectDetail,
+	type SupplyVoltage,
+	useCreateProject,
+	useGetProject,
+	useUpdateProject,
 } from "@services/projects";
-import { useCreateProject } from "@services/projects";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { useEffect } from "react";
+import { useFormState } from "react-hook-form";
 
-import { ProjectStepper } from "../../components";
+import { ProjectStamp, ProjectStepper } from "../../components";
 import {
 	type ProjectCreationFormValues,
 	projectCreationSchema,
@@ -60,14 +66,41 @@ const PROGRESS_SECTIONS: {
 const pad = (value: number) => String(value).padStart(2, "0");
 
 /** Alvo do `aria-describedby` do botao quando ele esta desabilitado. */
-const progressCounterId = "novo-projeto-preenchimento";
+const progressCounterId = "projeto-preenchimento";
 
 const isFilled = (value: unknown) =>
 	value !== undefined && value !== null && value !== "" && !Number.isNaN(value);
 
-export const NewProjectPage = () => {
+const formValuesOf = (project: ProjectDetail): ProjectCreationFormValues => ({
+	name: project.name,
+	address: project.address,
+	municipality: project.municipality,
+	buildingType: project.buildingType,
+	floors: project.floors,
+	voltage: project.voltage,
+	connectionType: project.connectionType,
+	entranceStandard: project.entranceStandard,
+});
+
+interface ProjectDataPageProps {
+	/** Absent when creating a project. */
+	projectId?: string;
+}
+
+export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 	const navigate = useNavigate();
 	const createProject = useCreateProject();
+	const updateProject = useUpdateProject();
+	const projectQuery = useGetProject(projectId ?? "", {
+		enabled: projectId !== undefined,
+	});
+	const validationQuery = useGetConsumerUnitGroupValidation(projectId ?? "", {
+		enabled: projectId !== undefined,
+	});
+	const project = projectQuery.data?.data;
+	const validation = validationQuery.data?.data;
+	const isEditable = projectId === undefined || project?.status === "DRAFT";
+	const isSaving = createProject.isPending || updateProject.isPending;
 
 	const form = useZodForm(projectCreationSchema, {
 		name: "",
@@ -80,7 +113,14 @@ export const NewProjectPage = () => {
 		entranceStandard: undefined,
 	});
 
+	useEffect(() => {
+		if (project) {
+			form.reset(formValuesOf(project));
+		}
+	}, [project, form]);
+
 	const values = form.watch();
+	const { isDirty } = useFormState({ control: form.control });
 
 	const progress = PROGRESS_SECTIONS.map(({ title, fields }) => ({
 		title,
@@ -92,16 +132,29 @@ export const NewProjectPage = () => {
 	const totalRequired = progress.reduce((sum, item) => sum + item.required, 0);
 	const isComplete = totalFilled === totalRequired;
 
+	const goToUnits = (id: string) =>
+		void navigate({ to: "/projetos/$id/unidades", params: { id } });
+
 	const onSubmit = (submitted: ProjectCreationFormValues) => {
-		createProject.mutate(submitted, {
-			onSuccess: (response) => {
-				void navigate({
-					to: "/projetos/$id/unidades",
-					params: { id: response.data.id },
-				});
-			},
-		});
+		if (projectId === undefined) {
+			createProject.mutate(submitted, {
+				onSuccess: (response) => goToUnits(response.data.id),
+			});
+			return;
+		}
+
+		if (!isEditable || !isDirty) {
+			goToUnits(projectId);
+			return;
+		}
+
+		updateProject.mutate(
+			{ id: projectId, payload: submitted },
+			{ onSuccess: () => goToUnits(projectId) },
+		);
 	};
+
+	const [mainStandard, ...otherStandards] = project?.standards ?? [];
 
 	return (
 		<PageLayout
@@ -113,20 +166,37 @@ export const NewProjectPage = () => {
 				onSubmit={form.handleSubmit(onSubmit)}
 				className="flex flex-1 flex-col bg-card"
 			>
+				{projectId === undefined ? null : (
+					<ProjectStamp
+						project={project}
+						isLoading={projectQuery.isPending || validationQuery.isPending}
+						units={
+							validation
+								? `${validation.totalUnits} em ${validation.totalGroups} ${
+										validation.totalGroups === 1 ? "grupo" : "grupos"
+									}`
+								: undefined
+						}
+					/>
+				)}
+
 				<div className="px-6 pt-8 md:px-8">
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
 						Etapa 01: Identificação da obra
 					</p>
 
 					<h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">
-						Novo Projeto
+						{projectId === undefined ? "Novo Projeto" : "Dados da Edificação"}
 					</h1>
 				</div>
 
 				<ProjectStepper current={0} className="mt-6" />
 
 				<div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_320px]">
-					<div className="space-y-10 px-6 py-8 md:px-8">
+					<fieldset
+						disabled={!isEditable || projectQuery.isLoading}
+						className="min-w-0 space-y-10 px-6 py-8 md:px-8"
+					>
 						<section>
 							<h2 className="border-b border-foreground pb-3 text-lg font-semibold text-foreground">
 								Identificação
@@ -223,32 +293,37 @@ export const NewProjectPage = () => {
 								/>
 							</div>
 						</section>
-					</div>
+					</fieldset>
 
-					<aside className="space-y-8 border-t border-border px-6 py-8 lg:border-t-0 lg:border-l">
-						{/* A revisão exata só existe depois do POST (`ApplicableStandards`). */}
-						<div>
-							<div className="rounded-xs bg-primary px-6 py-5 text-primary-foreground">
-								<p className="border-b border-primary-foreground/85 pb-3 font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase">
-									Norma derivada
-								</p>
+					<aside className="flex flex-col border-t border-border lg:border-t-0 lg:border-l">
+						{/* The exact revision only exists after the POST (`ApplicableStandards`). */}
+						<div className="bg-primary px-6 pt-8 pb-6 text-primary-foreground">
+							<p className="border-b border-primary-foreground/85 pb-3 font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase">
+								Norma derivada
+							</p>
 
-								<p className="mt-6 font-mono text-3xl font-medium tracking-tight">
-									DIS-NOR-053
-								</p>
+							<p className="mt-6 font-mono text-3xl font-medium tracking-tight">
+								{mainStandard?.name ?? "DIS-NOR-053"}
+							</p>
 
-								<p className="mt-2 text-sm text-primary-foreground/75">
-									e DIS-NOR-030, revisões vigentes
-								</p>
-							</div>
+							<p className="mt-2 text-sm text-primary-foreground/75">
+								{mainStandard
+									? [
+											mainStandard.revision,
+											...otherStandards.map(
+												({ name, revision }) => `${name} ${revision}`,
+											),
+										].join(" e ")
+									: "e DIS-NOR-030, revisões vigentes"}
+							</p>
 
-							<p className="mt-3 text-xs text-muted-foreground">
+							<p className="mt-6 text-xs text-primary-foreground/75">
 								Selecionada automaticamente ao salvar, a partir do tipo de
 								edificação, da tensão e do padrão de entrada informados.
 							</p>
 						</div>
 
-						<div>
+						<div className="px-6 py-8">
 							<h2 className="border-b border-foreground pb-3 text-base font-semibold text-foreground">
 								Preenchimento
 							</h2>
@@ -313,10 +388,10 @@ export const NewProjectPage = () => {
 					    nao explica sozinho por que esta assim. */}
 					<Button
 						type="submit"
-						disabled={!isComplete || createProject.isPending}
+						disabled={!isComplete || isSaving}
 						aria-describedby={isComplete ? undefined : progressCounterId}
 					>
-						{createProject.isPending ? "Salvando..." : "Avançar para unidades"}
+						{isSaving ? "Salvando..." : "Avançar para Unidades"}
 						<ArrowRight aria-hidden="true" />
 					</Button>
 				</div>

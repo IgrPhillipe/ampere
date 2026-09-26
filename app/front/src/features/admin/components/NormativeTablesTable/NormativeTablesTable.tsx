@@ -16,7 +16,8 @@ const normativeTableColumnClassNames = {
 	item: "hidden lg:table-cell lg:w-40",
 	rowCount: "w-20",
 	status: "w-32",
-	verifiedBy: "hidden xl:table-cell xl:w-56",
+	registeredBy: "hidden xl:table-cell xl:w-52",
+	verifiedBy: "hidden lg:table-cell lg:w-52",
 } satisfies Partial<Record<NormativeTableColumnId, string>>;
 
 interface NormativeTablesTableProps {
@@ -34,7 +35,7 @@ export const NormativeTablesTable = ({
 }: NormativeTablesTableProps) => {
 	const columns = useMemo(() => createNormativeTableColumns(onOpen), [onOpen]);
 
-	if (isLoading) return <SkeletonTable columns={6} />;
+	if (isLoading) return <SkeletonTable columns={7} />;
 
 	if (tables.length === 0) {
 		return (

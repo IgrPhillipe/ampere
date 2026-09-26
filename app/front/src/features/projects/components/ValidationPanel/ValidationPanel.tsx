@@ -10,8 +10,8 @@ import type {
 import { InlineActionButton } from "../ProjectsTable/InlineActionButton";
 
 const issueActionLabels = {
-	REVIEW: "Corrigir agora",
-	MISSING_DATA: "Informar dado",
+	REVIEW: "Corrigir Agora",
+	MISSING_DATA: "Informar Dado",
 } as const satisfies Record<ValidationIssue["severity"], string>;
 
 interface ValidationPanelProps {

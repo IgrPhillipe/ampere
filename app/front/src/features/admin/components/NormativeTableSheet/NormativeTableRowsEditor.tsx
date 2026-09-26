@@ -228,22 +228,19 @@ export const NormativeTableRowsEditor = ({
 						onClick={() => rows.append(EMPTY_NORMATIVE_TABLE_ROW)}
 					>
 						<Plus aria-hidden="true" />
-						Adicionar linha
+						Adicionar Linha
 					</Button>
 				)}
 			</div>
 
 			{definition ? (
 				<Table>
-					<TableHeader>
+					<TableHeader className="[&_th]:h-auto [&_th]:pt-3 [&_th]:pb-2 [&_th]:align-bottom">
 						<TableRow>
 							<TableHead className="w-10 px-2">Nº</TableHead>
 							{keyed ? <TableHead className="px-2">Chave</TableHead> : null}
 							{columns.map((column) => (
-								<TableHead
-									key={column.name}
-									className="px-2 align-bottom whitespace-normal"
-								>
+								<TableHead key={column.name} className="px-2 whitespace-normal">
 									{column.header}
 								</TableHead>
 							))}
@@ -285,11 +282,10 @@ export const NormativeTableRowsEditor = ({
 									<TableCell className="px-2 align-top">
 										<Button
 											type="button"
-											variant="ghost"
+											variant="destructive-ghost"
 											size="icon-sm"
 											onClick={() => rows.remove(index)}
 											aria-label={`Remover linha ${index + 1}`}
-											className="text-destructive"
 										>
 											<Trash2 aria-hidden="true" />
 										</Button>

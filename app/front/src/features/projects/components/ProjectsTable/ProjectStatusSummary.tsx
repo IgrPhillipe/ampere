@@ -34,11 +34,11 @@ export const ProjectStatusSummary = ({
 
 		{isRejectedWithFindings(project) ? (
 			<InlineActionButton onClick={() => onViewFindings(project)}>
-				Ver apontamentos
+				Ver Apontamentos
 			</InlineActionButton>
 		) : project.status === "AWAITING_SUBMISSION" ? (
 			<InlineActionButton onClick={() => onResumeSubmission(project)}>
-				Retomar e enviar
+				Retomar e Enviar
 			</InlineActionButton>
 		) : null}
 	</div>
