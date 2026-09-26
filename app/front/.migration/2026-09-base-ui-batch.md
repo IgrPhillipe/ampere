@@ -1,8 +1,8 @@
 # Lote de Portes Base UI: Scaffold do AMPERE
 
-2026-09-15. Nove componentes gerados pelo registry do shadcn (Radix) e reescritos
-para `@base-ui/react`. `radix-ui` saiu das dependências: nenhum arquivo em `src/`
-o importa.
+2026-09-15. Componentes gerados pelo registry do shadcn (Radix) e reescritos para
+`@base-ui/react`, mais o `field`, criado do zero. `radix-ui` saiu das
+dependências: nenhum arquivo em `src/` o importa.
 
 ## Portados
 

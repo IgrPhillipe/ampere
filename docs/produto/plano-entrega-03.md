@@ -32,22 +32,22 @@ As issues de Gestão não dependem de código.
 
 # Gestão
 
-## `AT01-INFRA: Abrir as GitHub Issues da Entrega 03 [Gestão]`
+## `AT08-INFRA: Abrir as GitHub Issues da Entrega 03 [Gestão]`
 `Sprint 2`, `Gestão`
 
 Criar o milestone Entrega 03, as labels `Sprint 2`, `Sprint 3`, `US03`, `US04`, `US05` e `US06` e as issues das Sprints 2 e 3. Prazo: sábado, 26/09.
 
-## `AT02-INFRA: Status Report 1 (roteiro e slides) [Gestão]`
+## `AT09-INFRA: Status Report 1 (roteiro e slides) [Gestão]`
 `Sprint 3`, `Gestão`
 
 Apresentação de sábado, 03/10. A semana anterior é de provas. A meta é concluir no fim de semana de 26 e 27/09.
 
-## `AT03-INFRA: Atualizar o Google Sites com a Sprint 2 [Gestão]`
+## `AT10-INFRA: Atualizar o Google Sites com a Sprint 2 [Gestão]`
 `Sprint 2`, `Gestão`
 
 Entregável de Projetos 3 do sábado, 26/09.
 
-## `AT04-INFRA: Alinhar US03 e US04 às normas [Gestão]`
+## `AT11-INFRA: Alinhar US03 e US04 às normas [Gestão]`
 `Sprint 2`, `Gestão`
 
 O texto das duas histórias foi escrito antes da pesquisa normativa, o mesmo caso do `AT04-INFRA` da Sprint 1. O código segue o [`engine-calculo.md`](../tecnico/engine-calculo.md). Esta correção não bloqueia nenhuma tarefa.
@@ -55,14 +55,14 @@ O texto das duas histórias foi escrito antes da pesquisa normativa, o mesmo cas
 - [ ] US03: trocar "Tabela 3, Tabela 5, Tabela 6" por Quadro 35 (DIS-NOR-053) para residencial, Tabelas 6 a 18 (DIS-NOR-030) para áreas comuns e comercial, e Quadro 33 (DIS-NOR-053) para recarga
 - [x] US04: a etapa "Conversão para kVA" não existe, porque cada parcela já é expressa em kVA. As etapas passam a ser `Drf`, `Ds`, `Dc`, `Dve` e `Ded` final com o mínimo por tensão
 
-## `AT05-INFRA: Seção "Entrega 03" no README com os POST-IT [Gestão]`
+## `AT12-INFRA: Seção "Entrega 03" no README com os POST-IT [Gestão]`
 `Sprint 4`, `Gestão`
 
 - [ ] POST-IT da US03, US04, US05 e US06 na seção "Entrega 03"
 - [ ] Print das GitHub Issues
 - [ ] Tabela de Entregas: marcar a Entrega 02 como "Finalizada" (hoje está "Não iniciada")
 
-## `AT06-INFRA: Screencast do sistema rodando [Gestão]`
+## `AT13-INFRA: Screencast do sistema rodando [Gestão]`
 `Sprint 4`, `Gestão`
 
 Vídeo no YouTube, com áudio ou legenda. Roteiro:
@@ -71,7 +71,7 @@ Vídeo no YouTube, com áudio ou legenda. Roteiro:
 3. Gerar o memorial, anexar os documentos e enviar para análise (US05).
 4. Como analista, abrir a fila, filtrar "Vencendo prazo" e clicar em "Analisar" (US06).
 
-## `AT07-INFRA: Screencast da explicação do código [Gestão]`
+## `AT14-INFRA: Screencast da explicação do código [Gestão]`
 `Sprint 4`, `Gestão`
 
 Vídeo no YouTube explicando o código. O eixo é a hierarquia `ConsumerUnitGroup`, com `validate()` e `demand()` sobrescritos em cada tipo de grupo, e o motor de cálculo somando os grupos sem nenhum `if` por tipo. Também entra o status do SLA calculado a partir da data de envio, na US06.

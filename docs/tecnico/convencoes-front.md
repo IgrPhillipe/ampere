@@ -173,8 +173,8 @@ declaram paleta paralela.
 
 ## Formatação e Lint
 
-- **Biome** formata (tabs, aspas duplas) e ordena os imports em três blocos,
-  nesta ordem: node, pacotes, aliases, relativos.
+- **Biome** formata (tabs, aspas duplas) e ordena os imports em quatro blocos
+  separados por linha em branco, nesta ordem: node, pacotes, aliases e relativos.
 - **ESLint** cobre o que o Biome não cobre: regras de hooks do React, fast
   refresh e imports não usados.
 - Um plugin GritQL do Biome recusa `function` declarado fora das exceções acima.
