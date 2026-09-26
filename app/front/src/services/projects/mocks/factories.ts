@@ -110,31 +110,6 @@ export const makeCreatedProject = (
 	};
 };
 
-/**
- * `GET /projects/{id}` a partir da linha da listagem. A listagem nao traz os
- * parametros tecnicos, entao o mock assume os do rascunho do seed.
- */
-export const makeProjectDetail = (project: Project): ProjectDetail => ({
-	id: project.id,
-	name: project.name,
-	address: project.address,
-	municipality: project.municipality,
-	protocol: project.protocol,
-	status: project.status,
-	createdAt: project.createdAt,
-	updatedAt: project.updatedAt,
-	buildingType: "RESIDENTIAL_MULTIFAMILY",
-	floors: 12,
-	voltage: "V380_220",
-	connectionType: "THREE_PHASE",
-	entranceStandard: "COLLECTIVE",
-	standards: MOCK_STANDARDS,
-	applicableStandards: MOCK_STANDARDS.map(
-		({ name, revision }) => `${name} ${revision}`,
-	).join(" e "),
-	demandRules: [],
-});
-
 export const makeCreatedProjectResponse = (
 	payload: CreateProjectPayload,
 ): ProjectDetailResponse => ({ data: makeCreatedProject(payload) });

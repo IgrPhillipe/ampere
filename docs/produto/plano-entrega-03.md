@@ -171,7 +171,7 @@ A etapa 2 do projeto, do service à interface.
 
 ### Passos
 
-- [x] Service `consumer-units` com endpoints, requests, query-keys, schema Zod, hooks e handlers MSW seguindo o contrato da `AT01-US03`
+- [x] Service `consumer-units` com endpoints, requests, query-keys, schema Zod e hooks, integrado direto à API (sem mocks do MSW)
 - [x] Carimbo, índice das etapas (extraído para `ProjectStepper`) e tabela de grupos como no H3, com a situação em caixa alta mono
 - [x] Linha "Adicionar grupo" do H3a dentro da tabela, com o rodapé trocando para "Cancelar · Salvar grupo"
 - [x] Painel verde de validação, com os atalhos "Corrigir agora" e "Informar dado" abrindo o `Sheet` do grupo no campo da pendência
