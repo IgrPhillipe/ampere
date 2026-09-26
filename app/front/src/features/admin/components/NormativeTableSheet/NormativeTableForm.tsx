@@ -1,5 +1,5 @@
 import { ControlledInput, ControlledSelect } from "@components/form";
-import { useZodForm } from "@features/shared";
+import { useAuthStore, useZodForm } from "@features/shared";
 import {
 	type NormativeTable,
 	type NormativeTableCode,
@@ -39,6 +39,7 @@ export const NormativeTableForm = ({
 	const publishTable = usePublishNormativeTable();
 	const deleteTable = useDeleteNormativeTable();
 	const [isPublishOpen, setPublishOpen] = useState(false);
+	const email = useAuthStore((state) => state.user?.email);
 
 	const form = useZodForm(
 		normativeTableFormSchema,
@@ -196,6 +197,9 @@ export const NormativeTableForm = ({
 				table={table}
 				readOnly={readOnly}
 				canPublish={!isDirty}
+				awaitingReview={
+					table?.registeredBy.toLowerCase() === email?.toLowerCase()
+				}
 				isSaving={createTable.isPending || updateTable.isPending}
 				isDeleting={deleteTable.isPending}
 				onCancel={onClose}

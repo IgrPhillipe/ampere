@@ -65,7 +65,7 @@ export const NormativeTableSheet = ({
 
 					<SheetDescription>
 						{tableId === null
-							? "Cadastre a revisão de uma tabela da norma. Outra pessoa confere e publica."
+							? "Ao salvar, é criado um rascunho que precisa ser aprovado por um revisor para valer no cálculo."
 							: table?.title}
 					</SheetDescription>
 

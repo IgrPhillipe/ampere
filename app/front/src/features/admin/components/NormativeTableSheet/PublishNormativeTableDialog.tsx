@@ -25,12 +25,12 @@ export const PublishNormativeTableDialog = ({
 		<DialogContent className="bg-card">
 			<DialogHeader>
 				<DialogTitle className="font-heading text-xl">
-					Publicar tabela?
+					Aprovar e publicar a tabela?
 				</DialogTitle>
 				<DialogDescription>
-					Publicar torna esta revisão imutável e substitui a tabela publicada de
-					mesmo código. Quem publica precisa ser outra pessoa, não quem
-					cadastrou.
+					Ao confirmar, esta revisão passa a valer no cálculo de demanda e
+					substitui a tabela publicada de mesmo código. Depois de publicada, ela
+					não pode mais ser alterada.
 				</DialogDescription>
 			</DialogHeader>
 
@@ -44,7 +44,7 @@ export const PublishNormativeTableDialog = ({
 				</Button>
 
 				<Button type="button" onClick={onConfirm} disabled={isPublishing}>
-					{isPublishing ? "Publicando..." : "Publicar"}
+					{isPublishing ? "Publicando..." : "Aprovar e publicar"}
 				</Button>
 			</DialogFooter>
 		</DialogContent>

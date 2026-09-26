@@ -15,7 +15,9 @@ export const useCreateNormativeTable = () => {
 				queryKey: normativeTableKeys.all(),
 			});
 
-			toast.success("Tabela salva.");
+			toast.success("Rascunho salvo.", {
+				description: "A tabela passa a valer depois que um revisor aprovar.",
+			});
 		},
 		onError: (error) =>
 			toast.error(

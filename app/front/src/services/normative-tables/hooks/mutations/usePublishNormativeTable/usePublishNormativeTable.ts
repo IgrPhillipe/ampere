@@ -15,7 +15,7 @@ export const usePublishNormativeTable = () => {
 				queryKey: normativeTableKeys.all(),
 			});
 
-			toast.success("Tabela publicada.");
+			toast.success("Tabela aprovada e publicada.");
 		},
 		onError: (error) =>
 			toast.error(

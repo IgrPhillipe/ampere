@@ -69,7 +69,7 @@ export const createNormativeTableColumns = (
 			),
 		}),
 		columnHelper.accessor("verifiedBy", {
-			header: "Conferência",
+			header: "Aprovação",
 			cell: ({ row }) => (
 				<div className="flex flex-col gap-1 whitespace-normal">
 					<span className="text-sm text-foreground">

@@ -8,6 +8,7 @@ interface NormativeTableFormFooterProps {
 	table?: NormativeTable;
 	readOnly: boolean;
 	canPublish: boolean;
+	awaitingReview: boolean;
 	isSaving: boolean;
 	isDeleting: boolean;
 	onCancel: () => void;
@@ -22,6 +23,7 @@ export const NormativeTableFormFooter = ({
 	table,
 	readOnly,
 	canPublish,
+	awaitingReview,
 	isSaving,
 	isDeleting,
 	onCancel,
@@ -33,7 +35,7 @@ export const NormativeTableFormFooter = ({
 			<SheetFooter className={footerClassName}>
 				<p className="text-sm text-muted-foreground">
 					{table?.verifiedBy && table.verifiedAt
-						? `Publicada por ${table.verifiedBy} em ${dayjs(table.verifiedAt).format("DD.MM.YYYY")}.`
+						? `Aprovada por ${table.verifiedBy} em ${dayjs(table.verifiedAt).format("DD.MM.YYYY")}.`
 						: "Tabela publicada: as linhas não podem mais ser alteradas."}
 				</p>
 
@@ -62,6 +64,12 @@ export const NormativeTableFormFooter = ({
 				</Button>
 			) : null}
 
+			{table && awaitingReview ? (
+				<p className="text-sm text-muted-foreground">
+					Rascunho aguardando a aprovação de um revisor.
+				</p>
+			) : null}
+
 			<div className="ml-auto flex flex-wrap justify-end gap-2">
 				<Button type="button" variant="ghost" onClick={onCancel}>
 					Cancelar
@@ -71,13 +79,13 @@ export const NormativeTableFormFooter = ({
 					{isSaving ? "Salvando..." : "Salvar"}
 				</Button>
 
-				{table ? (
+				{table && !awaitingReview ? (
 					<Button
 						type="button"
 						onClick={onPublish}
 						disabled={isBusy || !canPublish}
 					>
-						Publicar
+						Aprovar e publicar
 					</Button>
 				) : null}
 			</div>
