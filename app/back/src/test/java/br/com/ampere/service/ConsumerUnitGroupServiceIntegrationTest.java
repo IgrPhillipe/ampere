@@ -10,6 +10,7 @@ import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.GroupStatus;
+import br.com.ampere.domain.LampTechnology;
 import br.com.ampere.domain.LoadCategory;
 import br.com.ampere.domain.LoadGroup;
 import br.com.ampere.domain.LoadItem;
@@ -195,7 +196,7 @@ class ConsumerUnitGroupServiceIntegrationTest {
                     1,
                     new BigDecimal("6"),
                     PowerUnit.KW,
-                    null,
+                    LampTechnology.COMPACT_FLUORESCENT_LED,
                     null)),
             null,
             null,

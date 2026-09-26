@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /** The published tables, looked up by code. */
 public final class NormativeTableSet implements NormativeTables {
@@ -18,7 +19,18 @@ public final class NormativeTableSet implements NormativeTables {
   }
 
   @Override
+  public Optional<NormativeValue> lookup(NormativeTableCode code, String key, BigDecimal argument) {
+    NormativeTable table = published(code);
+    return table.find(key, argument).map(row -> new NormativeValue(row, table.reference()));
+  }
+
+  @Override
   public NormativeValue find(NormativeTableCode code, String key, BigDecimal argument) {
+    return lookup(code, key, argument)
+        .orElseThrow(() -> missingRow(published(code), key, argument));
+  }
+
+  private NormativeTable published(NormativeTableCode code) {
     NormativeTable table = tables.get(code);
     if (table == null) {
       throw new MissingNormativeValueException(
@@ -31,10 +43,7 @@ public final class NormativeTableSet implements NormativeTables {
               + (isFeminine(code) ? "a" : "o")
               + ". Cadastre e publique a tabela em Normas e tabelas.");
     }
-    return table
-        .find(key, argument)
-        .map(row -> new NormativeValue(row, table.reference()))
-        .orElseThrow(() -> missingRow(table, key, argument));
+    return table;
   }
 
   private static MissingNormativeValueException missingRow(
@@ -43,7 +52,7 @@ public final class NormativeTableSet implements NormativeTables {
     String what =
         argument == null
             ? "a chave " + key
-            : DeclaredValues.decimal(argument) + " (" + code.argumentLabel().toLowerCase() + ")";
+            : DeclaredValues.decimal(argument) + " (" + code.argumentLabel() + ")";
     return new MissingNormativeValueException(
         article(code)
             + " "

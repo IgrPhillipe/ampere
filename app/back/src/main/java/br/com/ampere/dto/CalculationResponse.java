@@ -61,7 +61,7 @@ public record CalculationResponse(
       String entranceStandard,
       BigDecimal currentAmps,
       String serviceEntranceBand,
-      int circuits,
+      Integer circuits,
       BigDecimal cableSectionMm2,
       BigDecimal breakerAmps,
       String breakerPoles) {}

@@ -210,8 +210,8 @@ export const LoadGroupForm = ({
 										<ControlledSelect
 											control={form.control}
 											name={`items.${index}.lampTechnology`}
-											label="Tecnologia das lâmpadas"
-											placeholder="Não informada"
+											label="Iluminação ou tomadas"
+											placeholder="Não informado"
 											items={lampTechnologyItems}
 											variant="underline"
 											fieldClassName="sm:col-span-2"

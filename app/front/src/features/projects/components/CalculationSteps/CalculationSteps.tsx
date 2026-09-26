@@ -110,21 +110,20 @@ const StepRow = ({ step }: { step: CalculationStep }) => {
 						>
 							{isOpen ? "Ocultar detalhes" : "Ver detalhes"}
 						</button>
-						{isOpen ? (
-							<ul
-								id={detailsId}
-								className="mt-1 flex flex-col gap-1 border-l border-border pl-3"
-							>
-								{rest.map((line) => (
-									<li
-										key={line}
-										className="font-mono text-xs text-muted-foreground"
-									>
-										{line}
-									</li>
-								))}
-							</ul>
-						) : null}
+						<ul
+							id={detailsId}
+							hidden={!isOpen}
+							className="mt-1 flex flex-col gap-1 border-l border-border pl-3"
+						>
+							{rest.map((line, index) => (
+								<li
+									key={`${index}-${line}`}
+									className="font-mono text-xs text-muted-foreground"
+								>
+									{line}
+								</li>
+							))}
+						</ul>
 					</>
 				) : null}
 			</div>

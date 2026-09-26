@@ -7,6 +7,7 @@ import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.StandardRepository;
+import java.util.Comparator;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -28,9 +29,14 @@ public class NormativeTableService {
     this.standardRepository = standardRepository;
   }
 
+  /** In catalogue order (Quadro 33 before Tabela 1 before Tabela 19), newest revision first. */
   @Transactional(readOnly = true)
   public List<NormativeTable> list() {
-    return tableRepository.findAllByOrderByCodeAscIdDesc();
+    return tableRepository.findAllByOrderByCodeAscIdDesc().stream()
+        .sorted(
+            Comparator.comparing(NormativeTable::getCode)
+                .thenComparing(NormativeTable::getId, Comparator.reverseOrder()))
+        .toList();
   }
 
   @Transactional(readOnly = true)

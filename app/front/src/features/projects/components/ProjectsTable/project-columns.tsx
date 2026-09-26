@@ -74,11 +74,9 @@ export const createProjectColumns = ({
 			header: "Demanda",
 			cell: ({ row }) =>
 				row.original.demandKva === null ? (
-					<span
-						aria-label="Cálculo ainda não feito"
-						className="text-sm text-muted-foreground"
-					>
-						—
+					<span className="text-sm text-muted-foreground">
+						<span aria-hidden="true">—</span>
+						<span className="sr-only">Cálculo ainda não feito</span>
 					</span>
 				) : (
 					<span className="font-mono text-sm whitespace-nowrap text-foreground">

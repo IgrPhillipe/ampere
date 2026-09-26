@@ -58,8 +58,9 @@ export const loadCategoryItems = {
 } as const satisfies Record<LoadCategory, string>;
 
 export const lampTechnologyItems = {
-	FLUORESCENT_NEON_SODIUM: "Fluorescente, néon ou vapor de sódio",
-	COMPACT_FLUORESCENT_LED: "Fluorescente compacta ou LED",
+	FLUORESCENT_NEON_SODIUM: "Iluminação fluorescente, néon ou vapor de sódio",
+	COMPACT_FLUORESCENT_LED: "Iluminação fluorescente compacta ou LED",
+	GENERAL_OUTLETS: "Tomadas de uso geral",
 } as const satisfies Record<LampTechnology, string>;
 
 export const powerUnitItems = {

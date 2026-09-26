@@ -111,7 +111,7 @@ final class DemandFixtures {
   }
 
   static LoadItem outlets(String kw) {
-    return lighting("Tomadas", kw, null);
+    return lighting("Tomadas", kw, LampTechnology.GENERAL_OUTLETS);
   }
 
   static LoadItem item(

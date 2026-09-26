@@ -54,7 +54,7 @@ export const calculationSchema = z.object({
 	steps: z.array(calculationStepSchema),
 	totals: z.object({
 		calculatedKva: z.number(),
-		minimumKva: z.number(),
+		minimumKva: z.number().nullable(),
 		finalKva: z.number(),
 		minimumApplied: z.boolean(),
 	}),
@@ -63,10 +63,10 @@ export const calculationSchema = z.object({
 		connectionType: z.string(),
 		entranceStandard: z.string(),
 		currentAmps: z.number(),
-		serviceEntranceBand: z.string(),
-		circuits: z.number().int(),
-		cableSectionMm2: z.number(),
-		breakerAmps: z.number(),
+		serviceEntranceBand: z.string().nullable(),
+		circuits: z.number().int().nullable(),
+		cableSectionMm2: z.number().nullable(),
+		breakerAmps: z.number().nullable(),
 		breakerPoles: z.string(),
 	}),
 	composition: z.array(

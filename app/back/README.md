@@ -61,12 +61,15 @@ API em `http://localhost:8080/api`, documentação em `http://localhost:8080/api
 
 ## Autenticação
 
-`/api/projects` exige token. O `DataSeeder` cria dois usuários de desenvolvimento na primeira subida com o banco vazio, os mesmos do mock do MSW no front:
+`/api/projects` exige token. O `DataSeeder` cria três usuários de desenvolvimento, conferindo um por e-mail a cada subida:
 
 | E-mail | Senha | Papel |
 | :--- | :--- | :--- |
 | `user@ampere.local` | `senha@123` | `user` |
 | `admin@ampere.local` | `senha@123` | `admin` |
+| `revisor@ampere.local` | `senha@123` | `admin` |
+
+O revisor existe para a dupla leitura das tabelas normativas: quem cadastra uma tabela não a publica.
 
 ```bash
 curl -s -X POST http://localhost:8080/api/auth/login \
@@ -74,7 +77,7 @@ curl -s -X POST http://localhost:8080/api/auth/login \
   -d '{"email":"user@ampere.local","password":"senha@123"}'
 ```
 
-Nenhum papel restringe rota enquanto a Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md) estiver aberta.
+Só a área `/api/admin/**` (tabelas normativas) exige o papel `admin`. As demais rotas não olham papel enquanto a Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md) estiver aberta.
 
 ---
 

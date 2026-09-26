@@ -255,7 +255,7 @@ class DemandCalculationIntegrationTest {
                             1,
                             new BigDecimal("15.8"),
                             PowerUnit.KW,
-                            null,
+                            LampTechnology.GENERAL_OUTLETS,
                             null)))),
             GroupKind.EV_CHARGING.create(
                 project,

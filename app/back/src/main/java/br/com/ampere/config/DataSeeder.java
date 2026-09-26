@@ -284,7 +284,7 @@ public class DataSeeder implements CommandLineRunner {
                                       1,
                                       new BigDecimal("15.80"),
                                       PowerUnit.KW,
-                                      null,
+                                      LampTechnology.GENERAL_OUTLETS,
                                       null)),
                               null,
                               null,
