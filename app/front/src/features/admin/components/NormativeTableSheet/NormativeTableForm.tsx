@@ -1,5 +1,5 @@
 import { ControlledInput, ControlledSelect } from "@components/form";
-import { useZodForm } from "@features/shared";
+import { useAuthStore, useZodForm } from "@features/shared";
 import {
 	type NormativeTable,
 	type NormativeTableCode,
@@ -39,6 +39,7 @@ export const NormativeTableForm = ({
 	const publishTable = usePublishNormativeTable();
 	const deleteTable = useDeleteNormativeTable();
 	const [isPublishOpen, setPublishOpen] = useState(false);
+	const email = useAuthStore((state) => state.user?.email);
 
 	const form = useZodForm(
 		normativeTableFormSchema,
@@ -53,12 +54,12 @@ export const NormativeTableForm = ({
 	const codeItems = Object.fromEntries(
 		codes.map((entry) => [
 			entry.code,
-			`${entry.identification} · ${entry.title}`,
+			`${entry.identification}: ${entry.title}`,
 		]),
 	);
 	const standardLabel = table
 		? `${table.standard.name} ${table.standard.revision}`
-		: (definition?.standard ?? "—");
+		: (definition?.standard ?? "Escolha a tabela");
 
 	// Prefills the catalog reference only when the person picks another code.
 	useEffect(() => {
@@ -196,6 +197,9 @@ export const NormativeTableForm = ({
 				table={table}
 				readOnly={readOnly}
 				canPublish={!isDirty}
+				awaitingReview={
+					table?.registeredBy.toLowerCase() === email?.toLowerCase()
+				}
 				isSaving={createTable.isPending || updateTable.isPending}
 				isDeleting={deleteTable.isPending}
 				onCancel={onClose}

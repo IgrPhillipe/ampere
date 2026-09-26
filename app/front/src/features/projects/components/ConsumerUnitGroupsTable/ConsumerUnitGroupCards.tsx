@@ -58,7 +58,7 @@ export const ConsumerUnitGroupCards = ({
 						label="CARGA kW"
 						value={
 							group.loadPerUnitKw == null
-								? "—"
+								? "Não informada"
 								: formatDecimal(group.loadPerUnitKw)
 						}
 					/>

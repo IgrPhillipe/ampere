@@ -126,11 +126,11 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 
 				<div className="px-6 pt-8 md:px-8">
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
-						Etapa 02 · Cadastro das unidades
+						Etapa 02: Cadastro das unidades
 					</p>
 
 					<h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">
-						Unidades consumidoras
+						Unidades Consumidoras
 					</h1>
 				</div>
 
@@ -168,7 +168,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 									id="grupos-titulo"
 									className="text-lg font-semibold text-foreground"
 								>
-									Grupos de unidades
+									Grupos de Unidades
 								</h2>
 
 								{isEditable ? (
@@ -237,7 +237,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 						type="button"
 						variant="outline"
 						size="icon"
-						aria-label="Voltar para Meus projetos"
+						aria-label="Voltar para Meus Projetos"
 						onClick={() => void navigate({ to: "/" })}
 					>
 						<ArrowLeft aria-hidden="true" />

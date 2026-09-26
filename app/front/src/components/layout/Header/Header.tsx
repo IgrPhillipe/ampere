@@ -103,7 +103,7 @@ export const Header = () => {
 					side="left"
 					className="w-[min(20rem,85vw)] gap-0 border-r border-border bg-card p-0"
 				>
-					<SheetTitle className="sr-only">Menu de navegação</SheetTitle>
+					<SheetTitle className="sr-only">Menu de Navegação</SheetTitle>
 
 					<div className="border-b border-border px-5 py-5">
 						<AppBrand />

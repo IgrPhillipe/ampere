@@ -25,7 +25,7 @@ export const ProjectStatusSummary = ({
 			{projectStatusLabels[project.status]}
 			{isRejectedWithFindings(project) ? (
 				<>
-					{" — "}
+					{", "}
 					{project.pendingCount}{" "}
 					{project.pendingCount === 1 ? "pendência" : "pendências"}
 				</>

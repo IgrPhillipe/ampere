@@ -38,7 +38,7 @@ export const ProjectCards = ({
 					<span className="font-semibold text-foreground">{project.name}</span>
 
 					<span className="text-xs text-muted-foreground">
-						{project.address} — {project.municipality}
+						{project.address}, {project.municipality}
 					</span>
 
 					<span className="font-mono text-xs text-muted-foreground">
@@ -62,7 +62,7 @@ export const ProjectCards = ({
 						<dt>Demanda</dt>
 						<dd className="font-mono">
 							{project.demandKva === null
-								? "—"
+								? "Sem cálculo"
 								: formatKva(project.demandKva, 1)}
 						</dd>
 					</div>

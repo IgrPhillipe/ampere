@@ -32,7 +32,7 @@ export const TraceabilityPanel = ({
 				[
 					"Mínimo por tensão",
 					calculation.totals.minimumKva === null
-						? "—"
+						? "Fora das Tabelas 1 e 2"
 						: formatKva(calculation.totals.minimumKva),
 				],
 				["Tensão de fornecimento", calculation.traceability.voltage],
@@ -110,7 +110,7 @@ export const TraceabilityPanel = ({
 						id="alertas-titulo"
 						className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase"
 					>
-						Alertas normativos
+						Alertas Normativos
 					</h3>
 					<ul className="mt-3 flex flex-col gap-3">
 						{warnings.map((warning) => (

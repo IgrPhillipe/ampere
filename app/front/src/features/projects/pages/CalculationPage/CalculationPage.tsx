@@ -91,11 +91,11 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 
 				<div className="px-6 pt-8 md:px-8">
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
-						Etapa 03 · Memória de cálculo
+						Etapa 03: Memória de cálculo
 					</p>
 
 					<h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">
-						Cálculo de demanda
+						Cálculo de Demanda
 					</h1>
 				</div>
 
@@ -160,7 +160,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 						type="button"
 						variant="outline"
 						size="icon"
-						aria-label="Voltar para Unidades consumidoras"
+						aria-label="Voltar para Unidades Consumidoras"
 						onClick={backToUnits}
 					>
 						<ArrowLeft aria-hidden="true" />

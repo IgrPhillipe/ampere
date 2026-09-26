@@ -14,9 +14,9 @@ export interface NavItem {
 }
 
 export const APP_NAV_ITEMS: NavItem[] = [
-	{ to: "/", label: "Meus projetos", exact: true },
-	{ to: "/projetos/novo", label: "Novo projeto" },
-	{ to: "/admin/normas", label: "Normas e tabelas", roles: ["admin"] },
+	{ to: "/", label: "Meus Projetos", exact: true },
+	{ to: "/projetos/novo", label: "Novo Projeto" },
+	{ to: "/admin/normas", label: "Normas e Tabelas", roles: ["admin"] },
 	{ label: "Ajuda", disabled: true },
 ];
 

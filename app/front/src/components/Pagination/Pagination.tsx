@@ -32,7 +32,7 @@ export const Pagination = ({
 			)}
 		>
 			<p className="font-mono text-xs tracking-wider text-muted-foreground uppercase">
-				{firstItem}–{lastItem} de {total} {itemLabel}
+				{firstItem} a {lastItem} de {total} {itemLabel}
 			</p>
 
 			<nav className="flex gap-2" aria-label={`Paginação de ${itemLabel}`}>

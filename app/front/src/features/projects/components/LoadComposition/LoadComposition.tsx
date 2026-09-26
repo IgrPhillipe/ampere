@@ -30,7 +30,7 @@ export const LoadComposition = ({
 					id="composicao-titulo"
 					className="text-lg font-semibold text-foreground"
 				>
-					Composição das cargas
+					Composição das Cargas
 				</h2>
 				{calculatedKva === undefined ? null : (
 					<span className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">

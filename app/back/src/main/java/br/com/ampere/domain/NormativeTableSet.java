@@ -41,7 +41,7 @@ public final class NormativeTableSet implements NormativeTables {
               + code.standard().code()
               + " não está publicad"
               + (isFeminine(code) ? "a" : "o")
-              + ". Cadastre e publique a tabela em Normas e tabelas.");
+              + ". Cadastre e publique a tabela em Normas e Tabelas.");
     }
     return table;
   }
@@ -59,7 +59,7 @@ public final class NormativeTableSet implements NormativeTables {
             + table.reference().citation()
             + " não tem linha para "
             + what
-            + ". Confira os dados do projeto ou a tabela em Normas e tabelas.");
+            + ". Confira os dados do projeto ou a tabela em Normas e Tabelas.");
   }
 
   private static String article(NormativeTableCode code) {

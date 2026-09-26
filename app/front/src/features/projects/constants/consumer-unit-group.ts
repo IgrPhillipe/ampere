@@ -46,15 +46,15 @@ export const loadUsageItems = {
 } as const satisfies Record<LoadUsage, string>;
 
 export const loadCategoryItems = {
-	LIGHTING_AND_OUTLETS: "a · Iluminação e tomadas",
-	INSTANT_HEATING: "b · Chuveiros, torneiras e aquecedores de passagem",
-	STORAGE_HEATING: "c · Aquecedor central ou de acumulação",
-	APPLIANCES: "d · Secadoras, lava-roupas, lava-louças e micro-ondas",
-	COOKING: "e · Fornos e fogões elétricos",
-	AIR_CONDITIONING: "f · Condicionadores de ar",
-	MOTORS: "g · Motores e máquinas de solda a motor",
-	SPECIAL_EQUIPMENT: "h · Equipamentos especiais",
-	PUMPS_AND_HOT_TUBS: "i · Bombas e hidromassagem",
+	LIGHTING_AND_OUTLETS: "a) Iluminação e tomadas",
+	INSTANT_HEATING: "b) Chuveiros, torneiras e aquecedores de passagem",
+	STORAGE_HEATING: "c) Aquecedor central ou de acumulação",
+	APPLIANCES: "d) Secadoras, lava-roupas, lava-louças e micro-ondas",
+	COOKING: "e) Fornos e fogões elétricos",
+	AIR_CONDITIONING: "f) Condicionadores de ar",
+	MOTORS: "g) Motores e máquinas de solda a motor",
+	SPECIAL_EQUIPMENT: "h) Equipamentos especiais",
+	PUMPS_AND_HOT_TUBS: "i) Bombas e hidromassagem",
 } as const satisfies Record<LoadCategory, string>;
 
 export const lampTechnologyItems = {

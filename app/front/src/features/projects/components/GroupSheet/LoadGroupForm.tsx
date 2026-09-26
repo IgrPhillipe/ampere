@@ -85,16 +85,15 @@ export const LoadGroupForm = ({
 		>
 			<fieldset
 				disabled={readOnly}
-				className="flex flex-1 flex-col gap-8 overflow-y-auto px-6 py-6 min-w-0"
+				className="flex min-w-0 flex-1 flex-col gap-8 overflow-y-auto px-6 py-6"
 			>
-				<div className="grid gap-x-6 gap-y-6 sm:grid-cols-2">
+				<div className="grid gap-x-6 gap-y-6 sm:grid-cols-[minmax(0,1fr)_11rem_6rem]">
 					<ControlledInput
 						control={form.control}
 						name="name"
 						label="Nome do grupo"
 						required
 						variant="underline"
-						fieldClassName="sm:col-span-2"
 					/>
 
 					<ControlledSelect
@@ -122,7 +121,7 @@ export const LoadGroupForm = ({
 				<section className="flex flex-col gap-6">
 					<div className="flex items-center justify-between border-b border-foreground pb-3">
 						<h3 className="text-base font-semibold text-foreground">
-							Cargas instaladas
+							Cargas Instaladas
 						</h3>
 
 						<Button

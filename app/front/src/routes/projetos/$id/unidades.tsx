@@ -9,6 +9,6 @@ const ConsumerUnitsRoute = () => {
 };
 
 export const Route = createFileRoute("/projetos/$id/unidades")({
-	head: () => ({ meta: [{ title: pageTitle("Unidades consumidoras") }] }),
+	head: () => ({ meta: [{ title: pageTitle("Unidades Consumidoras") }] }),
 	component: ConsumerUnitsRoute,
 });

@@ -5,6 +5,6 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin/normas")({
 	beforeLoad: requireRoles(["admin"]),
-	head: () => ({ meta: [{ title: pageTitle("Normas e tabelas") }] }),
+	head: () => ({ meta: [{ title: pageTitle("Normas e Tabelas") }] }),
 	component: NormativeTablesPage,
 });

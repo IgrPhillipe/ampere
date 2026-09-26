@@ -9,6 +9,6 @@ const CalculationRoute = () => {
 };
 
 export const Route = createFileRoute("/projetos/$id/calculo")({
-	head: () => ({ meta: [{ title: pageTitle("Cálculo de demanda") }] }),
+	head: () => ({ meta: [{ title: pageTitle("Cálculo de Demanda") }] }),
 	component: CalculationRoute,
 });

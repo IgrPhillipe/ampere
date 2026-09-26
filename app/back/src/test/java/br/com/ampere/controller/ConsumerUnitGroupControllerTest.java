@@ -81,7 +81,7 @@ class ConsumerUnitGroupControllerTest {
         .andExpect(jsonPath("$.data.status").value("MISSING_DATA"))
         .andExpect(jsonPath("$.data.issues[0].severity").value("MISSING_DATA"))
         .andExpect(jsonPath("$.data.issues[0].field").value("loadManagement"))
-        .andExpect(jsonPath("$.data.summary").value("6 pontos de 7,4 kW · DIS-NOR-053 Quadro 33"))
+        .andExpect(jsonPath("$.data.summary").value("6 pontos de 7,4 kW (DIS-NOR-053 Quadro 33)"))
         .andExpect(jsonPath("$.data.declaredLoadKw").value(44.4))
         .andExpect(jsonPath("$.data.loadManagement").doesNotExist())
         .andExpect(jsonPath("$.data.items").doesNotExist())

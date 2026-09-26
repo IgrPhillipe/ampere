@@ -10,4 +10,4 @@ export const APP_NAME = "AMPERE";
  * rota que ainda nao declare o proprio `head`.
  */
 export const pageTitle = (title?: string) =>
-	title ? `${title} · ${APP_NAME}` : APP_NAME;
+	title ? `${title} | ${APP_NAME}` : APP_NAME;

@@ -122,7 +122,7 @@ public final class DemandEngine {
 
     return new DemandStep(
         "Ded",
-        "Demanda total da edificação",
+        "Demanda Total da Edificação",
         true,
         symbols + " = " + values + " = " + DeclaredValues.fixed(calculated, 2) + " kVA",
         details,

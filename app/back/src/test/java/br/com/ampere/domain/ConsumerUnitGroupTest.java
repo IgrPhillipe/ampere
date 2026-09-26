@@ -35,7 +35,7 @@ class ConsumerUnitGroupTest {
 
     assertThat(group.validate()).isEmpty();
     assertThat(group.status()).isEqualTo(GroupStatus.VALIDATED);
-    assertThat(group.summary()).isEqualTo("68 m² · 2 quartos · DIS-NOR-053 Quadro 35");
+    assertThat(group.summary()).isEqualTo("68 m², 2 quartos (DIS-NOR-053 Quadro 35)");
     assertThat(group.declaredLoadKw()).isEqualByComparingTo("156");
   }
 
@@ -65,7 +65,7 @@ class ConsumerUnitGroupTest {
             tuple(IssueSeverity.MISSING_DATA, "unitLoadKw"));
     assertThat(group.status()).isEqualTo(GroupStatus.MISSING_DATA);
     assertThat(group.declaredLoadKw()).isEqualByComparingTo("0");
-    assertThat(group.summary()).isEqualTo("Área útil não informada · DIS-NOR-053 Quadro 35");
+    assertThat(group.summary()).isEqualTo("Área útil não informada (DIS-NOR-053 Quadro 35)");
   }
 
   @Test
@@ -151,7 +151,7 @@ class ConsumerUnitGroupTest {
 
     assertThat(group.validate()).extracting(ValidationIssue::field).containsExactly("items");
     assertThat(group.loadPerUnitKw()).isNull();
-    assertThat(group.summary()).isEqualTo("Nenhuma carga informada · DIS-NOR-030 item 6.27");
+    assertThat(group.summary()).isEqualTo("Nenhuma carga informada (DIS-NOR-030 item 6.27)");
   }
 
   @Test
@@ -175,7 +175,7 @@ class ConsumerUnitGroupTest {
                     motor("Elevador", 10, PowerUnit.CV, false), lighting("Iluminação", 2, null))));
 
     assertThat(group.loadPerUnitKw()).isEqualByComparingTo("9.355");
-    assertThat(group.summary()).isEqualTo("Elevador, Iluminação · DIS-NOR-030 item 6.27");
+    assertThat(group.summary()).isEqualTo("Elevador, Iluminação (DIS-NOR-030 item 6.27)");
   }
 
   @Test
@@ -190,7 +190,7 @@ class ConsumerUnitGroupTest {
                     lighting("C", 1, null),
                     lighting("D", 1, null))));
 
-    assertThat(group.summary()).isEqualTo("A, B, C e mais 1 · DIS-NOR-030 item 6.27");
+    assertThat(group.summary()).isEqualTo("A, B, C e mais 1 (DIS-NOR-030 item 6.27)");
   }
 
   @Test
@@ -200,7 +200,7 @@ class ConsumerUnitGroupTest {
     assertThat(group.validate())
         .extracting(ValidationIssue::severity, ValidationIssue::field)
         .containsExactly(tuple(IssueSeverity.MISSING_DATA, "loadManagement"));
-    assertThat(group.summary()).isEqualTo("6 pontos de 7,4 kW · DIS-NOR-053 Quadro 33");
+    assertThat(group.summary()).isEqualTo("6 pontos de 7,4 kW (DIS-NOR-053 Quadro 33)");
     assertThat(group.declaredLoadKw()).isEqualByComparingTo("44.4");
   }
 
@@ -212,7 +212,7 @@ class ConsumerUnitGroupTest {
         .extracting(ValidationIssue::field)
         .containsExactly("powerPerPointKw");
     assertThat(group.summary())
-        .isEqualTo("6 pontos, potência não informada · DIS-NOR-053 Quadro 33");
+        .isEqualTo("6 pontos, potência não informada (DIS-NOR-053 Quadro 33)");
   }
 
   @Test

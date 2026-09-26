@@ -80,10 +80,10 @@ class DemandEngineTest {
             "Fr = 1,2 (Quadro 37, 50 < Dr ≤ 100 kVA)");
     assertThat(result.steps().get(1).details())
         .contains(
-            "a · Iluminação e tomadas: 10,00 kW ÷ 0,80 × 1,00 + 15,80 kW × 0,50 = 20,40 kVA",
+            "a) Iluminação e tomadas: 10,00 kW ÷ 0,80 × 1,00 + 15,80 kW × 0,50 = 20,40 kVA",
             "Elevador: 12 CV lido na linha de 12½ cv da Tabela 19, 14,09 kVA",
-            "i · Bombas e hidromassagem: 2 × 6,02 × 0,56 = 6,74 kVA");
-    assertThat(result.steps().get(1).reference().label()).isEqualTo("Tabela 22 · 030");
+            "i) Bombas e hidromassagem: 2 × 6,02 × 0,56 = 6,74 kVA");
+    assertThat(result.steps().get(1).reference().label()).isEqualTo("Tabela 22 (030)");
   }
 
   @Test
@@ -247,6 +247,6 @@ class DemandEngineTest {
         .isInstanceOf(MissingNormativeValueException.class)
         .hasMessage(
             "O Quadro 35 da DIS-NOR-053 não está publicado. Cadastre e publique a tabela em Normas"
-                + " e tabelas.");
+                + " e Tabelas.");
   }
 }

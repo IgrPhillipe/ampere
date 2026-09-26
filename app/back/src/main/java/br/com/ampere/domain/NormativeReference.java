@@ -9,9 +9,9 @@ public record NormativeReference(
     String item,
     String page) {
 
-  /** "Quadro 35 · 053", as the calculation screen prints it next to each step. */
+  /** "Quadro 35 (053)", as the calculation screen prints it next to each step. */
   public String label() {
-    return identification + " · " + standard.shortCode();
+    return identification + " (" + standard.shortCode() + ")";
   }
 
   /** "Quadro 35 (DIS-NOR-053 REV 06)". */

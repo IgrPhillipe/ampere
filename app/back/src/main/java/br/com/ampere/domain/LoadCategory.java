@@ -410,7 +410,7 @@ public enum LoadCategory {
 
   private static List<String> prefixed(LoadCategory category, String formula, List<String> notes) {
     List<String> lines = new ArrayList<>();
-    lines.add(category.parcel + " · " + category.label + ": " + formula);
+    lines.add(category.parcel + ") " + category.label + ": " + formula);
     lines.addAll(notes);
     return lines;
   }
