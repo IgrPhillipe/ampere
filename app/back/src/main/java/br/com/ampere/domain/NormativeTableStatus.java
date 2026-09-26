@@ -1,8 +1,8 @@
 package br.com.ampere.domain;
 
 public enum NormativeTableStatus {
-  DRAFT("Aguardando revisão"),
-  PUBLISHED("Publicada"),
+  DRAFT("Aguardando Revisão"),
+  PUBLISHED("Vigente"),
   SUPERSEDED("Substituída");
 
   private final String label;

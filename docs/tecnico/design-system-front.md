@@ -57,8 +57,9 @@ drawer, o `pageTitle` da aba e o texto de todos os botões. Exemplos: "Novo
 Projeto", "Parâmetros Técnicos", "Normas e Tabelas", "Salvar Grupo", "Aprovar e
 Publicar".
 
-Rótulos de campo, badges, mensagens, estados vazios e títulos em forma de
-pergunta continuam em frase comum ("Aguardando revisão", "Aprovar e publicar a
+Badges e rótulos de status também usam Title Case ("Aguardando Revisão", "Em
+Análise", "Falta Dado"). Rótulos de campo, mensagens, estados vazios e títulos
+em forma de pergunta continuam em frase comum ("Aprovar e publicar a
 tabela?").
 
 Texto de interface não usa travessão nem ponto médio, nem como separador nem
@@ -175,7 +176,7 @@ valores da API são convertidos antes de chegar ao componente.
 
 ```tsx
 <Badge variant="success">Aprovado</Badge>
-<Badge variant="warning">Aguardando envio</Badge>
+<Badge variant="warning">Aguardando Envio</Badge>
 <Badge variant="destructive">Reprovado</Badge>
 ```
 
