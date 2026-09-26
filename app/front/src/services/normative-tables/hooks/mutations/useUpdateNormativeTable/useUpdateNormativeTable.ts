@@ -15,7 +15,7 @@ export const useUpdateNormativeTable = () => {
 				queryKey: normativeTableKeys.all(),
 			});
 
-			toast.success("Tabela salva.");
+			toast.success("Rascunho salvo.");
 		},
 		onError: (error) =>
 			toast.error(

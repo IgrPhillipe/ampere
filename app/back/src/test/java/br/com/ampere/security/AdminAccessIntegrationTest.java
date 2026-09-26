@@ -120,7 +120,11 @@ class AdminAccessIntegrationTest {
     mockMvc
         .perform(post("/admin/normative-tables/" + id + "/publish").header("Authorization", admin))
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.detail").value("A conferência precisa ser feita por outra pessoa."));
+        .andExpect(
+            jsonPath("$.detail")
+                .value(
+                    "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por um"
+                        + " revisor."));
 
     mockMvc
         .perform(

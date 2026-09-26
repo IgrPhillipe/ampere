@@ -86,7 +86,7 @@ class DemandEngineAnexoITest {
     assertThat(residential.safetyFactor()).isEqualByComparingTo("1.1");
     assertThat(result.valueOf(DemandComponent.RESIDENTIAL_UNITS)).isEqualByComparingTo("155.72");
     assertThat(result.steps().get(1).details())
-        .anyMatch(line -> line.startsWith("g · Motores e máquinas de solda a motor: 16,65 × 1,00"));
+        .anyMatch(line -> line.startsWith("g) Motores e máquinas de solda a motor: 16,65 × 1,00"));
     assertThat(result.valueOf(DemandComponent.CONDOMINIUM_SERVICES))
         .isCloseTo(new BigDecimal("9.15").add(new BigDecimal("29.01")), within(CENT));
 

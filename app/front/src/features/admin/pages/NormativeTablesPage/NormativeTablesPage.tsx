@@ -28,7 +28,7 @@ export const NormativeTablesPage = () => {
 
 	return (
 		<PageLayout
-			title="Normas e tabelas"
+			title="Normas e Tabelas"
 			description="Parâmetros das normas aplicados pelo cálculo de demanda, versionados por revisão."
 			bleed
 			actions={

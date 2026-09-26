@@ -112,7 +112,7 @@ class DemandCalculationIntegrationTest {
             jsonPath("$.data.steps[0].formula")
                 .value("(24 × 1,57 + 20 × 2,06 + 4 × 2,91) × 0,7129 × 1,2"))
         .andExpect(jsonPath("$.data.steps[0].valueKva").value(77.44))
-        .andExpect(jsonPath("$.data.steps[0].reference.label").value("Quadro 35 · 053"))
+        .andExpect(jsonPath("$.data.steps[0].reference.label").value("Quadro 35 (053)"))
         .andExpect(jsonPath("$.data.steps[2].applies").value(false))
         .andExpect(jsonPath("$.data.steps[2].reference").doesNotExist())
         .andExpect(jsonPath("$.data.steps[4].code").value("Ded"))

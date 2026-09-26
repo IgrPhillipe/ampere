@@ -143,7 +143,6 @@ public class ResidentialGroup extends ConsumerUnitGroup {
     if (bedrooms != null) {
       parts.add(bedrooms + (bedrooms == 1 ? " quarto" : " quartos"));
     }
-    parts.add("DIS-NOR-053 Quadro 35");
-    return String.join(" · ", parts);
+    return String.join(", ", parts) + " (DIS-NOR-053 Quadro 35)";
   }
 }

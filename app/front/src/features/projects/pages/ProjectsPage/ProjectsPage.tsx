@@ -77,7 +77,7 @@ export const ProjectsPage = () => {
 
 	return (
 		<PageLayout
-			title="Meus projetos"
+			title="Meus Projetos"
 			description="Acompanhe o andamento dos projetos enviados à Neoenergia Pernambuco."
 			bleed
 			actions={

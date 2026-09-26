@@ -16,8 +16,8 @@ import java.util.Map;
  */
 public final class NormativeTableSeed {
 
-  public static final String REGISTERED_BY = "DataSeeder";
-  public static final String VERIFIED_BY = "Conferência do PR da US04";
+  public static final String REGISTERED_BY = "admin@ampere.local";
+  public static final String VERIFIED_BY = "revisor@ampere.local";
 
   private NormativeTableSeed() {}
 
