@@ -40,7 +40,7 @@ export const createProjectColumns = ({
 						{row.original.name}
 					</span>
 					<span className="text-xs text-muted-foreground">
-						{row.original.address} — {row.original.municipality}
+						{row.original.address}, {row.original.municipality}
 					</span>
 					<span className="font-mono text-xs text-muted-foreground">
 						Protocolo {row.original.protocol}
@@ -74,10 +74,7 @@ export const createProjectColumns = ({
 			header: "Demanda",
 			cell: ({ row }) =>
 				row.original.demandKva === null ? (
-					<span className="text-sm text-muted-foreground">
-						<span aria-hidden="true">—</span>
-						<span className="sr-only">Cálculo ainda não feito</span>
-					</span>
+					<span className="text-sm text-muted-foreground">Sem cálculo</span>
 				) : (
 					<span className="font-mono text-sm whitespace-nowrap text-foreground">
 						{formatKva(row.original.demandKva, 1)}

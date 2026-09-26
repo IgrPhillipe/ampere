@@ -22,7 +22,7 @@ export const CalculationSteps = ({
 	<section aria-labelledby="etapas-titulo" className={className}>
 		<div className="flex items-baseline justify-between gap-4 border-b-2 border-foreground pb-3">
 			<h2 id="etapas-titulo" className="text-lg font-semibold text-foreground">
-				Decomposição do cálculo
+				Decomposição do Cálculo
 			</h2>
 			<span className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 				{padCount(steps?.length ?? STEP_COUNT)} etapas
@@ -131,11 +131,9 @@ const StepRow = ({ step }: { step: CalculationStep }) => {
 			<div className="col-start-2 flex flex-col items-start gap-1 sm:col-start-3 sm:items-end">
 				<p className="flex items-baseline gap-1.5 whitespace-nowrap">
 					<span className="font-mono text-xl font-semibold tracking-tight text-foreground">
-						{step.applies ? formatDecimal(step.valueKva) : "—"}
+						{formatDecimal(step.valueKva)}
 					</span>
-					{step.applies ? (
-						<span className="text-sm text-muted-foreground">kVA</span>
-					) : null}
+					<span className="text-sm text-muted-foreground">kVA</span>
 				</p>
 				{step.reference ? (
 					<span

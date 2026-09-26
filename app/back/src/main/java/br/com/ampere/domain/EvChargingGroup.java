@@ -152,6 +152,6 @@ public class EvChargingGroup extends ConsumerUnitGroup {
         power == null
             ? points + ", potência não informada"
             : points + " de " + DeclaredValues.decimal(power) + " kW";
-    return described + " · DIS-NOR-053 Quadro 33";
+    return described + " (DIS-NOR-053 Quadro 33)";
   }
 }

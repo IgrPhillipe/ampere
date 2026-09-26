@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 export const AppBrand = () => (
 	<Link
 		to="/"
-		aria-label="AMPERE — ir para Meus projetos"
+		aria-label="AMPERE, ir para Meus Projetos"
 		className="flex shrink-0 items-center gap-4 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
 	>
 		<img

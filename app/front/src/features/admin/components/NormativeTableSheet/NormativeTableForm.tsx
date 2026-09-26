@@ -54,12 +54,12 @@ export const NormativeTableForm = ({
 	const codeItems = Object.fromEntries(
 		codes.map((entry) => [
 			entry.code,
-			`${entry.identification} · ${entry.title}`,
+			`${entry.identification}: ${entry.title}`,
 		]),
 	);
 	const standardLabel = table
 		? `${table.standard.name} ${table.standard.revision}`
-		: (definition?.standard ?? "—");
+		: (definition?.standard ?? "Escolha a tabela");
 
 	// Prefills the catalog reference only when the person picks another code.
 	useEffect(() => {

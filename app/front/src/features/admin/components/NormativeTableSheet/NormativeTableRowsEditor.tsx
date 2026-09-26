@@ -62,14 +62,14 @@ const buildColumns = (definition: NormativeTableCode): RowColumn[] => {
 		columns.push(
 			{
 				name: "lowerBound",
-				header: <>{withUnits(definition.argumentLabel)} — de</>,
-				label: `${definition.argumentLabel} — de`,
+				header: <>{withUnits(definition.argumentLabel)} de</>,
+				label: `${definition.argumentLabel} de`,
 				numeric: true,
 			},
 			{
 				name: "upperBound",
 				header: "até",
-				label: `${definition.argumentLabel} — até`,
+				label: `${definition.argumentLabel} até`,
 				numeric: true,
 			},
 		);

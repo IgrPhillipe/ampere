@@ -8,7 +8,6 @@ import {
 	SheetTitle,
 } from "@components/ui/sheet";
 import { Skeleton } from "@components/ui/skeleton";
-import dayjs from "@lib/dayjs";
 import {
 	type NormativeTable,
 	useGetNormativeTable,
@@ -56,7 +55,7 @@ export const NormativeTableSheet = ({
 					<div className="flex flex-wrap items-center gap-3 pr-8">
 						<SheetTitle className="font-heading text-xl">
 							{tableId === null
-								? "Nova tabela"
+								? "Nova Tabela"
 								: (table?.identification ?? "Tabela")}
 						</SheetTitle>
 
@@ -68,15 +67,6 @@ export const NormativeTableSheet = ({
 							? "Ao salvar, é criado um rascunho que precisa ser aprovado por um revisor para valer no cálculo."
 							: table?.title}
 					</SheetDescription>
-
-					{table ? (
-						<p className="text-xs text-muted-foreground">
-							Cadastrada por {table.registeredBy} em{" "}
-							<time dateTime={table.registeredAt} className="font-mono">
-								{dayjs(table.registeredAt).format("DD.MM.YYYY")}
-							</time>
-						</p>
-					) : null}
 				</SheetHeader>
 
 				{hasError ? (

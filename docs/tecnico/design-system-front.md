@@ -48,6 +48,23 @@ Os tamanhos seguem os tokens `--ds-text-xs` até `--ds-text-2xl`. Use as classes
 semânticas do Tailwind (`text-sm`, `text-lg`, `text-2xl`) em vez de números
 arbitrários, salvo quando o protótipo exigir um detalhe tipográfico específico.
 
+### Títulos e separadores
+
+Títulos usam Title Case: cada palavra começa em maiúscula, exceto artigos,
+preposições e conjunções curtas (a, o, e, de, da, do, em, para). Vale para
+títulos de página e de seção, itens da navegação, etapas do stepper, títulos de
+drawer e o `pageTitle` da aba. Exemplos: "Novo Projeto", "Parâmetros Técnicos",
+"Normas e Tabelas", "Decomposição do Cálculo".
+
+Botões, rótulos de campo, mensagens, estados vazios e títulos em forma de
+pergunta continuam em frase comum ("Novo projeto", "Aprovar e publicar a
+tabela?").
+
+Texto de interface não usa travessão nem ponto médio, nem como separador nem
+como valor vazio. Separe com vírgula, dois-pontos, "e" ou parênteses, e troque o
+valor vazio por texto com sentido ("Não informado", "Sem cálculo", "Pendente").
+Intervalos são escritos com "a" ("1 a 6 de 6 projetos").
+
 ## Cores
 
 ### Paleta da marca
@@ -85,6 +102,8 @@ semântico correspondente:
 | Alerta | `--warning` | `bg-warning` |
 | Contorno e separador | `--border` | `border-border` |
 | Foco de teclado | `--ring` | `ring-ring` |
+| Controle desabilitado | `--disabled` | `bg-disabled` |
+| Texto desabilitado | `--disabled-foreground` | `text-disabled-foreground` |
 
 `--accent` é verde: serve para realçar, não para interações neutras. Linhas de
 tabela e controles neutros usam `--surface-hover`.
@@ -133,8 +152,11 @@ mas foram portados para Base UI e ajustados ao design system.
 Não crie um botão com classes locais de cor, altura ou raio. Escolha `variant`
 e `size`; complemente `className` apenas para posicionamento ou largura.
 
-O design system define a aparência desabilitada. O componente consumidor define
-quando o controle fica desabilitado; por exemplo, a paginação bloqueia a seta
+O design system define a aparência desabilitada, igual em todas as variantes:
+fundo cinza claro (`--disabled`), texto cinza (`--disabled-foreground`), sem
+contorno nem sombra e cursor `not-allowed`. `ghost` e `link` mantêm o fundo
+transparente e só ficam cinza. O componente consumidor define quando o controle
+fica desabilitado; por exemplo, a paginação bloqueia a seta
 anterior na primeira página e a próxima seta na última página.
 
 ```tsx
@@ -238,7 +260,7 @@ vez de aparecer desabilitado.
 
 ```ts
 { to: "/", label: "Meus projetos", exact: true }
-{ label: "Novo projeto", disabled: true }
+{ label: "Novo Projeto", disabled: true }
 ```
 
 O cabeçalho possui:
@@ -286,6 +308,7 @@ Requisitos para novos componentes:
 - [ ] Usa tokens semânticos, sem hexadecimal no componente.
 - [ ] Reutiliza componentes de `components/ui` e compartilhados.
 - [ ] Mantém texto de interface em português.
+- [ ] Títulos em Title Case, sem travessão nem ponto médio no texto.
 - [ ] Possui carregamento, erro e estado vazio quando aplicável.
 - [ ] Funciona com teclado e foco visível.
 - [ ] Foi conferida em largura móvel e desktop.

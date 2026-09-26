@@ -19,6 +19,8 @@
 	--neo-sand-strong: #d8cfc7;
 	--neo-white: #ffffff;
 	--neo-gray-soft: #f5f5f5;
+	--neo-gray-light: #ececec;
+	--neo-gray-medium: #8a8a8a;
 	--neo-ink: #002015;
 	--neo-ink-muted: #615d5a;
 	--neo-danger: #c00000;
@@ -51,8 +53,8 @@
 	--border: var(--neo-sand-strong);
 	--input: #b0a9a3;
 	--ring: #007f33;
-	--disabled: var(--neo-green-soft);
-	--disabled-foreground: #2f6852;
+	--disabled: var(--neo-gray-light);
+	--disabled-foreground: var(--neo-gray-medium);
 	--overlay: rgb(0 32 21 / 48%);
 
 	/* Data visualization */

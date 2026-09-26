@@ -33,7 +33,7 @@ export const NameAndUsageFields = ({ control }: NewGroupFieldsProps) => (
 			control={control}
 			name="usageType"
 			label={hiddenLabel("Tipo de uso")}
-			placeholder="Tipo de uso — selecionar"
+			placeholder="Selecionar tipo de uso"
 			items={groupUsageTypeItems}
 			variant="underline"
 			className="text-xs"
@@ -69,7 +69,7 @@ export const LoadField = ({ control, usageType }: NewGroupFieldsProps) => {
 						: undefined
 				}
 			>
-				{usageType ? "—" : "0,00"}
+				{usageType ? "Nas cargas" : "0,00"}
 			</span>
 		);
 	}

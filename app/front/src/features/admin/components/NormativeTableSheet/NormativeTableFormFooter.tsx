@@ -16,8 +16,28 @@ interface NormativeTableFormFooterProps {
 	onPublish: () => void;
 }
 
-const footerClassName =
-	"flex-row flex-wrap items-center justify-between gap-2 border-t border-border px-6 py-4";
+const dateOf = (value: string) => (
+	<time dateTime={value} className="font-mono">
+		{dayjs(value).format("DD.MM.YYYY")}
+	</time>
+);
+
+const TableHistory = ({ table }: { table: NormativeTable }) => (
+	<div className="flex flex-col gap-1 text-sm text-muted-foreground">
+		<p>
+			Cadastrada por {table.registeredBy} em {dateOf(table.registeredAt)}
+		</p>
+		{table.verifiedBy && table.verifiedAt ? (
+			<p>
+				Aprovada por {table.verifiedBy} em {dateOf(table.verifiedAt)}
+			</p>
+		) : (
+			<p>Aguardando a aprovação de um revisor</p>
+		)}
+	</div>
+);
+
+const footerClassName = "flex-col gap-4 border-t border-border px-6 py-4";
 
 export const NormativeTableFormFooter = ({
 	table,
@@ -30,64 +50,52 @@ export const NormativeTableFormFooter = ({
 	onDelete,
 	onPublish,
 }: NormativeTableFormFooterProps) => {
-	if (readOnly) {
-		return (
-			<SheetFooter className={footerClassName}>
-				<p className="text-sm text-muted-foreground">
-					{table?.verifiedBy && table.verifiedAt
-						? `Aprovada por ${table.verifiedBy} em ${dayjs(table.verifiedAt).format("DD.MM.YYYY")}.`
-						: "Tabela publicada: as linhas não podem mais ser alteradas."}
-				</p>
-
-				<Button type="button" variant="outline" onClick={onCancel}>
-					Fechar
-				</Button>
-			</SheetFooter>
-		);
-	}
-
 	const isBusy = isSaving || isDeleting;
 
 	return (
 		<SheetFooter className={footerClassName}>
-			{table ? (
-				<Button
-					type="button"
-					variant="ghost"
-					size="sm"
-					onClick={onDelete}
-					disabled={isBusy}
-					className="text-destructive"
-				>
-					<Trash2 aria-hidden="true" />
-					{isDeleting ? "Excluindo..." : "Excluir"}
-				</Button>
-			) : null}
+			{table ? <TableHistory table={table} /> : null}
 
-			{table && awaitingReview ? (
-				<p className="text-sm text-muted-foreground">
-					Rascunho aguardando a aprovação de um revisor.
-				</p>
-			) : null}
-
-			<div className="ml-auto flex flex-wrap justify-end gap-2">
-				<Button type="button" variant="ghost" onClick={onCancel}>
-					Cancelar
-				</Button>
-
-				<Button type="submit" variant="outline" disabled={isBusy}>
-					{isSaving ? "Salvando..." : "Salvar"}
-				</Button>
-
-				{table && !awaitingReview ? (
+			<div className="flex flex-wrap items-center justify-end gap-2">
+				{table && !readOnly ? (
 					<Button
 						type="button"
-						onClick={onPublish}
-						disabled={isBusy || !canPublish}
+						variant="ghost"
+						size="sm"
+						onClick={onDelete}
+						disabled={isBusy}
+						className="mr-auto text-destructive"
 					>
-						Aprovar e publicar
+						<Trash2 aria-hidden="true" />
+						{isDeleting ? "Excluindo..." : "Excluir"}
 					</Button>
 				) : null}
+
+				{readOnly ? (
+					<Button type="button" variant="outline" onClick={onCancel}>
+						Fechar
+					</Button>
+				) : (
+					<>
+						<Button type="button" variant="ghost" onClick={onCancel}>
+							Cancelar
+						</Button>
+
+						<Button type="submit" variant="outline" disabled={isBusy}>
+							{isSaving ? "Salvando..." : "Salvar"}
+						</Button>
+
+						{table && !awaitingReview ? (
+							<Button
+								type="button"
+								onClick={onPublish}
+								disabled={isBusy || !canPublish}
+							>
+								Aprovar e publicar
+							</Button>
+						) : null}
+					</>
+				)}
 			</div>
 		</SheetFooter>
 	);

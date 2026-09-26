@@ -47,10 +47,10 @@ export const createNormativeTableColumns = (
 			),
 		}),
 		columnHelper.accessor("item", {
-			header: "Item · página",
+			header: "Item e página",
 			cell: ({ row }) => (
 				<span className="font-mono text-xs whitespace-normal text-foreground">
-					{row.original.item} · p. {row.original.page}
+					{row.original.item}, p. {row.original.page}
 				</span>
 			),
 		}),
@@ -73,7 +73,7 @@ export const createNormativeTableColumns = (
 			cell: ({ row }) => (
 				<div className="flex flex-col gap-1 whitespace-normal">
 					<span className="text-sm text-foreground">
-						{row.original.verifiedBy ?? "—"}
+						{row.original.verifiedBy ?? "Pendente"}
 					</span>
 					<span className="text-xs text-muted-foreground">
 						Cadastro: {row.original.registeredBy}

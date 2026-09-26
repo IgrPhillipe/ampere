@@ -52,7 +52,7 @@ const PROGRESS_SECTIONS: {
 		fields: ["name", "municipality", "address", "floors"],
 	},
 	{
-		title: "Parâmetros técnicos",
+		title: "Parâmetros Técnicos",
 		fields: ["buildingType", "voltage", "connectionType", "entranceStandard"],
 	},
 ];
@@ -115,11 +115,11 @@ export const NewProjectPage = () => {
 			>
 				<div className="px-6 pt-8 md:px-8">
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
-						Etapa 01 · Identificação da obra
+						Etapa 01: Identificação da obra
 					</p>
 
 					<h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">
-						Novo projeto
+						Novo Projeto
 					</h1>
 				</div>
 
@@ -178,7 +178,7 @@ export const NewProjectPage = () => {
 
 						<section>
 							<h2 className="border-b border-foreground pb-3 text-lg font-semibold text-foreground">
-								Parâmetros técnicos
+								Parâmetros Técnicos
 							</h2>
 
 							<div className="mt-6 grid gap-x-8 gap-y-6 md:grid-cols-2">
@@ -226,16 +226,24 @@ export const NewProjectPage = () => {
 					</div>
 
 					<aside className="space-y-8 border-t border-border px-6 py-8 lg:border-t-0 lg:border-l">
-						{/* A norma aplicavel e derivada no back a partir dos parametros
-						    (ver `ApplicableStandards`), e so volta na resposta do POST.
-						    Ate lá nao ha numero nem revisao para exibir. */}
-						<div className="rounded-md border border-border bg-muted/40 p-5">
-							<p className="text-xs tracking-wider text-muted-foreground uppercase">
-								Norma aplicável
-							</p>
+						{/* A revisão exata só existe depois do POST (`ApplicableStandards`). */}
+						<div>
+							<div className="rounded-xs bg-primary px-6 py-5 text-primary-foreground">
+								<p className="border-b border-primary-foreground/85 pb-3 font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase">
+									Norma derivada
+								</p>
 
-							<p className="mt-3 text-sm text-foreground">
-								Definida automaticamente ao salvar, a partir do tipo de
+								<p className="mt-6 font-mono text-3xl font-medium tracking-tight">
+									DIS-NOR-053
+								</p>
+
+								<p className="mt-2 text-sm text-primary-foreground/75">
+									e DIS-NOR-030, revisões vigentes
+								</p>
+							</div>
+
+							<p className="mt-3 text-xs text-muted-foreground">
+								Selecionada automaticamente ao salvar, a partir do tipo de
 								edificação, da tensão e do padrão de entrada informados.
 							</p>
 						</div>
@@ -292,7 +300,7 @@ export const NewProjectPage = () => {
 						type="button"
 						variant="outline"
 						size="icon"
-						aria-label="Voltar para Meus projetos"
+						aria-label="Voltar para Meus Projetos"
 						onClick={() => void navigate({ to: "/" })}
 					>
 						<ArrowLeft aria-hidden="true" />

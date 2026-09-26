@@ -57,7 +57,7 @@ export const createGroupColumns = ({
 			cell: ({ row }) => (
 				<span className="font-mono text-sm text-foreground">
 					{row.original.loadPerUnitKw == null
-						? "—"
+						? "Não informada"
 						: formatDecimal(row.original.loadPerUnitKw)}
 				</span>
 			),

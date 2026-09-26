@@ -36,7 +36,7 @@ export const NormativeTableCards = ({
 					</div>
 
 					<span className="font-mono text-xs text-muted-foreground">
-						{table.standard.name} {table.standard.revision} · {table.item} · p.{" "}
+						{table.standard.name} {table.standard.revision}, {table.item}, p.{" "}
 						{table.page}
 					</span>
 
@@ -48,7 +48,7 @@ export const NormativeTableCards = ({
 
 						<div className="flex gap-1.5">
 							<dt>Aprovação</dt>
-							<dd>{table.verifiedBy ?? "—"}</dd>
+							<dd>{table.verifiedBy ?? "Pendente"}</dd>
 						</div>
 
 						<div className="flex gap-1.5">

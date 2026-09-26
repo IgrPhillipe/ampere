@@ -27,7 +27,7 @@ export const useCalculateDemand = (
 					? "nenhuma inconsistência"
 					: `${padCount(warningsCount)} ${warningsCount === 1 ? "alerta" : "alertas"}`;
 			toast.success("Verificação automática concluída", {
-				description: `${padCount(checksCount)} conferências · ${outcome}`,
+				description: `${padCount(checksCount)} conferências, ${outcome}`,
 			});
 
 			return response;

@@ -3,9 +3,9 @@ import { cn } from "@lib/utils";
 import { Check } from "lucide-react";
 
 const PROJECT_STAGES = [
-	"Dados da edificação",
-	"Unidades consumidoras",
-	"Cálculo de demanda",
+	"Dados da Edificação",
+	"Unidades Consumidoras",
+	"Cálculo de Demanda",
 	"Memorial",
 	"Envio",
 ];

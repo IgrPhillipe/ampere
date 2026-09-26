@@ -140,6 +140,6 @@ public class LoadGroup extends ConsumerUnitGroup {
     if (items.size() > SUMMARY_ITEMS) {
       loads += " e mais " + (items.size() - SUMMARY_ITEMS);
     }
-    return loads + " · DIS-NOR-030 item 6.27";
+    return loads + " (DIS-NOR-030 item 6.27)";
   }
 }

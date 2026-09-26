@@ -10,7 +10,7 @@ import java.util.List;
  * groups contributed and applies the factors that belong to the whole building.
  */
 public enum DemandComponent {
-  RESIDENTIAL_UNITS("Drf", "Demanda das unidades residenciais") {
+  RESIDENTIAL_UNITS("Drf", "Demanda das Unidades Residenciais") {
     /** Fc comes from every apartment of the building, not group by group (Anexo I, item 3). */
     @Override
     DemandStep combineApplicable(List<DemandContribution> contributions, DemandContext context) {
@@ -83,19 +83,19 @@ public enum DemandComponent {
               apartments, demand, coincidence, residential, safety, quadro37.band()));
     }
   },
-  CONDOMINIUM_SERVICES("Ds", "Demanda das áreas comuns") {
+  CONDOMINIUM_SERVICES("Ds", "Demanda das Áreas Comuns") {
     @Override
     DemandStep combineApplicable(List<DemandContribution> contributions, DemandContext context) {
       return installedLoad(contributions);
     }
   },
-  NON_RESIDENTIAL_UNITS("Dc", "Demanda das cargas comerciais") {
+  NON_RESIDENTIAL_UNITS("Dc", "Demanda das Cargas Comerciais") {
     @Override
     DemandStep combineApplicable(List<DemandContribution> contributions, DemandContext context) {
       return installedLoad(contributions);
     }
   },
-  EV_CHARGING("Dve", "Demanda da recarga de veículos elétricos") {
+  EV_CHARGING("Dve", "Demanda da Recarga de Veículos Elétricos") {
     /** The factor of Quadro 33 goes on every point of the building (Anexo I, item 13). */
     @Override
     DemandStep combineApplicable(List<DemandContribution> contributions, DemandContext context) {

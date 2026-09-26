@@ -23,7 +23,8 @@ const StampCell = ({ label, isLoading, children }: StampCellProps) => (
 			{label}
 		</dt>
 		<dd className="font-mono text-sm text-foreground">
-			{children ?? (isLoading ? <Skeleton className="h-5 w-32" /> : "—")}
+			{children ??
+				(isLoading ? <Skeleton className="h-5 w-32" /> : "Não informado")}
 		</dd>
 	</div>
 );
@@ -44,12 +45,12 @@ export const ProjectStamp = ({
 			{project
 				? project.standards
 						.map(({ name, revision }) => `${name} ${revision}`)
-						.join(" · ")
+						.join(" e ")
 				: undefined}
 		</StampCell>
 
 		<StampCell isLoading={isLoading} label="Responsável técnico">
-			{project ? "—" : undefined}
+			{project ? "Não informado" : undefined}
 		</StampCell>
 
 		<StampCell isLoading={isLoading} label="Unidades">

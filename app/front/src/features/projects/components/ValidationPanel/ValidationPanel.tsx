@@ -52,7 +52,7 @@ export const ValidationPanel = ({
 				id="validacao-titulo"
 				className="border-b border-primary-foreground pb-3 text-lg font-semibold"
 			>
-				Validação em tempo real
+				Validação em Tempo Real
 			</h2>
 
 			{isLoading || !validation ? (
