@@ -2,15 +2,15 @@ import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import {
+	useCalculateDemand,
 	useGetLatestCalculation,
-	useRunCalculation,
 } from "@services/calculation";
 import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
 import { projectKeys, useGetProject } from "@services/projects";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Calculator, CircleAlert } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
 import {
@@ -30,8 +30,6 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 	const queryClient = useQueryClient();
 	const projectQuery = useGetProject(projectId);
 	const validationQuery = useGetConsumerUnitGroupValidation(projectId);
-	const { mutate: calculate, ...calculation } = useRunCalculation(projectId);
-
 	const project = projectQuery.data?.data;
 	const validation = validationQuery.data?.data;
 	const isDraft = project?.status === "DRAFT";
@@ -39,25 +37,24 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 	const latestQuery = useGetLatestCalculation(projectId, {
 		enabled: project !== undefined && !isDraft,
 	});
+	const runQuery = useCalculateDemand(projectId, {
+		enabled: isDraft && canCalculate,
+	});
 
-	// A draft is recalculated on every visit: the groups may have changed since.
-	const requested = useRef(false);
+	// The listing shows the demand of the latest calculation.
+	const calculatedAt = runQuery.dataUpdatedAt;
 	useEffect(() => {
-		if (requested.current || !isDraft || !canCalculate) return;
-		requested.current = true;
-		calculate(undefined, {
-			onSuccess: () =>
-				void queryClient.invalidateQueries({ queryKey: projectKeys.all() }),
-		});
-	}, [isDraft, canCalculate, calculate, queryClient]);
+		if (calculatedAt === 0) return;
+		void queryClient.invalidateQueries({ queryKey: projectKeys.all() });
+	}, [calculatedAt, queryClient]);
 
-	const result = isDraft ? calculation.data?.data : latestQuery.data?.data;
+	const result = isDraft ? runQuery.data?.data : latestQuery.data?.data;
 	const isBlocked = isDraft && validation !== undefined && !canCalculate;
 	const neverCalculated = latestQuery.data === null;
 	const hasError =
 		projectQuery.isError ||
 		validationQuery.isError ||
-		calculation.isError ||
+		runQuery.isError ||
 		latestQuery.isError;
 	const isLoading = !result && !hasError && !isBlocked && !neverCalculated;
 
@@ -74,7 +71,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 		void projectQuery.refetch();
 		void validationQuery.refetch();
 		if (isDraft) {
-			calculate(undefined);
+			void runQuery.refetch();
 		} else {
 			void latestQuery.refetch();
 		}

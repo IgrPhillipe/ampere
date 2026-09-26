@@ -37,6 +37,7 @@ responde no lugar dela. Usuários de teste, os mesmos do seeder do back-end:
 | :--- | :--- | :--- |
 | `user@ampere.local` | `senha@123` | user |
 | `admin@ampere.local` | `senha@123` | admin |
+| `revisor@ampere.local` | `senha@123` | admin |
 
 Os papéis são placeholders; os definitivos dependem da Q1c em
 [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md).

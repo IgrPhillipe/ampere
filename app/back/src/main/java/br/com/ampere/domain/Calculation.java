@@ -98,7 +98,7 @@ public class Calculation {
   @Column(nullable = false)
   private BigDecimal calculatedTotalDemand;
 
-  @Column(nullable = false)
+  // Null above the last band of Tabelas 1 and 2, which the distributor sizes case by case.
   private BigDecimal minimumTotalDemand;
 
   @Column(nullable = false)
@@ -110,16 +110,12 @@ public class Calculation {
   @Column(nullable = false)
   private BigDecimal currentAmps;
 
-  @Column(nullable = false)
   private String serviceEntranceBand;
 
-  @Column(nullable = false)
   private Integer serviceEntranceCircuits;
 
-  @Column(nullable = false)
   private BigDecimal cableSectionMm2;
 
-  @Column(nullable = false)
   private BigDecimal breakerAmps;
 
   // Eager: the controller maps the response after the transaction, with open-in-view off.
@@ -183,12 +179,14 @@ public class Calculation {
     this.finalTotalDemand = result.finalKva();
     this.minimumApplied = result.minimumApplied();
 
-    ServiceEntrance entrance = result.serviceEntrance();
     this.currentAmps = result.currentAmps();
-    this.serviceEntranceBand = entrance.band();
-    this.serviceEntranceCircuits = entrance.circuits();
-    this.cableSectionMm2 = entrance.cableSectionMm2();
-    this.breakerAmps = entrance.breakerAmps();
+    ServiceEntrance entrance = result.serviceEntrance();
+    if (entrance != null) {
+      this.serviceEntranceBand = entrance.band();
+      this.serviceEntranceCircuits = entrance.circuits();
+      this.cableSectionMm2 = entrance.cableSectionMm2();
+      this.breakerAmps = entrance.breakerAmps();
+    }
 
     result.steps().forEach(step -> steps.add(new CalculationStep(step)));
     checks.addAll(result.checks());

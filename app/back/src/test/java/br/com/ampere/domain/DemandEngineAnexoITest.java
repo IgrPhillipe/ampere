@@ -55,7 +55,7 @@ class DemandEngineAnexoITest {
     assertThat(result.finalKva()).isEqualByComparingTo("46");
     assertThat(result.serviceEntrance().cableSectionMm2()).isEqualByComparingTo("16");
     assertThat(result.serviceEntrance().breakerAmps()).isEqualByComparingTo("70");
-    assertThat(result.currentAmps()).isEqualByComparingTo("69.9");
+    assertThat(result.currentAmps()).isEqualByComparingTo("48.9");
   }
 
   /**

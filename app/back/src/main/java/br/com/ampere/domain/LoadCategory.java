@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -15,21 +16,21 @@ import java.util.stream.Collectors;
  */
 public enum LoadCategory {
   LIGHTING_AND_OUTLETS("a", "Iluminação e tomadas") {
-    /** The lamp sets the power factor of the parcel outside residential occupancy (6.27.1). */
+    /** Lighting and outlets take different factors (6.27.1.2), so each item says which it is. */
     @Override
     List<ValidationIssue> issues(LoadItem item, String path, LoadUsage usage) {
-      if (usage == LoadUsage.COMMERCIAL && item.getLampTechnology() == null) {
+      if (item.getLampTechnology() == null) {
         return List.of(
             ValidationIssue.missing(
                 path + ".lampTechnology",
-                "Informe a tecnologia das lâmpadas de \""
+                "Informe se \""
                     + item.getDescription()
-                    + "\". Ela define o fator de potência da iluminação."));
+                    + "\" é iluminação, e com que lâmpadas, ou tomadas de uso geral. Isso define os"
+                    + " fatores de potência e de demanda."));
       }
       return List.of();
     }
 
-    /** An item with a lamp technology is lighting; without one, general-use outlets (6.27.1.2). */
     @Override
     ParcelDemand demand(
         List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
@@ -42,9 +43,8 @@ public enum LoadCategory {
               .tables()
               .find(NormativeTableCode.T22_GENERAL_LIGHTING_OUTLETS, usage.outletsKey());
 
-      Map<LampTechnology, BigDecimal> lightingKw =
+      Map<LampTechnology, BigDecimal> kwByTechnology =
           items.stream()
-              .filter(item -> item.getLampTechnology() != null)
               .collect(
                   Collectors.groupingBy(
                       LoadItem::getLampTechnology,
@@ -53,30 +53,21 @@ public enum LoadCategory {
                           BigDecimal.ZERO,
                           item -> installedKw(item, groupQuantity),
                           BigDecimal::add)));
-      BigDecimal outletsKw =
-          items.stream()
-              .filter(item -> item.getLampTechnology() == null)
-              .map(item -> installedKw(item, groupQuantity))
-              .reduce(BigDecimal.ZERO, BigDecimal::add);
 
       List<String> terms = new ArrayList<>();
       BigDecimal kva = BigDecimal.ZERO;
-      for (Map.Entry<LampTechnology, BigDecimal> technology : lightingKw.entrySet()) {
-        BigDecimal powerFactor = technology.getKey().powerFactor();
-        kva = kva.add(divide(technology.getValue(), powerFactor).multiply(lighting.value()));
+      for (Map.Entry<LampTechnology, BigDecimal> technology : kwByTechnology.entrySet()) {
+        LampTechnology lamp = technology.getKey();
+        BigDecimal factor = lamp.lighting() ? lighting.value() : outlets.value();
+        kva = kva.add(divide(technology.getValue(), lamp.powerFactor()).multiply(factor));
+        String dividedBy =
+            lamp.lighting() ? " ÷ " + DeclaredValues.fixed(lamp.powerFactor(), 2) : "";
         terms.add(
             DeclaredValues.fixed(technology.getValue(), 2)
-                + " kW ÷ "
-                + DeclaredValues.fixed(powerFactor, 2)
+                + " kW"
+                + dividedBy
                 + " × "
-                + DeclaredValues.fixed(lighting.value(), 2));
-      }
-      if (outletsKw.signum() > 0) {
-        kva = kva.add(outletsKw.multiply(outlets.value()));
-        terms.add(
-            DeclaredValues.fixed(outletsKw, 2)
-                + " kW × "
-                + DeclaredValues.fixed(outlets.value(), 2));
+                + DeclaredValues.fixed(factor, 2));
       }
       kva = DeclaredValues.kva(kva);
 
@@ -168,21 +159,20 @@ public enum LoadCategory {
         List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
       List<String> notes = new ArrayList<>();
       List<NormativeReference> references = new ArrayList<>();
-      List<BigDecimal> motors = new ArrayList<>();
+      SortedMap<BigDecimal, Long> motors = units();
       BigDecimal simultaneous = BigDecimal.ZERO;
       for (LoadItem item : items) {
         NormativeValue motor = motorKva(item, context, notes);
         references.add(motor.reference());
-        for (int unit = 0; unit < item.getQuantity() * groupQuantity; unit++) {
-          if (Boolean.TRUE.equals(item.getSimultaneousStart())) {
-            simultaneous = simultaneous.add(motor.secondValue());
-          } else {
-            motors.add(motor.secondValue());
-          }
+        long count = (long) item.getQuantity() * groupQuantity;
+        if (Boolean.TRUE.equals(item.getSimultaneousStart())) {
+          simultaneous = simultaneous.add(motor.secondValue().multiply(BigDecimal.valueOf(count)));
+        } else {
+          motors.merge(motor.secondValue(), count, Long::sum);
         }
       }
       if (simultaneous.signum() > 0) {
-        motors.add(simultaneous);
+        motors.merge(simultaneous, 1L, Long::sum);
         notes.add(
             "Motores de partida simultânea somados como um só: "
                 + DeclaredValues.fixed(simultaneous, 2)
@@ -196,14 +186,13 @@ public enum LoadCategory {
     @Override
     ParcelDemand demand(
         List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
-      List<BigDecimal> equipment = new ArrayList<>();
+      SortedMap<BigDecimal, Long> equipment = units();
       items.forEach(
-          item -> {
-            BigDecimal kw = item.getPowerUnit().toKilowatts(item.getPower());
-            for (int unit = 0; unit < item.getQuantity() * groupQuantity; unit++) {
-              equipment.add(kw);
-            }
-          });
+          item ->
+              equipment.merge(
+                  item.getPowerUnit().toKilowatts(item.getPower()),
+                  (long) item.getQuantity() * groupQuantity,
+                  Long::sum));
       return largestFirst(
           equipment,
           NormativeTableCode.T15_SPECIAL_EQUIPMENT,
@@ -219,7 +208,7 @@ public enum LoadCategory {
         List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
       List<String> notes = new ArrayList<>();
       List<NormativeReference> references = new ArrayList<>();
-      List<BigDecimal> pumps = new ArrayList<>();
+      SortedMap<BigDecimal, Long> pumps = units();
       for (LoadItem item : items) {
         BigDecimal kva;
         if (item.getPowerUnit() == PowerUnit.KW) {
@@ -229,16 +218,14 @@ public enum LoadCategory {
           references.add(motor.reference());
           kva = motor.secondValue();
         }
-        for (int unit = 0; unit < item.getQuantity() * groupQuantity; unit++) {
-          pumps.add(kva);
-        }
+        pumps.merge(kva, (long) item.getQuantity() * groupQuantity, Long::sum);
       }
 
+      long count = pumps.values().stream().mapToLong(Long::longValue).sum();
       NormativeValue factor =
-          context.tables().find(NormativeTableCode.T16_PUMPS, BigDecimal.valueOf(pumps.size()));
+          context.tables().find(NormativeTableCode.T16_PUMPS, BigDecimal.valueOf(count));
       references.add(0, factor.reference());
-      BigDecimal total = pumps.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-      BigDecimal kva = DeclaredValues.kva(total.multiply(factor.value()));
+      BigDecimal kva = DeclaredValues.kva(total(pumps).multiply(factor.value()));
 
       return new ParcelDemand(
           this,
@@ -294,7 +281,8 @@ public enum LoadCategory {
       String key,
       BigDecimal powerFactor,
       DemandContext context) {
-    int appliances = items.stream().mapToInt(item -> item.getQuantity() * groupQuantity).sum();
+    long appliances =
+        items.stream().mapToLong(item -> (long) item.getQuantity() * groupQuantity).sum();
     BigDecimal kw =
         items.stream()
             .map(item -> installedKw(item, groupQuantity))
@@ -324,30 +312,27 @@ public enum LoadCategory {
 
   /** Tabelas 14 and 15: the largest at its own factor, the others at the reduced one. */
   ParcelDemand largestFirst(
-      List<BigDecimal> units,
+      SortedMap<BigDecimal, Long> units,
       NormativeTableCode table,
       List<String> notes,
       List<NormativeReference> references,
       DemandContext context) {
-    List<BigDecimal> sorted = units.stream().sorted(Comparator.reverseOrder()).toList();
     NormativeValue largest = context.tables().find(table, LARGEST);
     NormativeValue others = context.tables().find(table, OTHERS);
     references.add(0, largest.reference());
 
-    BigDecimal rest = sorted.stream().skip(1).reduce(BigDecimal.ZERO, BigDecimal::add);
+    BigDecimal biggest = units.firstKey();
+    SortedMap<BigDecimal, Long> rest = units();
+    rest.putAll(units);
+    rest.computeIfPresent(biggest, (value, count) -> count == 1 ? null : count - 1);
     BigDecimal kva =
         DeclaredValues.kva(
-            sorted.get(0).multiply(largest.value()).add(rest.multiply(others.value())));
+            biggest.multiply(largest.value()).add(total(rest).multiply(others.value())));
+
     String formula =
-        DeclaredValues.fixed(sorted.get(0), 2) + " × " + DeclaredValues.fixed(largest.value(), 2);
-    if (sorted.size() > 1) {
-      formula +=
-          " + ("
-              + String.join(
-                  " + ",
-                  sorted.stream().skip(1).map(value -> DeclaredValues.fixed(value, 2)).toList())
-              + ") × "
-              + DeclaredValues.fixed(others.value(), 2);
+        DeclaredValues.fixed(biggest, 2) + " × " + DeclaredValues.fixed(largest.value(), 2);
+    if (!rest.isEmpty()) {
+      formula += " + (" + terms(rest) + ") × " + DeclaredValues.fixed(others.value(), 2);
     }
 
     return new ParcelDemand(
@@ -396,17 +381,31 @@ public enum LoadCategory {
     return value.divide(divisor, 4, RoundingMode.HALF_UP);
   }
 
-  private static String sumOf(List<BigDecimal> values) {
-    boolean identical = values.stream().distinct().count() == 1;
-    if (values.size() == 1) {
-      return DeclaredValues.fixed(values.get(0), 2);
-    }
-    if (identical) {
-      return values.size() + " × " + DeclaredValues.fixed(values.get(0), 2);
-    }
-    return "("
-        + String.join(" + ", values.stream().map(value -> DeclaredValues.fixed(value, 2)).toList())
-        + ")";
+  /** Equal values counted once, largest first: 10⁴ motors must not become 10⁴ entries. */
+  private static SortedMap<BigDecimal, Long> units() {
+    return new TreeMap<>(Comparator.reverseOrder());
+  }
+
+  private static BigDecimal total(SortedMap<BigDecimal, Long> units) {
+    return units.entrySet().stream()
+        .map(unit -> unit.getKey().multiply(BigDecimal.valueOf(unit.getValue())))
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+  }
+
+  private static String terms(SortedMap<BigDecimal, Long> units) {
+    return String.join(
+        " + ",
+        units.entrySet().stream()
+            .map(
+                unit ->
+                    unit.getValue() == 1
+                        ? DeclaredValues.fixed(unit.getKey(), 2)
+                        : unit.getValue() + " × " + DeclaredValues.fixed(unit.getKey(), 2))
+            .toList());
+  }
+
+  private static String sumOf(SortedMap<BigDecimal, Long> units) {
+    return units.size() == 1 ? terms(units) : "(" + terms(units) + ")";
   }
 
   private static List<String> prefixed(LoadCategory category, String formula, List<String> notes) {

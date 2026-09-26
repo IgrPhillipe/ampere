@@ -86,7 +86,7 @@ class ConsumerUnitGroupTest {
             commonArea(
                 List.of(
                     motor("Elevador", 12, PowerUnit.CV, null),
-                    lighting("Iluminação da garagem", 3, null))));
+                    lighting("Iluminação da garagem", 3, LampTechnology.COMPACT_FLUORESCENT_LED))));
 
     assertThat(group.validate())
         .extracting(ValidationIssue::severity, ValidationIssue::field)
@@ -126,10 +126,21 @@ class ConsumerUnitGroupTest {
   }
 
   @Test
-  void commonAreaLightingDoesNotNeedTheLampTechnology() {
+  void commonAreaLightingAlsoSaysWhetherItIsLightingOrOutlets() {
     ConsumerUnitGroup group =
         GroupKind.LOAD.create(
             PROJECT, commonArea(List.of(lighting("Iluminação da garagem", 3, null))));
+
+    assertThat(group.validate())
+        .extracting(ValidationIssue::severity, ValidationIssue::field)
+        .containsExactly(tuple(IssueSeverity.MISSING_DATA, "items[0].lampTechnology"));
+  }
+
+  @Test
+  void outletsAreDeclaredAsSuch() {
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(
+            PROJECT, commonArea(List.of(lighting("Tomadas", 2, LampTechnology.GENERAL_OUTLETS))));
 
     assertThat(group.status()).isEqualTo(GroupStatus.VALIDATED);
   }

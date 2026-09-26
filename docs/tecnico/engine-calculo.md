@@ -77,7 +77,8 @@ Tabelas a cadastrar:
 | Tabela 14        | 030   | Fator de demanda de motores                            |
 | Tabela 15        | 030   | Fator de demanda de equipamentos especiais             |
 | Tabela 16        | 030   | Fator de demanda de bombas e hidromassagem             |
-| Tabela 18        | 030   | Conversão de potência de motor em CV/HP para kW e kVA  |
+| Tabela 18        | 030   | Conversão de potência de motor monofásico em CV/HP para kW e kVA |
+| Tabela 19        | 030   | Conversão de potência de motor trifásico em CV/HP para kW e kVA  |
 
 > A DIS-NOR-053 foi revisada sete vezes em menos de quatro anos e a DIS-NOR-030 passou da REV 06 para a REV 07 em cinco meses. As duas revisam de forma independente, então **cada cálculo registra as duas revisões aplicadas**, não uma.
 
@@ -161,7 +162,7 @@ D = a + b + c + d + e + f + g + h + i   [kVA]
 | **d**   | Secadora, lava-roupas, lava-louças, micro-ondas       | Tabela 9                                                       | **0,92** ou conforme fabricante                                                             |
 | **e**   | Fornos e fogões elétricos                             | Tabela 9                                                       | 1,00                                                                                        |
 | **f**   | Condicionadores de ar                                 | Tabela 12 — potência por aparelho na Tabela 11                 | unidade central: fator de demanda 1,00                                                      |
-| **g**   | Motores e máquinas de solda a motor                   | Tabela 14                                                      | potência de placa em CV/HP convertida pela **Tabela 18**                                    |
+| **g**   | Motores e máquinas de solda a motor                   | Tabela 14                                                      | potência de placa em CV/HP convertida pela **Tabela 19** (trifásico) ou **18** (monofásico)  |
 | **h**   | Equipamentos especiais                                | Tabela 15 — maior 1,00, demais **0,60**                        | conforme placa                                                                              |
 | **i**   | Bombas e hidromassagem                                | Tabela 16 — 1 → 1,00 · 2 → 0,56 · 3 → 0,47 · acima de 3 → 0,39 | 1,00                                                                                        |
 
@@ -181,7 +182,7 @@ O sistema precisa aceitar entradas para **todas as nove parcelas** que existam n
 | **Demais motores → fator 0,50**    | Todos os outros entram com 0,50                                                                                                    |
 | **Motores de potência igual**      | Havendo dois ou mais de mesma potência, apenas **um** conta como o maior; os demais vão para o grupo de 0,50                       |
 | **Partida simultânea obrigatória** | Motores que precisam partir simultaneamente por determinação do processo têm as potências **somadas** e contam como um único motor |
-| **Conversão de potência**          | CV ou HP de placa convertidos para kVA pela **Tabela 18**, não por cálculo próprio                                                 |
+| **Conversão de potência**          | CV ou HP de placa convertidos para kVA pela **Tabela 19** (trifásico) ou **18** (monofásico), não por cálculo próprio          |
 
 ---
 
@@ -299,6 +300,24 @@ Nomes em inglês, conforme a convenção de código do projeto ([`../../app/back
 | **Apontamentos de reprovação** | Projetista            | Vinculados à etapa exata do cálculo — o projetista corrige o ponto apontado sem refazer o projeto |
 
 ---
+
+## Critérios adotados na implementação
+
+Pontos em que as normas não dizem tudo e o motor da US04 precisou decidir. Cada um aparece na memória de cálculo, para quem confere poder discordar.
+
+| # | Critério | Por quê |
+| :-- | :--- | :--- |
+| 1 | A demanda considerada é o teto da faixa das Tabelas 1 e 2 (Anexo II, p. 123) em que a calculada cai; é o "mínimo por tensão". Acima da última faixa (300 kVA) o cálculo sai sem entrada de serviço e com alerta | É o que os Exemplos 1 e 2 fazem: 32,37 kVA vira 46 kVA, 196,73 kVA vira 229 kVA |
+| 2 | Corrente projetada sobre a demanda calculada: `kVA × 1000 / (√3 × V linha)` no trifásico, `/ (2 × V fase)` no bifásico, `/ V fase` no monofásico. As Tabelas 1 e 2 são de entrada trifásica: ligação monofásica ou bifásica recebe alerta para conferir a entrada pela DIS-NOR-030, item 6.28 | As normas não trazem fórmula; sobre o teto da faixa a corrente passaria do disjuntor da própria faixa |
+| 3 | Os fatores de cada parcela valem sobre o grupo inteiro: itens × quantidade do grupo | Um grupo de 8 lojas iguais tem 8 vezes os aparelhos de uma |
+| 4 | Na parcela `a`, todo item diz se é iluminação, e com que lâmpadas, ou tomadas de uso geral; sem isso o grupo fica com "Falta dado" | A Tabela 22 separa as duas cargas e o fator de potência vem da lâmpada: supor tomada subdimensionaria a iluminação |
+| 5 | Área comum usa a linha "Administração de edifícios de uso coletivo" da Tabela 22 (1,00 iluminação, 0,50 tomadas); carga comercial usa "Bancos, lojas e semelhantes" (1,00) | O Exemplo 1 usa a primeira; o Exemplo 2 usa "Auditórios" (1,00) para a mesma área comum. O resultado final do Exemplo 2 não muda |
+| 6 | Motor com potência que a Tabela 18/19 não lista entra pela linha seguinte, e a memória diz qual | Nunca subdimensiona |
+| 7 | Bombas declaradas em CV ou HP tiram o kVA da tabela de motores; em kW, fator de potência 1,00 | Item 6.27.9 dá fator de potência 1,00; a potência de placa costuma vir em CV |
+| 8 | Recarga: kW = kVA (fator de potência 1,00) | O Quadro 33 se aplica à potência das estações |
+| 9 | O limite de 50 % do transformador (053, 6.26.2) não é verificado | O projeto não informa a potência do transformador |
+| 10 | O estudo de rede (030, 6.26.4.2) é verificado sobre a potência total de recarga | Sem o dado de carga por unidade, é a leitura conservadora |
+| 11 | Cada parcela é arredondada em duas casas antes da soma | A soma da tela fecha com os números mostrados |
 
 ## Divergências entre as normas e critério adotado
 

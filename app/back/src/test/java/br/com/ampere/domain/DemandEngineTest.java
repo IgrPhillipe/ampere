@@ -55,7 +55,7 @@ class DemandEngineTest {
     assertThat(result.serviceEntrance().band()).isEqualTo("135 < De ≤ 165");
     assertThat(result.serviceEntrance().cableSectionMm2()).isEqualByComparingTo("150");
     assertThat(result.serviceEntrance().breakerAmps()).isEqualByComparingTo("250");
-    assertThat(result.currentAmps()).isEqualByComparingTo("250.7");
+    assertThat(result.currentAmps()).isEqualByComparingTo("247.8");
   }
 
   @Test
@@ -190,14 +190,51 @@ class DemandEngineTest {
   }
 
   @Test
-  void aDemandAboveTheLastBandIsReportedByName() {
-    assertThatThrownBy(
-            () ->
-                DemandEngine.run(
-                    List.of(apartments(PROJECT, 200, "300")),
-                    context(SupplyVoltage.V380_220, ConnectionType.THREE_PHASE)))
-        .isInstanceOf(MissingNormativeValueException.class)
-        .hasMessageStartingWith("A Tabela 2 (DIS-NOR-053 REV 06) não tem linha para");
+  void aDemandAboveTheLastBandIsCalculatedWithAWarning() {
+    DemandResult result =
+        DemandEngine.run(
+            List.of(apartments(PROJECT, 200, "300")),
+            context(SupplyVoltage.V380_220, ConnectionType.THREE_PHASE));
+
+    assertThat(result.serviceEntrance()).isNull();
+    assertThat(result.minimumKva()).isNull();
+    assertThat(result.finalKva()).isEqualByComparingTo(result.calculatedKva());
+    assertThat(result.checks().get(0).getStatus()).isEqualTo(CheckStatus.WARNING);
+    assertThat(result.steps().get(4).details().get(0))
+        .startsWith("Acima da última faixa da Tabela 2");
+  }
+
+  @Test
+  void theServiceEntranceTablesAreThreePhase() {
+    DemandResult result =
+        DemandEngine.run(
+            List.of(apartments(PROJECT, 20, "40")),
+            context(SupplyVoltage.V220_127, ConnectionType.TWO_PHASE));
+
+    assertThat(result.checks().get(0))
+        .extracting(CalculationCheck::getStatus, CalculationCheck::getMessage)
+        .containsExactly(
+            CheckStatus.WARNING,
+            "A Tabela 1 dimensiona a entrada trifásica de edificação coletiva. Com ligação"
+                + " bifásico, confira a entrada pela DIS-NOR-030, item 6.28.");
+  }
+
+  @Test
+  void thousandsOfEqualUnitsAreCountedNotListed() {
+    DemandResult result =
+        DemandEngine.run(
+            List.of(
+                loads(
+                    PROJECT,
+                    "Galpões",
+                    10000,
+                    LoadUsage.COMMERCIAL,
+                    motor("Esteiras", 10000, "1"),
+                    lighting("Iluminação", "1", LampTechnology.COMPACT_FLUORESCENT_LED))),
+            context(SupplyVoltage.V380_220, ConnectionType.THREE_PHASE));
+
+    assertThat(result.steps().get(2).details())
+        .anyMatch(line -> line.contains("1,52 × 1,00 + (99999999 × 1,52) × 0,50"));
   }
 
   @Test

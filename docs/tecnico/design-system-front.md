@@ -201,6 +201,23 @@ metades do mesmo formulário renderizavam diferentes.
 - `Card` agrupa conteúdo relacionado; não deve envolver toda seção apenas para
   criar espaçamento.
 
+### Séries do cálculo de demanda
+
+As parcelas da demanda usam os tokens de gráfico, na ordem de cor do protótipo
+H4. A mesma cor marca a linha da etapa e o segmento da barra "Composição das
+cargas", pelo mapa `demandSeriesClassNames` da feature de projetos:
+
+| Parcela | Token | Cor |
+| :--- | :--- | :--- |
+| `Drf` residencial | `chart-1` | verde |
+| `Ds` áreas comuns | `chart-3` | azul |
+| `Dve` recarga | `chart-4` | laranja |
+| `Dc` comercial | `chart-2` | verde-escuro |
+
+Os papéis tipográficos do H4 (Geist) são traduzidos para os da H3: etiqueta
+mono em caixa alta, título de seção `text-lg font-semibold` sobre fio escuro,
+fórmula `font-mono text-xs` e cifra do resultado `font-mono text-6xl`.
+
 ## Cabeçalho e navegação
 
 O menu principal é **horizontal** a partir de telas grandes. Em telas menores,
@@ -214,8 +231,10 @@ app/front/src/components/layout/nav-items.ts
 ```
 
 `APP_NAV_ITEMS` é a fonte única tanto para o cabeçalho quanto para o painel
-móvel. Uma área sem rota pode aparecer com
-`disabled: true`; ela só se torna interativa no mesmo commit que cria a rota.
+móvel. Uma área sem rota pode aparecer com `disabled: true`; ela só se torna
+interativa no mesmo commit que cria a rota. Item de uma área restrita leva
+`roles`: "Normas e tabelas" é `roles: ["admin"]` e some para o projetista, em
+vez de aparecer desabilitado.
 
 ```ts
 { to: "/", label: "Meus projetos", exact: true }

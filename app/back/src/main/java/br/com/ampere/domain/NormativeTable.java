@@ -229,6 +229,12 @@ public class NormativeTable {
           && row.getLowerBound().compareTo(row.getUpperBound()) > 0) {
         problems.add(line + "o início da faixa passa do fim.");
       }
+      BigDecimal lastUpper = lastUpperByKey.get(group);
+      if (row.getLowerBound() != null
+          && lastUpper != null
+          && row.getLowerBound().compareTo(lastUpper) < 0) {
+        problems.add(line + "a faixa começa antes do fim da anterior.");
+      }
       if (openKeys.contains(group)) {
         problems.add(line + "só a última faixa pode ficar sem limite superior.");
       }

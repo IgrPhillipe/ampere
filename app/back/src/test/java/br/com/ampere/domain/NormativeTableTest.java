@@ -98,6 +98,16 @@ class NormativeTableTest {
   }
 
   @Test
+  void refusesABandThatStartsBeforeThePreviousEnds() {
+    NormativeTable table =
+        quadro37(
+            List.of(band(null, "25", "1.5"), band("25", "50", "1.3"), band("5", "100", "1.2")));
+
+    assertThat(table.problems())
+        .containsExactly("Linha 3: a faixa começa antes do fim da anterior.");
+  }
+
+  @Test
   void aKeyedTableNeedsOneOfItsKeysOnEveryRow() {
     NormativeTable tabela14 =
         new NormativeTable(

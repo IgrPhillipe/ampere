@@ -38,6 +38,7 @@ export type LoadCategory = z.infer<typeof loadCategorySchema>;
 export const lampTechnologySchema = z.enum([
 	"FLUORESCENT_NEON_SODIUM",
 	"COMPACT_FLUORESCENT_LED",
+	"GENERAL_OUTLETS",
 ]);
 
 export type LampTechnology = z.infer<typeof lampTechnologySchema>;

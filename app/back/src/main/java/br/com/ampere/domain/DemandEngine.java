@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Ded = Drf + Ds + Dc + Dve (DIS-NOR-053 Anexo I). Every group computes its own share through
@@ -33,8 +34,9 @@ public final class DemandEngine {
 
     BigDecimal calculated =
         steps.stream().map(DemandStep::valueKva).reduce(BigDecimal.ZERO, BigDecimal::add);
-    ServiceEntrance entrance = serviceEntrance(calculated, context);
-    BigDecimal considered = calculated.max(entrance.consideredKva());
+    ServiceEntrance entrance = serviceEntrance(calculated, context).orElse(null);
+    BigDecimal considered =
+        entrance == null ? calculated : calculated.max(entrance.consideredKva());
     boolean minimumApplied = considered.compareTo(calculated) > 0;
     steps.add(totalStep(steps, calculated, considered, entrance, context));
 
@@ -44,27 +46,30 @@ public final class DemandEngine {
     return new DemandResult(
         List.copyOf(steps),
         calculated,
-        entrance.consideredKva(),
+        entrance == null ? null : entrance.consideredKva(),
         considered,
         minimumApplied,
         entrance,
-        context.connectionType().currentAmps(considered, context.voltage()),
-        checks(steps, contributions, calculated, considered, minimumApplied, entrance),
+        context.connectionType().currentAmps(calculated, context.voltage()),
+        checks(steps, contributions, calculated, considered, minimumApplied, entrance, context),
         DemandComponent.distinct(applied));
   }
 
   /** Tabela 1 or 2: the ceiling of the band is the demand the standard considers (item 8). */
-  private static ServiceEntrance serviceEntrance(BigDecimal calculated, DemandContext context) {
-    NormativeValue band =
-        context.tables().find(context.voltage().serviceEntranceTable(), calculated);
-
-    return new ServiceEntrance(
-        band.band(),
-        DeclaredValues.kva(band.row().getUpperBound()),
-        band.value().intValue(),
-        band.secondValue(),
-        band.thirdValue(),
-        band.reference());
+  private static Optional<ServiceEntrance> serviceEntrance(
+      BigDecimal calculated, DemandContext context) {
+    return context
+        .tables()
+        .lookup(context.voltage().serviceEntranceTable(), null, calculated)
+        .map(
+            band ->
+                new ServiceEntrance(
+                    band.band(),
+                    DeclaredValues.kva(band.row().getUpperBound()),
+                    band.value().intValue(),
+                    band.secondValue(),
+                    band.thirdValue(),
+                    band.reference()));
   }
 
   private static DemandStep totalStep(
@@ -79,25 +84,41 @@ public final class DemandEngine {
             " + ",
             components.stream().map(step -> DeclaredValues.fixed(step.valueKva(), 2)).toList());
 
+    NormativeReference table =
+        entrance == null
+            ? context
+                .tables()
+                .find(context.voltage().serviceEntranceTable(), null, null)
+                .reference()
+            : entrance.reference();
     List<String> details = new ArrayList<>();
-    details.add(
-        "Faixa "
-            + entrance.band()
-            + " kVA da "
-            + entrance.reference().identification()
-            + " ("
-            + context.voltage().label()
-            + "): considera-se "
-            + DeclaredValues.fixed(considered, 2)
-            + " kVA");
-    details.add(
-        "Entrada de serviço: "
-            + entrance.circuits()
-            + (entrance.circuits() == 1 ? " circuito de " : " circuitos de ")
-            + DeclaredValues.decimal(entrance.cableSectionMm2())
-            + " mm² e disjuntor geral de "
-            + DeclaredValues.decimal(entrance.breakerAmps())
-            + " A");
+    if (entrance == null) {
+      details.add(
+          "Acima da última faixa da "
+              + table.identification()
+              + " ("
+              + context.voltage().label()
+              + "): a entrada de serviço é dimensionada com a distribuidora");
+    } else {
+      details.add(
+          "Faixa "
+              + entrance.band()
+              + " kVA da "
+              + table.identification()
+              + " ("
+              + context.voltage().label()
+              + "): considera-se "
+              + DeclaredValues.fixed(considered, 2)
+              + " kVA");
+      details.add(
+          "Entrada de serviço: "
+              + entrance.circuits()
+              + (entrance.circuits() == 1 ? " circuito de " : " circuitos de ")
+              + DeclaredValues.decimal(entrance.cableSectionMm2())
+              + " mm² e disjuntor geral de "
+              + DeclaredValues.decimal(entrance.breakerAmps())
+              + " A");
+    }
 
     return new DemandStep(
         "Ded",
@@ -106,8 +127,8 @@ public final class DemandEngine {
         symbols + " = " + values + " = " + DeclaredValues.fixed(calculated, 2) + " kVA",
         details,
         considered,
-        entrance.reference(),
-        List.of(entrance.reference()),
+        table,
+        List.of(table),
         null);
   }
 
@@ -117,22 +138,11 @@ public final class DemandEngine {
       BigDecimal calculated,
       BigDecimal considered,
       boolean minimumApplied,
-      ServiceEntrance entrance) {
+      ServiceEntrance entrance,
+      DemandContext context) {
     List<CalculationCheck> checks = new ArrayList<>();
 
-    checks.add(
-        new CalculationCheck(
-            "MINIMUM_BY_VOLTAGE",
-            minimumApplied ? CheckStatus.INFO : CheckStatus.PASSED,
-            "Demanda calculada de "
-                + DeclaredValues.fixed(calculated, 2)
-                + " kVA na faixa "
-                + entrance.band()
-                + " da "
-                + entrance.reference().identification()
-                + ": o dimensionamento considera "
-                + DeclaredValues.fixed(considered, 2)
-                + " kVA (DIS-NOR-053 Anexo I, item 8)."));
+    checks.add(serviceEntranceCheck(calculated, considered, minimumApplied, entrance, context));
 
     BigDecimal chargingKw =
         contributions.stream()
@@ -196,5 +206,48 @@ public final class DemandEngine {
                     + " (DIS-NOR-053 Anexo I, item 5)."));
 
     return checks;
+  }
+
+  /** Tabelas 1 and 2 size a three-phase entrance up to 300 kVA; outside that, a warning. */
+  private static CalculationCheck serviceEntranceCheck(
+      BigDecimal calculated,
+      BigDecimal considered,
+      boolean minimumApplied,
+      ServiceEntrance entrance,
+      DemandContext context) {
+    String table = context.voltage().serviceEntranceTable().identification();
+    if (entrance == null) {
+      return new CalculationCheck(
+          "MINIMUM_BY_VOLTAGE",
+          CheckStatus.WARNING,
+          "Demanda calculada de "
+              + DeclaredValues.fixed(calculated, 2)
+              + " kVA acima da última faixa da "
+              + table
+              + ": a entrada de serviço precisa ser dimensionada com a distribuidora"
+              + " (DIS-NOR-053 Anexo I, item 8).");
+    }
+    if (context.connectionType() != ConnectionType.THREE_PHASE) {
+      return new CalculationCheck(
+          "MINIMUM_BY_VOLTAGE",
+          CheckStatus.WARNING,
+          "A "
+              + table
+              + " dimensiona a entrada trifásica de edificação coletiva. Com ligação "
+              + context.connectionType().label().toLowerCase()
+              + ", confira a entrada pela DIS-NOR-030, item 6.28.");
+    }
+    return new CalculationCheck(
+        "MINIMUM_BY_VOLTAGE",
+        minimumApplied ? CheckStatus.INFO : CheckStatus.PASSED,
+        "Demanda calculada de "
+            + DeclaredValues.fixed(calculated, 2)
+            + " kVA na faixa "
+            + entrance.band()
+            + " da "
+            + table
+            + ": o dimensionamento considera "
+            + DeclaredValues.fixed(considered, 2)
+            + " kVA (DIS-NOR-053 Anexo I, item 8).");
   }
 }

@@ -9,8 +9,17 @@ interface TraceabilityPanelProps {
 	className?: string;
 }
 
+const OUTSIDE_TABLES = "Com a distribuidora";
+
 const cable = ({ circuits, cableSectionMm2 }: Calculation["traceability"]) =>
-	`${circuits > 1 ? `${circuits} × ` : ""}${formatDecimal(cableSectionMm2, 0)} mm²`;
+	circuits === null || cableSectionMm2 === null
+		? OUTSIDE_TABLES
+		: `${circuits > 1 ? `${circuits} × ` : ""}${formatDecimal(cableSectionMm2, 0)} mm²`;
+
+const breaker = ({ breakerAmps, breakerPoles }: Calculation["traceability"]) =>
+	breakerAmps === null
+		? OUTSIDE_TABLES
+		: `${formatDecimal(breakerAmps, 0)} A ${breakerPoles}`;
 
 export const TraceabilityPanel = ({
 	calculation,
@@ -20,17 +29,19 @@ export const TraceabilityPanel = ({
 	const rows = calculation
 		? [
 				["Demanda calculada", formatKva(calculation.totals.calculatedKva)],
-				["Mínimo por tensão", formatKva(calculation.totals.minimumKva)],
+				[
+					"Mínimo por tensão",
+					calculation.totals.minimumKva === null
+						? "—"
+						: formatKva(calculation.totals.minimumKva),
+				],
 				["Tensão de fornecimento", calculation.traceability.voltage],
 				[
 					"Corrente projetada",
 					`${formatDecimal(calculation.traceability.currentAmps, 1)} A`,
 				],
 				["Padrão de entrada", calculation.traceability.entranceStandard],
-				[
-					"Proteção geral",
-					`${formatDecimal(calculation.traceability.breakerAmps, 0)} A ${calculation.traceability.breakerPoles}`,
-				],
+				["Proteção geral", breaker(calculation.traceability)],
 				["Ramal de entrada", cable(calculation.traceability)],
 			]
 		: [];
