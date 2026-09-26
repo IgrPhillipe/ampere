@@ -11,7 +11,7 @@ import type {
 export const groupStatusLabels = {
 	VALIDATED: "Validado",
 	REVIEW: "Revisar",
-	MISSING_DATA: "Falta dado",
+	MISSING_DATA: "Falta Dado",
 } as const satisfies Record<GroupStatus, string>;
 
 export const groupKindLabels = {

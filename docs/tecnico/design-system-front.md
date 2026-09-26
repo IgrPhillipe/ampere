@@ -53,11 +53,13 @@ arbitrários, salvo quando o protótipo exigir um detalhe tipográfico específi
 Títulos usam Title Case: cada palavra começa em maiúscula, exceto artigos,
 preposições e conjunções curtas (a, o, e, de, da, do, em, para). Vale para
 títulos de página e de seção, itens da navegação, etapas do stepper, títulos de
-drawer e o `pageTitle` da aba. Exemplos: "Novo Projeto", "Parâmetros Técnicos",
-"Normas e Tabelas", "Decomposição do Cálculo".
+drawer, o `pageTitle` da aba e o texto de todos os botões. Exemplos: "Novo
+Projeto", "Parâmetros Técnicos", "Normas e Tabelas", "Salvar Grupo", "Aprovar e
+Publicar".
 
-Botões, rótulos de campo, mensagens, estados vazios e títulos em forma de
-pergunta continuam em frase comum ("Novo projeto", "Aprovar e publicar a
+Badges e rótulos de status também usam Title Case ("Aguardando Revisão", "Em
+Análise", "Falta Dado"). Rótulos de campo, mensagens, estados vazios e títulos
+em forma de pergunta continuam em frase comum ("Aprovar e publicar a
 tabela?").
 
 Texto de interface não usa travessão nem ponto médio, nem como separador nem
@@ -144,7 +146,9 @@ para Base UI e ajustados ao design system.
 - `secondary`: ação forte em verde escuro.
 - `outline`: ação secundária com contorno verde.
 - `ghost`: ação discreta em barras e menus.
-- `destructive`: operação perigosa.
+- `destructive`: operação perigosa em destaque.
+- `destructive-ghost`: excluir ou remover dentro de formulários e drawers. Texto
+  vermelho, com fundo vermelho claro no hover.
 - `link`: ação textual.
 - `neutral`: controle com contorno e hover cinza, usado em paginação e navegação.
 
@@ -155,11 +159,12 @@ O design system define a aparência desabilitada, igual em todas as variantes:
 fundo cinza claro (`--disabled`), texto cinza (`--disabled-foreground`), sem
 contorno nem sombra e cursor `not-allowed`. `ghost` e `link` mantêm o fundo
 transparente e só ficam cinza. O componente consumidor define quando o controle
-fica desabilitado. Exemplo: a paginação bloqueia a seta anterior na primeira
+fica desabilitado. Exemplo: a paginação, com botões `icon` do mesmo tamanho dos
+rodapés de formulário, bloqueia a seta anterior na primeira
 página e a seta seguinte na última.
 
 ```tsx
-<Button>Novo projeto</Button>
+<Button>Novo Projeto</Button>
 <Button variant="outline">Cancelar</Button>
 ```
 
@@ -171,7 +176,7 @@ valores da API são convertidos antes de chegar ao componente.
 
 ```tsx
 <Badge variant="success">Aprovado</Badge>
-<Badge variant="warning">Aguardando envio</Badge>
+<Badge variant="warning">Aguardando Envio</Badge>
 <Badge variant="destructive">Reprovado</Badge>
 ```
 

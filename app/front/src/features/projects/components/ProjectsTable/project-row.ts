@@ -1,6 +1,6 @@
 import type { Project } from "@services/projects";
 
-/** Reprovado com pendencia oferece "Ver apontamentos". */
+/** Reprovado com pendencia oferece "Ver Apontamentos". */
 export const isRejectedWithFindings = (project: Project) =>
 	project.status === "REJECTED" && project.pendingCount > 0;
 

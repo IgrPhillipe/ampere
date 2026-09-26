@@ -3,7 +3,7 @@ package br.com.ampere.domain;
 public enum GroupStatus {
   VALIDATED("Validado"),
   REVIEW("Revisar"),
-  MISSING_DATA("Falta dado");
+  MISSING_DATA("Falta Dado");
 
   private final String label;
 

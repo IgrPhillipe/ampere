@@ -2,6 +2,7 @@ import { createDataTableColumnHelper } from "@components/DataTable";
 import type { NormativeTable } from "@services/normative-tables";
 
 import { NormativeTableStatusBadge } from "../NormativeTableStatusBadge";
+import { PersonCell } from "./PersonCell";
 
 const columnHelper = createDataTableColumnHelper<NormativeTable>();
 
@@ -11,6 +12,7 @@ export type NormativeTableColumnId =
 	| "item"
 	| "rowCount"
 	| "status"
+	| "registeredBy"
 	| "verifiedBy";
 
 export const createNormativeTableColumns = (
@@ -68,17 +70,25 @@ export const createNormativeTableColumns = (
 				<NormativeTableStatusBadge status={row.original.status} />
 			),
 		}),
-		columnHelper.accessor("verifiedBy", {
-			header: "Aprovação",
+		columnHelper.accessor("registeredBy", {
+			header: "Cadastro",
 			cell: ({ row }) => (
-				<div className="flex flex-col gap-1 whitespace-normal">
-					<span className="text-sm text-foreground">
-						{row.original.verifiedBy ?? "Pendente"}
-					</span>
-					<span className="text-xs text-muted-foreground">
-						Cadastro: {row.original.registeredBy}
-					</span>
-				</div>
+				<PersonCell
+					person={row.original.registeredBy}
+					at={row.original.registeredAt}
+				/>
 			),
+		}),
+		columnHelper.accessor("verifiedBy", {
+			header: "Revisão",
+			cell: ({ row }) =>
+				row.original.verifiedBy ? (
+					<PersonCell
+						person={row.original.verifiedBy}
+						at={row.original.verifiedAt}
+					/>
+				) : (
+					<span className="text-sm text-muted-foreground">Pendente</span>
+				),
 		}),
 	]);

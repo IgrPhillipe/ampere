@@ -31,14 +31,13 @@ export const GroupFormFooter = ({
 		<SheetFooter className="flex-row flex-wrap items-center justify-between gap-2 border-t border-border px-6 py-4">
 			<Button
 				type="button"
-				variant="ghost"
+				variant="destructive-ghost"
 				size="sm"
 				onClick={onDelete}
 				disabled={isDeleting || isSaving}
-				className="text-destructive"
 			>
 				<Trash2 aria-hidden="true" />
-				{isDeleting ? "Excluindo..." : "Excluir grupo"}
+				{isDeleting ? "Excluindo..." : "Excluir Grupo"}
 			</Button>
 
 			<div className="ml-auto flex gap-2">
@@ -47,7 +46,7 @@ export const GroupFormFooter = ({
 				</Button>
 
 				<Button type="submit" disabled={isSaving || isDeleting}>
-					{isSaving ? "Salvando..." : "Salvar grupo"}
+					{isSaving ? "Salvando..." : "Salvar Grupo"}
 				</Button>
 			</div>
 		</SheetFooter>

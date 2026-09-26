@@ -3,6 +3,7 @@ import { useAuthStore, useZodForm } from "@features/shared";
 import {
 	type NormativeTable,
 	type NormativeTableCode,
+	type NormativeTablePayload,
 	useCreateNormativeTable,
 	useDeleteNormativeTable,
 	usePublishNormativeTable,
@@ -17,9 +18,10 @@ import {
 	toNormativeTableFormValues,
 	toNormativeTablePayload,
 } from "../../schemas";
+import { NormativeTableConfirmDialog } from "./NormativeTableConfirmDialog";
 import { NormativeTableFormFooter } from "./NormativeTableFormFooter";
+import { NormativeTableMetadata } from "./NormativeTableMetadata";
 import { NormativeTableRowsEditor } from "./NormativeTableRowsEditor";
-import { PublishNormativeTableDialog } from "./PublishNormativeTableDialog";
 
 interface NormativeTableFormProps {
 	table?: NormativeTable;
@@ -39,6 +41,8 @@ export const NormativeTableForm = ({
 	const publishTable = usePublishNormativeTable();
 	const deleteTable = useDeleteNormativeTable();
 	const [isPublishOpen, setPublishOpen] = useState(false);
+	const [pendingCreation, setPendingCreation] =
+		useState<NormativeTablePayload | null>(null);
 	const email = useAuthStore((state) => state.user?.email);
 
 	const form = useZodForm(
@@ -104,10 +108,17 @@ export const NormativeTableForm = ({
 				{ onSuccess: () => form.reset(values) },
 			);
 		} else {
-			createTable.mutate(payload, {
-				onSuccess: ({ data }) => onCreated(data),
-			});
+			setPendingCreation(payload);
 		}
+	};
+
+	const confirmCreation = () => {
+		if (!pendingCreation) return;
+
+		createTable.mutate(pendingCreation, {
+			onSuccess: ({ data }) => onCreated(data),
+			onSettled: () => setPendingCreation(null),
+		});
 	};
 
 	const remove = () => {
@@ -131,6 +142,8 @@ export const NormativeTableForm = ({
 			onSubmit={form.handleSubmit(submit)}
 			className="flex min-h-0 flex-1 flex-col"
 		>
+			{table ? <NormativeTableMetadata table={table} /> : null}
+
 			<fieldset
 				disabled={readOnly}
 				className="flex min-w-0 flex-1 flex-col gap-8 overflow-y-auto px-6 py-6"
@@ -194,7 +207,7 @@ export const NormativeTableForm = ({
 			</fieldset>
 
 			<NormativeTableFormFooter
-				table={table}
+				canDelete={table !== undefined}
 				readOnly={readOnly}
 				canPublish={!isDirty}
 				awaitingReview={
@@ -207,9 +220,26 @@ export const NormativeTableForm = ({
 				onPublish={() => setPublishOpen(true)}
 			/>
 
-			<PublishNormativeTableDialog
+			<NormativeTableConfirmDialog
+				open={pendingCreation !== null}
+				title="Enviar a tabela para revisão?"
+				description="A tabela fica pendente até a aprovação de outro administrador. Os valores só entram no cálculo de demanda depois de aprovados."
+				confirmLabel="Enviar para Revisão"
+				pendingLabel="Enviando..."
+				isPending={createTable.isPending}
+				onOpenChange={(open) => {
+					if (!open) setPendingCreation(null);
+				}}
+				onConfirm={confirmCreation}
+			/>
+
+			<NormativeTableConfirmDialog
 				open={isPublishOpen}
-				isPublishing={publishTable.isPending}
+				title="Aprovar e publicar a tabela?"
+				description="A revisão passa a valer no cálculo de demanda e substitui a tabela publicada de mesmo código. Uma tabela publicada não pode ser alterada."
+				confirmLabel="Aprovar e Publicar"
+				pendingLabel="Publicando..."
+				isPending={publishTable.isPending}
 				onOpenChange={setPublishOpen}
 				onConfirm={publish}
 			/>

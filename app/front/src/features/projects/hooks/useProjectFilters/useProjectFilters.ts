@@ -62,7 +62,7 @@ export const useProjectFilters = () => {
 		search,
 		debouncedSearch,
 		page,
-		// An empty list under an active filter asks for "Limpar filtros"; without one, it does not.
+		// An empty list under an active filter asks for "Limpar Filtros"; without one, it does not.
 		hasActiveFilters: status !== null || search.trim() !== "",
 		setStatus,
 		setSearch,

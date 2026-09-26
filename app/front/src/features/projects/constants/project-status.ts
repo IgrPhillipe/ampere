@@ -2,8 +2,8 @@ import type { ProjectStatus, ProjectStatusCounts } from "@services/projects";
 
 export const projectStatusLabels = {
 	DRAFT: "Rascunho",
-	AWAITING_SUBMISSION: "Aguardando envio",
-	UNDER_REVIEW: "Em análise",
+	AWAITING_SUBMISSION: "Aguardando Envio",
+	UNDER_REVIEW: "Em Análise",
 	REJECTED: "Reprovado",
 	APPROVED: "Aprovado",
 } as const satisfies Record<ProjectStatus, string>;

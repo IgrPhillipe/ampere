@@ -1,4 +1,4 @@
 export * from "./CalculationPage";
 export * from "./ConsumerUnitsPage";
-export * from "./NewProjectPage";
+export * from "./ProjectDataPage";
 export * from "./ProjectsPage";

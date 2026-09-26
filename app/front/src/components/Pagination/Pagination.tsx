@@ -27,7 +27,7 @@ export const Pagination = ({
 	return (
 		<div
 			className={cn(
-				"mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-border bg-card px-gutter py-2 md:px-gutter-md",
+				"mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-border bg-card px-gutter py-4 md:px-gutter-md",
 				className,
 			)}
 		>
@@ -39,7 +39,7 @@ export const Pagination = ({
 				<Button
 					type="button"
 					variant="neutral"
-					size="icon-xs"
+					size="icon"
 					disabled={page <= 1}
 					onClick={() => onPageChange(page - 1)}
 					aria-label="Página anterior"
@@ -49,7 +49,7 @@ export const Pagination = ({
 				<Button
 					type="button"
 					variant="neutral"
-					size="icon-xs"
+					size="icon"
 					disabled={page >= totalPages}
 					onClick={() => onPageChange(page + 1)}
 					aria-label="Próxima página"

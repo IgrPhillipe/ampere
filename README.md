@@ -147,7 +147,7 @@ Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (
 | :--- | :--- |
 | **Entregue** | Formulário de identificação e parâmetros técnicos<br>Campos obrigatórios bloqueiam o avanço<br>DIS-NOR-053 REV 06 e DIS-NOR-030 REV 07 atribuídas a partir do tipo de edificação, sem seleção manual<br>Norma persistida junto do projeto |
 | **Back-end** | [`BuildingType`](app/back/src/main/java/br/com/ampere/domain/BuildingType.java) e subclasses, [`ApplicableStandards`](app/back/src/main/java/br/com/ampere/service/ApplicableStandards.java), [`ProjectCreation`](app/back/src/main/java/br/com/ampere/service/ProjectCreation.java) |
-| **Front-end** | [`NewProjectPage`](app/front/src/features/projects/pages/NewProjectPage/NewProjectPage.tsx) |
+| **Front-end** | [`ProjectDataPage`](app/front/src/features/projects/pages/ProjectDataPage/ProjectDataPage.tsx) |
 | **Issues** | [#14](https://github.com/IgrPhillipe/ampere/issues/14), [#26](https://github.com/IgrPhillipe/ampere/issues/26), [#30](https://github.com/IgrPhillipe/ampere/issues/30) |
 
 #### Requisitos de POO

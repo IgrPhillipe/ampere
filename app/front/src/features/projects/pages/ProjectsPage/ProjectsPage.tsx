@@ -86,7 +86,7 @@ export const ProjectsPage = () => {
 					size="sm"
 					onClick={() => void navigate({ to: "/projetos/novo" })}
 				>
-					Novo projeto
+					Novo Projeto
 					<ArrowRight aria-hidden="true" />
 				</Button>
 			}
@@ -129,7 +129,7 @@ export const ProjectsPage = () => {
 										void statusCountsQuery.refetch();
 									}}
 								>
-									Tentar novamente
+									Tentar Novamente
 								</Button>
 							}
 						/>

@@ -64,7 +64,7 @@ export const NormativeTableSheet = ({
 
 					<SheetDescription>
 						{tableId === null
-							? "Ao salvar, é criado um rascunho que precisa ser aprovado por um revisor para valer no cálculo."
+							? "Cadastro de uma tabela normativa."
 							: table?.title}
 					</SheetDescription>
 				</SheetHeader>
@@ -84,7 +84,7 @@ export const NormativeTableSheet = ({
 										if (tableId !== null) void tableQuery.refetch();
 									}}
 								>
-									Tentar novamente
+									Tentar Novamente
 								</Button>
 							}
 						/>

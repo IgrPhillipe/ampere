@@ -1,8 +1,8 @@
 import type { NormativeTableStatus } from "@services/normative-tables";
 
 export const normativeTableStatusLabels = {
-	DRAFT: "Rascunho",
-	PUBLISHED: "Publicada",
+	DRAFT: "Aguardando Revisão",
+	PUBLISHED: "Vigente",
 	SUPERSEDED: "Substituída",
 } as const satisfies Record<NormativeTableStatus, string>;
 

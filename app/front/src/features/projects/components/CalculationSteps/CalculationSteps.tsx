@@ -108,7 +108,7 @@ const StepRow = ({ step }: { step: CalculationStep }) => {
 							onClick={() => setIsOpen((open) => !open)}
 							className="self-start text-xs text-foreground underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
 						>
-							{isOpen ? "Ocultar detalhes" : "Ver detalhes"}
+							{isOpen ? "Ocultar Detalhes" : "Ver Detalhes"}
 						</button>
 						<ul
 							id={detailsId}

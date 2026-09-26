@@ -96,7 +96,7 @@ public class NormativeTableService {
 
   @Transactional
   public void delete(Long id) {
-    tableRepository.delete(draftOrFail(id, "Só é possível excluir uma tabela em rascunho."));
+    tableRepository.delete(draftOrFail(id, "Só é possível excluir uma tabela aguardando revisão."));
   }
 
   private NormativeTable draftOrFail(Long id, String message) {

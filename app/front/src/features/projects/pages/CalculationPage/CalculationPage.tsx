@@ -110,7 +110,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 							action={
 								<Button type="button" variant="outline" onClick={backToUnits}>
 									<ArrowLeft aria-hidden="true" />
-									Voltar às unidades
+									Voltar às Unidades
 								</Button>
 							}
 						/>
@@ -131,7 +131,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 							icon={CircleAlert}
 							action={
 								<Button type="button" variant="outline" onClick={retry}>
-									Tentar novamente
+									Tentar Novamente
 								</Button>
 							}
 						/>
@@ -171,7 +171,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 						disabled={!result}
 						onClick={() => toast.info("O memorial chega na próxima etapa.")}
 					>
-						Gerar memorial
+						Gerar Memorial
 						<ArrowRight aria-hidden="true" />
 					</Button>
 				</div>

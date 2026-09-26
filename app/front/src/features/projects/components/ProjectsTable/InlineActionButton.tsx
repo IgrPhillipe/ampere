@@ -8,7 +8,7 @@ interface InlineActionButtonProps {
 	className?: string;
 }
 
-/** Text action inside a cell: "Ver apontamentos", "Retomar e enviar". */
+/** Text action inside a cell: "Ver Apontamentos", "Retomar e Enviar". */
 export const InlineActionButton = ({
 	children,
 	onClick,
