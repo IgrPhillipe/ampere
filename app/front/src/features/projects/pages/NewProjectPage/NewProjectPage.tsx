@@ -12,6 +12,7 @@ import { useCreateProject } from "@services/projects";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 
+import { ProjectStepper } from "../../components";
 import {
 	type ProjectCreationFormValues,
 	projectCreationSchema,
@@ -41,14 +42,6 @@ const entranceStandardItems: Record<EntranceStandard, string> = {
 	COLLECTIVE: "Coletivo",
 	INDIVIDUAL: "Individual",
 };
-
-const STAGES = [
-	"Dados da edificação",
-	"Unidades consumidoras",
-	"Cálculo de demanda",
-	"Memorial",
-	"Envio",
-];
 
 const PROGRESS_SECTIONS: {
 	title: string;
@@ -101,8 +94,11 @@ export const NewProjectPage = () => {
 
 	const onSubmit = (submitted: ProjectCreationFormValues) => {
 		createProject.mutate(submitted, {
-			onSuccess: () => {
-				void navigate({ to: "/" });
+			onSuccess: (response) => {
+				void navigate({
+					to: "/projetos/$id/unidades",
+					params: { id: response.data.id },
+				});
 			},
 		});
 	};
@@ -127,33 +123,7 @@ export const NewProjectPage = () => {
 					</h1>
 				</div>
 
-				<nav
-					aria-label="Etapas do projeto"
-					className="mt-6 border-b border-border px-6 md:px-8"
-				>
-					{/* `overflow-x-auto`: com `hidden` os nomes das etapas eram cortados
-					    em largura de celular, sem forma de chegar neles. */}
-					<ol className="flex overflow-x-auto">
-						{STAGES.map((label, index) => {
-							const isCurrent = index === 0;
-
-							return (
-								<li
-									key={label}
-									aria-current={isCurrent ? "step" : undefined}
-									className={`flex-1 border-b-2 px-1 py-3 text-sm whitespace-nowrap ${
-										isCurrent
-											? "border-foreground font-medium text-foreground"
-											: "border-transparent text-muted-foreground"
-									}`}
-								>
-									<span className="mr-2 text-xs">{pad(index + 1)}</span>
-									{label}
-								</li>
-							);
-						})}
-					</ol>
-				</nav>
+				<ProjectStepper current={0} className="mt-6" />
 
 				<div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_320px]">
 					<div className="space-y-10 px-6 py-8 md:px-8">

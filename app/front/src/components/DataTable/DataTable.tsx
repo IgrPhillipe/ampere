@@ -28,6 +28,12 @@ interface DataTableProps<TData extends RowData, TColumnId extends string> {
 	empty?: ReactNode;
 	/** Class per column, keyed to the ids the caller declared. */
 	columnClassNames?: Partial<Record<TColumnId, string>>;
+	/**
+	 * `TableRow`s rendered after the data, inside the same body: a row being
+	 * filled in, for instance. While present, an empty `data` still renders
+	 * the table instead of the empty state.
+	 */
+	trailingRows?: ReactNode;
 	className?: string;
 }
 
@@ -39,13 +45,14 @@ export const DataTable = <TData extends RowData, TColumnId extends string>({
 	emptyDescription,
 	empty,
 	columnClassNames,
+	trailingRows,
 	className,
 }: DataTableProps<TData, TColumnId>) => {
 	const table = useTable({ features: dataTableFeatures, columns, data });
 
 	if (isLoading) return <SkeletonTable columns={columns.length} />;
 
-	if (data.length === 0) {
+	if (data.length === 0 && !trailingRows) {
 		return (
 			empty ?? <EmptyState title={emptyTitle} description={emptyDescription} />
 		);
@@ -84,6 +91,8 @@ export const DataTable = <TData extends RowData, TColumnId extends string>({
 							))}
 						</TableRow>
 					))}
+
+					{trailingRows}
 				</TableBody>
 			</Table>
 		</div>
