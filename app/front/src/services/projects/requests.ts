@@ -23,6 +23,12 @@ export const getProjectStatusCounts = async () => {
 	return projectStatusCountsResponseSchema.parse(response);
 };
 
+export const getProject = async (id: string) => {
+	const response = await http.get(e.detail(id)).json<unknown>();
+
+	return projectDetailResponseSchema.parse(response);
+};
+
 export const createProject = async (payload: CreateProjectPayload) => {
 	const response = await http.post(e.create, { json: payload }).json<unknown>();
 

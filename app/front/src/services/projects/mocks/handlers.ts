@@ -11,6 +11,7 @@ import {
 } from "../schemas";
 import {
 	makeCreatedProjectResponse,
+	makeProjectDetail,
 	makeProjectList,
 	makeProjectStatusCountsResponse,
 } from "./factories";
@@ -106,6 +107,26 @@ export const projectHandlers = [
 	http.get(url(e.statusCounts), () =>
 		HttpResponse.json(makeProjectStatusCountsResponse()),
 	),
+
+	// Depois de `status-counts`: `:id` casaria com ele.
+	http.get(url(e.detail(":id")), ({ params }) => {
+		const project = MOCK_PROJECTS.find(({ id }) => id === params.id);
+
+		if (!project) {
+			return HttpResponse.json(
+				{
+					type: "about:blank",
+					title: "Not Found",
+					status: 404,
+					detail: "Projeto não encontrado.",
+					instance: `/${e.detail(String(params.id))}`,
+				},
+				{ status: 404 },
+			);
+		}
+
+		return HttpResponse.json({ data: makeProjectDetail(project) });
+	}),
 
 	http.post(url(e.create), async ({ request }) => {
 		const payload = createProjectSchema.safeParse(await request.json());

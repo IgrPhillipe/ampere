@@ -107,6 +107,7 @@ export const projectDetailSchema = z.object({
 	municipality: z.string(),
 	protocol: z.string(),
 	status: projectStatusSchema,
+	createdAt: z.iso.datetime({ offset: true }),
 	updatedAt: z.iso.datetime({ offset: true }),
 	buildingType: buildingCategorySchema,
 	floors: z.number().int().positive(),
