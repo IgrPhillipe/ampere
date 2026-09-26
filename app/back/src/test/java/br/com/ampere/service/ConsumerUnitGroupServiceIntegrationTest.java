@@ -21,6 +21,7 @@ import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
+import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
@@ -46,12 +47,15 @@ class ConsumerUnitGroupServiceIntegrationTest {
 
   @Autowired private FindingRepository findingRepository;
 
+  @Autowired private CalculationRepository calculationRepository;
+
   @Autowired private ProjectRepository projectRepository;
 
   @Autowired private EntityManager entityManager;
 
   @BeforeEach
   void clearProjects() {
+    calculationRepository.deleteAll();
     groupRepository.deleteAll();
     findingRepository.deleteAll();
     projectRepository.deleteAll();

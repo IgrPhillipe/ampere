@@ -34,6 +34,7 @@ import br.com.ampere.error.GlobalExceptionHandler;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.service.ProjectListing;
 import br.com.ampere.service.ProjectService;
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -85,7 +86,13 @@ class ProjectControllerTest {
         .thenReturn(OffsetDateTime.of(2026, 9, 17, 0, 0, 0, 0, ZoneOffset.UTC));
 
     ProjectService service = mock(ProjectService.class);
-    ProjectListing listing = new ProjectListing(List.of(project), 1, Map.of(42L, 3L));
+    ProjectListing listing =
+        new ProjectListing(
+            List.of(project),
+            1,
+            Map.of(42L, 3L),
+            Map.of(42L, 55L),
+            Map.of(42L, new BigDecimal("165.00")));
     when(service.list(1, 20, ProjectStatus.REJECTED, "vila")).thenReturn(listing);
     ProjectController controller = new ProjectController(service);
 
@@ -95,6 +102,8 @@ class ProjectControllerTest {
     assertThat(response.data()).hasSize(1);
     assertThat(response.data().getFirst().id()).isEqualTo("42");
     assertThat(response.data().getFirst().pendingCount()).isEqualTo(3);
+    assertThat(response.data().getFirst().consumerUnitsCount()).isEqualTo(55);
+    assertThat(response.data().getFirst().demandKva()).isEqualByComparingTo("165");
     assertThat(response.pagination().total()).isOne();
     assertThat(response.pagination().page()).isOne();
     assertThat(response.pagination().pageSize()).isEqualTo(20);
