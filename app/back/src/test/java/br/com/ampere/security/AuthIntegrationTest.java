@@ -40,16 +40,16 @@ class AuthIntegrationTest {
     userRepository.deleteAll();
     userRepository.save(
         new User(
-            "Usuário Teste", "user@ampere.local", passwordEncoder.encode(PASSWORD), UserRole.USER));
+            "Usuário Teste", "user@ampere.com", passwordEncoder.encode(PASSWORD), UserRole.USER));
   }
 
   @Test
   void exchangesCredentialsForATokenAndTheUser() throws Exception {
     mockMvc
-        .perform(login("user@ampere.local", PASSWORD))
+        .perform(login("user@ampere.com", PASSWORD))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.token").isNotEmpty())
-        .andExpect(jsonPath("$.data.user.email").value("user@ampere.local"))
+        .andExpect(jsonPath("$.data.user.email").value("user@ampere.com"))
         .andExpect(jsonPath("$.data.user.name").value("Usuário Teste"))
         // Lowercase: it is the contract the front's `userRoleSchema` validates.
         .andExpect(jsonPath("$.data.user.role").value("user"))
@@ -60,7 +60,7 @@ class AuthIntegrationTest {
   void neverPutsThePasswordHashInTheResponse() throws Exception {
     String body =
         mockMvc
-            .perform(login("user@ampere.local", PASSWORD))
+            .perform(login("user@ampere.com", PASSWORD))
             .andReturn()
             .getResponse()
             .getContentAsString();
@@ -73,7 +73,7 @@ class AuthIntegrationTest {
 
   @Test
   void signsInRegardlessOfHowTheEmailWasTyped() throws Exception {
-    mockMvc.perform(login("  USER@Ampere.Local  ", PASSWORD)).andExpect(status().isOk());
+    mockMvc.perform(login("  USER@Ampere.Com  ", PASSWORD)).andExpect(status().isOk());
   }
 
   /** Unknown e-mail and wrong password answer alike: the difference would reveal who exists. */
@@ -81,14 +81,14 @@ class AuthIntegrationTest {
   void refusesWrongPasswordAndUnknownEmailWithTheSameAnswer() throws Exception {
     String wrongPassword =
         mockMvc
-            .perform(login("user@ampere.local", "errada"))
+            .perform(login("user@ampere.com", "errada"))
             .andExpect(status().isUnauthorized())
             .andReturn()
             .getResponse()
             .getContentAsString();
     String unknownEmail =
         mockMvc
-            .perform(login("ninguem@ampere.local", PASSWORD))
+            .perform(login("ninguem@ampere.com", PASSWORD))
             .andExpect(status().isUnauthorized())
             .andReturn()
             .getResponse()
@@ -107,7 +107,7 @@ class AuthIntegrationTest {
     mockMvc
         .perform(get("/auth/me").header("Authorization", "Bearer " + token()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.email").value("user@ampere.local"))
+        .andExpect(jsonPath("$.data.email").value("user@ampere.com"))
         .andExpect(jsonPath("$.data.role").value("user"));
   }
 
@@ -139,7 +139,7 @@ class AuthIntegrationTest {
 
   @Test
   void keepsTheLoginAndTheDocumentationOpen() throws Exception {
-    mockMvc.perform(login("user@ampere.local", PASSWORD)).andExpect(status().isOk());
+    mockMvc.perform(login("user@ampere.com", PASSWORD)).andExpect(status().isOk());
     mockMvc.perform(get("/v3/api-docs")).andExpect(status().isOk());
   }
 
@@ -153,7 +153,7 @@ class AuthIntegrationTest {
   private String token() throws Exception {
     String body =
         mockMvc
-            .perform(login("user@ampere.local", PASSWORD))
+            .perform(login("user@ampere.com", PASSWORD))
             .andReturn()
             .getResponse()
             .getContentAsString();

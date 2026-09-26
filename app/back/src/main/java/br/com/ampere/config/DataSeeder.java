@@ -94,9 +94,9 @@ public class DataSeeder implements CommandLineRunner {
     String hash = passwordEncoder.encode(DEVELOPMENT_PASSWORD);
     List<User> missing =
         List.of(
-                new User("Usuário Teste", "user@ampere.local", hash, UserRole.USER),
-                new User("Admin Teste", "admin@ampere.local", hash, UserRole.ADMIN),
-                new User("Revisor Teste", "revisor@ampere.local", hash, UserRole.ADMIN))
+                new User("Usuário Teste", "user@ampere.com", hash, UserRole.USER),
+                new User("Admin Teste", "admin@ampere.com", hash, UserRole.ADMIN),
+                new User("Revisor Teste", "revisor@ampere.com", hash, UserRole.ADMIN))
             .stream()
             .filter(user -> userRepository.findByEmail(user.getEmail()).isEmpty())
             .toList();

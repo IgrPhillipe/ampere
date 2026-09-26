@@ -261,9 +261,9 @@ class DataSeederTest {
     assertThat(users)
         .extracting(User::getEmail, User::getRole)
         .containsExactly(
-            tuple("user@ampere.local", UserRole.USER),
-            tuple("admin@ampere.local", UserRole.ADMIN),
-            tuple("revisor@ampere.local", UserRole.ADMIN));
+            tuple("user@ampere.com", UserRole.USER),
+            tuple("admin@ampere.com", UserRole.ADMIN),
+            tuple("revisor@ampere.com", UserRole.ADMIN));
     assertThat(users)
         .allSatisfy(
             user -> {
@@ -295,7 +295,7 @@ class DataSeederTest {
   void addsTheReviewerToADatabaseSeededBeforeIt() {
     UserRepository userRepository = mock(UserRepository.class);
     when(userRepository.findByEmail(any())).thenReturn(Optional.of(mock(User.class)));
-    when(userRepository.findByEmail("revisor@ampere.local")).thenReturn(Optional.empty());
+    when(userRepository.findByEmail("revisor@ampere.com")).thenReturn(Optional.empty());
     DataSeeder seeder =
         seeder(
             projectRepositoryWithProjects(),
@@ -309,7 +309,7 @@ class DataSeederTest {
     verify(userRepository).saveAll(captor.capture());
     assertThat(StreamSupport.stream(captor.getValue().spliterator(), false))
         .extracting(User::getEmail)
-        .containsExactly("revisor@ampere.local");
+        .containsExactly("revisor@ampere.com");
   }
 
   @Test
