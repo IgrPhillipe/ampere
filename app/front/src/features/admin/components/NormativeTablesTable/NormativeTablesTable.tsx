@@ -15,7 +15,7 @@ const normativeTableColumnClassNames = {
 	standard: "w-32",
 	item: "hidden lg:table-cell lg:w-40",
 	rowCount: "w-20",
-	status: "w-32",
+	status: "w-48",
 	registeredBy: "hidden xl:table-cell xl:w-52",
 	verifiedBy: "hidden lg:table-cell lg:w-52",
 } satisfies Partial<Record<NormativeTableColumnId, string>>;
