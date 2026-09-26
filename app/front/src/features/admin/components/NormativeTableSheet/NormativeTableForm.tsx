@@ -20,6 +20,7 @@ import {
 } from "../../schemas";
 import { NormativeTableConfirmDialog } from "./NormativeTableConfirmDialog";
 import { NormativeTableFormFooter } from "./NormativeTableFormFooter";
+import { NormativeTableMetadata } from "./NormativeTableMetadata";
 import { NormativeTableRowsEditor } from "./NormativeTableRowsEditor";
 
 interface NormativeTableFormProps {
@@ -141,6 +142,8 @@ export const NormativeTableForm = ({
 			onSubmit={form.handleSubmit(submit)}
 			className="flex min-h-0 flex-1 flex-col"
 		>
+			{table ? <NormativeTableMetadata table={table} /> : null}
+
 			<fieldset
 				disabled={readOnly}
 				className="flex min-w-0 flex-1 flex-col gap-8 overflow-y-auto px-6 py-6"
@@ -204,7 +207,7 @@ export const NormativeTableForm = ({
 			</fieldset>
 
 			<NormativeTableFormFooter
-				table={table}
+				canDelete={table !== undefined}
 				readOnly={readOnly}
 				canPublish={!isDirty}
 				awaitingReview={
