@@ -20,6 +20,7 @@ import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
+import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
@@ -47,6 +48,7 @@ class ProjectServiceTest {
             projectRepository,
             findingRepository,
             mock(ConsumerUnitGroupRepository.class),
+            mock(CalculationRepository.class),
             mock(ProjectCreation.class),
             mock(ApplicableStandards.class));
 
@@ -128,15 +130,17 @@ class ProjectServiceTest {
   }
 
   @Test
-  void deletesTheFindingsBeforeTheProject() {
+  void deletesTheCalculationsAndFindingsBeforeTheProject() {
     ProjectRepository projectRepository = mock(ProjectRepository.class);
     FindingRepository findingRepository = mock(FindingRepository.class);
+    CalculationRepository calculationRepository = mock(CalculationRepository.class);
     Project project = projectWith(ProjectStatus.DRAFT);
     when(projectRepository.findDetailById(1L)).thenReturn(Optional.of(project));
 
-    service(projectRepository, findingRepository).delete(1L);
+    service(projectRepository, findingRepository, calculationRepository).delete(1L);
 
-    InOrder order = inOrder(findingRepository, projectRepository);
+    InOrder order = inOrder(calculationRepository, findingRepository, projectRepository);
+    order.verify(calculationRepository).deleteAllByProjectId(1L);
     order.verify(findingRepository).deleteAllByProjectId(1L);
     order.verify(projectRepository).delete(project);
   }
@@ -158,16 +162,25 @@ class ProjectServiceTest {
         mock(ProjectRepository.class),
         mock(FindingRepository.class),
         mock(ConsumerUnitGroupRepository.class),
+        mock(CalculationRepository.class),
         creation,
         mock(ApplicableStandards.class));
   }
 
   private static ProjectService service(
       ProjectRepository projectRepository, FindingRepository findingRepository) {
+    return service(projectRepository, findingRepository, mock(CalculationRepository.class));
+  }
+
+  private static ProjectService service(
+      ProjectRepository projectRepository,
+      FindingRepository findingRepository,
+      CalculationRepository calculationRepository) {
     return new ProjectService(
         projectRepository,
         findingRepository,
         mock(ConsumerUnitGroupRepository.class),
+        calculationRepository,
         mock(ProjectCreation.class),
         mock(ApplicableStandards.class));
   }

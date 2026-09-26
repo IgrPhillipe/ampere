@@ -8,7 +8,9 @@ import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
+import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.FindingRepository;
+import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import java.util.List;
@@ -29,11 +31,17 @@ class ProjectDetailIntegrationTest {
 
   @Autowired private StandardRepository standardRepository;
 
+  @Autowired private CalculationRepository calculationRepository;
+
+  @Autowired private NormativeTableRepository normativeTableRepository;
+
   @BeforeEach
   @AfterEach
   void clearProjects() {
+    calculationRepository.deleteAll();
     findingRepository.deleteAll();
     projectRepository.deleteAll();
+    normativeTableRepository.deleteAll();
     standardRepository.deleteAll();
   }
 

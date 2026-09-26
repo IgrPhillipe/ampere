@@ -5,10 +5,12 @@ import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
+import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.utils.SearchTerms;
+import java.math.BigDecimal;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +39,7 @@ public class ProjectService {
   private final ProjectRepository projectRepository;
   private final FindingRepository findingRepository;
   private final ConsumerUnitGroupRepository groupRepository;
+  private final CalculationRepository calculationRepository;
   private final ProjectCreation projectCreation;
   private final ApplicableStandards applicableStandards;
 
@@ -44,11 +47,13 @@ public class ProjectService {
       ProjectRepository projectRepository,
       FindingRepository findingRepository,
       ConsumerUnitGroupRepository groupRepository,
+      CalculationRepository calculationRepository,
       ProjectCreation projectCreation,
       ApplicableStandards applicableStandards) {
     this.projectRepository = projectRepository;
     this.findingRepository = findingRepository;
     this.groupRepository = groupRepository;
+    this.calculationRepository = calculationRepository;
     this.projectCreation = projectCreation;
     this.applicableStandards = applicableStandards;
   }
@@ -59,10 +64,14 @@ public class ProjectService {
     Page<Project> projects =
         projectRepository.searchProjects(status, SearchTerms.normalize(search), pageRequest);
 
+    List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
+
     return new ProjectListing(
         projects.getContent(),
         projects.getTotalElements(),
-        countPendingFindings(projects.getContent()));
+        countPendingFindings(projectIds),
+        countUnits(projectIds),
+        latestDemands(projectIds));
   }
 
   @Transactional(readOnly = true)
@@ -109,6 +118,7 @@ public class ProjectService {
   public void delete(Long id) {
     Project project = draftOrFail(id, "Só é possível excluir um projeto em rascunho.");
 
+    calculationRepository.deleteAllByProjectId(id);
     findingRepository.deleteAllByProjectId(id);
     groupRepository.deleteAllByProjectId(id);
     projectRepository.delete(project);
@@ -123,8 +133,7 @@ public class ProjectService {
     return project;
   }
 
-  private Map<Long, Long> countPendingFindings(List<Project> projects) {
-    List<Long> projectIds = projects.stream().map(Project::getId).toList();
+  private Map<Long, Long> countPendingFindings(List<Long> projectIds) {
     if (projectIds.isEmpty()) {
       return Map.of();
     }
@@ -134,5 +143,29 @@ public class ProjectService {
             Collectors.toUnmodifiableMap(
                 FindingRepository.FindingCount::getProjectId,
                 FindingRepository.FindingCount::getTotal));
+  }
+
+  private Map<Long, Long> countUnits(List<Long> projectIds) {
+    if (projectIds.isEmpty()) {
+      return Map.of();
+    }
+
+    return groupRepository.countUnitsPerProject(projectIds).stream()
+        .collect(
+            Collectors.toUnmodifiableMap(
+                ConsumerUnitGroupRepository.UnitCount::getProjectId,
+                ConsumerUnitGroupRepository.UnitCount::getTotal));
+  }
+
+  private Map<Long, BigDecimal> latestDemands(List<Long> projectIds) {
+    if (projectIds.isEmpty()) {
+      return Map.of();
+    }
+
+    return calculationRepository.findLatestDemandPerProject(projectIds).stream()
+        .collect(
+            Collectors.toUnmodifiableMap(
+                CalculationRepository.LatestDemand::getProjectId,
+                CalculationRepository.LatestDemand::getDemand));
   }
 }

@@ -113,6 +113,37 @@ public class EvChargingGroup extends ConsumerUnitGroup {
     return Boolean.TRUE.equals(incorporatedInVehicle) ? INCORPORATED_STATION_KW : null;
   }
 
+  /** Installed kW only: the factor of Quadro 33 goes on every point of the building. */
+  @Override
+  public DemandContribution demand(DemandContext context) {
+    BigDecimal power = loadPerUnitKw();
+    BigDecimal installed = DeclaredValues.kva(power.multiply(BigDecimal.valueOf(getQuantity())));
+    String term = getQuantity() + " × " + DeclaredValues.fixed(power, 2);
+    String line =
+        getName()
+            + ": "
+            + getQuantity()
+            + (getQuantity() == 1 ? " ponto de " : " pontos de ")
+            + DeclaredValues.fixed(power, 2)
+            + " kW = "
+            + DeclaredValues.fixed(installed, 2)
+            + " kW";
+    if (!DeclaredValues.isPositive(powerPerPointKw)) {
+      line += " (estação incorporada ao veículo, DIS-NOR-030 item 6.26.4.1)";
+    }
+
+    return new DemandContribution(
+        DemandComponent.EV_CHARGING,
+        getName(),
+        getQuantity(),
+        false,
+        installed,
+        term,
+        term,
+        List.of(line),
+        List.of());
+  }
+
   @Override
   public String summary() {
     String points = getQuantity() + (getQuantity() == 1 ? " ponto" : " pontos");

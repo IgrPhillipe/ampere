@@ -79,6 +79,9 @@ public abstract class ConsumerUnitGroup {
 
   public abstract String summary();
 
+  /** This group's share of the demand. Only called once every group is validated. */
+  public abstract DemandContribution demand(DemandContext context);
+
   public final GroupStatus status() {
     return validate().stream()
         .map(ValidationIssue::severity)

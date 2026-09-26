@@ -62,7 +62,13 @@ public class ProjectController {
     ProjectListing listing = service.list(pagination.page(), pagination.pageSize(), status, search);
     List<ProjectResponse> projects =
         listing.projects().stream()
-            .map(project -> ProjectResponse.from(project, listing.pendingCountFor(project)))
+            .map(
+                project ->
+                    ProjectResponse.from(
+                        project,
+                        listing.pendingCountFor(project),
+                        listing.unitCountFor(project),
+                        listing.demandFor(project)))
             .toList();
 
     return ApiResponse.of(

@@ -108,6 +108,32 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   }
 
   @Override
+  public DemandContribution demand(DemandContext context) {
+    NormativeValue quadro35 =
+        context.tables().find(NormativeTableCode.Q35_APARTMENT_DEMAND, usefulArea);
+    String term = getQuantity() + " × " + DeclaredValues.fixed(quadro35.value(), 2);
+
+    return new DemandContribution(
+        DemandComponent.RESIDENTIAL_UNITS,
+        getName(),
+        getQuantity(),
+        isCompactUnit(),
+        DeclaredValues.kva(quadro35.value().multiply(BigDecimal.valueOf(getQuantity()))),
+        term,
+        term,
+        List.of(
+            getName()
+                + ": "
+                + term
+                + " kVA ("
+                + quadro35.reference().identification()
+                + ", "
+                + quadro35.band()
+                + " m²)"),
+        List.of(quadro35.reference()));
+  }
+
+  @Override
   public String summary() {
     List<String> parts = new ArrayList<>();
     parts.add(
