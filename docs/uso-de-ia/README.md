@@ -2,23 +2,23 @@
 
 Registro contínuo do uso de IA ao longo de Projetos 3, para o relatório da **aula 14 (28/11/2026)**.
 
-O plano de ensino pede um relatório com quatro elementos: como a IA foi utilizada, em quais atividades o uso foi benéfico, em quais situações apresentou limitações — com exemplos práticos de respostas incorretas ou alucinações — e uma reflexão sobre cuidados e boas práticas.
+O plano de ensino pede um relatório com quatro elementos: como a IA foi utilizada; em quais atividades o uso foi benéfico; em quais situações apresentou limitações, com exemplos práticos de respostas incorretas ou alucinações; e uma reflexão sobre cuidados e boas práticas.
 
-Este diretório guarda os casos conforme acontecem. As quatro seções abaixo são escritas ao final, a partir deles.
+Este diretório guarda os casos conforme acontecem. As quatro seções finais são escritas ao término do semestre, a partir dos casos.
 
-## Como registrar um caso
+## Como Registrar um Caso
 
 Um arquivo por caso, nomeado `caso-NNNN-descricao-curta.md`, com estas seções fixas:
 
-- **Atividade** — o que estava sendo feito, e em que fase do projeto
-- **O que a IA fez** — a ação ou afirmação, sem interpretação
-- **Resultado** — benefício ou limitação, e qual o efeito prático
-- **Evidência** — o que comprova: arquivo, commit, trecho, link
-- **Aprendizado** — o que o time faz diferente a partir daqui
+- **Atividade**: o que estava sendo feito e em que fase do projeto
+- **O que a IA Fez**: a ação ou afirmação, sem interpretação
+- **Resultado**: benefício ou limitação, e o efeito prático
+- **Evidência**: arquivo, commit, trecho ou link que comprova
+- **Aprendizado**: o que o time passa a fazer diferente
 
-Um arquivo por caso evita conflito de merge entre sete pessoas. Registrar no dia em que acontece: reconstruir em novembro não funciona.
+Um arquivo por caso evita conflito de merge entre sete pessoas. O caso é registrado no dia em que acontece; reconstruí-lo em novembro não é viável.
 
-## Índice de casos
+## Índice de Casos
 
 | # | Caso | Fase | Tipo |
 | :-: | :--- | :--- | :--- |
@@ -33,18 +33,18 @@ Um arquivo por caso evita conflito de merge entre sete pessoas. Registrar no dia
 | [0009](caso-0009-mapeamento-do-processo.md) | Mapeamento do processo de submissão por fontes públicas | Imersão | Benefício |
 | [0010](caso-0010-citacao-de-item-normativo-inexistente.md) | Citação de item normativo que não existe na norma citada | Ideação | Resposta incorreta |
 
-## Como a IA foi utilizada
+## Como a IA Foi Utilizada
 
 A preencher ao final do semestre.
 
-## Onde o uso foi benéfico
+## Onde o Uso Foi Benéfico
 
 A preencher ao final do semestre.
 
-## Onde apresentou limitações
+## Onde Apresentou Limitações
 
 A preencher ao final do semestre.
 
-## Cuidados e boas práticas
+## Cuidados e Boas Práticas
 
 A preencher ao final do semestre.

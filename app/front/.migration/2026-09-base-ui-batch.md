@@ -1,64 +1,65 @@
-# Lote de portes Base UI — scaffold do AMPERE
+# Lote de Portes Base UI: Scaffold do AMPERE
 
-2026-09-15. Nove componentes gerados pelo registry do shadcn (Radix) e reescritos
-para `@base-ui/react`. `radix-ui` foi removido das dependencias: nada em `src/`
-importa mais.
+2026-09-15. Componentes gerados pelo registry do shadcn (Radix) e reescritos para
+`@base-ui/react`, mais o `field`, criado do zero. `radix-ui` saiu das
+dependências: nenhum arquivo em `src/` o importa.
 
 ## Portados
 
-`avatar` · `dialog` · `sheet` (deriva do dialog) · `dropdown-menu` (→ `Menu`) ·
-`select` · `popover` · `tabs` · `switch` · `checkbox` · `separator` · `badge` ·
+`avatar`, `dialog`, `sheet` (deriva do dialog), `dropdown-menu` (→ `Menu`),
+`select`, `popover`, `tabs`, `switch`, `checkbox`, `separator`, `badge`,
 `field` (novo, base do `components/form`)
 
-`label` virou um `<label>` nativo: o Base UI nao tem Label solto, so `Field.Label`.
+`label` virou um `<label>` nativo: o Base UI não tem Label avulso, apenas `Field.Label`.
 
-## Mapa de equivalencias
+## Mapa de Equivalências
 
 | Radix | Base UI |
 | :--- | :--- |
 | `Dialog.Overlay` | `Dialog.Backdrop` |
 | `Dialog.Content` | `Dialog.Popup` |
 | `DropdownMenu.Content` | `Menu.Portal` > `Menu.Positioner` > `Menu.Popup` |
-| `DropdownMenu.Label` | `Menu.GroupLabel` (**so dentro de `Menu.Group`**) |
+| `DropdownMenu.Label` | `Menu.GroupLabel` (**apenas dentro de `Menu.Group`**) |
 | `Tabs.Trigger` / `Tabs.Content` | `Tabs.Tab` / `Tabs.Panel` |
-| `asChild` + `Slot` | prop `render`, ou o hook `useRender` |
+| `asChild` + `Slot` | prop `render` ou hook `useRender` |
 | `data-[state=open]` | `data-open` / `data-closed` |
-| animacao de entrada/saida | `data-starting-style` / `data-ending-style` |
+| animação de entrada/saída | `data-starting-style` / `data-ending-style` |
 
-O `Positioner` e obrigatorio entre `Portal` e `Popup` em menu, select e popover.
-Sem ele o popup nao posiciona.
+O `Positioner` é obrigatório entre `Portal` e `Popup` em menu, select e popover.
+Sem ele, o popup não posiciona.
 
-## Tres armadilhas que so aparecem em runtime
+## Três Armadilhas que Só Aparecem em Runtime
 
-Todas passaram no `tsc` e so quebraram no navegador. Vale abrir a tela depois de
-portar qualquer componente novo.
+As três passaram no `tsc` e só quebraram no navegador. Todo componente novo
+portado exige verificação da tela no navegador.
 
-1. **`Menu.GroupLabel` fora de `Menu.Group` lanca excecao.** No Radix o Label
-   funciona solto. Aqui o erro e engolido pelo CatchBoundary do TanStack Router
-   e o menu inteiro simplesmente nao abre, sem nada visivel na tela.
-   Por isso `DropdownMenuLabel` renderiza um `div`; para rotular um grupo de
-   verdade existe `DropdownMenuGroupLabel`.
+1. **`Menu.GroupLabel` fora de `Menu.Group` lança exceção.** No Radix, o Label
+   funciona avulso. No Base UI, o CatchBoundary do TanStack Router engole o erro
+   e o menu não abre, sem nenhum aviso na tela.
+   Por isso `DropdownMenuLabel` renderiza um `div`. Para rotular um grupo,
+   use `DropdownMenuGroupLabel`.
 
-2. **`Select.Value` mostra o valor, nao o rotulo.** O Radix mostra o `ItemText`.
-   Aqui e preciso passar `items` ao `Select` (mapa valor → rotulo), senao o
-   gatilho exibe `"b"` em vez de `"Opcao B"`. Documentado em `select.tsx`.
+2. **`Select.Value` mostra o valor, não o rótulo.** O Radix mostra o `ItemText`.
+   No Base UI, o `Select` precisa receber `items` (mapa valor → rótulo); sem isso,
+   o gatilho exibe `"b"` em vez de `"Opcao B"`. Documentado em `select.tsx`.
 
-3. **`@custom-variant dark` era obrigatorio e nao existia.** Os tokens seguiam a
-   classe `.dark`, mas os utilitarios `dark:` do Tailwind v4 seguem o
-   `prefers-color-scheme` do sistema. Resultado: com o SO em modo escuro, o
+3. **`@custom-variant dark` era obrigatório e não existia.** Os tokens seguiam a
+   classe `.dark`, mas os utilitários `dark:` do Tailwind v4 seguem o
+   `prefers-color-scheme` do sistema. Com o SO em modo escuro, o
    `dark:data-unchecked:bg-foreground` do switch pintava o thumb de preto num
    tema claro. Corrigido em `src/styles/index.css` com
    `@custom-variant dark (&:where(.dark, .dark *))`.
 
-## Verificacao feita
+## Verificação Feita
 
-Rota temporaria montando select, tabs, switch, checkbox e popover, mais o fluxo
-real de login → `AppShell` → dropdown do usuario → sheet mobile → logout.
+Rota temporária com select, tabs, switch, checkbox e popover, mais o fluxo
+real de login → `AppShell` → dropdown do usuário → sheet mobile → logout.
 Conferido: abertura e fechamento, `aria-checked` / `data-active` / `role="menu"`,
-troca de painel das tabs, rotulo do select, backdrop do sheet e a virada de
+troca de painel das tabs, rótulo do select, backdrop do sheet e a troca de
 tokens no modo escuro.
 
 ## Pendente
 
-`calendar`, `chart` e `command` nao foram portados — entram quando uma tela
-pedir. O registry do shadcn vai gerar a versao Radix; siga a tabela acima.
+`calendar`, `chart` e `command` não foram portados; entram quando uma tela
+precisar deles. O registry do shadcn gera a versão Radix, que deve ser portada
+seguindo a tabela acima.

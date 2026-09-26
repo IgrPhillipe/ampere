@@ -1,4 +1,4 @@
-# Cronograma e Entregas — POO 2026.2
+# Cronograma e Entregas de POO 2026.2
 
 Marcos e entregas avaliadas da disciplina **Programação Orientada a Objetos**. As aulas e entregáveis de Projetos 3 estão em [`cronograma-projetos3.md`](cronograma-projetos3.md).
 
@@ -17,7 +17,7 @@ Professor: Maurício da Motta Braga (mmb2@cesar.school)
 
 ---
 
-## Kickoff — 10 a 16/08/2026
+## Kickoff: 10 a 16/08/2026
 
 - Definição da equipe, nome e descrição do produto (planilha no Classroom)
 - Repositório GitHub público criado
@@ -25,29 +25,28 @@ Professor: Maurício da Motta Braga (mmb2@cesar.school)
 
 ---
 
-## Entrega 01 — 31/08/2026
+## Entrega 01: 31/08/2026
 
-- Histórias de usuário (mínimo 7) em BDD, escrita em `.md` no GitHub — [`produto/user-stories.md`](produto/user-stories.md), 7 histórias
+- Histórias de usuário (mínimo 7) em BDD, escrita em `.md` no GitHub: [`produto/user-stories.md`](produto/user-stories.md), 7 histórias
   - Claras, concisas, completas com detalhes de negócio
   - Cenários de validação com BDD
 - Protótipo Lo-Fi no Figma (mínimo 5 histórias), acessível pelo README
 - Screencast (YouTube, com áudio ou legenda) apresentando o protótipo Figma e cada história
 
-
 ---
 
-## Entrega 02 — 21/09/2026
+## Entrega 02: 21/09/2026
 
 - Mínimo 2 histórias implementadas
   - Descrição no formato POST-IT (visto em sala) dentro da seção "Entrega 02" do README
 - Commits semanais de código no main
 - GitHub Issues atualizado e usado em todas as semanas (print no README)
-- Screencast do sistema rodando (YouTube, com áudio ou legenda) — histórias implementadas
+- Screencast do sistema rodando com as histórias implementadas (YouTube, com áudio ou legenda)
 - Screencast da explicação do código Spring Boot (YouTube, com áudio ou legenda)
 
 ---
 
-## Entrega 03 — 19/10/2026
+## Entrega 03: 19/10/2026
 
 - +2 histórias implementadas
   - Descrição POST-IT dentro da seção "Entrega 03" do README
@@ -58,7 +57,7 @@ Professor: Maurício da Motta Braga (mmb2@cesar.school)
 
 ---
 
-## Entrega 04 — 09/11/2026
+## Entrega 04: 09/11/2026
 
 - Histórias restantes (mínimo 2)
   - Descrição POST-IT dentro da seção "Entrega 04" do README
@@ -69,7 +68,7 @@ Professor: Maurício da Motta Braga (mmb2@cesar.school)
 
 ---
 
-## Apresentação Final — 09/11 a 13/11/2026 (dia da aula)
+## Apresentação Final: 09/11 a 13/11/2026 (Dia da Aula)
 
 Resumo de até **8 minutos** cobrindo:
 

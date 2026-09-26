@@ -1,11 +1,11 @@
-# Design system do front-end
+# Design System do Front-end
 
-Referência visual e regras de uso da interface do AMPERE. Este documento evita
-que cada tela recrie cores, espaçamentos e componentes de forma diferente.
+Referência visual e regras de uso da interface do AMPERE. Evita que cada tela
+recrie cores, espaçamentos e componentes de forma diferente.
 
-## Fontes de decisão
+## Fontes de Decisão
 
-A interface segue esta ordem de precedência:
+Ordem de precedência:
 
 1. O [site oficial da Neoenergia Pernambuco](https://www.neoenergia.com/web/pernambuco)
    define a linguagem visual da marca: paleta, tipografia, formas e ritmo.
@@ -14,11 +14,11 @@ A interface segue esta ordem de precedência:
 3. A issue da história define comportamento, estados e conteúdo obrigatório.
 4. O contrato do back-end define quais dados podem ser exibidos.
 
-Quando duas fontes divergirem, não se copia cegamente a página institucional:
-o AMPERE mantém a estrutura do protótipo e aplica a linguagem visual da
-Neoenergia aos seus próprios fluxos.
+Quando duas fontes divergem, o AMPERE mantém a estrutura do protótipo e aplica
+a linguagem visual da Neoenergia aos próprios fluxos. A página institucional
+não é copiada.
 
-## Arquivos principais
+## Arquivos Principais
 
 | Arquivo | Responsabilidade |
 | :--- | :--- |
@@ -30,25 +30,25 @@ Neoenergia aos seus próprios fluxos.
 
 ## Tipografia
 
-A fonte institucional da Neoenergia é a **IberPangea**, mas seu arquivo não é
-distribuído neste repositório. Não copie a fonte de páginas públicas nem adicione
-um arquivo sem licença explícita.
+A fonte institucional da Neoenergia é a **IberPangea**. O arquivo não é
+distribuído neste repositório. Não copie a fonte de páginas públicas nem
+adicione um arquivo sem licença explícita.
 
-O AMPERE usa esta pilha:
+Pilha de fontes do AMPERE:
 
 ```css
 "IberPangea", "IBM Plex Sans Variable", "Segoe UI", sans-serif
 ```
 
-Na prática, `IBM Plex Sans Variable` é a fonte instalada e utilizada. Se a
-Neoenergia fornecer o arquivo e a autorização da IberPangea, basta registrá-lo;
-os componentes já referenciam `--ds-font-brand`.
+A fonte instalada e utilizada é `IBM Plex Sans Variable`. Se a Neoenergia
+fornecer o arquivo e a autorização da IberPangea, só é preciso registrá-lo: os
+componentes já referenciam `--ds-font-brand`.
 
 Os tamanhos seguem os tokens `--ds-text-xs` até `--ds-text-2xl`. Use as classes
 semânticas do Tailwind (`text-sm`, `text-lg`, `text-2xl`) em vez de números
 arbitrários, salvo quando o protótipo exigir um detalhe tipográfico específico.
 
-### Títulos e separadores
+### Títulos e Separadores
 
 Títulos usam Title Case: cada palavra começa em maiúscula, exceto artigos,
 preposições e conjunções curtas (a, o, e, de, da, do, em, para). Vale para
@@ -67,7 +67,7 @@ Intervalos são escritos com "a" ("1 a 6 de 6 projetos").
 
 ## Cores
 
-### Paleta da marca
+### Paleta da Marca
 
 | Token | Valor | Uso |
 | :--- | :--- | :--- |
@@ -84,10 +84,10 @@ O verde institucional `#00A443` permanece na identidade visual. Para botões
 com texto branco, `--primary` aponta para `#007F33`, que oferece contraste
 superior sem descaracterizar a marca.
 
-### Tokens semânticos
+### Tokens Semânticos
 
-Componentes não devem consumir diretamente `--neo-*`. Use sempre o papel
-semântico correspondente:
+Componentes não consomem `--neo-*` diretamente. Use sempre o papel semântico
+correspondente:
 
 | Papel | CSS | Tailwind |
 | :--- | :--- | :--- |
@@ -108,14 +108,13 @@ semântico correspondente:
 `--accent` é verde: serve para realçar, não para interações neutras. Linhas de
 tabela e controles neutros usam `--surface-hover`.
 
-Se a identidade mudar, altere os tokens; não percorra componentes substituindo
-cores fixas.
+Mudança de identidade altera os tokens, não cores fixas espalhadas pelos
+componentes.
 
-## Espaçamento, forma e movimento
+## Espaçamento, Forma e Movimento
 
-O espaçamento usa uma base de **4 px**. Os tokens expõem 4, 8, 16, 24, 48,
-72 e 96 px. Antes de criar um valor arbitrário, escolha o passo existente mais
-próximo.
+O espaçamento usa base de **4 px**. Os tokens expõem 4, 8, 16, 24, 48, 72 e
+96 px. Antes de criar um valor arbitrário, use o passo existente mais próximo.
 
 | Token | Valor | Uso típico |
 | :--- | :--- | :--- |
@@ -128,16 +127,16 @@ próximo.
 | `--ds-shadow-md` | elevação intermediária | menus e camadas flutuantes |
 
 > **Raio de botão.** Todos os botões herdam 4 px de `--ds-radius-xs`. A pílula
-> fica para badge. Se o desenho mudar, muda o token ou a primitiva compartilhada,
-> não cada chamada de `Button`.
+> é exclusiva de badge. Mudança de desenho altera o token ou a primitiva
+> compartilhada, não cada chamada de `Button`.
 
-Transições devem ser curtas e funcionais. Não use animação para conteúdo que
-precisa aparecer imediatamente.
+Transições são curtas e funcionais. Conteúdo que precisa aparecer
+imediatamente não é animado.
 
-## Componentes compartilhados
+## Componentes Compartilhados
 
-Os primitivos ficam em `src/components/ui`. Eles preservam a API do shadcn,
-mas foram portados para Base UI e ajustados ao design system.
+Os primitivos ficam em `src/components/ui`. Preservam a API do shadcn, portados
+para Base UI e ajustados ao design system.
 
 ### Botões
 
@@ -149,15 +148,15 @@ mas foram portados para Base UI e ajustados ao design system.
 - `link`: ação textual.
 - `neutral`: controle com contorno e hover cinza, usado em paginação e navegação.
 
-Não crie um botão com classes locais de cor, altura ou raio. Escolha `variant`
-e `size`; complemente `className` apenas para posicionamento ou largura.
+Não crie botão com classes locais de cor, altura ou raio. Escolha `variant` e
+`size`; use `className` apenas para posicionamento ou largura.
 
 O design system define a aparência desabilitada, igual em todas as variantes:
 fundo cinza claro (`--disabled`), texto cinza (`--disabled-foreground`), sem
 contorno nem sombra e cursor `not-allowed`. `ghost` e `link` mantêm o fundo
 transparente e só ficam cinza. O componente consumidor define quando o controle
-fica desabilitado; por exemplo, a paginação bloqueia a seta
-anterior na primeira página e a próxima seta na última página.
+fica desabilitado. Exemplo: a paginação bloqueia a seta anterior na primeira
+página e a seta seguinte na última.
 
 ```tsx
 <Button>Novo projeto</Button>
@@ -166,9 +165,9 @@ anterior na primeira página e a próxima seta na última página.
 
 ### Badges
 
-Use badges para estados curtos. `success`, `warning` e `destructive` usam fundo
-suave para não competir com a ação principal. O texto exibido continua em
-português; valores da API são convertidos antes de chegar ao componente.
+Badges indicam estados curtos. `success`, `warning` e `destructive` usam fundo
+suave para não competir com a ação principal. O texto exibido é em português;
+valores da API são convertidos antes de chegar ao componente.
 
 ```tsx
 <Badge variant="success">Aprovado</Badge>
@@ -176,54 +175,54 @@ português; valores da API são convertidos antes de chegar ao componente.
 <Badge variant="destructive">Reprovado</Badge>
 ```
 
-### Campos e controles
+### Campos e Controles
 
 `Input`, `Textarea`, `Select`, `Checkbox` e `Switch` compartilham altura,
-contorno, foco e estado desabilitado. Em formulários, prefira os wrappers de
-`@components/form`, que já conectam rótulo, descrição e erro acessível.
+contorno, foco e estado desabilitado. Em formulários, use os wrappers de
+`@components/form`, que conectam rótulo, descrição e erro acessível.
 
 `Input` e `SelectTrigger` têm duas variantes:
 
 - `default`: campo em caixa, com contorno e sombra. É o padrão.
 - `underline`: campo sem caixa, só com a linha de base e o rótulo em
-  sobrescrita. Para formulários longos, em que a moldura de cada campo compete
-  com a hierarquia das seções. Usado na criação de projeto.
+  sobrescrita. Indicado para formulários longos, em que a moldura de cada campo
+  compete com a hierarquia das seções. Usado na criação de projeto.
 
-Passe a variante ao wrapper, não ao primitivo: `ControlledInput` e
+A variante é passada ao wrapper, não ao primitivo. `ControlledInput` e
 `ControlledSelect` aceitam `variant` e aplicam a mesma escolha ao rótulo e ao
-controle, então os dois nunca saem trocados.
+controle, o que impede os dois de ficarem com variantes diferentes.
 
-Campo obrigatório usa `required`, nunca um asterisco digitado no texto do
-rótulo: o marcador visual é `aria-hidden` e quem usa leitor de tela ouve a
-palavra "obrigatório", em vez de "asterisco". O `required` também chega ao
-controle — atributo nativo no `input`, `aria-required` no gatilho do select,
-que é um `button` e não aceita o nativo.
+Campo obrigatório usa `required`, nunca asterisco digitado no texto do rótulo.
+O marcador visual é `aria-hidden`, e o leitor de tela anuncia "obrigatório" em
+vez de "asterisco". O `required` também chega ao controle: atributo nativo no
+`input`, `aria-required` no gatilho do select, que é um `button` e não aceita o
+atributo nativo.
 
 ```tsx
 <ControlledInput control={form.control} name="name" label="Nome" variant="underline" />
 ```
 
-No `underline`, foco e erro ficam na própria linha e nunca no anel: um `ring`
-em volta de um campo sem moldura desenha uma caixa arredondada do nada. A linha
-é sempre `border-b-2` para a troca de cor no foco não deslocar o layout, e usa
-o mesmo token `ring` que esta seção pede para indicar foco.
+No `underline`, foco e erro ficam na própria linha, nunca no anel: um `ring` em
+volta de um campo sem moldura desenha uma caixa arredondada inexistente no
+desenho. A linha é sempre `border-b-2`, para que a troca de cor no foco não
+desloque o layout, e usa o mesmo token `ring` que esta seção define para foco.
 
-Não recrie esse visual com classes locais numa página de feature. A tentativa
-anterior usava seletores de descendente (`[&_input]:…`) passados como
-`className` do próprio `input`: o seletor virava `input input`, não casava com
-nada, e só os selects — envolvidos numa `div` — recebiam o estilo. As duas
-metades do mesmo formulário renderizavam diferentes.
+Não recrie esse visual com classes locais numa página de feature. Uma
+implementação anterior passava seletores de descendente (`[&_input]:…`) como
+`className` do próprio `input`: o seletor virava `input input` e não casava com
+nada. Só os selects, envolvidos numa `div`, recebiam o estilo, e as duas metades
+do mesmo formulário renderizavam diferentes.
 
-### Dados e estados
+### Dados e Estados
 
 - `DataTable` padroniza cabeçalho, linhas, carregamento e resultado vazio.
 - `SkeletonTable` representa carregamento sem deslocar a estrutura.
 - `EmptyState` aceita ícone, título, descrição e ação.
-- `Tabs` usa indicador inferior verde e não uma coleção de botões soltos.
-- `Card` agrupa conteúdo relacionado; não deve envolver toda seção apenas para
+- `Tabs` usa indicador inferior verde, não uma coleção de botões soltos.
+- `Card` agrupa conteúdo relacionado; não envolve uma seção inteira apenas para
   criar espaçamento.
 
-### Séries do cálculo de demanda
+### Séries do Cálculo de Demanda
 
 As parcelas da demanda usam os tokens de gráfico, na ordem de cor do protótipo
 H4. A mesma cor marca a linha da etapa e o segmento da barra "Composição das
@@ -240,30 +239,30 @@ Os papéis tipográficos do H4 (Geist) são traduzidos para os da H3: etiqueta
 mono em caixa alta, título de seção `text-lg font-semibold` sobre fio escuro,
 fórmula `font-mono text-xs` e cifra do resultado `font-mono text-6xl`.
 
-## Cabeçalho e navegação
+## Cabeçalho e Navegação
 
 O menu principal é **horizontal** a partir de telas grandes. Em telas menores,
 o botão de menu abre a mesma lista verticalmente em um painel lateral. Não há
 duas configurações distintas de navegação.
 
-Os itens vivem em:
+Os itens ficam em:
 
 ```text
 app/front/src/components/layout/nav-items.ts
 ```
 
-`APP_NAV_ITEMS` é a fonte única tanto para o cabeçalho quanto para o painel
-móvel. Uma área sem rota pode aparecer com `disabled: true`; ela só se torna
-interativa no mesmo commit que cria a rota. Item de uma área restrita leva
-`roles`: "Normas e tabelas" é `roles: ["admin"]` e some para o projetista, em
-vez de aparecer desabilitado.
+`APP_NAV_ITEMS` é a fonte única do cabeçalho e do painel móvel. Uma área sem
+rota pode aparecer com `disabled: true` e só se torna interativa no mesmo commit
+que cria a rota. Item de área restrita leva `roles`: "Normas e tabelas" é
+`roles: ["admin"]` e fica oculto para o projetista, em vez de aparecer
+desabilitado.
 
 ```ts
 { to: "/", label: "Meus projetos", exact: true }
 { label: "Novo Projeto", disabled: true }
 ```
 
-O cabeçalho possui:
+O cabeçalho contém:
 
 - logo oficial e identificação “Projetos elétricos”;
 - rota ativa com indicador verde;
@@ -271,9 +270,9 @@ O cabeçalho possui:
 - identificação do usuário e ação de logout;
 - adaptação móvel sem mudar a ordem das opções.
 
-## Uso da logo
+## Uso da Logo
 
-O arquivo `public/neoenergia-logo.svg` veio do cabeçalho do site oficial da
+O arquivo `public/neoenergia-logo.svg` vem do cabeçalho do site oficial da
 Neoenergia. A aplicação serve uma cópia local para não depender de conexão com
 o domínio institucional em tempo de execução.
 
@@ -286,12 +285,12 @@ Regras:
 - substituir o arquivo somente por material oficial fornecido ou publicado
   pela Neoenergia.
 
-## Tema e acessibilidade
+## Tema e Acessibilidade
 
 Esta versão do design system define apenas o **tema claro**. A classe `.dark`
-continua reconhecida pela infraestrutura, mas não existe uma segunda paleta.
-Não adicione correções isoladas com `dark:`. Um tema escuro futuro deve definir
-todos os tokens e ser validado como uma entrega própria.
+continua reconhecida pela infraestrutura, mas não existe segunda paleta. Não
+adicione correções isoladas com `dark:`. Um tema escuro futuro define todos os
+tokens e é validado como entrega própria.
 
 Requisitos para novos componentes:
 
@@ -302,7 +301,7 @@ Requisitos para novos componentes:
 - texto principal com contraste adequado sobre a superfície;
 - respeito à hierarquia de títulos da página.
 
-## Checklist para novas telas
+## Checklist para Novas Telas
 
 - [ ] Usa `PageLayout` sob o `AppShell`.
 - [ ] Usa tokens semânticos, sem hexadecimal no componente.
@@ -314,8 +313,8 @@ Requisitos para novos componentes:
 - [ ] Foi conferida em largura móvel e desktop.
 - [ ] Passa em `pnpm validate` e `pnpm build`.
 
-## Escopo desta entrega
+## Escopo Desta Entrega
 
 O design system fornece fundações e componentes. A implementação funcional da
-tela “Meus projetos”, seus filtros, busca, paginação e integração com a API
+tela “Meus projetos” (filtros, busca, paginação e integração com a API)
 pertence à branch específica da tela.

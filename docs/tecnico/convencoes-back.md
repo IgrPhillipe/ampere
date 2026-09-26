@@ -1,10 +1,8 @@
-# Convenções do back-end
+# Convenções do Back-end
 
-Padrões de código, arquitetura e receitas do `app/back`. Documento único: o que a equipe precisa para trabalhar nesta stack está tudo aqui. A tabela de nomenclatura vale para o repositório inteiro e está no [`CONTRIBUTING.md`](../../CONTRIBUTING.md); aqui está o que é específico de Java e Spring Boot.
+Padrões de código, arquitetura e receitas do `app/back`. Documento único da stack. A tabela de nomenclatura geral do repositório está no [`CONTRIBUTING.md`](../../CONTRIBUTING.md); este documento cobre o que é específico de Java e Spring Boot.
 
-**Stack:** Java 21 · Spring Boot 4.1 · Spring Data JPA · PostgreSQL 16 · Maven · springdoc · Spotless
-
----
+**Stack:** Java 21, Spring Boot 4.1, Spring Data JPA, PostgreSQL 16, Maven, springdoc, Spotless
 
 ---
 
@@ -19,22 +17,22 @@ Padrões de código, arquitetura e receitas do `app/back`. Documento único: o q
 | Arquivos | nome da classe pública | `ExampleService.java` |
 | Tabelas e colunas | snake_case | `example`, `page_size` |
 
-`snake_case` **não é convenção de Java** em nenhuma parte do código. A regra antiga vinha do projeto do semestre passado, que era Python.
+`snake_case` **não é usado no código Java**. A regra antiga vinha do projeto do semestre anterior, escrito em Python.
 
-A exceção é o banco, e ela sai de graça: o Hibernate converte `pageSize` em `page_size` pela estratégia de nomenclatura padrão. **Não anote `@Column(name = "...")` só para repetir o que ele já faz.**
+A exceção é o banco, sem custo: o Hibernate converte `pageSize` em `page_size` pela estratégia de nomenclatura padrão. **Não anote `@Column(name = "...")` só para repetir essa conversão.**
 
-Identificadores e comentários em **inglês**; mensagem que chega na tela do usuário em **português**.
+Identificadores e comentários em **inglês**; mensagem exibida ao usuário em **português**.
 
-Duas palavras portuguesas diferentes caíram no mesmo substantivo inglês, e é fácil trocar uma pela outra:
+Duas palavras em português correspondem ao mesmo substantivo em inglês e são facilmente confundidas:
 
-| Classe | É o quê | Onde a norma define |
+| Classe | Significado | Onde a norma define |
 | :--- | :--- | :--- |
-| `Standard` (entidade) | **norma** — DIS-NOR-053, DIS-NOR-030 | AT02-US02 |
-| `EntranceStandard` (enum) | **padrão de entrada** — coletivo ou individual | DIS-NOR-053, item 6.17 |
+| `Standard` (entidade) | **norma** (DIS-NOR-053, DIS-NOR-030) | AT02-US02 |
+| `EntranceStandard` (enum) | **padrão de entrada** (coletivo ou individual) | DIS-NOR-053, item 6.17 |
 
 ---
 
-## Estrutura de pacotes
+## Estrutura de Pacotes
 
 ```
 br.com.ampere/
@@ -48,9 +46,9 @@ br.com.ampere/
 └── config/       configuração e bootstrap
 ```
 
-As quatro primeiras são as que o [`app/back/README.md`](../../app/back/README.md) prescreve. `dto/`, `error/`, `utils/` e `config/` existem porque são inevitáveis, não porque alguém quis mais uma camada.
+Os quatro primeiros pacotes são os prescritos pelo [`app/back/README.md`](../../app/back/README.md). `dto/`, `error/`, `utils/` e `config/` existem por necessidade, não como camadas adicionais.
 
-## O que cada camada pode importar
+## O que Cada Camada Pode Importar
 
 | Camada | Pode | Não pode |
 | :--- | :--- | :--- |
@@ -60,27 +58,27 @@ As quatro primeiras são as que o [`app/back/README.md`](../../app/back/README.m
 | `domain` | nada do projeto | todas as outras |
 | `utils` | bibliotecas da linguagem | qualquer pacote do projeto |
 
-A regra prática: **se o service importa alguma coisa de `org.springframework.web`, algo está no lugar errado.** Ele lança exceção de domínio; quem decide status HTTP é o `GlobalExceptionHandler`.
+Regra prática: **service que importa algo de `org.springframework.web` indica código no lugar errado.** O service lança exceção de domínio; o `GlobalExceptionHandler` decide o status HTTP.
 
-`utils` não é uma camada. Qualquer pacote pode importar suas funções, mas elas precisam continuar puras e independentes do domínio, dos repositories e do Spring. Se uma classe em `utils` passar a depender do projeto, ela está no pacote errado.
+`utils` não é uma camada. Qualquer pacote pode importar suas funções, desde que elas continuem puras e independentes do domínio, dos repositories e do Spring. Classe em `utils` que dependa do projeto está no pacote errado.
 
-E o contrário também vale: se o controller está decidindo qualquer coisa além de forma de entrada e saída, a decisão pertence ao service. É o que o [`docs/tecnico/README.md`](README.md) chama de rota fina.
+O inverso também vale: decisão do controller além da forma de entrada e saída pertence ao service. É o que o [`docs/tecnico/README.md`](README.md) chama de rota fina.
 
 ---
 
-## Lombok é proibido
+## Sem Lombok
 
 O [`app/back/README.md`](../../app/back/README.md) veda geração automática de boilerplate. Sem `@Data`, `@Getter`, `@Builder`.
 
-O que usar no lugar:
+Alternativas:
 
-- **DTOs são `record`.** Não é geração automática no sentido do Lombok — é sintaxe da linguagem, e o construtor, os getters e o `equals` vêm do próprio Java.
+- **DTOs são `record`.** Não é geração automática no sentido do Lombok: é sintaxe da linguagem, e o construtor, os getters e o `equals` vêm do próprio Java.
 
   ```java
   public record ExampleResponse(String id, String name) { }
   ```
 
-- **Entidades são classes normais**, com construtor e getter escritos à mão. O construtor sem argumentos é `protected`: o JPA exige um, e ninguém mais deveria usá-lo.
+- **Entidades são classes normais**, com construtor e getter escritos à mão. O construtor sem argumentos é `protected`: o JPA exige um, e nenhum outro código deve usá-lo.
 
   ```java
   protected Example() {}
@@ -90,13 +88,13 @@ O que usar no lugar:
   }
   ```
 
-- **Injeção por construtor**, nunca `@Autowired` em campo. Deixa a dependência explícita e o campo `final`.
+- **Injeção por construtor**, nunca `@Autowired` em campo. Torna a dependência explícita e o campo `final`.
 
 ---
 
 ## Contrato da API
 
-Não foi escolhido aqui — o front já o declara, e o back precisa cumprir:
+O contrato é definido pelo front; o back o cumpre:
 
 | O quê | Onde está definido no front |
 | :--- | :--- |
@@ -104,7 +102,7 @@ Não foi escolhido aqui — o front já o declara, e o back precisa cumprir:
 | Formato de erro `ProblemDetail` | `src/lib/api-error.ts` |
 | Prefixo `/api` e porta 8080 | `vite.config.ts` |
 
-Os três que quebram silenciosamente: o `id` sai como string, sucesso vai embrulhado e erro não, e o `detail` é texto de tela em português.
+Três pontos quebram silenciosamente: o `id` sai como string; sucesso vai embrulhado e erro não; o `detail` é texto de tela em português.
 
 ### Envelope
 
@@ -114,24 +112,24 @@ Toda resposta de **sucesso** é embrulhada em `ApiResponse<T>`; **erro nunca é*
 return ApiResponse.of(items, new Pagination(items.size(), 1, items.size()));
 ```
 
-O `pagination` é omitido quando nulo. Os nomes dos campos espelham o tipo do front e precisam bater exatamente.
+O `pagination` é omitido quando nulo. Os nomes dos campos espelham o tipo do front e precisam ser idênticos.
 
-A única exceção é `204 No Content`, que por definição não tem corpo — o `DELETE /projects/{id}` devolve vazio, não um `200` com `data` nulo.
+A única exceção é `204 No Content`, que por definição não tem corpo: o `DELETE /projects/{id}` devolve vazio, não um `200` com `data` nulo.
 
-### `id` sai como String
+### `id` Sai como String
 
 O schema do front declara `id: z.string()` e rejeita número. A entidade usa `Long`; **o DTO de resposta converte**.
 
 ### Erro em `ProblemDetail`
 
-O `GlobalExceptionHandler` traduz exceção em resposta RFC 7807. Duas exceções de domínio cobrem quase tudo:
+O `GlobalExceptionHandler` traduz exceção em resposta RFC 7807. Duas exceções de domínio cobrem quase todos os casos:
 
 ```java
 throw new NotFoundException("Projeto não encontrado.");          // 404
 throw new BusinessException("Já existe um projeto com esse nome.", HttpStatus.CONFLICT);
 ```
 
-A mensagem é **texto de tela em português**. O front descarta qualquer mensagem com nome de pacote Java ou stack trace e cai num texto genérico — então detalhe técnico não chega ao usuário, e também não ajuda ninguém.
+A mensagem é **texto de tela em português**. O front descarta qualquer mensagem com nome de pacote Java ou stack trace e exibe um texto genérico, então detalhe técnico na mensagem nunca chega ao usuário.
 
 ### Validação
 
@@ -142,9 +140,9 @@ public record ExampleRequest(
     @NotBlank(message = "O nome é obrigatório.") String name) {}
 ```
 
-### Parâmetros compartilhados de query
+### Parâmetros Compartilhados de Query
 
-Não repita conversão e normalização em cada controller ou service. As peças compartilhadas são:
+Não repita conversão e normalização em cada controller ou service. Peças compartilhadas:
 
 | Peça | Responsabilidade |
 | :--- | :--- |
@@ -166,29 +164,29 @@ public ApiResponse<ProjectListResponse> list(
 }
 ```
 
-O service recebe o enum já convertido e usa `SearchTerms.normalize(search)` antes de chamar o repository. Valor de enum inválido deve sair como HTTP 400 com a lista de valores aceitos; erro numérico usa a mensagem localizada em `messages.properties`.
+O service recebe o enum já convertido e usa `SearchTerms.normalize(search)` antes de chamar o repository. Valor de enum inválido sai como HTTP 400 com a lista de valores aceitos; erro numérico usa a mensagem localizada em `messages.properties`.
 
-**Enum no corpo da requisição não passa por aí.** O `EnumParameterConfig` converte query string; corpo JSON é desserializado pelo Jackson, que não conhece esse conversor. Duas peças cobrem o corpo, e as duas ficam no mesmo `EnumParameterConfig` para não se perderem:
+**Enum no corpo da requisição não passa por esse conversor.** O `EnumParameterConfig` converte query string; corpo JSON é desserializado pelo Jackson, que não conhece esse conversor. Duas peças cobrem o corpo, ambas no mesmo `EnumParameterConfig` para ficarem juntas:
 
-- o bean `JsonMapperBuilderCustomizer` liga `MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS`, dando ao corpo a mesma tolerância de caixa que a query string tem;
-- o handler de `HttpMessageNotReadableException` transforma valor inexistente em 400 nomeando o campo e listando os valores aceitos. Sem ele a requisição cai na rede de segurança e o usuário lê "Erro interno" por ter digitado o tipo de edificação errado.
+- o bean `JsonMapperBuilderCustomizer` liga `MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS`, dando ao corpo a mesma tolerância de caixa da query string;
+- o handler de `HttpMessageNotReadableException` transforma valor inexistente em 400, nomeando o campo e listando os valores aceitos. Sem ele, a requisição cai no tratamento genérico e o usuário vê "Erro interno" por um tipo de edificação digitado errado.
 
-Atenção à versão: o Spring Boot 4 usa **Jackson 3**, então a exceção é `tools.jackson.databind.exc.InvalidFormatException` e o método é `getPropertyName()`. Todo exemplo de internet com `com.fasterxml.jackson` e `getFieldName()` compila e nunca casa em tempo de execução.
+Versão: o Spring Boot 4 usa **Jackson 3**; a exceção é `tools.jackson.databind.exc.InvalidFormatException` e o método é `getPropertyName()`. Exemplos com `com.fasterxml.jackson` e `getFieldName()` compilam, mas nunca casam em tempo de execução.
 
-Outra armadilha do mesmo tipo: `src/test/resources/application.properties` **substitui** o arquivo de `main/resources`, não o complementa. Configuração que muda comportamento precisa estar nos dois, ou virar bean.
+`src/test/resources/application.properties` **substitui** o arquivo de `main/resources`, não o complementa. Configuração que muda comportamento precisa estar nos dois ou virar bean.
 
 ---
 
 ## Formatação
 
-**Spotless** com `google-java-format` é o formatador único — o equivalente do Biome no front, e existe pela mesma razão: o projeto do semestre passado não tinha formatador e o estilo divergiu dentro do próprio repositório.
+**Spotless** com `google-java-format` é o formatador único, equivalente ao Biome no front. Motivo: o projeto do semestre anterior não tinha formatador e o estilo divergiu dentro do próprio repositório.
 
 ```bash
 ./mvnw spotless:apply    # formata
 ./mvnw spotless:check    # falha se algo estiver fora do padrão
 ```
 
-Rode `spotless:apply` antes de abrir PR. Indentação de 2 espaços e 100 colunas são decisão do google-java-format, não preferência — não discuta com a ferramenta.
+Rode `spotless:apply` antes de abrir PR. Indentação de 2 espaços e 100 colunas são definidas pelo google-java-format, não por preferência da equipe, e não se ajustam.
 
 ---
 
@@ -204,27 +202,27 @@ Rode `spotless:apply` antes de abrir PR. Indentação de 2 espaços e 100 coluna
 ├─────────────────────────────────┤
 │           domain/               │  entidades persistidas
 └─────────────────────────────────┘
-      dto/ · error/ · config/        entrada e saída · tradução de erro · bootstrap
+      dto/, error/, config/        entrada e saída, tradução de erro, bootstrap
 ```
 
 **Fluxo:** controller → service → repository → domain. Camada de cima chama a de baixo, nunca o contrário.
 
 A fatia `projects` demonstra esse fluxo ponta a ponta com o primeiro domínio real do AMPERE.
 
-As regras de importação entre camadas estão em [`convencoes-back.md`](convencoes-back.md).
+As regras de importação entre camadas estão em [O Que Cada Camada Pode Importar](#o-que-cada-camada-pode-importar).
 
 ---
 
-## O caminho de uma requisição
+## O Caminho de uma Requisição
 
 `GET /api/projects`:
 
-1. O `context-path=/api` tira o prefixo; o `ProjectController` está mapeado em `/projects`.
+1. O `context-path=/api` remove o prefixo; o `ProjectController` está mapeado em `/projects`.
 2. `list(...)` chama `service.list(...)` com paginação, filtro e busca.
 3. O service consulta os repositories de projetos e apontamentos.
 4. O controller converte as entidades em `ProjectResponse` e embrulha a listagem em `ApiResponse`.
 
-O passo 3 é o que separa as camadas: o controller não conhece persistência, e o service não conhece detalhes de HTTP.
+O passo 3 separa as camadas: o controller não conhece persistência, e o service não conhece detalhes de HTTP.
 
 ---
 
@@ -232,27 +230,27 @@ O passo 3 é o que separa as camadas: o controller não conhece persistência, e
 
 **`ddl-auto=update`**: o Hibernate cria e altera as tabelas a partir das entidades. Não há migration versionada.
 
-É um atalho consciente, registrado em [`pendencias.md`](../pendencias.md). O custo aparece quando as tabelas normativas entrarem, porque o [`README técnico`](README.md) exige que os parâmetros normativos sejam *"dados versionados e persistidos, não constantes no código"* — e revisão de norma sem histórico de schema não se sustenta. O caminho é Flyway.
+Atalho consciente, registrado em [`pendencias.md`](../pendencias.md). O custo aparece com as tabelas normativas: o [`README técnico`](README.md) exige que os parâmetros normativos sejam *"dados versionados e persistidos, não constantes no código"*, e revisão de norma sem histórico de schema não se sustenta. A solução prevista é Flyway.
 
-`open-in-view=false` porque o default `true` mantém a sessão do Hibernate aberta durante a serialização, o que esconde problema de lazy loading até virar bug em produção. Com ele desligado, associação lazy tem que ser carregada dentro do service — `@EntityGraph` no repository, como em `findDetailById`.
+`open-in-view=false` porque o default `true` mantém a sessão do Hibernate aberta durante a serialização, o que esconde problema de lazy loading até virar bug em produção. Com ele desligado, associação lazy é carregada dentro do service, com `@EntityGraph` no repository, como em `findDetailById`.
 
-**Coluna `NOT NULL` nova quebra o `ddl-auto=update`.** O PostgreSQL recusa `ALTER TABLE ... ADD COLUMN ... NOT NULL` sem default numa tabela populada; o Hibernate loga a falha e sobe assim mesmo, deixando a aplicação rodando contra um schema sem a coluna, e o erro só aparece depois, disfarçado. Quando isso acontecer, apague o banco de desenvolvimento uma vez:
+**Coluna `NOT NULL` nova quebra o `ddl-auto=update`.** O PostgreSQL recusa `ALTER TABLE ... ADD COLUMN ... NOT NULL` sem default numa tabela populada; o Hibernate registra a falha no log e sobe mesmo assim, com a aplicação rodando contra um schema sem a coluna. O erro só aparece depois, disfarçado. Nesse caso, apague o banco de desenvolvimento uma vez:
 
 ```bash
 docker compose down -v && docker compose up -d
 ```
 
-O `DataSeeder` repovoa tudo. O único dado em risco é dado de seed — e é exatamente esse custo que justifica o Flyway da pendência 16.
+O `DataSeeder` repovoa tudo. O único dado perdido é o de seed; esse custo justifica o Flyway da pendência 16.
 
-O `DataSeeder` insere seis projetos e quatro apontamentos no primeiro boot e só quando a tabela está vazia. Sem Flyway não há migration para carregar dado inicial, e uma API que sobe com o banco vazio não mostra nada.
+O `DataSeeder` insere seis projetos e quatro apontamentos no primeiro boot, apenas quando a tabela está vazia. Sem Flyway não há migration para carregar dado inicial, e uma API que sobe com o banco vazio não mostra nada.
 
 ---
 
 ## Autenticação
 
-`POST /api/auth/login` troca e-mail e senha por um **JWT assinado com HS256**, e `GET /api/auth/me` devolve o usuário da sessão. O token vai no header `Authorization: Bearer`, que o front já enviava.
+`POST /api/auth/login` troca e-mail e senha por um **JWT assinado com HS256**, e `GET /api/auth/me` devolve o usuário da sessão. O token vai no header `Authorization: Bearer`, que o front já envia.
 
-**Aberto:** o próprio login e a documentação (`/api/docs`, `/api/v3/api-docs`). **Todo o resto exige token** — inclusive `/api/projects`.
+**Aberto:** o próprio login e a documentação (`/api/docs`, `/api/v3/api-docs`). **Todo o resto exige token**, inclusive `/api/projects`.
 
 | Onde | O quê |
 | :--- | :--- |
@@ -262,15 +260,15 @@ O `DataSeeder` insere seis projetos e quatro apontamentos no primeiro boot e só
 | `security/CorsProperties` | origens de outro domínio, por `CORS_ALLOWED_ORIGINS` |
 | `service/AuthService` | confere credencial e relê o usuário do banco |
 
-Três decisões que valem registrar:
+Decisões:
 
-- **Senha é BCrypt**, e `AuthUserResponse` não tem campo de hash — o DTO é o que garante que ele não vaza.
-- **E-mail desconhecido e senha errada respondem igual.** Distinguir os dois diria a quem tenta quais e-mails existem na base.
-- **`/auth/me` relê o usuário do banco** em vez de confiar no que está no token: nome e papel envelhecem dentro dele.
+- **Senha é BCrypt**, e `AuthUserResponse` não tem campo de hash: o DTO garante que ele não vaza.
+- **E-mail desconhecido e senha errada respondem igual.** Distinguir os dois revelaria quais e-mails existem na base.
+- **`/auth/me` relê o usuário do banco** em vez de confiar no token: nome e papel gravados no token ficam desatualizados.
 
-**Só `/admin/**` é gateado por papel.** É a área das tabelas normativas, que não é do projetista: `SecurityConfig` converte o claim `role` do token em `ROLE_ADMIN` ou `ROLE_USER` e exige `hasRole("ADMIN")` nesse prefixo. Quem não tem o papel recebe 403 no mesmo `ProblemDetail` do resto da API. Rota nova de analista (a fila da US06) entra no mesmo `requestMatchers`.
+**Só `/admin/**` é restrito por papel.** É a área das tabelas normativas, que não é do projetista: `SecurityConfig` converte o claim `role` do token em `ROLE_ADMIN` ou `ROLE_USER` e exige `hasRole("ADMIN")` nesse prefixo. Sem o papel, a resposta é 403 no mesmo `ProblemDetail` do resto da API. Rota nova de analista (a fila da US06) entra no mesmo `requestMatchers`.
 
-As outras rotas continuam sem papel. Os papéis atuais (`user` / `admin`) são placeholder e dependem da **Q1c** em [`questoes-em-aberto.md`](../produto/questoes-em-aberto.md) — *"pessoa de fora da Neoenergia pode acessar um sistema interno?"*. Quando a Q1c fechar, é aqui e na pendência 13 que se resolve.
+As outras rotas continuam sem papel. Os papéis atuais (`user` / `admin`) são placeholder e dependem da **Q1c** em [`questoes-em-aberto.md`](../produto/questoes-em-aberto.md): *"pessoa de fora da Neoenergia pode acessar um sistema interno?"*. A resolução da Q1c é aplicada aqui e na pendência 13.
 
 **Não há segredo versionado.** `JWT_SECRET` resolve em três caminhos, em `security/JwtSecret`:
 
@@ -280,7 +278,7 @@ As outras rotas continuam sem papel. Os papéis atuais (`user` / `admin`) são p
 | ausente ou vazia | gera uma chave por execução e avisa no log | **não sobe** |
 | menor que 32 caracteres | não sobe | não sobe |
 
-A chave gerada existe para o repositório subir sem configuração: o preço é que o token não sobrevive a um reinício, e quem estava logado entra de novo. Em produção, é melhor não subir do que subir assinando com uma chave que ninguém escolheu.
+A chave gerada permite subir o repositório sem configuração. Custo: o token não sobrevive a um reinício, e o usuário precisa entrar de novo. Em produção, a aplicação não sobe em vez de assinar com uma chave que ninguém escolheu.
 
 ---
 
@@ -291,17 +289,17 @@ A chave gerada existe para o repositório subir sem configuração: o preço é 
 | `docker compose up` | sobe tudo num comando, em qualquer máquina, sem JDK instalada |
 | `docker compose up -d db` + `./mvnw spring-boot:run` | ciclo rápido de edição, com a aplicação pela IDE |
 
-O `Dockerfile` é multi-stage: o estágio de build usa o wrapper do próprio projeto, então a versão do Maven ali é a mesma da máquina de quem desenvolve, e as dependências resolvem numa camada separada. A imagem final carrega só o JRE e o jar.
+O `Dockerfile` é multi-stage. O estágio de build usa o wrapper do próprio projeto, então a versão do Maven é a mesma da máquina de desenvolvimento, e as dependências resolvem numa camada separada. A imagem final carrega só o JRE e o jar.
 
-O segundo modo existe porque Java não tem o equivalente do `--reload` do uvicorn — reconstruir a imagem a cada alteração tornaria o ciclo lento demais.
+O segundo modo existe porque Java não tem equivalente ao `--reload` do uvicorn; reconstruir a imagem a cada alteração tornaria o ciclo lento demais.
 
 ---
 
-## Antes de seguir tutorial da internet
+## Antes de Seguir Tutorial da Internet
 
-**Este projeto é Spring Boot 4.1, e quase tudo escrito sobre Spring Boot é 3.x.** O Initializr já não oferece a linha 3.
+**Este projeto é Spring Boot 4.1, e quase todo material publicado sobre Spring Boot é 3.x.** O Initializr já não oferece a linha 3.
 
-O que mais diverge:
+Principais diferenças:
 
 | Boot 3 | Boot 4 |
 | :--- | :--- |
@@ -309,11 +307,11 @@ O que mais diverge:
 | `spring-boot-starter-test` | um starter de teste por módulo (`...-webmvc-test`, `...-data-jpa-test`) |
 | `springdoc-openapi` 2.x | 3.x |
 
-Se um exemplo não compila, essa é a primeira coisa a conferir.
+Exemplo que não compila: confira esta tabela primeiro.
 
 ---
 
-## Norma aplicável: polimorfismo, não condicional
+## Norma Aplicável: Polimorfismo, Não Condicional
 
 A norma de um projeto não é escolhida por uma cadeia de `if`. `BuildingType` é abstrata, cada subclasse sobrescreve `demandRules()`, e `applicableStandards()` deriva o par de normas das regras que a subclasse declarou:
 
@@ -323,37 +321,37 @@ A norma de um projeto não é escolhida por uma cadeia de `if`. `BuildingType` �
 | `NonResidential` | `Dc` por carga instalada | 6.23.1 |
 | `Mixed` | `Drf` por área útil, `Dc` por carga instalada | 6.24.1 |
 
-O par sai igual nas três — as duas normas vigentes, como a US02 exige — **e ainda assim não é constante**: vem de um `flatMap` sobre listas de tamanho 2, 1 e 2 cujo conteúdo difere em todos os campos. Apagar um `StandardName` de uma regra colapsa o par. É isso que faz o teste `derivesTheApplicableStandardsFromItsOwnRules` ter o que verificar.
+O par resultante é o mesmo nas três (as duas normas vigentes, como a US02 exige) **e ainda assim não é constante**: vem de um `flatMap` sobre listas de tamanho 2, 1 e 2 cujo conteúdo difere em todos os campos. Apagar um `StandardName` de uma regra colapsa o par, e é isso que o teste `derivesTheApplicableStandardsFromItsOwnRules` verifica.
 
-`BuildingCategory` é o segundo polimorfismo, mais barato: enum com corpo por constante que constrói a subclasse certa, no lugar do `if`-chain que o service teria. E `category()` é método, não `instanceof` — com fetch lazy o que chega é um proxy do Hibernate, e `instanceof` erra.
+`BuildingCategory` é o segundo polimorfismo, mais simples: enum com corpo por constante que constrói a subclasse certa, no lugar da cadeia de `if` que o service teria. `category()` é método, não `instanceof`: com fetch lazy o objeto é um proxy do Hibernate, e `instanceof` erra.
 
-Tipo de edificação novo (6.25.1 Smart/Studio, 6.22.2 com carregador veicular) entra como subclasse nova. Nenhum `switch` precisa ser tocado.
+Tipo de edificação novo (6.25.1 Smart/Studio, 6.22.2 com carregador veicular) entra como subclasse nova, sem alterar nenhum `switch`.
 
-## Cálculo de demanda: `demand()` por tipo de grupo
+## Cálculo de Demanda: `demand()` por Tipo de Grupo
 
-O motor (`DemandEngine`) soma `Drf + Ds + Dc + Dve` sem perguntar o tipo de nenhum grupo. Cada subclasse de `ConsumerUnitGroup` sobrescreve `demand()` e devolve a própria parcela:
+O motor (`DemandEngine`) soma `Drf + Ds + Dc + Dve` sem consultar o tipo de nenhum grupo. Cada subclasse de `ConsumerUnitGroup` sobrescreve `demand()` e devolve a própria parcela:
 
 | Subclasse | O que calcula | Tabela |
 | :--- | :--- | :--- |
 | `ResidentialGroup` | demanda do apartamento × quantidade | Quadro 35 |
 | `LoadGroup` | cada parcela `a` a `i` da DIS-NOR-030 item 6.27, no corpo da constante de `LoadCategory` | Tabelas 7, 8, 9, 12, 14, 15, 16, 18/19 e 22 |
-| `EvChargingGroup` | pontos × potência | — (o fator vem depois) |
+| `EvChargingGroup` | pontos × potência | Nenhuma (o fator é aplicado depois) |
 
-O que vale para o prédio inteiro não fica no grupo: fica no corpo de cada constante de `DemandComponent`, em `combine()`. É onde o `Fc` do Quadro 36 é tirado do total de apartamentos (Anexo I, item 3), o `Fr` do Quadro 37 e o fator do Quadro 33 sobre todos os pontos de recarga (Anexo I, item 13).
+O que vale para o prédio inteiro fica no corpo de cada constante de `DemandComponent`, em `combine()`, e não no grupo. Ali são aplicados o `Fc` do Quadro 36, obtido do total de apartamentos (Anexo I, item 3), o `Fr` do Quadro 37 e o fator do Quadro 33 sobre todos os pontos de recarga (Anexo I, item 13).
 
-O `domain` não pode importar `repository`, então lê as tabelas pela interface `NormativeTables`; o service entrega um `NormativeTableSet` com as tabelas publicadas. Tabela ou linha que falta vira `MissingNormativeValueException`, que o service transforma em 422 com o nome da tabela.
+O `domain` não pode importar `repository`, então lê as tabelas pela interface `NormativeTables`; o service entrega um `NormativeTableSet` com as tabelas publicadas. Tabela ou linha ausente vira `MissingNormativeValueException`, que o service transforma em 422 com o nome da tabela.
 
 Cada execução grava um `Calculation` com as fórmulas, as referências e as duas revisões de norma: cálculo antigo continua apontando para a revisão sob a qual foi feito.
 
 ---
 
-## Receita: criar uma entidade ponta a ponta
+## Receita: Criar uma Entidade Ponta a Ponta
 
 > **Exemplo ilustrativo:** adapte os campos e operações ao domínio da história.
 
-Vamos supor uma entidade `Project`.
+Exemplo com a entidade `Project`.
 
-### 1.1 Domínio — `domain/Project.java`
+### 1.1 Domínio: `domain/Project.java`
 
 ```java
 @Entity
@@ -383,9 +381,9 @@ public class Project {
 }
 ```
 
-Sem Lombok — construtor e getter à mão. O construtor sem argumentos é `protected` porque o JPA exige um. Não anote `@Column(name = "...")` só para escrever o snake_case que o Hibernate já gera.
+Sem Lombok: construtor e getter escritos à mão. O construtor sem argumentos é `protected` porque o JPA exige um. Não anote `@Column(name = "...")` só para escrever o snake_case que o Hibernate já gera.
 
-### 1.2 Repository — `repository/ProjectRepository.java`
+### 1.2 Repository: `repository/ProjectRepository.java`
 
 ```java
 public interface ProjectRepository extends JpaRepository<Project, Long> {
@@ -393,9 +391,9 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 }
 ```
 
-O Spring Data implementa a interface em tempo de execução. Só declare o que precisa além do CRUD — e o nome do método é a consulta.
+O Spring Data implementa a interface em tempo de execução. Declare apenas o que vai além do CRUD; o nome do método define a consulta.
 
-### 1.3 DTOs — `dto/ProjectRequest.java` e `dto/ProjectResponse.java`
+### 1.3 DTOs: `dto/ProjectRequest.java` e `dto/ProjectResponse.java`
 
 ```java
 public record ProjectRequest(
@@ -409,11 +407,11 @@ public record ProjectResponse(String id, String name) {
 }
 ```
 
-**O `id` sai como String.** O front declara `id: z.string()` e rejeita número — é o erro mais fácil de cometer aqui.
+**O `id` sai como String.** O front declara `id: z.string()` e rejeita número. É o erro mais comum nesta etapa.
 
 A mensagem do `@NotBlank` é texto de tela: aparece para o usuário como `"name: O nome é obrigatório."`.
 
-### 1.4 Service — `service/ProjectService.java`
+### 1.4 Service: `service/ProjectService.java`
 
 ```java
 @Service
@@ -440,9 +438,9 @@ public class ProjectService {
 
 Injeção por construtor, nunca `@Autowired` em campo. `@Transactional(readOnly = true)` na leitura, `@Transactional` na escrita.
 
-**Esta camada não conhece HTTP.** Ela lança `NotFoundException` ou `BusinessException`; quem escolhe o status é o `GlobalExceptionHandler`.
+**Esta camada não conhece HTTP.** Ela lança `NotFoundException` ou `BusinessException`; o `GlobalExceptionHandler` escolhe o status.
 
-### 1.5 Controller — `controller/ProjectController.java`
+### 1.5 Controller: `controller/ProjectController.java`
 
 ```java
 @RestController
@@ -468,21 +466,21 @@ public class ProjectController {
 }
 ```
 
-O caminho **não repete `/api`** — isso vem do `context-path`. Toda saída de sucesso vai embrulhada em `ApiResponse`. Sem regra de negócio e sem SQL aqui.
+O caminho **não repete `/api`**, que vem do `context-path`. Toda saída de sucesso vai embrulhada em `ApiResponse`. Sem regra de negócio e sem SQL no controller.
 
 ### 1.6 Conferir
 
-O Hibernate cria a tabela no próximo boot, porque `ddl-auto=update`. Sem migration para escrever.
+O Hibernate cria a tabela no próximo boot, por causa do `ddl-auto=update`. Não há migration a escrever.
 
 ```bash
 curl -s localhost:8080/api/projects/1 | python3 -m json.tool
 ```
 
-E `/api/docs` já lista o endpoint novo.
+O `/api/docs` lista o endpoint novo.
 
 ---
 
-## Receita: devolver uma lista paginada
+## Receita: Devolver uma Lista Paginada
 
 ```java
 @GetMapping
@@ -498,25 +496,25 @@ public ApiResponse<List<ProjectResponse>> list(
 }
 ```
 
-O front conta página a partir de **1**, o Spring Data a partir de **0** — daí o `page - 1`.
+O front numera páginas a partir de **1** e o Spring Data a partir de **0**, daí o `page - 1`.
 
 ---
 
-## Receita: CRUD completo
+## Receita: CRUD Completo
 
-Quatro coisas a observar além do que as receitas acima já cobrem.
+Quatro pontos além do que as receitas anteriores cobrem.
 
-**O service não importa `dto`.** O controller converte o request num record do pacote `service` — `ProjectParameters` para a entrada, `ProjectListing` para a saída — e converte de volta na resposta. Um `parametersOf(request)` `private static` no fim do controller basta.
+**O service não importa `dto`.** O controller converte o request num record do pacote `service` (`ProjectParameters` para a entrada, `ProjectListing` para a saída) e converte de volta na resposta. A conversão fica num `parametersOf(request)` `private static` no fim do controller.
 
-**Retry precisa de bean separado.** O Spring só intercepta `@Transactional` em chamada entre beans. Um laço de retry que chama método do próprio service roda tudo na mesma transação, e uma transação que já violou constraint está marcada para rollback e recusa o segundo insert. Por isso `ProjectCreation` existe separado de `ProjectService`, e usa `saveAndFlush` — com `save` a violação só aparece no commit, fora do `try`, e o retry nunca dispara.
+**Retry precisa de bean separado.** O Spring só intercepta `@Transactional` em chamada entre beans. Um laço de retry que chama método do próprio service roda tudo na mesma transação, e uma transação que já violou constraint está marcada para rollback e recusa o segundo insert. Por isso `ProjectCreation` é separado de `ProjectService` e usa `saveAndFlush`: com `save`, a violação só aparece no commit, fora do `try`, e o retry nunca dispara.
 
 **Guarda de estado fica no service.** `Project.isDraft()` é predicado puro; quem lança `BusinessException` é o service, porque `domain` não pode importar `error`.
 
-**Delete de entidade com filho.** A FK que o `ddl-auto` gera não tem `ON DELETE CASCADE`. Apague o filho explicitamente antes (`findingRepository.deleteAllByProjectId(id)`); `orphanRemoval` só cobre associação que a entidade possui.
+**Delete de entidade com filho.** A FK gerada pelo `ddl-auto` não tem `ON DELETE CASCADE`. Apague o filho explicitamente antes (`findingRepository.deleteAllByProjectId(id)`); `orphanRemoval` só cobre associação que a entidade possui.
 
 ---
 
-## Receita: sinalizar um erro
+## Receita: Sinalizar um Erro
 
 ```java
 throw new NotFoundException("Projeto não encontrado.");                        // 404
@@ -524,25 +522,25 @@ throw new BusinessException("O projeto já foi enviado para análise.");        
 throw new BusinessException("Já existe um projeto com esse nome.", HttpStatus.CONFLICT);
 ```
 
-Nunca capture a exceção no controller para montar a resposta: o `GlobalExceptionHandler` faz isso num lugar só.
+Nunca capture a exceção no controller para montar a resposta: o `GlobalExceptionHandler` centraliza isso.
 
-A mensagem é o que o usuário lê. Em português, sem jargão — o front descarta qualquer texto com nome de pacote Java ou stack trace e mostra `"Erro interno. Tente novamente."` no lugar.
+A mensagem é o que o usuário lê: em português e sem jargão. O front descarta qualquer texto com nome de pacote Java ou stack trace e mostra `"Erro interno. Tente novamente."` no lugar.
 
 ---
 
-## Receita: rodar, formatar, validar
+## Receita: Rodar, Formatar, Validar
 
 | Comando | O que faz |
 | :--- | :--- |
-| `docker compose up` | sobe banco e API em container. Um comando, não precisa de JDK |
+| `docker compose up` | sobe banco e API em container, num comando, sem JDK instalada |
 | `docker compose up -d db` + `./mvnw spring-boot:run` | ciclo rápido: banco em container, app pela IDE |
-| `./mvnw spotless:apply` | formata — **rode antes do PR** |
+| `./mvnw spotless:apply` | formata; **rode antes do PR** |
 | `./mvnw clean verify` | compila, formata-check e roda os testes |
 | `docker compose down -v` | derruba tudo e **apaga o volume do banco** |
 
 ---
 
-## Onde as coisas estão
+## Onde as Coisas Estão
 
 | Preciso de... | Está em |
 | :--- | :--- |
@@ -561,18 +559,18 @@ A mensagem é o que o usuário lê. Em português, sem jargão — o front desca
 
 ---
 
-## Quando travar
+## Quando Travar
 
-- **`Non-resolvable parent POM`** — a versão do Spring Boot no `pom.xml` não existe no Maven Central. O id do Initializr (`4.1.1.RELEASE`) não é o da dependência (`4.1.1`).
-- **`Connection refused` na porta 5432** — o banco não está no ar. `docker compose up -d db`.
-- **`Port 8080 already in use`** — outro container ou aplicação segurando a porta. `docker ps` mostra quem; `SERVER_PORT=8081 ./mvnw spring-boot:run` contorna.
-- **`JAVA_HOME` apontando para a JDK errada** — o projeto exige a 21. `java -version` confirma, e o [`README`](../../app/back/README.md) mostra como apontar.
-- **Tutorial não compila** — provavelmente é Spring Boot 3.x. Ver a tabela de diferenças na seção *Antes de seguir tutorial da internet*.
-- **O front recebe a resposta e não renderiza** — confira se o `id` está saindo como string e se o sucesso está embrulhado em `data`.
-- **JDK 21 do Homebrew fora do PATH** — é *keg-only*. Exporte `JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home` ou registre a JDK com o `sudo ln -sfn ...` que o `brew install openjdk@21` imprime.
-- **Preflight `OPTIONS` voltando 401** — front em outro domínio sem `CORS_ALLOWED_ORIGINS`. Front servido por proxy do próprio deploy é mesma origem e não precisa da variável.
-- **`500` em toda consulta a uma coluna nova** — `ddl-auto=update` não altera tipo de coluna nem acrescenta coluna `NOT NULL` a tabela com linhas; registra `WARN` no boot e sobe com o schema incompleto. Com acesso ao banco, `docker compose down -v` e o `DataSeeder` repovoa. O `-v` apaga o banco de testes, no mesmo container; recrie antes do `verify`:
+- **`Non-resolvable parent POM`**: a versão do Spring Boot no `pom.xml` não existe no Maven Central. O id do Initializr (`4.1.1.RELEASE`) não é o da dependência (`4.1.1`).
+- **`Connection refused` na porta 5432**: o banco não está no ar. Rode `docker compose up -d db`.
+- **`Port 8080 already in use`**: outro container ou aplicação ocupa a porta. `docker ps` mostra qual; `SERVER_PORT=8081 ./mvnw spring-boot:run` contorna.
+- **`JAVA_HOME` apontando para a JDK errada**: o projeto exige a 21. `java -version` confirma, e o [`README`](../../app/back/README.md) mostra como apontar.
+- **Tutorial não compila**: provavelmente é Spring Boot 3.x. Diferenças em [Antes de Seguir Tutorial da Internet](#antes-de-seguir-tutorial-da-internet).
+- **O front recebe a resposta e não renderiza**: verifique se o `id` sai como string e se o sucesso está embrulhado em `data`.
+- **JDK 21 do Homebrew fora do PATH**: a fórmula é *keg-only*. Exporte `JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home` ou registre a JDK com o `sudo ln -sfn ...` que o `brew install openjdk@21` imprime.
+- **Preflight `OPTIONS` voltando 401**: front em outro domínio sem `CORS_ALLOWED_ORIGINS`. Front servido por proxy do próprio deploy é mesma origem e não precisa da variável.
+- **`500` em toda consulta a uma coluna nova**: `ddl-auto=update` não altera tipo de coluna nem acrescenta coluna `NOT NULL` a tabela com linhas; registra `WARN` no boot e sobe com o schema incompleto. Com acesso ao banco, rode `docker compose down -v` e o `DataSeeder` repovoa. O `-v` apaga também o banco de testes, no mesmo container; recrie antes do `verify`:
   ```bash
   docker exec ampere-db-1 psql -U ampere -d ampere -c "CREATE DATABASE ampere_test OWNER ampere;"
   ```
-  Sem acesso ao banco, como num deploy gerenciado: defina `DDL_AUTO=create`, reinicie, e **remova a variável** antes de reiniciar de novo — enquanto ela existir, todo restart apaga os dados. Pendência 23 em [`../pendencias.md`](../pendencias.md).
+  Sem acesso ao banco, como num deploy gerenciado: defina `DDL_AUTO=create`, reinicie e **remova a variável** antes de reiniciar de novo. Enquanto ela existir, todo restart apaga os dados. Pendência 23 em [`../pendencias.md`](../pendencias.md).

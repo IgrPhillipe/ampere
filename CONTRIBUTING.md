@@ -1,6 +1,6 @@
-# Guia de contribuição
+# Guia de Contribuição
 
-## Estrutura do repositório
+## Estrutura do Repositório
 
 ```
 projetos3/
@@ -13,7 +13,7 @@ projetos3/
 
 ---
 
-## Fluxo de trabalho (Git)
+## Fluxo de Trabalho (Git)
 
 1. Crie ou escolha uma issue antes de implementar mudanças significativas.
 2. Crie uma branch a partir de `main`:
@@ -23,11 +23,11 @@ projetos3/
    ```
 3. Implemente seguindo as convenções abaixo.
 4. Valide localmente.
-5. Abra um Pull Request com descrição clara: o quê, por quê e como testar.
+5. Abra um Pull Request com a descrição do que mudou, por que mudou e como testar.
 
-### Mensagens de commit
+### Mensagens de Commit
 
-Use [Conventional Commits](https://www.conventionalcommits.org/) em inglês:
+[Conventional Commits](https://www.conventionalcommits.org/), em inglês:
 
 ```
 feat: add demand calculation for residential buildings
@@ -42,32 +42,31 @@ refactor: extract ConsumerUnit into its own class
 
 | Tópico                      | Padrão                                                        |
 | :-------------------------- | :------------------------------------------------------------ |
-| Classes, interfaces e enums | PascalCase — `ExampleService`                                  |
-| Métodos e funções           | camelCase (front e back) — `findById`                          |
-| Variáveis                   | camelCase — `pageSize`                                         |
-| Constantes                  | UPPER_SNAKE_CASE — `MAX_PAGE_SIZE`                             |
-| Pacotes Java                | minúsculo, sem separador — `br.com.ampere.controller`          |
-| Arquivos front              | kebab-case                                                     |
-| Arquivos back               | nome da classe pública — `ExampleService.java`                 |
-| Tabelas e colunas do banco  | snake_case — o Hibernate já converte, não sobrescreva          |
-| Idioma do código            | inglês (identificadores, commits)                              |
-| Texto de UI                 | português                                                      |
-| Mensagens de erro (API)     | português quando expostas ao usuário                           |
+| Classes, interfaces e enums | PascalCase (`ExampleService`)                                 |
+| Métodos e funções           | camelCase no front e no back (`findById`)                     |
+| Variáveis                   | camelCase (`pageSize`)                                        |
+| Constantes                  | UPPER_SNAKE_CASE (`MAX_PAGE_SIZE`)                            |
+| Pacotes Java                | minúsculo, sem separador (`br.com.ampere.controller`)         |
+| Arquivos front              | kebab-case                                                    |
+| Arquivos back               | nome da classe pública (`ExampleService.java`)                |
+| Tabelas e colunas do banco  | snake_case, convertido pelo Hibernate; não sobrescreva        |
+| Idioma do código            | inglês (identificadores, commits)                             |
+| Texto de UI                 | português                                                     |
+| Mensagens de erro (API)     | português quando expostas ao usuário                          |
 
-> `snake_case` não é convenção de Java em nenhuma parte do código — a regra
-> anterior veio herdada do projeto passado, que era Python. A única exceção é o
-> schema do banco, e ela sai de graça: o Hibernate converte `pageSize` em
-> `page_size` pela estratégia de nomenclatura padrão.
+> O código Java não usa `snake_case`. A regra anterior, herdada de um projeto
+> em Python, não se aplica. A única exceção é o schema do banco: o Hibernate
+> converte `pageSize` em `page_size` pela estratégia de nomenclatura padrão.
 
 ---
 
 ## Requisito POO
 
-A disciplina de **Programação Orientada a Objetos** exige que o motor de cálculo evidencie design OOP (herança, polimorfismo, encapsulamento). Classes de domínio como `BuildingType` (tipo de edificação), `ConsumerUnit` (unidade consumidora) e `DemandCalculator` (calculadora de demanda) devem ser modeladas explicitamente — sem lógica de negócio dispersa em funções soltas. Os nomes seguem a tabela acima; o termo normativo em português fica entre parênteses na primeira menção, para a rastreabilidade com a norma não se perder.
+A disciplina de **Programação Orientada a Objetos** exige que o motor de cálculo evidencie design OOP (herança, polimorfismo, encapsulamento). Classes de domínio como `BuildingType` (tipo de edificação), `ConsumerUnit` (unidade consumidora) e `DemandCalculator` (calculadora de demanda) são modeladas explicitamente, sem lógica de negócio dispersa em funções soltas. Os nomes seguem a tabela acima. O termo normativo em português aparece entre parênteses na primeira menção, para manter a rastreabilidade com a norma.
 
 ---
 
-## Checklist antes do PR
+## Checklist Antes do PR
 
 ### Front-end
 
@@ -78,8 +77,8 @@ cd app/front && pnpm validate && pnpm build
 - [ ] `pnpm validate` passa (formatação, lint e tipos)
 - [ ] `pnpm build` passa
 - [ ] `src/routeTree.gen.ts` regenerado e commitado, se alguma rota mudou
-- [ ] Nenhuma lógica de negócio nas camadas de rota/view
-- [ ] Componente novo do shadcn portado para Base UI e **verificado no navegador**
+- [ ] Nenhuma lógica de negócio nas camadas de rota e view
+- [ ] Componente novo do shadcn portado para Base UI e verificado no navegador
 - [ ] Texto de interface em português
 
 ### Back-end
@@ -94,15 +93,15 @@ cd app/back && ./mvnw spotless:apply && ./mvnw clean verify
 
 ---
 
-## Reportar bugs
+## Reportar Bugs
 
 Abra uma issue com:
 
-- Comportamento observado vs. esperado
+- Comportamento observado e comportamento esperado
 - Passos para reproduzir
 - Ambiente (local, deploy, branch)
-- Screenshots ou logs quando relevante
+- Screenshots ou logs, quando relevante
 
 ---
 
-Este projeto faz parte das disciplinas **Projetos 3 — SI** e **Programação Orientada a Objetos** (CESAR School, 2026.2).
+Projeto das disciplinas **Projetos 3 (SI)** e **Programação Orientada a Objetos** (CESAR School, 2026.2).

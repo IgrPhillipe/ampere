@@ -2,7 +2,9 @@
 
 Desenvolver um MVP capaz de automatizar e padronizar o cálculo de demanda elétrica, tornando esse processo mais simples, confiável e eficiente.
 
-Fase: **Imersão** ([`../processo.md`](../processo.md)) · Responsável: Jean Augusto · Fonte: [Google Sites — Desafio](https://sites.google.com/cesar.school/site-grupo-4/desafio)
+- **Fase:** Imersão ([`../processo.md`](../processo.md))
+- **Responsável:** Jean Augusto
+- **Fonte:** [Google Sites: Desafio](https://sites.google.com/cesar.school/site-grupo-4/desafio)
 
 ---
 
@@ -16,7 +18,7 @@ Desenvolver um **MVP capaz de automatizar e padronizar o cálculo de demanda el�
 
 ---
 
-## Resultados esperados
+## Resultados Esperados
 
 - Diminuir **erros, reprovações e retrabalho**
 - Tornar a análise dos projetos **mais ágil e consistente**
@@ -25,7 +27,7 @@ Desenvolver um **MVP capaz de automatizar e padronizar o cálculo de demanda el�
 
 ---
 
-## O que podemos analisar a partir do problema
+## Pontos de Análise do Problema
 
 - As principais **causas dos erros** nos cálculos de demanda
 - Os **pontos de maior dificuldade** no processo
@@ -34,9 +36,9 @@ Desenvolver um **MVP capaz de automatizar e padronizar o cálculo de demanda el�
 
 ---
 
-## Encadeamento com a descoberta
+## Encadeamento com a Descoberta
 
-O objetivo acima não é uma escolha arbitrária — ele responde diretamente ao que as outras análises da Imersão apontaram:
+O objetivo responde aos achados das outras análises da Imersão:
 
 | Origem | Achado | Como o objetivo responde |
 | :------------------------------------------------------------ | :--------------------------------------------------------------------------------------------------- | :------------------------------------------------------ |
@@ -48,6 +50,6 @@ O objetivo acima não é uma escolha arbitrária — ele responde diretamente ao
 
 ---
 
-## Limites deste documento
+## Limites Deste Documento
 
-Os objetivos estão definidos como **direção**, não como **especificação de construção**. As decisões que ainda faltam para transformar isso em requisitos — quem é o usuário final, qual documento normativo rege o cálculo, qual a faixa de escopo, quais são as entradas e saídas concretas e como medir o sucesso — estão registradas em [`../produto/questoes-em-aberto.md`](questoes-em-aberto.md).
+Os objetivos estão definidos como **direção**, não como **especificação de construção**. As decisões que faltam para transformar os objetivos em requisitos estão registradas em [`../produto/questoes-em-aberto.md`](questoes-em-aberto.md): quem é o usuário final, qual documento normativo rege o cálculo, qual a faixa de escopo, quais são as entradas e saídas concretas e como medir o sucesso.

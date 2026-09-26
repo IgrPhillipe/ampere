@@ -2,9 +2,9 @@
 
 > Interface web para entrada de dados do projeto elétrico e visualização do cálculo de demanda.
 
-**Stack:** React 19 · Vite 8 · TypeScript 6 · TanStack Router · TanStack Query 5
-· TanStack Table 9 · Zustand · Zod 4 · React Hook Form · ky · Tailwind CSS 4 ·
-shadcn/ui sobre Base UI · MSW
+**Stack:** React 19, Vite 8, TypeScript 6, TanStack Router, TanStack Query 5,
+TanStack Table 9, Zustand, Zod 4, React Hook Form, ky, Tailwind CSS 4,
+shadcn/ui sobre Base UI, MSW
 
 ---
 
@@ -16,9 +16,9 @@ shadcn/ui sobre Base UI · MSW
 
 ---
 
-## Como executar
+## Como Executar
 
-Requisitos: **Node 24+** (há um `.nvmrc`) e **pnpm**.
+Requisitos: **Node 24+** (versão fixada em `.nvmrc`) e **pnpm**.
 
 ```bash
 cd app/front
@@ -27,11 +27,11 @@ pnpm install
 pnpm dev
 ```
 
-A aplicação sobe em `http://localhost:5173`. As chamadas para `/api` passam pelo
-proxy do Vite para `http://localhost:8080`, onde roda o back-end Spring Boot.
+A aplicação sobe em `http://localhost:5173`. O proxy do Vite encaminha as
+chamadas para `/api` a `http://localhost:8080`, onde roda o back-end Spring Boot.
 
-O front consome a API real por padrão. Com `VITE_ENABLE_MSW=true` o **MSW**
-responde no lugar dela. Usuários de teste, os mesmos do seeder do back-end:
+Por padrão o front consome a API real. Com `VITE_ENABLE_MSW=true`, o MSW
+responde no lugar dela. Usuários de teste (os mesmos do seeder do back-end):
 
 | E-mail | Senha | Papel |
 | :--- | :--- | :--- |
@@ -39,7 +39,7 @@ responde no lugar dela. Usuários de teste, os mesmos do seeder do back-end:
 | `admin@ampere.local` | `senha@123` | admin |
 | `revisor@ampere.local` | `senha@123` | admin |
 
-Os papéis são placeholders; os definitivos dependem da Q1c em
+Os papéis são provisórios. Os definitivos dependem da Q1c em
 [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md).
 
 ---
@@ -49,16 +49,16 @@ Os papéis são placeholders; os definitivos dependem da Q1c em
 | Comando | O que faz |
 | :--- | :--- |
 | `pnpm dev` | servidor de desenvolvimento e geração da árvore de rotas |
-| `pnpm validate` | formata, corrige o lint e checa os tipos — **rode antes do PR** |
-| `pnpm build` | type-check + bundle de produção |
-| `pnpm lint` | Biome + ESLint, sem corrigir |
+| `pnpm validate` | formata, corrige o lint e checa os tipos; obrigatório antes do PR |
+| `pnpm build` | type-check e bundle de produção |
+| `pnpm lint` | Biome e ESLint, sem corrigir |
 | `pnpm preview` | serve o build de produção localmente |
 
-Um hook de `pre-push` roda o `pnpm validate` apenas quando `app/front` mudou.
+O hook de `pre-push` roda o `pnpm validate` apenas quando `app/front` mudou.
 
 ---
 
-## Variáveis de ambiente
+## Variáveis de Ambiente
 
 | Variável | Obrigatória | Descrição |
 | :--- | :--- | :--- |
@@ -66,8 +66,8 @@ Um hook de `pre-push` roda o `pnpm validate` apenas quando `app/front` mudou.
 | `VITE_PROXY_TARGET` | Não (padrão `http://localhost:8080`) | destino do proxy de `/api` em desenvolvimento |
 | `VITE_ENABLE_MSW` | Não (padrão `false`) | liga os mocks do MSW no lugar da API real |
 
-Validadas na inicialização por `src/config/config.ts`. Importe `AppConfig` de
-`@config`; não leia `import.meta.env` diretamente. O prefixo `VITE_` é
+`src/config/config.ts` valida as variáveis na inicialização. Importe `AppConfig`
+de `@config`; não leia `import.meta.env` diretamente. O prefixo `VITE_` é
 obrigatório.
 
 ---
@@ -89,7 +89,7 @@ README central: [`README.md`](../../README.md)
 
 ```
 src/
-├── components/     ui/ (shadcn) · form/ · layout/ · compartilhados
+├── components/     ui/ (shadcn), form/, layout/, compartilhados
 ├── config/         variáveis de ambiente validadas
 ├── features/       domínios: páginas, componentes, schemas, store
 ├── lib/            http, queryClient, api-error, route-guard, utils
