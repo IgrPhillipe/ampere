@@ -40,6 +40,7 @@ const EMPTY_ITEM: LoadGroupFormValues["items"][number] = {
 export const LoadGroupForm = ({
 	group,
 	focusField,
+	readOnly,
 	isSaving,
 	isDeleting,
 	onSave,
@@ -88,7 +89,10 @@ export const LoadGroupForm = ({
 			onSubmit={form.handleSubmit(submit)}
 			className="flex min-h-0 flex-1 flex-col"
 		>
-			<div className="flex flex-1 flex-col gap-8 overflow-y-auto px-6 py-6">
+			<fieldset
+				disabled={readOnly}
+				className="flex flex-1 flex-col gap-8 overflow-y-auto px-6 py-6 min-w-0"
+			>
 				<div className="grid gap-x-6 gap-y-6 sm:grid-cols-2">
 					<ControlledInput
 						control={form.control}
@@ -247,9 +251,10 @@ export const LoadGroupForm = ({
 						))}
 					</ol>
 				</section>
-			</div>
+			</fieldset>
 
 			<GroupFormFooter
+				readOnly={readOnly}
 				isSaving={isSaving}
 				isDeleting={isDeleting}
 				onCancel={onCancel}

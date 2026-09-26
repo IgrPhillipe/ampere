@@ -16,6 +16,7 @@ import { focusIssueField, type GroupFormProps } from "./group-form";
 export const EvChargingGroupForm = ({
 	group,
 	focusField,
+	readOnly,
 	isSaving,
 	isDeleting,
 	onSave,
@@ -50,7 +51,10 @@ export const EvChargingGroupForm = ({
 			onSubmit={form.handleSubmit(submit)}
 			className="flex min-h-0 flex-1 flex-col"
 		>
-			<div className="grid flex-1 content-start gap-x-6 gap-y-6 overflow-y-auto px-6 py-6 sm:grid-cols-2">
+			<fieldset
+				disabled={readOnly}
+				className="grid flex-1 content-start gap-x-6 gap-y-6 overflow-y-auto px-6 py-6 sm:grid-cols-2 min-w-0"
+			>
 				<ControlledInput
 					control={form.control}
 					name="name"
@@ -75,7 +79,11 @@ export const EvChargingGroupForm = ({
 				<ControlledInput
 					control={form.control}
 					name="powerPerPointKw"
-					label="Potência por ponto (kW)"
+					label={
+						<>
+							Potência por ponto <span className="normal-case">(kW)</span>
+						</>
+					}
 					description="Potência de placa do fabricante da estação."
 					type="number"
 					min={0}
@@ -113,9 +121,10 @@ export const EvChargingGroupForm = ({
 					items={evStationTypeItems}
 					variant="underline"
 				/>
-			</div>
+			</fieldset>
 
 			<GroupFormFooter
+				readOnly={readOnly}
 				isSaving={isSaving}
 				isDeleting={isDeleting}
 				onCancel={onCancel}

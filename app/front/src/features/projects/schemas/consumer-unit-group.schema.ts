@@ -59,15 +59,25 @@ const quantitySchema = z.preprocess(
 		.max(10000, { error: "A quantidade deve ser no máximo 10.000." }),
 );
 
-/** A linha de adicao do H3a: nome, tipo de uso, quantidade e carga. */
+/**
+ * A linha de adicao do H3a: nome, tipo de uso, quantidade e carga. Quantidade
+ * e carga ficam em colunas estreitas, entao as mensagens delas sao curtas.
+ */
 export const newGroupSchema = z.object({
 	name: nameSchema,
 	usageType: z.enum(
 		Object.keys(GROUP_USAGE_TYPES) as [GroupUsageType, ...GroupUsageType[]],
 		{ error: "Selecione o tipo de uso." },
 	),
-	quantity: quantitySchema,
-	load: optionalPositive("A carga deve ser maior que zero."),
+	quantity: z.preprocess(
+		(value) => (value === "" ? undefined : Number(value)),
+		z
+			.number({ error: "Obrigatória." })
+			.int({ error: "Número inteiro." })
+			.min(1, { error: "Mínimo 1." })
+			.max(10000, { error: "Máximo 10.000." }),
+	),
+	load: optionalPositive("Maior que zero."),
 });
 
 export type NewGroupFormValues = z.infer<typeof newGroupSchema>;

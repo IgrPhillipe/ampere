@@ -73,6 +73,9 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 	const groups = groupsQuery.data?.data ?? [];
 	const validation = validationQuery.data?.data;
 	const canCalculate = validation?.canCalculate ?? false;
+	// Depois do envio as unidades nao mudam mais (o back responde 409). A tela
+	// nao oferece o que vai ser recusado.
+	const isEditable = project?.status === "DRAFT";
 	const hasError =
 		projectQuery.isError || groupsQuery.isError || validationQuery.isError;
 
@@ -125,7 +128,11 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 				onSubmit={form.handleSubmit(saveNewGroup)}
 				className="flex flex-1 flex-col bg-card"
 			>
-				<ProjectStamp project={project} units={units} />
+				<ProjectStamp
+					project={project}
+					isLoading={projectQuery.isPending || validationQuery.isPending}
+					units={units}
+				/>
 
 				<div className="px-6 pt-8 md:px-8">
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
@@ -174,16 +181,18 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 									Grupos de unidades
 								</h2>
 
-								<Button
-									type="button"
-									variant="link"
-									size="sm"
-									onClick={startAdding}
-									disabled={isAdding}
-								>
-									<Plus aria-hidden="true" />
-									Adicionar grupo
-								</Button>
+								{isEditable ? (
+									<Button
+										type="button"
+										variant="link"
+										size="sm"
+										onClick={startAdding}
+										disabled={isAdding}
+									>
+										<Plus aria-hidden="true" />
+										Adicionar grupo
+									</Button>
+								) : null}
 							</div>
 
 							<ConsumerUnitGroupsTable
@@ -197,17 +206,23 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 									<div className="mt-6">
 										<EmptyState
 											title="Nenhum grupo cadastrado"
-											description="Cadastre os apartamentos, as áreas comuns e a recarga de veículos do projeto."
+											description={
+												isEditable
+													? "Cadastre os apartamentos, as áreas comuns e a recarga de veículos do projeto."
+													: "O projeto foi enviado sem grupos de unidades."
+											}
 											icon={Layers}
 											action={
-												<Button
-													type="button"
-													variant="outline"
-													onClick={startAdding}
-												>
-													<Plus aria-hidden="true" />
-													Adicionar grupo
-												</Button>
+												isEditable ? (
+													<Button
+														type="button"
+														variant="outline"
+														onClick={startAdding}
+													>
+														<Plus aria-hidden="true" />
+														Adicionar grupo
+													</Button>
+												) : undefined
 											}
 										/>
 									</div>
@@ -274,6 +289,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 
 			<GroupSheet
 				projectId={projectId}
+				readOnly={!isEditable}
 				opened={opened}
 				onClose={() => setOpened(null)}
 			/>

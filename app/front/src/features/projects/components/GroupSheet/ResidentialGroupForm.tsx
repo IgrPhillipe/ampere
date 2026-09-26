@@ -16,6 +16,7 @@ import { focusIssueField, type GroupFormProps } from "./group-form";
 export const ResidentialGroupForm = ({
 	group,
 	focusField,
+	readOnly,
 	isSaving,
 	isDeleting,
 	onSave,
@@ -50,7 +51,10 @@ export const ResidentialGroupForm = ({
 			onSubmit={form.handleSubmit(submit)}
 			className="flex min-h-0 flex-1 flex-col"
 		>
-			<div className="grid flex-1 content-start gap-x-6 gap-y-6 overflow-y-auto px-6 py-6 sm:grid-cols-2">
+			<fieldset
+				disabled={readOnly}
+				className="grid flex-1 content-start gap-x-6 gap-y-6 overflow-y-auto px-6 py-6 sm:grid-cols-2 min-w-0"
+			>
 				<ControlledInput
 					control={form.control}
 					name="name"
@@ -75,7 +79,11 @@ export const ResidentialGroupForm = ({
 				<ControlledInput
 					control={form.control}
 					name="usefulArea"
-					label="Área útil (m²)"
+					label={
+						<>
+							Área útil <span className="normal-case">(m²)</span>
+						</>
+					}
 					description="Define a demanda de cada unidade pelo Quadro 35."
 					type="number"
 					min={0}
@@ -87,7 +95,12 @@ export const ResidentialGroupForm = ({
 				<ControlledInput
 					control={form.control}
 					name="unitLoadKw"
-					label="Carga instalada por unidade (kW)"
+					label={
+						<>
+							Carga instalada por unidade{" "}
+							<span className="normal-case">(kW)</span>
+						</>
+					}
 					description="Usada no cálculo individual do item 6.22.3."
 					type="number"
 					min={0}
@@ -117,9 +130,10 @@ export const ResidentialGroupForm = ({
 					variant="underline"
 					fieldClassName="sm:col-span-2"
 				/>
-			</div>
+			</fieldset>
 
 			<GroupFormFooter
+				readOnly={readOnly}
 				isSaving={isSaving}
 				isDeleting={isDeleting}
 				onCancel={onCancel}

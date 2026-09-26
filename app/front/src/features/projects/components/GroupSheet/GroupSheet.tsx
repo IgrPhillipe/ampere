@@ -25,6 +25,8 @@ export interface OpenedGroup {
 
 interface GroupSheetProps {
 	projectId: string;
+	/** Projeto ja enviado: o grupo so e consultado. */
+	readOnly?: boolean;
 	opened: OpenedGroup | null;
 	onClose: () => void;
 }
@@ -51,7 +53,12 @@ const renderGroupForm = (
  * Nao existe no prototipo, que so desenha a linha de adicao (H3a); fica num
  * `Sheet` para a tabela e o painel continuarem a vista.
  */
-export const GroupSheet = ({ projectId, opened, onClose }: GroupSheetProps) => {
+export const GroupSheet = ({
+	projectId,
+	readOnly = false,
+	opened,
+	onClose,
+}: GroupSheetProps) => {
 	const updateGroup = useUpdateConsumerUnitGroup(projectId);
 	const deleteGroup = useDeleteConsumerUnitGroup(projectId);
 
@@ -97,6 +104,7 @@ export const GroupSheet = ({ projectId, opened, onClose }: GroupSheetProps) => {
 						<div key={group.id} className="flex min-h-0 flex-1 flex-col">
 							{renderGroupForm(group, {
 								focusField: opened?.focusField,
+								readOnly,
 								isSaving: updateGroup.isPending,
 								isDeleting: deleteGroup.isPending,
 								onSave: save,

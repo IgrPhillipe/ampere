@@ -78,9 +78,30 @@ export const ConsumerUnitGroupCards = ({
 			<li className="relative flex flex-col gap-3 border-b border-border bg-muted/40 px-4 py-4 before:absolute before:top-4 before:left-0 before:h-6 before:w-0.5 before:bg-brand-sunset">
 				<NameAndUsageFields control={newGroupControl} />
 
-				<div className="grid grid-cols-2 gap-4">
-					<QuantityField control={newGroupControl} />
-					<LoadField control={newGroupControl} usageType={newGroupUsageType} />
+				{/* Sem as colunas da tabela, os numeros precisam do rotulo a vista. */}
+				<div className="grid grid-cols-2 items-start gap-4">
+					<div className="flex flex-col gap-1">
+						<span
+							aria-hidden="true"
+							className="font-mono text-xs tracking-[0.08em] text-muted-foreground"
+						>
+							QTD
+						</span>
+						<QuantityField control={newGroupControl} />
+					</div>
+
+					<div className="flex flex-col gap-1">
+						<span
+							aria-hidden="true"
+							className="font-mono text-xs tracking-[0.08em] text-muted-foreground"
+						>
+							CARGA kW
+						</span>
+						<LoadField
+							control={newGroupControl}
+							usageType={newGroupUsageType}
+						/>
+					</div>
 				</div>
 
 				<span className="font-mono text-xs tracking-[0.08em] text-foreground uppercase">

@@ -9,6 +9,8 @@ export interface GroupFormProps<TGroup extends ConsumerUnitGroup> {
 	group: TGroup;
 	/** Campo da pendencia que abriu o painel, no formato da API: `items[0].power`. */
 	focusField?: string;
+	/** Projeto ja enviado: campos desabilitados e sem salvar nem excluir. */
+	readOnly: boolean;
 	isSaving: boolean;
 	isDeleting: boolean;
 	onSave: (payload: ConsumerUnitGroupPayload) => void;

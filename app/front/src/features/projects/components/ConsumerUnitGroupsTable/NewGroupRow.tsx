@@ -25,11 +25,13 @@ export const NewGroupRow = ({ control, usageType }: NewGroupRowProps) => (
 			</div>
 		</TableCell>
 
-		<TableCell className="text-right">
+		{/* `whitespace-normal`: a mensagem de erro quebra dentro da coluna
+		    estreita em vez de invadir a vizinha. */}
+		<TableCell className="text-right whitespace-normal">
 			<QuantityField control={control} />
 		</TableCell>
 
-		<TableCell className="text-right">
+		<TableCell className="text-right whitespace-normal">
 			<LoadField control={control} usageType={usageType} />
 		</TableCell>
 
