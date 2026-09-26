@@ -21,6 +21,8 @@ export const projectSchema = z.object({
 	createdAt: z.iso.datetime({ offset: true }),
 	updatedAt: z.iso.datetime({ offset: true }),
 	pendingCount: z.number().int().nonnegative(),
+	consumerUnitsCount: z.number().int().nonnegative(),
+	demandKva: z.number().nullable(),
 });
 
 export type Project = z.infer<typeof projectSchema>;

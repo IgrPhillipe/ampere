@@ -15,7 +15,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, CircleAlert, Layers, Plus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useWatch } from "react-hook-form";
-import { toast } from "sonner";
 
 import {
 	ConsumerUnitGroupsTable,
@@ -260,14 +259,16 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 							</Button>
 						</div>
 					) : (
-						// The calculation route arrives with US04.
 						<Button
 							type="button"
 							variant="outline"
 							disabled={!canCalculate}
 							aria-describedby={canCalculate ? undefined : pendingCounterId}
 							onClick={() =>
-								toast.info("O cálculo de demanda chega na próxima etapa.")
+								void navigate({
+									to: "/projetos/$id/calculo",
+									params: { id: projectId },
+								})
 							}
 						>
 							Calcular demanda

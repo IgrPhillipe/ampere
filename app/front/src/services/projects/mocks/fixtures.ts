@@ -11,6 +11,8 @@ export const MOCK_PROJECTS: Project[] = [
 		createdAt: "2026-08-12T09:00:00Z",
 		updatedAt: "2026-09-18T10:30:00Z",
 		pendingCount: 0,
+		consumerUnitsCount: 0,
+		demandKva: null,
 	},
 	{
 		id: "2",
@@ -22,6 +24,8 @@ export const MOCK_PROJECTS: Project[] = [
 		createdAt: "2026-07-28T10:00:00Z",
 		updatedAt: "2026-09-14T14:20:00Z",
 		pendingCount: 3,
+		consumerUnitsCount: 0,
+		demandKva: null,
 	},
 	{
 		id: "3",
@@ -33,6 +37,8 @@ export const MOCK_PROJECTS: Project[] = [
 		createdAt: "2026-07-02T08:30:00Z",
 		updatedAt: "2026-08-12T09:15:00Z",
 		pendingCount: 0,
+		consumerUnitsCount: 0,
+		demandKva: null,
 	},
 	{
 		id: "4",
@@ -44,6 +50,8 @@ export const MOCK_PROJECTS: Project[] = [
 		createdAt: "2026-09-09T08:00:00Z",
 		updatedAt: "2026-09-18T09:40:00Z",
 		pendingCount: 0,
+		consumerUnitsCount: 0,
+		demandKva: null,
 	},
 	{
 		id: "5",
@@ -55,6 +63,8 @@ export const MOCK_PROJECTS: Project[] = [
 		createdAt: "2026-08-05T11:30:00Z",
 		updatedAt: "2026-09-09T11:00:00Z",
 		pendingCount: 0,
+		consumerUnitsCount: 0,
+		demandKva: null,
 	},
 	{
 		id: "6",
@@ -66,6 +76,8 @@ export const MOCK_PROJECTS: Project[] = [
 		createdAt: "2026-07-21T14:00:00Z",
 		updatedAt: "2026-09-11T16:45:00Z",
 		pendingCount: 0,
+		consumerUnitsCount: 0,
+		demandKva: null,
 	},
 	{
 		id: "7",
@@ -77,6 +89,8 @@ export const MOCK_PROJECTS: Project[] = [
 		createdAt: "2026-07-10T09:20:00Z",
 		updatedAt: "2026-09-03T08:20:00Z",
 		pendingCount: 0,
+		consumerUnitsCount: 0,
+		demandKva: null,
 	},
 	{
 		id: "8",
@@ -88,6 +102,8 @@ export const MOCK_PROJECTS: Project[] = [
 		createdAt: "2026-08-18T10:15:00Z",
 		updatedAt: "2026-09-02T13:10:00Z",
 		pendingCount: 0,
+		consumerUnitsCount: 0,
+		demandKva: null,
 	},
 	{
 		id: "9",
@@ -99,6 +115,8 @@ export const MOCK_PROJECTS: Project[] = [
 		createdAt: "2026-07-30T13:00:00Z",
 		updatedAt: "2026-08-29T15:35:00Z",
 		pendingCount: 1,
+		consumerUnitsCount: 0,
+		demandKva: null,
 	},
 	{
 		id: "10",
@@ -110,6 +128,8 @@ export const MOCK_PROJECTS: Project[] = [
 		createdAt: "2026-06-25T09:45:00Z",
 		updatedAt: "2026-08-21T10:05:00Z",
 		pendingCount: 0,
+		consumerUnitsCount: 0,
+		demandKva: null,
 	},
 	{
 		id: "11",
@@ -121,6 +141,8 @@ export const MOCK_PROJECTS: Project[] = [
 		createdAt: "2026-07-15T12:00:00Z",
 		updatedAt: "2026-08-18T17:00:00Z",
 		pendingCount: 0,
+		consumerUnitsCount: 0,
+		demandKva: null,
 	},
 	{
 		id: "12",
@@ -132,5 +154,7 @@ export const MOCK_PROJECTS: Project[] = [
 		createdAt: "2026-08-01T08:10:00Z",
 		updatedAt: "2026-08-10T12:25:00Z",
 		pendingCount: 0,
+		consumerUnitsCount: 0,
+		demandKva: null,
 	},
 ];

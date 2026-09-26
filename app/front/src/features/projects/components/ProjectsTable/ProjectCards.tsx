@@ -1,3 +1,4 @@
+import { formatKva } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
 import type { Project } from "@services/projects";
@@ -52,6 +53,20 @@ export const ProjectCards = ({
 				/>
 
 				<dl className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
+					<div className="flex gap-1.5">
+						<dt>UCs</dt>
+						<dd className="font-mono">{project.consumerUnitsCount}</dd>
+					</div>
+
+					<div className="flex gap-1.5">
+						<dt>Demanda</dt>
+						<dd className="font-mono">
+							{project.demandKva === null
+								? "—"
+								: formatKva(project.demandKva, 1)}
+						</dd>
+					</div>
+
 					<div className="flex gap-1.5">
 						<dt>Criado em</dt>
 						<dd>

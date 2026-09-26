@@ -1,4 +1,5 @@
 import { createDataTableColumnHelper } from "@components/DataTable";
+import { formatKva } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
 import type { Project } from "@services/projects";
@@ -9,7 +10,13 @@ import { hasProjectAction, type ProjectRowActions } from "./project-row";
 const columnHelper = createDataTableColumnHelper<Project>();
 
 /** Column ids, so `columnClassNames` does not accept a made-up key. */
-export type ProjectColumnId = "name" | "status" | "createdAt" | "updatedAt";
+export type ProjectColumnId =
+	| "name"
+	| "status"
+	| "units"
+	| "demand"
+	| "createdAt"
+	| "updatedAt";
 
 export const createProjectColumns = ({
 	onViewFindings,
@@ -52,6 +59,32 @@ export const createProjectColumns = ({
 					/>
 				</div>
 			),
+		}),
+		columnHelper.accessor("consumerUnitsCount", {
+			id: "units",
+			header: "UCs",
+			cell: ({ row }) => (
+				<span className="font-mono text-sm text-foreground">
+					{row.original.consumerUnitsCount}
+				</span>
+			),
+		}),
+		columnHelper.accessor("demandKva", {
+			id: "demand",
+			header: "Demanda",
+			cell: ({ row }) =>
+				row.original.demandKva === null ? (
+					<span
+						aria-label="Cálculo ainda não feito"
+						className="text-sm text-muted-foreground"
+					>
+						—
+					</span>
+				) : (
+					<span className="font-mono text-sm whitespace-nowrap text-foreground">
+						{formatKva(row.original.demandKva, 1)}
+					</span>
+				),
 		}),
 		columnHelper.accessor("createdAt", {
 			header: "Criado em",

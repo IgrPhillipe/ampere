@@ -86,6 +86,8 @@ export const makeCreatedProject = (
 		createdAt: now,
 		updatedAt: now,
 		pendingCount: 0,
+		consumerUnitsCount: 0,
+		demandKva: null,
 	});
 
 	return {
