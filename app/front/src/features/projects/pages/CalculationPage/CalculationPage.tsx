@@ -11,7 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Calculator, CircleAlert } from "lucide-react";
 import { useEffect } from "react";
-import { toast } from "sonner";
+
 
 import {
 	CalculationSteps,
@@ -169,7 +169,12 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 					<Button
 						type="button"
 						disabled={!result}
-						onClick={() => toast.info("O memorial chega na próxima etapa.")}
+						onClick={() =>
+						void navigate({
+							to: "/projetos/$id/memorial",
+							params: { id: projectId },
+						})
+					}
 					>
 						Gerar Memorial
 						<ArrowRight aria-hidden="true" />

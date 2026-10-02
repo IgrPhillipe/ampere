@@ -16,6 +16,7 @@ import { Route as AdminNormasRouteImport } from './routes/admin/normas'
 import { Route as ProjetosIdUnidadesRouteImport } from './routes/projetos/$id/unidades'
 import { Route as ProjetosIdDadosRouteImport } from './routes/projetos/$id/dados'
 import { Route as ProjetosIdCalculoRouteImport } from './routes/projetos/$id/calculo'
+import { Route as ProjetosIdMemorialRouteImport } from './routes/projetos/$id/memorial'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -52,6 +53,11 @@ const ProjetosIdCalculoRoute = ProjetosIdCalculoRouteImport.update({
   path: '/projetos/$id/calculo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjetosIdMemorialRoute = ProjetosIdMemorialRouteImport.update({
+  id: '/projetos/$id/memorial',
+  path: '/projetos/$id/memorial',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/projetos/novo': typeof ProjetosNovoRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
+  '/projetos/$id/memorial': typeof ProjetosIdMemorialRoute
   '/projetos/$id/unidades': typeof ProjetosIdUnidadesRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/projetos/novo': typeof ProjetosNovoRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
+  '/projetos/$id/memorial': typeof ProjetosIdMemorialRoute
   '/projetos/$id/unidades': typeof ProjetosIdUnidadesRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/projetos/novo': typeof ProjetosNovoRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
+  '/projetos/$id/memorial': typeof ProjetosIdMemorialRoute
   '/projetos/$id/unidades': typeof ProjetosIdUnidadesRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/projetos/novo'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
+    | '/projetos/$id/memorial'
     | '/projetos/$id/unidades'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/projetos/novo'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
+    | '/projetos/$id/memorial'
     | '/projetos/$id/unidades'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/projetos/novo'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
+    | '/projetos/$id/memorial'
     | '/projetos/$id/unidades'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   ProjetosNovoRoute: typeof ProjetosNovoRoute
   ProjetosIdCalculoRoute: typeof ProjetosIdCalculoRoute
   ProjetosIdDadosRoute: typeof ProjetosIdDadosRoute
+  ProjetosIdMemorialRoute: typeof ProjetosIdMemorialRoute
   ProjetosIdUnidadesRoute: typeof ProjetosIdUnidadesRoute
 }
 
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjetosIdCalculoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projetos/$id/memorial': {
+      id: '/projetos/$id/memorial'
+      path: '/projetos/$id/memorial'
+      fullPath: '/projetos/$id/memorial'
+      preLoaderRoute: typeof ProjetosIdMemorialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProjetosNovoRoute: ProjetosNovoRoute,
   ProjetosIdCalculoRoute: ProjetosIdCalculoRoute,
   ProjetosIdDadosRoute: ProjetosIdDadosRoute,
+  ProjetosIdMemorialRoute: ProjetosIdMemorialRoute,
   ProjetosIdUnidadesRoute: ProjetosIdUnidadesRoute,
 }
 export const routeTree = rootRouteImport
