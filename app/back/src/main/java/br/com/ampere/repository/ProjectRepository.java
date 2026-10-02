@@ -2,6 +2,7 @@ package br.com.ampere.repository;
 
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -25,6 +26,34 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       """)
   Page<Project> searchProjects(
       @Param("status") ProjectStatus status, @Param("search") String search, Pageable pageable);
+
+  @Query(
+      """
+      SELECT project
+      FROM Project project
+      WHERE project.status = :status
+        AND project.submittedAt IS NOT NULL
+      ORDER BY project.submittedAt ASC, project.id ASC
+      """)
+  Page<Project> findReviewQueue(@Param("status") ProjectStatus status, Pageable pageable);
+
+  @Query(
+      """
+      SELECT project
+      FROM Project project
+      WHERE project.status = :status
+        AND project.submittedAt IS NOT NULL
+        AND project.submittedAt < :submittedBefore
+      ORDER BY project.submittedAt ASC, project.id ASC
+      """)
+  Page<Project> findReviewQueueSubmittedBefore(
+      @Param("status") ProjectStatus status,
+      @Param("submittedBefore") OffsetDateTime submittedBefore,
+      Pageable pageable);
+
+  long countByStatusAndSubmittedAtIsNotNull(ProjectStatus status);
+
+  long countByStatusAndSubmittedAtBefore(ProjectStatus status, OffsetDateTime submittedBefore);
 
   @Query(
       """

@@ -18,7 +18,9 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,6 +72,9 @@ public class Project {
 
   @Column(nullable = false)
   private OffsetDateTime updatedAt;
+
+  @Column(nullable = true)
+  private OffsetDateTime submittedAt;
 
   @Column(nullable = false)
   private String searchIndex;
@@ -144,6 +149,31 @@ public class Project {
     this.standards.addAll(standards);
   }
 
+  public void submit(OffsetDateTime submittedAt) {
+    this.status = ProjectStatus.UNDER_REVIEW;
+    this.submittedAt = Objects.requireNonNull(submittedAt, "submittedAt");
+  }
+
+  public static final int REVIEW_PERIOD_DAYS = 30;
+
+  /** Last day of the review period: 30 calendar days after submission. */
+  public LocalDate reviewDeadline(ZoneId zone) {
+    if (submittedAt == null) {
+      throw new IllegalStateException("Project has not been submitted.");
+    }
+
+    return submittedAt.plusDays(REVIEW_PERIOD_DAYS).atZoneSameInstant(zone).toLocalDate();
+  }
+
+  public DeadlineStatus deadlineStatus(LocalDate today, ZoneId zone) {
+    LocalDate deadline = reviewDeadline(zone);
+    if (deadline.isBefore(today)) {
+      return DeadlineStatus.OVERDUE;
+    }
+
+    return deadline.isEqual(today) ? DeadlineStatus.DUE_TODAY : DeadlineStatus.ON_TIME;
+  }
+
   public boolean isDraft() {
     return status == ProjectStatus.DRAFT;
   }
@@ -171,7 +201,7 @@ public class Project {
   public ProjectStatus getStatus() {
     return status;
   }
-
+  
   public BuildingType getBuildingType() {
     return buildingType;
   }
@@ -186,6 +216,10 @@ public class Project {
 
   public OffsetDateTime getUpdatedAt() {
     return updatedAt;
+  }
+
+  public OffsetDateTime getSubmittedAt() {
+    return submittedAt;
   }
 
   public String getSearchIndex() {
