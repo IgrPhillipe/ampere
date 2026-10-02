@@ -12,7 +12,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Calculator, CircleAlert } from "lucide-react";
 import { useEffect } from "react";
 
-
 import {
 	CalculationSteps,
 	LoadComposition,
@@ -170,11 +169,11 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 						type="button"
 						disabled={!result}
 						onClick={() =>
-						void navigate({
-							to: "/projetos/$id/memorial",
-							params: { id: projectId },
-						})
-					}
+							void navigate({
+								to: "/projetos/$id/memorial",
+								params: { id: projectId },
+							})
+						}
 					>
 						Gerar Memorial
 						<ArrowRight aria-hidden="true" />

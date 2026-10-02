@@ -119,11 +119,11 @@ export const projectHandlers = [
 		});
 	}),
 
-	http.post(url("projects/:id/submit"), () => {
-		return HttpResponse.json({ success: true }, { status: 200 });
-	}),
+	http.post(url("projects/:id/submit"), () =>
+		HttpResponse.json({ success: true }, { status: 200 }),
+	),
 
-	http.post(url("projects/:id/documents/:docType"), () => {
-		return HttpResponse.json({ success: true }, { status: 200 });
-	}),
+	http.post(url("projects/:id/documents/:docType"), () =>
+		HttpResponse.json({ success: true }, { status: 200 }),
+	),
 ];
