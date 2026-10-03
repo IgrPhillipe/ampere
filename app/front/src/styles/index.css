@@ -2,6 +2,10 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/ibm-plex-sans";
+/* Plex Mono is the Sans companion; without it `font-mono` fell back to the system font. */
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
 @import "./tokens.css";
 
 /** Keeps the `dark:` variants tied to the app's explicit state. */

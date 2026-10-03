@@ -13,11 +13,12 @@ export interface NavItem {
 	disabled?: boolean;
 }
 
+// "Ajuda" fica de fora ate a pagina existir: desabilitado, o item so ocupava
+// espaco. Quando voltar, use `disabled` para mostra-lo antes da rota.
 export const APP_NAV_ITEMS: NavItem[] = [
 	{ to: "/", label: "Meus Projetos", exact: true },
 	{ to: "/projetos/novo", label: "Novo Projeto" },
 	{ to: "/admin/normas", label: "Normas e Tabelas", roles: ["admin"] },
-	{ label: "Ajuda", disabled: true },
 ];
 
 export const filterNavItemsByRole = (
