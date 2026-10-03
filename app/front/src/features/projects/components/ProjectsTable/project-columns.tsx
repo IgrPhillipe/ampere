@@ -1,16 +1,17 @@
 import { createDataTableColumnHelper } from "@components/DataTable";
 import { formatKva } from "@features/shared";
 import dayjs from "@lib/dayjs";
-import { cn } from "@lib/utils";
 import type { Project } from "@services/projects";
 
+import { ProjectActionIndicator } from "./ProjectActionIndicator";
 import { ProjectStatusSummary } from "./ProjectStatusSummary";
-import { hasProjectAction, type ProjectRowActions } from "./project-row";
+import type { ProjectRowActions } from "./project-row";
 
 const columnHelper = createDataTableColumnHelper<Project>();
 
 /** Column ids, so `columnClassNames` does not accept a made-up key. */
 export type ProjectColumnId =
+	| "attention"
 	| "protocol"
 	| "name"
 	| "status"
@@ -24,16 +25,15 @@ export const createProjectColumns = ({
 	onResumeSubmission,
 }: ProjectRowActions) =>
 	columnHelper.columns([
+		columnHelper.display({
+			id: "attention",
+			header: () => <span className="sr-only">Pendência</span>,
+			cell: ({ row }) => <ProjectActionIndicator project={row.original} />,
+		}),
 		columnHelper.accessor("protocol", {
 			header: "Protocolo",
 			cell: ({ row }) => (
-				<span
-					className={cn(
-						"relative font-mono text-sm text-foreground",
-						hasProjectAction(row.original) &&
-							"before:absolute before:top-1/2 before:-left-4 before:h-6 before:w-0.5 before:-translate-y-1/2 before:bg-brand-sunset",
-					)}
-				>
+				<span className="font-mono text-sm text-foreground">
 					{row.original.protocol}
 				</span>
 			),

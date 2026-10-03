@@ -4,7 +4,7 @@ export const AppBrand = () => (
 	<Link
 		to="/"
 		aria-label="AMPERE, ir para Meus Projetos"
-		className="flex shrink-0 items-center gap-4 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+		className="flex shrink-0 items-center gap-3 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
 	>
 		<img
 			src="/neoenergia-logo.svg"
@@ -13,7 +13,10 @@ export const AppBrand = () => (
 			className="h-7 w-auto"
 		/>
 
-		<span className="hidden text-[0.625rem] font-medium tracking-[0.18em] text-muted-foreground uppercase sm:inline">
+		{/* Divider: without it the tagline read as part of the logo. */}
+		<span aria-hidden="true" className="hidden h-5 w-px bg-border sm:block" />
+
+		<span className="hidden text-xs font-medium tracking-[0.12em] text-muted-foreground uppercase sm:inline">
 			Projetos elétricos
 		</span>
 	</Link>
