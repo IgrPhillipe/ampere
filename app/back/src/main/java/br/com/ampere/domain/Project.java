@@ -71,6 +71,8 @@ public class Project {
   @Column(nullable = false)
   private OffsetDateTime updatedAt;
 
+  private OffsetDateTime submittedAt;
+
   @Column(nullable = false)
   private String searchIndex;
 
@@ -148,6 +150,15 @@ public class Project {
     return status == ProjectStatus.DRAFT;
   }
 
+  public boolean canBeSubmitted() {
+    return status == ProjectStatus.DRAFT || status == ProjectStatus.AWAITING_SUBMISSION;
+  }
+
+  public void submit(OffsetDateTime submittedAt) {
+    this.status = ProjectStatus.UNDER_REVIEW;
+    this.submittedAt = Objects.requireNonNull(submittedAt, "submittedAt");
+  }
+
   public Long getId() {
     return id;
   }
@@ -186,6 +197,10 @@ public class Project {
 
   public OffsetDateTime getUpdatedAt() {
     return updatedAt;
+  }
+
+  public OffsetDateTime getSubmittedAt() {
+    return submittedAt;
   }
 
   public String getSearchIndex() {
