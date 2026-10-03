@@ -31,6 +31,8 @@ import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -178,6 +180,26 @@ public class DataSeeder implements CommandLineRunner {
             new ResidentialMultifamily(
                 9, SupplyVoltage.V220_127, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
             byName);
+    Project underReviewDueToday =
+        seed(
+            "Edifício Comercial Boa Vista",
+            "Rua do Futuro, 800",
+            "Recife",
+            "2026-1007",
+            ProjectStatus.UNDER_REVIEW,
+            new NonResidential(
+                8, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
+            byName);
+    Project underReviewInTime =
+        seed(
+            "Condomínio Jardim Recife",
+            "Avenida Caxangá, 2500",
+            "Recife",
+            "2026-1008",
+            ProjectStatus.UNDER_REVIEW,
+            new ResidentialMultifamily(
+                6, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
+            byName);
     Project rejected =
         seed(
             "Condomínio Vila Nova",
@@ -215,8 +237,28 @@ public class DataSeeder implements CommandLineRunner {
                 EntranceStandard.INDIVIDUAL),
             byName);
 
+    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+    underReview.submit(now.minusDays(40));
+    underReviewDueToday.submit(now.minusDays(30));
+    underReviewInTime.submit(now.minusDays(10));
+    rejected.submit(now.minusDays(12));
+    rejected.reject(now);
+    approved.submit(now.minusDays(20));
+    approved.approve(now);
+    anotherRejected.submit(now.minusDays(60));
+    anotherRejected.reject(now.minusDays(35));
+
     projectRepository.saveAll(
-        List.of(draft, awaitingSubmission, underReview, rejected, anotherRejected, approved));
+        List.of(
+            draft,
+            awaitingSubmission,
+            underReview,
+            underReviewDueToday,
+            underReviewInTime,
+            rejected,
+            anotherRejected,
+            approved));
+
     findingRepository.saveAll(
         List.of(
             new Finding(rejected),
@@ -224,7 +266,7 @@ public class DataSeeder implements CommandLineRunner {
             new Finding(rejected),
             new Finding(anotherRejected)));
 
-    log.info("DataSeeder: six projects and four findings inserted.");
+    log.info("DataSeeder: eight projects and four findings inserted.");
   }
 
   /** Own guard, so a database seeded before the groups existed also gets them. */

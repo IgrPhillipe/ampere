@@ -18,7 +18,9 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,8 @@ import java.util.Objects;
 @Entity
 @Table(name = "project")
 public class Project {
+
+  public static final int REVIEW_PERIOD_DAYS = 30;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -72,6 +76,8 @@ public class Project {
   private OffsetDateTime updatedAt;
 
   private OffsetDateTime submittedAt;
+
+  private OffsetDateTime reviewedAt;
 
   @Column(nullable = false)
   private String searchIndex;
@@ -146,17 +152,48 @@ public class Project {
     this.standards.addAll(standards);
   }
 
+  public void submit(OffsetDateTime submittedAt) {
+    this.status = ProjectStatus.UNDER_REVIEW;
+    this.submittedAt = Objects.requireNonNull(submittedAt, "submittedAt");
+  }
+
+  public void approve(OffsetDateTime reviewedAt) {
+    conclude(ProjectStatus.APPROVED, reviewedAt);
+  }
+
+  public void reject(OffsetDateTime reviewedAt) {
+    conclude(ProjectStatus.REJECTED, reviewedAt);
+  }
+
+  private void conclude(ProjectStatus outcome, OffsetDateTime reviewedAt) {
+    this.status = outcome;
+    this.reviewedAt = Objects.requireNonNull(reviewedAt, "reviewedAt");
+  }
+
+  /** Last day of the review period: 30 calendar days after the day of submission. */
+  public LocalDate reviewDeadline(ZoneId zone) {
+    if (submittedAt == null) {
+      throw new IllegalStateException("Project has not been submitted.");
+    }
+
+    return submittedAt.atZoneSameInstant(zone).toLocalDate().plusDays(REVIEW_PERIOD_DAYS);
+  }
+
+  public DeadlineStatus deadlineStatus(LocalDate today, ZoneId zone) {
+    LocalDate deadline = reviewDeadline(zone);
+    if (deadline.isBefore(today)) {
+      return DeadlineStatus.OVERDUE;
+    }
+
+    return deadline.isEqual(today) ? DeadlineStatus.DUE_TODAY : DeadlineStatus.ON_TIME;
+  }
+
   public boolean isDraft() {
     return status == ProjectStatus.DRAFT;
   }
 
   public boolean canBeSubmitted() {
     return status == ProjectStatus.DRAFT || status == ProjectStatus.AWAITING_SUBMISSION;
-  }
-
-  public void submit(OffsetDateTime submittedAt) {
-    this.status = ProjectStatus.UNDER_REVIEW;
-    this.submittedAt = Objects.requireNonNull(submittedAt, "submittedAt");
   }
 
   public Long getId() {
@@ -201,6 +238,10 @@ public class Project {
 
   public OffsetDateTime getSubmittedAt() {
     return submittedAt;
+  }
+
+  public OffsetDateTime getReviewedAt() {
+    return reviewedAt;
   }
 
   public String getSearchIndex() {
