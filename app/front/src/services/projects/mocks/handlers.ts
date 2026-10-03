@@ -118,12 +118,4 @@ export const projectHandlers = [
 			status: 201,
 		});
 	}),
-
-	http.post(url("projects/:id/submit"), () =>
-		HttpResponse.json({ success: true }, { status: 200 }),
-	),
-
-	http.post(url("projects/:id/documents/:docType"), () =>
-		HttpResponse.json({ success: true }, { status: 200 }),
-	),
 ];

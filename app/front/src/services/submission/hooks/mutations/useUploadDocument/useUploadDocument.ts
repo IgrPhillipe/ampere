@@ -2,28 +2,20 @@ import { getToastErrorMessage } from "@lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { projectKeys } from "../../../query-keys";
+import { submissionKeys } from "../../../query-keys";
 import { uploadDocument } from "../../../requests";
 
 export const useUploadDocument = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: ({
-			id,
-			docType,
-			file,
-		}: {
-			id: string;
-			docType: string;
-			file: File;
-		}) => uploadDocument({ id, docType, file }),
-		onSuccess: async (_data, variables) => {
+		mutationFn: uploadDocument,
+		onSuccess: async ({ data }, { projectId }) => {
 			await queryClient.invalidateQueries({
-				queryKey: projectKeys.detail(variables.id),
+				queryKey: submissionKeys.checklist(projectId),
 			});
 
-			toast.success("Documento anexado com sucesso.");
+			toast.success(`${data.typeLabel} anexado.`);
 		},
 		onError: (error) =>
 			toast.error(

@@ -1,21 +1,24 @@
 import { getToastErrorMessage } from "@lib/api-error";
+import { projectKeys } from "@services/projects";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { projectKeys } from "../../../query-keys";
+import { submissionKeys } from "../../../query-keys";
 import { submitProject } from "../../../requests";
 
 export const useSubmitProject = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (id: string) => submitProject(id),
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({
-				queryKey: projectKeys.all(),
-			});
-
-			toast.success("Projeto enviado para análise.");
+		mutationFn: submitProject,
+		onSuccess: async (response, projectId) => {
+			queryClient.setQueryData(projectKeys.detail(projectId), response);
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: projectKeys.all() }),
+				queryClient.invalidateQueries({
+					queryKey: submissionKeys.checklist(projectId),
+				}),
+			]);
 		},
 		onError: (error) =>
 			toast.error(

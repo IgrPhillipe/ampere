@@ -48,25 +48,3 @@ export const updateProject = async ({
 
 	return projectDetailResponseSchema.parse(response);
 };
-
-export const submitProject = async (id: string) => {
-	const response = await http.post(e.submit(id)).json<unknown>();
-	return response;
-};
-
-export const uploadDocument = async ({
-	id,
-	docType,
-	file,
-}: {
-	id: string;
-	docType: string;
-	file: File;
-}) => {
-	const formData = new FormData();
-	formData.append("file", file);
-	const response = await http
-		.post(e.uploadDocument(id, docType), { body: formData })
-		.json<unknown>();
-	return response;
-};

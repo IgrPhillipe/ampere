@@ -65,15 +65,14 @@ export const ProjectsPage = () => {
 		);
 	}, []);
 
-	const handleResumeSubmission = useCallback((project: Project) => {
-		toast.info(
-			[
-				"A retomada de ",
-				project.name,
-				" será disponibilizada na etapa de edição do projeto.",
-			].join(""),
-		);
-	}, []);
+	const handleResumeSubmission = useCallback(
+		(project: Project) =>
+			void navigate({
+				to: "/projetos/$id/memorial",
+				params: { id: project.id },
+			}),
+		[navigate],
+	);
 
 	return (
 		<PageLayout
