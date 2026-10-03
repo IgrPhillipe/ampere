@@ -297,7 +297,8 @@ public class MemorialPdfService {
         .format(value);
   }
 
+  // The standard Helvetica of the PDF has no glyph for these signs.
   private static String orEmpty(String value) {
-    return value == null || value.isBlank() ? EMPTY : value;
+    return value == null || value.isBlank() ? EMPTY : value.replace("≤", "<=").replace("≥", ">=");
   }
 }
