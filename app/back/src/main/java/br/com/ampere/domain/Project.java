@@ -192,6 +192,10 @@ public class Project {
     return status == ProjectStatus.DRAFT;
   }
 
+  public boolean canBeSubmitted() {
+    return status == ProjectStatus.DRAFT || status == ProjectStatus.AWAITING_SUBMISSION;
+  }
+
   public Long getId() {
     return id;
   }

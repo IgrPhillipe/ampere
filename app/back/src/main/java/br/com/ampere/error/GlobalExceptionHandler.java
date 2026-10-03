@@ -13,9 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import tools.jackson.databind.exc.InvalidFormatException;
 
@@ -94,6 +97,26 @@ public class GlobalExceptionHandler {
             : MALFORMED_BODY_MESSAGE;
 
     return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
+  }
+
+  @ExceptionHandler({
+    MissingServletRequestParameterException.class,
+    MissingServletRequestPartException.class
+  })
+  public ProblemDetail handleMissingParameter(Exception exception) {
+    String name =
+        exception instanceof MissingServletRequestParameterException missing
+            ? missing.getParameterName()
+            : ((MissingServletRequestPartException) exception).getRequestPartName();
+
+    return ProblemDetail.forStatusAndDetail(
+        HttpStatus.BAD_REQUEST, "O parâmetro '" + name + "' é obrigatório.");
+  }
+
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  public ProblemDetail handleMaxUploadSize(MaxUploadSizeExceededException exception) {
+    return ProblemDetail.forStatusAndDetail(
+        HttpStatus.CONTENT_TOO_LARGE, "O arquivo passa do limite de 10 MB.");
   }
 
   @ExceptionHandler(DataIntegrityViolationException.class)

@@ -2,7 +2,7 @@ package br.com.ampere.domain;
 
 /** The building type a project declares. Each constant builds its own subclass. */
 public enum BuildingCategory {
-  RESIDENTIAL_MULTIFAMILY {
+  RESIDENTIAL_MULTIFAMILY("Residencial multifamiliar") {
     @Override
     public BuildingType create(
         Integer floors,
@@ -12,7 +12,7 @@ public enum BuildingCategory {
       return new ResidentialMultifamily(floors, voltage, connectionType, entranceStandard);
     }
   },
-  NON_RESIDENTIAL {
+  NON_RESIDENTIAL("Não residencial") {
     @Override
     public BuildingType create(
         Integer floors,
@@ -22,7 +22,7 @@ public enum BuildingCategory {
       return new NonResidential(floors, voltage, connectionType, entranceStandard);
     }
   },
-  MIXED {
+  MIXED("Misto") {
     @Override
     public BuildingType create(
         Integer floors,
@@ -32,6 +32,16 @@ public enum BuildingCategory {
       return new Mixed(floors, voltage, connectionType, entranceStandard);
     }
   };
+
+  private final String label;
+
+  BuildingCategory(String label) {
+    this.label = label;
+  }
+
+  public String label() {
+    return label;
+  }
 
   public abstract BuildingType create(
       Integer floors,
