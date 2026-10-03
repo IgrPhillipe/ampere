@@ -71,9 +71,6 @@ public class Project {
   @Column(nullable = false)
   private OffsetDateTime updatedAt;
 
-  // Nullable: projetos em rascunho ainda não foram enviados.
-  // Gravado quando o usuário submete o projeto para revisão (US05).
-  // Também usado pela US06 para cálculo de SLA.
   private OffsetDateTime submittedAt;
 
   @Column(nullable = false)
@@ -153,15 +150,13 @@ public class Project {
     return status == ProjectStatus.DRAFT;
   }
 
-  // Transiciona o projeto para UNDER_REVIEW e registra a data do envio.
-  // Chamado pelo SubmissionService após validar que todos os documentos existem.
-  public void submit() {
-    this.status = ProjectStatus.UNDER_REVIEW;
-    this.submittedAt = now();
-  }
-
   public boolean canBeSubmitted() {
     return status == ProjectStatus.DRAFT || status == ProjectStatus.AWAITING_SUBMISSION;
+  }
+
+  public void submit(OffsetDateTime submittedAt) {
+    this.status = ProjectStatus.UNDER_REVIEW;
+    this.submittedAt = Objects.requireNonNull(submittedAt, "submittedAt");
   }
 
   public Long getId() {

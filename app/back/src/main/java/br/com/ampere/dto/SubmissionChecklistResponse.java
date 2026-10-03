@@ -1,23 +1,29 @@
 package br.com.ampere.dto;
 
+import br.com.ampere.domain.DocumentType;
+import br.com.ampere.service.SubmissionChecklist;
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Checklist de submissao retornado por GET /projects/{id}/submission.
- *
- * <p>Cada item representa um requisito que precisa ser atendido antes do envio. O campo canSubmit
- * so e true quando TODOS os itens estao completos.
- *
- * <p>O front usa isso para mostrar ao usuario o que falta antes de habilitar o botao de enviar.
- */
-public record SubmissionChecklistResponse(List<ChecklistItem> items, boolean canSubmit) {
+public record SubmissionChecklistResponse(
+    List<ChecklistItem> items, List<DocumentResponse> documents, boolean canSubmit) {
 
-  /**
-   * Um item do checklist.
-   *
-   * @param key identificador do item (ex: "calculation", "art")
-   * @param label texto legivel para exibir no front
-   * @param completed true se o requisito ja foi atendido
-   */
+  public static final String CALCULATION_KEY = "CALCULATION";
+
+  /** {@code key} is {@value #CALCULATION_KEY} or the name of a {@link DocumentType}. */
   public record ChecklistItem(String key, String label, boolean completed) {}
+
+  public static SubmissionChecklistResponse from(SubmissionChecklist checklist) {
+    List<ChecklistItem> items = new ArrayList<>();
+    items.add(
+        new ChecklistItem(CALCULATION_KEY, "Cálculo de demanda realizado", checklist.calculated()));
+    for (DocumentType type : DocumentType.values()) {
+      items.add(new ChecklistItem(type.name(), type.label(), checklist.hasDocument(type)));
+    }
+
+    return new SubmissionChecklistResponse(
+        List.copyOf(items),
+        checklist.documents().stream().map(DocumentResponse::from).toList(),
+        checklist.canSubmit());
+  }
 }

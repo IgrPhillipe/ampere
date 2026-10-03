@@ -4,12 +4,6 @@ import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.ProjectDocument;
 import java.time.OffsetDateTime;
 
-/**
- * Representacao de um documento no JSON de resposta.
- *
- * <p>Nao inclui o conteudo binario (byte[]) — so os metadados. O download do PDF e feito por outro
- * endpoint se necessario.
- */
 public record DocumentResponse(
     String id,
     DocumentType type,
@@ -18,7 +12,6 @@ public record DocumentResponse(
     Long fileSize,
     OffsetDateTime uploadedAt) {
 
-  // Converte a entidade JPA para o DTO de resposta.
   public static DocumentResponse from(ProjectDocument document) {
     return new DocumentResponse(
         String.valueOf(document.getId()),

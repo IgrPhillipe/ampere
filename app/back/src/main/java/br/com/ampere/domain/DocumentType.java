@@ -1,16 +1,10 @@
 package br.com.ampere.domain;
 
-/**
- * Tipos de documento que podem ser anexados a um projeto antes do envio.
- *
- * <p>Cada projeto precisa de um documento de cada tipo para poder ser submetido. A ART (Anotacao de
- * Responsabilidade Tecnica) e obrigatoria por lei; o diagrama unifilar e a planta de situacao sao
- * exigidos pela distribuidora (DIS-NOR-053).
- */
+/** A document the designer attaches before submitting the project. */
 public enum DocumentType {
   ART("ART"),
-  DIAGRAMA_UNIFILAR("Diagrama unifilar"),
-  PLANTA_DE_SITUACAO("Planta de situação");
+  SINGLE_LINE_DIAGRAM("Diagrama unifilar"),
+  SITE_PLAN("Planta de situação");
 
   private final String label;
 

@@ -53,7 +53,7 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Geração de PDF para o memorial de cálculo (US05). -->
+		<!-- Calculation memorial PDF -->
 		<dependency>
 			<groupId>com.github.librepdf</groupId>
 			<artifactId>openpdf</artifactId>
