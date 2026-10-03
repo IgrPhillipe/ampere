@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.ConsumerUnitGroup;
+import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.GroupStatus;
 import br.com.ampere.domain.NormativeTable;
@@ -27,6 +28,8 @@ import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.service.ReviewQueueService;
+import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -127,6 +130,31 @@ class DataSeederTest {
             BuildingCategory.RESIDENTIAL_MULTIFAMILY,
             BuildingCategory.NON_RESIDENTIAL,
             BuildingCategory.MIXED);
+  }
+
+  @Test
+  void seedsTheReviewQueueWithEveryDeadlineStatusAndTheReviewsOfToday() throws Exception {
+    ProjectRepository projectRepository = mock(ProjectRepository.class);
+    FindingRepository findingRepository = mock(FindingRepository.class);
+    when(projectRepository.count()).thenReturn(0L);
+    DataSeeder seeder = seeder(projectRepository, findingRepository, seededStandards());
+
+    seeder.run();
+
+    ArgumentCaptor<Iterable<Project>> captor = iterableCaptor();
+    verify(projectRepository).saveAll(captor.capture());
+    List<Project> projects = StreamSupport.stream(captor.getValue().spliterator(), false).toList();
+    LocalDate today = LocalDate.now(ReviewQueueService.ZONE);
+    assertThat(projects)
+        .filteredOn(project -> project.getStatus() == ProjectStatus.UNDER_REVIEW)
+        .extracting(project -> project.deadlineStatus(today, ReviewQueueService.ZONE))
+        .containsExactlyInAnyOrder(
+            DeadlineStatus.OVERDUE, DeadlineStatus.DUE_TODAY, DeadlineStatus.ON_TIME);
+    assertThat(projects)
+        .filteredOn(project -> project.getReviewedAt() != null)
+        .extracting(Project::getStatus)
+        .containsExactlyInAnyOrder(
+            ProjectStatus.APPROVED, ProjectStatus.REJECTED, ProjectStatus.REJECTED);
   }
 
   @Test

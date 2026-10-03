@@ -30,6 +30,8 @@ import java.util.Objects;
 @Table(name = "project")
 public class Project {
 
+  public static final int REVIEW_PERIOD_DAYS = 30;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -73,8 +75,9 @@ public class Project {
   @Column(nullable = false)
   private OffsetDateTime updatedAt;
 
-  @Column(nullable = true)
   private OffsetDateTime submittedAt;
+
+  private OffsetDateTime reviewedAt;
 
   @Column(nullable = false)
   private String searchIndex;
@@ -154,15 +157,26 @@ public class Project {
     this.submittedAt = Objects.requireNonNull(submittedAt, "submittedAt");
   }
 
-  public static final int REVIEW_PERIOD_DAYS = 30;
+  public void approve(OffsetDateTime reviewedAt) {
+    conclude(ProjectStatus.APPROVED, reviewedAt);
+  }
 
-  /** Last day of the review period: 30 calendar days after submission. */
+  public void reject(OffsetDateTime reviewedAt) {
+    conclude(ProjectStatus.REJECTED, reviewedAt);
+  }
+
+  private void conclude(ProjectStatus outcome, OffsetDateTime reviewedAt) {
+    this.status = outcome;
+    this.reviewedAt = Objects.requireNonNull(reviewedAt, "reviewedAt");
+  }
+
+  /** Last day of the review period: 30 calendar days after the day of submission. */
   public LocalDate reviewDeadline(ZoneId zone) {
     if (submittedAt == null) {
       throw new IllegalStateException("Project has not been submitted.");
     }
 
-    return submittedAt.plusDays(REVIEW_PERIOD_DAYS).atZoneSameInstant(zone).toLocalDate();
+    return submittedAt.atZoneSameInstant(zone).toLocalDate().plusDays(REVIEW_PERIOD_DAYS);
   }
 
   public DeadlineStatus deadlineStatus(LocalDate today, ZoneId zone) {
@@ -201,7 +215,7 @@ public class Project {
   public ProjectStatus getStatus() {
     return status;
   }
-  
+
   public BuildingType getBuildingType() {
     return buildingType;
   }
@@ -220,6 +234,10 @@ public class Project {
 
   public OffsetDateTime getSubmittedAt() {
     return submittedAt;
+  }
+
+  public OffsetDateTime getReviewedAt() {
+    return reviewedAt;
   }
 
   public String getSearchIndex() {

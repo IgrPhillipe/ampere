@@ -63,6 +63,16 @@ class ProjectDeadlineTest {
   }
 
   @Test
+  void aReviewRecordsTheOutcomeAndItsDate() {
+    Project project = submitted(NOON.minusDays(10));
+
+    project.reject(NOON);
+
+    assertThat(project.getStatus()).isEqualTo(ProjectStatus.REJECTED);
+    assertThat(project.getReviewedAt()).isEqualTo(NOON);
+  }
+
+  @Test
   void rejectsDeadlineForAProjectThatWasNeverSubmitted() {
     Project draft =
         new Project(

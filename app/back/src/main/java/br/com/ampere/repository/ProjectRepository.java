@@ -55,6 +55,10 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
   long countByStatusAndSubmittedAtBefore(ProjectStatus status, OffsetDateTime submittedBefore);
 
+  long countByReviewedAtGreaterThanEqual(OffsetDateTime since);
+
+  long countByStatusAndReviewedAtGreaterThanEqual(ProjectStatus status, OffsetDateTime since);
+
   @Query(
       """
       SELECT project.status AS status, COUNT(project) AS total

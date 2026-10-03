@@ -65,13 +65,17 @@ public class ReviewQueueService {
   @Transactional(readOnly = true)
   public ReviewQueueIndicators indicators() {
     LocalDate today = LocalDate.now(ZONE);
+    OffsetDateTime startOfToday = today.atStartOfDay(ZONE).toOffsetDateTime();
+    OffsetDateTime startOfMonth = today.withDayOfMonth(1).atStartOfDay(ZONE).toOffsetDateTime();
 
-    long total = projectRepository.countByStatusAndSubmittedAtIsNotNull(ProjectStatus.UNDER_REVIEW);
-    long dueSoon =
+    return new ReviewQueueIndicators(
+        projectRepository.countByStatusAndSubmittedAtIsNotNull(ProjectStatus.UNDER_REVIEW),
         projectRepository.countByStatusAndSubmittedAtBefore(
-            ProjectStatus.UNDER_REVIEW, dueSoonCutoff(today));
-
-    return new ReviewQueueIndicators(total, dueSoon, 0, 0.0);
+            ProjectStatus.UNDER_REVIEW, dueSoonCutoff(today)),
+        projectRepository.countByReviewedAtGreaterThanEqual(startOfToday),
+        projectRepository.countByReviewedAtGreaterThanEqual(startOfMonth),
+        projectRepository.countByStatusAndReviewedAtGreaterThanEqual(
+            ProjectStatus.REJECTED, startOfMonth));
   }
 
   /** Submitted before this instant means the deadline is today or already past. */

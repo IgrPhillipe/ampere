@@ -46,8 +46,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Populates development tables on the first application startup. */
-
-/** Populates development tables on the first application startup. */
 @Component
 @Profile("!prod & !test")
 public class DataSeeder implements CommandLineRunner {
@@ -190,10 +188,7 @@ public class DataSeeder implements CommandLineRunner {
             "2026-1007",
             ProjectStatus.UNDER_REVIEW,
             new NonResidential(
-                8,
-                SupplyVoltage.V380_220,
-                ConnectionType.THREE_PHASE,
-                EntranceStandard.COLLECTIVE),
+                8, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
             byName);
     Project underReviewInTime =
         seed(
@@ -203,10 +198,7 @@ public class DataSeeder implements CommandLineRunner {
             "2026-1008",
             ProjectStatus.UNDER_REVIEW,
             new ResidentialMultifamily(
-                6,
-                SupplyVoltage.V380_220,
-                ConnectionType.THREE_PHASE,
-                EntranceStandard.COLLECTIVE),
+                6, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
             byName);
     Project rejected =
         seed(
@@ -249,6 +241,12 @@ public class DataSeeder implements CommandLineRunner {
     underReview.submit(now.minusDays(40));
     underReviewDueToday.submit(now.minusDays(30));
     underReviewInTime.submit(now.minusDays(10));
+    rejected.submit(now.minusDays(12));
+    rejected.reject(now);
+    approved.submit(now.minusDays(20));
+    approved.approve(now);
+    anotherRejected.submit(now.minusDays(60));
+    anotherRejected.reject(now.minusDays(35));
 
     projectRepository.saveAll(
         List.of(
@@ -268,7 +266,7 @@ public class DataSeeder implements CommandLineRunner {
             new Finding(rejected),
             new Finding(anotherRejected)));
 
-    log.info("DataSeeder: six projects and four findings inserted.");
+    log.info("DataSeeder: eight projects and four findings inserted.");
   }
 
   /** Own guard, so a database seeded before the groups existed also gets them. */

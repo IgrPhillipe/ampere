@@ -1,8 +1,17 @@
 package br.com.ampere.service;
 
-/**
- * Numbers shown above the queue. The project does not record when a review ended, so {@code
- * reviewedToday} and {@code monthlyRejectionRate} are not calculated yet and stay at zero.
- */
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public record ReviewQueueIndicators(
-    long total, long dueSoon, long reviewedToday, double monthlyRejectionRate) {}
+    long total, long dueSoon, long reviewedToday, long reviewedThisMonth, long rejectedThisMonth) {
+
+  public BigDecimal monthlyRejectionPercent() {
+    if (reviewedThisMonth == 0) {
+      return BigDecimal.ZERO;
+    }
+
+    return BigDecimal.valueOf(rejectedThisMonth * 100)
+        .divide(BigDecimal.valueOf(reviewedThisMonth), 1, RoundingMode.HALF_UP);
+  }
+}
