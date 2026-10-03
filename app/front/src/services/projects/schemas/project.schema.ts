@@ -111,6 +111,7 @@ export const projectDetailSchema = z.object({
 	status: projectStatusSchema,
 	createdAt: z.iso.datetime({ offset: true }),
 	updatedAt: z.iso.datetime({ offset: true }),
+	submittedAt: z.iso.datetime({ offset: true }).nullish(),
 	buildingType: buildingCategorySchema,
 	floors: z.number().int().positive(),
 	voltage: supplyVoltageSchema,
