@@ -85,7 +85,7 @@ A área `/api/admin/**` (tabelas normativas) e a fila `/api/review-queue/**` exi
 
 ### Listagem
 
-`GET /api/review-queue` devolve somente projetos `UNDER_REVIEW`, ordenados pelo envio mais antigo e, em caso de empate, pelo ID. Como o prazo é de 30 dias corridos após o envio, essa é também a ordem crescente de prazo.
+`GET /api/review-queue` devolve somente projetos `UNDER_REVIEW`. O prazo é de 30 dias corridos após o envio e pode ser ordenado de forma crescente ou decrescente. Em caso de empate, o menor ID vem primeiro para manter a paginação estável.
 
 | Parâmetro | Padrão | Descrição |
 | :--- | :--- | :--- |
@@ -93,6 +93,7 @@ A área `/api/admin/**` (tabelas normativas) e a fila `/api/review-queue/**` exi
 | `pageSize` | `20` | Quantidade de registros, de 1 a 100 |
 | `search` | vazio | Busca sem diferenciar maiúsculas ou acentos no protocolo, projetista ou município |
 | `filter` | `ALL` | Recorte mutuamente exclusivo: `ALL`, `DUE_SOON`, `HIGH_DEMAND` ou `REANALYSIS` |
+| `sort` | `DEADLINE_ASC` | Ordem do prazo: `DEADLINE_ASC` ou `DEADLINE_DESC` |
 
 Critérios dos filtros:
 
@@ -100,10 +101,24 @@ Critérios dos filtros:
 - `HIGH_DEMAND`: o último cálculo do projeto tem demanda estritamente maior que `50 kVA`; projetos sem cálculo não entram.
 - `REANALYSIS`: o projeto tem dois ou mais envios para análise. Cada envio incrementa o ciclo; um projeto rejeitado pode ser corrigido e enviado novamente.
 
+Critérios da ordenação:
+
+- `DEADLINE_ASC`: projetos com o prazo mais próximo ou mais atrasado aparecem primeiro.
+- `DEADLINE_DESC`: projetos com o prazo mais distante aparecem primeiro.
+- Projetos com o mesmo prazo são sempre ordenados pelo ID crescente.
+- A pesquisa e o filtro são aplicados antes da ordenação; a paginação é aplicada por último.
+
 Exemplo:
 
 ```http
-GET /api/review-queue?page=1&pageSize=10&search=jaboatao&filter=DUE_SOON
+GET /api/review-queue?page=1&pageSize=10&search=jaboatao&filter=DUE_SOON&sort=DEADLINE_ASC
+Authorization: Bearer <token-admin>
+```
+
+Para inverter a ordem do prazo:
+
+```http
+GET /api/review-queue?sort=DEADLINE_DESC
 Authorization: Bearer <token-admin>
 ```
 
