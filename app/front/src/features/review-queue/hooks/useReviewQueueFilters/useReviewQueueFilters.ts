@@ -8,7 +8,7 @@ import {
 	debounce,
 	parseAsString,
 	parseAsStringLiteral,
-	useQueryState,
+	useQueryStates,
 } from "nuqs";
 import { useCallback } from "react";
 
@@ -27,17 +27,13 @@ export const reviewQueueFilterParser = parseAsStringLiteral(
 ).withDefault("ALL");
 
 export const useReviewQueueFilters = () => {
-	const [filter, setFilterQuery] = useQueryState(
-		"filter",
-		reviewQueueFilterParser,
-	);
-	const [search, setSearchQuery] = useQueryState(
-		"search",
-		parseAsString.withDefault("").withOptions({
+	const [{ filter, search, page }, setQuery] = useQueryStates({
+		filter: reviewQueueFilterParser,
+		search: parseAsString.withDefault("").withOptions({
 			limitUrlUpdates: debounce(REVIEW_QUEUE_SEARCH_DEBOUNCE_MS),
 		}),
-	);
-	const [page, setPageQuery] = useQueryState("page", positivePageParser);
+		page: positivePageParser,
+	});
 	const debouncedSearch = useDebouncedValue(
 		search.trim(),
 		REVIEW_QUEUE_SEARCH_DEBOUNCE_MS,
@@ -45,32 +41,31 @@ export const useReviewQueueFilters = () => {
 
 	const setFilter = useCallback(
 		(nextFilter: ReviewQueueFilter) => {
-			void setFilterQuery(nextFilter === "ALL" ? null : nextFilter);
-			void setPageQuery(null);
+			void setQuery({
+				filter: nextFilter === "ALL" ? null : nextFilter,
+				page: null,
+			});
 		},
-		[setFilterQuery, setPageQuery],
+		[setQuery],
 	);
 
 	const setSearch = useCallback(
 		(value: string) => {
-			void setSearchQuery(value || null);
-			void setPageQuery(null);
+			void setQuery({ search: value || null, page: null });
 		},
-		[setSearchQuery, setPageQuery],
+		[setQuery],
 	);
 
 	const setPage = useCallback(
 		(nextPage: number) => {
-			void setPageQuery(nextPage);
+			void setQuery({ page: nextPage });
 		},
-		[setPageQuery],
+		[setQuery],
 	);
 
 	const clearFilters = useCallback(() => {
-		void setFilterQuery(null);
-		void setSearchQuery(null);
-		void setPageQuery(null);
-	}, [setFilterQuery, setSearchQuery, setPageQuery]);
+		void setQuery({ filter: null, search: null, page: null });
+	}, [setQuery]);
 
 	return {
 		filter,
