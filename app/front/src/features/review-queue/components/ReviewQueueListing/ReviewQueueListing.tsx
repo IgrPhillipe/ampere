@@ -19,7 +19,7 @@ const columnClassNames = {
 	units: "w-20 px-3 py-2.5",
 	demand: "w-32 px-3 py-2.5",
 	warnings: "w-36 px-3 py-2.5",
-	deadline: "w-36 px-3 py-2.5",
+	deadline: "w-36 px-3 py-2.5 text-right",
 	action: "w-24 px-3 py-2.5",
 } satisfies Partial<Record<ReviewQueueColumnId, string>>;
 

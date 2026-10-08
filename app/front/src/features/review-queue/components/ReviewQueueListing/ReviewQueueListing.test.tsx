@@ -73,6 +73,7 @@ describe("ReviewQueueListing", () => {
 
 		const deadline = screen.getAllByText("Atrasado 3 dias")[0];
 		expect(deadline.closest('[data-slot="badge"]')).toBeNull();
+		expect(screen.queryByText("08.10.2026")).not.toBeInTheDocument();
 	});
 });
 

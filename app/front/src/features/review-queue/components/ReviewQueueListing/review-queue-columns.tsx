@@ -1,6 +1,5 @@
 import { createDataTableColumnHelper } from "@components/DataTable";
 import { formatKva } from "@features/shared";
-import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
 import type { ReviewQueueItem } from "@services/review-queue";
 
@@ -65,7 +64,7 @@ export const reviewQueueColumns = columnHelper.columns([
 		header: "Demanda",
 		cell: ({ row }) =>
 			row.original.demandKva === null ? (
-				<span className="text-xs text-muted-foreground">Sem cálculo</span>
+				<span className="text-sm text-muted-foreground">Sem cálculo</span>
 			) : (
 				<span className="font-mono text-sm tabular-nums">
 					{formatKva(row.original.demandKva, 1)}
@@ -79,17 +78,11 @@ export const reviewQueueColumns = columnHelper.columns([
 	columnHelper.accessor("deadline", {
 		header: "Prazo",
 		cell: ({ row }) => (
-			<div className="flex flex-col items-start gap-1">
+			<div className="flex justify-end">
 				<DeadlineBadge
 					deadlineStatus={row.original.deadlineStatus}
 					daysRemaining={row.original.daysRemaining}
 				/>
-				<time
-					dateTime={row.original.deadline}
-					className="font-mono text-[0.625rem] text-muted-foreground"
-				>
-					{dayjs(row.original.deadline).format("DD.MM.YYYY")}
-				</time>
 			</div>
 		),
 	}),

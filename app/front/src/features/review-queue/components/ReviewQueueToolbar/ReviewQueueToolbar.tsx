@@ -27,10 +27,10 @@ const filterOptions: Array<{
 		"total" | "dueSoon" | "highDemand" | "reanalysis"
 	>;
 }> = [
-	{ value: "ALL", label: "Todos", countKey: "total" },
-	{ value: "DUE_SOON", label: "Vencendo prazo", countKey: "dueSoon" },
-	{ value: "HIGH_DEMAND", label: "Acima de 50 kVA", countKey: "highDemand" },
-	{ value: "REANALYSIS", label: "Reanálise", countKey: "reanalysis" },
+	{ value: "ALL", label: "TODOS", countKey: "total" },
+	{ value: "DUE_SOON", label: "VENCENDO PRAZO", countKey: "dueSoon" },
+	{ value: "HIGH_DEMAND", label: "ACIMA DE 50 KVA", countKey: "highDemand" },
+	{ value: "REANALYSIS", label: "REANÁLISE", countKey: "reanalysis" },
 ];
 
 const formatCount = (count: number) => String(count).padStart(2, "0");
@@ -77,7 +77,7 @@ export const ReviewQueueToolbar = ({
 						aria-pressed={isActive}
 						onClick={() => onFilterChange(option.value)}
 						className={cn(
-							"shrink-0",
+							"shrink-0 font-mono text-[0.625rem] font-normal tracking-wider text-muted-foreground hover:text-muted-foreground",
 							isActive &&
 								"border-[#1e1a13] bg-[#1e1a13] text-white hover:bg-[#1e1a13]/90 hover:text-white",
 						)}
@@ -87,7 +87,7 @@ export const ReviewQueueToolbar = ({
 							<span
 								aria-label={`${count} projetos`}
 								className={cn(
-									"font-mono text-[0.625rem] tabular-nums",
+									"tabular-nums",
 									isActive ? "text-white/75" : "text-muted-foreground",
 								)}
 							>
@@ -109,16 +109,14 @@ export const ReviewQueueToolbar = ({
 			onClick={() =>
 				onSortChange(sort === "DEADLINE_ASC" ? "DEADLINE_DESC" : "DEADLINE_ASC")
 			}
-			className="shrink-0 gap-2 lg:ml-auto"
+			className="shrink-0 gap-2 font-mono text-[0.625rem] font-normal tracking-wider uppercase lg:ml-auto"
 		>
-			<span className="font-mono text-[0.625rem] font-normal tracking-wider text-muted-foreground uppercase">
-				Ordenar por
-			</span>
-			<span>Prazo</span>
+			<span className="font-normal text-muted-foreground">ORDENAR POR</span>
+			<span className="font-semibold text-[#1e1a13]">PRAZO</span>
 			{sort === "DEADLINE_ASC" ? (
-				<ArrowDown aria-hidden="true" />
+				<ArrowDown aria-hidden="true" className="text-[#1e1a13]" />
 			) : (
-				<ArrowUp aria-hidden="true" />
+				<ArrowUp aria-hidden="true" className="text-[#1e1a13]" />
 			)}
 		</Button>
 	</div>
