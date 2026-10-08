@@ -20,14 +20,14 @@ export const ReviewQueueIndicators = () => {
 		return (
 			<section
 				aria-label="Carregando indicadores da fila"
-				className="grid min-h-28 grid-cols-2 bg-primary px-gutter py-5 text-primary-foreground md:grid-cols-4 md:px-gutter-md"
+				className="grid min-h-30 grid-cols-2 overflow-hidden bg-primary text-primary-foreground md:grid-cols-4"
 			>
 				{Object.values(indicatorLabels).map((label) => (
 					<div
 						key={label}
-						className="flex flex-col gap-2 border-primary-foreground/20 px-3 first:pl-0 md:border-l md:first:border-l-0"
+						className="flex min-h-30 flex-col justify-center gap-2 border-r border-primary-foreground/20 px-gutter last:border-r-0 md:px-gutter-md"
 					>
-						<Skeleton className="h-9 w-16 bg-primary-foreground/25" />
+						<Skeleton className="h-10 w-16 bg-primary-foreground/25" />
 						<Skeleton className="h-3 w-28 bg-primary-foreground/25" />
 					</div>
 				))}
@@ -71,21 +71,18 @@ export const ReviewQueueIndicators = () => {
 	return (
 		<section
 			aria-label="Indicadores da fila"
-			className="bg-primary px-gutter py-4 text-primary-foreground md:px-gutter-md"
+			className="overflow-x-auto bg-primary text-primary-foreground"
 		>
-			<p className="mb-3 font-mono text-xs tracking-wider uppercase opacity-75">
-				Indicadores da fila
-			</p>
-			<dl className="grid grid-cols-2 gap-y-5 md:grid-cols-4 md:gap-y-0">
+			<dl className="grid min-w-2xl grid-cols-4">
 				{values.map(({ label, value }) => (
 					<div
 						key={label}
-						className="border-primary-foreground/20 px-3 first:pl-0 md:border-l md:first:border-l-0"
+						className="flex min-h-30 flex-col justify-center gap-2 border-r border-primary-foreground/20 px-gutter last:border-r-0 md:px-gutter-md"
 					>
-						<dd className="font-mono text-2xl font-semibold tabular-nums">
+						<dd className="font-mono text-4xl font-semibold tabular-nums">
 							{value}
 						</dd>
-						<dt className="mt-1 font-mono text-xs tracking-wider uppercase opacity-75">
+						<dt className="font-mono text-xs tracking-wider uppercase opacity-80">
 							{label}
 						</dt>
 					</div>
