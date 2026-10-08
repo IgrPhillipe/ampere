@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as FilaDeAnaliseRouteImport } from './routes/fila-de-analise'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjetosNovoRouteImport } from './routes/projetos/novo'
 import { Route as AdminNormasRouteImport } from './routes/admin/normas'
@@ -22,6 +23,11 @@ import { Route as ProjetosIdCalculoRouteImport } from './routes/projetos/$id/cal
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FilaDeAnaliseRoute = FilaDeAnaliseRouteImport.update({
+  id: '/fila-de-analise',
+  path: '/fila-de-analise',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -67,6 +73,7 @@ const ProjetosIdCalculoRoute = ProjetosIdCalculoRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/fila-de-analise': typeof FilaDeAnaliseRoute
   '/login': typeof LoginRoute
   '/admin/normas': typeof AdminNormasRoute
   '/projetos/novo': typeof ProjetosNovoRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/fila-de-analise': typeof FilaDeAnaliseRoute
   '/login': typeof LoginRoute
   '/admin/normas': typeof AdminNormasRoute
   '/projetos/novo': typeof ProjetosNovoRoute
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/fila-de-analise': typeof FilaDeAnaliseRoute
   '/login': typeof LoginRoute
   '/admin/normas': typeof AdminNormasRoute
   '/projetos/novo': typeof ProjetosNovoRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/fila-de-analise'
     | '/login'
     | '/admin/normas'
     | '/projetos/novo'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/fila-de-analise'
     | '/login'
     | '/admin/normas'
     | '/projetos/novo'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/fila-de-analise'
     | '/login'
     | '/admin/normas'
     | '/projetos/novo'
@@ -137,6 +149,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  FilaDeAnaliseRoute: typeof FilaDeAnaliseRoute
   LoginRoute: typeof LoginRoute
   AdminNormasRoute: typeof AdminNormasRoute
   ProjetosNovoRoute: typeof ProjetosNovoRoute
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fila-de-analise': {
+      id: '/fila-de-analise'
+      path: '/fila-de-analise'
+      fullPath: '/fila-de-analise'
+      preLoaderRoute: typeof FilaDeAnaliseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -217,6 +237,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  FilaDeAnaliseRoute: FilaDeAnaliseRoute,
   LoginRoute: LoginRoute,
   AdminNormasRoute: AdminNormasRoute,
   ProjetosNovoRoute: ProjetosNovoRoute,
