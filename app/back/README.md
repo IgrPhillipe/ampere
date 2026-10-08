@@ -77,7 +77,85 @@ curl -s -X POST http://localhost:8080/api/auth/login \
   -d '{"email":"user@ampere.com","password":"senha@123"}'
 ```
 
-Apenas a área `/api/admin/**` (tabelas normativas) exige o papel `admin`. As demais rotas ignoram o papel enquanto a Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md) estiver aberta.
+A área `/api/admin/**` (tabelas normativas) e a fila `/api/review-queue/**` exigem o papel `admin`. O papel `admin` representa o analista na fila técnica.
+
+---
+
+## Fila de análise
+
+### Listagem
+
+`GET /api/review-queue` devolve somente projetos `UNDER_REVIEW`, ordenados pelo envio mais antigo e, em caso de empate, pelo ID. Como o prazo é de 30 dias corridos após o envio, essa é também a ordem crescente de prazo.
+
+| Parâmetro | Padrão | Descrição |
+| :--- | :--- | :--- |
+| `page` | `1` | Página iniciada em 1 |
+| `pageSize` | `20` | Quantidade de registros, de 1 a 100 |
+| `search` | vazio | Busca sem diferenciar maiúsculas ou acentos no protocolo, projetista ou município |
+| `filter` | `ALL` | Recorte mutuamente exclusivo: `ALL`, `DUE_SOON`, `HIGH_DEMAND` ou `REANALYSIS` |
+
+Critérios dos filtros:
+
+- `DUE_SOON`: prazo vence hoje ou já está atrasado.
+- `HIGH_DEMAND`: o último cálculo do projeto tem demanda estritamente maior que `50 kVA`; projetos sem cálculo não entram.
+- `REANALYSIS`: o projeto tem dois ou mais envios para análise. Cada envio incrementa o ciclo; um projeto rejeitado pode ser corrigido e enviado novamente.
+
+Exemplo:
+
+```http
+GET /api/review-queue?page=1&pageSize=10&search=jaboatao&filter=DUE_SOON
+Authorization: Bearer <token-admin>
+```
+
+Resposta resumida:
+
+```json
+{
+  "data": [
+    {
+      "id": "42",
+      "name": "Condomínio Vila Nova",
+      "protocol": "2026-0475",
+      "municipality": "Jaboatão dos Guararapes",
+      "submittedAt": "2026-09-08T12:00:00Z",
+      "deadline": "2026-10-08",
+      "deadlineStatus": "DUE_TODAY",
+      "daysRemaining": 0,
+      "warnings": 1,
+      "applicantName": "João Projetista",
+      "consumerUnitsCount": 48,
+      "demandKva": 229.4,
+      "reanalysis": true
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+}
+```
+
+`deadlineStatus` assume `ON_TIME`, `DUE_TODAY` ou `OVERDUE`. `demandKva` é `null` quando ainda não existe cálculo.
+
+### Indicadores
+
+`GET /api/review-queue/indicators` devolve os contadores globais, sem depender da busca, do filtro ou da página:
+
+```json
+{
+  "data": {
+    "total": 18,
+    "dueSoon": 3,
+    "highDemand": 11,
+    "reanalysis": 5,
+    "reviewedToday": 7,
+    "monthlyRejectionPercent": 21.0
+  }
+}
+```
+
+O percentual mensal é a quantidade de projetos rejeitados dividida pelo total analisado desde o início do mês, arredondada para uma casa decimal. Um mês sem análises retorna `0`.
 
 ---
 
@@ -124,7 +202,7 @@ São **cinco** classes de domínio persistidas, acima do mínimo de três da dis
 ## Limitações
 
 - Sem migrations versionadas: o Hibernate cria o schema a partir das entidades. Schema defasado e recuperação: [Quando travar](../../docs/tecnico/convencoes-back.md#quando-travar)
-- Nenhum papel de usuário restringe rota, pendente da Q1c
+- As rotas que ainda não possuem regra explícita aceitam qualquer usuário autenticado
 
 ---
 
