@@ -41,7 +41,7 @@ export const ReviewQueueToolbar = ({
 }: ReviewQueueToolbarProps) => (
 	<div
 		className={cn(
-			"flex flex-col gap-4 border-b border-border bg-card px-gutter py-4 lg:flex-row lg:items-center lg:justify-between md:px-gutter-md",
+			"flex flex-col gap-4 border-b border-border bg-card px-gutter py-4 lg:flex-row lg:items-center md:px-gutter-md",
 			className,
 		)}
 	>
@@ -50,7 +50,7 @@ export const ReviewQueueToolbar = ({
 			onValueChange={onSearchChange}
 			placeholder="Buscar protocolo, projetista ou município"
 			label="Buscar na fila de análise"
-			className="lg:max-w-md"
+			className="lg:w-[32rem] lg:shrink-0"
 		/>
 
 		<div
@@ -67,10 +67,14 @@ export const ReviewQueueToolbar = ({
 						key={option.value}
 						type="button"
 						size="xs"
-						variant={isActive ? "secondary" : "neutral"}
+						variant="neutral"
 						aria-pressed={isActive}
 						onClick={() => onFilterChange(option.value)}
-						className="shrink-0"
+						className={cn(
+							"shrink-0",
+							isActive &&
+								"border-[#1e1a13] bg-[#1e1a13] text-white hover:bg-[#1e1a13]/90 hover:text-white",
+						)}
 					>
 						{option.label}
 						{count === undefined ? null : (
@@ -78,9 +82,7 @@ export const ReviewQueueToolbar = ({
 								aria-label={`${count} projetos`}
 								className={cn(
 									"font-mono text-[0.625rem] tabular-nums",
-									isActive
-										? "text-secondary-foreground/75"
-										: "text-muted-foreground",
+									isActive ? "text-white/75" : "text-muted-foreground",
 								)}
 							>
 								{formatCount(count)}
