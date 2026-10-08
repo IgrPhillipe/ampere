@@ -57,6 +57,23 @@ describe("ReviewQueueListing", () => {
 		fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
 		expect(onPageChange).toHaveBeenCalledWith(2);
 	});
+
+	it("renders deadline status as plain text", () => {
+		render(
+			<ReviewQueueListing
+				{...defaultProps}
+				items={[
+					makeReviewQueueItem({
+						deadlineStatus: "OVERDUE",
+						daysRemaining: -3,
+					}),
+				]}
+			/>,
+		);
+
+		const deadline = screen.getAllByText("Atrasado 3 dias")[0];
+		expect(deadline.closest('[data-slot="badge"]')).toBeNull();
+	});
 });
 
 describe("AnalyzeButton", () => {
