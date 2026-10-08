@@ -19,8 +19,8 @@ export const APP_NAV_ITEMS: NavItem[] = [
 		label: "Fila de Análise",
 		roles: ["admin"],
 	},
-	{ to: "/", label: "Meus Projetos", exact: true },
-	{ to: "/projetos/novo", label: "Novo Projeto" },
+	{ to: "/", label: "Meus Projetos", exact: true, roles: ["user"] },
+	{ to: "/projetos/novo", label: "Novo Projeto", roles: ["user"] },
 	{ to: "/admin/normas", label: "Normas e Tabelas", roles: ["admin"] },
 	{ label: "Ajuda", disabled: true },
 ];
