@@ -84,15 +84,15 @@ public class DataSeeder implements CommandLineRunner {
   @Override
   @Transactional
   public void run(String... args) {
-    seedUsers();
+    User owner = seedUsers();
     List<Standard> standards = seedStandards();
-    seedDevelopmentData(standards);
+    seedDevelopmentData(standards, owner);
     seedGroups();
     seedNormativeTables(standards);
   }
 
   /** Per e-mail, so an older database also gets the reviewer the second reading needs. */
-  private void seedUsers() {
+  private User seedUsers() {
     String hash = passwordEncoder.encode(DEVELOPMENT_PASSWORD);
     List<User> missing =
         List.of(
@@ -103,11 +103,22 @@ public class DataSeeder implements CommandLineRunner {
             .filter(user -> userRepository.findByEmail(user.getEmail()).isEmpty())
             .toList();
     if (missing.isEmpty()) {
-      return;
+      return userRepository
+          .findByEmail("user@ampere.com")
+          .orElseThrow(() -> new IllegalStateException("Development owner was not seeded."));
     }
 
     userRepository.saveAll(missing);
     log.info("DataSeeder: {} development users inserted.", missing.size());
+    return missing.stream()
+        .filter(user -> user.getEmail().equals("user@ampere.com"))
+        .findFirst()
+        .orElseGet(
+            () ->
+                userRepository
+                    .findByEmail("user@ampere.com")
+                    .orElseThrow(
+                        () -> new IllegalStateException("Development owner was not seeded.")));
   }
 
   private void seedNormativeTables(List<Standard> standards) {
@@ -136,7 +147,7 @@ public class DataSeeder implements CommandLineRunner {
     return standards;
   }
 
-  private void seedDevelopmentData(List<Standard> standards) {
+  private void seedDevelopmentData(List<Standard> standards, User owner) {
     if (projectRepository.count() > 0) {
       return;
     }
@@ -156,7 +167,8 @@ public class DataSeeder implements CommandLineRunner {
                 SupplyVoltage.V380_220,
                 ConnectionType.THREE_PHASE,
                 EntranceStandard.COLLECTIVE),
-            byName);
+            byName,
+            owner);
     Project awaitingSubmission =
         seed(
             "Edifício Torre Norte",
@@ -169,7 +181,8 @@ public class DataSeeder implements CommandLineRunner {
                 SupplyVoltage.V380_220,
                 ConnectionType.THREE_PHASE,
                 EntranceStandard.COLLECTIVE),
-            byName);
+            byName,
+            owner);
     Project underReview =
         seed(
             "Edifício Residencial Aurora",
@@ -179,7 +192,8 @@ public class DataSeeder implements CommandLineRunner {
             ProjectStatus.UNDER_REVIEW,
             new ResidentialMultifamily(
                 9, SupplyVoltage.V220_127, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
-            byName);
+            byName,
+            owner);
     Project underReviewDueToday =
         seed(
             "Edifício Comercial Boa Vista",
@@ -189,7 +203,8 @@ public class DataSeeder implements CommandLineRunner {
             ProjectStatus.UNDER_REVIEW,
             new NonResidential(
                 8, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
-            byName);
+            byName,
+            owner);
     Project underReviewInTime =
         seed(
             "Condomínio Jardim Recife",
@@ -199,7 +214,8 @@ public class DataSeeder implements CommandLineRunner {
             ProjectStatus.UNDER_REVIEW,
             new ResidentialMultifamily(
                 6, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
-            byName);
+            byName,
+            owner);
     Project rejected =
         seed(
             "Condomínio Vila Nova",
@@ -209,7 +225,8 @@ public class DataSeeder implements CommandLineRunner {
             ProjectStatus.REJECTED,
             new ResidentialMultifamily(
                 6, SupplyVoltage.V220_127, ConnectionType.TWO_PHASE, EntranceStandard.INDIVIDUAL),
-            byName);
+            byName,
+            owner);
     Project anotherRejected =
         seed(
             "Centro Empresarial Recife",
@@ -222,7 +239,8 @@ public class DataSeeder implements CommandLineRunner {
                 SupplyVoltage.V380_220,
                 ConnectionType.THREE_PHASE,
                 EntranceStandard.INDIVIDUAL),
-            byName);
+            byName,
+            owner);
     Project approved =
         seed(
             "Comercial Praça Sul",
@@ -235,11 +253,14 @@ public class DataSeeder implements CommandLineRunner {
                 SupplyVoltage.V220_127,
                 ConnectionType.SINGLE_PHASE,
                 EntranceStandard.INDIVIDUAL),
-            byName);
+            byName,
+            owner);
 
     OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
     underReview.submit(now.minusDays(40));
     underReviewDueToday.submit(now.minusDays(30));
+    underReviewInTime.submit(now.minusDays(45));
+    underReviewInTime.reject(now.minusDays(12));
     underReviewInTime.submit(now.minusDays(10));
     rejected.submit(now.minusDays(12));
     rejected.reject(now);
@@ -383,13 +404,15 @@ public class DataSeeder implements CommandLineRunner {
       String protocol,
       ProjectStatus status,
       BuildingType buildingType,
-      Map<String, Standard> standardsByName) {
+      Map<String, Standard> standardsByName,
+      User owner) {
     List<Standard> standards =
         buildingType.applicableStandards().stream()
             .map(StandardName::code)
             .map(standardsByName::get)
             .toList();
 
-    return new Project(name, address, municipality, protocol, status, buildingType, standards);
+    return new Project(
+        name, address, municipality, protocol, status, buildingType, standards, owner);
   }
 }

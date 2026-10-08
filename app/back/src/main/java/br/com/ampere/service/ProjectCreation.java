@@ -2,7 +2,10 @@ package br.com.ampere.service;
 
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.User;
+import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.Protocols;
 import java.time.LocalDate;
 import org.springframework.stereotype.Service;
@@ -14,15 +17,29 @@ public class ProjectCreation {
 
   private final ProjectRepository projectRepository;
   private final ApplicableStandards applicableStandards;
+  private final UserRepository userRepository;
 
   public ProjectCreation(
-      ProjectRepository projectRepository, ApplicableStandards applicableStandards) {
+      ProjectRepository projectRepository,
+      ApplicableStandards applicableStandards,
+      UserRepository userRepository) {
     this.projectRepository = projectRepository;
     this.applicableStandards = applicableStandards;
+    this.userRepository = userRepository;
+  }
+
+  public Project createWithGeneratedProtocol(ProjectParameters parameters) {
+    return createWithGeneratedProtocol(parameters, null);
   }
 
   @Transactional
-  public Project createWithGeneratedProtocol(ProjectParameters parameters) {
+  public Project createWithGeneratedProtocol(ProjectParameters parameters, String ownerEmail) {
+    User owner =
+        ownerEmail == null
+            ? null
+            : userRepository
+                .findByEmail(User.normalizeEmail(ownerEmail))
+                .orElseThrow(() -> new NotFoundException("Usuário autenticado não encontrado."));
     BuildingType buildingType = parameters.toBuildingType();
     int year = LocalDate.now().getYear();
     String protocol =
@@ -37,7 +54,8 @@ public class ProjectCreation {
             parameters.municipality(),
             protocol,
             buildingType,
-            applicableStandards.of(buildingType));
+            applicableStandards.of(buildingType),
+            owner);
 
     return projectRepository.saveAndFlush(project);
   }

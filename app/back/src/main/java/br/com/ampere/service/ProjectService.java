@@ -23,6 +23,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -94,9 +96,18 @@ public class ProjectService {
   }
 
   public Project create(ProjectParameters parameters) {
+    var authentication = SecurityContextHolder.getContext().getAuthentication();
+    Object principal = authentication == null ? null : authentication.getPrincipal();
+    String ownerEmail = principal instanceof Jwt jwt ? jwt.getClaimAsString("email") : null;
+    return create(parameters, ownerEmail);
+  }
+
+  public Project create(ProjectParameters parameters, String ownerEmail) {
     for (int attempt = 1; attempt <= PROTOCOL_ATTEMPTS; attempt++) {
       try {
-        return projectCreation.createWithGeneratedProtocol(parameters);
+        return ownerEmail == null
+            ? projectCreation.createWithGeneratedProtocol(parameters)
+            : projectCreation.createWithGeneratedProtocol(parameters, ownerEmail);
       } catch (DataIntegrityViolationException collision) {
         log.warn("Protocol collision on attempt {} of {}", attempt, PROTOCOL_ATTEMPTS);
       }
