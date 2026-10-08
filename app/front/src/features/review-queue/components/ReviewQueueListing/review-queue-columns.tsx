@@ -1,5 +1,4 @@
 import { createDataTableColumnHelper } from "@components/DataTable";
-import { Badge } from "@components/ui/badge";
 import { formatKva } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
@@ -40,17 +39,15 @@ export const reviewQueueColumns = columnHelper.columns([
 	columnHelper.accessor("name", {
 		header: "Projeto",
 		cell: ({ row }) => (
-			<div className="flex flex-col gap-1 whitespace-normal">
+			<div className="flex min-w-0 flex-col gap-0.5 whitespace-normal">
 				<span className="font-semibold text-foreground">
 					{row.original.name}
 				</span>
-				<span className="text-xs text-muted-foreground">
+				<span className="truncate text-xs text-muted-foreground">
 					{row.original.municipality}
 					{row.original.applicantName ? ` · ${row.original.applicantName}` : ""}
+					{row.original.reanalysis ? " · reanálise" : ""}
 				</span>
-				{row.original.reanalysis ? (
-					<Badge variant="success">Reanálise</Badge>
-				) : null}
 			</div>
 		),
 	}),

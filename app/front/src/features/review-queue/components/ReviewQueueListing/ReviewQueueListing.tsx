@@ -14,12 +14,13 @@ import {
 } from "./review-queue-columns";
 
 const columnClassNames = {
-	protocol: "w-36",
-	units: "w-20",
-	demand: "w-32",
-	warnings: "w-36",
-	deadline: "w-36",
-	action: "w-24",
+	protocol: "w-40 px-3 py-2.5",
+	name: "w-auto min-w-0 px-3 py-2.5",
+	units: "w-20 px-3 py-2.5",
+	demand: "w-32 px-3 py-2.5",
+	warnings: "w-36 px-3 py-2.5",
+	deadline: "w-36 px-3 py-2.5",
+	action: "w-24 px-3 py-2.5",
 } satisfies Partial<Record<ReviewQueueColumnId, string>>;
 
 interface ReviewQueueListingProps {
@@ -80,12 +81,12 @@ export const ReviewQueueListing = ({
 
 	return (
 		<>
-			<ReviewQueueCards items={items} className="md:hidden" />
+			<ReviewQueueCards items={items} className="lg:hidden" />
 			<DataTable
 				columns={reviewQueueColumns}
 				data={items}
 				columnClassNames={columnClassNames}
-				className="hidden md:block"
+				className="hidden overflow-x-hidden lg:block [&_[data-slot=table-container]]:overflow-x-hidden"
 			/>
 			{pagination ? (
 				<Pagination

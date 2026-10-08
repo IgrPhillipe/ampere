@@ -22,19 +22,19 @@ export const DeadlineBadge = ({
 	if (deadlineStatus === "OVERDUE") {
 		const days = Math.abs(daysRemaining);
 		return (
-			<Badge variant="destructive">
+			<span className="text-sm text-[#1e1a13]">
 				Atrasado {days} {days === 1 ? "dia" : "dias"}
-			</Badge>
+			</span>
 		);
 	}
 
 	if (deadlineStatus === "DUE_TODAY") {
-		return <Badge variant="warning">Vence hoje</Badge>;
+		return <span className="text-sm text-[#1e1a13]">Vence hoje</span>;
 	}
 
 	return (
-		<Badge variant="outline">
+		<span className="text-sm text-[#1e1a13]">
 			{daysRemaining} {daysRemaining === 1 ? "dia" : "dias"}
-		</Badge>
+		</span>
 	);
 };

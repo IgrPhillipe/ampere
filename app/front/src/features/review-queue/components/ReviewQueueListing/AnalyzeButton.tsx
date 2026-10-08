@@ -15,6 +15,7 @@ export const AnalyzeButton = () => {
 				aria-describedby={tooltipId}
 				title="A análise individual estará disponível em uma próxima etapa"
 				onClick={(event) => event.preventDefault()}
+				className="text-[#1e1a13] hover:text-[#1e1a13]"
 			>
 				Analisar
 				<ArrowRight aria-hidden="true" />
