@@ -57,7 +57,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
                   AND calculation.finalTotalDemand > :minimumDemand
               )
             )
-          ORDER BY project.submittedAt ASC, project.id ASC
           """,
       countQuery =
           """

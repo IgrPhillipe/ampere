@@ -3,6 +3,7 @@ package br.com.ampere.service;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ReviewQueueFilter;
+import br.com.ampere.domain.ReviewQueueSort;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.ProjectRepository;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,8 +44,15 @@ public class ReviewQueueService {
   }
 
   @Transactional(readOnly = true)
-  public ReviewQueueListing list(int page, int pageSize, String search, ReviewQueueFilter filter) {
-    PageRequest pageRequest = PageRequest.of(page - 1, pageSize);
+  public ReviewQueueListing list(
+      int page, int pageSize, String search, ReviewQueueFilter filter, ReviewQueueSort sort) {
+    Sort.Direction deadlineDirection =
+        sort == ReviewQueueSort.DEADLINE_DESC ? Sort.Direction.DESC : Sort.Direction.ASC;
+    PageRequest pageRequest =
+        PageRequest.of(
+            page - 1,
+            pageSize,
+            Sort.by(deadlineDirection, "submittedAt").and(Sort.by(Sort.Direction.ASC, "id")));
     LocalDate today = LocalDate.now(ZONE);
 
     Page<Project> projects =
