@@ -144,6 +144,57 @@ class ReviewQueueIntegrationTest {
   }
 
   @Test
+  void ordersByDeadlineDescendingWhenRequested() throws Exception {
+    submitted("2026-4001", now.minusDays(10));
+    submitted("2026-4002", now.minusDays(40));
+    submitted("2026-4003", now.minusDays(30));
+
+    asAnalyst(get("/review-queue").param("sort", "deadline_desc"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(3)))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-4001"))
+        .andExpect(jsonPath("$.data[1].protocol").value("2026-4003"))
+        .andExpect(jsonPath("$.data[2].protocol").value("2026-4002"));
+  }
+
+  @Test
+  void usesTheProjectIdAsAStableDeadlineTieBreaker() throws Exception {
+    OffsetDateTime sharedSubmission = now.minusDays(5);
+    submitted("2026-4302", sharedSubmission);
+    submitted("2026-4301", sharedSubmission);
+
+    asAnalyst(get("/review-queue").param("sort", "DEADLINE_ASC"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-4302"))
+        .andExpect(jsonPath("$.data[1].protocol").value("2026-4301"));
+    asAnalyst(get("/review-queue").param("sort", "DEADLINE_DESC"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-4302"))
+        .andExpect(jsonPath("$.data[1].protocol").value("2026-4301"));
+  }
+
+  @Test
+  void appliesPaginationAfterSearchFilterAndDeadlineSorting() throws Exception {
+    submitted("2026-4401", now.minusDays(10));
+    submitted("2026-4402", now.minusDays(40));
+    submitted("2026-4403", now.minusDays(30));
+
+    asAnalyst(
+            get("/review-queue")
+                .param("search", "joao")
+                .param("filter", "DUE_SOON")
+                .param("sort", "DEADLINE_DESC")
+                .param("pageSize", "1")
+                .param("page", "2"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.pagination.total").value(2))
+        .andExpect(jsonPath("$.pagination.page").value(2))
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-4402"))
+        .andExpect(jsonPath("$.data[0].deadlineStatus").value("OVERDUE"));
+  }
+
+  @Test
   void theDueSoonFilterKeepsOnlyOverdueAndDueToday() throws Exception {
     submitted("2026-4001", now.minusDays(10));
     submitted("2026-4002", now.minusDays(40));
@@ -233,6 +284,15 @@ class ReviewQueueIntegrationTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("DUE_SOON")))
         .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("REANALYSIS")));
+  }
+
+  @Test
+  void rejectsAnUnknownQueueSort() throws Exception {
+    asAnalyst(get("/review-queue").param("sort", "oldest_first"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("DEADLINE_ASC")))
+        .andExpect(
+            jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("DEADLINE_DESC")));
   }
 
   @Test
