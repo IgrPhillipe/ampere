@@ -2,6 +2,7 @@ package br.com.ampere.service;
 
 import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.Project;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -12,4 +13,6 @@ public record ReviewQueueEntry(
     LocalDate deadline,
     DeadlineStatus deadlineStatus,
     long daysRemaining,
-    long warnings) {}
+    long warnings,
+    long consumerUnitsCount,
+    BigDecimal demandKva) {}

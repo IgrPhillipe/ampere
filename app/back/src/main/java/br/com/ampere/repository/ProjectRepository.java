@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
+  @EntityGraph(attributePaths = "owner")
   @Query(
       """
       SELECT project
@@ -37,6 +38,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       """)
   Page<Project> findReviewQueue(@Param("status") ProjectStatus status, Pageable pageable);
 
+  @EntityGraph(attributePaths = "owner")
   @Query(
       """
       SELECT project

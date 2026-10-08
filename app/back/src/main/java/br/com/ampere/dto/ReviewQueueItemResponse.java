@@ -3,6 +3,7 @@ package br.com.ampere.dto;
 import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.service.ReviewQueueEntry;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
@@ -16,7 +17,11 @@ public record ReviewQueueItemResponse(
     LocalDate deadline,
     DeadlineStatus deadlineStatus,
     long daysRemaining,
-    long warnings) {
+    long warnings,
+    String applicantName,
+    long consumerUnitsCount,
+    BigDecimal demandKva,
+    boolean reanalysis) {
 
   public static ReviewQueueItemResponse from(ReviewQueueEntry entry) {
     Project project = entry.project();
@@ -30,6 +35,10 @@ public record ReviewQueueItemResponse(
         entry.deadline(),
         entry.deadlineStatus(),
         entry.daysRemaining(),
-        entry.warnings());
+        entry.warnings(),
+        project.getOwner() == null ? null : project.getOwner().getName(),
+        entry.consumerUnitsCount(),
+        entry.demandKva(),
+        project.isReanalysis());
   }
 }

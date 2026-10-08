@@ -3,7 +3,9 @@ package br.com.ampere.service;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.repository.CalculationRepository;
+import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.ProjectRepository;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -24,11 +26,15 @@ public class ReviewQueueService {
 
   private final ProjectRepository projectRepository;
   private final CalculationRepository calculationRepository;
+  private final ConsumerUnitGroupRepository groupRepository;
 
   public ReviewQueueService(
-      ProjectRepository projectRepository, CalculationRepository calculationRepository) {
+      ProjectRepository projectRepository,
+      CalculationRepository calculationRepository,
+      ConsumerUnitGroupRepository groupRepository) {
     this.projectRepository = projectRepository;
     this.calculationRepository = calculationRepository;
+    this.groupRepository = groupRepository;
   }
 
   @Transactional(readOnly = true)
@@ -44,6 +50,8 @@ public class ReviewQueueService {
 
     List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
     Map<Long, Long> warnings = countWarnings(projectIds);
+    Map<Long, Long> consumerUnits = countUnits(projectIds);
+    Map<Long, BigDecimal> demands = latestDemands(projectIds);
 
     List<ReviewQueueEntry> entries =
         projects.getContent().stream()
@@ -55,7 +63,9 @@ public class ReviewQueueService {
                       deadline,
                       project.deadlineStatus(today, ZONE),
                       ChronoUnit.DAYS.between(today, deadline),
-                      warnings.getOrDefault(project.getId(), 0L));
+                      warnings.getOrDefault(project.getId(), 0L),
+                      consumerUnits.getOrDefault(project.getId(), 0L),
+                      demands.get(project.getId()));
                 })
             .toList();
 
@@ -97,5 +107,29 @@ public class ReviewQueueService {
             Collectors.toUnmodifiableMap(
                 CalculationRepository.LatestWarnings::getProjectId,
                 CalculationRepository.LatestWarnings::getWarnings));
+  }
+
+  private Map<Long, Long> countUnits(List<Long> projectIds) {
+    if (projectIds.isEmpty()) {
+      return Map.of();
+    }
+
+    return groupRepository.countUnitsPerProject(projectIds).stream()
+        .collect(
+            Collectors.toUnmodifiableMap(
+                ConsumerUnitGroupRepository.UnitCount::getProjectId,
+                ConsumerUnitGroupRepository.UnitCount::getTotal));
+  }
+
+  private Map<Long, BigDecimal> latestDemands(List<Long> projectIds) {
+    if (projectIds.isEmpty()) {
+      return Map.of();
+    }
+
+    return calculationRepository.findLatestDemandPerProject(projectIds).stream()
+        .collect(
+            Collectors.toUnmodifiableMap(
+                CalculationRepository.LatestDemand::getProjectId,
+                CalculationRepository.LatestDemand::getDemand));
   }
 }
