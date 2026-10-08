@@ -1,5 +1,6 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.ReviewQueueFilter;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.PageQuery;
 import br.com.ampere.dto.Pagination;
@@ -47,10 +48,14 @@ public class ReviewQueueController {
   })
   public ApiResponse<List<ReviewQueueItemResponse>> list(
       @Valid @ParameterObject PageQuery pagination,
-      @Parameter(description = "Só os projetos que vencem hoje ou estão atrasados")
-          @RequestParam(defaultValue = "false")
-          boolean dueSoon) {
-    ReviewQueueListing listing = service.list(pagination.page(), pagination.pageSize(), dueSoon);
+      @Parameter(description = "Termo buscado no protocolo, projetista ou município")
+          @RequestParam(required = false)
+          String search,
+      @Parameter(description = "Recorte aplicado à fila de análise")
+          @RequestParam(defaultValue = "ALL")
+          ReviewQueueFilter filter) {
+    ReviewQueueListing listing =
+        service.list(pagination.page(), pagination.pageSize(), search, filter);
     List<ReviewQueueItemResponse> items =
         listing.entries().stream().map(ReviewQueueItemResponse::from).toList();
 

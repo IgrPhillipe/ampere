@@ -2,9 +2,11 @@ package br.com.ampere.service;
 
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.ReviewQueueFilter;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.utils.SearchTerms;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -24,6 +26,8 @@ public class ReviewQueueService {
   /** The day a deadline falls on depends on the time zone, so it is fixed in one place. */
   public static final ZoneId ZONE = ZoneId.of("America/Recife");
 
+  public static final BigDecimal HIGH_DEMAND_THRESHOLD = new BigDecimal("50");
+
   private final ProjectRepository projectRepository;
   private final CalculationRepository calculationRepository;
   private final ConsumerUnitGroupRepository groupRepository;
@@ -38,15 +42,21 @@ public class ReviewQueueService {
   }
 
   @Transactional(readOnly = true)
-  public ReviewQueueListing list(int page, int pageSize, boolean dueSoonOnly) {
+  public ReviewQueueListing list(int page, int pageSize, String search, ReviewQueueFilter filter) {
     PageRequest pageRequest = PageRequest.of(page - 1, pageSize);
     LocalDate today = LocalDate.now(ZONE);
 
     Page<Project> projects =
-        dueSoonOnly
-            ? projectRepository.findReviewQueueSubmittedBefore(
-                ProjectStatus.UNDER_REVIEW, dueSoonCutoff(today), pageRequest)
-            : projectRepository.findReviewQueue(ProjectStatus.UNDER_REVIEW, pageRequest);
+        projectRepository.searchReviewQueue(
+            ProjectStatus.UNDER_REVIEW,
+            SearchTerms.normalize(search),
+            filter == ReviewQueueFilter.DUE_SOON,
+            dueSoonCutoff(today),
+            filter == ReviewQueueFilter.HIGH_DEMAND,
+            HIGH_DEMAND_THRESHOLD,
+            filter == ReviewQueueFilter.REANALYSIS,
+            2,
+            pageRequest);
 
     List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
     Map<Long, Long> warnings = countWarnings(projectIds);
@@ -80,8 +90,9 @@ public class ReviewQueueService {
 
     return new ReviewQueueIndicators(
         projectRepository.countByStatusAndSubmittedAtIsNotNull(ProjectStatus.UNDER_REVIEW),
-        projectRepository.countByStatusAndSubmittedAtBefore(
-            ProjectStatus.UNDER_REVIEW, dueSoonCutoff(today)),
+        filteredCount(true, false, false, dueSoonCutoff(today)),
+        filteredCount(false, true, false, dueSoonCutoff(today)),
+        filteredCount(false, false, true, dueSoonCutoff(today)),
         projectRepository.countByReviewedAtGreaterThanEqual(startOfToday),
         projectRepository.countByReviewedAtGreaterThanEqual(startOfMonth),
         projectRepository.countByStatusAndReviewedAtGreaterThanEqual(
@@ -95,6 +106,22 @@ public class ReviewQueueService {
         .atStartOfDay(ZONE)
         .toOffsetDateTime()
         .minusDays(Project.REVIEW_PERIOD_DAYS);
+  }
+
+  private long filteredCount(
+      boolean dueSoon, boolean highDemand, boolean reanalysis, OffsetDateTime submittedBefore) {
+    return projectRepository
+        .searchReviewQueue(
+            ProjectStatus.UNDER_REVIEW,
+            "",
+            dueSoon,
+            submittedBefore,
+            highDemand,
+            HIGH_DEMAND_THRESHOLD,
+            reanalysis,
+            2,
+            PageRequest.of(0, 1))
+        .getTotalElements();
   }
 
   private Map<Long, Long> countWarnings(List<Long> projectIds) {

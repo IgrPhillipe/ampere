@@ -2,6 +2,7 @@ package br.com.ampere.repository;
 
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -28,34 +29,75 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
   Page<Project> searchProjects(
       @Param("status") ProjectStatus status, @Param("search") String search, Pageable pageable);
 
-  @Query(
-      """
-      SELECT project
-      FROM Project project
-      WHERE project.status = :status
-        AND project.submittedAt IS NOT NULL
-      ORDER BY project.submittedAt ASC, project.id ASC
-      """)
-  Page<Project> findReviewQueue(@Param("status") ProjectStatus status, Pageable pageable);
-
   @EntityGraph(attributePaths = "owner")
   @Query(
-      """
-      SELECT project
-      FROM Project project
-      WHERE project.status = :status
-        AND project.submittedAt IS NOT NULL
-        AND project.submittedAt < :submittedBefore
-      ORDER BY project.submittedAt ASC, project.id ASC
-      """)
-  Page<Project> findReviewQueueSubmittedBefore(
+      value =
+          """
+          SELECT project
+          FROM Project project
+          WHERE project.status = :status
+            AND project.submittedAt IS NOT NULL
+            AND (
+              :search = ''
+              OR project.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
+            )
+            AND (:dueSoon = false OR project.submittedAt < :submittedBefore)
+            AND (:reanalysis = false OR project.reviewCycle >= :minimumReviewCycle)
+            AND (
+              :highDemand = false
+              OR EXISTS (
+                SELECT calculation.id
+                FROM Calculation calculation
+                WHERE calculation.project = project
+                  AND calculation.id = (
+                    SELECT MAX(latest.id)
+                    FROM Calculation latest
+                    WHERE latest.project = project
+                  )
+                  AND calculation.finalTotalDemand > :minimumDemand
+              )
+            )
+          ORDER BY project.submittedAt ASC, project.id ASC
+          """,
+      countQuery =
+          """
+          SELECT COUNT(project)
+          FROM Project project
+          WHERE project.status = :status
+            AND project.submittedAt IS NOT NULL
+            AND (
+              :search = ''
+              OR project.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
+            )
+            AND (:dueSoon = false OR project.submittedAt < :submittedBefore)
+            AND (:reanalysis = false OR project.reviewCycle >= :minimumReviewCycle)
+            AND (
+              :highDemand = false
+              OR EXISTS (
+                SELECT calculation.id
+                FROM Calculation calculation
+                WHERE calculation.project = project
+                  AND calculation.id = (
+                    SELECT MAX(latest.id)
+                    FROM Calculation latest
+                    WHERE latest.project = project
+                  )
+                  AND calculation.finalTotalDemand > :minimumDemand
+              )
+            )
+          """)
+  Page<Project> searchReviewQueue(
       @Param("status") ProjectStatus status,
+      @Param("search") String search,
+      @Param("dueSoon") boolean dueSoon,
       @Param("submittedBefore") OffsetDateTime submittedBefore,
+      @Param("highDemand") boolean highDemand,
+      @Param("minimumDemand") BigDecimal minimumDemand,
+      @Param("reanalysis") boolean reanalysis,
+      @Param("minimumReviewCycle") Integer minimumReviewCycle,
       Pageable pageable);
 
   long countByStatusAndSubmittedAtIsNotNull(ProjectStatus status);
-
-  long countByStatusAndSubmittedAtBefore(ProjectStatus status, OffsetDateTime submittedBefore);
 
   long countByReviewedAtGreaterThanEqual(OffsetDateTime since);
 

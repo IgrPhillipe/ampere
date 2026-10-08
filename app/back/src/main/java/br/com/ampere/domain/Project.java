@@ -123,7 +123,7 @@ public class Project {
     this.owner = owner;
     this.createdAt = now();
     this.updatedAt = this.createdAt;
-    this.searchIndex = searchIndexOf(name, protocol);
+    this.searchIndex = searchIndexOf(name, protocol, municipality, owner);
   }
 
   /** A newly created project: a draft, with the protocol the system assigned it. */
@@ -153,21 +153,23 @@ public class Project {
   private void onPersist() {
     createdAt = now();
     updatedAt = createdAt;
-    searchIndex = searchIndexOf(name, protocol);
+    searchIndex = searchIndexOf(name, protocol, municipality, owner);
   }
 
   @PreUpdate
   private void onUpdate() {
     updatedAt = now();
-    searchIndex = searchIndexOf(name, protocol);
+    searchIndex = searchIndexOf(name, protocol, municipality, owner);
   }
 
   private static OffsetDateTime now() {
     return OffsetDateTime.now(ZoneOffset.UTC);
   }
 
-  private static String searchIndexOf(String name, String protocol) {
-    return SearchTerms.fold(name + " " + protocol);
+  private static String searchIndexOf(
+      String name, String protocol, String municipality, User owner) {
+    String ownerName = owner == null ? "" : owner.getName();
+    return SearchTerms.fold(name + " " + protocol + " " + municipality + " " + ownerName);
   }
 
   public void rename(String name, String address, String municipality) {
