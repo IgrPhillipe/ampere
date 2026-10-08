@@ -1,4 +1,9 @@
 import { authHandlers } from "@services/auth/mocks/handlers";
 import { projectHandlers } from "@services/projects/mocks/handlers";
+import { reviewQueueHandlers } from "@services/review-queue/mocks/handlers";
 
-export const handlers = [...authHandlers, ...projectHandlers];
+export const handlers = [
+	...authHandlers,
+	...projectHandlers,
+	...reviewQueueHandlers,
+];
