@@ -1,7 +1,9 @@
 import { useDebouncedValue } from "@features/shared";
 import {
 	type ReviewQueueFilter,
+	type ReviewQueueSort,
 	reviewQueueFilterSchema,
+	reviewQueueSortSchema,
 } from "@services/review-queue";
 import {
 	createParser,
@@ -26,13 +28,18 @@ export const reviewQueueFilterParser = parseAsStringLiteral(
 	reviewQueueFilterSchema.options,
 ).withDefault("ALL");
 
+export const reviewQueueSortParser = parseAsStringLiteral(
+	reviewQueueSortSchema.options,
+).withDefault("DEADLINE_ASC");
+
 export const useReviewQueueFilters = () => {
-	const [{ filter, search, page }, setQuery] = useQueryStates({
+	const [{ filter, search, page, sort }, setQuery] = useQueryStates({
 		filter: reviewQueueFilterParser,
 		search: parseAsString.withDefault("").withOptions({
 			limitUrlUpdates: debounce(REVIEW_QUEUE_SEARCH_DEBOUNCE_MS),
 		}),
 		page: positivePageParser,
+		sort: reviewQueueSortParser,
 	});
 	const debouncedSearch = useDebouncedValue(
 		search.trim(),
@@ -63,6 +70,16 @@ export const useReviewQueueFilters = () => {
 		[setQuery],
 	);
 
+	const setSort = useCallback(
+		(nextSort: ReviewQueueSort) => {
+			void setQuery({
+				sort: nextSort === "DEADLINE_ASC" ? null : nextSort,
+				page: null,
+			});
+		},
+		[setQuery],
+	);
+
 	const clearFilters = useCallback(() => {
 		void setQuery({ filter: null, search: null, page: null });
 	}, [setQuery]);
@@ -72,10 +89,12 @@ export const useReviewQueueFilters = () => {
 		search,
 		debouncedSearch,
 		page,
+		sort,
 		hasActiveFilters: filter !== "ALL" || search.trim() !== "",
 		setFilter,
 		setSearch,
 		setPage,
+		setSort,
 		clearFilters,
 	};
 };

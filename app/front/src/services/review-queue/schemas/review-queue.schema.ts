@@ -10,6 +10,10 @@ export const reviewQueueFilterSchema = z.enum([
 
 export type ReviewQueueFilter = z.infer<typeof reviewQueueFilterSchema>;
 
+export const reviewQueueSortSchema = z.enum(["DEADLINE_ASC", "DEADLINE_DESC"]);
+
+export type ReviewQueueSort = z.infer<typeof reviewQueueSortSchema>;
+
 export const deadlineStatusSchema = z.enum(["OVERDUE", "DUE_TODAY", "ON_TIME"]);
 
 export type DeadlineStatus = z.infer<typeof deadlineStatusSchema>;

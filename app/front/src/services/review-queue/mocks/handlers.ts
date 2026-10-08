@@ -1,7 +1,7 @@
 import { HttpResponse, http } from "msw";
 
 import { ReviewQueueEndpoints as e } from "../endpoints";
-import { reviewQueueFilterSchema } from "../schemas";
+import { reviewQueueFilterSchema, reviewQueueSortSchema } from "../schemas";
 import {
 	makeReviewQueue,
 	makeReviewQueueIndicatorsResponse,
@@ -37,6 +37,9 @@ export const reviewQueueHandlers = [
 		const parsedFilter = reviewQueueFilterSchema.safeParse(
 			(searchParams.get("filter") ?? "ALL").toUpperCase(),
 		);
+		const parsedSort = reviewQueueSortSchema.safeParse(
+			(searchParams.get("sort") ?? "DEADLINE_ASC").toUpperCase(),
+		);
 
 		if (!Number.isInteger(page) || page < 1) {
 			return problem("A página deve ser maior ou igual a 1.");
@@ -47,6 +50,7 @@ export const reviewQueueHandlers = [
 		}
 
 		if (!parsedFilter.success) return problem("Filtro da fila inválido.");
+		if (!parsedSort.success) return problem("Ordenação da fila inválida.");
 
 		const filtered = MOCK_REVIEW_QUEUE.filter((item) => {
 			if (
@@ -75,12 +79,20 @@ export const reviewQueueHandlers = [
 				.includes(search);
 		});
 
+		const sorted = filtered.toSorted((left, right) => {
+			const deadlineComparison = left.deadline.localeCompare(right.deadline);
+			const direction = parsedSort.data === "DEADLINE_ASC" ? 1 : -1;
+
+			return deadlineComparison === 0
+				? left.id.localeCompare(right.id)
+				: deadlineComparison * direction;
+		});
 		const start = (page - 1) * pageSize;
 
 		return HttpResponse.json(
 			makeReviewQueue({
-				items: filtered.slice(start, start + pageSize),
-				total: filtered.length,
+				items: sorted.slice(start, start + pageSize),
+				total: sorted.length,
 				page,
 				pageSize,
 			}),

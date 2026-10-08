@@ -19,10 +19,12 @@ export const ReviewQueuePage = () => {
 		search,
 		debouncedSearch,
 		page,
+		sort,
 		hasActiveFilters,
 		setFilter,
 		setSearch,
 		setPage,
+		setSort,
 		clearFilters,
 	} = useReviewQueueFilters();
 	const queueQuery = useGetReviewQueue({
@@ -30,6 +32,7 @@ export const ReviewQueuePage = () => {
 		pageSize: PAGE_SIZE,
 		filter,
 		search: debouncedSearch || undefined,
+		sort,
 	});
 	const indicatorsQuery = useGetReviewQueueIndicators();
 
@@ -51,6 +54,8 @@ export const ReviewQueuePage = () => {
 					filter={filter}
 					onFilterChange={setFilter}
 					counts={indicatorsQuery.data?.data}
+					sort={sort}
+					onSortChange={setSort}
 				/>
 				<div className="flex-1 px-gutter py-4 md:px-gutter-md md:py-5">
 					<ReviewQueueListing

@@ -4,7 +4,9 @@ import { cn } from "@lib/utils";
 import type {
 	ReviewQueueFilter,
 	ReviewQueueIndicators,
+	ReviewQueueSort,
 } from "@services/review-queue";
+import { ArrowDown, ArrowUp } from "lucide-react";
 
 interface ReviewQueueToolbarProps {
 	search: string;
@@ -12,6 +14,8 @@ interface ReviewQueueToolbarProps {
 	filter: ReviewQueueFilter;
 	onFilterChange: (filter: ReviewQueueFilter) => void;
 	counts?: ReviewQueueIndicators;
+	sort: ReviewQueueSort;
+	onSortChange: (sort: ReviewQueueSort) => void;
 	className?: string;
 }
 
@@ -37,6 +41,8 @@ export const ReviewQueueToolbar = ({
 	filter,
 	onFilterChange,
 	counts,
+	sort,
+	onSortChange,
 	className,
 }: ReviewQueueToolbarProps) => (
 	<div
@@ -92,5 +98,28 @@ export const ReviewQueueToolbar = ({
 				);
 			})}
 		</div>
+
+		<Button
+			type="button"
+			size="xs"
+			variant="neutral"
+			aria-label={`Ordenar por prazo ${
+				sort === "DEADLINE_ASC" ? "decrescente" : "crescente"
+			}`}
+			onClick={() =>
+				onSortChange(sort === "DEADLINE_ASC" ? "DEADLINE_DESC" : "DEADLINE_ASC")
+			}
+			className="shrink-0 gap-2 lg:ml-auto"
+		>
+			<span className="font-mono text-[0.625rem] font-normal tracking-wider text-muted-foreground uppercase">
+				Ordenar por
+			</span>
+			<span>Prazo</span>
+			{sort === "DEADLINE_ASC" ? (
+				<ArrowDown aria-hidden="true" />
+			) : (
+				<ArrowUp aria-hidden="true" />
+			)}
+		</Button>
 	</div>
 );
