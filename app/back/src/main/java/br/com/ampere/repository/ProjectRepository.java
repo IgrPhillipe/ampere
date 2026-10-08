@@ -39,7 +39,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             AND project.submittedAt IS NOT NULL
             AND (
               :search = ''
-              OR project.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
+              OR project.reviewSearchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
             )
             AND (:dueSoon = false OR project.submittedAt < :submittedBefore)
             AND (:reanalysis = false OR project.reviewCycle >= :minimumReviewCycle)
@@ -67,7 +67,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             AND project.submittedAt IS NOT NULL
             AND (
               :search = ''
-              OR project.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
+              OR project.reviewSearchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
             )
             AND (:dueSoon = false OR project.submittedAt < :submittedBefore)
             AND (:reanalysis = false OR project.reviewCycle >= :minimumReviewCycle)

@@ -91,6 +91,9 @@ public class Project {
   @Column(nullable = false)
   private String searchIndex;
 
+  @Column(nullable = false, columnDefinition = "varchar(255) default ''")
+  private String reviewSearchIndex;
+
   protected Project() {}
 
   public Project(
@@ -123,7 +126,8 @@ public class Project {
     this.owner = owner;
     this.createdAt = now();
     this.updatedAt = this.createdAt;
-    this.searchIndex = searchIndexOf(name, protocol, municipality, owner);
+    this.searchIndex = searchIndexOf(name, protocol);
+    this.reviewSearchIndex = reviewSearchIndexOf(protocol, municipality, owner);
   }
 
   /** A newly created project: a draft, with the protocol the system assigned it. */
@@ -153,23 +157,28 @@ public class Project {
   private void onPersist() {
     createdAt = now();
     updatedAt = createdAt;
-    searchIndex = searchIndexOf(name, protocol, municipality, owner);
+    searchIndex = searchIndexOf(name, protocol);
+    reviewSearchIndex = reviewSearchIndexOf(protocol, municipality, owner);
   }
 
   @PreUpdate
   private void onUpdate() {
     updatedAt = now();
-    searchIndex = searchIndexOf(name, protocol, municipality, owner);
+    searchIndex = searchIndexOf(name, protocol);
+    reviewSearchIndex = reviewSearchIndexOf(protocol, municipality, owner);
   }
 
   private static OffsetDateTime now() {
     return OffsetDateTime.now(ZoneOffset.UTC);
   }
 
-  private static String searchIndexOf(
-      String name, String protocol, String municipality, User owner) {
+  private static String searchIndexOf(String name, String protocol) {
+    return SearchTerms.fold(name + " " + protocol);
+  }
+
+  private static String reviewSearchIndexOf(String protocol, String municipality, User owner) {
     String ownerName = owner == null ? "" : owner.getName();
-    return SearchTerms.fold(name + " " + protocol + " " + municipality + " " + ownerName);
+    return SearchTerms.fold(protocol + " " + municipality + " " + ownerName);
   }
 
   public void rename(String name, String address, String municipality) {
@@ -297,5 +306,9 @@ public class Project {
 
   public String getSearchIndex() {
     return searchIndex;
+  }
+
+  public String getReviewSearchIndex() {
+    return reviewSearchIndex;
   }
 }
