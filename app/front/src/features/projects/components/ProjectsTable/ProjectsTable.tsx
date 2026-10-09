@@ -18,11 +18,11 @@ import { createProjectColumns, type ProjectColumnId } from "./project-columns";
 const projectColumnClassNames = {
 	attention: "w-10 pr-0",
 	protocol: "w-32 lg:w-36",
-	status: "w-56 lg:w-80",
+	status: "w-56 lg:w-64",
 	units: "hidden w-20 lg:table-cell",
 	demand: "w-28 lg:w-32",
-	createdAt: "hidden lg:table-cell lg:w-48",
-	updatedAt: "w-32 lg:w-48",
+	createdAt: "hidden lg:table-cell lg:w-32",
+	updatedAt: "w-32 lg:w-36",
 } satisfies Partial<Record<ProjectColumnId, string>>;
 
 interface ProjectsTableProps {
