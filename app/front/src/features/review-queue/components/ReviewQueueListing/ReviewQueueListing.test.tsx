@@ -1,4 +1,4 @@
-import { makeReviewQueueItem } from "@services/review-queue/mocks/factories";
+import type { ReviewQueueItem } from "@services/review-queue";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -6,75 +6,57 @@ import { AnalyzeButton } from "./AnalyzeButton";
 import { DeadlineBadge } from "./ReviewQueueBadges";
 import { ReviewQueueListing } from "./ReviewQueueListing";
 
-const defaultProps = {
-	items: [],
-	onRetry: vi.fn(),
-	onPageChange: vi.fn(),
+const item: ReviewQueueItem = {
+	id: "1",
+	name: "Condomínio Vila Nova",
+	protocol: "2026-0475",
+	municipality: "Jaboatão dos Guararapes",
+	submittedAt: "2026-09-08T12:00:00Z",
+	deadline: "2026-10-08",
+	deadlineStatus: "ON_TIME",
+	daysRemaining: 20,
+	warnings: 1,
+	ownerName: "João Projetista",
+	consumerUnitsCount: 48,
+	demandKva: 229.4,
+	reanalysis: false,
 };
 
 describe("ReviewQueueListing", () => {
 	it("renders its loading state", () => {
-		const { container } = render(
-			<ReviewQueueListing {...defaultProps} isLoading />,
-		);
+		const { container } = render(<ReviewQueueListing items={[]} isLoading />);
 
 		expect(
 			container.querySelectorAll('[data-slot="skeleton"]'),
 		).not.toHaveLength(0);
 	});
 
-	it("renders its error state and retries", () => {
-		const onRetry = vi.fn();
-		render(<ReviewQueueListing {...defaultProps} isError onRetry={onRetry} />);
-
-		expect(
-			screen.getByText("Não foi possível carregar a fila de análise"),
-		).toBeInTheDocument();
-		fireEvent.click(screen.getByRole("button", { name: "Tentar novamente" }));
-		expect(onRetry).toHaveBeenCalledOnce();
-	});
-
 	it("renders an empty state with a filter reset", () => {
 		const onClearFilters = vi.fn();
-		render(
-			<ReviewQueueListing {...defaultProps} onClearFilters={onClearFilters} />,
-		);
+		render(<ReviewQueueListing items={[]} onClearFilters={onClearFilters} />);
 
-		fireEvent.click(screen.getByRole("button", { name: "Limpar filtros" }));
+		fireEvent.click(screen.getByRole("button", { name: "Limpar Filtros" }));
 		expect(onClearFilters).toHaveBeenCalledOnce();
 	});
 
-	it("changes page using the shared pagination", () => {
-		const onPageChange = vi.fn();
+	it("flags overdue projects and shows the deadline as a badge", () => {
 		render(
 			<ReviewQueueListing
-				{...defaultProps}
-				items={[makeReviewQueueItem()]}
-				pagination={{ page: 1, pageSize: 10, total: 12 }}
-				onPageChange={onPageChange}
+				items={[{ ...item, deadlineStatus: "OVERDUE", daysRemaining: -3 }]}
 			/>,
 		);
 
-		fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
-		expect(onPageChange).toHaveBeenCalledWith(2);
+		const deadline = screen.getAllByText("Atrasado 3 Dias")[0];
+		expect(deadline.closest('[data-slot="badge"]')).toBeInTheDocument();
+		expect(screen.getAllByText("Análise atrasada")).not.toHaveLength(0);
 	});
 
-	it("renders deadline status as a badge without the deadline date", () => {
-		render(
-			<ReviewQueueListing
-				{...defaultProps}
-				items={[
-					makeReviewQueueItem({
-						deadlineStatus: "OVERDUE",
-						daysRemaining: -3,
-					}),
-				]}
-			/>,
-		);
+	it("joins the municipality and the designer without a middle dot", () => {
+		render(<ReviewQueueListing items={[item]} />);
 
-		const deadline = screen.getAllByText("Atrasado 3 dias")[0];
-		expect(deadline.closest('[data-slot="badge"]')).toBeInTheDocument();
-		expect(screen.queryByText("08.10.2026")).not.toBeInTheDocument();
+		expect(
+			screen.getAllByText("Jaboatão dos Guararapes, João Projetista"),
+		).not.toHaveLength(0);
 	});
 });
 
@@ -88,17 +70,18 @@ describe("AnalyzeButton", () => {
 
 		expect(button).toHaveAttribute("aria-disabled", "true");
 		expect(window.location.href).toBe(initialUrl);
-		expect(screen.getByRole("tooltip")).toHaveTextContent(
+		expect(button).toHaveAttribute(
+			"title",
 			"A análise individual estará disponível em uma próxima etapa.",
 		);
 	});
 });
 
 describe("DeadlineBadge", () => {
-	it("uses the light green success style for projects within the deadline", () => {
+	it("uses the success style for projects within the deadline", () => {
 		render(<DeadlineBadge deadlineStatus="ON_TIME" daysRemaining={20} />);
 
-		expect(screen.getByText("20 dias")).toHaveAttribute(
+		expect(screen.getByText("20 Dias")).toHaveAttribute(
 			"data-variant",
 			"success",
 		);

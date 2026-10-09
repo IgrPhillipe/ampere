@@ -6,45 +6,30 @@ import {
 	reviewQueueSortSchema,
 } from "@services/review-queue";
 import {
-	createParser,
 	debounce,
+	parseAsInteger,
 	parseAsString,
 	parseAsStringLiteral,
 	useQueryStates,
 } from "nuqs";
 import { useCallback } from "react";
 
-export const REVIEW_QUEUE_SEARCH_DEBOUNCE_MS = 350;
-
-export const positivePageParser = createParser({
-	parse: (value) => {
-		const page = Number(value);
-		return Number.isInteger(page) && page >= 1 ? page : null;
-	},
-	serialize: String,
-}).withDefault(1);
-
-export const reviewQueueFilterParser = parseAsStringLiteral(
-	reviewQueueFilterSchema.options,
-).withDefault("ALL");
-
-export const reviewQueueSortParser = parseAsStringLiteral(
-	reviewQueueSortSchema.options,
-).withDefault("DEADLINE_ASC");
+const SEARCH_DEBOUNCE_MS = 350;
 
 export const useReviewQueueFilters = () => {
 	const [{ filter, search, page, sort }, setQuery] = useQueryStates({
-		filter: reviewQueueFilterParser,
-		search: parseAsString.withDefault("").withOptions({
-			limitUrlUpdates: debounce(REVIEW_QUEUE_SEARCH_DEBOUNCE_MS),
-		}),
-		page: positivePageParser,
-		sort: reviewQueueSortParser,
+		filter: parseAsStringLiteral(reviewQueueFilterSchema.options).withDefault(
+			"ALL",
+		),
+		search: parseAsString
+			.withDefault("")
+			.withOptions({ limitUrlUpdates: debounce(SEARCH_DEBOUNCE_MS) }),
+		page: parseAsInteger.withDefault(1),
+		sort: parseAsStringLiteral(reviewQueueSortSchema.options).withDefault(
+			"DEADLINE_ASC",
+		),
 	});
-	const debouncedSearch = useDebouncedValue(
-		search.trim(),
-		REVIEW_QUEUE_SEARCH_DEBOUNCE_MS,
-	);
+	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
 	const setFilter = useCallback(
 		(nextFilter: ReviewQueueFilter) => {

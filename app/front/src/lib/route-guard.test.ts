@@ -16,13 +16,13 @@ describe("role navigation", () => {
 		const analystLabels = filterNavItemsByRole(APP_NAV_ITEMS, "admin").map(
 			({ label }) => label,
 		);
-		const applicantLabels = filterNavItemsByRole(APP_NAV_ITEMS, "user").map(
+		const designerLabels = filterNavItemsByRole(APP_NAV_ITEMS, "user").map(
 			({ label }) => label,
 		);
 
 		expect(analystLabels).toContain("Fila de Análise");
 		expect(analystLabels).not.toContain("Meus Projetos");
-		expect(applicantLabels).toContain("Meus Projetos");
-		expect(applicantLabels).not.toContain("Fila de Análise");
+		expect(designerLabels).toContain("Meus Projetos");
+		expect(designerLabels).not.toContain("Fila de Análise");
 	});
 });

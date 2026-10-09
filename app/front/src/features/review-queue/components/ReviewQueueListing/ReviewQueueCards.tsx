@@ -1,10 +1,15 @@
-import { Badge } from "@components/ui/badge";
 import { formatKva } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ReviewQueueItem } from "@services/review-queue";
 
 import { AnalyzeButton } from "./AnalyzeButton";
-import { DeadlineBadge, WarningBadge } from "./ReviewQueueBadges";
+import { DeadlineIndicator } from "./DeadlineIndicator";
+import {
+	DeadlineBadge,
+	ReanalysisBadge,
+	WarningBadge,
+} from "./ReviewQueueBadges";
+import { formatQueueItemOrigin } from "./review-queue-row";
 
 interface ReviewQueueCardsProps {
 	items: ReviewQueueItem[];
@@ -19,24 +24,22 @@ export const ReviewQueueCards = ({
 		{items.map((item) => (
 			<li
 				key={item.id}
-				className={cn(
-					"relative flex flex-col gap-4 border-b border-border px-6 py-5 last:border-b-0",
-					item.deadlineStatus !== "ON_TIME" &&
-						"before:absolute before:top-5 before:left-0 before:h-7 before:w-0.5 before:bg-brand-sunset",
-				)}
+				className="flex flex-col gap-4 border-b border-border px-6 py-5 last:border-b-0"
 			>
-				<div className="flex items-start justify-between gap-3">
-					<div className="flex min-w-0 flex-col gap-1">
-						<span className="font-mono text-xs text-muted-foreground">
-							{item.protocol}
+				<div className="flex flex-col gap-1">
+					<span className="font-mono text-xs text-muted-foreground">
+						{item.protocol}
+					</span>
+					<div className="flex items-start justify-between gap-3">
+						<span className="flex flex-wrap items-center gap-2 font-semibold text-foreground">
+							{item.name}
+							{item.reanalysis ? <ReanalysisBadge /> : null}
 						</span>
-						<span className="font-semibold text-foreground">{item.name}</span>
-						<span className="text-xs text-muted-foreground">
-							{item.municipality}
-							{item.applicantName ? ` · ${item.applicantName}` : ""}
-						</span>
+						<DeadlineIndicator deadlineStatus={item.deadlineStatus} />
 					</div>
-					{item.reanalysis ? <Badge variant="success">Reanálise</Badge> : null}
+					<span className="text-xs text-muted-foreground">
+						{formatQueueItemOrigin(item)}
+					</span>
 				</div>
 
 				<dl className="grid grid-cols-2 gap-3 text-xs">

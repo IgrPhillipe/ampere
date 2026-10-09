@@ -1,5 +1,6 @@
 import { SearchInput } from "@components/SearchInput";
 import { Button } from "@components/ui/button";
+import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type {
 	ReviewQueueFilter,
@@ -27,13 +28,11 @@ const filterOptions: Array<{
 		"total" | "dueSoon" | "highDemand" | "reanalysis"
 	>;
 }> = [
-	{ value: "ALL", label: "TODOS", countKey: "total" },
-	{ value: "DUE_SOON", label: "VENCENDO PRAZO", countKey: "dueSoon" },
-	{ value: "HIGH_DEMAND", label: "ACIMA DE 50 KVA", countKey: "highDemand" },
-	{ value: "REANALYSIS", label: "REANÁLISE", countKey: "reanalysis" },
+	{ value: "ALL", label: "Todos", countKey: "total" },
+	{ value: "DUE_SOON", label: "Vencendo Prazo", countKey: "dueSoon" },
+	{ value: "HIGH_DEMAND", label: "Acima de 50 kVA", countKey: "highDemand" },
+	{ value: "REANALYSIS", label: "Reanálise", countKey: "reanalysis" },
 ];
-
-const formatCount = (count: number) => String(count).padStart(2, "0");
 
 export const ReviewQueueToolbar = ({
 	search,
@@ -76,22 +75,15 @@ export const ReviewQueueToolbar = ({
 						variant="neutral"
 						aria-pressed={isActive}
 						onClick={() => onFilterChange(option.value)}
-						className={cn(
-							"shrink-0 font-mono text-[0.625rem] font-normal tracking-wider text-muted-foreground hover:text-muted-foreground",
-							isActive &&
-								"border-[#1e1a13] bg-[#1e1a13] text-white hover:bg-[#1e1a13]/90 hover:text-white",
-						)}
+						className="shrink-0 font-mono font-normal tracking-wider text-muted-foreground uppercase transition-colors hover:text-foreground aria-pressed:border-secondary aria-pressed:bg-secondary aria-pressed:text-secondary-foreground aria-pressed:hover:bg-secondary/90"
 					>
 						{option.label}
 						{count === undefined ? null : (
 							<span
 								aria-label={`${count} projetos`}
-								className={cn(
-									"tabular-nums",
-									isActive ? "text-white/75" : "text-muted-foreground",
-								)}
+								className={cn("tabular-nums", isActive && "opacity-75")}
 							>
-								{formatCount(count)}
+								{padCount(count)}
 							</span>
 						)}
 					</Button>
@@ -109,14 +101,14 @@ export const ReviewQueueToolbar = ({
 			onClick={() =>
 				onSortChange(sort === "DEADLINE_ASC" ? "DEADLINE_DESC" : "DEADLINE_ASC")
 			}
-			className="shrink-0 gap-2 font-mono text-[0.625rem] font-normal tracking-wider uppercase lg:ml-auto"
+			className="shrink-0 gap-2 font-mono font-normal tracking-wider uppercase lg:ml-auto"
 		>
-			<span className="font-normal text-muted-foreground">ORDENAR POR</span>
-			<span className="font-semibold text-[#1e1a13]">PRAZO</span>
+			<span className="text-muted-foreground">Ordenar por</span>
+			<span className="font-semibold">Prazo</span>
 			{sort === "DEADLINE_ASC" ? (
-				<ArrowDown aria-hidden="true" className="text-[#1e1a13]" />
+				<ArrowDown aria-hidden="true" />
 			) : (
-				<ArrowUp aria-hidden="true" className="text-[#1e1a13]" />
+				<ArrowUp aria-hidden="true" />
 			)}
 		</Button>
 	</div>

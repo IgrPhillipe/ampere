@@ -5,6 +5,6 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/fila-de-analise")({
 	beforeLoad: requireRoles(["admin"]),
-	head: () => ({ meta: [{ title: pageTitle("Fila de análise") }] }),
+	head: () => ({ meta: [{ title: pageTitle("Fila de Análise") }] }),
 	component: ReviewQueuePage,
 });

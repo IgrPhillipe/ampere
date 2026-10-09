@@ -1,14 +1,20 @@
 import { createDataTableColumnHelper } from "@components/DataTable";
 import { formatKva } from "@features/shared";
-import { cn } from "@lib/utils";
 import type { ReviewQueueItem } from "@services/review-queue";
 
 import { AnalyzeButton } from "./AnalyzeButton";
-import { DeadlineBadge, WarningBadge } from "./ReviewQueueBadges";
+import { DeadlineIndicator } from "./DeadlineIndicator";
+import {
+	DeadlineBadge,
+	ReanalysisBadge,
+	WarningBadge,
+} from "./ReviewQueueBadges";
+import { formatQueueItemOrigin } from "./review-queue-row";
 
 const columnHelper = createDataTableColumnHelper<ReviewQueueItem>();
 
 export type ReviewQueueColumnId =
+	| "attention"
 	| "protocol"
 	| "name"
 	| "units"
@@ -17,20 +23,18 @@ export type ReviewQueueColumnId =
 	| "deadline"
 	| "action";
 
-const isUrgent = ({ deadlineStatus }: ReviewQueueItem) =>
-	deadlineStatus !== "ON_TIME";
-
 export const reviewQueueColumns = columnHelper.columns([
+	columnHelper.display({
+		id: "attention",
+		header: () => <span className="sr-only">Prioridade</span>,
+		cell: ({ row }) => (
+			<DeadlineIndicator deadlineStatus={row.original.deadlineStatus} />
+		),
+	}),
 	columnHelper.accessor("protocol", {
 		header: "Protocolo",
 		cell: ({ row }) => (
-			<span
-				className={cn(
-					"relative font-mono text-sm text-foreground",
-					isUrgent(row.original) &&
-						"before:absolute before:top-1/2 before:-left-4 before:h-7 before:w-0.5 before:-translate-y-1/2 before:bg-brand-sunset",
-				)}
-			>
+			<span className="font-mono text-sm text-foreground">
 				{row.original.protocol}
 			</span>
 		),
@@ -38,14 +42,13 @@ export const reviewQueueColumns = columnHelper.columns([
 	columnHelper.accessor("name", {
 		header: "Projeto",
 		cell: ({ row }) => (
-			<div className="flex min-w-0 flex-col gap-0.5 whitespace-normal">
-				<span className="font-semibold text-foreground">
+			<div className="flex flex-col gap-1 whitespace-normal">
+				<span className="flex flex-wrap items-center gap-2 font-semibold text-foreground">
 					{row.original.name}
+					{row.original.reanalysis ? <ReanalysisBadge /> : null}
 				</span>
-				<span className="truncate text-xs text-muted-foreground">
-					{row.original.municipality}
-					{row.original.applicantName ? ` · ${row.original.applicantName}` : ""}
-					{row.original.reanalysis ? " · reanálise" : ""}
+				<span className="text-xs text-muted-foreground">
+					{formatQueueItemOrigin(row.original)}
 				</span>
 			</div>
 		),
@@ -54,7 +57,7 @@ export const reviewQueueColumns = columnHelper.columns([
 		id: "units",
 		header: "UCs",
 		cell: ({ row }) => (
-			<span className="font-mono text-sm tabular-nums">
+			<span className="font-mono text-sm text-foreground">
 				{row.original.consumerUnitsCount}
 			</span>
 		),
@@ -66,7 +69,7 @@ export const reviewQueueColumns = columnHelper.columns([
 			row.original.demandKva === null ? (
 				<span className="text-sm text-muted-foreground">Sem cálculo</span>
 			) : (
-				<span className="font-mono text-sm tabular-nums">
+				<span className="font-mono text-sm whitespace-nowrap text-foreground">
 					{formatKva(row.original.demandKva, 1)}
 				</span>
 			),
@@ -78,17 +81,15 @@ export const reviewQueueColumns = columnHelper.columns([
 	columnHelper.accessor("deadline", {
 		header: "Prazo",
 		cell: ({ row }) => (
-			<div className="flex justify-end">
-				<DeadlineBadge
-					deadlineStatus={row.original.deadlineStatus}
-					daysRemaining={row.original.daysRemaining}
-				/>
-			</div>
+			<DeadlineBadge
+				deadlineStatus={row.original.deadlineStatus}
+				daysRemaining={row.original.daysRemaining}
+			/>
 		),
 	}),
 	columnHelper.display({
 		id: "action",
-		header: "",
+		header: () => <span className="sr-only">Ação</span>,
 		cell: () => <AnalyzeButton />,
 	}),
 ]);

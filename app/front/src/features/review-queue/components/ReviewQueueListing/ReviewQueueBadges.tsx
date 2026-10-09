@@ -1,5 +1,8 @@
 import { Badge } from "@components/ui/badge";
+import { padCount } from "@features/shared";
 import type { ReviewQueueItem } from "@services/review-queue";
+
+const formatDays = (days: number) => `${days} ${days === 1 ? "Dia" : "Dias"}`;
 
 export const WarningBadge = ({
 	warnings,
@@ -9,12 +12,11 @@ export const WarningBadge = ({
 			variant="warning"
 			className="font-mono text-sm font-normal tracking-wider uppercase"
 		>
-			{warnings.toString().padStart(2, "0")}{" "}
-			{warnings === 1 ? "alerta" : "alertas"}
+			{padCount(warnings)} {warnings === 1 ? "Alerta" : "Alertas"}
 		</Badge>
 	) : (
 		<span className="font-mono text-sm tracking-wider text-muted-foreground uppercase">
-			Sem alerta
+			Sem Alerta
 		</span>
 	);
 
@@ -23,10 +25,9 @@ export const DeadlineBadge = ({
 	daysRemaining,
 }: Pick<ReviewQueueItem, "deadlineStatus" | "daysRemaining">) => {
 	if (deadlineStatus === "OVERDUE") {
-		const days = Math.abs(daysRemaining);
 		return (
 			<Badge variant="destructive" className="font-mono text-xs font-normal">
-				Atrasado {days} {days === 1 ? "dia" : "dias"}
+				Atrasado {formatDays(Math.abs(daysRemaining))}
 			</Badge>
 		);
 	}
@@ -34,14 +35,16 @@ export const DeadlineBadge = ({
 	if (deadlineStatus === "DUE_TODAY") {
 		return (
 			<Badge variant="warning" className="font-mono text-xs font-normal">
-				Vence hoje
+				Vence Hoje
 			</Badge>
 		);
 	}
 
 	return (
 		<Badge variant="success" className="font-mono text-xs font-normal">
-			{daysRemaining} {daysRemaining === 1 ? "dia" : "dias"}
+			{formatDays(daysRemaining)}
 		</Badge>
 	);
 };
+
+export const ReanalysisBadge = () => <Badge variant="outline">Reanálise</Badge>;
