@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { makeReviewQueue, makeReviewQueueItem } from "../mocks/factories";
 import {
 	reviewQueueIndicatorsResponseSchema,
 	reviewQueueListResponseSchema,
@@ -8,16 +7,26 @@ import {
 
 describe("review queue API contract", () => {
 	it("accepts the enriched project fields and pagination", () => {
-		const response = makeReviewQueue({
-			items: [
-				makeReviewQueueItem({
-					applicantName: "José da Silva",
+		const response = {
+			data: [
+				{
+					id: "42",
+					name: "Condomínio Vila Nova",
+					protocol: "2026-0475",
+					municipality: "Jaboatão dos Guararapes",
+					submittedAt: "2026-09-08T12:00:00Z",
+					deadline: "2026-10-08",
+					deadlineStatus: "DUE_TODAY",
+					daysRemaining: 0,
+					warnings: 1,
+					ownerName: "José da Silva",
 					consumerUnitsCount: 12,
 					demandKva: 51.4,
 					reanalysis: true,
-				}),
+				},
 			],
-		});
+			pagination: { total: 1, page: 1, pageSize: 10 },
+		};
 
 		expect(reviewQueueListResponseSchema.parse(response)).toEqual(response);
 	});

@@ -28,7 +28,7 @@ export const reviewQueueItemSchema = z.object({
 	deadlineStatus: deadlineStatusSchema,
 	daysRemaining: z.number().int(),
 	warnings: z.number().int().nonnegative(),
-	applicantName: z.string().nullable(),
+	ownerName: z.string().nullable(),
 	consumerUnitsCount: z.number().int().nonnegative(),
 	demandKva: z.number().nonnegative().nullable(),
 	reanalysis: z.boolean(),
