@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { AnalyzeButton } from "./AnalyzeButton";
+import { DeadlineBadge } from "./ReviewQueueBadges";
 import { ReviewQueueListing } from "./ReviewQueueListing";
 
 const defaultProps = {
@@ -58,7 +59,7 @@ describe("ReviewQueueListing", () => {
 		expect(onPageChange).toHaveBeenCalledWith(2);
 	});
 
-	it("renders deadline status as plain text", () => {
+	it("renders deadline status as a badge without the deadline date", () => {
 		render(
 			<ReviewQueueListing
 				{...defaultProps}
@@ -72,7 +73,7 @@ describe("ReviewQueueListing", () => {
 		);
 
 		const deadline = screen.getAllByText("Atrasado 3 dias")[0];
-		expect(deadline.closest('[data-slot="badge"]')).toBeNull();
+		expect(deadline.closest('[data-slot="badge"]')).toBeInTheDocument();
 		expect(screen.queryByText("08.10.2026")).not.toBeInTheDocument();
 	});
 });
@@ -89,6 +90,17 @@ describe("AnalyzeButton", () => {
 		expect(window.location.href).toBe(initialUrl);
 		expect(screen.getByRole("tooltip")).toHaveTextContent(
 			"A análise individual estará disponível em uma próxima etapa.",
+		);
+	});
+});
+
+describe("DeadlineBadge", () => {
+	it("uses the light green success style for projects within the deadline", () => {
+		render(<DeadlineBadge deadlineStatus="ON_TIME" daysRemaining={20} />);
+
+		expect(screen.getByText("20 dias")).toHaveAttribute(
+			"data-variant",
+			"success",
 		);
 	});
 });
