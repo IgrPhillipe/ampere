@@ -81,96 +81,17 @@ A área `/api/admin/**` (tabelas normativas) e a fila `/api/review-queue/**` exi
 
 ---
 
-## Fila de análise
+## Fila de Análise
 
-### Listagem
+`GET /api/review-queue` lista os projetos `UNDER_REVIEW`, com prazo de 30 dias corridos a partir do envio. O contrato completo está no Swagger; os critérios que ele não explica:
 
-`GET /api/review-queue` devolve somente projetos `UNDER_REVIEW`. O prazo é de 30 dias corridos após o envio e pode ser ordenado de forma crescente ou decrescente. Em caso de empate, o menor ID vem primeiro para manter a paginação estável.
-
-| Parâmetro | Padrão | Descrição |
+| Parâmetro | Padrão | Valores |
 | :--- | :--- | :--- |
-| `page` | `1` | Página iniciada em 1 |
-| `pageSize` | `20` | Quantidade de registros, de 1 a 100 |
-| `search` | vazio | Busca sem diferenciar maiúsculas ou acentos no protocolo, projetista ou município |
-| `filter` | `ALL` | Recorte mutuamente exclusivo: `ALL`, `DUE_SOON`, `HIGH_DEMAND` ou `REANALYSIS` |
-| `sort` | `DEADLINE_ASC` | Ordem do prazo: `DEADLINE_ASC` ou `DEADLINE_DESC` |
+| `search` | vazio | protocolo, projetista ou município, sem diferenciar maiúsculas ou acentos |
+| `filter` | `ALL` | `DUE_SOON` (vence hoje ou atrasado), `HIGH_DEMAND` (último cálculo acima de 50 kVA), `REANALYSIS` (dois ou mais envios) |
+| `sort` | `DEADLINE_ASC` | `DEADLINE_ASC` ou `DEADLINE_DESC`; o empate é desfeito pelo ID crescente |
 
-Critérios dos filtros:
-
-- `DUE_SOON`: prazo vence hoje ou já está atrasado.
-- `HIGH_DEMAND`: o último cálculo do projeto tem demanda estritamente maior que `50 kVA`; projetos sem cálculo não entram.
-- `REANALYSIS`: o projeto tem dois ou mais envios para análise. Cada envio incrementa o ciclo; um projeto rejeitado pode ser corrigido e enviado novamente.
-
-Critérios da ordenação:
-
-- `DEADLINE_ASC`: projetos com o prazo mais próximo ou mais atrasado aparecem primeiro.
-- `DEADLINE_DESC`: projetos com o prazo mais distante aparecem primeiro.
-- Projetos com o mesmo prazo são sempre ordenados pelo ID crescente.
-- A pesquisa e o filtro são aplicados antes da ordenação; a paginação é aplicada por último.
-
-Exemplo:
-
-```http
-GET /api/review-queue?page=1&pageSize=10&search=jaboatao&filter=DUE_SOON&sort=DEADLINE_ASC
-Authorization: Bearer <token-admin>
-```
-
-Para inverter a ordem do prazo:
-
-```http
-GET /api/review-queue?sort=DEADLINE_DESC
-Authorization: Bearer <token-admin>
-```
-
-Resposta resumida:
-
-```json
-{
-  "data": [
-    {
-      "id": "42",
-      "name": "Condomínio Vila Nova",
-      "protocol": "2026-0475",
-      "municipality": "Jaboatão dos Guararapes",
-      "submittedAt": "2026-09-08T12:00:00Z",
-      "deadline": "2026-10-08",
-      "deadlineStatus": "DUE_TODAY",
-      "daysRemaining": 0,
-      "warnings": 1,
-      "applicantName": "João Projetista",
-      "consumerUnitsCount": 48,
-      "demandKva": 229.4,
-      "reanalysis": true
-    }
-  ],
-  "pagination": {
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-}
-```
-
-`deadlineStatus` assume `ON_TIME`, `DUE_TODAY` ou `OVERDUE`. `demandKva` é `null` quando ainda não existe cálculo.
-
-### Indicadores
-
-`GET /api/review-queue/indicators` devolve os contadores globais, sem depender da busca, do filtro ou da página:
-
-```json
-{
-  "data": {
-    "total": 18,
-    "dueSoon": 3,
-    "highDemand": 11,
-    "reanalysis": 5,
-    "reviewedToday": 7,
-    "monthlyRejectionPercent": 21.0
-  }
-}
-```
-
-O percentual mensal é a quantidade de projetos rejeitados dividida pelo total analisado desde o início do mês, arredondada para uma casa decimal. Um mês sem análises retorna `0`.
+Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/indicators` devolve os contadores globais, que não dependem desses parâmetros.
 
 ---
 

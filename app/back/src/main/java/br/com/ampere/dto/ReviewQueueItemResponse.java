@@ -18,7 +18,7 @@ public record ReviewQueueItemResponse(
     DeadlineStatus deadlineStatus,
     long daysRemaining,
     long warnings,
-    String applicantName,
+    String ownerName,
     long consumerUnitsCount,
     BigDecimal demandKva,
     boolean reanalysis) {

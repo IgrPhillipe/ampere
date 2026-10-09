@@ -81,7 +81,7 @@ class ReviewQueueIntegrationTest {
 
   private OffsetDateTime now;
 
-  private User applicant;
+  private User owner;
 
   @BeforeEach
   void seed() {
@@ -100,7 +100,7 @@ class ReviewQueueIntegrationTest {
         NormativeTableSeed.all(
             standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
     String hash = passwordEncoder.encode(PASSWORD);
-    applicant =
+    owner =
         userRepository.save(new User("João Projetista", "user@ampere.com", hash, UserRole.USER));
     userRepository.save(new User("Admin", "admin@ampere.com", hash, UserRole.ADMIN));
     now = OffsetDateTime.now(ZoneOffset.UTC);
@@ -213,7 +213,7 @@ class ReviewQueueIntegrationTest {
   }
 
   @Test
-  void returnsApplicantUnitsDemandWarningsAndReviewCycle() throws Exception {
+  void returnsOwnerUnitsDemandWarningsAndReviewCycle() throws Exception {
     Project project = projectRepository.save(project("2026-4001", ProjectStatus.DRAFT));
     addPrototypeGroups(project);
     mockMvc
@@ -227,14 +227,14 @@ class ReviewQueueIntegrationTest {
     asAnalyst(get("/review-queue"))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4001"))
         .andExpect(jsonPath("$.data[0].warnings").value(1))
-        .andExpect(jsonPath("$.data[0].applicantName").value("João Projetista"))
+        .andExpect(jsonPath("$.data[0].ownerName").value("João Projetista"))
         .andExpect(jsonPath("$.data[0].consumerUnitsCount").value(51))
         .andExpect(jsonPath("$.data[0].demandKva", notNullValue()))
         .andExpect(jsonPath("$.data[0].reanalysis").value(false));
   }
 
   @Test
-  void searchesByProtocolApplicantAndMunicipalityWithoutAccents() throws Exception {
+  void searchesByProtocolOwnerAndMunicipalityWithoutAccents() throws Exception {
     Project jaboatao = project("2026-4101", ProjectStatus.DRAFT);
     jaboatao.rename("Condomínio Atlântico", "Rua A, 1", "Jaboatão dos Guararapes");
     jaboatao.submit(now.minusDays(5));
@@ -245,7 +245,7 @@ class ReviewQueueIntegrationTest {
     asAnalyst(get("/review-queue").param("search", "joao"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(2)))
-        .andExpect(jsonPath("$.data[0].applicantName").value("João Projetista"));
+        .andExpect(jsonPath("$.data[0].ownerName").value("João Projetista"));
     assertSingleSearchResult("jaboatao", "2026-4101");
   }
 
@@ -380,7 +380,7 @@ class ReviewQueueIntegrationTest {
         new ResidentialMultifamily(
             12, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
         standards,
-        applicant);
+        owner);
   }
 
   private void addPrototypeGroups(Project project) {
