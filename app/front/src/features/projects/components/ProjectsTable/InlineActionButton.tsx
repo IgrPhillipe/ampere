@@ -8,10 +8,7 @@ interface InlineActionButtonProps {
 	className?: string;
 }
 
-/**
- * Text action inside a cell: "Ver Apontamentos", "Retomar e Enviar". The
- * underline stays visible at rest: shown only on hover, it read as plain text.
- */
+/** Text action inside a cell: "Ver Apontamentos", "Retomar e Enviar". */
 export const InlineActionButton = ({
 	children,
 	onClick,

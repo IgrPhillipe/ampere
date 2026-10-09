@@ -9,11 +9,6 @@ interface ProjectActionIndicatorProps {
 	className?: string;
 }
 
-/**
- * Indicador amarelo de "precisa da sua acao". Era uma barra fina ao lado do
- * protocolo, que nao dizia o que fazer; agora e um icone com o nome da acao
- * no `title` e para leitor de tela.
- */
 export const ProjectActionIndicator = ({
 	project,
 	className,

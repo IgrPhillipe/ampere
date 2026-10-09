@@ -57,8 +57,6 @@ export const ProjectStatusFilters = ({
 						type="button"
 						aria-pressed={isActive}
 						onClick={() => onValueChange(filter.value)}
-						// Dark fill on the selected tile and a hover on the others: with
-						// only the thin bar, the tiles read as a dashboard, not filters.
 						className="group relative flex min-h-30 flex-col justify-center gap-2 border-r border-primary-foreground/20 pr-5 pl-gutter text-left transition-colors last:border-r-0 hover:bg-primary-foreground/10 focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:outline-none aria-pressed:bg-secondary md:pl-gutter-md"
 					>
 						<span className="font-mono text-4xl font-semibold">

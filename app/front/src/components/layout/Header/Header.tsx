@@ -31,11 +31,8 @@ export const Header = () => {
 	const [mobileOpen, setMobileOpen] = useState(false);
 
 	return (
-		// `scrollbar-gutter` reserves the scrollbar width here as well as in
-		// `main`: without it, a classic scrollbar made the page container
-		// narrower than the header's, and the logo sat off from the title.
+		// Same scrollbar gutter as `main`, so the logo lines up with the page title.
 		<header className="h-16 shrink-0 overflow-y-hidden border-b border-border bg-card [scrollbar-gutter:stable]">
-			{/* Same container as the pages, so the logo lines up with the title. */}
 			<div className="mx-auto flex h-full w-full max-w-page items-center gap-3 px-gutter md:px-gutter-md">
 				<Button
 					variant="ghost"
@@ -49,7 +46,6 @@ export const Header = () => {
 
 				<AppBrand />
 
-				{/* Next to the brand, not centered: brand and menu read as one group. */}
 				<HeaderNav className="ml-4 hidden lg:flex" />
 
 				<div className="ml-auto flex items-center">

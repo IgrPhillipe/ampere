@@ -4,10 +4,6 @@ import type { Project } from "@services/projects";
 export const isRejectedWithFindings = (project: Project) =>
 	project.status === "REJECTED" && project.pendingCount > 0;
 
-/**
- * O que o projetista precisa fazer no projeto, ou `null` quando nada. Vira o
- * texto do indicador amarelo, na tabela e no cartao.
- */
 export const getProjectActionLabel = (project: Project) => {
 	if (isRejectedWithFindings(project)) return "Corrigir apontamentos";
 	if (project.status === "AWAITING_SUBMISSION") return "Enviar projeto";

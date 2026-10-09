@@ -13,7 +13,6 @@ export const AppBrand = () => (
 			className="h-7 w-auto"
 		/>
 
-		{/* Divider: without it the tagline read as part of the logo. */}
 		<span aria-hidden="true" className="hidden h-5 w-px bg-border sm:block" />
 
 		<span className="hidden text-xs font-medium tracking-[0.12em] text-muted-foreground uppercase sm:inline">
