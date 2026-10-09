@@ -28,10 +28,6 @@ public class ProjectCreation {
     this.userRepository = userRepository;
   }
 
-  public Project createWithGeneratedProtocol(ProjectParameters parameters) {
-    return createWithGeneratedProtocol(parameters, null);
-  }
-
   @Transactional
   public Project createWithGeneratedProtocol(ProjectParameters parameters, String ownerEmail) {
     User owner =

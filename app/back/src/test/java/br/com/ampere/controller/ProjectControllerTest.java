@@ -39,12 +39,17 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -127,7 +132,8 @@ class ProjectControllerTest {
   @Test
   void createsProjectAndAnswersCreated() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.create(any())).thenReturn(draft());
+    when(service.create(any(), eq("user@ampere.com"))).thenReturn(draft());
+    authenticateAs("user@ampere.com");
 
     mockMvc(service)
         .perform(post("/projects").contentType(MediaType.APPLICATION_JSON).content(validBody()))
@@ -267,6 +273,16 @@ class ProjectControllerTest {
     return source;
   }
 
+  @AfterEach
+  void clearAuthentication() {
+    SecurityContextHolder.clearContext();
+  }
+
+  private static void authenticateAs(String email) {
+    Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("email", email).build();
+    SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
+  }
+
   private static MockMvc mockMvc(ProjectService service) {
     DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
     new EnumParameterConfig().addFormatters(conversionService);
@@ -274,6 +290,7 @@ class ProjectControllerTest {
     return MockMvcBuilders.standaloneSetup(new ProjectController(service))
         .setConversionService(conversionService)
         .setControllerAdvice(new GlobalExceptionHandler(messageSource()))
+        .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
         .build();
   }
 }

@@ -13,12 +13,15 @@ import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
+import br.com.ampere.domain.User;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
+import br.com.ampere.repository.UserRepository;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +44,8 @@ class ProjectServiceIntegrationTest {
   @Autowired private CalculationRepository calculationRepository;
 
   @Autowired private NormativeTableRepository normativeTableRepository;
+
+  @Autowired private UserRepository userRepository;
 
   @BeforeEach
   void clearProjects() {
@@ -172,7 +177,7 @@ class ProjectServiceIntegrationTest {
 
   @Test
   void createsADraftProjectWithAGeneratedProtocolAndBothStandards() {
-    Project created = service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY));
+    Project created = service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null);
 
     assertThat(created.getId()).isNotNull();
     assertThat(created.getStatus()).isEqualTo(ProjectStatus.DRAFT);
@@ -185,17 +190,28 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
+  void assignsTheAuthenticatedUserAsTheOwner() {
+    User owner =
+        userRepository.save(new User("João Projetista", "joao@ampere.com", "hash", UserRole.USER));
+
+    Project created =
+        service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), "JOAO@ampere.com");
+
+    assertThat(created.getOwner().getId()).isEqualTo(owner.getId());
+  }
+
+  @Test
   void generatesSequentialProtocolsWithinTheYear() {
-    String first = service.create(parameters(BuildingCategory.MIXED)).getProtocol();
-    String second = service.create(parameters(BuildingCategory.MIXED)).getProtocol();
-    String third = service.create(parameters(BuildingCategory.NON_RESIDENTIAL)).getProtocol();
+    String first = service.create(parameters(BuildingCategory.MIXED), null).getProtocol();
+    String second = service.create(parameters(BuildingCategory.MIXED), null).getProtocol();
+    String third = service.create(parameters(BuildingCategory.NON_RESIDENTIAL), null).getProtocol();
 
     assertThat(List.of(first, second, third)).doesNotHaveDuplicates().isSorted();
   }
 
   @Test
   void updatesTheTechnicalParametersOfADraft() {
-    Long id = service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY)).getId();
+    Long id = service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null).getId();
 
     Project updated =
         service.update(
@@ -236,7 +252,7 @@ class ProjectServiceIntegrationTest {
 
   @Test
   void deletesADraftProjectAndItsFindings() {
-    Project draft = service.create(parameters(BuildingCategory.MIXED));
+    Project draft = service.create(parameters(BuildingCategory.MIXED), null);
     findingRepository.save(new Finding(draft));
 
     service.delete(draft.getId());

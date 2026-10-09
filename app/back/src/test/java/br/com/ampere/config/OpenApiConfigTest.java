@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 class OpenApiConfigTest {
 
@@ -35,7 +36,7 @@ class OpenApiConfigTest {
 
   @Test
   void documentsTheProjectCrudWithStableNames() throws NoSuchMethodException {
-    assertThat(operationId("create", ProjectRequest.class)).isEqualTo("createProject");
+    assertThat(operationId("create", ProjectRequest.class, Jwt.class)).isEqualTo("createProject");
     assertThat(operationId("detail", Long.class)).isEqualTo("getProject");
     assertThat(operationId("update", Long.class, ProjectRequest.class)).isEqualTo("updateProject");
     assertThat(operationId("delete", Long.class)).isEqualTo("deleteProject");

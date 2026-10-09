@@ -64,7 +64,6 @@ public class ReviewQueueService {
             filter == ReviewQueueFilter.HIGH_DEMAND,
             HIGH_DEMAND_THRESHOLD,
             filter == ReviewQueueFilter.REANALYSIS,
-            2,
             pageRequest);
 
     List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
@@ -128,7 +127,6 @@ public class ReviewQueueService {
             highDemand,
             HIGH_DEMAND_THRESHOLD,
             reanalysis,
-            2,
             PageRequest.of(0, 1))
         .getTotalElements();
   }

@@ -16,10 +16,14 @@ import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.service.ProjectService;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -70,7 +74,9 @@ class MessageLocalizationTest {
 
   @Test
   void acceptsEnumValuesInAnyCaseInTheRequestBody() throws Exception {
-    when(projectService.create(any())).thenReturn(draft());
+    when(projectService.create(any(), any())).thenReturn(draft());
+    Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("email", "a@b.com").build();
+    SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
     MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
 
     mockMvc
@@ -79,6 +85,11 @@ class MessageLocalizationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body("residential_multifamily")))
         .andExpect(status().isCreated());
+  }
+
+  @AfterEach
+  void clearAuthentication() {
+    SecurityContextHolder.clearContext();
   }
 
   private static String body(String buildingType) {

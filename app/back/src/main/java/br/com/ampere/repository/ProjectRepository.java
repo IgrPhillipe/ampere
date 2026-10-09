@@ -15,7 +15,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
-  @EntityGraph(attributePaths = "owner")
   @Query(
       """
       SELECT project
@@ -31,60 +30,32 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
   @EntityGraph(attributePaths = "owner")
   @Query(
-      value =
-          """
-          SELECT project
-          FROM Project project
-          WHERE project.status = :status
-            AND project.submittedAt IS NOT NULL
-            AND (
-              :search = ''
-              OR project.reviewSearchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
-            )
-            AND (:dueSoon = false OR project.submittedAt < :submittedBefore)
-            AND (:reanalysis = false OR project.reviewCycle >= :minimumReviewCycle)
-            AND (
-              :highDemand = false
-              OR EXISTS (
-                SELECT calculation.id
-                FROM Calculation calculation
-                WHERE calculation.project = project
-                  AND calculation.id = (
-                    SELECT MAX(latest.id)
-                    FROM Calculation latest
-                    WHERE latest.project = project
-                  )
-                  AND calculation.finalTotalDemand > :minimumDemand
+      """
+      SELECT project
+      FROM Project project
+      WHERE project.status = :status
+        AND project.submittedAt IS NOT NULL
+        AND (
+          :search = ''
+          OR project.reviewSearchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
+        )
+        AND (:dueSoon = false OR project.submittedAt < :submittedBefore)
+        AND (:reanalysis = false OR project.reviewCycle > 1)
+        AND (
+          :highDemand = false
+          OR EXISTS (
+            SELECT calculation.id
+            FROM Calculation calculation
+            WHERE calculation.project = project
+              AND calculation.id = (
+                SELECT MAX(latest.id)
+                FROM Calculation latest
+                WHERE latest.project = project
               )
-            )
-          """,
-      countQuery =
-          """
-          SELECT COUNT(project)
-          FROM Project project
-          WHERE project.status = :status
-            AND project.submittedAt IS NOT NULL
-            AND (
-              :search = ''
-              OR project.reviewSearchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
-            )
-            AND (:dueSoon = false OR project.submittedAt < :submittedBefore)
-            AND (:reanalysis = false OR project.reviewCycle >= :minimumReviewCycle)
-            AND (
-              :highDemand = false
-              OR EXISTS (
-                SELECT calculation.id
-                FROM Calculation calculation
-                WHERE calculation.project = project
-                  AND calculation.id = (
-                    SELECT MAX(latest.id)
-                    FROM Calculation latest
-                    WHERE latest.project = project
-                  )
-                  AND calculation.finalTotalDemand > :minimumDemand
-              )
-            )
-          """)
+              AND calculation.finalTotalDemand > :minimumDemand
+          )
+        )
+      """)
   Page<Project> searchReviewQueue(
       @Param("status") ProjectStatus status,
       @Param("search") String search,
@@ -93,7 +64,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       @Param("highDemand") boolean highDemand,
       @Param("minimumDemand") BigDecimal minimumDemand,
       @Param("reanalysis") boolean reanalysis,
-      @Param("minimumReviewCycle") Integer minimumReviewCycle,
       Pageable pageable);
 
   long countByStatusAndSubmittedAtIsNotNull(ProjectStatus status);

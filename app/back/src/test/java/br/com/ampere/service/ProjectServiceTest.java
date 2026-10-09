@@ -69,26 +69,26 @@ class ProjectServiceTest {
   void retriesProtocolGenerationOnceOnACollision() {
     ProjectCreation creation = mock(ProjectCreation.class);
     Project created = mock(Project.class);
-    when(creation.createWithGeneratedProtocol(any()))
+    when(creation.createWithGeneratedProtocol(any(), any()))
         .thenThrow(new DataIntegrityViolationException("duplicate protocol"))
         .thenReturn(created);
 
-    assertThat(service(creation).create(parameters())).isSameAs(created);
-    verify(creation, times(2)).createWithGeneratedProtocol(any());
+    assertThat(service(creation).create(parameters(), "user@ampere.com")).isSameAs(created);
+    verify(creation, times(2)).createWithGeneratedProtocol(any(), any());
   }
 
   @Test
   void answersConflictWhenEveryProtocolAttemptCollides() {
     ProjectCreation creation = mock(ProjectCreation.class);
-    when(creation.createWithGeneratedProtocol(any()))
+    when(creation.createWithGeneratedProtocol(any(), any()))
         .thenThrow(new DataIntegrityViolationException("duplicate protocol"));
 
-    assertThatThrownBy(() -> service(creation).create(parameters()))
+    assertThatThrownBy(() -> service(creation).create(parameters(), "user@ampere.com"))
         .isInstanceOf(BusinessException.class)
         .hasMessage("Não foi possível gerar o protocolo do projeto. Tente novamente.")
         .extracting(exception -> ((BusinessException) exception).getStatus())
         .isEqualTo(HttpStatus.CONFLICT);
-    verify(creation, times(3)).createWithGeneratedProtocol(any());
+    verify(creation, times(3)).createWithGeneratedProtocol(any(), any());
   }
 
   @Test

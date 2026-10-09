@@ -102,23 +102,16 @@ public class DataSeeder implements CommandLineRunner {
             .stream()
             .filter(user -> userRepository.findByEmail(user.getEmail()).isEmpty())
             .toList();
-    if (missing.isEmpty()) {
-      return userRepository
-          .findByEmail("user@ampere.com")
-          .orElseThrow(() -> new IllegalStateException("Development owner was not seeded."));
+    if (!missing.isEmpty()) {
+      userRepository.saveAll(missing);
+      log.info("DataSeeder: {} development users inserted.", missing.size());
     }
 
-    userRepository.saveAll(missing);
-    log.info("DataSeeder: {} development users inserted.", missing.size());
     return missing.stream()
         .filter(user -> user.getEmail().equals("user@ampere.com"))
         .findFirst()
-        .orElseGet(
-            () ->
-                userRepository
-                    .findByEmail("user@ampere.com")
-                    .orElseThrow(
-                        () -> new IllegalStateException("Development owner was not seeded.")));
+        .or(() -> userRepository.findByEmail("user@ampere.com"))
+        .orElseThrow();
   }
 
   private void seedNormativeTables(List<Standard> standards) {
