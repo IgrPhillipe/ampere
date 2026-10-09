@@ -11,7 +11,7 @@ import {
 import { Sheet, SheetContent, SheetTitle } from "@components/ui/sheet";
 import { useAuthStore } from "@features/shared";
 import { useLogout } from "@services/auth";
-import { BellIcon, ChevronDownIcon, LogOutIcon, MenuIcon } from "lucide-react";
+import { ChevronDownIcon, LogOutIcon, MenuIcon } from "lucide-react";
 import { useState } from "react";
 
 import { AppBrand } from "./AppBrand";
@@ -31,8 +31,9 @@ export const Header = () => {
 	const [mobileOpen, setMobileOpen] = useState(false);
 
 	return (
-		<header className="h-16 shrink-0 border-b border-border bg-card">
-			<div className="flex h-full w-full items-center gap-3 px-4 md:px-6">
+		// Same scrollbar gutter as `main`, so the logo lines up with the page title.
+		<header className="h-16 shrink-0 overflow-y-hidden border-b border-border bg-card [scrollbar-gutter:stable]">
+			<div className="mx-auto flex h-full w-full max-w-page items-center gap-3 px-gutter md:px-gutter-md">
 				<Button
 					variant="ghost"
 					size="icon-sm"
@@ -45,23 +46,16 @@ export const Header = () => {
 
 				<AppBrand />
 
-				<HeaderNav className="mx-auto hidden lg:flex" />
+				<HeaderNav className="ml-4 hidden lg:flex" />
 
-				<div className="ml-auto flex items-center gap-2">
-					<span
-						aria-hidden="true"
-						className="hidden size-9 items-center justify-center text-muted-foreground sm:flex"
-					>
-						<BellIcon className="size-4" />
-					</span>
-
+				<div className="ml-auto flex items-center">
 					<DropdownMenu>
 						<DropdownMenuTrigger
 							render={
 								<Button
 									variant="ghost"
 									size="sm"
-									className="h-10 max-w-52 gap-2 px-2 sm:px-3"
+									className="-mr-2 h-10 max-w-52 gap-2 px-2 sm:-mr-3 sm:px-3"
 								/>
 							}
 						>

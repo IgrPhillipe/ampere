@@ -22,7 +22,10 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 		<div className="flex h-svh flex-col overflow-hidden bg-background">
 			<Header />
 
-			<main ref={mainRef} className="flex-1 overflow-y-auto">
+			<main
+				ref={mainRef}
+				className="flex-1 overflow-y-auto [scrollbar-gutter:stable]"
+			>
 				{children}
 			</main>
 		</div>
