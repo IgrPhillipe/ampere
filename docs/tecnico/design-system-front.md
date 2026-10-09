@@ -67,6 +67,9 @@ como valor vazio. Separe com vírgula, dois-pontos, "e" ou parênteses, e troque
 valor vazio por texto com sentido ("Não informado", "Sem cálculo", "Pendente").
 Intervalos são escritos com "a" ("1 a 6 de 6 projetos").
 
+Datas usam `DD/MM/YYYY` ("09/10/2026"), sempre por `formatDate` e `formatDateTime`
+de `@features/shared`, nunca com um `format` solto do dayjs.
+
 ## Cores
 
 ### Paleta da Marca
@@ -269,8 +272,8 @@ desabilitado.
 
 O cabeçalho contém:
 
-- logo oficial e identificação “Projetos elétricos”;
-- rota ativa com indicador verde;
+- logo oficial e o nome “AMPERE”;
+- menu centralizado, com a rota ativa marcada pelo indicador verde;
 - opções futuras visíveis, porém desabilitadas;
 - identificação do usuário e ação de logout;
 - adaptação móvel sem mudar a ordem das opções.

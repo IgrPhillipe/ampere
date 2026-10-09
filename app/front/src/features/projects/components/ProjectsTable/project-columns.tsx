@@ -1,5 +1,5 @@
 import { createDataTableColumnHelper } from "@components/DataTable";
-import { formatKva } from "@features/shared";
+import { formatDate, formatKva } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import type { Project } from "@services/projects";
 
@@ -87,7 +87,7 @@ export const createProjectColumns = ({
 					dateTime={row.original.createdAt}
 					className="font-mono text-xs text-foreground"
 				>
-					{dayjs(row.original.createdAt).format("DD.MM.YYYY")}
+					{formatDate(row.original.createdAt)}
 				</time>
 			),
 		}),

@@ -2,7 +2,7 @@ import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
-import { padCount } from "@features/shared";
+import { formatDateTime, padCount } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import { useGetLatestCalculation } from "@services/calculation";
 import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
@@ -69,7 +69,7 @@ export const SubmissionPage = ({ projectId }: SubmissionPageProps) => {
 				},
 				{
 					title: "Análise Técnica",
-					status: `Até ${dayjs(submittedAt).add(REVIEW_PERIOD_DAYS, "day").format("DD.MM.YYYY")}`,
+					status: `Até ${dayjs(submittedAt).add(REVIEW_PERIOD_DAYS, "day").format("DD/MM/YYYY")}`,
 					description: "Um analista confere a memória de cálculo enviada.",
 				},
 				{
@@ -160,7 +160,7 @@ export const SubmissionPage = ({ projectId }: SubmissionPageProps) => {
 									<span>
 										Enviado em{" "}
 										<time dateTime={submittedAt}>
-											{dayjs(submittedAt).format("DD.MM.YYYY [às] HH[h]mm")}
+											{formatDateTime(submittedAt)}
 										</time>
 									</span>
 								</p>

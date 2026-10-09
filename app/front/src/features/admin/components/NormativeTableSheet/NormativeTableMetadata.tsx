@@ -1,4 +1,4 @@
-import dayjs from "@lib/dayjs";
+import { formatDate } from "@features/shared";
 import type { NormativeTable } from "@services/normative-tables";
 
 interface MetadataCellProps {
@@ -18,7 +18,7 @@ const MetadataCell = ({ label, person, at }: MetadataCellProps) => (
 					{person}
 				</span>
 				<time dateTime={at} className="font-mono text-xs text-muted-foreground">
-					{dayjs(at).format("DD.MM.YYYY")}
+					{formatDate(at)}
 				</time>
 			</dd>
 		) : (
