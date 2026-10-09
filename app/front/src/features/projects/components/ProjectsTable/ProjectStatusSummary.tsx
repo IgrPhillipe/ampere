@@ -1,7 +1,7 @@
+import { InlineActionButton } from "@components/InlineActionButton";
 import type { Project } from "@services/projects";
 
 import { projectStatusLabels } from "../../constants";
-import { InlineActionButton } from "./InlineActionButton";
 import { isRejectedWithFindings, type ProjectRowActions } from "./project-row";
 
 interface ProjectStatusSummaryProps extends ProjectRowActions {

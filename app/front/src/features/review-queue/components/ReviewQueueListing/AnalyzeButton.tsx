@@ -1,17 +1,24 @@
-import { Button } from "@components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { InlineActionButton } from "@components/InlineActionButton";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@components/ui/tooltip";
 
 export const AnalyzeButton = () => (
-	<Button
-		type="button"
-		variant="link"
-		size="xs"
-		aria-disabled="true"
-		title="A análise individual estará disponível em uma próxima etapa."
-		onClick={(event) => event.preventDefault()}
-		className="font-medium text-foreground underline decoration-current/40 hover:text-foreground hover:decoration-current"
-	>
-		Analisar
-		<ArrowRight aria-hidden="true" />
-	</Button>
+	<Tooltip>
+		<TooltipTrigger
+			render={
+				<InlineActionButton
+					aria-disabled="true"
+					onClick={(event) => event.preventDefault()}
+				/>
+			}
+		>
+			Analisar
+		</TooltipTrigger>
+		<TooltipContent>
+			A análise individual estará disponível em uma próxima etapa.
+		</TooltipContent>
+	</Tooltip>
 );

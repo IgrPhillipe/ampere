@@ -1,4 +1,4 @@
-import { cn } from "@lib/utils";
+import { FilterTiles } from "@components/FilterTiles";
 import {
 	type ProjectStatus,
 	type ProjectStatusCounts,
@@ -15,63 +15,25 @@ interface ProjectStatusFiltersProps {
 	className?: string;
 }
 
-interface StatusFilter {
-	value: ProjectStatus | null;
-	label: string;
-	countKey: keyof ProjectStatusCounts;
-}
-
-/** Order comes from the enum: the schema is the source, not a literal copy. */
-const statusFilters: StatusFilter[] = [
-	{ value: null, label: "Todos os projetos", countKey: "total" },
-	...projectStatusSchema.options.map((status) => ({
-		value: status,
-		label: projectStatusLabels[status],
-		countKey: projectStatusCountKeys[status],
-	})),
-];
-
-const formatCount = (count: number) => String(count).padStart(2, "0");
-
 export const ProjectStatusFilters = ({
 	counts,
 	value,
 	onValueChange,
 	className,
 }: ProjectStatusFiltersProps) => (
-	<div
-		role="group"
-		className={cn(
-			"overflow-x-auto bg-primary text-primary-foreground",
-			className,
-		)}
-		aria-label="Filtrar projetos por situação"
-	>
-		<div className="grid min-w-4xl grid-cols-6">
-			{statusFilters.map((filter) => {
-				const isActive = value === filter.value;
-
-				return (
-					<button
-						key={filter.value ?? "ALL"}
-						type="button"
-						aria-pressed={isActive}
-						onClick={() => onValueChange(filter.value)}
-						className="group relative flex min-h-30 flex-col justify-center gap-2 border-r border-primary-foreground/20 pr-5 pl-gutter text-left transition-colors last:border-r-0 hover:bg-primary-foreground/10 focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:outline-none aria-pressed:bg-secondary md:pl-gutter-md"
-					>
-						<span className="font-mono text-4xl font-semibold">
-							{formatCount(counts[filter.countKey])}
-						</span>
-						<span className="font-mono text-xs tracking-wider uppercase opacity-80">
-							{filter.label}
-						</span>
-						<span
-							className="absolute inset-x-4 bottom-4 h-0.5 bg-primary-foreground opacity-0 transition-opacity group-hover:opacity-70 data-active:opacity-100"
-							data-active={isActive || undefined}
-						/>
-					</button>
-				);
-			})}
-		</div>
-	</div>
+	<FilterTiles
+		label="Filtrar projetos por situação"
+		tiles={[
+			{ value: null, label: "Todos os projetos", count: counts.total },
+			// Order comes from the enum: the schema is the source, not a literal copy.
+			...projectStatusSchema.options.map((status) => ({
+				value: status,
+				label: projectStatusLabels[status],
+				count: counts[projectStatusCountKeys[status]],
+			})),
+		]}
+		value={value}
+		onValueChange={onValueChange}
+		className={className}
+	/>
 );

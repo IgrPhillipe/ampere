@@ -3,7 +3,6 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { AnalyzeButton } from "./AnalyzeButton";
-import { DeadlineBadge } from "./ReviewQueueBadges";
 import { ReviewQueueListing } from "./ReviewQueueListing";
 
 const item: ReviewQueueItem = {
@@ -39,16 +38,24 @@ describe("ReviewQueueListing", () => {
 		expect(onClearFilters).toHaveBeenCalledOnce();
 	});
 
-	it("flags overdue projects and shows the deadline as a badge", () => {
+	it("splits the deadline date from the deadline status", () => {
 		render(
 			<ReviewQueueListing
-				items={[{ ...item, deadlineStatus: "OVERDUE", daysRemaining: -3 }]}
+				items={[
+					{
+						...item,
+						deadlineStatus: "OVERDUE",
+						daysRemaining: -3,
+						reanalysis: true,
+					},
+				]}
 			/>,
 		);
 
-		const deadline = screen.getAllByText("Atrasado 3 Dias")[0];
-		expect(deadline.closest('[data-slot="badge"]')).toBeInTheDocument();
-		expect(screen.getAllByText("Análise atrasada")).not.toHaveLength(0);
+		expect(screen.getAllByText("Atrasado, 3 dias")).not.toHaveLength(0);
+		expect(screen.getAllByText("08.10.2026")).not.toHaveLength(0);
+		expect(screen.getAllByText("Reanálise")).not.toHaveLength(0);
+		expect(screen.getAllByText("Prazo de análise vencido")).not.toHaveLength(0);
 	});
 
 	it("joins the municipality and the designer without a middle dot", () => {
@@ -61,7 +68,7 @@ describe("ReviewQueueListing", () => {
 });
 
 describe("AnalyzeButton", () => {
-	it("does not navigate and explains that the action is unavailable", () => {
+	it("does not navigate while the analysis screen does not exist", () => {
 		const initialUrl = window.location.href;
 		render(<AnalyzeButton />);
 
@@ -70,20 +77,5 @@ describe("AnalyzeButton", () => {
 
 		expect(button).toHaveAttribute("aria-disabled", "true");
 		expect(window.location.href).toBe(initialUrl);
-		expect(button).toHaveAttribute(
-			"title",
-			"A análise individual estará disponível em uma próxima etapa.",
-		);
-	});
-});
-
-describe("DeadlineBadge", () => {
-	it("uses the success style for projects within the deadline", () => {
-		render(<DeadlineBadge deadlineStatus="ON_TIME" daysRemaining={20} />);
-
-		expect(screen.getByText("20 Dias")).toHaveAttribute(
-			"data-variant",
-			"success",
-		);
 	});
 });

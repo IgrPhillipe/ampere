@@ -27,7 +27,7 @@ describe("ReviewQueueToolbar", () => {
 			/>,
 		);
 
-		fireEvent.click(screen.getByRole("button", { name: /vencendo prazo/i }));
+		fireEvent.click(screen.getByRole("button", { name: /vencendo o prazo/i }));
 
 		expect(onFilterChange).toHaveBeenCalledWith("DUE_SOON");
 	});

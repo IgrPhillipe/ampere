@@ -1,6 +1,5 @@
-import { cn } from "@lib/utils";
+import { AttentionIndicator } from "@components/AttentionIndicator";
 import type { Project } from "@services/projects";
-import { CircleAlert } from "lucide-react";
 
 import { getProjectActionLabel } from "./project-row";
 
@@ -15,18 +14,7 @@ export const ProjectActionIndicator = ({
 }: ProjectActionIndicatorProps) => {
 	const label = getProjectActionLabel(project);
 
-	if (!label) return null;
-
-	return (
-		<span
-			title={label}
-			className={cn(
-				"inline-flex size-6 items-center justify-center rounded-full bg-brand-sunset/20 text-warning-foreground",
-				className,
-			)}
-		>
-			<CircleAlert className="size-3.5" aria-hidden="true" />
-			<span className="sr-only">{label}</span>
-		</span>
-	);
+	return label ? (
+		<AttentionIndicator label={label} className={className} />
+	) : null;
 };

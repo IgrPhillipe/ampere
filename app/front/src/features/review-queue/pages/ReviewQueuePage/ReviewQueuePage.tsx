@@ -9,8 +9,8 @@ import {
 import { CircleAlert } from "lucide-react";
 
 import {
-	ReviewQueueIndicators,
 	ReviewQueueListing,
+	ReviewQueueMetrics,
 	ReviewQueueToolbar,
 } from "../../components";
 import { useReviewQueueFilters } from "../../hooks";
@@ -48,16 +48,13 @@ export const ReviewQueuePage = () => {
 			title="Fila de Análise"
 			description="Acompanhe e priorize os projetos enviados para análise técnica."
 			bleed
+			actions={<ReviewQueueMetrics indicators={indicatorsQuery.data?.data} />}
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
 			<section
 				className="flex flex-1 flex-col bg-card"
 				aria-label="Fila de análise técnica"
 			>
-				<ReviewQueueIndicators
-					indicators={indicatorsQuery.data?.data}
-					isLoading={indicatorsQuery.isPending}
-				/>
 				<ReviewQueueToolbar
 					search={search}
 					onSearchChange={setSearch}

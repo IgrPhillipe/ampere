@@ -1,15 +1,12 @@
 import { createDataTableColumnHelper } from "@components/DataTable";
 import { formatKva } from "@features/shared";
+import dayjs from "@lib/dayjs";
 import type { ReviewQueueItem } from "@services/review-queue";
 
-import { AnalyzeButton } from "./AnalyzeButton";
 import { DeadlineIndicator } from "./DeadlineIndicator";
-import {
-	DeadlineBadge,
-	ReanalysisBadge,
-	WarningBadge,
-} from "./ReviewQueueBadges";
+import { ReviewQueueStatusSummary } from "./ReviewQueueStatusSummary";
 import { formatQueueItemOrigin } from "./review-queue-row";
+import { WarningsBadge } from "./WarningsBadge";
 
 const columnHelper = createDataTableColumnHelper<ReviewQueueItem>();
 
@@ -17,11 +14,12 @@ export type ReviewQueueColumnId =
 	| "attention"
 	| "protocol"
 	| "name"
+	| "status"
 	| "units"
 	| "demand"
 	| "warnings"
-	| "deadline"
-	| "action";
+	| "submittedAt"
+	| "deadline";
 
 export const reviewQueueColumns = columnHelper.columns([
 	columnHelper.display({
@@ -43,13 +41,21 @@ export const reviewQueueColumns = columnHelper.columns([
 		header: "Projeto",
 		cell: ({ row }) => (
 			<div className="flex flex-col gap-1 whitespace-normal">
-				<span className="flex flex-wrap items-center gap-2 font-semibold text-foreground">
+				<span className="font-semibold text-foreground">
 					{row.original.name}
-					{row.original.reanalysis ? <ReanalysisBadge /> : null}
 				</span>
 				<span className="text-xs text-muted-foreground">
 					{formatQueueItemOrigin(row.original)}
 				</span>
+			</div>
+		),
+	}),
+	columnHelper.accessor("deadlineStatus", {
+		id: "status",
+		header: "Situação",
+		cell: ({ row }) => (
+			<div className="whitespace-normal">
+				<ReviewQueueStatusSummary item={row.original} />
 			</div>
 		),
 	}),
@@ -76,20 +82,28 @@ export const reviewQueueColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("warnings", {
 		header: "Pré-validação",
-		cell: ({ row }) => <WarningBadge warnings={row.original.warnings} />,
+		cell: ({ row }) => <WarningsBadge warnings={row.original.warnings} />,
+	}),
+	columnHelper.accessor("submittedAt", {
+		header: "Enviado em",
+		cell: ({ row }) => (
+			<time
+				dateTime={row.original.submittedAt}
+				className="font-mono text-xs text-foreground"
+			>
+				{dayjs(row.original.submittedAt).format("DD.MM.YYYY")}
+			</time>
+		),
 	}),
 	columnHelper.accessor("deadline", {
 		header: "Prazo",
 		cell: ({ row }) => (
-			<DeadlineBadge
-				deadlineStatus={row.original.deadlineStatus}
-				daysRemaining={row.original.daysRemaining}
-			/>
+			<time
+				dateTime={row.original.deadline}
+				className="font-mono text-xs text-foreground"
+			>
+				{dayjs(row.original.deadline).format("DD.MM.YYYY")}
+			</time>
 		),
-	}),
-	columnHelper.display({
-		id: "action",
-		header: () => <span className="sr-only">Ação</span>,
-		cell: () => <AnalyzeButton />,
 	}),
 ]);
