@@ -1,26 +1,13 @@
-import { resolve } from "node:path";
+import { defineConfig, mergeConfig } from "vitest/config";
 
-import { defineConfig } from "vitest/config";
+import viteConfig from "./vite.config.ts";
 
-export default defineConfig({
-	resolve: {
-		alias: {
-			"@": resolve(__dirname, "src"),
-			"@styles": resolve(__dirname, "src/styles"),
-			"@services": resolve(__dirname, "src/services"),
-			"@config": resolve(__dirname, "src/config"),
-			"@lib": resolve(__dirname, "src/lib"),
-			"@hooks": resolve(__dirname, "src/hooks"),
-			"@components": resolve(__dirname, "src/components"),
-			"@features": resolve(__dirname, "src/features"),
-			"@routes": resolve(__dirname, "src/routes"),
-			"@assets": resolve(__dirname, "src/assets"),
-			"@providers": resolve(__dirname, "src/providers"),
+export default defineConfig((env) =>
+	mergeConfig(viteConfig(env), {
+		test: {
+			environment: "jsdom",
+			setupFiles: ["./src/test/setup.ts"],
+			clearMocks: true,
 		},
-	},
-	test: {
-		environment: "jsdom",
-		setupFiles: ["./src/test/setup.ts"],
-		clearMocks: true,
-	},
-});
+	}),
+);
