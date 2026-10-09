@@ -1,5 +1,6 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.PageQuery;
@@ -60,8 +61,12 @@ public class ProjectController {
           ProjectStatus status,
       @Parameter(description = "Termo buscado no nome ou no protocolo")
           @RequestParam(required = false)
-          String search) {
-    ProjectListing listing = service.list(pagination.page(), pagination.pageSize(), status, search);
+          String search,
+      @Parameter(description = "Ordenação pela última atualização")
+          @RequestParam(defaultValue = "UPDATED_DESC")
+          ProjectSort sort) {
+    ProjectListing listing =
+        service.list(pagination.page(), pagination.pageSize(), status, search, sort);
     List<ProjectResponse> projects =
         listing.projects().stream()
             .map(

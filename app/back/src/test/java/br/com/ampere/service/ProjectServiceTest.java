@@ -15,6 +15,7 @@ import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SupplyVoltage;
@@ -54,7 +55,7 @@ class ProjectServiceTest {
             mock(ProjectCreation.class),
             mock(ApplicableStandards.class));
 
-    service.list(1, 20, null, " %_\\ ");
+    service.list(1, 20, null, " %_\\ ", ProjectSort.UPDATED_DESC);
 
     ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
     verify(projectRepository).searchProjects(isNull(), eq("\\%\\_\\\\"), pageableCaptor.capture());
@@ -63,6 +64,29 @@ class ProjectServiceTest {
     assertThat(pageable.getPageSize()).isEqualTo(20);
     assertThat(pageable.getSort().stream().map(Object::toString))
         .containsExactly("updatedAt: DESC", "id: DESC");
+  }
+
+  @Test
+  void ordersByTheOldestUpdateWhenAscending() {
+    ProjectRepository projectRepository = mock(ProjectRepository.class);
+    when(projectRepository.searchProjects(isNull(), eq(""), any(Pageable.class)))
+        .thenReturn(Page.empty());
+    ProjectService service =
+        new ProjectService(
+            projectRepository,
+            mock(FindingRepository.class),
+            mock(ConsumerUnitGroupRepository.class),
+            mock(CalculationRepository.class),
+            mock(ProjectDocumentRepository.class),
+            mock(ProjectCreation.class),
+            mock(ApplicableStandards.class));
+
+    service.list(1, 20, null, null, ProjectSort.UPDATED_ASC);
+
+    ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+    verify(projectRepository).searchProjects(isNull(), eq(""), pageableCaptor.capture());
+    assertThat(pageableCaptor.getValue().getSort().stream().map(Object::toString))
+        .containsExactly("updatedAt: ASC", "id: ASC");
   }
 
   @Test

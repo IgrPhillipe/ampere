@@ -21,6 +21,7 @@ import br.com.ampere.config.EnumParameterConfig;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
@@ -98,11 +99,13 @@ class ProjectControllerTest {
             Map.of(42L, 3L),
             Map.of(42L, 55L),
             Map.of(42L, new BigDecimal("165.00")));
-    when(service.list(1, 20, ProjectStatus.REJECTED, "vila")).thenReturn(listing);
+    when(service.list(1, 20, ProjectStatus.REJECTED, "vila", ProjectSort.UPDATED_ASC))
+        .thenReturn(listing);
     ProjectController controller = new ProjectController(service);
 
     ApiResponse<List<ProjectResponse>> response =
-        controller.list(new PageQuery(1, 20), ProjectStatus.REJECTED, "vila");
+        controller.list(
+            new PageQuery(1, 20), ProjectStatus.REJECTED, "vila", ProjectSort.UPDATED_ASC);
 
     assertThat(response.data()).hasSize(1);
     assertThat(response.data().getFirst().id()).isEqualTo("42");

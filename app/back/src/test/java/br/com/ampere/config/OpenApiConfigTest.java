@@ -3,6 +3,7 @@ package br.com.ampere.config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.ampere.controller.ProjectController;
+import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.dto.PageQuery;
 import br.com.ampere.dto.ProjectRequest;
@@ -27,7 +28,8 @@ class OpenApiConfigTest {
     Tag tag = ProjectController.class.getAnnotation(Tag.class);
     Operation operation =
         ProjectController.class
-            .getMethod("list", PageQuery.class, ProjectStatus.class, String.class)
+            .getMethod(
+                "list", PageQuery.class, ProjectStatus.class, String.class, ProjectSort.class)
             .getAnnotation(Operation.class);
 
     assertThat(tag.name()).isEqualTo("Projects");
