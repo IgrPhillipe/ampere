@@ -1,5 +1,5 @@
 import { Skeleton } from "@components/ui/skeleton";
-import dayjs from "@lib/dayjs";
+import { formatDate } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ProjectDetail } from "@services/projects";
 import type { ReactNode } from "react";
@@ -60,7 +60,7 @@ export const ProjectStamp = ({
 		<StampCell isLoading={isLoading} label="Emissão">
 			{project ? (
 				<time dateTime={project.createdAt}>
-					{dayjs(project.createdAt).format("DD.MM.YYYY")}
+					{formatDate(project.createdAt)}
 				</time>
 			) : undefined}
 		</StampCell>

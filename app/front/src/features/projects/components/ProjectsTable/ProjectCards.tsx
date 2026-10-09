@@ -1,4 +1,4 @@
-import { formatKva } from "@features/shared";
+import { formatDate, formatKva } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
 import type { Project } from "@services/projects";
@@ -73,7 +73,7 @@ export const ProjectCards = ({
 						<dt>Criado em</dt>
 						<dd>
 							<time dateTime={project.createdAt} className="font-mono">
-								{dayjs(project.createdAt).format("DD.MM.YYYY")}
+								{formatDate(project.createdAt)}
 							</time>
 						</dd>
 					</div>

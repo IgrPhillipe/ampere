@@ -1,4 +1,4 @@
-import dayjs from "@lib/dayjs";
+import { formatDate } from "@features/shared";
 
 interface PersonCellProps {
 	person: string;
@@ -10,7 +10,7 @@ export const PersonCell = ({ person, at }: PersonCellProps) => (
 		<span className="text-sm text-foreground">{person}</span>
 		{at ? (
 			<span className="font-mono text-xs text-muted-foreground">
-				{dayjs(at).format("DD.MM.YYYY")}
+				{formatDate(at)}
 			</span>
 		) : null}
 	</div>

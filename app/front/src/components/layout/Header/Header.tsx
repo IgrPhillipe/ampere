@@ -33,7 +33,7 @@ export const Header = () => {
 	return (
 		// Same scrollbar gutter as `main`, so the logo lines up with the page title.
 		<header className="h-16 shrink-0 overflow-y-hidden border-b border-border bg-card [scrollbar-gutter:stable]">
-			<div className="mx-auto flex h-full w-full max-w-page items-center gap-3 px-gutter md:px-gutter-md">
+			<div className="relative mx-auto flex h-full w-full max-w-page items-center gap-3 px-gutter md:px-gutter-md">
 				<Button
 					variant="ghost"
 					size="icon-sm"
@@ -46,7 +46,7 @@ export const Header = () => {
 
 				<AppBrand />
 
-				<HeaderNav className="ml-4 hidden lg:flex" />
+				<HeaderNav className="absolute inset-y-0 left-1/2 hidden -translate-x-1/2 lg:flex" />
 
 				<div className="ml-auto flex items-center">
 					<DropdownMenu>

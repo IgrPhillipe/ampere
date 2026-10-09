@@ -15,8 +15,8 @@ export const AppBrand = () => (
 
 		<span aria-hidden="true" className="hidden h-5 w-px bg-border sm:block" />
 
-		<span className="hidden text-xs font-medium tracking-[0.12em] text-muted-foreground uppercase sm:inline">
-			Projetos elétricos
+		<span className="hidden text-sm font-semibold tracking-[0.12em] text-foreground sm:inline">
+			AMPERE
 		</span>
 	</Link>
 );
