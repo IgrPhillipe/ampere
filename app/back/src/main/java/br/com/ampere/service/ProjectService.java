@@ -8,6 +8,7 @@ import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
+import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.utils.SearchTerms;
 import java.math.BigDecimal;
@@ -40,6 +41,7 @@ public class ProjectService {
   private final FindingRepository findingRepository;
   private final ConsumerUnitGroupRepository groupRepository;
   private final CalculationRepository calculationRepository;
+  private final ProjectDocumentRepository documentRepository;
   private final ProjectCreation projectCreation;
   private final ApplicableStandards applicableStandards;
 
@@ -48,12 +50,14 @@ public class ProjectService {
       FindingRepository findingRepository,
       ConsumerUnitGroupRepository groupRepository,
       CalculationRepository calculationRepository,
+      ProjectDocumentRepository documentRepository,
       ProjectCreation projectCreation,
       ApplicableStandards applicableStandards) {
     this.projectRepository = projectRepository;
     this.findingRepository = findingRepository;
     this.groupRepository = groupRepository;
     this.calculationRepository = calculationRepository;
+    this.documentRepository = documentRepository;
     this.projectCreation = projectCreation;
     this.applicableStandards = applicableStandards;
   }
@@ -121,6 +125,7 @@ public class ProjectService {
     calculationRepository.deleteAllByProjectId(id);
     findingRepository.deleteAllByProjectId(id);
     groupRepository.deleteAllByProjectId(id);
+    documentRepository.deleteAllByProjectId(id);
     projectRepository.delete(project);
   }
 

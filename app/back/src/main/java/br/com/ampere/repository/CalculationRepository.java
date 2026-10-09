@@ -28,6 +28,30 @@ public interface CalculationRepository extends JpaRepository<Calculation, Long> 
       """)
   List<LatestDemand> findLatestDemandPerProject(@Param("projectIds") Collection<Long> projectIds);
 
+  @Query(
+      """
+      SELECT calculation.project.id AS projectId, COUNT(item) AS warnings
+      FROM Calculation calculation
+      JOIN calculation.checks item
+      WHERE item.status = br.com.ampere.domain.CheckStatus.WARNING
+        AND calculation.id IN (
+          SELECT MAX(latest.id)
+          FROM Calculation latest
+          WHERE latest.project.id IN :projectIds
+          GROUP BY latest.project.id
+        )
+      GROUP BY calculation.project.id
+      """)
+  List<LatestWarnings> countLatestWarningsPerProject(
+      @Param("projectIds") Collection<Long> projectIds);
+
+  interface LatestWarnings {
+
+    Long getProjectId();
+
+    Long getWarnings();
+  }
+
   interface LatestDemand {
 
     Long getProjectId();
