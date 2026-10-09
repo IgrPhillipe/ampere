@@ -1,9 +1,8 @@
 import { createDataTableColumnHelper } from "@components/DataTable";
-import { formatKva } from "@features/shared";
-import dayjs from "@lib/dayjs";
+import { formatDate, formatKva } from "@features/shared";
 import type { ReviewQueueItem } from "@services/review-queue";
 
-import { DeadlineIndicator } from "./DeadlineIndicator";
+import { QueueItemIndicator } from "./QueueItemIndicator";
 import { ReviewQueueStatusSummary } from "./ReviewQueueStatusSummary";
 import { formatQueueItemOrigin } from "./review-queue-row";
 import { WarningsBadge } from "./WarningsBadge";
@@ -24,10 +23,8 @@ export type ReviewQueueColumnId =
 export const reviewQueueColumns = columnHelper.columns([
 	columnHelper.display({
 		id: "attention",
-		header: () => <span className="sr-only">Prioridade</span>,
-		cell: ({ row }) => (
-			<DeadlineIndicator deadlineStatus={row.original.deadlineStatus} />
-		),
+		header: () => <span className="sr-only">Atenção</span>,
+		cell: ({ row }) => <QueueItemIndicator item={row.original} />,
 	}),
 	columnHelper.accessor("protocol", {
 		header: "Protocolo",
@@ -91,7 +88,7 @@ export const reviewQueueColumns = columnHelper.columns([
 				dateTime={row.original.submittedAt}
 				className="font-mono text-xs text-foreground"
 			>
-				{dayjs(row.original.submittedAt).format("DD.MM.YYYY")}
+				{formatDate(row.original.submittedAt)}
 			</time>
 		),
 	}),
@@ -102,7 +99,7 @@ export const reviewQueueColumns = columnHelper.columns([
 				dateTime={row.original.deadline}
 				className="font-mono text-xs text-foreground"
 			>
-				{dayjs(row.original.deadline).format("DD.MM.YYYY")}
+				{formatDate(row.original.deadline)}
 			</time>
 		),
 	}),

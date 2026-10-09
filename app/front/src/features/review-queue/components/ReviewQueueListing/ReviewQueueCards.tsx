@@ -1,9 +1,8 @@
-import { formatKva } from "@features/shared";
-import dayjs from "@lib/dayjs";
+import { formatDate, formatKva } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ReviewQueueItem } from "@services/review-queue";
 
-import { DeadlineIndicator } from "./DeadlineIndicator";
+import { QueueItemIndicator } from "./QueueItemIndicator";
 import { ReviewQueueStatusSummary } from "./ReviewQueueStatusSummary";
 import { formatQueueItemOrigin } from "./review-queue-row";
 import { WarningsBadge } from "./WarningsBadge";
@@ -26,7 +25,7 @@ export const ReviewQueueCards = ({
 				<div className="flex flex-col gap-1">
 					<div className="flex items-start justify-between gap-3">
 						<span className="font-semibold text-foreground">{item.name}</span>
-						<DeadlineIndicator deadlineStatus={item.deadlineStatus} />
+						<QueueItemIndicator item={item} />
 					</div>
 
 					<span className="text-xs text-muted-foreground">
@@ -59,7 +58,7 @@ export const ReviewQueueCards = ({
 						<dt>Prazo</dt>
 						<dd>
 							<time dateTime={item.deadline} className="font-mono">
-								{dayjs(item.deadline).format("DD.MM.YYYY")}
+								{formatDate(item.deadline)}
 							</time>
 						</dd>
 					</div>

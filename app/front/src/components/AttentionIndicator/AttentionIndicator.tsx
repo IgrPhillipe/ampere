@@ -1,18 +1,21 @@
 import {
 	Tooltip,
 	TooltipContent,
+	type TooltipMessage,
+	TooltipMessageContent,
 	TooltipTrigger,
+	tooltipMessageText,
 } from "@components/ui/tooltip";
 import { cn } from "@lib/utils";
 import { CircleAlert } from "lucide-react";
 
 interface AttentionIndicatorProps {
-	label: string;
+	message: TooltipMessage;
 	className?: string;
 }
 
 export const AttentionIndicator = ({
-	label,
+	message,
 	className,
 }: AttentionIndicatorProps) => (
 	<Tooltip>
@@ -25,8 +28,10 @@ export const AttentionIndicator = ({
 			)}
 		>
 			<CircleAlert className="size-3.5" aria-hidden="true" />
-			<span className="sr-only">{label}</span>
+			<span className="sr-only">{tooltipMessageText(message)}</span>
 		</TooltipTrigger>
-		<TooltipContent>{label}</TooltipContent>
+		<TooltipContent>
+			<TooltipMessageContent {...message} />
+		</TooltipContent>
 	</Tooltip>
 );

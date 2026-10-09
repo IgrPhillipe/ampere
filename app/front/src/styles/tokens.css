@@ -56,6 +56,8 @@
 	--disabled: var(--neo-gray-light);
 	--disabled-foreground: var(--neo-gray-medium);
 	--overlay: rgb(0 32 21 / 48%);
+	--tooltip: rgb(38 38 38 / 88%);
+	--tooltip-foreground: var(--neo-white);
 
 	/* Data visualization */
 	--chart-1: var(--neo-green);
@@ -150,6 +152,8 @@
 	--color-disabled: var(--disabled);
 	--color-disabled-foreground: var(--disabled-foreground);
 	--color-overlay: var(--overlay);
+	--color-tooltip: var(--tooltip);
+	--color-tooltip-foreground: var(--tooltip-foreground);
 
 	--color-brand-green: var(--neo-green);
 	--color-brand-green-dark: var(--neo-green-dark);

@@ -1,7 +1,7 @@
 import { AttentionIndicator } from "@components/AttentionIndicator";
 import type { Project } from "@services/projects";
 
-import { getProjectActionLabel } from "./project-row";
+import { getProjectAttention } from "./project-row";
 
 interface ProjectActionIndicatorProps {
 	project: Project;
@@ -12,9 +12,9 @@ export const ProjectActionIndicator = ({
 	project,
 	className,
 }: ProjectActionIndicatorProps) => {
-	const label = getProjectActionLabel(project);
+	const message = getProjectAttention(project);
 
-	return label ? (
-		<AttentionIndicator label={label} className={className} />
+	return message ? (
+		<AttentionIndicator message={message} className={className} />
 	) : null;
 };

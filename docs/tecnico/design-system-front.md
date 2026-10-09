@@ -230,6 +230,23 @@ do mesmo formulário renderizavam diferentes.
 - `Card` agrupa conteúdo relacionado; não envolve uma seção inteira apenas para
   criar espaçamento.
 
+### Tooltips de Atenção
+
+O ícone laranja de atenção (`AttentionIndicator`) marca a linha que pede ação e
+sempre explica o motivo num tooltip. O tooltip usa o token `tooltip` (cinza
+translúcido, texto branco) e o texto segue um formato único, `TooltipMessage`:
+
+| Parte | Conteúdo | Exemplo |
+| :--- | :--- | :--- |
+| `title` | o problema, em poucas palavras e com o número quando houver | "Prazo vencido há 10 dias" |
+| `details` | os fatos que sustentam o problema, um por linha, sem ponto final | "Venceu em 29/09/2026", "2 alertas na pré-validação do cálculo" |
+| `action` | o que a pessoa deve fazer, numa frase | "Priorize esta análise." |
+
+O problema mais grave vem no título; os outros entram em `details`. O leitor de
+tela recebe as mesmas partes numa frase só (`tooltipMessageText`). As mensagens
+de cada tela ficam juntas numa função (`getProjectAttention`,
+`getQueueItemAttention`), nunca espalhadas pelos componentes.
+
 ### Séries do Cálculo de Demanda
 
 As parcelas da demanda usam os tokens de gráfico, na ordem de cor do protótipo

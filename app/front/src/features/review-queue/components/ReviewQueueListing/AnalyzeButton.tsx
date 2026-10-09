@@ -2,6 +2,7 @@ import { InlineActionButton } from "@components/InlineActionButton";
 import {
 	Tooltip,
 	TooltipContent,
+	TooltipMessageContent,
 	TooltipTrigger,
 } from "@components/ui/tooltip";
 
@@ -18,7 +19,10 @@ export const AnalyzeButton = () => (
 			Analisar
 		</TooltipTrigger>
 		<TooltipContent>
-			A análise individual estará disponível em uma próxima etapa.
+			<TooltipMessageContent
+				title="Análise indisponível"
+				action="A tela de conferência e apontamentos chega na próxima etapa."
+			/>
 		</TooltipContent>
 	</Tooltip>
 );
