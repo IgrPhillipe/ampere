@@ -4,6 +4,12 @@ Aulas, conteúdo e entregáveis da disciplina, conforme o plano de ensino. As en
 
 Responsáveis por acompanhar e atualizar: José Williams e Kellwen Costa.
 
+## Avaliação
+
+A nota vem de dois Status Reports. A média de cada etapa combina a Nota de Processo (NP, acompanhamento das entregas da disciplina), a Nota Técnica (NT, entregas de POO, a disciplina co-requisito) e o Fator de Contribuição Técnica Individual (FACT). O SR1 foi em 03/10 e o SR2 é em 05/12.
+
+O uso de IA generativa é permitido de forma ética, crítica e transparente. O grupo responde pela qualidade, autoria e veracidade das entregas. O relatório de uso de IA é entregável de 28/11.
+
 ## Aulas
 
 | Aula | Data | Conteúdo | Entregável |

@@ -43,22 +43,22 @@
 | **US04** | [Conferência do Cálculo Passo a Passo da Demanda](#us04-conferência-do-cálculo-passo-a-passo-da-demanda) | Projetista Externo | `Alta` | `Sprint 2` |
 | **US05** | [Geração de Memorial e Envio do Projeto](#us05-geração-de-memorial-e-envio-do-projeto) | Projetista Externo | `Alta` | `Sprint 3` |
 | **US06** | [Fila de Análise Técnica Priorizada](#us06-fila-de-análise-técnica-priorizada) | Analista da Concessionária | `Alta` | `Sprint 3` |
-| **US07** | [Auditoria de Memória e Registro Pontual de Apontamentos](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos) | Analista da Concessionária | `Alta` | `Sprint 5` |
+| **US07** | [Auditoria de Memória e Registro Pontual de Apontamentos](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos) | Analista da Concessionária | `Alta` | `Sprint 4` |
 | **US08** | [Linha do Tempo e Histórico do Protocolo](#us08-linha-do-tempo-e-histórico-do-protocolo) | Analista da Concessionária | `Média` | `Sprint 6` |
 | **US09** | [Correção de Apontamentos e Reenvio com Versionamento](#us09-correção-de-apontamentos-e-reenvio-com-versionamento) | Projetista Externo | `Alta` | `Sprint 5` |
-| **US10** | [Cadastro e Perfil do Projetista](#us10-cadastro-e-perfil-do-projetista) | Projetista Externo | `Média` | `Sprint 7` |
-| **US11** | [Gestão de Usuários](#us11-gestão-de-usuários) | Administrador da Neoenergia | `Média` | `Sprint 7` |
+| **US10** | [Cadastro e Perfil do Projetista](#us10-cadastro-e-perfil-do-projetista) | Projetista Externo | `Média` | `Sprint 8` |
+| **US11** | [Gestão de Usuários](#us11-gestão-de-usuários) | Administrador da Neoenergia | `Média` | `Sprint 9` |
 | **US12** | [Detalhe do Projeto e Histórico de Tratamento](#us12-detalhe-do-projeto-e-histórico-de-tratamento) | Projetista Externo | `Alta` | `Sprint 6` |
-| **US13** | [Versão Congelada do Envio](#us13-versão-congelada-do-envio) | Analista da Concessionária | `Média` | `Sprint 7` |
-| **US14** | [Notificações no Sistema](#us14-notificações-no-sistema) | Projetista e Analista | `Média` | `Sprint 7` |
-| **US15** | [Prazos de Análise e Validade da Aprovação](#us15-prazos-de-análise-e-validade-da-aprovação) | Analista da Concessionária | `Média` | `Sprint 8` |
+| **US13** | [Versão Congelada do Envio](#us13-versão-congelada-do-envio) | Analista da Concessionária | `Média` | `Sprint 8` |
+| **US14** | [Notificações no Sistema](#us14-notificações-no-sistema) | Projetista e Analista | `Média` | `Sprint 8` |
+| **US15** | [Prazos de Análise e Validade da Aprovação](#us15-prazos-de-análise-e-validade-da-aprovação) | Analista da Concessionária | `Média` | `Sprint 9` |
 | **US16** | [Painel do Projetista](#us16-painel-do-projetista) | Projetista Externo | `Média` | `Sprint 8` |
-| **US17** | [Painel do Analista](#us17-painel-do-analista) | Analista da Concessionária | `Média` | `Sprint 8` |
-| **US18** | [Filtros e Ordenação das Listagens](#us18-filtros-e-ordenação-das-listagens) | Projetista e Analista | `Alta` | `Sprint 6` |
-| **US19** | [Exportação em Planilha](#us19-exportação-em-planilha) | Projetista e Analista | `Baixa` | `Sprint 8` |
-| **US20** | [Exclusão de Projeto em Rascunho](#us20-exclusão-de-projeto-em-rascunho) | Projetista Externo | `Média` | `Sprint 5` |
-| **US21** | [Duplicação de Projeto](#us21-duplicação-de-projeto) | Projetista Externo | `Baixa (Opcional)` | `Sprint 8` |
-| **US22** | [Documentos Complementares](#us22-documentos-complementares) | Projetista Externo | `Baixa (Opcional)` | `Sprint 8` |
+| **US17** | [Painel do Analista](#us17-painel-do-analista) | Analista da Concessionária | `Média` | `Sprint 9` |
+| **US18** | [Filtros e Ordenação das Listagens](#us18-filtros-e-ordenação-das-listagens) | Projetista e Analista | `Alta` | `Sprint 5` |
+| **US19** | [Exportação em Planilha](#us19-exportação-em-planilha) | Projetista e Analista | `Baixa` | `Sprint 9` |
+| **US20** | [Exclusão de Projeto em Rascunho](#us20-exclusão-de-projeto-em-rascunho) | Projetista Externo | `Média` | `Sprint 4` |
+| **US21** | [Duplicação de Projeto](#us21-duplicação-de-projeto) | Projetista Externo | `Baixa (Opcional)` | `Sprint 9` |
+| **US22** | [Documentos Complementares](#us22-documentos-complementares) | Projetista Externo | `Baixa (Opcional)` | `Sprint 9` |
 
 ---
 
@@ -316,7 +316,7 @@ A tabela traz a listagem ordenada pela urgência de prazo de atendimento (ex.: v
 
 ## US07: Auditoria de Memória e Registro Pontual de Apontamentos
 
-`US07` `Prioridade: Alta` `Sprint 5`
+`US07` `Prioridade: Alta` `Sprint 4`
 
 ### Descrição
 Ambiente de auditoria normativa da memória de cálculo com ferramenta de apontamentos granulares vinculados diretamente às etapas do projeto.
@@ -475,7 +475,7 @@ Conta com atalhos que abrem a etapa exata onde ocorreu a divergência. O projeti
 
 ## US10: Cadastro e Perfil do Projetista
 
-`US10` `Prioridade: Média` `Sprint 7`
+`US10` `Prioridade: Média` `Sprint 8`
 
 ### Descrição
 Cadastro do projetista externo com os dados profissionais que identificam o responsável técnico no projeto, no carimbo e no memorial.
@@ -518,7 +518,7 @@ A página "Meu Perfil", no menu do usuário, permite editar os dados e trocar a 
 
 ## US11: Gestão de Usuários
 
-`US11` `Prioridade: Média` `Sprint 7`
+`US11` `Prioridade: Média` `Sprint 9`
 
 ### Descrição
 Área administrativa para criar analistas, desativar contas e redefinir senhas, sem depender de inserção manual no banco.
@@ -607,7 +607,7 @@ No modo somente leitura, os campos e os botões de edição ficam ocultos e o to
 
 ## US13: Versão Congelada do Envio
 
-`US13` `Prioridade: Média` `Sprint 7`
+`US13` `Prioridade: Média` `Sprint 8`
 
 ### Descrição
 Registro imutável de cada envio, com o memorial, o cálculo e os documentos da versão, como evidência da análise.
@@ -649,7 +649,7 @@ O memorial da versão não é regerado: alterações feitas depois da reprovaç�
 
 ## US14: Notificações no Sistema
 
-`US14` `Prioridade: Média` `Sprint 7`
+`US14` `Prioridade: Média` `Sprint 8`
 
 ### Descrição
 Central de notificações no sino do cabeçalho para os dois perfis, sem envio de e-mail.
@@ -691,7 +691,7 @@ Cada notificação mostra o protocolo, o texto, a data relativa e leva à tela d
 
 ## US15: Prazos de Análise e Validade da Aprovação
 
-`US15` `Prioridade: Média` `Sprint 8`
+`US15` `Prioridade: Média` `Sprint 9`
 
 ### Descrição
 Controle do prazo de 30 dias da análise, suspenso enquanto o projeto aguarda o projetista, e da validade de 36 meses da aprovação.
@@ -773,7 +773,7 @@ O período é selecionável entre últimos 30 dias, últimos 90 dias e ano corre
 
 ## US17: Painel do Analista
 
-`US17` `Prioridade: Média` `Sprint 8`
+`US17` `Prioridade: Média` `Sprint 9`
 
 ### Descrição
 Painel de indicadores da equipe de análise e histórico dos pareceres de cada analista.
@@ -820,7 +820,7 @@ O menu do analista ganha "Indicadores" e "Meus Pareceres", previstos no protóti
 
 ## US18: Filtros e Ordenação das Listagens
 
-`US18` `Prioridade: Alta` `Sprint 6`
+`US18` `Prioridade: Alta` `Sprint 5`
 
 ### Descrição
 Filtros combináveis e ordenação por coluna em "Meus Projetos" e na "Fila de Análise", preservados na URL.
@@ -865,7 +865,7 @@ Os filtros se combinam, ficam na URL e aparecem como etiquetas removíveis acima
 
 ## US19: Exportação em Planilha
 
-`US19` `Prioridade: Baixa` `Sprint 8`
+`US19` `Prioridade: Baixa` `Sprint 9`
 
 ### Descrição
 Exportação do cálculo de demanda e das listagens em planilha, para uso fora do sistema. O sistema não importa planilhas.
@@ -903,7 +903,7 @@ Números saem no formato brasileiro, com vírgula decimal, e o nome do arquivo l
 
 ## US20: Exclusão de Projeto em Rascunho
 
-`US20` `Prioridade: Média` `Sprint 5`
+`US20` `Prioridade: Média` `Sprint 4`
 
 ### Descrição
 Exclusão de projetos ainda não enviados, com confirmação, a partir da listagem e do painel do projeto.
@@ -940,7 +940,7 @@ Projetos enviados, reprovados ou aprovados não podem ser excluídos: o protocol
 
 ## US21: Duplicação de Projeto
 
-`US21` `Prioridade: Baixa (Opcional)` `Sprint 8`
+`US21` `Prioridade: Baixa (Opcional)` `Sprint 9`
 
 ### Descrição
 Criação de um projeto novo a partir de outro, reaproveitando os parâmetros e os grupos de UCs.
@@ -979,7 +979,7 @@ Ao concluir, o sistema abre a etapa "Dados da edificação" da cópia.
 
 ## US22: Documentos Complementares
 
-`US22` `Prioridade: Baixa (Opcional)` `Sprint 8`
+`US22` `Prioridade: Baixa (Opcional)` `Sprint 9`
 
 ### Descrição
 Ampliação do checklist documental com os anexos previstos na norma além dos três obrigatórios da US05.

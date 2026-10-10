@@ -17,6 +17,18 @@ Professor: Maurício da Motta Braga (mmb2@cesar.school)
 
 ---
 
+## Regras Gerais
+
+- Aplicação web orientada a objetos em Java com Spring Boot, com no mínimo 3 classes de domínio persistidas. Todas as histórias leem ou escrevem no banco
+- Lombok e qualquer outro gerador de código boilerplate são proibidos
+- Commits de código no mínimo semanais, direto na main
+- O README precisa manter, em todas as entregas, nome, descrição, tecnologias, como rodar, equipe com e-mail e datas de entrada e saída, e uma seção por entrega com os links dos artefatos. Essas seções são pontuadas em todas as entregas
+- A correção usa o conteúdo do GitHub logo após o prazo de cada entrega. Os artefatos sobem ao longo das semanas, não no último dia
+- Reunião semanal com o monitor. Grupo que não valida o trabalho com o monitor antes da entrega assume o risco de não conformidades
+- Avaliação individual junto com a avaliação da unidade, com perguntas sobre Spring Boot, Java e o projeto do grupo
+
+---
+
 ## Kickoff: 10 a 16/08/2026
 
 - Definição da equipe, nome e descrição do produto (planilha no Classroom)
