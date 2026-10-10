@@ -1,7 +1,9 @@
 import { EmptyState } from "@components/EmptyState";
+import { ListToolbar } from "@components/ListToolbar";
 import { PageLayout } from "@components/layout";
 import { Pagination } from "@components/Pagination";
 import { SearchInput } from "@components/SearchInput";
+import { SortToggle } from "@components/SortToggle";
 import { Button } from "@components/ui/button";
 import {
 	type Project,
@@ -14,11 +16,7 @@ import { ArrowRight, CircleAlert } from "lucide-react";
 import { useCallback } from "react";
 import { toast } from "sonner";
 
-import {
-	ProjectStatusFilters,
-	ProjectsTable,
-	ProjectToolbar,
-} from "../../components";
+import { ProjectStatusFilters, ProjectsTable } from "../../components";
 import { useProjectFilters } from "../../hooks";
 
 const PAGE_SIZE = 10;
@@ -39,10 +37,12 @@ export const ProjectsPage = () => {
 		search,
 		debouncedSearch,
 		page,
+		sort,
 		hasActiveFilters,
 		setStatus,
 		setSearch,
 		setPage,
+		toggleSort,
 		clearFilters,
 	} = useProjectFilters();
 	const projectsQuery = useGetProjectList({
@@ -50,6 +50,7 @@ export const ProjectsPage = () => {
 		pageSize: PAGE_SIZE,
 		status: status ?? undefined,
 		search: debouncedSearch || undefined,
+		sort,
 	});
 	// Counters get their own query: they are global and change with neither page nor search.
 	const statusCountsQuery = useGetProjectStatusCounts();
@@ -74,6 +75,18 @@ export const ProjectsPage = () => {
 		[navigate],
 	);
 
+	const handleContinueDraft = useCallback(
+		(project: Project) =>
+			void navigate({ to: "/projetos/$id/dados", params: { id: project.id } }),
+		[navigate],
+	);
+
+	const handleViewProject = useCallback(
+		(project: Project) =>
+			void navigate({ to: "/projetos/$id/envio", params: { id: project.id } }),
+		[navigate],
+	);
+
 	return (
 		<PageLayout
 			title="Meus Projetos"
@@ -95,7 +108,7 @@ export const ProjectsPage = () => {
 				className="flex flex-1 flex-col bg-card"
 				aria-label="Listagem de projetos"
 			>
-				<ProjectToolbar
+				<ListToolbar
 					filters={
 						<ProjectStatusFilters
 							counts={counts}
@@ -109,6 +122,13 @@ export const ProjectsPage = () => {
 							onValueChange={setSearch}
 							placeholder="Buscar por nome ou protocolo"
 							label="Buscar projetos"
+						/>
+					}
+					sort={
+						<SortToggle
+							label="Atualização"
+							descending={sort === "UPDATED_DESC"}
+							onToggle={toggleSort}
 						/>
 					}
 				/>
@@ -138,6 +158,8 @@ export const ProjectsPage = () => {
 							isLoading={projectsQuery.isPending}
 							onViewFindings={handleViewFindings}
 							onResumeSubmission={handleResumeSubmission}
+							onContinueDraft={handleContinueDraft}
+							onViewProject={handleViewProject}
 							onClearFilters={hasActiveFilters ? clearFilters : undefined}
 						/>
 					)}

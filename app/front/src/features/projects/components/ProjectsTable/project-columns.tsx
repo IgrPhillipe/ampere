@@ -4,6 +4,7 @@ import dayjs from "@lib/dayjs";
 import type { Project } from "@services/projects";
 
 import { ProjectActionIndicator } from "./ProjectActionIndicator";
+import { ProjectRowActionButton } from "./ProjectRowActionButton";
 import { ProjectStatusSummary } from "./ProjectStatusSummary";
 import type { ProjectRowActions } from "./project-row";
 
@@ -18,12 +19,10 @@ export type ProjectColumnId =
 	| "units"
 	| "demand"
 	| "createdAt"
-	| "updatedAt";
+	| "updatedAt"
+	| "action";
 
-export const createProjectColumns = ({
-	onViewFindings,
-	onResumeSubmission,
-}: ProjectRowActions) =>
+export const createProjectColumns = (actions: ProjectRowActions) =>
 	columnHelper.columns([
 		columnHelper.display({
 			id: "attention",
@@ -51,11 +50,7 @@ export const createProjectColumns = ({
 			header: "Situação",
 			cell: ({ row }) => (
 				<div className="whitespace-normal">
-					<ProjectStatusSummary
-						project={row.original}
-						onViewFindings={onViewFindings}
-						onResumeSubmission={onResumeSubmission}
-					/>
+					<ProjectStatusSummary project={row.original} />
 				</div>
 			),
 		}),
@@ -101,6 +96,15 @@ export const createProjectColumns = ({
 				>
 					{dayjs(row.original.updatedAt).fromNow()}
 				</time>
+			),
+		}),
+		columnHelper.display({
+			id: "action",
+			header: () => <span className="sr-only">Ação</span>,
+			cell: ({ row }) => (
+				<div className="flex justify-end">
+					<ProjectRowActionButton project={row.original} {...actions} />
+				</div>
 			),
 		}),
 	]);

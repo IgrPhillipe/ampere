@@ -2,6 +2,8 @@ import { createDataTableColumnHelper } from "@components/DataTable";
 import { formatDate, formatKva } from "@features/shared";
 import type { ReviewQueueItem } from "@services/review-queue";
 
+import { AnalyzeButton } from "./AnalyzeButton";
+import { DeadlineCell } from "./DeadlineCell";
 import { QueueItemIndicator } from "./QueueItemIndicator";
 import { ReviewQueueStatusSummary } from "./ReviewQueueStatusSummary";
 import { formatQueueItemOrigin } from "./review-queue-row";
@@ -18,7 +20,8 @@ export type ReviewQueueColumnId =
 	| "demand"
 	| "warnings"
 	| "submittedAt"
-	| "deadline";
+	| "deadline"
+	| "action";
 
 export const reviewQueueColumns = columnHelper.columns([
 	columnHelper.display({
@@ -94,13 +97,15 @@ export const reviewQueueColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("deadline", {
 		header: "Prazo",
-		cell: ({ row }) => (
-			<time
-				dateTime={row.original.deadline}
-				className="font-mono text-xs text-foreground"
-			>
-				{formatDate(row.original.deadline)}
-			</time>
+		cell: ({ row }) => <DeadlineCell item={row.original} />,
+	}),
+	columnHelper.display({
+		id: "action",
+		header: () => <span className="sr-only">Ação</span>,
+		cell: () => (
+			<div className="flex justify-end">
+				<AnalyzeButton />
+			</div>
 		),
 	}),
 ]);

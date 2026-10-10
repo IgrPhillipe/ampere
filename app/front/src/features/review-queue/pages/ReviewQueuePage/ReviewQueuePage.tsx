@@ -8,11 +8,7 @@ import {
 } from "@services/review-queue";
 import { CircleAlert } from "lucide-react";
 
-import {
-	ReviewQueueListing,
-	ReviewQueueMetrics,
-	ReviewQueueToolbar,
-} from "../../components";
+import { ReviewQueueListing, ReviewQueueToolbar } from "../../components";
 import { useReviewQueueFilters } from "../../hooks";
 
 const PAGE_SIZE = 10;
@@ -48,7 +44,6 @@ export const ReviewQueuePage = () => {
 			title="Fila de Análise"
 			description="Acompanhe e priorize os projetos enviados para análise técnica."
 			bleed
-			actions={<ReviewQueueMetrics indicators={indicatorsQuery.data?.data} />}
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
 			<section
@@ -60,7 +55,7 @@ export const ReviewQueuePage = () => {
 					onSearchChange={setSearch}
 					filter={filter}
 					onFilterChange={setFilter}
-					counts={indicatorsQuery.data?.data}
+					indicators={indicatorsQuery.data?.data}
 					sort={sort}
 					onSortChange={setSort}
 				/>

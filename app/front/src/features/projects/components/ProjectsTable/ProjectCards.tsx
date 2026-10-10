@@ -4,6 +4,7 @@ import { cn } from "@lib/utils";
 import type { Project } from "@services/projects";
 
 import { ProjectActionIndicator } from "./ProjectActionIndicator";
+import { ProjectRowActionButton } from "./ProjectRowActionButton";
 import { ProjectStatusSummary } from "./ProjectStatusSummary";
 import type { ProjectRowActions } from "./project-row";
 
@@ -21,9 +22,8 @@ interface ProjectCardsProps extends ProjectRowActions {
  */
 export const ProjectCards = ({
 	projects,
-	onViewFindings,
-	onResumeSubmission,
 	className,
+	...actions
 }: ProjectCardsProps) => (
 	<ul className={cn("flex flex-col bg-card", className)}>
 		{projects.map((project) => (
@@ -48,11 +48,7 @@ export const ProjectCards = ({
 					</span>
 				</div>
 
-				<ProjectStatusSummary
-					project={project}
-					onViewFindings={onViewFindings}
-					onResumeSubmission={onResumeSubmission}
-				/>
+				<ProjectStatusSummary project={project} />
 
 				<dl className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
 					<div className="flex gap-1.5">
@@ -90,6 +86,10 @@ export const ProjectCards = ({
 						</dd>
 					</div>
 				</dl>
+
+				<div className="flex justify-end">
+					<ProjectRowActionButton project={project} {...actions} />
+				</div>
 			</li>
 		))}
 	</ul>

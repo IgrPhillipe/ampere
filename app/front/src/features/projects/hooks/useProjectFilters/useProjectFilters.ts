@@ -1,5 +1,9 @@
 import { useDebouncedValue } from "@features/shared";
-import { type ProjectStatus, projectStatusSchema } from "@services/projects";
+import {
+	type ProjectStatus,
+	projectSortSchema,
+	projectStatusSchema,
+} from "@services/projects";
 import {
 	debounce,
 	parseAsInteger,
@@ -26,6 +30,10 @@ export const useProjectFilters = () => {
 		"page",
 		parseAsInteger.withDefault(1),
 	);
+	const [sort, setSortQuery] = useQueryState(
+		"sort",
+		parseAsStringLiteral(projectSortSchema.options).withDefault("UPDATED_DESC"),
+	);
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
 	const setStatus = useCallback(
@@ -51,6 +59,11 @@ export const useProjectFilters = () => {
 		[setPageQuery],
 	);
 
+	const toggleSort = useCallback(() => {
+		void setSortQuery(sort === "UPDATED_DESC" ? "UPDATED_ASC" : null);
+		void setPageQuery(null);
+	}, [sort, setSortQuery, setPageQuery]);
+
 	const clearFilters = useCallback(() => {
 		void setStatusQuery(null);
 		void setSearchQuery(null);
@@ -62,11 +75,13 @@ export const useProjectFilters = () => {
 		search,
 		debouncedSearch,
 		page,
+		sort,
 		// An empty list under an active filter asks for "Limpar Filtros"; without one, it does not.
 		hasActiveFilters: status !== null || search.trim() !== "",
 		setStatus,
 		setSearch,
 		setPage,
+		toggleSort,
 		clearFilters,
 	};
 };

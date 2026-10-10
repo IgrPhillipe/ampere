@@ -11,6 +11,10 @@ export const projectStatusSchema = z.enum([
 
 export type ProjectStatus = z.infer<typeof projectStatusSchema>;
 
+export const projectSortSchema = z.enum(["UPDATED_DESC", "UPDATED_ASC"]);
+
+export type ProjectSort = z.infer<typeof projectSortSchema>;
+
 export const projectSchema = z.object({
 	id: z.string(),
 	name: z.string(),

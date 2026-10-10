@@ -1,3 +1,4 @@
+import { Skeleton } from "@components/ui/skeleton";
 import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 
@@ -7,8 +8,15 @@ export interface FilterTile<T> {
 	count: number;
 }
 
+/** A counter that does not filter the list, shown after the filters. */
+export interface StatTile {
+	label: string;
+	value?: string;
+}
+
 interface FilterTilesProps<T> {
 	tiles: FilterTile<T>[];
+	stats?: StatTile[];
 	value: T;
 	onValueChange: (value: T) => void;
 	label: string;
@@ -18,6 +26,7 @@ interface FilterTilesProps<T> {
 /** Green band of counters that double as filters, edge to edge. */
 export const FilterTiles = <T,>({
 	tiles,
+	stats = [],
 	value,
 	onValueChange,
 	label,
@@ -56,6 +65,25 @@ export const FilterTiles = <T,>({
 					</button>
 				);
 			})}
+
+			{stats.map((stat, index) => (
+				<div
+					key={stat.label}
+					className={cn(
+						"flex min-h-30 flex-col justify-center gap-2 border-r border-primary-foreground/20 pr-5 pl-gutter last:border-r-0 md:pl-gutter-md",
+						index === 0 && "border-l-2 border-l-primary-foreground/40",
+					)}
+				>
+					<span className="font-mono text-4xl font-semibold">
+						{stat.value ?? (
+							<Skeleton className="h-10 w-16 bg-primary-foreground/25" />
+						)}
+					</span>
+					<span className="font-mono text-xs tracking-wider uppercase opacity-80">
+						{stat.label}
+					</span>
+				</div>
+			))}
 		</div>
 	</div>
 );

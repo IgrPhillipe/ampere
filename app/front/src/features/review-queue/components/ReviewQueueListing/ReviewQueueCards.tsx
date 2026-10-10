@@ -2,6 +2,7 @@ import { formatDate, formatKva } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ReviewQueueItem } from "@services/review-queue";
 
+import { AnalyzeButton } from "./AnalyzeButton";
 import { QueueItemIndicator } from "./QueueItemIndicator";
 import { ReviewQueueStatusSummary } from "./ReviewQueueStatusSummary";
 import { formatQueueItemOrigin } from "./review-queue-row";
@@ -70,6 +71,10 @@ export const ReviewQueueCards = ({
 						</dd>
 					</div>
 				</dl>
+
+				<div className="flex justify-end">
+					<AnalyzeButton />
+				</div>
 			</li>
 		))}
 	</ul>

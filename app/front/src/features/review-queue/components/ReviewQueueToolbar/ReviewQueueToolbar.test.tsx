@@ -21,7 +21,7 @@ describe("ReviewQueueToolbar", () => {
 				onSearchChange={vi.fn()}
 				filter="ALL"
 				onFilterChange={onFilterChange}
-				counts={counts}
+				indicators={counts}
 				sort="DEADLINE_ASC"
 				onSortChange={vi.fn()}
 			/>,
@@ -40,7 +40,7 @@ describe("ReviewQueueToolbar", () => {
 				onSearchChange={vi.fn()}
 				filter="ALL"
 				onFilterChange={vi.fn()}
-				counts={counts}
+				indicators={counts}
 				sort="DEADLINE_ASC"
 				onSortChange={onSortChange}
 			/>,

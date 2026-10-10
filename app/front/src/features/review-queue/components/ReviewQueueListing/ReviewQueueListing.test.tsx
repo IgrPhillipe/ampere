@@ -52,7 +52,11 @@ describe("ReviewQueueListing", () => {
 			/>,
 		);
 
-		expect(screen.getAllByText("Atrasado, 3 dias")).not.toHaveLength(0);
+		expect(screen.getAllByText("Atrasado")[0]).toHaveAttribute(
+			"data-variant",
+			"destructive",
+		);
+		expect(screen.getAllByText("3 dias de atraso")).not.toHaveLength(0);
 		expect(screen.getAllByText("08/10/2026")).not.toHaveLength(0);
 		expect(screen.getAllByText("Reanálise")).not.toHaveLength(0);
 		expect(

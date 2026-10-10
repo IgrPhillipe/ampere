@@ -31,12 +31,49 @@ export const getProjectAttention = (
 	return null;
 };
 
-/**
- * Objeto, nao dois parametros posicionais: os dois callbacks tem a mesma
- * assinatura, entao trocar a ordem compilava e quebrava em silencio — "Ver
- * apontamentos" abriria a retomada de envio.
- */
+/** An object, not positional callbacks: they share a signature, so a swap would compile. */
 export interface ProjectRowActions {
 	onViewFindings: (project: Project) => void;
 	onResumeSubmission: (project: Project) => void;
+	onContinueDraft: (project: Project) => void;
+	onViewProject: (project: Project) => void;
 }
+
+interface ProjectRowAction {
+	label: string;
+	/** Filled when the row waits on the designer, outlined when it is only a lookup. */
+	required: boolean;
+	run: (actions: ProjectRowActions, project: Project) => void;
+}
+
+export const getProjectRowAction = (project: Project): ProjectRowAction => {
+	if (isRejectedWithFindings(project)) {
+		return {
+			label: "Corrigir",
+			required: true,
+			run: (actions) => actions.onViewFindings(project),
+		};
+	}
+
+	if (project.status === "AWAITING_SUBMISSION") {
+		return {
+			label: "Enviar",
+			required: true,
+			run: (actions) => actions.onResumeSubmission(project),
+		};
+	}
+
+	if (project.status === "DRAFT") {
+		return {
+			label: "Continuar",
+			required: true,
+			run: (actions) => actions.onContinueDraft(project),
+		};
+	}
+
+	return {
+		label: "Ver Projeto",
+		required: false,
+		run: (actions) => actions.onViewProject(project),
+	};
+};
