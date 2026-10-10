@@ -2,7 +2,7 @@
 
 > **Prazos:** Entrega 04 de POO na segunda-feira, 09/11/2026, com a apresentação final de 09 a 13/11. Status Report 2 de Projetos 3 no sábado, 05/12/2026.
 > **Regra:** o código de cada ciclo fecha uma semana antes da entrega. A última semana é só de preparação: README, POST-IT, print das issues, screencasts, validação com o monitor e com o cliente e ensaio. A correção de POO usa o conteúdo do GitHub logo após o prazo.
-> **Histórias:** US07, US08, US09, US12, US18 e US20 na Entrega 04. US10, US11, US13 a US17, US19, US21 e US22 no SR2. A US21 e a US22 são opcionais.
+> **Histórias:** US07, US08, US09, US12, US18 e US20 na Entrega 04. US10, US11, US13 a US17 e US19 no SR2.
 > Histórias completas em [`user-stories.md`](user-stories.md). Critérios em [`../cronograma-poo.md`](../cronograma-poo.md) e [`../cronograma-projetos3.md`](../cronograma-projetos3.md).
 > Issues no [milestone Entrega 03](https://github.com/IgrPhillipe/ampere/milestone/2), no [milestone Entrega 04](https://github.com/IgrPhillipe/ampere/milestone/3) e no [milestone Status Report 2](https://github.com/IgrPhillipe/ampere/milestone/4), #88 a #154.
 
@@ -15,7 +15,7 @@
 | Sprint 6 | 26/10 a 01/11 | Desenvolvimento. **Code freeze em 01/11** | US08 e US12 | Entrega 04 |
 | Sprint 7 | 02/11 a 08/11 | Preparação da Entrega 04 | Monitor, cliente, POST-IT, print, screencasts, avaliação individual e ensaio da apresentação. Telas do SR2 no Figma | Entrega 04 |
 | Sprint 8 | 09/11 a 15/11 | Desenvolvimento | US10, US13, US14 e US16 | Status Report 2 |
-| Sprint 9 | 16/11 a 22/11 | Desenvolvimento. **Code freeze em 22/11** | US11, US15, US17 e US19, mais as opcionais US21 e US22 | Status Report 2 |
+| Sprint 9 | 16/11 a 22/11 | Desenvolvimento. **Code freeze em 22/11** | US11, US15, US17 e US19 | Status Report 2 |
 | Sprint 10 | 23/11 a 04/12 | Preparação do SR2 | Material e ensaio do SR2 e relatório de IA | Status Report 2 |
 
 **Ritmo:** duas histórias por semana nas Sprints 4 a 6. As Sprints 8 e 9 têm quatro por semana, porque o ciclo do SR2 tem só duas semanas de desenvolvimento antes do freeze. Na semana de preparação, entram só correções e os ajustes da validação com o cliente.
@@ -50,7 +50,7 @@ O padrão é o mesmo das Entregas 02 e 03: uma issue por história, que funciona
 
 **Milestones:** Gestão da Entrega 03 no **Entrega 03**. Histórias e Gestão das Sprints 4 a 7 no **Entrega 04**, com vencimento em 09/11. Sprints 8 a 10 no **Status Report 2**, com vencimento em 05/12.
 
-**Labels:** `Sprint 4` a `Sprint 10` e `US07` a `US22`.
+**Labels:** `Sprint 4` a `Sprint 10` e `US07` a `US20`.
 
 **Tarefas de código abertas sem responsável.** Cada pessoa se atribui ao assumir a tarefa.
 
@@ -64,7 +64,7 @@ O padrão é o mesmo das Entregas 02 e 03: uma issue por história, que funciona
 - Na Sprint 6, o back da US08 entra antes do back da US12, que lê os mesmos eventos.
 - O `AT26-INFRA` precisa estar pronto antes da Sprint 8.
 
-**Total:** 67 issues, #88 a #154: 6 na Entrega 03, 27 na Entrega 04 e 34 no Status Report 2.
+**Total:** 61 issues abertas entre #88 e #154: 6 na Entrega 03, 27 na Entrega 04 e 28 no Status Report 2. As #142 a #147, da duplicação de projeto e dos documentos complementares, foram fechadas fora do escopo.
 
 ---
 
@@ -332,8 +332,6 @@ Cada história tem a issue épica, a tarefa de back e a tarefa de front, nessa o
 | US15: Prazos de Análise e Validade da Aprovação (#130) | Sprint 9 | `AT01-US15`: suspensão e retomada do prazo, status `EXPIRED` após 36 meses, job diário | `AT02-US15`: prazo, dias suspensos e validade na fila e no painel do projeto |
 | US17: Painel do Analista (#136) | Sprint 9 | `AT01-US17`: `GET /api/dashboard/review?period=` e `GET /api/review-queue/mine` | `AT02-US17`: telas "Indicadores" e "Meus Pareceres" |
 | US19: Exportação em Planilha (#139) | Sprint 9 | `AT01-US19`: `GET /api/projects/{id}/calculation.xlsx` e exportação `.csv` das listagens com os filtros | `AT02-US19`: botões "Exportar Planilha" e "Exportar CSV" |
-| US21: Duplicação de Projeto (opcional) (#142) | Sprint 9 | `AT01-US21`: `POST /api/projects/{id}/copies` | `AT02-US21`: ação "Duplicar Projeto" |
-| US22: Documentos Complementares (opcional) (#145) | Sprint 9 | `AT01-US22`: tipos novos em `DocumentType`, regra do termo acima de 1 MVA, `.dwg` e `.dxf` | `AT02-US22`: itens novos e "Recomendado" no checklist |
 
 ---
 
@@ -343,5 +341,5 @@ Cada história tem a issue épica, a tarefa de back e a tarefa de front, nessa o
 | :--- | :-: | :-: | :-: | :-: | :-: |
 | Entrega 03 | 6 (AT12 a AT16 e AT29) | | | | 6 |
 | Entrega 04 | 9 (AT18 a AT24, AT30 e AT31) | 6 | 6 (com o AT17) | 6 | 27 |
-| Status Report 2 | 4 (AT25 a AT28) | 10 | 10 | 10 | 34 |
-| **Total** | **19** | **16** | **16** | **16** | **67** |
+| Status Report 2 | 4 (AT25 a AT28) | 8 | 8 | 8 | 28 |
+| **Total** | **19** | **14** | **14** | **14** | **61** |

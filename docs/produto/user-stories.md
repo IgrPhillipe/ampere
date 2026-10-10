@@ -28,8 +28,6 @@
 19. [US18: Filtros e Ordenação das Listagens](#us18-filtros-e-ordenação-das-listagens)
 20. [US19: Exportação em Planilha](#us19-exportação-em-planilha)
 21. [US20: Exclusão de Projeto em Rascunho](#us20-exclusão-de-projeto-em-rascunho)
-22. [US21: Duplicação de Projeto](#us21-duplicação-de-projeto)
-23. [US22: Documentos Complementares](#us22-documentos-complementares)
 
 ---
 
@@ -57,8 +55,6 @@
 | **US18** | [Filtros e Ordenação das Listagens](#us18-filtros-e-ordenação-das-listagens) | Projetista e Analista | `Alta` | `Sprint 5` |
 | **US19** | [Exportação em Planilha](#us19-exportação-em-planilha) | Projetista e Analista | `Baixa` | `Sprint 9` |
 | **US20** | [Exclusão de Projeto em Rascunho](#us20-exclusão-de-projeto-em-rascunho) | Projetista Externo | `Média` | `Sprint 4` |
-| **US21** | [Duplicação de Projeto](#us21-duplicação-de-projeto) | Projetista Externo | `Baixa (Opcional)` | `Sprint 9` |
-| **US22** | [Documentos Complementares](#us22-documentos-complementares) | Projetista Externo | `Baixa (Opcional)` | `Sprint 9` |
 
 ---
 
@@ -935,85 +931,3 @@ Projetos enviados, reprovados ou aprovados não podem ser excluídos: o protocol
 ### Checklist de Implementação
 - [ ] Excluir rascunho com confirmação na listagem e no painel do projeto
 - [ ] Pedir confirmação na exclusão de grupo de UCs
-
----
-
-## US21: Duplicação de Projeto
-
-`US21` `Prioridade: Baixa (Opcional)` `Sprint 9`
-
-### Descrição
-Criação de um projeto novo a partir de outro, reaproveitando os parâmetros e os grupos de UCs.
-
-### User Story
-> **Como** projetista externo,  
-> **Quero** duplicar um projeto existente,  
-> **Para que** eu não precise redigitar edificações parecidas, como blocos de um mesmo condomínio.
-
-### Conversação (Regras de Negócio e Interface)
-A ação "Duplicar Projeto" fica no menu da linha e no painel do projeto, para qualquer situação. A cópia:
-- Recebe um protocolo novo, o nome "Cópia de" mais o nome original e a situação "Rascunho"
-- Leva os dados da edificação e os grupos de UCs
-- Não leva cálculo, documentos, apontamentos nem histórico
-
-Ao concluir, o sistema abre a etapa "Dados da edificação" da cópia.
-
-### Confirmação (Critérios de Aceite - BDD)
-
-#### Cenário 1 (Positivo): Duplicação de Projeto Aprovado
-- **Dado** que o projetista tem o projeto aprovado "Comercial Praça Sul"
-- **Quando** clica em "Duplicar Projeto"
-- **Então** o sistema cria o rascunho "Cópia de Comercial Praça Sul" com protocolo novo e os mesmos grupos de UCs
-- **E** abre a etapa "Dados da edificação" da cópia.
-
-#### Cenário 2 (Negativo): Cópia sem Cálculo e sem Documentos
-- **Dado** que o projeto original tem cálculo e documentos anexados
-- **Quando** o projetista abre a etapa de memorial da cópia
-- **Então** o checklist mostra o cálculo e os três documentos como pendentes
-- **E** "Enviar para Análise" permanece desabilitado.
-
-### Checklist de Implementação
-- [ ] Duplicar parâmetros e grupos de UCs em um rascunho com protocolo novo
-
----
-
-## US22: Documentos Complementares
-
-`US22` `Prioridade: Baixa (Opcional)` `Sprint 9`
-
-### Descrição
-Ampliação do checklist documental com os anexos previstos na norma além dos três obrigatórios da US05.
-
-### User Story
-> **Como** projetista externo,  
-> **Quero** anexar os documentos complementares que a norma pede para o meu tipo de edificação,  
-> **Para que** o projeto não seja reprovado por falta de um documento que o checklist não mostrava.
-
-### Conversação (Regras de Negócio e Interface)
-O checklist da etapa de memorial passa a incluir, conforme a DIS-NOR-053 (item 6.27.7):
-- Carta de solicitação
-- Cálculo de proteção e de queda de tensão
-- Planta da entrada de serviço
-- Termo de aterramento, obrigatório só quando a demanda passa de 1 MVA
-- Arquivos CAD do projeto
-
-Os documentos obrigatórios para o projeto bloqueiam o envio; os demais aparecem como "Recomendado". Arquivos CAD aceitam `.dwg` e `.dxf`, e os outros continuam só em PDF, com o limite de 10 MB.
-
-### Confirmação (Critérios de Aceite - BDD)
-
-#### Cenário 1 (Positivo): Termo de Aterramento Exigido Acima de 1 MVA
-- **Dado** que a demanda calculada do projeto passa de 1 MVA
-- **Quando** o projetista abre o checklist de envio
-- **Então** o "Termo de aterramento" aparece como obrigatório
-- **E** "Enviar para Análise" fica desabilitado até o anexo.
-
-#### Cenário 2 (Negativo): Formato Inválido para Arquivo CAD
-- **Dado** que o projetista anexa um arquivo `.zip` no item "Arquivos CAD"
-- **Quando** o upload é processado
-- **Então** o sistema recusa o arquivo
-- **E** exibe *"Envie o arquivo CAD em .dwg ou .dxf."*
-
-### Checklist de Implementação
-- [ ] Incluir os tipos de documento complementares no checklist
-- [ ] Exigir o termo de aterramento acima de 1 MVA
-- [ ] Aceitar arquivos CAD em `.dwg` e `.dxf`
