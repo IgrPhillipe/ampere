@@ -67,7 +67,7 @@ public class ReviewQueueService {
             pageRequest);
 
     List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
-    Map<Long, Long> warnings = countWarnings(projectIds);
+    Map<Long, List<String>> warnings = latestWarnings(projectIds);
     Map<Long, Long> consumerUnits = countUnits(projectIds);
     Map<Long, BigDecimal> demands = latestDemands(projectIds);
 
@@ -81,7 +81,7 @@ public class ReviewQueueService {
                       deadline,
                       project.deadlineStatus(today, ZONE),
                       ChronoUnit.DAYS.between(today, deadline),
-                      warnings.getOrDefault(project.getId(), 0L),
+                      warnings.getOrDefault(project.getId(), List.of()),
                       consumerUnits.getOrDefault(project.getId(), 0L),
                       demands.get(project.getId()));
                 })
@@ -131,16 +131,17 @@ public class ReviewQueueService {
         .getTotalElements();
   }
 
-  private Map<Long, Long> countWarnings(List<Long> projectIds) {
+  private Map<Long, List<String>> latestWarnings(List<Long> projectIds) {
     if (projectIds.isEmpty()) {
       return Map.of();
     }
 
-    return calculationRepository.countLatestWarningsPerProject(projectIds).stream()
+    return calculationRepository.findLatestWarningsPerProject(projectIds).stream()
         .collect(
-            Collectors.toUnmodifiableMap(
-                CalculationRepository.LatestWarnings::getProjectId,
-                CalculationRepository.LatestWarnings::getWarnings));
+            Collectors.groupingBy(
+                CalculationRepository.LatestWarning::getProjectId,
+                Collectors.mapping(
+                    CalculationRepository.LatestWarning::getMessage, Collectors.toList())));
   }
 
   private Map<Long, Long> countUnits(List<Long> projectIds) {

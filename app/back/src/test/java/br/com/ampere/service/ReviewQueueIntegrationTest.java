@@ -227,6 +227,8 @@ class ReviewQueueIntegrationTest {
     asAnalyst(get("/review-queue"))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4001"))
         .andExpect(jsonPath("$.data[0].warnings").value(1))
+        .andExpect(jsonPath("$.data[0].alerts", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].reviewCycle").value(1))
         .andExpect(jsonPath("$.data[0].ownerName").value("João Projetista"))
         .andExpect(jsonPath("$.data[0].consumerUnitsCount").value(51))
         .andExpect(jsonPath("$.data[0].demandKva", notNullValue()))
