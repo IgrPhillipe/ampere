@@ -1,10 +1,11 @@
-import { formatKva } from "@features/shared";
+import { formatDate, formatKva } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
 import type { Project } from "@services/projects";
 
+import { ProjectActionIndicator } from "./ProjectActionIndicator";
 import { ProjectStatusSummary } from "./ProjectStatusSummary";
-import { hasProjectAction, type ProjectRowActions } from "./project-row";
+import type { ProjectRowActions } from "./project-row";
 
 interface ProjectCardsProps extends ProjectRowActions {
 	projects: Project[];
@@ -28,14 +29,15 @@ export const ProjectCards = ({
 		{projects.map((project) => (
 			<li
 				key={project.id}
-				className={cn(
-					"relative flex flex-col gap-3 border-b border-border px-6 py-4 last:border-b-0",
-					hasProjectAction(project) &&
-						"before:absolute before:top-4 before:left-0 before:h-6 before:w-0.5 before:bg-brand-sunset",
-				)}
+				className="flex flex-col gap-3 border-b border-border px-6 py-4 last:border-b-0"
 			>
 				<div className="flex flex-col gap-1">
-					<span className="font-semibold text-foreground">{project.name}</span>
+					<div className="flex items-start justify-between gap-3">
+						<span className="font-semibold text-foreground">
+							{project.name}
+						</span>
+						<ProjectActionIndicator project={project} />
+					</div>
 
 					<span className="text-xs text-muted-foreground">
 						{project.address}, {project.municipality}
@@ -71,7 +73,7 @@ export const ProjectCards = ({
 						<dt>Criado em</dt>
 						<dd>
 							<time dateTime={project.createdAt} className="font-mono">
-								{dayjs(project.createdAt).format("DD.MM.YYYY")}
+								{formatDate(project.createdAt)}
 							</time>
 						</dd>
 					</div>

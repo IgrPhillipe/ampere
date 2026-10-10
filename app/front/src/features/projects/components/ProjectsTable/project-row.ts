@@ -4,9 +4,11 @@ import type { Project } from "@services/projects";
 export const isRejectedWithFindings = (project: Project) =>
 	project.status === "REJECTED" && project.pendingCount > 0;
 
-/** Linha com acao ganha a marca lateral, na tabela e no cartao. */
-export const hasProjectAction = (project: Project) =>
-	project.status === "AWAITING_SUBMISSION" || isRejectedWithFindings(project);
+export const getProjectActionLabel = (project: Project) => {
+	if (isRejectedWithFindings(project)) return "Corrigir apontamentos";
+	if (project.status === "AWAITING_SUBMISSION") return "Enviar projeto";
+	return null;
+};
 
 /**
  * Objeto, nao dois parametros posicionais: os dois callbacks tem a mesma

@@ -16,12 +16,13 @@ import { createProjectColumns, type ProjectColumnId } from "./project-columns";
  * quebrar em cinco linhas.
  */
 const projectColumnClassNames = {
+	attention: "w-10 pr-0",
 	protocol: "w-32 lg:w-36",
-	status: "w-56 lg:w-96",
+	status: "w-56 lg:w-64",
 	units: "hidden w-20 lg:table-cell",
 	demand: "w-28 lg:w-32",
-	createdAt: "hidden lg:table-cell lg:w-48",
-	updatedAt: "w-32 lg:w-48",
+	createdAt: "hidden lg:table-cell lg:w-32",
+	updatedAt: "w-32 lg:w-36",
 } satisfies Partial<Record<ProjectColumnId, string>>;
 
 interface ProjectsTableProps {
@@ -50,7 +51,7 @@ export const ProjectsTable = ({
 	// Carregamento e vazio ficam aqui, e nao dentro do `DataTable`, porque a
 	// tabela e os cartoes sao duas renderizacoes da mesma lista: deixar para o
 	// `DataTable` faria o estado vazio aparecer duas vezes, uma por breakpoint.
-	if (isLoading) return <SkeletonTable columns={7} />;
+	if (isLoading) return <SkeletonTable columns={8} />;
 
 	if (projects.length === 0) {
 		return onClearFilters ? (
