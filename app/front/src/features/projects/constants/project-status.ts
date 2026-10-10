@@ -20,7 +20,7 @@ export const projectStatusCountKeys = {
 export const projectStatusBadgeVariants = {
 	DRAFT: "neutral",
 	AWAITING_SUBMISSION: "warning",
-	UNDER_REVIEW: "outline",
+	UNDER_REVIEW: "info",
 	REJECTED: "destructive",
 	APPROVED: "success",
 } as const satisfies Record<ProjectStatus, BadgeProps["variant"]>;

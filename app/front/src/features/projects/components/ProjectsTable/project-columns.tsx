@@ -1,9 +1,9 @@
+import { CountCell } from "@components/CountCell";
 import { createDataTableColumnHelper } from "@components/DataTable";
 import { formatDate, formatKva } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import type { Project } from "@services/projects";
 
-import { PendingFindingsBadge } from "./PendingFindingsBadge";
 import { ProjectActionIndicator } from "./ProjectActionIndicator";
 import { ProjectRowActionButton } from "./ProjectRowActionButton";
 import { ProjectStatusBadge } from "./ProjectStatusBadge";
@@ -55,9 +55,7 @@ export const createProjectColumns = (actions: ProjectRowActions) =>
 		columnHelper.accessor("pendingCount", {
 			id: "pending",
 			header: "Pendências",
-			cell: ({ row }) => (
-				<PendingFindingsBadge count={row.original.pendingCount} />
-			),
+			cell: ({ row }) => <CountCell count={row.original.pendingCount} />,
 		}),
 		columnHelper.accessor("consumerUnitsCount", {
 			id: "units",

@@ -1,5 +1,4 @@
-import { CountBadge } from "@components/CountBadge";
-import { formatDate, formatKva } from "@features/shared";
+import { formatDate, formatKva, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ReviewQueueItem } from "@services/review-queue";
 
@@ -64,18 +63,14 @@ export const ReviewQueueCards = ({
 						</dd>
 					</div>
 
-					<div className="flex items-center gap-1.5">
-						<dt className="sr-only">Pré-validação</dt>
-						<dd>
-							<CountBadge
-								count={item.warnings}
-								singular="Alerta"
-								plural="Alertas"
-								empty="Sem alertas"
-								variant="warning"
-							/>
-						</dd>
-					</div>
+					{item.warnings > 0 ? (
+						<div className="flex gap-1.5">
+							<dt>Alertas</dt>
+							<dd className="font-mono font-semibold text-foreground">
+								{padCount(item.warnings)}
+							</dd>
+						</div>
+					) : null}
 				</dl>
 
 				<div className="flex justify-end">

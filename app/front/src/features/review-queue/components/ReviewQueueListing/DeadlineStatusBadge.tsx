@@ -10,7 +10,7 @@ const deadlineStatusLabels = {
 const deadlineStatusVariants = {
 	OVERDUE: "destructive",
 	DUE_TODAY: "warning",
-	ON_TIME: "success",
+	ON_TIME: "neutral",
 } as const satisfies Record<DeadlineStatus, BadgeProps["variant"]>;
 
 interface DeadlineStatusBadgeProps {

@@ -13,6 +13,6 @@ export const ReviewQueueStatusSummary = ({
 	<div className="flex flex-wrap items-center gap-1.5">
 		<DeadlineStatusBadge deadlineStatus={item.deadlineStatus} />
 
-		{item.reanalysis ? <Badge variant="neutral">Reanálise</Badge> : null}
+		{item.reanalysis ? <Badge variant="tag">Reanálise</Badge> : null}
 	</div>
 );

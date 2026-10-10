@@ -1,9 +1,8 @@
-import { formatDate, formatKva } from "@features/shared";
+import { formatDate, formatKva, padCount } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
 import type { Project } from "@services/projects";
 
-import { PendingFindingsBadge } from "./PendingFindingsBadge";
 import { ProjectActionIndicator } from "./ProjectActionIndicator";
 import { ProjectRowActionButton } from "./ProjectRowActionButton";
 import { ProjectStatusBadge } from "./ProjectStatusBadge";
@@ -49,14 +48,18 @@ export const ProjectCards = ({
 					</span>
 				</div>
 
-				<div className="flex flex-wrap items-center gap-2">
-					<ProjectStatusBadge project={project} />
-					{project.pendingCount > 0 ? (
-						<PendingFindingsBadge count={project.pendingCount} />
-					) : null}
-				</div>
+				<ProjectStatusBadge project={project} />
 
 				<dl className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
+					{project.pendingCount > 0 ? (
+						<div className="flex gap-1.5">
+							<dt>Pendências</dt>
+							<dd className="font-mono font-semibold text-foreground">
+								{padCount(project.pendingCount)}
+							</dd>
+						</div>
+					) : null}
+
 					<div className="flex gap-1.5">
 						<dt>UCs</dt>
 						<dd className="font-mono">{project.consumerUnitsCount}</dd>

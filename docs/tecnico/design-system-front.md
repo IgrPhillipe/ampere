@@ -173,9 +173,22 @@ página e a seta seguinte na última.
 
 ### Badges
 
-Badges indicam estados curtos. `success`, `warning` e `destructive` usam fundo
-suave para não competir com a ação principal. O texto exibido é em português;
-valores da API são convertidos antes de chegar ao componente.
+Badge é só para status, sempre em caixa alta e mono (a primitiva já aplica). A
+cor diz quem precisa agir; quando ninguém precisa, o badge é neutro, para que
+os urgentes se destaquem.
+
+| Variante | Significado | Exemplos |
+| :--- | :--- | :--- |
+| `destructive` | bloqueia o fluxo | Reprovado, Atrasado |
+| `warning` | alguém precisa agir logo | Aguardando Envio, Vence Hoje, Rascunho de tabela |
+| `info` | em andamento com a Neoenergia | Em Análise |
+| `success` | resultado positivo final | Aprovado, Publicada |
+| `neutral` | nada a sinalizar | Rascunho, No Prazo, Substituída |
+| `tag` | marca que não é status, só com contorno | Reanálise |
+
+Verde fica reservado ao sucesso: processo em andamento não é verde. Contagens
+(pendências, alertas, UCs) não viram badge: são números em mono na própria
+coluna, e o zero fica em branco.
 
 ```tsx
 <Badge variant="success">Aprovado</Badge>

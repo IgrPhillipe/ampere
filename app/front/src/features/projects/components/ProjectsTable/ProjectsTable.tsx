@@ -15,7 +15,7 @@ const projectColumnClassNames = {
 	attention: "w-10 pr-0",
 	protocol: "w-32",
 	status: "w-48",
-	pending: "w-40",
+	pending: "w-28",
 	units: "hidden xl:table-cell xl:w-16",
 	demand: "hidden xl:table-cell xl:w-28",
 	createdAt: "hidden 2xl:table-cell 2xl:w-32",

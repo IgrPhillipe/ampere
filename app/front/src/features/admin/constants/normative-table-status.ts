@@ -9,5 +9,5 @@ export const normativeTableStatusLabels = {
 export const normativeTableStatusBadgeVariants = {
 	DRAFT: "warning",
 	PUBLISHED: "success",
-	SUPERSEDED: "outline",
+	SUPERSEDED: "neutral",
 } as const satisfies Record<NormativeTableStatus, string>;

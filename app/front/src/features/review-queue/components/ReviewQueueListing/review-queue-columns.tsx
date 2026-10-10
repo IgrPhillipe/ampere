@@ -1,4 +1,4 @@
-import { CountBadge } from "@components/CountBadge";
+import { CountCell } from "@components/CountCell";
 import { createDataTableColumnHelper } from "@components/DataTable";
 import { formatDate, formatKva } from "@features/shared";
 import type { ReviewQueueItem } from "@services/review-queue";
@@ -81,16 +81,8 @@ export const reviewQueueColumns = columnHelper.columns([
 			),
 	}),
 	columnHelper.accessor("warnings", {
-		header: "Pré-validação",
-		cell: ({ row }) => (
-			<CountBadge
-				count={row.original.warnings}
-				singular="Alerta"
-				plural="Alertas"
-				empty="Sem alertas"
-				variant="warning"
-			/>
-		),
+		header: "Alertas",
+		cell: ({ row }) => <CountCell count={row.original.warnings} />,
 	}),
 	columnHelper.accessor("submittedAt", {
 		header: "Enviado em",

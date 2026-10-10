@@ -21,7 +21,9 @@ const badgeVariants = cva(
 					"border-primary/20 bg-accent text-accent-foreground [a&]:hover:bg-accent/80",
 				warning:
 					"border-warning/40 bg-warning/20 text-warning-foreground [a&]:hover:bg-warning/30",
+				info: "border-info/40 bg-info/15 text-info-foreground",
 				neutral: "border-border bg-surface-hover text-muted-foreground",
+				tag: "border-border bg-transparent text-muted-foreground",
 			},
 		},
 		defaultVariants: {

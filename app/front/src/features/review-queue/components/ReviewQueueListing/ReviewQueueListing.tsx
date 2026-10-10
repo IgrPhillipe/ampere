@@ -16,7 +16,7 @@ const columnClassNames = {
 	status: "w-40",
 	units: "hidden xl:table-cell xl:w-16",
 	demand: "hidden xl:table-cell xl:w-28",
-	warnings: "w-32",
+	warnings: "w-24",
 	submittedAt: "hidden 2xl:table-cell 2xl:w-32",
 	deadline: "w-28",
 	action: "w-36",
