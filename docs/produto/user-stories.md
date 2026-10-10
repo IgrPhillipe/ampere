@@ -17,6 +17,19 @@
 8. [US07: Auditoria de Memória e Registro Pontual de Apontamentos](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos)
 9. [US08: Linha do Tempo e Histórico do Protocolo](#us08-linha-do-tempo-e-histórico-do-protocolo)
 10. [US09: Correção de Apontamentos e Reenvio com Versionamento](#us09-correção-de-apontamentos-e-reenvio-com-versionamento)
+11. [US10: Cadastro e Perfil do Projetista](#us10-cadastro-e-perfil-do-projetista)
+12. [US11: Gestão de Usuários](#us11-gestão-de-usuários)
+13. [US12: Detalhe do Projeto e Histórico de Tratamento](#us12-detalhe-do-projeto-e-histórico-de-tratamento)
+14. [US13: Versão Congelada do Envio](#us13-versão-congelada-do-envio)
+15. [US14: Notificações no Sistema](#us14-notificações-no-sistema)
+16. [US15: Prazos de Análise e Validade da Aprovação](#us15-prazos-de-análise-e-validade-da-aprovação)
+17. [US16: Painel do Projetista](#us16-painel-do-projetista)
+18. [US17: Painel do Analista](#us17-painel-do-analista)
+19. [US18: Filtros e Ordenação das Listagens](#us18-filtros-e-ordenação-das-listagens)
+20. [US19: Exportação em Planilha](#us19-exportação-em-planilha)
+21. [US20: Exclusão de Projeto em Rascunho](#us20-exclusão-de-projeto-em-rascunho)
+22. [US21: Duplicação de Projeto](#us21-duplicação-de-projeto)
+23. [US22: Documentos Complementares](#us22-documentos-complementares)
 
 ---
 
@@ -30,9 +43,22 @@
 | **US04** | [Conferência do Cálculo Passo a Passo da Demanda](#us04-conferência-do-cálculo-passo-a-passo-da-demanda) | Projetista Externo | `Alta` | `Sprint 2` |
 | **US05** | [Geração de Memorial e Envio do Projeto](#us05-geração-de-memorial-e-envio-do-projeto) | Projetista Externo | `Alta` | `Sprint 3` |
 | **US06** | [Fila de Análise Técnica Priorizada](#us06-fila-de-análise-técnica-priorizada) | Analista da Concessionária | `Alta` | `Sprint 3` |
-| **US07** | [Auditoria de Memória e Registro Pontual de Apontamentos](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos) | Analista da Concessionária | `Alta` | `Sprint 4` |
-| **US08** | [Linha do Tempo e Histórico do Protocolo](#us08-linha-do-tempo-e-histórico-do-protocolo) | Analista da Concessionária | `Média` | `Sprint 4` |
-| **US09** | [Correção de Apontamentos e Reenvio com Versionamento](#us09-correção-de-apontamentos-e-reenvio-com-versionamento) | Projetista Externo | `Alta` | `Sprint 4` |
+| **US07** | [Auditoria de Memória e Registro Pontual de Apontamentos](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos) | Analista da Concessionária | `Alta` | `Sprint 5` |
+| **US08** | [Linha do Tempo e Histórico do Protocolo](#us08-linha-do-tempo-e-histórico-do-protocolo) | Analista da Concessionária | `Média` | `Sprint 6` |
+| **US09** | [Correção de Apontamentos e Reenvio com Versionamento](#us09-correção-de-apontamentos-e-reenvio-com-versionamento) | Projetista Externo | `Alta` | `Sprint 5` |
+| **US10** | [Cadastro e Perfil do Projetista](#us10-cadastro-e-perfil-do-projetista) | Projetista Externo | `Média` | `Sprint 7` |
+| **US11** | [Gestão de Usuários](#us11-gestão-de-usuários) | Administrador da Neoenergia | `Média` | `Sprint 7` |
+| **US12** | [Detalhe do Projeto e Histórico de Tratamento](#us12-detalhe-do-projeto-e-histórico-de-tratamento) | Projetista Externo | `Alta` | `Sprint 6` |
+| **US13** | [Versão Congelada do Envio](#us13-versão-congelada-do-envio) | Analista da Concessionária | `Média` | `Sprint 7` |
+| **US14** | [Notificações no Sistema](#us14-notificações-no-sistema) | Projetista e Analista | `Média` | `Sprint 7` |
+| **US15** | [Prazos de Análise e Validade da Aprovação](#us15-prazos-de-análise-e-validade-da-aprovação) | Analista da Concessionária | `Média` | `Sprint 8` |
+| **US16** | [Painel do Projetista](#us16-painel-do-projetista) | Projetista Externo | `Média` | `Sprint 8` |
+| **US17** | [Painel do Analista](#us17-painel-do-analista) | Analista da Concessionária | `Média` | `Sprint 8` |
+| **US18** | [Filtros e Ordenação das Listagens](#us18-filtros-e-ordenação-das-listagens) | Projetista e Analista | `Alta` | `Sprint 6` |
+| **US19** | [Exportação em Planilha](#us19-exportação-em-planilha) | Projetista e Analista | `Baixa` | `Sprint 8` |
+| **US20** | [Exclusão de Projeto em Rascunho](#us20-exclusão-de-projeto-em-rascunho) | Projetista Externo | `Média` | `Sprint 5` |
+| **US21** | [Duplicação de Projeto](#us21-duplicação-de-projeto) | Projetista Externo | `Baixa (Opcional)` | `Sprint 8` |
+| **US22** | [Documentos Complementares](#us22-documentos-complementares) | Projetista Externo | `Baixa (Opcional)` | `Sprint 8` |
 
 ---
 
@@ -100,7 +126,7 @@ O sistema bloqueia a seleção manual da norma e atribui automaticamente as norm
 - **DIS-NOR-053 REV 06**: estrutura do cálculo e método da área útil. O tipo de edificação define o método pelos itens 6.22 a 6.25.
 - **DIS-NOR-030 REV 07**: método da carga instalada, item 6.27.
 
-Permite também o upload prévio de planilha `.xlsx` para autopreenchimento.
+O sistema não importa planilhas: os dados são informados no próprio formulário.
 
 > Detalhamento do método e das tabelas em [`../tecnico/fontes-normativas.md`](../tecnico/fontes-normativas.md) e [`../tecnico/engine-calculo.md`](../tecnico/engine-calculo.md).
 
@@ -137,14 +163,14 @@ Interface de agrupamento de cargas por tipologia com motor de validação assín
 > **Para que** eu possa corrigir inconsistências antes da submissão formal.
 
 ### Conversação (Regras de Negócio e Interface)
-Permite adicionar ou importar UCs agrupadas (apartamentos, áreas comuns, recarga de veículo elétrico). O sistema aplica a tabela normativa respectiva a cada grupo (Tabela 3, Tabela 5, Tabela 6) e exibe um painel de validação em tempo real, bloqueando o avanço e sinalizando pendências críticas (ex.: motores acima de 5 CV sem fator de partida ou falta de indicação de gerenciamento de carga veicular).
+Permite adicionar UCs agrupadas (apartamentos, áreas comuns, recarga de veículo elétrico), informadas no próprio sistema, sem importação de planilha. O sistema aplica a tabela normativa respectiva a cada grupo (Tabela 3, Tabela 5, Tabela 6) e exibe um painel de validação em tempo real, bloqueando o avanço e sinalizando pendências críticas (ex.: motores acima de 5 CV sem fator de partida ou falta de indicação de gerenciamento de carga veicular).
 
 ### Confirmação (Critérios de Aceite - BDD)
 
-#### Cenário 1 (Positivo): Importação de Planilha de UCs sem Inconsistências
+#### Cenário 1 (Positivo): Cadastro de Grupos de UCs sem Inconsistências
 - **Dado** que o projetista está na etapa "Unidades consumidoras"
-- **Quando** faz o upload de uma planilha `.xlsx` com todas as cargas e fatores em conformidade
-- **Então** a tabela é preenchida com o status "Validado" em cada grupo de UCs
+- **Quando** adiciona os grupos de UCs com todas as cargas e fatores em conformidade
+- **Então** cada grupo da tabela recebe o status "Validado"
 - **E** o botão "Calcular demanda" fica ativo para prosseguir.
 
 #### Cenário 2 (Negativo): Inconsistência Técnica ou Pendência Bloqueia o Cálculo
@@ -220,7 +246,7 @@ Geração automatizada do memorial descritivo padronizado em formato concession�
 > **Para que** a submissão ocorra sem risco de reprovação por documentação incompleta.
 
 ### Conversação (Regras de Negócio e Interface)
-O sistema compila e apresenta o preview do memorial descritivo em PDF na etapa unificada de Memorial e Envio, com opção de download (PDF/planilha).  
+O sistema compila e apresenta o preview do memorial descritivo em PDF na etapa unificada de Memorial e Envio, com opção de download em PDF. A exportação em planilha fica na [US19](#us19-exportação-em-planilha).  
 Apresenta a seção **"Checagem antes do envio"**, exigindo a confirmação dos dados, UCs, cálculo e o anexo obrigatório dos arquivos técnicos:
 - ART (Anotação de Responsabilidade Técnica)
 - Diagrama unifilar
@@ -290,7 +316,7 @@ A tabela traz a listagem ordenada pela urgência de prazo de atendimento (ex.: v
 
 ## US07: Auditoria de Memória e Registro Pontual de Apontamentos
 
-`US07` `Prioridade: Alta` `Sprint 4`
+`US07` `Prioridade: Alta` `Sprint 5`
 
 ### Descrição
 Ambiente de auditoria normativa da memória de cálculo com ferramenta de apontamentos granulares vinculados diretamente às etapas do projeto.
@@ -306,7 +332,16 @@ O analista visualiza o painel de validações do sistema e os dados submetidos.
 - Aprovar diretamente o projeto
 - Abrir apontamentos categorizados como **"Bloqueante"** ou **"Ajuste"**, vinculados obrigatoriamente a uma etapa (ex.: Cargas especiais, Documentos).
 
-Na reprovação, o sistema dispara a notificação e direciona o projetista diretamente para a etapa apontada no seu painel.
+Na reprovação, o sistema notifica o projetista dentro do próprio sistema ([US14](#us14-notificações-no-sistema)) e o direciona para a etapa apontada no seu painel.
+
+**Regras do apontamento:**
+- Ao clicar em "Analisar" na fila, o projeto fica atribuído ao analista. Outro analista vê o projeto como "Em análise por" e o nome do responsável.
+- O apontamento nasce de duas formas: pelo atalho "Virar Apontamento" de um alerta da verificação automática, que já traz a etapa e o item da norma, ou pelo formulário da lateral.
+- Cada apontamento registra a gravidade (**Bloqueante** ou **Ajuste**), a etapa (Dados da edificação, Unidades consumidoras com o grupo, Cálculo com a parcela, ou Documentos com o tipo), a descrição, o item da norma quando houver, o autor e a data.
+- Até a decisão, os apontamentos ficam em rascunho e podem ser editados ou excluídos pelo analista.
+- "Aprovar Projeto" só é liberado sem apontamento bloqueante aberto. "Reprovar com Apontamentos" exige ao menos um apontamento. As duas decisões pedem confirmação e registram o parecer.
+- Os anexos do projeto abrem em um visualizador de PDF na aba "Documentos".
+- Na reanálise, os apontamentos da versão anterior aparecem com a resposta do projetista. O analista aceita a correção, que fecha o apontamento, ou o reabre.
 
 ### Confirmação (Critérios de Aceite - BDD)
 
@@ -322,15 +357,30 @@ Na reprovação, o sistema dispara a notificação e direciona o projetista dire
 - **Então** o projeto tem o status alterado para "Reprovado" com o número de pendências registrado
 - **E** o projetista recebe o apontamento direcionado exclusivamente para a etapa vinculada no seu painel.
 
+#### Cenário 3 (Negativo): Aprovação Bloqueada por Apontamento Bloqueante Aberto
+- **Dado** que o analista registrou um apontamento bloqueante no projeto
+- **Quando** visualiza as ações do rodapé
+- **Então** o botão "Aprovar Projeto" permanece desabilitado
+- **E** o sistema indica que o apontamento bloqueante precisa ser excluído ou o projeto reprovado.
+
+#### Cenário 4 (Positivo): Reanálise de Apontamento Corrigido
+- **Dado** que o projeto voltou à fila como "Reanálise" com a resposta do projetista a um apontamento
+- **Quando** o analista confere a correção e clica em "Aceitar Correção"
+- **Então** o apontamento passa a "Resolvido"
+- **E** deixa de contar como pendência para a aprovação.
+
 ### Checklist de Implementação
+- [ ] Atribuir o projeto ao analista que inicia a análise
 - [ ] Registrar apontamentos categorizados e vinculados à etapa exata da divergência
 - [ ] Concluir decisão de aprovação ou reprovação pontual atualizando o status do projeto
+- [ ] Abrir os anexos do projeto em um visualizador de PDF
+- [ ] Aceitar ou reabrir os apontamentos respondidos na reanálise
 
 ---
 
 ## US08: Linha do Tempo e Histórico do Protocolo
 
-`US08` `Prioridade: Média` `Sprint 4`
+`US08` `Prioridade: Média` `Sprint 6`
 
 ### Descrição
 Painel de rastreabilidade temporal e métricas de retrabalho com histórico cronológico de versões e movimentações do protocolo.
@@ -372,7 +422,7 @@ Preserva as ações de aprovação e reprovação no rodapé.
 
 ## US09: Correção de Apontamentos e Reenvio com Versionamento
 
-`US09` `Prioridade: Alta` `Sprint 4`
+`US09` `Prioridade: Alta` `Sprint 5`
 
 ### Descrição
 Interface de correção pontual das pendências apontadas pela concessionária com controle automático de versionamento e reenvio do projeto sem perda dos dados já validados.
@@ -390,6 +440,12 @@ A tela lista os apontamentos classificados como:
 
 Conta com atalhos que abrem a etapa exata onde ocorreu a divergência. O projetista faz os ajustes, registra uma justificativa com as alterações feitas e o sistema incrementa a versão do projeto. O botão de reenvio fica desabilitado enquanto houver apontamento bloqueante pendente de resolução.
 
+**Regras da correção:**
+- O projeto reprovado volta a ser editável. A etapa apontada mostra um selo no grupo, na parcela ou no documento indicado.
+- Para cada apontamento, o projetista marca "Corrigido" com uma resposta curta, ou "Contestar" com uma justificativa, quando discorda do apontamento.
+- Um apontamento bloqueante conta como tratado quando foi corrigido ou contestado.
+- O reenvio recalcula a demanda e devolve o projeto à fila marcado como "Reanálise".
+
 ### Confirmação (Critérios de Aceite - BDD)
 
 #### Cenário 1 (Positivo): Reenvio Bem-Sucedido de Nova Versão Corrigida
@@ -404,6 +460,560 @@ Conta com atalhos que abrem a etapa exata onde ocorreu a divergência. O projeti
 - **Então** o botão "Reenviar projeto" permanece desabilitado
 - **E** o sistema exibe alerta indicando a obrigatoriedade de sanar todos os pontos bloqueantes antes de reenviar.
 
+#### Cenário 3 (Positivo/Alternativo): Contestação de Apontamento
+- **Dado** que o projetista discorda de um apontamento bloqueante
+- **Quando** clica em "Contestar" e registra a justificativa
+- **Então** o apontamento passa a "Contestado" e deixa de bloquear o reenvio
+- **E** a justificativa aparece para o analista na reanálise.
+
 ### Checklist de Implementação
 - [ ] Listar todos os apontamentos da análise anterior com links para edição direta nas etapas vinculadas
+- [ ] Responder cada apontamento como corrigido ou contestado
 - [ ] Incrementar automaticamente o número da versão e bloquear o reenvio enquanto houver pendência bloqueante aberta
+
+---
+
+## US10: Cadastro e Perfil do Projetista
+
+`US10` `Prioridade: Média` `Sprint 7`
+
+### Descrição
+Cadastro do projetista externo com os dados profissionais que identificam o responsável técnico no projeto, no carimbo e no memorial.
+
+### User Story
+> **Como** projetista externo,  
+> **Quero** criar minha conta e manter meus dados profissionais no sistema,  
+> **Para que** meus projetos saiam identificados com o responsável técnico sem que eu precise digitar os dados a cada envio.
+
+### Conversação (Regras de Negócio e Interface)
+A tela de login ganha o link "Criar Conta". O cadastro pede:
+- Nome completo, e-mail e senha
+- Número do CREA com a UF
+- Empresa (opcional) e telefone
+
+O e-mail é único no sistema e a senha segue a política mínima (8 caracteres, com letra e número). A conta criada recebe o papel de projetista; analistas são criados pelo administrador ([US11](#us11-gestão-de-usuários)).
+
+A página "Meu Perfil", no menu do usuário, permite editar os dados e trocar a senha. O nome e o CREA passam a preencher o campo "Responsável técnico" do carimbo do projeto e a identificação do memorial em PDF.
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Cadastro Concluído e Responsável Técnico Preenchido
+- **Dado** que o projetista está na tela "Criar Conta"
+- **Quando** preenche nome, e-mail, senha e CREA válidos e clica em "Criar Conta"
+- **Então** o sistema cria a conta com o papel de projetista e abre "Meus Projetos"
+- **E** os projetos criados por ele exibem o nome e o CREA no campo "Responsável técnico".
+
+#### Cenário 2 (Negativo): E-mail Já Cadastrado
+- **Dado** que já existe uma conta com o e-mail informado
+- **Quando** o projetista tenta concluir o cadastro
+- **Então** o sistema não cria a conta
+- **E** exibe a mensagem *"Já existe uma conta com este e-mail."* no campo de e-mail.
+
+### Checklist de Implementação
+- [ ] Criar conta de projetista com dados profissionais e política de senha
+- [ ] Editar perfil e trocar senha
+- [ ] Exibir o responsável técnico no carimbo e no memorial
+
+---
+
+## US11: Gestão de Usuários
+
+`US11` `Prioridade: Média` `Sprint 7`
+
+### Descrição
+Área administrativa para criar analistas, desativar contas e redefinir senhas, sem depender de inserção manual no banco.
+
+### User Story
+> **Como** administrador da Neoenergia,  
+> **Quero** gerenciar os usuários do sistema e seus papéis,  
+> **Para que** a equipe de análise tenha acesso controlado e contas indevidas possam ser bloqueadas.
+
+### Conversação (Regras de Negócio e Interface)
+A tela "Usuários", visível só para o administrador, lista nome, e-mail, papel, situação (Ativo ou Inativo) e último acesso, com busca e filtro por papel.
+
+Ações disponíveis:
+- **Novo Usuário:** cria um analista com senha temporária, exibida uma única vez na tela.
+- **Desativar e Reativar:** a conta inativa não entra no sistema e a sessão aberta é encerrada no próximo acesso à API.
+- **Redefinir Senha:** gera uma senha temporária. No próximo login, o usuário é obrigado a trocá-la.
+
+O sistema não envia e-mail: a senha temporária é repassada pelo administrador. Um administrador não pode desativar a própria conta.
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Criação de Analista com Senha Temporária
+- **Dado** que o administrador está na tela "Usuários"
+- **Quando** cria um usuário com o papel "Analista"
+- **Então** o sistema exibe a senha temporária uma única vez
+- **E** no primeiro login o analista é levado à troca obrigatória de senha.
+
+#### Cenário 2 (Negativo): Acesso de Conta Desativada
+- **Dado** que o administrador desativou a conta de um projetista
+- **Quando** esse projetista tenta entrar no sistema
+- **Então** o login é recusado com a mensagem *"Conta desativada. Procure a Neoenergia."*
+- **E** nenhuma rota da API responde com o token anterior.
+
+### Checklist de Implementação
+- [ ] Listar, criar, desativar e reativar usuários
+- [ ] Redefinir senha com troca obrigatória no próximo login
+- [ ] Bloquear o acesso de contas inativas
+
+---
+
+## US12: Detalhe do Projeto e Histórico de Tratamento
+
+`US12` `Prioridade: Alta` `Sprint 6`
+
+### Descrição
+Painel lateral com o resumo do projeto e o histórico de tratamento, aberto a partir da listagem, e consulta somente leitura das etapas de projetos já enviados.
+
+### User Story
+> **Como** projetista externo,  
+> **Quero** abrir qualquer projeto da minha listagem e ver o resumo e o histórico de tratamento,  
+> **Para que** eu entenda em que ponto o projeto está e o que aconteceu com ele sem precisar navegar pelas etapas.
+
+### Conversação (Regras de Negócio e Interface)
+Clicar em uma linha de "Meus Projetos" abre o painel lateral (protótipo H1b) com:
+- Protocolo, nome, endereço e situação com o número de apontamentos em aberto
+- Unidades, demanda calculada, data de criação, última movimentação e responsável técnico
+- Histórico de tratamento em ordem cronológica inversa: criação, envios com a versão, reprovações com o número de apontamentos e aprovação, com data, autor e papel
+
+O rodapé muda conforme a situação:
+- **Rascunho:** "Continuar Preenchimento", que abre a primeira etapa incompleta
+- **Em análise e Aprovado:** "Abrir Projeto", que abre as etapas em modo somente leitura
+- **Reprovado:** "Abrir Projeto" e "Ver Apontamentos" ([US09](#us09-correção-de-apontamentos-e-reenvio-com-versionamento))
+
+No modo somente leitura, os campos e os botões de edição ficam ocultos e o topo exibe a faixa "Projeto enviado em" com a data.
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Consulta do Histórico de um Projeto Reprovado
+- **Dado** que o projetista está em "Meus Projetos"
+- **Quando** clica na linha do projeto "Condomínio Vila Nova", reprovado com 3 apontamentos
+- **Então** o painel lateral exibe o resumo e o histórico com o envio da versão 1 e a reprovação
+- **E** o rodapé oferece "Abrir Projeto" e "Ver Apontamentos".
+
+#### Cenário 2 (Negativo): Tentativa de Edição de Projeto Enviado
+- **Dado** que o projeto está "Em análise"
+- **Quando** o projetista abre a etapa "Unidades consumidoras"
+- **Então** a etapa é exibida em modo somente leitura, sem "Adicionar Grupo" nem edição dos grupos
+- **E** o topo indica a data do envio.
+
+### Checklist de Implementação
+- [ ] Abrir o painel lateral com resumo e histórico ao clicar na linha da listagem
+- [ ] Exibir as ações do rodapé conforme a situação do projeto
+- [ ] Exibir as etapas de projetos enviados em modo somente leitura
+
+---
+
+## US13: Versão Congelada do Envio
+
+`US13` `Prioridade: Média` `Sprint 7`
+
+### Descrição
+Registro imutável de cada envio, com o memorial, o cálculo e os documentos da versão, como evidência da análise.
+
+### User Story
+> **Como** analista da Neoenergia,  
+> **Quero** que cada envio fique registrado exatamente como foi submetido,  
+> **Para que** a minha análise e o parecer se refiram a uma versão que não muda depois.
+
+### Conversação (Regras de Negócio e Interface)
+No envio e em cada reenvio, o sistema grava a versão do projeto com:
+- Número da versão, data e autor do envio
+- O memorial em PDF gerado naquele momento, com o protocolo, a versão e a data impressos no rodapé
+- O cálculo usado e os documentos anexados
+- O resumo das alterações informado no reenvio ([US09](#us09-correção-de-apontamentos-e-reenvio-com-versionamento))
+
+O memorial da versão não é regerado: alterações feitas depois da reprovação entram apenas na versão seguinte. A aba "Histórico" ([US08](#us08-linha-do-tempo-e-histórico-do-protocolo)) lista as versões com o download do memorial de cada uma e um comparativo da demanda e dos grupos entre duas versões.
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Memorial da Versão Preservado Após Correção
+- **Dado** que o projeto foi reprovado na versão 1 e o projetista alterou um grupo de UCs
+- **Quando** o analista baixa o memorial da versão 1 na aba "Histórico"
+- **Então** o PDF mostra os grupos e a demanda exatamente como foram enviados
+- **E** o rodapé identifica o protocolo, a versão 1 e a data do envio.
+
+#### Cenário 2 (Positivo): Comparativo Entre Versões
+- **Dado** que o projeto tem as versões 1 e 2
+- **Quando** o analista seleciona "Comparar Versões"
+- **Então** o sistema destaca os grupos incluídos, removidos e alterados
+- **E** exibe a demanda total de cada versão.
+
+### Checklist de Implementação
+- [ ] Gravar a versão com memorial, cálculo e documentos a cada envio
+- [ ] Baixar o memorial de qualquer versão
+- [ ] Comparar a demanda e os grupos entre duas versões
+
+---
+
+## US14: Notificações no Sistema
+
+`US14` `Prioridade: Média` `Sprint 7`
+
+### Descrição
+Central de notificações no sino do cabeçalho para os dois perfis, sem envio de e-mail.
+
+### User Story
+> **Como** usuário do sistema, projetista ou analista,  
+> **Quero** ser avisado dentro do sistema quando um projeto meu muda de situação,  
+> **Para que** eu aja no momento certo sem precisar conferir cada projeto.
+
+### Conversação (Regras de Negócio e Interface)
+O sino do cabeçalho exibe o número de notificações não lidas e abre o painel de notificações (protótipos "Painel · Notificações" de cada perfil).
+
+Eventos notificados:
+- **Projetista:** projeto aprovado, projeto reprovado com o número de apontamentos, apontamento reaberto na reanálise e aprovação perto de expirar ([US15](#us15-prazos-de-análise-e-validade-da-aprovação))
+- **Analista:** projeto atribuído reenviado, prazo de análise vencendo em até 3 dias e prazo vencido
+
+Cada notificação mostra o protocolo, o texto, a data relativa e leva à tela do projeto. Clicar marca como lida, e o painel tem "Marcar Todas como Lidas". O sistema não envia e-mail.
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Projetista Avisado da Reprovação
+- **Dado** que o analista reprovou o projeto "2026-1004" com 3 apontamentos
+- **Quando** o projetista entra no sistema
+- **Então** o sino exibe 1 notificação não lida
+- **E** a notificação "Projeto 2026-1004 reprovado com 3 apontamentos" abre os apontamentos do projeto.
+
+#### Cenário 2 (Positivo): Leitura das Notificações
+- **Dado** que o analista tem 4 notificações não lidas
+- **Quando** clica em "Marcar Todas como Lidas"
+- **Então** o contador do sino desaparece
+- **E** as notificações continuam listadas no painel como lidas.
+
+### Checklist de Implementação
+- [ ] Gerar notificações nos eventos de cada perfil
+- [ ] Exibir o contador de não lidas e o painel no sino do cabeçalho
+- [ ] Marcar notificações como lidas
+
+---
+
+## US15: Prazos de Análise e Validade da Aprovação
+
+`US15` `Prioridade: Média` `Sprint 8`
+
+### Descrição
+Controle do prazo de 30 dias da análise, suspenso enquanto o projeto aguarda o projetista, e da validade de 36 meses da aprovação.
+
+### User Story
+> **Como** analista da Neoenergia,  
+> **Quero** que o prazo de análise e a validade da aprovação sigam as regras do processo,  
+> **Para que** a fila mostre prazos reais e projetos aprovados há mais de 36 meses não sejam usados como válidos.
+
+### Conversação (Regras de Negócio e Interface)
+Regras do processo de submissão da Neoenergia PE:
+- **Prazo de análise:** 30 dias a partir do envio, suspenso enquanto o projeto está reprovado aguardando correção. No reenvio, a contagem retoma com os dias que restavam.
+- **Validade da aprovação:** 36 meses a partir da aprovação (DIS-NOR-053, item 6.27.6). Vencido o prazo, o projeto passa à situação "Expirado".
+
+A fila ([US06](#us06-fila-de-análise-técnica-priorizada)) e o painel do projeto exibem os dias corridos, os dias suspensos e o prazo final. O projetista vê a data de validade do projeto aprovado e é avisado 30 dias antes do vencimento ([US14](#us14-notificações-no-sistema)).
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Prazo Suspenso Durante a Correção
+- **Dado** que o projeto foi reprovado no 12º dia de análise
+- **Quando** o projetista reenvia a versão corrigida 10 dias depois
+- **Então** o projeto volta à fila com 18 dias restantes
+- **E** o histórico registra 10 dias de prazo suspenso.
+
+#### Cenário 2 (Negativo): Aprovação Expirada
+- **Dado** que um projeto foi aprovado há mais de 36 meses
+- **Quando** o projetista o visualiza em "Meus Projetos"
+- **Então** a situação exibida é "Expirado"
+- **E** o painel do projeto informa a data em que a validade terminou.
+
+### Checklist de Implementação
+- [ ] Suspender e retomar o prazo de análise na reprovação e no reenvio
+- [ ] Expirar a aprovação após 36 meses
+- [ ] Exibir prazo restante, dias suspensos e validade
+
+---
+
+## US16: Painel do Projetista
+
+`US16` `Prioridade: Média` `Sprint 8`
+
+### Descrição
+Painel inicial do projetista com o que exige ação e os indicadores de qualidade dos seus envios.
+
+### User Story
+> **Como** projetista externo,  
+> **Quero** ver em um painel o que exige minha ação e como meus projetos têm se saído na análise,  
+> **Para que** eu priorize o trabalho e reduza as reprovações nos próximos envios.
+
+### Conversação (Regras de Negócio e Interface)
+O item "Painel" entra no menu do projetista e passa a ser a tela inicial após o login. O painel exibe:
+- **Exige ação:** projetos reprovados com bloqueantes em aberto e rascunhos sem movimentação há mais de 15 dias, cada um com o atalho para a etapa
+- **Em análise:** projetos na fila com os dias restantes do prazo
+- **Indicadores do período:** projetos enviados, taxa de aprovação na primeira análise, tempo médio até a aprovação e demanda total aprovada
+- **Apontamentos mais recebidos:** ranking por etapa e item da norma, com a quantidade
+
+O período é selecionável entre últimos 30 dias, últimos 90 dias e ano corrente.
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Projeto que Exige Ação
+- **Dado** que o projetista tem um projeto reprovado com 2 apontamentos bloqueantes em aberto
+- **Quando** abre o "Painel"
+- **Então** o projeto aparece em "Exige ação" com o número de bloqueantes
+- **E** o atalho "Ver Apontamentos" abre a correção do projeto.
+
+#### Cenário 2 (Negativo): Projetista sem Projetos Enviados
+- **Dado** que o projetista ainda não enviou nenhum projeto
+- **Quando** abre o "Painel"
+- **Então** os indicadores exibem a mensagem *"Os indicadores aparecem depois do primeiro envio."*
+- **E** o painel oferece o atalho "Novo Projeto".
+
+### Checklist de Implementação
+- [ ] Listar os projetos que exigem ação e os que estão em análise
+- [ ] Calcular os indicadores do período selecionado
+- [ ] Exibir o ranking dos apontamentos mais recebidos
+
+---
+
+## US17: Painel do Analista
+
+`US17` `Prioridade: Média` `Sprint 8`
+
+### Descrição
+Painel de indicadores da equipe de análise e histórico dos pareceres de cada analista.
+
+### User Story
+> **Como** analista da Neoenergia,  
+> **Quero** acompanhar os indicadores da análise e os erros mais frequentes nos projetos recebidos,  
+> **Para que** a equipe dimensione a demanda e oriente os projetistas sobre as falhas recorrentes.
+
+### Conversação (Regras de Negócio e Interface)
+O menu do analista ganha "Indicadores" e "Meus Pareceres", previstos no protótipo H7.
+
+"Indicadores" exibe, para o período selecionado:
+- Projetos recebidos e decididos por semana
+- Tempo médio de análise e de ciclo completo até a aprovação
+- Taxa de reprovação por mês
+- Prazos cumpridos e vencidos
+- Projetos em análise por analista
+- **Apontamentos mais frequentes** por etapa e item da norma
+- Municípios com mais projetos
+
+"Meus Pareceres" lista os projetos decididos pelo analista logado, com a decisão, a data, o número de apontamentos e a versão, com os filtros da [US18](#us18-filtros-e-ordenação-das-listagens).
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Consulta dos Apontamentos Mais Frequentes
+- **Dado** que o analista está em "Indicadores" com o período "Últimos 90 dias"
+- **Quando** visualiza o ranking de apontamentos
+- **Então** o sistema lista as etapas e os itens da norma ordenados pela quantidade de apontamentos
+- **E** clicar em um item lista os projetos que receberam esse apontamento.
+
+#### Cenário 2 (Positivo): Histórico de Pareceres
+- **Dado** que o analista decidiu 12 projetos no mês
+- **Quando** abre "Meus Pareceres" e filtra por "Reprovado"
+- **Então** a lista exibe apenas os projetos que ele reprovou, com o número de apontamentos
+- **E** cada linha abre a análise do projeto em modo de consulta.
+
+### Checklist de Implementação
+- [ ] Calcular os indicadores da equipe no período selecionado
+- [ ] Exibir o ranking dos apontamentos mais frequentes
+- [ ] Listar os pareceres do analista logado
+
+---
+
+## US18: Filtros e Ordenação das Listagens
+
+`US18` `Prioridade: Alta` `Sprint 6`
+
+### Descrição
+Filtros combináveis e ordenação por coluna em "Meus Projetos" e na "Fila de Análise", preservados na URL.
+
+### User Story
+> **Como** projetista ou analista,  
+> **Quero** filtrar e ordenar as listagens pelos critérios que importam no meu trabalho,  
+> **Para que** eu encontre rapidamente os projetos que preciso tratar.
+
+### Conversação (Regras de Negócio e Interface)
+**Meus Projetos** passa a ter, além da situação e da busca por nome ou protocolo:
+- Ordenação por nome, demanda, data de criação e última atualização, crescente e decrescente, pelo cabeçalho da coluna
+- Filtros por município, período de criação e "Com apontamento bloqueante"
+
+**Fila de Análise** passa a ter, além dos filtros "Vencendo prazo", "Acima de 50 kVA" e "Reanálise" e da ordenação por prazo:
+- Ordenação por data de recebimento, demanda e número de alertas
+- Filtros por analista responsável e por município
+
+Os filtros se combinam, ficam na URL e aparecem como etiquetas removíveis acima da tabela, com o botão "Limpar Filtros". A ordenação padrão continua sendo a última atualização em "Meus Projetos" e o prazo na fila.
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Filtros Combinados com Ordenação
+- **Dado** que o analista está na "Fila de Análise"
+- **Quando** filtra o município "Recife", marca "Reanálise" e ordena por demanda decrescente
+- **Então** a tabela exibe só as reanálises de Recife, da maior para a menor demanda
+- **E** a URL guarda os filtros e a ordenação ao recarregar a página.
+
+#### Cenário 2 (Negativo): Combinação sem Resultado
+- **Dado** que o projetista filtrou um município sem projetos no período escolhido
+- **Quando** a listagem é atualizada
+- **Então** a tabela exibe *"Nenhum projeto encontrado para os critérios informados"*
+- **E** oferece o botão "Limpar Filtros".
+
+### Checklist de Implementação
+- [ ] Ordenar "Meus Projetos" por coluna nos dois sentidos
+- [ ] Filtrar "Meus Projetos" por município, período e apontamento bloqueante
+- [ ] Ordenar e filtrar a fila pelos critérios novos
+- [ ] Exibir os filtros ativos como etiquetas removíveis
+
+---
+
+## US19: Exportação em Planilha
+
+`US19` `Prioridade: Baixa` `Sprint 8`
+
+### Descrição
+Exportação do cálculo de demanda e das listagens em planilha, para uso fora do sistema. O sistema não importa planilhas.
+
+### User Story
+> **Como** projetista ou analista,  
+> **Quero** exportar o cálculo e as listagens em planilha,  
+> **Para que** eu possa arquivar, conferir ou reaproveitar os dados em outras ferramentas.
+
+### Conversação (Regras de Negócio e Interface)
+- **Cálculo de demanda:** o botão "Exportar Planilha", ao lado do download do memorial, gera um `.xlsx` com uma aba de identificação, uma de grupos de UCs e uma com cada etapa do cálculo, a fórmula, o item da norma e o valor.
+- **Listagens:** "Meus Projetos" e a "Fila de Análise" exportam em `.csv` as linhas que estão filtradas na tela.
+
+Números saem no formato brasileiro, com vírgula decimal, e o nome do arquivo leva o protocolo ou a data da exportação.
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Exportação do Cálculo
+- **Dado** que o projeto tem um cálculo de demanda realizado
+- **Quando** o projetista clica em "Exportar Planilha"
+- **Então** o sistema baixa o arquivo `2026-1008-calculo.xlsx`
+- **E** a planilha traz as mesmas etapas e valores da tela de cálculo.
+
+#### Cenário 2 (Negativo): Exportação sem Cálculo
+- **Dado** que o projeto ainda não tem cálculo
+- **Quando** o projetista visualiza a etapa de memorial
+- **Então** o botão "Exportar Planilha" fica desabilitado
+- **E** a dica informa que é preciso calcular a demanda antes.
+
+### Checklist de Implementação
+- [ ] Exportar o cálculo de demanda em `.xlsx`
+- [ ] Exportar as listagens filtradas em `.csv`
+
+---
+
+## US20: Exclusão de Projeto em Rascunho
+
+`US20` `Prioridade: Média` `Sprint 5`
+
+### Descrição
+Exclusão de projetos ainda não enviados, com confirmação, a partir da listagem e do painel do projeto.
+
+### User Story
+> **Como** projetista externo,  
+> **Quero** excluir projetos em rascunho que não vou mais enviar,  
+> **Para que** minha listagem mostre apenas o que está em andamento.
+
+### Conversação (Regras de Negócio e Interface)
+A ação "Excluir Projeto" aparece no menu de ações da linha e no painel do projeto ([US12](#us12-detalhe-do-projeto-e-histórico-de-tratamento)), apenas para projetos em rascunho. A confirmação exibe o nome e o protocolo do projeto e avisa que grupos, cálculos e documentos serão removidos.
+
+Projetos enviados, reprovados ou aprovados não podem ser excluídos: o protocolo faz parte do histórico da concessionária. A exclusão de um grupo de UCs passa a pedir a mesma confirmação.
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Exclusão Confirmada
+- **Dado** que o projetista tem o rascunho "Residencial Monte Verde"
+- **Quando** clica em "Excluir Projeto" e confirma no diálogo
+- **Então** o projeto deixa de aparecer em "Meus Projetos"
+- **E** o contador de "Rascunho" diminui em 1.
+
+#### Cenário 2 (Negativo): Projeto Enviado não Pode ser Excluído
+- **Dado** que o projeto está "Em análise"
+- **Quando** o projetista abre o menu de ações da linha
+- **Então** a opção "Excluir Projeto" não é exibida
+- **E** a API recusa a exclusão com a mensagem *"Só é possível excluir um projeto em rascunho."*
+
+### Checklist de Implementação
+- [ ] Excluir rascunho com confirmação na listagem e no painel do projeto
+- [ ] Pedir confirmação na exclusão de grupo de UCs
+
+---
+
+## US21: Duplicação de Projeto
+
+`US21` `Prioridade: Baixa (Opcional)` `Sprint 8`
+
+### Descrição
+Criação de um projeto novo a partir de outro, reaproveitando os parâmetros e os grupos de UCs.
+
+### User Story
+> **Como** projetista externo,  
+> **Quero** duplicar um projeto existente,  
+> **Para que** eu não precise redigitar edificações parecidas, como blocos de um mesmo condomínio.
+
+### Conversação (Regras de Negócio e Interface)
+A ação "Duplicar Projeto" fica no menu da linha e no painel do projeto, para qualquer situação. A cópia:
+- Recebe um protocolo novo, o nome "Cópia de" mais o nome original e a situação "Rascunho"
+- Leva os dados da edificação e os grupos de UCs
+- Não leva cálculo, documentos, apontamentos nem histórico
+
+Ao concluir, o sistema abre a etapa "Dados da edificação" da cópia.
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Duplicação de Projeto Aprovado
+- **Dado** que o projetista tem o projeto aprovado "Comercial Praça Sul"
+- **Quando** clica em "Duplicar Projeto"
+- **Então** o sistema cria o rascunho "Cópia de Comercial Praça Sul" com protocolo novo e os mesmos grupos de UCs
+- **E** abre a etapa "Dados da edificação" da cópia.
+
+#### Cenário 2 (Negativo): Cópia sem Cálculo e sem Documentos
+- **Dado** que o projeto original tem cálculo e documentos anexados
+- **Quando** o projetista abre a etapa de memorial da cópia
+- **Então** o checklist mostra o cálculo e os três documentos como pendentes
+- **E** "Enviar para Análise" permanece desabilitado.
+
+### Checklist de Implementação
+- [ ] Duplicar parâmetros e grupos de UCs em um rascunho com protocolo novo
+
+---
+
+## US22: Documentos Complementares
+
+`US22` `Prioridade: Baixa (Opcional)` `Sprint 8`
+
+### Descrição
+Ampliação do checklist documental com os anexos previstos na norma além dos três obrigatórios da US05.
+
+### User Story
+> **Como** projetista externo,  
+> **Quero** anexar os documentos complementares que a norma pede para o meu tipo de edificação,  
+> **Para que** o projeto não seja reprovado por falta de um documento que o checklist não mostrava.
+
+### Conversação (Regras de Negócio e Interface)
+O checklist da etapa de memorial passa a incluir, conforme a DIS-NOR-053 (item 6.27.7):
+- Carta de solicitação
+- Cálculo de proteção e de queda de tensão
+- Planta da entrada de serviço
+- Termo de aterramento, obrigatório só quando a demanda passa de 1 MVA
+- Arquivos CAD do projeto
+
+Os documentos obrigatórios para o projeto bloqueiam o envio; os demais aparecem como "Recomendado". Arquivos CAD aceitam `.dwg` e `.dxf`, e os outros continuam só em PDF, com o limite de 10 MB.
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Termo de Aterramento Exigido Acima de 1 MVA
+- **Dado** que a demanda calculada do projeto passa de 1 MVA
+- **Quando** o projetista abre o checklist de envio
+- **Então** o "Termo de aterramento" aparece como obrigatório
+- **E** "Enviar para Análise" fica desabilitado até o anexo.
+
+#### Cenário 2 (Negativo): Formato Inválido para Arquivo CAD
+- **Dado** que o projetista anexa um arquivo `.zip` no item "Arquivos CAD"
+- **Quando** o upload é processado
+- **Então** o sistema recusa o arquivo
+- **E** exibe *"Envie o arquivo CAD em .dwg ou .dxf."*
+
+### Checklist de Implementação
+- [ ] Incluir os tipos de documento complementares no checklist
+- [ ] Exigir o termo de aterramento acima de 1 MVA
+- [ ] Aceitar arquivos CAD em `.dwg` e `.dxf`

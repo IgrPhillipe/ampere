@@ -1,14 +1,14 @@
 # Plano da Entrega 03: Sprints 2, 3 e 4
 
 > **Prazo:** segunda-feira, 19/10/2026. **Histórias:** US03, US04, US05 e US06, duas por sprint.
-> A entrega exige no mínimo 2. Com as quatro, a US07 e a US08 ficam para a Entrega 04.
+> A entrega exige no mínimo 2. Com as quatro, a US07, a US08 e a US09 ficam para a Entrega 04 ([`plano-entrega-04.md`](plano-entrega-04.md)).
 > Critérios completos em [`../cronograma-poo.md`](../cronograma-poo.md). Issues das Sprints 2 e 3 no [milestone Entrega 03](https://github.com/IgrPhillipe/ampere/milestone/2), #53 a #68.
 
 | Sprint | Período | Foco |
 | :--- | :--- | :--- |
 | Sprint 2 | 20/09 a 26/09 | US03 e US04 |
 | Sprint 3 | 27/09 a 03/10 | US05 e US06. Inclui a semana de provas e termina no Status Report 1 |
-| Sprint 4 | 04/10 a 10/10 | README, screencasts e ajustes da Entrega 03 (issues ainda não abertas) |
+| Sprint 4 | 04/10 a 18/10 | README, screencasts e ajustes da Entrega 03. Estendida pelos feriados; issues em [`plano-entrega-04.md`](plano-entrega-04.md) |
 
 | Data | Entrega | Responsável |
 | :--- | :--- | :--- |
@@ -60,7 +60,7 @@ O texto das duas histórias foi escrito antes da pesquisa normativa, o mesmo cas
 
 - [ ] POST-IT da US03, US04, US05 e US06 na seção "Entrega 03"
 - [ ] Print das GitHub Issues
-- [ ] Tabela de Entregas: marcar a Entrega 02 como "Finalizada" (hoje está "Não iniciada")
+- [x] Tabela de Entregas: marcar a Entrega 02 como "Finalizada"
 
 ## `AT13-INFRA: Screencast do sistema rodando [Gestão]`
 `Sprint 4`, `Gestão`
