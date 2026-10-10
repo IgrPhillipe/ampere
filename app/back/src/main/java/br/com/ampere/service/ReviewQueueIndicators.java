@@ -4,7 +4,13 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 public record ReviewQueueIndicators(
-    long total, long dueSoon, long reviewedToday, long reviewedThisMonth, long rejectedThisMonth) {
+    long total,
+    long dueSoon,
+    long highDemand,
+    long reanalysis,
+    long reviewedToday,
+    long reviewedThisMonth,
+    long rejectedThisMonth) {
 
   public BigDecimal monthlyRejectionPercent() {
     if (reviewedThisMonth == 0) {

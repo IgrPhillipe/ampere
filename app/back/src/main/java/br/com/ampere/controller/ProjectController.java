@@ -1,6 +1,7 @@
 package br.com.ampere.controller;
 
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.SortDirection;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.PageQuery;
 import br.com.ampere.dto.Pagination;
@@ -19,6 +20,8 @@ import jakarta.validation.Valid;
 import java.util.List;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,8 +61,12 @@ public class ProjectController {
           ProjectStatus status,
       @Parameter(description = "Termo buscado no nome ou no protocolo")
           @RequestParam(required = false)
-          String search) {
-    ProjectListing listing = service.list(pagination.page(), pagination.pageSize(), status, search);
+          String search,
+      @Parameter(description = "Ordenação pela última atualização")
+          @RequestParam(defaultValue = "DESC")
+          SortDirection sort) {
+    ProjectListing listing =
+        service.list(pagination.page(), pagination.pageSize(), status, search, sort);
     List<ProjectResponse> projects =
         listing.projects().stream()
             .map(
@@ -105,8 +112,11 @@ public class ProjectController {
         responseCode = "409",
         description = "Não foi possível gerar o protocolo")
   })
-  public ApiResponse<ProjectDetailResponse> create(@Valid @RequestBody ProjectRequest request) {
-    return ApiResponse.of(ProjectDetailResponse.from(service.create(parametersOf(request))));
+  public ApiResponse<ProjectDetailResponse> create(
+      @Valid @RequestBody ProjectRequest request, @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(
+        ProjectDetailResponse.from(
+            service.create(parametersOf(request), jwt.getClaimAsString("email"))));
   }
 
   @GetMapping("/{id}")

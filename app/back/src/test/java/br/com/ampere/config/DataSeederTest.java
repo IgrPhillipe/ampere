@@ -10,8 +10,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.ampere.domain.BuildingCategory;
+import br.com.ampere.domain.Calculation;
+import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DeadlineStatus;
+import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.GroupStatus;
 import br.com.ampere.domain.NormativeTable;
@@ -19,15 +22,19 @@ import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
+import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
+import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.service.DemandCalculationService;
 import br.com.ampere.service.ReviewQueueService;
 import java.time.LocalDate;
 import java.util.EnumSet;
@@ -205,6 +212,8 @@ class DataSeederTest {
         standardRepository,
         existingNormativeTables(),
         userRepository,
+        mock(CalculationRepository.class),
+        mock(DemandCalculationService.class),
         new BCryptPasswordEncoder());
   }
 
@@ -217,6 +226,8 @@ class DataSeederTest {
         seededStandards(),
         existingNormativeTables(),
         mock(UserRepository.class),
+        mock(CalculationRepository.class),
+        mock(DemandCalculationService.class),
         new BCryptPasswordEncoder());
   }
 
@@ -228,6 +239,8 @@ class DataSeederTest {
         seededStandards(),
         normativeTableRepository,
         mock(UserRepository.class),
+        mock(CalculationRepository.class),
+        mock(DemandCalculationService.class),
         new BCryptPasswordEncoder());
   }
 
@@ -372,6 +385,68 @@ class DataSeederTest {
     seeder(projectRepositoryWithProjects(), groupRepository).run();
 
     verify(groupRepository, never()).saveAll(any());
+  }
+
+  @Test
+  void calculatesTheSubmittedProjectsSoTheQueueShowsDemandAndAlerts() {
+    ProjectRepository projectRepository = projectRepositoryWithProjects();
+    Project overdue =
+        new Project(
+            "Edifício Residencial Aurora",
+            "Rua da Aurora, 300",
+            "Recife",
+            "2026-1003",
+            ProjectStatus.UNDER_REVIEW,
+            new ResidentialMultifamily(
+                9, SupplyVoltage.V220_127, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
+            List.of());
+    when(projectRepository.findByProtocol("2026-1003")).thenReturn(Optional.of(overdue));
+    ConsumerUnitGroupRepository groupRepository = mock(ConsumerUnitGroupRepository.class);
+    when(groupRepository.count()).thenReturn(5L);
+    when(groupRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    CalculationRepository calculationRepository = mock(CalculationRepository.class);
+    DemandCalculationService demandCalculation = mock(DemandCalculationService.class);
+    Calculation calculation = mock(Calculation.class);
+    when(demandCalculation.compute(any(), any())).thenReturn(calculation);
+
+    new DataSeeder(
+            projectRepository,
+            mock(FindingRepository.class),
+            groupRepository,
+            seededStandards(),
+            existingNormativeTables(),
+            mock(UserRepository.class),
+            calculationRepository,
+            demandCalculation,
+            new BCryptPasswordEncoder())
+        .run();
+
+    ArgumentCaptor<Iterable<ConsumerUnitGroup>> captor = iterableCaptor();
+    verify(groupRepository).saveAll(captor.capture());
+    assertThat(captor.getValue()).hasSize(4).allMatch(group -> group.getProject() == overdue);
+    verify(calculationRepository).save(calculation);
+  }
+
+  @Test
+  void leavesTheCalculationsUntouchedOnRestart() {
+    ProjectRepository projectRepository = projectRepositoryWithProjects();
+    CalculationRepository calculationRepository = mock(CalculationRepository.class);
+    when(calculationRepository.count()).thenReturn(7L);
+    DemandCalculationService demandCalculation = mock(DemandCalculationService.class);
+
+    new DataSeeder(
+            projectRepository,
+            mock(FindingRepository.class),
+            mock(ConsumerUnitGroupRepository.class),
+            seededStandards(),
+            existingNormativeTables(),
+            mock(UserRepository.class),
+            calculationRepository,
+            demandCalculation,
+            new BCryptPasswordEncoder())
+        .run();
+
+    verify(demandCalculation, never()).compute(any(), any());
   }
 
   private static ProjectRepository projectRepositoryWithProjects() {

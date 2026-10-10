@@ -77,7 +77,21 @@ curl -s -X POST http://localhost:8080/api/auth/login \
   -d '{"email":"user@ampere.com","password":"senha@123"}'
 ```
 
-Apenas a área `/api/admin/**` (tabelas normativas) exige o papel `admin`. As demais rotas ignoram o papel enquanto a Q1c em [`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md) estiver aberta.
+As tabelas normativas (`/api/normative-tables/**`) e a fila (`/api/review-queue/**`) exigem o papel `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`. O papel `admin` representa o analista na fila técnica.
+
+---
+
+## Fila de Análise
+
+`GET /api/review-queue` lista os projetos `UNDER_REVIEW`, com prazo de 30 dias corridos a partir do envio. O contrato completo está no Swagger; os critérios que ele não explica:
+
+| Parâmetro | Padrão | Valores |
+| :--- | :--- | :--- |
+| `search` | vazio | protocolo, projetista ou município, sem diferenciar maiúsculas ou acentos |
+| `filter` | `ALL` | `DUE_SOON` (vence hoje ou atrasado), `HIGH_DEMAND` (último cálculo acima de 50 kVA), `REANALYSIS` (dois ou mais envios) |
+| `sort` | `ASC` | `ASC` (prazo mais próximo primeiro) ou `DESC`; o empate é desfeito pelo ID crescente |
+
+Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/indicators` devolve os contadores globais, que não dependem desses parâmetros.
 
 ---
 
@@ -124,7 +138,7 @@ São **cinco** classes de domínio persistidas, acima do mínimo de três da dis
 ## Limitações
 
 - Sem migrations versionadas: o Hibernate cria o schema a partir das entidades. Schema defasado e recuperação: [Quando travar](../../docs/tecnico/convencoes-back.md#quando-travar)
-- Nenhum papel de usuário restringe rota, pendente da Q1c
+- As rotas que ainda não possuem regra explícita aceitam qualquer usuário autenticado
 
 ---
 

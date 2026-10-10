@@ -24,12 +24,14 @@ import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
+import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.service.DemandCalculationService;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -58,6 +60,8 @@ public class DataSeeder implements CommandLineRunner {
   private final StandardRepository standardRepository;
   private final NormativeTableRepository normativeTableRepository;
   private final UserRepository userRepository;
+  private final CalculationRepository calculationRepository;
+  private final DemandCalculationService demandCalculation;
   private final PasswordEncoder passwordEncoder;
 
   public static final String DEVELOPMENT_PASSWORD = "senha@123";
@@ -71,6 +75,8 @@ public class DataSeeder implements CommandLineRunner {
       StandardRepository standardRepository,
       NormativeTableRepository normativeTableRepository,
       UserRepository userRepository,
+      CalculationRepository calculationRepository,
+      DemandCalculationService demandCalculation,
       PasswordEncoder passwordEncoder) {
     this.projectRepository = projectRepository;
     this.findingRepository = findingRepository;
@@ -78,21 +84,24 @@ public class DataSeeder implements CommandLineRunner {
     this.standardRepository = standardRepository;
     this.normativeTableRepository = normativeTableRepository;
     this.userRepository = userRepository;
+    this.calculationRepository = calculationRepository;
+    this.demandCalculation = demandCalculation;
     this.passwordEncoder = passwordEncoder;
   }
 
   @Override
   @Transactional
   public void run(String... args) {
-    seedUsers();
+    User owner = seedUsers();
     List<Standard> standards = seedStandards();
-    seedDevelopmentData(standards);
+    seedDevelopmentData(standards, owner);
     seedGroups();
     seedNormativeTables(standards);
+    seedSubmittedCalculations();
   }
 
   /** Per e-mail, so an older database also gets the reviewer the second reading needs. */
-  private void seedUsers() {
+  private User seedUsers() {
     String hash = passwordEncoder.encode(DEVELOPMENT_PASSWORD);
     List<User> missing =
         List.of(
@@ -102,12 +111,16 @@ public class DataSeeder implements CommandLineRunner {
             .stream()
             .filter(user -> userRepository.findByEmail(user.getEmail()).isEmpty())
             .toList();
-    if (missing.isEmpty()) {
-      return;
+    if (!missing.isEmpty()) {
+      userRepository.saveAll(missing);
+      log.info("DataSeeder: {} development users inserted.", missing.size());
     }
 
-    userRepository.saveAll(missing);
-    log.info("DataSeeder: {} development users inserted.", missing.size());
+    return missing.stream()
+        .filter(user -> user.getEmail().equals("user@ampere.com"))
+        .findFirst()
+        .or(() -> userRepository.findByEmail("user@ampere.com"))
+        .orElseThrow();
   }
 
   private void seedNormativeTables(List<Standard> standards) {
@@ -136,7 +149,7 @@ public class DataSeeder implements CommandLineRunner {
     return standards;
   }
 
-  private void seedDevelopmentData(List<Standard> standards) {
+  private void seedDevelopmentData(List<Standard> standards, User owner) {
     if (projectRepository.count() > 0) {
       return;
     }
@@ -156,7 +169,8 @@ public class DataSeeder implements CommandLineRunner {
                 SupplyVoltage.V380_220,
                 ConnectionType.THREE_PHASE,
                 EntranceStandard.COLLECTIVE),
-            byName);
+            byName,
+            owner);
     Project awaitingSubmission =
         seed(
             "Edifício Torre Norte",
@@ -169,7 +183,8 @@ public class DataSeeder implements CommandLineRunner {
                 SupplyVoltage.V380_220,
                 ConnectionType.THREE_PHASE,
                 EntranceStandard.COLLECTIVE),
-            byName);
+            byName,
+            owner);
     Project underReview =
         seed(
             "Edifício Residencial Aurora",
@@ -179,7 +194,8 @@ public class DataSeeder implements CommandLineRunner {
             ProjectStatus.UNDER_REVIEW,
             new ResidentialMultifamily(
                 9, SupplyVoltage.V220_127, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
-            byName);
+            byName,
+            owner);
     Project underReviewDueToday =
         seed(
             "Edifício Comercial Boa Vista",
@@ -189,7 +205,8 @@ public class DataSeeder implements CommandLineRunner {
             ProjectStatus.UNDER_REVIEW,
             new NonResidential(
                 8, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
-            byName);
+            byName,
+            owner);
     Project underReviewInTime =
         seed(
             "Condomínio Jardim Recife",
@@ -199,7 +216,8 @@ public class DataSeeder implements CommandLineRunner {
             ProjectStatus.UNDER_REVIEW,
             new ResidentialMultifamily(
                 6, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
-            byName);
+            byName,
+            owner);
     Project rejected =
         seed(
             "Condomínio Vila Nova",
@@ -209,7 +227,8 @@ public class DataSeeder implements CommandLineRunner {
             ProjectStatus.REJECTED,
             new ResidentialMultifamily(
                 6, SupplyVoltage.V220_127, ConnectionType.TWO_PHASE, EntranceStandard.INDIVIDUAL),
-            byName);
+            byName,
+            owner);
     Project anotherRejected =
         seed(
             "Centro Empresarial Recife",
@@ -222,7 +241,8 @@ public class DataSeeder implements CommandLineRunner {
                 SupplyVoltage.V380_220,
                 ConnectionType.THREE_PHASE,
                 EntranceStandard.INDIVIDUAL),
-            byName);
+            byName,
+            owner);
     Project approved =
         seed(
             "Comercial Praça Sul",
@@ -235,11 +255,14 @@ public class DataSeeder implements CommandLineRunner {
                 SupplyVoltage.V220_127,
                 ConnectionType.SINGLE_PHASE,
                 EntranceStandard.INDIVIDUAL),
-            byName);
+            byName,
+            owner);
 
     OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
     underReview.submit(now.minusDays(40));
     underReviewDueToday.submit(now.minusDays(30));
+    underReviewInTime.submit(now.minusDays(45));
+    underReviewInTime.reject(now.minusDays(12));
     underReviewInTime.submit(now.minusDays(10));
     rejected.submit(now.minusDays(12));
     rejected.reject(now);
@@ -352,6 +375,142 @@ public class DataSeeder implements CommandLineRunner {
             });
   }
 
+  /**
+   * Submitted projects get groups and a real engine run, so the review queue and the listing show
+   * demand and pre-validation alerts. Runs after the tables: the engine reads the published ones.
+   */
+  private void seedSubmittedCalculations() {
+    if (calculationRepository.count() > 0) {
+      return;
+    }
+
+    Map<String, Function<Project, List<ConsumerUnitGroup>>> groupsByProtocol =
+        Map.of(
+            // Over 50 kVA, and 44.4 kW of charging asks for a network study: one alert.
+            "2026-1003",
+            project ->
+                List.of(
+                    apartments(project, "Apartamento tipo A", 24, "68", 2, "6.50"),
+                    apartments(project, "Apartamento tipo B", 20, "92", 3, "8.20"),
+                    commonArea(project),
+                    charging(project, 6)),
+            "2026-1007",
+            project -> List.of(commercial(project, "Salas comerciais", 40), charging(project, 4)),
+            "2026-1008",
+            project -> List.of(apartments(project, "Apartamento padrão", 12, "54", 2, "5.20")),
+            "2026-1002",
+            project ->
+                List.of(
+                    apartments(project, "Apartamento tipo A", 16, "72", 2, "6.80"),
+                    commercial(project, "Lojas do térreo", 6)),
+            // Two-phase connection: the entrance table does not size it, so one alert.
+            "2026-1004",
+            project -> List.of(apartments(project, "Apartamento padrão", 8, "60", 2, "5.60")),
+            "2026-1005",
+            project -> List.of(commercial(project, "Salas comerciais", 24), commonArea(project)),
+            "2026-1006",
+            project -> List.of(commercial(project, "Lojas", 4)));
+
+    groupsByProtocol.forEach(
+        (protocol, groupsOf) ->
+            projectRepository
+                .findByProtocol(protocol)
+                .ifPresent(
+                    project -> {
+                      List<ConsumerUnitGroup> groups =
+                          groupRepository.saveAll(groupsOf.apply(project));
+                      calculationRepository.save(demandCalculation.compute(project, groups));
+                    }));
+
+    log.info("DataSeeder: groups and calculations inserted in the submitted projects.");
+  }
+
+  private static ConsumerUnitGroup commonArea(Project project) {
+    return GroupKind.LOAD.create(
+        project,
+        new GroupSpec(
+            "Área comum",
+            1,
+            null,
+            null,
+            null,
+            null,
+            LoadUsage.COMMON_AREA,
+            List.of(
+                new LoadItem(
+                    LoadCategory.MOTORS,
+                    "Elevador",
+                    1,
+                    new BigDecimal("12"),
+                    PowerUnit.CV,
+                    null,
+                    null),
+                new LoadItem(
+                    LoadCategory.LIGHTING_AND_OUTLETS,
+                    "Iluminação",
+                    1,
+                    new BigDecimal("8.00"),
+                    PowerUnit.KW,
+                    LampTechnology.COMPACT_FLUORESCENT_LED,
+                    null)),
+            null,
+            null,
+            null,
+            null));
+  }
+
+  private static ConsumerUnitGroup commercial(Project project, String name, int quantity) {
+    return GroupKind.LOAD.create(
+        project,
+        new GroupSpec(
+            name,
+            quantity,
+            null,
+            null,
+            null,
+            null,
+            LoadUsage.COMMERCIAL,
+            List.of(
+                new LoadItem(
+                    LoadCategory.LIGHTING_AND_OUTLETS,
+                    "Iluminação",
+                    1,
+                    new BigDecimal("1.20"),
+                    PowerUnit.KW,
+                    LampTechnology.COMPACT_FLUORESCENT_LED,
+                    null),
+                new LoadItem(
+                    LoadCategory.LIGHTING_AND_OUTLETS,
+                    "Tomadas",
+                    1,
+                    new BigDecimal("1.80"),
+                    PowerUnit.KW,
+                    LampTechnology.GENERAL_OUTLETS,
+                    null)),
+            null,
+            null,
+            null,
+            null));
+  }
+
+  private static ConsumerUnitGroup charging(Project project, int points) {
+    return GroupKind.EV_CHARGING.create(
+        project,
+        new GroupSpec(
+            "Recarga de veículo elétrico",
+            points,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            new BigDecimal("7.40"),
+            false,
+            null,
+            EvStationType.COLLECTIVE));
+  }
+
   private static ConsumerUnitGroup apartments(
       Project project,
       String name,
@@ -383,13 +542,15 @@ public class DataSeeder implements CommandLineRunner {
       String protocol,
       ProjectStatus status,
       BuildingType buildingType,
-      Map<String, Standard> standardsByName) {
+      Map<String, Standard> standardsByName,
+      User owner) {
     List<Standard> standards =
         buildingType.applicableStandards().stream()
             .map(StandardName::code)
             .map(standardsByName::get)
             .toList();
 
-    return new Project(name, address, municipality, protocol, status, buildingType, standards);
+    return new Project(
+        name, address, municipality, protocol, status, buildingType, standards, owner);
   }
 }

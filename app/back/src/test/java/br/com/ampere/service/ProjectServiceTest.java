@@ -17,6 +17,7 @@ import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
+import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
@@ -54,7 +55,7 @@ class ProjectServiceTest {
             mock(ProjectCreation.class),
             mock(ApplicableStandards.class));
 
-    service.list(1, 20, null, " %_\\ ");
+    service.list(1, 20, null, " %_\\ ", SortDirection.DESC);
 
     ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
     verify(projectRepository).searchProjects(isNull(), eq("\\%\\_\\\\"), pageableCaptor.capture());
@@ -66,29 +67,52 @@ class ProjectServiceTest {
   }
 
   @Test
+  void ordersByTheOldestUpdateWhenAscending() {
+    ProjectRepository projectRepository = mock(ProjectRepository.class);
+    when(projectRepository.searchProjects(isNull(), eq(""), any(Pageable.class)))
+        .thenReturn(Page.empty());
+    ProjectService service =
+        new ProjectService(
+            projectRepository,
+            mock(FindingRepository.class),
+            mock(ConsumerUnitGroupRepository.class),
+            mock(CalculationRepository.class),
+            mock(ProjectDocumentRepository.class),
+            mock(ProjectCreation.class),
+            mock(ApplicableStandards.class));
+
+    service.list(1, 20, null, null, SortDirection.ASC);
+
+    ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+    verify(projectRepository).searchProjects(isNull(), eq(""), pageableCaptor.capture());
+    assertThat(pageableCaptor.getValue().getSort().stream().map(Object::toString))
+        .containsExactly("updatedAt: ASC", "id: ASC");
+  }
+
+  @Test
   void retriesProtocolGenerationOnceOnACollision() {
     ProjectCreation creation = mock(ProjectCreation.class);
     Project created = mock(Project.class);
-    when(creation.createWithGeneratedProtocol(any()))
+    when(creation.createWithGeneratedProtocol(any(), any()))
         .thenThrow(new DataIntegrityViolationException("duplicate protocol"))
         .thenReturn(created);
 
-    assertThat(service(creation).create(parameters())).isSameAs(created);
-    verify(creation, times(2)).createWithGeneratedProtocol(any());
+    assertThat(service(creation).create(parameters(), "user@ampere.com")).isSameAs(created);
+    verify(creation, times(2)).createWithGeneratedProtocol(any(), any());
   }
 
   @Test
   void answersConflictWhenEveryProtocolAttemptCollides() {
     ProjectCreation creation = mock(ProjectCreation.class);
-    when(creation.createWithGeneratedProtocol(any()))
+    when(creation.createWithGeneratedProtocol(any(), any()))
         .thenThrow(new DataIntegrityViolationException("duplicate protocol"));
 
-    assertThatThrownBy(() -> service(creation).create(parameters()))
+    assertThatThrownBy(() -> service(creation).create(parameters(), "user@ampere.com"))
         .isInstanceOf(BusinessException.class)
         .hasMessage("Não foi possível gerar o protocolo do projeto. Tente novamente.")
         .extracting(exception -> ((BusinessException) exception).getStatus())
         .isEqualTo(HttpStatus.CONFLICT);
-    verify(creation, times(3)).createWithGeneratedProtocol(any());
+    verify(creation, times(3)).createWithGeneratedProtocol(any(), any());
   }
 
   @Test

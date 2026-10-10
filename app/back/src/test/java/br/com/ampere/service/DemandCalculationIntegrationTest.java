@@ -131,7 +131,7 @@ class DemandCalculationIntegrationTest {
         .andExpect(jsonPath("$.data.standards.secondary.revision").value("REV 07"));
 
     mockMvc
-        .perform(get(calculationOf(project)).header("Authorization", "Bearer " + token))
+        .perform(get(calculationOf(project) + "/latest").header("Authorization", "Bearer " + token))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.totals.finalKva").value(165.00))
         .andExpect(jsonPath("$.data.appliedTables[0].identification").value("Quadro 35"));
@@ -171,7 +171,7 @@ class DemandCalculationIntegrationTest {
     Project project = draftWithPrototypeGroups(true);
 
     mockMvc
-        .perform(get(calculationOf(project)).header("Authorization", "Bearer " + token))
+        .perform(get(calculationOf(project) + "/latest").header("Authorization", "Bearer " + token))
         .andExpect(status().isNotFound())
         .andExpect(
             jsonPath("$.detail").value("Nenhum cálculo de demanda foi feito para este projeto."));
@@ -305,7 +305,7 @@ class DemandCalculationIntegrationTest {
   }
 
   private static String calculationOf(Project project) {
-    return "/projects/" + project.getId() + "/calculation";
+    return "/projects/" + project.getId() + "/calculations";
   }
 
   private String token(String email) throws Exception {

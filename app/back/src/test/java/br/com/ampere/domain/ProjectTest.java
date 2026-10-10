@@ -72,6 +72,37 @@ class ProjectTest {
   }
 
   @Test
+  void associatesTheProjectWithItsOwner() {
+    User owner = new User("Projetista", "projetista@ampere.com", "hash", UserRole.USER);
+
+    Project project =
+        Project.draft(
+            "Residencial Monte Verde",
+            "Rodovia BR-101, km 8",
+            "Cabo de Santo Agostinho",
+            "2026-0001",
+            buildingType(),
+            List.of(),
+            owner);
+
+    assertThat(project.getOwner()).isSameAs(owner);
+  }
+
+  @Test
+  void treatsASecondSubmissionAsReanalysis() {
+    Project project = project(ProjectStatus.DRAFT);
+
+    project.submit(OffsetDateTime.now(ZoneOffset.UTC).minusDays(10));
+    project.reject(OffsetDateTime.now(ZoneOffset.UTC).minusDays(2));
+    project.submit(OffsetDateTime.now(ZoneOffset.UTC));
+
+    assertThat(project.getReviewCycle()).isEqualTo(2);
+    assertThat(project.isReanalysis()).isTrue();
+    assertThat(project.getStatus()).isEqualTo(ProjectStatus.UNDER_REVIEW);
+    assertThat(project.getReviewedAt()).isNull();
+  }
+
+  @Test
   void reportsWhetherItIsStillADraft() {
     assertThat(project(ProjectStatus.DRAFT).isDraft()).isTrue();
     assertThat(project(ProjectStatus.AWAITING_SUBMISSION).isDraft()).isFalse();

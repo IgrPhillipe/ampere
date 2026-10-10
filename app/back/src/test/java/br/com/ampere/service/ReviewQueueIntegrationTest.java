@@ -1,6 +1,8 @@
 package br.com.ampere.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -79,6 +81,8 @@ class ReviewQueueIntegrationTest {
 
   private OffsetDateTime now;
 
+  private User owner;
+
   @BeforeEach
   void seed() {
     calculationRepository.deleteAll();
@@ -96,10 +100,9 @@ class ReviewQueueIntegrationTest {
         NormativeTableSeed.all(
             standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
     String hash = passwordEncoder.encode(PASSWORD);
-    userRepository.saveAll(
-        List.of(
-            new User("Usuário", "user@ampere.com", hash, UserRole.USER),
-            new User("Admin", "admin@ampere.com", hash, UserRole.ADMIN)));
+    owner =
+        userRepository.save(new User("João Projetista", "user@ampere.com", hash, UserRole.USER));
+    userRepository.save(new User("Admin", "admin@ampere.com", hash, UserRole.ADMIN));
     now = OffsetDateTime.now(ZoneOffset.UTC);
   }
 
@@ -141,12 +144,63 @@ class ReviewQueueIntegrationTest {
   }
 
   @Test
+  void ordersByDeadlineDescendingWhenRequested() throws Exception {
+    submitted("2026-4001", now.minusDays(10));
+    submitted("2026-4002", now.minusDays(40));
+    submitted("2026-4003", now.minusDays(30));
+
+    asAnalyst(get("/review-queue").param("sort", "desc"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(3)))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-4001"))
+        .andExpect(jsonPath("$.data[1].protocol").value("2026-4003"))
+        .andExpect(jsonPath("$.data[2].protocol").value("2026-4002"));
+  }
+
+  @Test
+  void usesTheProjectIdAsAStableDeadlineTieBreaker() throws Exception {
+    OffsetDateTime sharedSubmission = now.minusDays(5);
+    submitted("2026-4302", sharedSubmission);
+    submitted("2026-4301", sharedSubmission);
+
+    asAnalyst(get("/review-queue").param("sort", "ASC"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-4302"))
+        .andExpect(jsonPath("$.data[1].protocol").value("2026-4301"));
+    asAnalyst(get("/review-queue").param("sort", "DESC"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-4302"))
+        .andExpect(jsonPath("$.data[1].protocol").value("2026-4301"));
+  }
+
+  @Test
+  void appliesPaginationAfterSearchFilterAndDeadlineSorting() throws Exception {
+    submitted("2026-4401", now.minusDays(10));
+    submitted("2026-4402", now.minusDays(40));
+    submitted("2026-4403", now.minusDays(30));
+
+    asAnalyst(
+            get("/review-queue")
+                .param("search", "joao")
+                .param("filter", "DUE_SOON")
+                .param("sort", "DESC")
+                .param("pageSize", "1")
+                .param("page", "2"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.pagination.total").value(2))
+        .andExpect(jsonPath("$.pagination.page").value(2))
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-4402"))
+        .andExpect(jsonPath("$.data[0].deadlineStatus").value("OVERDUE"));
+  }
+
+  @Test
   void theDueSoonFilterKeepsOnlyOverdueAndDueToday() throws Exception {
     submitted("2026-4001", now.minusDays(10));
     submitted("2026-4002", now.minusDays(40));
     submitted("2026-4003", now.minusDays(30));
 
-    asAnalyst(get("/review-queue").param("dueSoon", "true"))
+    asAnalyst(get("/review-queue").param("filter", "DUE_SOON"))
         .andExpect(jsonPath("$.data", hasSize(2)))
         .andExpect(jsonPath("$.pagination.total").value(2))
         .andExpect(jsonPath("$.data[0].deadlineStatus").value("OVERDUE"))
@@ -159,12 +213,12 @@ class ReviewQueueIntegrationTest {
   }
 
   @Test
-  void countsTheWarningsOfTheLatestCalculation() throws Exception {
+  void returnsOwnerUnitsDemandWarningsAndReviewCycle() throws Exception {
     Project project = projectRepository.save(project("2026-4001", ProjectStatus.DRAFT));
     addPrototypeGroups(project);
     mockMvc
         .perform(
-            post("/projects/" + project.getId() + "/calculation")
+            post("/projects/" + project.getId() + "/calculations")
                 .header("Authorization", "Bearer " + token("user@ampere.com")))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.data.warningsCount").value(1));
@@ -172,7 +226,104 @@ class ReviewQueueIntegrationTest {
 
     asAnalyst(get("/review-queue"))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4001"))
-        .andExpect(jsonPath("$.data[0].warnings").value(1));
+        .andExpect(jsonPath("$.data[0].warnings").value(1))
+        .andExpect(jsonPath("$.data[0].alerts", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].reviewCycle").value(1))
+        .andExpect(jsonPath("$.data[0].ownerName").value("João Projetista"))
+        .andExpect(jsonPath("$.data[0].consumerUnitsCount").value(51))
+        .andExpect(jsonPath("$.data[0].demandKva", notNullValue()))
+        .andExpect(jsonPath("$.data[0].reanalysis").value(false));
+  }
+
+  @Test
+  void searchesByProtocolOwnerAndMunicipalityWithoutAccents() throws Exception {
+    Project jaboatao = project("2026-4101", ProjectStatus.DRAFT);
+    jaboatao.rename("Condomínio Atlântico", "Rua A, 1", "Jaboatão dos Guararapes");
+    jaboatao.submit(now.minusDays(5));
+    projectRepository.save(jaboatao);
+    submitted("2026-4102", now.minusDays(4));
+
+    assertSingleSearchResult("4101", "2026-4101");
+    asAnalyst(get("/review-queue").param("search", "joao"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(2)))
+        .andExpect(jsonPath("$.data[0].ownerName").value("João Projetista"));
+    assertSingleSearchResult("jaboatao", "2026-4101");
+  }
+
+  @Test
+  void filtersHighDemandAndReanalysisProjects() throws Exception {
+    Project highDemand = projectRepository.save(project("2026-4201", ProjectStatus.DRAFT));
+    addPrototypeGroups(highDemand);
+    calculate(highDemand);
+    highDemand.submit(now.minusDays(5));
+
+    Project reanalysis = project("2026-4202", ProjectStatus.DRAFT);
+    reanalysis.submit(now.minusDays(40));
+    reanalysis.reject(now.minusDays(10));
+    reanalysis.submit(now.minusDays(4));
+    projectRepository.save(reanalysis);
+    submitted("2026-4203", now.minusDays(3));
+
+    asAnalyst(get("/review-queue").param("filter", "HIGH_DEMAND"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-4201"));
+    asAnalyst(get("/review-queue").param("filter", "REANALYSIS"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-4202"))
+        .andExpect(jsonPath("$.data[0].reanalysis").value(true));
+
+    asAnalyst(get("/review-queue/indicators"))
+        .andExpect(jsonPath("$.data.highDemand").value(1))
+        .andExpect(jsonPath("$.data.reanalysis").value(1));
+  }
+
+  @Test
+  void rejectsAnUnknownQueueFilter() throws Exception {
+    asAnalyst(get("/review-queue").param("filter", "urgente"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("DUE_SOON")))
+        .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("REANALYSIS")));
+  }
+
+  @Test
+  void rejectsAnUnknownQueueSort() throws Exception {
+    asAnalyst(get("/review-queue").param("sort", "oldest_first"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("ASC")))
+        .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("DESC")));
+  }
+
+  @Test
+  void projectCreationAssociatesTheAuthenticatedApplicant() throws Exception {
+    mockMvc
+        .perform(
+            post("/projects")
+                .header("Authorization", "Bearer " + token("user@ampere.com"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                      "name": "Projeto autenticado",
+                      "address": "Rua A, 1",
+                      "municipality": "Recife",
+                      "buildingType": "RESIDENTIAL_MULTIFAMILY",
+                      "floors": 4,
+                      "voltage": "V380_220",
+                      "connectionType": "THREE_PHASE",
+                      "entranceStandard": "COLLECTIVE"
+                    }
+                    """))
+        .andExpect(status().isCreated());
+
+    Project created =
+        projectRepository.findAll().stream()
+            .filter(project -> project.getName().equals("Projeto autenticado"))
+            .findFirst()
+            .orElseThrow();
+    assertThat(created.getOwner().getEmail()).isEqualTo("user@ampere.com");
   }
 
   @Test
@@ -189,6 +340,8 @@ class ReviewQueueIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.total").value(3))
         .andExpect(jsonPath("$.data.dueSoon").value(2))
+        .andExpect(jsonPath("$.data.highDemand").value(0))
+        .andExpect(jsonPath("$.data.reanalysis").value(0))
         .andExpect(jsonPath("$.data.reviewedToday").value(3))
         .andExpect(jsonPath("$.data.monthlyRejectionPercent").value(33.3));
   }
@@ -227,7 +380,8 @@ class ReviewQueueIntegrationTest {
         status,
         new ResidentialMultifamily(
             12, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
-        standards);
+        standards,
+        owner);
   }
 
   private void addPrototypeGroups(Project project) {
@@ -273,6 +427,21 @@ class ReviewQueueIntegrationTest {
                     false,
                     true,
                     EvStationType.COLLECTIVE))));
+  }
+
+  private void calculate(Project project) throws Exception {
+    mockMvc
+        .perform(
+            post("/projects/" + project.getId() + "/calculations")
+                .header("Authorization", "Bearer " + token("user@ampere.com")))
+        .andExpect(status().isCreated());
+  }
+
+  private void assertSingleSearchResult(String search, String protocol) throws Exception {
+    asAnalyst(get("/review-queue").param("search", search))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].protocol").value(protocol));
   }
 
   private static br.com.ampere.domain.ConsumerUnitGroup apartments(

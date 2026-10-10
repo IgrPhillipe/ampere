@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
@@ -68,6 +69,14 @@ public class Project {
   @OrderBy("name")
   private final List<Standard> standards = new ArrayList<>();
 
+  /** Nullable only for projects created before ownership was introduced. */
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "owner_id")
+  private User owner;
+
+  @Column(nullable = false, columnDefinition = "integer default 0")
+  private int reviewCycle;
+
   /** Stored with an offset so the API always answers with one. */
   @Column(nullable = false, updatable = false)
   private OffsetDateTime createdAt;
@@ -82,6 +91,9 @@ public class Project {
   @Column(nullable = false)
   private String searchIndex;
 
+  @Column(nullable = false, columnDefinition = "varchar(255) default ''")
+  private String reviewSearchIndex;
+
   protected Project() {}
 
   public Project(
@@ -92,6 +104,18 @@ public class Project {
       ProjectStatus status,
       BuildingType buildingType,
       List<Standard> standards) {
+    this(name, address, municipality, protocol, status, buildingType, standards, null);
+  }
+
+  public Project(
+      String name,
+      String address,
+      String municipality,
+      String protocol,
+      ProjectStatus status,
+      BuildingType buildingType,
+      List<Standard> standards,
+      User owner) {
     this.name = name;
     this.address = address;
     this.municipality = municipality;
@@ -99,9 +123,11 @@ public class Project {
     this.status = status;
     this.buildingType = Objects.requireNonNull(buildingType, "buildingType");
     this.standards.addAll(standards);
+    this.owner = owner;
     this.createdAt = now();
     this.updatedAt = this.createdAt;
     this.searchIndex = searchIndexOf(name, protocol);
+    this.reviewSearchIndex = reviewSearchIndexOf(protocol, municipality, owner);
   }
 
   /** A newly created project: a draft, with the protocol the system assigned it. */
@@ -112,8 +138,19 @@ public class Project {
       String protocol,
       BuildingType buildingType,
       List<Standard> standards) {
+    return draft(name, address, municipality, protocol, buildingType, standards, null);
+  }
+
+  public static Project draft(
+      String name,
+      String address,
+      String municipality,
+      String protocol,
+      BuildingType buildingType,
+      List<Standard> standards,
+      User owner) {
     return new Project(
-        name, address, municipality, protocol, ProjectStatus.DRAFT, buildingType, standards);
+        name, address, municipality, protocol, ProjectStatus.DRAFT, buildingType, standards, owner);
   }
 
   @PrePersist
@@ -121,12 +158,14 @@ public class Project {
     createdAt = now();
     updatedAt = createdAt;
     searchIndex = searchIndexOf(name, protocol);
+    reviewSearchIndex = reviewSearchIndexOf(protocol, municipality, owner);
   }
 
   @PreUpdate
   private void onUpdate() {
     updatedAt = now();
     searchIndex = searchIndexOf(name, protocol);
+    reviewSearchIndex = reviewSearchIndexOf(protocol, municipality, owner);
   }
 
   private static OffsetDateTime now() {
@@ -135,6 +174,11 @@ public class Project {
 
   private static String searchIndexOf(String name, String protocol) {
     return SearchTerms.fold(name + " " + protocol);
+  }
+
+  private static String reviewSearchIndexOf(String protocol, String municipality, User owner) {
+    String ownerName = owner == null ? "" : owner.getName();
+    return SearchTerms.fold(protocol + " " + municipality + " " + ownerName);
   }
 
   public void rename(String name, String address, String municipality) {
@@ -155,6 +199,8 @@ public class Project {
   public void submit(OffsetDateTime submittedAt) {
     this.status = ProjectStatus.UNDER_REVIEW;
     this.submittedAt = Objects.requireNonNull(submittedAt, "submittedAt");
+    this.reviewedAt = null;
+    this.reviewCycle++;
   }
 
   public void approve(OffsetDateTime reviewedAt) {
@@ -193,7 +239,13 @@ public class Project {
   }
 
   public boolean canBeSubmitted() {
-    return status == ProjectStatus.DRAFT || status == ProjectStatus.AWAITING_SUBMISSION;
+    return status == ProjectStatus.DRAFT
+        || status == ProjectStatus.AWAITING_SUBMISSION
+        || status == ProjectStatus.REJECTED;
+  }
+
+  public boolean isReanalysis() {
+    return reviewCycle > 1;
   }
 
   public Long getId() {
@@ -244,7 +296,19 @@ public class Project {
     return reviewedAt;
   }
 
+  public User getOwner() {
+    return owner;
+  }
+
+  public int getReviewCycle() {
+    return reviewCycle;
+  }
+
   public String getSearchIndex() {
     return searchIndex;
+  }
+
+  public String getReviewSearchIndex() {
+    return reviewSearchIndex;
   }
 }

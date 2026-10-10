@@ -90,7 +90,7 @@ class AdminAccessIntegrationTest {
   @Test
   void aDesignerCannotSeeTheNormativeTables() throws Exception {
     mockMvc
-        .perform(get("/admin/normative-tables").header("Authorization", bearer("user@ampere.com")))
+        .perform(get("/normative-tables").header("Authorization", bearer("user@ampere.com")))
         .andExpect(status().isForbidden())
         .andExpect(
             jsonPath("$.detail").value(ProblemDetailAuthenticationHandler.FORBIDDEN_MESSAGE));
@@ -101,10 +101,10 @@ class AdminAccessIntegrationTest {
     String admin = bearer("admin@ampere.com");
 
     mockMvc
-        .perform(get("/admin/normative-tables").header("Authorization", admin))
+        .perform(get("/normative-tables").header("Authorization", admin))
         .andExpect(status().isOk());
     mockMvc
-        .perform(get("/admin/normative-tables/codes").header("Authorization", admin))
+        .perform(get("/normative-tables/codes").header("Authorization", admin))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.data[?(@.code == 'T2_SERVICE_ENTRANCE_380_220')].valueLabels[2]")
@@ -117,7 +117,7 @@ class AdminAccessIntegrationTest {
     String id = create(admin);
 
     mockMvc
-        .perform(post("/admin/normative-tables/" + id + "/publish").header("Authorization", admin))
+        .perform(post("/normative-tables/" + id + "/publication").header("Authorization", admin))
         .andExpect(status().isConflict())
         .andExpect(
             jsonPath("$.detail")
@@ -127,7 +127,7 @@ class AdminAccessIntegrationTest {
 
     mockMvc
         .perform(
-            post("/admin/normative-tables/" + id + "/publish")
+            post("/normative-tables/" + id + "/publication")
                 .header("Authorization", bearer("revisor@ampere.com")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.status").value("PUBLISHED"))
@@ -135,7 +135,7 @@ class AdminAccessIntegrationTest {
 
     mockMvc
         .perform(
-            put("/admin/normative-tables/" + id)
+            put("/normative-tables/" + id)
                 .header("Authorization", admin)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(QUADRO_37))
@@ -148,17 +148,16 @@ class AdminAccessIntegrationTest {
     String reviewer = bearer("revisor@ampere.com");
     String first = create(admin);
     mockMvc.perform(
-        post("/admin/normative-tables/" + first + "/publish").header("Authorization", reviewer));
+        post("/normative-tables/" + first + "/publication").header("Authorization", reviewer));
     String second = create(admin);
 
     mockMvc
         .perform(
-            post("/admin/normative-tables/" + second + "/publish")
-                .header("Authorization", reviewer))
+            post("/normative-tables/" + second + "/publication").header("Authorization", reviewer))
         .andExpect(status().isOk());
 
     mockMvc
-        .perform(get("/admin/normative-tables/" + first).header("Authorization", admin))
+        .perform(get("/normative-tables/" + first).header("Authorization", admin))
         .andExpect(jsonPath("$.data.status").value("SUPERSEDED"));
   }
 
@@ -166,7 +165,7 @@ class AdminAccessIntegrationTest {
   void refusesBandsOutOfOrder() throws Exception {
     mockMvc
         .perform(
-            post("/admin/normative-tables")
+            post("/normative-tables")
                 .header("Authorization", bearer("admin@ampere.com"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
@@ -191,7 +190,7 @@ class AdminAccessIntegrationTest {
     String body =
         mockMvc
             .perform(
-                post("/admin/normative-tables")
+                post("/normative-tables")
                     .header("Authorization", bearer)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(QUADRO_37))

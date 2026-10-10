@@ -60,7 +60,8 @@ class ProjectDetailIntegrationTest {
                     12,
                     SupplyVoltage.V380_220,
                     ConnectionType.THREE_PHASE,
-                    EntranceStandard.COLLECTIVE))
+                    EntranceStandard.COLLECTIVE),
+                null)
             .getId();
 
     Project project = service.findById(id);

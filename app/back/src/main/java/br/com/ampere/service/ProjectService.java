@@ -3,6 +3,7 @@ package br.com.ampere.service;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.SortDirection;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
@@ -30,9 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProjectService {
 
   private static final Logger log = LoggerFactory.getLogger(ProjectService.class);
-
-  private static final Sort NEWEST_FIRST =
-      Sort.by(Sort.Direction.DESC, "updatedAt").and(Sort.by(Sort.Direction.DESC, "id"));
 
   private static final int PROTOCOL_ATTEMPTS = 3;
   private static final String NOT_FOUND = "Projeto não encontrado.";
@@ -63,8 +61,12 @@ public class ProjectService {
   }
 
   @Transactional(readOnly = true)
-  public ProjectListing list(int page, int pageSize, ProjectStatus status, String search) {
-    PageRequest pageRequest = PageRequest.of(page - 1, pageSize, NEWEST_FIRST);
+  public ProjectListing list(
+      int page, int pageSize, ProjectStatus status, String search, SortDirection sort) {
+    Sort.Direction direction = Sort.Direction.valueOf(sort.name());
+    PageRequest pageRequest =
+        PageRequest.of(
+            page - 1, pageSize, Sort.by(direction, "updatedAt").and(Sort.by(direction, "id")));
     Page<Project> projects =
         projectRepository.searchProjects(status, SearchTerms.normalize(search), pageRequest);
 
@@ -93,10 +95,10 @@ public class ProjectService {
     return projectRepository.findDetailById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND));
   }
 
-  public Project create(ProjectParameters parameters) {
+  public Project create(ProjectParameters parameters, String ownerEmail) {
     for (int attempt = 1; attempt <= PROTOCOL_ATTEMPTS; attempt++) {
       try {
-        return projectCreation.createWithGeneratedProtocol(parameters);
+        return projectCreation.createWithGeneratedProtocol(parameters, ownerEmail);
       } catch (DataIntegrityViolationException collision) {
         log.warn("Protocol collision on attempt {} of {}", attempt, PROTOCOL_ATTEMPTS);
       }
