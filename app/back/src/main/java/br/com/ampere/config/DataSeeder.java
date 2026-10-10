@@ -24,12 +24,14 @@ import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
+import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.service.DemandCalculationService;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -58,6 +60,8 @@ public class DataSeeder implements CommandLineRunner {
   private final StandardRepository standardRepository;
   private final NormativeTableRepository normativeTableRepository;
   private final UserRepository userRepository;
+  private final CalculationRepository calculationRepository;
+  private final DemandCalculationService demandCalculation;
   private final PasswordEncoder passwordEncoder;
 
   public static final String DEVELOPMENT_PASSWORD = "senha@123";
@@ -71,6 +75,8 @@ public class DataSeeder implements CommandLineRunner {
       StandardRepository standardRepository,
       NormativeTableRepository normativeTableRepository,
       UserRepository userRepository,
+      CalculationRepository calculationRepository,
+      DemandCalculationService demandCalculation,
       PasswordEncoder passwordEncoder) {
     this.projectRepository = projectRepository;
     this.findingRepository = findingRepository;
@@ -78,6 +84,8 @@ public class DataSeeder implements CommandLineRunner {
     this.standardRepository = standardRepository;
     this.normativeTableRepository = normativeTableRepository;
     this.userRepository = userRepository;
+    this.calculationRepository = calculationRepository;
+    this.demandCalculation = demandCalculation;
     this.passwordEncoder = passwordEncoder;
   }
 
@@ -89,6 +97,7 @@ public class DataSeeder implements CommandLineRunner {
     seedDevelopmentData(standards, owner);
     seedGroups();
     seedNormativeTables(standards);
+    seedSubmittedCalculations();
   }
 
   /** Per e-mail, so an older database also gets the reviewer the second reading needs. */
@@ -364,6 +373,142 @@ public class DataSeeder implements CommandLineRunner {
 
               log.info("DataSeeder: five consumer unit groups inserted in the draft project.");
             });
+  }
+
+  /**
+   * Submitted projects get groups and a real engine run, so the review queue and the listing show
+   * demand and pre-validation alerts. Runs after the tables: the engine reads the published ones.
+   */
+  private void seedSubmittedCalculations() {
+    if (calculationRepository.count() > 0) {
+      return;
+    }
+
+    Map<String, Function<Project, List<ConsumerUnitGroup>>> groupsByProtocol =
+        Map.of(
+            // Over 50 kVA, and 44.4 kW of charging asks for a network study: one alert.
+            "2026-1003",
+            project ->
+                List.of(
+                    apartments(project, "Apartamento tipo A", 24, "68", 2, "6.50"),
+                    apartments(project, "Apartamento tipo B", 20, "92", 3, "8.20"),
+                    commonArea(project),
+                    charging(project, 6)),
+            "2026-1007",
+            project -> List.of(commercial(project, "Salas comerciais", 40), charging(project, 4)),
+            "2026-1008",
+            project -> List.of(apartments(project, "Apartamento padrão", 12, "54", 2, "5.20")),
+            "2026-1002",
+            project ->
+                List.of(
+                    apartments(project, "Apartamento tipo A", 16, "72", 2, "6.80"),
+                    commercial(project, "Lojas do térreo", 6)),
+            // Two-phase connection: the entrance table does not size it, so one alert.
+            "2026-1004",
+            project -> List.of(apartments(project, "Apartamento padrão", 8, "60", 2, "5.60")),
+            "2026-1005",
+            project -> List.of(commercial(project, "Salas comerciais", 24), commonArea(project)),
+            "2026-1006",
+            project -> List.of(commercial(project, "Lojas", 4)));
+
+    groupsByProtocol.forEach(
+        (protocol, groupsOf) ->
+            projectRepository
+                .findByProtocol(protocol)
+                .ifPresent(
+                    project -> {
+                      List<ConsumerUnitGroup> groups =
+                          groupRepository.saveAll(groupsOf.apply(project));
+                      calculationRepository.save(demandCalculation.compute(project, groups));
+                    }));
+
+    log.info("DataSeeder: groups and calculations inserted in the submitted projects.");
+  }
+
+  private static ConsumerUnitGroup commonArea(Project project) {
+    return GroupKind.LOAD.create(
+        project,
+        new GroupSpec(
+            "Área comum",
+            1,
+            null,
+            null,
+            null,
+            null,
+            LoadUsage.COMMON_AREA,
+            List.of(
+                new LoadItem(
+                    LoadCategory.MOTORS,
+                    "Elevador",
+                    1,
+                    new BigDecimal("12"),
+                    PowerUnit.CV,
+                    null,
+                    null),
+                new LoadItem(
+                    LoadCategory.LIGHTING_AND_OUTLETS,
+                    "Iluminação",
+                    1,
+                    new BigDecimal("8.00"),
+                    PowerUnit.KW,
+                    LampTechnology.COMPACT_FLUORESCENT_LED,
+                    null)),
+            null,
+            null,
+            null,
+            null));
+  }
+
+  private static ConsumerUnitGroup commercial(Project project, String name, int quantity) {
+    return GroupKind.LOAD.create(
+        project,
+        new GroupSpec(
+            name,
+            quantity,
+            null,
+            null,
+            null,
+            null,
+            LoadUsage.COMMERCIAL,
+            List.of(
+                new LoadItem(
+                    LoadCategory.LIGHTING_AND_OUTLETS,
+                    "Iluminação",
+                    1,
+                    new BigDecimal("1.20"),
+                    PowerUnit.KW,
+                    LampTechnology.COMPACT_FLUORESCENT_LED,
+                    null),
+                new LoadItem(
+                    LoadCategory.LIGHTING_AND_OUTLETS,
+                    "Tomadas",
+                    1,
+                    new BigDecimal("1.80"),
+                    PowerUnit.KW,
+                    LampTechnology.GENERAL_OUTLETS,
+                    null)),
+            null,
+            null,
+            null,
+            null));
+  }
+
+  private static ConsumerUnitGroup charging(Project project, int points) {
+    return GroupKind.EV_CHARGING.create(
+        project,
+        new GroupSpec(
+            "Recarga de veículo elétrico",
+            points,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            new BigDecimal("7.40"),
+            false,
+            null,
+            EvStationType.COLLECTIVE));
   }
 
   private static ConsumerUnitGroup apartments(

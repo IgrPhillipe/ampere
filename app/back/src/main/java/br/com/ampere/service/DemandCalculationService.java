@@ -59,6 +59,11 @@ public class DemandCalculationService {
       throw unprocessable("Há grupos com pendências. Corrija-os antes de calcular a demanda.");
     }
 
+    return calculationRepository.save(compute(project, groups));
+  }
+
+  /** The engine run alone, unsaved: the seed reuses it for projects already submitted. */
+  public Calculation compute(Project project, List<ConsumerUnitGroup> groups) {
     BuildingType building = project.getBuildingType();
     DemandContext context =
         new DemandContext(
@@ -72,7 +77,7 @@ public class DemandCalculationService {
       throw unprocessable(missing.getMessage());
     }
 
-    return calculationRepository.save(new Calculation(project, result, snapshot(project, groups)));
+    return new Calculation(project, result, snapshot(project, groups));
   }
 
   @Transactional(readOnly = true)
