@@ -117,7 +117,7 @@ class AdminAccessIntegrationTest {
     String id = create(admin);
 
     mockMvc
-        .perform(post("/normative-tables/" + id + "/publish").header("Authorization", admin))
+        .perform(post("/normative-tables/" + id + "/publication").header("Authorization", admin))
         .andExpect(status().isConflict())
         .andExpect(
             jsonPath("$.detail")
@@ -127,7 +127,7 @@ class AdminAccessIntegrationTest {
 
     mockMvc
         .perform(
-            post("/normative-tables/" + id + "/publish")
+            post("/normative-tables/" + id + "/publication")
                 .header("Authorization", bearer("revisor@ampere.com")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.status").value("PUBLISHED"))
@@ -148,11 +148,12 @@ class AdminAccessIntegrationTest {
     String reviewer = bearer("revisor@ampere.com");
     String first = create(admin);
     mockMvc.perform(
-        post("/normative-tables/" + first + "/publish").header("Authorization", reviewer));
+        post("/normative-tables/" + first + "/publication").header("Authorization", reviewer));
     String second = create(admin);
 
     mockMvc
-        .perform(post("/normative-tables/" + second + "/publish").header("Authorization", reviewer))
+        .perform(
+            post("/normative-tables/" + second + "/publication").header("Authorization", reviewer))
         .andExpect(status().isOk());
 
     mockMvc

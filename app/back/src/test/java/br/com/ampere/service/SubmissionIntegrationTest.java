@@ -298,7 +298,7 @@ class SubmissionIntegrationTest {
 
   private Project calculatedDraft() throws Exception {
     Project project = draft();
-    perform(post("/projects/" + project.getId() + "/calculation")).andExpect(status().isCreated());
+    perform(post("/projects/" + project.getId() + "/calculations")).andExpect(status().isCreated());
     return project;
   }
 
@@ -325,7 +325,7 @@ class SubmissionIntegrationTest {
   }
 
   private static String submitOf(Project project) {
-    return "/projects/" + project.getId() + "/submit";
+    return "/projects/" + project.getId() + "/submission";
   }
 
   private static String memorialOf(Project project) {

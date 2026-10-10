@@ -218,7 +218,7 @@ class ReviewQueueIntegrationTest {
     addPrototypeGroups(project);
     mockMvc
         .perform(
-            post("/projects/" + project.getId() + "/calculation")
+            post("/projects/" + project.getId() + "/calculations")
                 .header("Authorization", "Bearer " + token("user@ampere.com")))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.data.warningsCount").value(1));
@@ -432,7 +432,7 @@ class ReviewQueueIntegrationTest {
   private void calculate(Project project) throws Exception {
     mockMvc
         .perform(
-            post("/projects/" + project.getId() + "/calculation")
+            post("/projects/" + project.getId() + "/calculations")
                 .header("Authorization", "Bearer " + token("user@ampere.com")))
         .andExpect(status().isCreated());
   }

@@ -114,7 +114,7 @@ public class NormativeTableController {
     return ApiResponse.of(NormativeTableResponse.from(service.update(id, parametersOf(request))));
   }
 
-  @PostMapping("/{id}/publish")
+  @PostMapping("/{id}/publication")
   @Operation(
       operationId = "publishNormativeTable",
       summary = "Publica a tabela conferida por outra pessoa e substitui a publicada")

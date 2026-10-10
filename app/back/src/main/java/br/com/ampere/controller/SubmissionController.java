@@ -71,7 +71,7 @@ public class SubmissionController {
     return ApiResponse.of(SubmissionChecklistResponse.from(submissionService.checklist(projectId)));
   }
 
-  @PostMapping("/submit")
+  @PostMapping("/submission")
   @Operation(operationId = "submitProject", summary = "Envia o projeto para análise")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(

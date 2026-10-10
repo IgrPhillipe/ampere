@@ -63,7 +63,7 @@ class ConsumerUnitGroupControllerTest {
 
     mockMvc(service)
         .perform(
-            post("/projects/1/groups")
+            post("/projects/1/consumer-unit-groups")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
@@ -102,7 +102,7 @@ class ConsumerUnitGroupControllerTest {
 
     mockMvc(service)
         .perform(
-            post("/projects/1/groups")
+            post("/projects/1/consumer-unit-groups")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
@@ -130,7 +130,7 @@ class ConsumerUnitGroupControllerTest {
   void rejectsAGroupWithoutKindNameOrQuantity() throws Exception {
     mockMvc(mock(ConsumerUnitGroupService.class))
         .perform(
-            post("/projects/1/groups")
+            post("/projects/1/consumer-unit-groups")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ \"quantity\": 0 }"))
         .andExpect(status().isBadRequest())
@@ -142,7 +142,7 @@ class ConsumerUnitGroupControllerTest {
   void rejectsALoadWithoutDescription() throws Exception {
     mockMvc(mock(ConsumerUnitGroupService.class))
         .perform(
-            post("/projects/1/groups")
+            post("/projects/1/consumer-unit-groups")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
@@ -164,7 +164,7 @@ class ConsumerUnitGroupControllerTest {
         .thenReturn(new GroupValidation(false, 2, 5, 55, new BigDecimal("452.00")));
 
     mockMvc(service)
-        .perform(get("/projects/1/groups/validation"))
+        .perform(get("/projects/1/consumer-unit-groups/validation"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.canCalculate").value(false))
         .andExpect(jsonPath("$.data.pendingCount").value(2))
@@ -179,7 +179,7 @@ class ConsumerUnitGroupControllerTest {
     when(service.list(99L)).thenThrow(new NotFoundException("Projeto não encontrado."));
 
     mockMvc(service)
-        .perform(get("/projects/99/groups"))
+        .perform(get("/projects/99/consumer-unit-groups"))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.detail").value("Projeto não encontrado."));
   }
@@ -202,17 +202,17 @@ class ConsumerUnitGroupControllerTest {
 
     mockMvc
         .perform(
-            put("/projects/1/groups/7")
+            put("/projects/1/consumer-unit-groups/7")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ \"kind\": \"LOAD\", \"name\": \"Área comum\", \"quantity\": 1 }"))
         .andExpect(status().isConflict());
-    mockMvc.perform(delete("/projects/1/groups/8")).andExpect(status().isConflict());
+    mockMvc.perform(delete("/projects/1/consumer-unit-groups/8")).andExpect(status().isConflict());
   }
 
   @Test
   void answersNoContentWhenAGroupIsDeleted() throws Exception {
     mockMvc(mock(ConsumerUnitGroupService.class))
-        .perform(delete("/projects/1/groups/7"))
+        .perform(delete("/projects/1/consumer-unit-groups/7"))
         .andExpect(status().isNoContent())
         .andExpect(content().string(""));
   }

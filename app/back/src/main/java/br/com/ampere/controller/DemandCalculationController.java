@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Demand calculation", description = "Memória de cálculo da demanda de um projeto")
 @RestController
-@RequestMapping("/projects/{projectId}/calculation")
+@RequestMapping("/projects/{projectId}/calculations")
 public class DemandCalculationController {
 
   private final DemandCalculationService service;
@@ -48,7 +48,7 @@ public class DemandCalculationController {
     return ApiResponse.of(CalculationResponse.from(service.calculate(projectId)));
   }
 
-  @GetMapping
+  @GetMapping("/latest")
   @Operation(operationId = "getLatestCalculation", summary = "Último cálculo de demanda do projeto")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(

@@ -104,6 +104,16 @@ O contrato é definido pelo front; o back o cumpre:
 
 Três pontos quebram silenciosamente: o `id` sai como string; sucesso vai embrulhado e erro não; o `detail` é texto de tela em português.
 
+### Rotas REST
+
+O caminho nomeia o recurso, no plural e em kebab-case; o método HTTP diz a ação.
+
+- Sem verbo no caminho: enviar um projeto é `POST /projects/{id}/submission`, publicar uma tabela é `POST /normative-tables/{id}/publication`.
+- Recurso de um projeto fica aninhado nele: `/projects/{id}/consumer-unit-groups`, `/projects/{id}/calculations`, `/projects/{id}/documents`.
+- Coleção que guarda todo o histórico é plural, e o mais recente é `/latest`: `GET /projects/{id}/calculations/latest`.
+- Sem papel no caminho: `/normative-tables` e `/review-queue` são restritos ao `admin` pelo `SecurityConfig`, não por um prefixo `/admin`.
+- Ordenação de lista com uma chave só usa `sort=ASC|DESC` (`SortDirection`); a chave é a da própria lista (prazo na fila, última atualização em projetos).
+
 ### Envelope
 
 Toda resposta de **sucesso** é embrulhada em `ApiResponse<T>`; **erro nunca é**.

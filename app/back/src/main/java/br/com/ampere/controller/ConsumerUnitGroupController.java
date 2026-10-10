@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
     name = "Consumer unit groups",
     description = "Cadastro e validação das unidades consumidoras de um projeto")
 @RestController
-@RequestMapping("/projects/{projectId}/groups")
+@RequestMapping("/projects/{projectId}/consumer-unit-groups")
 public class ConsumerUnitGroupController {
 
   private final ConsumerUnitGroupService service;
