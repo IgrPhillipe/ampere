@@ -9,9 +9,9 @@ import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
-import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
+import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
@@ -80,7 +80,7 @@ class ProjectServiceIntegrationTest {
     findingRepository.save(new Finding(rejectedProject));
 
     ProjectListing listing =
-        service.list(1, 20, ProjectStatus.REJECTED, "VILA", ProjectSort.UPDATED_DESC);
+        service.list(1, 20, ProjectStatus.REJECTED, "VILA", SortDirection.DESC);
 
     assertThat(listing.totalElements()).isOne();
     assertThat(listing.projects()).containsExactly(rejectedProject);
@@ -109,7 +109,7 @@ class ProjectServiceIntegrationTest {
                 "2026-5231",
                 ProjectStatus.UNDER_REVIEW));
 
-    ProjectListing listing = service.list(1, 20, null, "5231", ProjectSort.UPDATED_DESC);
+    ProjectListing listing = service.list(1, 20, null, "5231", SortDirection.DESC);
 
     assertThat(listing.projects()).containsExactly(project);
     assertThat(listing.pendingCountFor(project)).isZero();
@@ -125,8 +125,7 @@ class ProjectServiceIntegrationTest {
             "2026-5231",
             ProjectStatus.UNDER_REVIEW));
 
-    ProjectListing listing =
-        service.list(1, 20, null, "projeto inexistente", ProjectSort.UPDATED_DESC);
+    ProjectListing listing = service.list(1, 20, null, "projeto inexistente", SortDirection.DESC);
 
     assertThat(listing.projects()).isEmpty();
     assertThat(listing.pendingCounts()).isEmpty();
@@ -144,11 +143,11 @@ class ProjectServiceIntegrationTest {
                 "2026-5231",
                 ProjectStatus.UNDER_REVIEW));
 
-    assertThat(service.list(1, 20, null, "edificio", ProjectSort.UPDATED_DESC).projects())
+    assertThat(service.list(1, 20, null, "edificio", SortDirection.DESC).projects())
         .containsExactly(project);
-    assertThat(service.list(1, 20, null, "EDIFÍCIO", ProjectSort.UPDATED_DESC).projects())
+    assertThat(service.list(1, 20, null, "EDIFÍCIO", SortDirection.DESC).projects())
         .containsExactly(project);
-    assertThat(service.list(1, 20, null, "Edifício", ProjectSort.UPDATED_DESC).projects())
+    assertThat(service.list(1, 20, null, "Edifício", SortDirection.DESC).projects())
         .containsExactly(project);
   }
 
@@ -163,7 +162,7 @@ class ProjectServiceIntegrationTest {
             ProjectStatus.UNDER_REVIEW));
 
     // Address and municipality are outside the search contract.
-    assertThat(service.list(1, 20, null, "Recife", ProjectSort.UPDATED_DESC).projects()).isEmpty();
+    assertThat(service.list(1, 20, null, "Recife", SortDirection.DESC).projects()).isEmpty();
   }
 
   @Test
@@ -176,10 +175,9 @@ class ProjectServiceIntegrationTest {
             "2026-8475",
             ProjectStatus.REJECTED));
 
-    assertThat(service.list(1, 20, null, "%", ProjectSort.UPDATED_DESC).projects()).isEmpty();
-    assertThat(service.list(1, 20, null, "_", ProjectSort.UPDATED_DESC).projects()).isEmpty();
-    assertThat(service.list(1, 20, null, "vila%nova", ProjectSort.UPDATED_DESC).projects())
-        .isEmpty();
+    assertThat(service.list(1, 20, null, "%", SortDirection.DESC).projects()).isEmpty();
+    assertThat(service.list(1, 20, null, "_", SortDirection.DESC).projects()).isEmpty();
+    assertThat(service.list(1, 20, null, "vila%nova", SortDirection.DESC).projects()).isEmpty();
   }
 
   @Test

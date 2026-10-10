@@ -149,7 +149,7 @@ class ReviewQueueIntegrationTest {
     submitted("2026-4002", now.minusDays(40));
     submitted("2026-4003", now.minusDays(30));
 
-    asAnalyst(get("/review-queue").param("sort", "deadline_desc"))
+    asAnalyst(get("/review-queue").param("sort", "desc"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(3)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4001"))
@@ -163,11 +163,11 @@ class ReviewQueueIntegrationTest {
     submitted("2026-4302", sharedSubmission);
     submitted("2026-4301", sharedSubmission);
 
-    asAnalyst(get("/review-queue").param("sort", "DEADLINE_ASC"))
+    asAnalyst(get("/review-queue").param("sort", "ASC"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4302"))
         .andExpect(jsonPath("$.data[1].protocol").value("2026-4301"));
-    asAnalyst(get("/review-queue").param("sort", "DEADLINE_DESC"))
+    asAnalyst(get("/review-queue").param("sort", "DESC"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4302"))
         .andExpect(jsonPath("$.data[1].protocol").value("2026-4301"));
@@ -183,7 +183,7 @@ class ReviewQueueIntegrationTest {
             get("/review-queue")
                 .param("search", "joao")
                 .param("filter", "DUE_SOON")
-                .param("sort", "DEADLINE_DESC")
+                .param("sort", "DESC")
                 .param("pageSize", "1")
                 .param("page", "2"))
         .andExpect(status().isOk())
@@ -292,9 +292,8 @@ class ReviewQueueIntegrationTest {
   void rejectsAnUnknownQueueSort() throws Exception {
     asAnalyst(get("/review-queue").param("sort", "oldest_first"))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("DEADLINE_ASC")))
-        .andExpect(
-            jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("DEADLINE_DESC")));
+        .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("ASC")))
+        .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("DESC")));
   }
 
   @Test

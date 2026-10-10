@@ -2,8 +2,8 @@ package br.com.ampere.service;
 
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.Project;
-import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.SortDirection;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
@@ -62,9 +62,8 @@ public class ProjectService {
 
   @Transactional(readOnly = true)
   public ProjectListing list(
-      int page, int pageSize, ProjectStatus status, String search, ProjectSort sort) {
-    Sort.Direction direction =
-        sort == ProjectSort.UPDATED_ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
+      int page, int pageSize, ProjectStatus status, String search, SortDirection sort) {
+    Sort.Direction direction = Sort.Direction.valueOf(sort.name());
     PageRequest pageRequest =
         PageRequest.of(
             page - 1, pageSize, Sort.by(direction, "updatedAt").and(Sort.by(direction, "id")));

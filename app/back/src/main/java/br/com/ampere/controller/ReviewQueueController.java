@@ -1,7 +1,7 @@
 package br.com.ampere.controller;
 
 import br.com.ampere.domain.ReviewQueueFilter;
-import br.com.ampere.domain.ReviewQueueSort;
+import br.com.ampere.domain.SortDirection;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.PageQuery;
 import br.com.ampere.dto.Pagination;
@@ -56,8 +56,8 @@ public class ReviewQueueController {
           @RequestParam(defaultValue = "ALL")
           ReviewQueueFilter filter,
       @Parameter(description = "Ordenação pelo prazo de análise")
-          @RequestParam(defaultValue = "DEADLINE_ASC")
-          ReviewQueueSort sort) {
+          @RequestParam(defaultValue = "ASC")
+          SortDirection sort) {
     ReviewQueueListing listing =
         service.list(pagination.page(), pagination.pageSize(), search, filter, sort);
     List<ReviewQueueItemResponse> items =

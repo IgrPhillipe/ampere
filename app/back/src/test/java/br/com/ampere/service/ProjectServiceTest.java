@@ -15,9 +15,9 @@ import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
-import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
+import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
@@ -55,7 +55,7 @@ class ProjectServiceTest {
             mock(ProjectCreation.class),
             mock(ApplicableStandards.class));
 
-    service.list(1, 20, null, " %_\\ ", ProjectSort.UPDATED_DESC);
+    service.list(1, 20, null, " %_\\ ", SortDirection.DESC);
 
     ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
     verify(projectRepository).searchProjects(isNull(), eq("\\%\\_\\\\"), pageableCaptor.capture());
@@ -81,7 +81,7 @@ class ProjectServiceTest {
             mock(ProjectCreation.class),
             mock(ApplicableStandards.class));
 
-    service.list(1, 20, null, null, ProjectSort.UPDATED_ASC);
+    service.list(1, 20, null, null, SortDirection.ASC);
 
     ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
     verify(projectRepository).searchProjects(isNull(), eq(""), pageableCaptor.capture());

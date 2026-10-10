@@ -29,12 +29,12 @@ import org.springframework.web.bind.annotation.RestController;
     name = "Normative tables",
     description = "Cadastro e publicação das tabelas normativas lidas pelo cálculo (admin)")
 @RestController
-@RequestMapping("/admin/normative-tables")
-public class AdminNormativeTableController {
+@RequestMapping("/normative-tables")
+public class NormativeTableController {
 
   private final NormativeTableService service;
 
-  public AdminNormativeTableController(NormativeTableService service) {
+  public NormativeTableController(NormativeTableService service) {
     this.service = service;
   }
 

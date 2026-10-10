@@ -77,7 +77,7 @@ curl -s -X POST http://localhost:8080/api/auth/login \
   -d '{"email":"user@ampere.com","password":"senha@123"}'
 ```
 
-A área `/api/admin/**` (tabelas normativas) e a fila `/api/review-queue/**` exigem o papel `admin`. O papel `admin` representa o analista na fila técnica.
+As tabelas normativas (`/api/normative-tables/**`) e a fila (`/api/review-queue/**`) exigem o papel `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`. O papel `admin` representa o analista na fila técnica.
 
 ---
 
@@ -89,7 +89,7 @@ A área `/api/admin/**` (tabelas normativas) e a fila `/api/review-queue/**` exi
 | :--- | :--- | :--- |
 | `search` | vazio | protocolo, projetista ou município, sem diferenciar maiúsculas ou acentos |
 | `filter` | `ALL` | `DUE_SOON` (vence hoje ou atrasado), `HIGH_DEMAND` (último cálculo acima de 50 kVA), `REANALYSIS` (dois ou mais envios) |
-| `sort` | `DEADLINE_ASC` | `DEADLINE_ASC` ou `DEADLINE_DESC`; o empate é desfeito pelo ID crescente |
+| `sort` | `ASC` | `ASC` (prazo mais próximo primeiro) ou `DESC`; o empate é desfeito pelo ID crescente |
 
 Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/indicators` devolve os contadores globais, que não dependem desses parâmetros.
 

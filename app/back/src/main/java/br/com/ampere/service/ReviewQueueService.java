@@ -3,7 +3,7 @@ package br.com.ampere.service;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ReviewQueueFilter;
-import br.com.ampere.domain.ReviewQueueSort;
+import br.com.ampere.domain.SortDirection;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.ProjectRepository;
@@ -45,9 +45,8 @@ public class ReviewQueueService {
 
   @Transactional(readOnly = true)
   public ReviewQueueListing list(
-      int page, int pageSize, String search, ReviewQueueFilter filter, ReviewQueueSort sort) {
-    Sort.Direction deadlineDirection =
-        sort == ReviewQueueSort.DEADLINE_DESC ? Sort.Direction.DESC : Sort.Direction.ASC;
+      int page, int pageSize, String search, ReviewQueueFilter filter, SortDirection sort) {
+    Sort.Direction deadlineDirection = Sort.Direction.valueOf(sort.name());
     PageRequest pageRequest =
         PageRequest.of(
             page - 1,
