@@ -1,3 +1,4 @@
+import { CountBadge } from "@components/CountBadge";
 import { createDataTableColumnHelper } from "@components/DataTable";
 import { formatDate, formatKva } from "@features/shared";
 import type { ReviewQueueItem } from "@services/review-queue";
@@ -6,8 +7,7 @@ import { AnalyzeButton } from "./AnalyzeButton";
 import { DeadlineCell } from "./DeadlineCell";
 import { QueueItemIndicator } from "./QueueItemIndicator";
 import { ReviewQueueStatusSummary } from "./ReviewQueueStatusSummary";
-import { formatQueueItemOrigin } from "./review-queue-row";
-import { WarningsBadge } from "./WarningsBadge";
+import { formatQueueItemOrigin, isUrgent } from "./review-queue-row";
 
 const columnHelper = createDataTableColumnHelper<ReviewQueueItem>();
 
@@ -82,7 +82,15 @@ export const reviewQueueColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("warnings", {
 		header: "Pré-validação",
-		cell: ({ row }) => <WarningsBadge warnings={row.original.warnings} />,
+		cell: ({ row }) => (
+			<CountBadge
+				count={row.original.warnings}
+				singular="Alerta"
+				plural="Alertas"
+				empty="Sem alertas"
+				variant="warning"
+			/>
+		),
 	}),
 	columnHelper.accessor("submittedAt", {
 		header: "Enviado em",
@@ -102,9 +110,12 @@ export const reviewQueueColumns = columnHelper.columns([
 	columnHelper.display({
 		id: "action",
 		header: () => <span className="sr-only">Ação</span>,
-		cell: () => (
+		cell: ({ row }) => (
 			<div className="flex justify-end">
-				<AnalyzeButton />
+				<AnalyzeButton
+					urgent={isUrgent(row.original)}
+					buttonClassName="w-full"
+				/>
 			</div>
 		),
 	}),

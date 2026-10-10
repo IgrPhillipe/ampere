@@ -3,9 +3,10 @@ import { formatDate, formatKva } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import type { Project } from "@services/projects";
 
+import { PendingFindingsBadge } from "./PendingFindingsBadge";
 import { ProjectActionIndicator } from "./ProjectActionIndicator";
 import { ProjectRowActionButton } from "./ProjectRowActionButton";
-import { ProjectStatusSummary } from "./ProjectStatusSummary";
+import { ProjectStatusBadge } from "./ProjectStatusBadge";
 import type { ProjectRowActions } from "./project-row";
 
 const columnHelper = createDataTableColumnHelper<Project>();
@@ -16,6 +17,7 @@ export type ProjectColumnId =
 	| "protocol"
 	| "name"
 	| "status"
+	| "pending"
 	| "units"
 	| "demand"
 	| "createdAt"
@@ -48,10 +50,13 @@ export const createProjectColumns = (actions: ProjectRowActions) =>
 		}),
 		columnHelper.accessor("status", {
 			header: "Situação",
+			cell: ({ row }) => <ProjectStatusBadge project={row.original} />,
+		}),
+		columnHelper.accessor("pendingCount", {
+			id: "pending",
+			header: "Pendências",
 			cell: ({ row }) => (
-				<div className="whitespace-normal">
-					<ProjectStatusSummary project={row.original} />
-				</div>
+				<PendingFindingsBadge count={row.original.pendingCount} />
 			),
 		}),
 		columnHelper.accessor("consumerUnitsCount", {
@@ -103,7 +108,11 @@ export const createProjectColumns = (actions: ProjectRowActions) =>
 			header: () => <span className="sr-only">Ação</span>,
 			cell: ({ row }) => (
 				<div className="flex justify-end">
-					<ProjectRowActionButton project={row.original} {...actions} />
+					<ProjectRowActionButton
+						project={row.original}
+						{...actions}
+						buttonClassName="w-full"
+					/>
 				</div>
 			),
 		}),

@@ -232,15 +232,23 @@ do mesmo formulário renderizavam diferentes.
 
 ### Tooltips de Atenção
 
-O ícone laranja de atenção (`AttentionIndicator`) marca a linha que pede ação e
-sempre explica o motivo num tooltip. O tooltip usa o token `tooltip` (cinza
+O ícone de atenção (`AttentionIndicator`) marca a linha que pede ação e sempre
+explica o motivo num tooltip. A cor vem da severidade: `critical` (vermelho)
+para o que trava o fluxo, como projeto reprovado ou prazo vencido, e `warning`
+(laranja) para o que ainda pode esperar, como envio pendente, prazo que vence
+hoje ou alerta de pré-validação. O tooltip usa o token `tooltip` (cinza
 translúcido, texto branco) e o texto segue um formato único, `TooltipMessage`:
 
 | Parte | Conteúdo | Exemplo |
 | :--- | :--- | :--- |
-| `title` | o problema, em poucas palavras e com o número quando houver | "Prazo vencido há 10 dias" |
+| `title` | o problema, em poucas palavras e com o número quando houver; não diz quem o causou | "Prazo vencido há 10 dias" |
 | `details` | os fatos que sustentam o problema, um por linha, sem ponto final | "Venceu em 29/09/2026", "2 alertas na pré-validação do cálculo" |
 | `action` | o que a pessoa deve fazer, numa frase | "Priorize esta análise." |
+
+Na coluna de ação, o botão cheio é só para o que a pessoa precisa fazer agora
+(corrigir, enviar, continuar, analisar um prazo crítico); consulta ou ação que
+pode esperar é um link de texto sublinhado. A diferença é de formato, não de
+cor: a gravidade já está no badge e no ícone.
 
 O problema mais grave vem no título; os outros entram em `details`. O leitor de
 tela recebe as mesmas partes numa frase só (`tooltipMessageText`). As mensagens

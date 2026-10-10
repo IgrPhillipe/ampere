@@ -1,3 +1,4 @@
+import { InlineActionButton } from "@components/InlineActionButton";
 import { Button } from "@components/ui/button";
 import {
 	Tooltip,
@@ -7,21 +8,41 @@ import {
 } from "@components/ui/tooltip";
 import { ArrowRight } from "lucide-react";
 
-export const AnalyzeButton = () => (
+interface AnalyzeButtonProps {
+	/** Overdue or due today: a filled button. Otherwise it can wait, so a link. */
+	urgent: boolean;
+	/** Width of the filled button; the link keeps its own width. */
+	buttonClassName?: string;
+}
+
+const preventNavigation = (event: { preventDefault: () => void }) =>
+	event.preventDefault();
+
+export const AnalyzeButton = ({
+	urgent,
+	buttonClassName,
+}: AnalyzeButtonProps) => (
 	<Tooltip>
 		<TooltipTrigger
 			render={
-				<Button
-					type="button"
-					size="xs"
-					variant="outline"
-					aria-disabled="true"
-					onClick={(event) => event.preventDefault()}
-				/>
+				urgent ? (
+					<Button
+						type="button"
+						size="xs"
+						aria-disabled="true"
+						onClick={preventNavigation}
+						className={buttonClassName}
+					/>
+				) : (
+					<InlineActionButton
+						aria-disabled="true"
+						onClick={preventNavigation}
+					/>
+				)
 			}
 		>
 			Analisar
-			<ArrowRight aria-hidden="true" />
+			{urgent ? <ArrowRight aria-hidden="true" /> : null}
 		</TooltipTrigger>
 		<TooltipContent>
 			<TooltipMessageContent

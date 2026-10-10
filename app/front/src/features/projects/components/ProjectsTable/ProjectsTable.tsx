@@ -14,12 +14,13 @@ import type { ProjectRowActions } from "./project-row";
 const projectColumnClassNames = {
 	attention: "w-10 pr-0",
 	protocol: "w-32",
-	status: "w-40",
-	units: "w-16",
-	demand: "w-28",
-	createdAt: "hidden xl:table-cell xl:w-32",
+	status: "w-48",
+	pending: "w-40",
+	units: "hidden xl:table-cell xl:w-16",
+	demand: "hidden xl:table-cell xl:w-28",
+	createdAt: "hidden 2xl:table-cell 2xl:w-32",
 	updatedAt: "w-32",
-	action: "w-40",
+	action: "w-36",
 } satisfies Partial<Record<ProjectColumnId, string>>;
 
 interface ProjectsTableProps extends ProjectRowActions {
@@ -54,7 +55,7 @@ export const ProjectsTable = ({
 	// Carregamento e vazio ficam aqui, e nao dentro do `DataTable`, porque a
 	// tabela e os cartoes sao duas renderizacoes da mesma lista: deixar para o
 	// `DataTable` faria o estado vazio aparecer duas vezes, uma por breakpoint.
-	if (isLoading) return <SkeletonTable columns={9} />;
+	if (isLoading) return <SkeletonTable columns={10} />;
 
 	if (projects.length === 0) {
 		return onClearFilters ? (

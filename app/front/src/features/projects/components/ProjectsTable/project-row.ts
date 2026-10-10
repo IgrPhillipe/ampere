@@ -1,4 +1,4 @@
-import type { TooltipMessage } from "@components/ui/tooltip";
+import type { AttentionMessage } from "@components/AttentionIndicator";
 import type { Project } from "@services/projects";
 
 /** Reprovado com pendencia oferece "Ver Apontamentos". */
@@ -7,14 +7,15 @@ export const isRejectedWithFindings = (project: Project) =>
 
 export const getProjectAttention = (
 	project: Project,
-): TooltipMessage | null => {
+): AttentionMessage | null => {
 	if (isRejectedWithFindings(project)) {
 		const count = project.pendingCount;
 
 		return {
+			severity: "critical",
 			title: "Projeto reprovado",
 			details: [
-				`${count} ${count === 1 ? "apontamento" : "apontamentos"} do analista a corrigir`,
+				`${count} ${count === 1 ? "apontamento" : "apontamentos"} a corrigir`,
 			],
 			action: "Corrija os apontamentos e reenvie para análise.",
 		};
@@ -22,6 +23,7 @@ export const getProjectAttention = (
 
 	if (project.status === "AWAITING_SUBMISSION") {
 		return {
+			severity: "warning",
 			title: "Envio pendente",
 			details: ["Cálculo concluído, mas o projeto ainda não foi enviado"],
 			action: "Revise o memorial e envie para análise.",

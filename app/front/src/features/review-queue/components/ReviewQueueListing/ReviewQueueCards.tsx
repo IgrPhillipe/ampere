@@ -1,3 +1,4 @@
+import { CountBadge } from "@components/CountBadge";
 import { formatDate, formatKva } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ReviewQueueItem } from "@services/review-queue";
@@ -5,8 +6,7 @@ import type { ReviewQueueItem } from "@services/review-queue";
 import { AnalyzeButton } from "./AnalyzeButton";
 import { QueueItemIndicator } from "./QueueItemIndicator";
 import { ReviewQueueStatusSummary } from "./ReviewQueueStatusSummary";
-import { formatQueueItemOrigin } from "./review-queue-row";
-import { WarningsBadge } from "./WarningsBadge";
+import { formatQueueItemOrigin, isUrgent } from "./review-queue-row";
 
 interface ReviewQueueCardsProps {
 	items: ReviewQueueItem[];
@@ -67,13 +67,19 @@ export const ReviewQueueCards = ({
 					<div className="flex items-center gap-1.5">
 						<dt className="sr-only">Pré-validação</dt>
 						<dd>
-							<WarningsBadge warnings={item.warnings} />
+							<CountBadge
+								count={item.warnings}
+								singular="Alerta"
+								plural="Alertas"
+								empty="Sem alertas"
+								variant="warning"
+							/>
 						</dd>
 					</div>
 				</dl>
 
 				<div className="flex justify-end">
-					<AnalyzeButton />
+					<AnalyzeButton urgent={isUrgent(item)} buttonClassName="w-32" />
 				</div>
 			</li>
 		))}

@@ -78,7 +78,7 @@ describe("ReviewQueueListing", () => {
 describe("AnalyzeButton", () => {
 	it("does not navigate while the analysis screen does not exist", () => {
 		const initialUrl = window.location.href;
-		render(<AnalyzeButton />);
+		render(<AnalyzeButton urgent />);
 
 		const button = screen.getByRole("button", { name: /analisar/i });
 		fireEvent.click(button);

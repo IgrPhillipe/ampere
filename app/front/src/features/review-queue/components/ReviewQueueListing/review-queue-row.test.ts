@@ -33,6 +33,7 @@ describe("getQueueItemAttention", () => {
 				warnings: 2,
 			}),
 		).toEqual({
+			severity: "critical",
 			title: "Prazo vencido há 1 dia",
 			details: [
 				"Venceu em 08/10/2026",

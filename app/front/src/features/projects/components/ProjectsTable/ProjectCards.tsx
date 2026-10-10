@@ -3,9 +3,10 @@ import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
 import type { Project } from "@services/projects";
 
+import { PendingFindingsBadge } from "./PendingFindingsBadge";
 import { ProjectActionIndicator } from "./ProjectActionIndicator";
 import { ProjectRowActionButton } from "./ProjectRowActionButton";
-import { ProjectStatusSummary } from "./ProjectStatusSummary";
+import { ProjectStatusBadge } from "./ProjectStatusBadge";
 import type { ProjectRowActions } from "./project-row";
 
 interface ProjectCardsProps extends ProjectRowActions {
@@ -48,7 +49,12 @@ export const ProjectCards = ({
 					</span>
 				</div>
 
-				<ProjectStatusSummary project={project} />
+				<div className="flex flex-wrap items-center gap-2">
+					<ProjectStatusBadge project={project} />
+					{project.pendingCount > 0 ? (
+						<PendingFindingsBadge count={project.pendingCount} />
+					) : null}
+				</div>
 
 				<dl className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
 					<div className="flex gap-1.5">
@@ -88,7 +94,11 @@ export const ProjectCards = ({
 				</dl>
 
 				<div className="flex justify-end">
-					<ProjectRowActionButton project={project} {...actions} />
+					<ProjectRowActionButton
+						project={project}
+						{...actions}
+						buttonClassName="w-32"
+					/>
 				</div>
 			</li>
 		))}
