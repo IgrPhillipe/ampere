@@ -15,7 +15,7 @@ const columnClassNames = {
 	protocol: "w-28",
 	status: "w-32",
 	deadline: "w-36",
-	cycle: "hidden xl:table-cell xl:w-36",
+	cycle: "hidden xl:table-cell xl:w-28",
 	units: "hidden xl:table-cell xl:w-16",
 	demand: "w-28",
 	warnings: "w-20",

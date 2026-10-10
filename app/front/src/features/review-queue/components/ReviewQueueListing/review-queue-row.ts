@@ -18,7 +18,7 @@ export const formatDeadlineDistance = ({
 };
 
 export const formatReviewCycle = ({ reviewCycle }: ReviewQueueItem) =>
-	reviewCycle > 1 ? `Reanálise (${reviewCycle}º envio)` : "1º envio";
+	`${reviewCycle}º envio`;
 
 export const isUrgent = ({ deadlineStatus }: ReviewQueueItem) =>
 	deadlineStatus !== "ON_TIME";

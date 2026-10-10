@@ -1,7 +1,7 @@
 export const NormativeTableEndpoints = {
-	codes: "admin/normative-tables/codes",
-	list: "admin/normative-tables",
-	create: "admin/normative-tables",
-	detail: (id: string) => `admin/normative-tables/${id}`,
-	publish: (id: string) => `admin/normative-tables/${id}/publish`,
+	codes: "normative-tables/codes",
+	list: "normative-tables",
+	create: "normative-tables",
+	detail: (id: string) => `normative-tables/${id}`,
+	publication: (id: string) => `normative-tables/${id}/publication`,
 } as const;

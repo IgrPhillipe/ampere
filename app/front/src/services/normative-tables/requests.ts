@@ -49,7 +49,7 @@ export const updateNormativeTable = async ({
 };
 
 export const publishNormativeTable = async (id: string) => {
-	const response = await http.post(e.publish(id)).json<unknown>();
+	const response = await http.post(e.publication(id)).json<unknown>();
 
 	return normativeTableResponseSchema.parse(response);
 };

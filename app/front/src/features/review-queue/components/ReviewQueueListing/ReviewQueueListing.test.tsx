@@ -63,7 +63,7 @@ describe("ReviewQueueListing", () => {
 		);
 		expect(screen.getAllByText("3 dias de atraso")).not.toHaveLength(0);
 		expect(screen.getAllByText("08/10/2026")).not.toHaveLength(0);
-		expect(screen.getAllByText("Reanálise (2º envio)")).not.toHaveLength(0);
+		expect(screen.getAllByText("2º envio")).not.toHaveLength(0);
 		expect(
 			screen.getAllByText(
 				"Prazo vencido há 3 dias. Venceu em 08/10/2026. 1 alerta na pré-validação do cálculo. Priorize esta análise.",

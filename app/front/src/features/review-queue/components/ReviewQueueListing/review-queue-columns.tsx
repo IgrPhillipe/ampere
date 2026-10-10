@@ -69,13 +69,7 @@ export const reviewQueueColumns = columnHelper.columns([
 		id: "cycle",
 		header: "Envio",
 		cell: ({ row }) => (
-			<span
-				className={
-					row.original.reviewCycle > 1
-						? "text-sm whitespace-normal text-foreground"
-						: "text-sm text-muted-foreground"
-				}
-			>
+			<span className="font-mono text-sm text-foreground">
 				{formatReviewCycle(row.original)}
 			</span>
 		),

@@ -96,7 +96,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 
 				<div className="px-6 pt-8 md:px-8">
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
-						Etapa 04: Documentação
+						Etapa 04 de 05
 					</p>
 
 					<h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">

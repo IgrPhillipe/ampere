@@ -1,9 +1,5 @@
-import { useDebouncedValue } from "@features/shared";
-import {
-	type ProjectStatus,
-	projectSortSchema,
-	projectStatusSchema,
-} from "@services/projects";
+import { sortDirectionSchema, useDebouncedValue } from "@features/shared";
+import { type ProjectStatus, projectStatusSchema } from "@services/projects";
 import {
 	debounce,
 	parseAsInteger,
@@ -32,7 +28,7 @@ export const useProjectFilters = () => {
 	);
 	const [sort, setSortQuery] = useQueryState(
 		"sort",
-		parseAsStringLiteral(projectSortSchema.options).withDefault("UPDATED_DESC"),
+		parseAsStringLiteral(sortDirectionSchema.options).withDefault("DESC"),
 	);
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -60,7 +56,7 @@ export const useProjectFilters = () => {
 	);
 
 	const toggleSort = useCallback(() => {
-		void setSortQuery(sort === "UPDATED_DESC" ? "UPDATED_ASC" : null);
+		void setSortQuery(sort === "DESC" ? "ASC" : null);
 		void setPageQuery(null);
 	}, [sort, setSortQuery, setPageQuery]);
 

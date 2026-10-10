@@ -2,11 +2,10 @@ import { FilterTiles } from "@components/FilterTiles";
 import { ListToolbar } from "@components/ListToolbar";
 import { SearchInput } from "@components/SearchInput";
 import { SortToggle } from "@components/SortToggle";
-import { padCount } from "@features/shared";
+import { padCount, type SortDirection } from "@features/shared";
 import type {
 	ReviewQueueFilter,
 	ReviewQueueIndicators,
-	ReviewQueueSort,
 } from "@services/review-queue";
 
 const formatPercent = (value: number) =>
@@ -18,8 +17,8 @@ interface ReviewQueueToolbarProps {
 	onFilterChange: (filter: ReviewQueueFilter) => void;
 	search: string;
 	onSearchChange: (value: string) => void;
-	sort: ReviewQueueSort;
-	onSortChange: (sort: ReviewQueueSort) => void;
+	sort: SortDirection;
+	onSortChange: (sort: SortDirection) => void;
 	className?: string;
 }
 
@@ -86,12 +85,8 @@ export const ReviewQueueToolbar = ({
 		sort={
 			<SortToggle
 				label="Prazo"
-				descending={sort === "DEADLINE_DESC"}
-				onToggle={() =>
-					onSortChange(
-						sort === "DEADLINE_ASC" ? "DEADLINE_DESC" : "DEADLINE_ASC",
-					)
-				}
+				descending={sort === "DESC"}
+				onToggle={() => onSortChange(sort === "ASC" ? "DESC" : "ASC")}
 			/>
 		}
 	/>

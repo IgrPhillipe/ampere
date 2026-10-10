@@ -13,7 +13,7 @@ const LoginRoute = () => {
 	return <LoginPage redirectTo={redirect} />;
 };
 
-export const Route = createFileRoute("/login")({
+export const Route = createFileRoute("/entrar")({
 	validateSearch: (search: Record<string, unknown>): LoginSearch => ({
 		redirect: typeof search.redirect === "string" ? search.redirect : undefined,
 	}),

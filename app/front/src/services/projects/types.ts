@@ -1,8 +1,9 @@
+import type { SortDirection } from "@features/shared";
+
 import type {
 	BuildingCategory,
 	ConnectionType,
 	EntranceStandard,
-	ProjectSort,
 	ProjectStatus,
 	SupplyVoltage,
 } from "./schemas";
@@ -12,7 +13,7 @@ export interface ListProjectsParams {
 	pageSize?: number;
 	status?: ProjectStatus;
 	search?: string;
-	sort?: ProjectSort;
+	sort?: SortDirection;
 }
 
 /** Corpo de `POST /projects` — os oito campos da US02. */

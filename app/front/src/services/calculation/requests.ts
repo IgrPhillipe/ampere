@@ -7,7 +7,7 @@ import { calculationResponseSchema } from "./schemas";
 /** Null while the project has never been calculated. */
 export const getLatestCalculation = async (projectId: string) => {
 	try {
-		const response = await http.get(e.calculation(projectId)).json<unknown>();
+		const response = await http.get(e.latest(projectId)).json<unknown>();
 
 		return calculationResponseSchema.parse(response);
 	} catch (error) {
@@ -18,7 +18,7 @@ export const getLatestCalculation = async (projectId: string) => {
 };
 
 export const runCalculation = async (projectId: string) => {
-	const response = await http.post(e.calculation(projectId)).json<unknown>();
+	const response = await http.post(e.create(projectId)).json<unknown>();
 
 	return calculationResponseSchema.parse(response);
 };

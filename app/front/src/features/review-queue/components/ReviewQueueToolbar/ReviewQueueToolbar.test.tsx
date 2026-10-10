@@ -22,7 +22,7 @@ describe("ReviewQueueToolbar", () => {
 				filter="ALL"
 				onFilterChange={onFilterChange}
 				indicators={counts}
-				sort="DEADLINE_ASC"
+				sort="ASC"
 				onSortChange={vi.fn()}
 			/>,
 		);
@@ -41,7 +41,7 @@ describe("ReviewQueueToolbar", () => {
 				filter="ALL"
 				onFilterChange={vi.fn()}
 				indicators={counts}
-				sort="DEADLINE_ASC"
+				sort="ASC"
 				onSortChange={onSortChange}
 			/>,
 		);
@@ -50,6 +50,6 @@ describe("ReviewQueueToolbar", () => {
 			screen.getByRole("button", { name: "Ordenar por prazo decrescente" }),
 		);
 
-		expect(onSortChange).toHaveBeenCalledWith("DEADLINE_DESC");
+		expect(onSortChange).toHaveBeenCalledWith("DESC");
 	});
 });

@@ -136,7 +136,7 @@ export const ProjectsPage = () => {
 					sort={
 						<SortToggle
 							label="Atualização"
-							descending={sort === "UPDATED_DESC"}
+							descending={sort === "DESC"}
 							onToggle={toggleSort}
 						/>
 					}

@@ -182,7 +182,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 
 				<div className="px-6 pt-8 md:px-8">
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
-						Etapa 01: Identificação da obra
+						Etapa 01 de 05
 					</p>
 
 					<h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">
@@ -376,7 +376,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 						variant="outline"
 						size="icon"
 						aria-label="Voltar para Meus Projetos"
-						onClick={() => void navigate({ to: "/" })}
+						onClick={() => void navigate({ to: "/projetos" })}
 					>
 						<ArrowLeft aria-hidden="true" />
 					</Button>

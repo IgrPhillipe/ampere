@@ -1,9 +1,11 @@
-import { useDebouncedValue } from "@features/shared";
+import {
+	type SortDirection,
+	sortDirectionSchema,
+	useDebouncedValue,
+} from "@features/shared";
 import {
 	type ReviewQueueFilter,
-	type ReviewQueueSort,
 	reviewQueueFilterSchema,
-	reviewQueueSortSchema,
 } from "@services/review-queue";
 import {
 	debounce,
@@ -25,9 +27,7 @@ export const useReviewQueueFilters = () => {
 			.withDefault("")
 			.withOptions({ limitUrlUpdates: debounce(SEARCH_DEBOUNCE_MS) }),
 		page: parseAsInteger.withDefault(1),
-		sort: parseAsStringLiteral(reviewQueueSortSchema.options).withDefault(
-			"DEADLINE_ASC",
-		),
+		sort: parseAsStringLiteral(sortDirectionSchema.options).withDefault("ASC"),
 	});
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -56,9 +56,9 @@ export const useReviewQueueFilters = () => {
 	);
 
 	const setSort = useCallback(
-		(nextSort: ReviewQueueSort) => {
+		(nextSort: SortDirection) => {
 			void setQuery({
-				sort: nextSort === "DEADLINE_ASC" ? null : nextSort,
+				sort: nextSort === "ASC" ? null : nextSort,
 				page: null,
 			});
 		},

@@ -252,6 +252,21 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 
 ## Roteamento
 
+- A URL é em português, em kebab-case, e espelha a feature da tela, nunca o
+  papel de quem acessa (o papel fica no `requireRoles`):
+
+| Feature | Rota | Página |
+| :--- | :--- | :--- |
+| `auth` | `/entrar` | Entrar |
+| `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id/<etapa>` | Meus Projetos e as etapas |
+| `review-queue` | `/fila-de-analise` | Fila de Análise |
+| `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
+
+- `/` não tem página: o `redirectToRoleHome` manda cada papel à sua página
+  inicial (`getRoleHomePath`). O título da página, o item do menu e o `pageTitle`
+  da aba usam o mesmo nome.
+- Parâmetros de query repetem os da API (`page`, `search`, `status`, `filter`,
+  `sort=ASC|DESC`), para a URL e a requisição dizerem a mesma coisa.
 - Roteamento por arquivo em `src/routes/`, cada arquivo exportando `Route`.
 - `src/routeTree.gen.ts` é **gerado** pelo plugin do Vite e **commitado**, para
   que `pnpm type-check` funcione sem rodar o dev server antes. Nunca edite à
@@ -582,7 +597,7 @@ export const Route = createFileRoute("/projetos/$id")({
 4. Restringir por papel:
 
 ```ts
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/tabelas-normativas")({
 	beforeLoad: requireRoles(["admin"]),
 	component: AdminPage,
 });

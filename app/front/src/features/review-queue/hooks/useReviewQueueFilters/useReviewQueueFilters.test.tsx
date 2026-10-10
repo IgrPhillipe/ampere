@@ -13,7 +13,7 @@ describe("useReviewQueueFilters", () => {
 
 		expect(result.current.page).toBe(1);
 		expect(result.current.filter).toBe("ALL");
-		expect(result.current.sort).toBe("DEADLINE_ASC");
+		expect(result.current.sort).toBe("ASC");
 	});
 
 	it("stores search in the URL and returns to the first page", async () => {
@@ -61,12 +61,12 @@ describe("useReviewQueueFilters", () => {
 		});
 		const { result } = renderHook(() => useReviewQueueFilters(), { wrapper });
 
-		act(() => result.current.setSort("DEADLINE_DESC"));
+		act(() => result.current.setSort("DESC"));
 
 		await waitFor(() => expect(onUrlUpdate).toHaveBeenCalled());
 		const lastUpdate = onUrlUpdate.mock.lastCall?.[0];
 
-		expect(lastUpdate?.searchParams.get("sort")).toBe("DEADLINE_DESC");
+		expect(lastUpdate?.searchParams.get("sort")).toBe("DESC");
 		expect(lastUpdate?.searchParams.has("page")).toBe(false);
 	});
 });

@@ -54,7 +54,7 @@ Títulos usam Title Case: cada palavra começa em maiúscula, exceto artigos,
 preposições e conjunções curtas (a, o, e, de, da, do, em, para). Vale para
 títulos de página e de seção, itens da navegação, etapas do stepper, títulos de
 drawer, o `pageTitle` da aba e o texto de todos os botões. Exemplos: "Novo
-Projeto", "Parâmetros Técnicos", "Normas e Tabelas", "Salvar Grupo", "Aprovar e
+Projeto", "Parâmetros Técnicos", "Tabelas Normativas", "Salvar Grupo", "Aprovar e
 Publicar".
 
 Badges e rótulos de status também usam Title Case ("Aguardando Revisão", "Em
@@ -299,7 +299,7 @@ app/front/src/components/layout/nav-items.ts
 
 `APP_NAV_ITEMS` é a fonte única do cabeçalho e do painel móvel. Uma área sem
 rota pode aparecer com `disabled: true` e só se torna interativa no mesmo commit
-que cria a rota. Item de área restrita leva `roles`: "Normas e tabelas" é
+que cria a rota. Item de área restrita leva `roles`: "Tabelas Normativas" é
 `roles: ["admin"]` e fica oculto para o projetista, em vez de aparecer
 desabilitado.
 

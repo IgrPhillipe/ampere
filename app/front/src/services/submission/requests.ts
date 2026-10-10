@@ -53,7 +53,7 @@ export const deleteDocument = async ({
 };
 
 export const submitProject = async (projectId: string) => {
-	const response = await http.post(e.submit(projectId)).json<unknown>();
+	const response = await http.post(e.submission(projectId)).json<unknown>();
 
 	return submitProjectResponseSchema.parse(response);
 };

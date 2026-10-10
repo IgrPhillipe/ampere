@@ -9,7 +9,7 @@ import { getRoleHomePath } from "./route-guard";
 describe("role navigation", () => {
 	it("uses the review queue as the analyst home", () => {
 		expect(getRoleHomePath("admin")).toBe("/fila-de-analise");
-		expect(getRoleHomePath("user")).toBe("/");
+		expect(getRoleHomePath("user")).toBe("/projetos");
 	});
 
 	it("exposes only the role-appropriate primary navigation", () => {
