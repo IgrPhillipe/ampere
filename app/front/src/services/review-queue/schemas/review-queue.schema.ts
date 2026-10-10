@@ -28,10 +28,12 @@ export const reviewQueueItemSchema = z.object({
 	deadlineStatus: deadlineStatusSchema,
 	daysRemaining: z.number().int(),
 	warnings: z.number().int().nonnegative(),
+	alerts: z.array(z.string()),
 	ownerName: z.string().nullable(),
 	consumerUnitsCount: z.number().int().nonnegative(),
 	demandKva: z.number().nonnegative().nullable(),
 	reanalysis: z.boolean(),
+	reviewCycle: z.number().int().positive(),
 });
 
 export type ReviewQueueItem = z.infer<typeof reviewQueueItemSchema>;

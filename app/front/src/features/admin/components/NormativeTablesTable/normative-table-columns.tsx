@@ -1,7 +1,9 @@
 import { createDataTableColumnHelper } from "@components/DataTable";
+import { RowAction } from "@components/RowAction";
 import type { NormativeTable } from "@services/normative-tables";
 
 import { NormativeTableStatusBadge } from "../NormativeTableStatusBadge";
+import { getNormativeTableAction } from "./normative-table-row";
 import { PersonCell } from "./PersonCell";
 
 const columnHelper = createDataTableColumnHelper<NormativeTable>();
@@ -13,27 +15,21 @@ export type NormativeTableColumnId =
 	| "rowCount"
 	| "status"
 	| "registeredBy"
-	| "verifiedBy";
+	| "verifiedBy"
+	| "action";
 
 export const createNormativeTableColumns = (
 	onOpen: (table: NormativeTable) => void,
+	email: string | undefined,
 ) =>
 	columnHelper.columns([
 		columnHelper.accessor("identification", {
 			header: "Tabela",
 			cell: ({ row }) => (
 				<div className="flex flex-col gap-1 whitespace-normal">
-					<button
-						type="button"
-						onClick={(event) => {
-							// The row opens the sheet too; one open per click is enough.
-							event.stopPropagation();
-							onOpen(row.original);
-						}}
-						className="self-start text-left font-semibold text-foreground underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-					>
+					<span className="font-semibold text-foreground">
 						{row.original.identification}
-					</button>
+					</span>
 					<span className="text-xs text-muted-foreground">
 						{row.original.title}
 					</span>
@@ -90,5 +86,27 @@ export const createNormativeTableColumns = (
 				) : (
 					<span className="text-sm text-muted-foreground">Pendente</span>
 				),
+		}),
+		columnHelper.display({
+			id: "action",
+			header: () => <span className="sr-only">Ação</span>,
+			cell: ({ row }) => {
+				const action = getNormativeTableAction(row.original, email);
+
+				return (
+					<div className="flex justify-end">
+						<RowAction
+							label={action.label}
+							required={action.required}
+							buttonClassName="w-full"
+							onClick={(event) => {
+								// The row opens the sheet too; one open per click is enough.
+								event.stopPropagation();
+								onOpen(row.original);
+							}}
+						/>
+					</div>
+				);
+			},
 		}),
 	]);

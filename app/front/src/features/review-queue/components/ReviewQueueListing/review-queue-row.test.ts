@@ -13,10 +13,12 @@ const item: ReviewQueueItem = {
 	deadlineStatus: "ON_TIME",
 	daysRemaining: 20,
 	warnings: 0,
+	alerts: [],
 	ownerName: null,
 	consumerUnitsCount: 0,
 	demandKva: null,
 	reanalysis: false,
+	reviewCycle: 1,
 };
 
 describe("getQueueItemAttention", () => {
@@ -31,6 +33,9 @@ describe("getQueueItemAttention", () => {
 				deadlineStatus: "OVERDUE",
 				daysRemaining: -1,
 				warnings: 2,
+				alerts: [
+					"Recarga de 44,40 kW instalados, acima de 20 kW: exige estudo da rede.",
+				],
 			}),
 		).toEqual({
 			severity: "critical",

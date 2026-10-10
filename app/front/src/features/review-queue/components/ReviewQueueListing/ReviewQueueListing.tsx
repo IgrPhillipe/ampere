@@ -13,13 +13,13 @@ import {
 const columnClassNames = {
 	attention: "w-10 pr-0",
 	protocol: "w-28",
-	status: "w-40",
+	status: "w-32",
+	deadline: "w-36",
+	cycle: "hidden xl:table-cell xl:w-36",
 	units: "hidden xl:table-cell xl:w-16",
-	demand: "hidden xl:table-cell xl:w-28",
-	warnings: "w-24",
-	submittedAt: "hidden 2xl:table-cell 2xl:w-32",
-	deadline: "w-28",
-	action: "w-36",
+	demand: "w-28",
+	warnings: "w-20",
+	action: "w-32",
 } satisfies Partial<Record<ReviewQueueColumnId, string>>;
 
 interface ReviewQueueListingProps {

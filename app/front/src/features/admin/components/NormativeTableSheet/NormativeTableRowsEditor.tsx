@@ -24,6 +24,7 @@ import {
 	Controller,
 	useFieldArray,
 	useFormState,
+	useWatch,
 } from "react-hook-form";
 
 import {
@@ -112,6 +113,22 @@ interface RowInputProps {
 	column: RowColumn;
 }
 
+const RowValue = ({ control, index, column }: RowInputProps) => {
+	const value = useWatch({ control, name: `rows.${index}.${column.name}` });
+
+	return (
+		<span
+			className={
+				column.numeric
+					? "font-mono text-sm text-foreground"
+					: "text-sm text-foreground"
+			}
+		>
+			{value === "" || value == null ? null : String(value)}
+		</span>
+	);
+};
+
 const RowInput = ({ control, index, column }: RowInputProps) => {
 	const errorId = useId();
 
@@ -134,6 +151,20 @@ const RowInput = ({ control, index, column }: RowInputProps) => {
 				</>
 			)}
 		/>
+	);
+};
+
+const RowKeyValue = ({
+	control,
+	index,
+	items,
+}: Omit<RowKeySelectProps, "disabled">) => {
+	const value = useWatch({ control, name: `rows.${index}.key` });
+
+	return (
+		<span className="text-sm text-foreground">
+			{value ? (items[value] ?? value) : null}
+		</span>
 	);
 };
 
@@ -256,25 +287,47 @@ export const NormativeTableRowsEditor = ({
 						{rows.fields.map((field, index) => (
 							<TableRow key={field.id} className="hover:bg-transparent">
 								<TableCell className="px-2 align-top font-mono text-xs text-muted-foreground">
-									<span className="inline-block pt-2.5">
+									<span
+										className={readOnly ? undefined : "inline-block pt-2.5"}
+									>
 										{padCount(index + 1)}
 									</span>
 								</TableCell>
 
 								{keyed ? (
 									<TableCell className="px-2 align-top">
-										<RowKeySelect
-											control={control}
-											index={index}
-											items={keyItems}
-											disabled={readOnly}
-										/>
+										{readOnly ? (
+											<RowKeyValue
+												control={control}
+												index={index}
+												items={keyItems}
+											/>
+										) : (
+											<RowKeySelect
+												control={control}
+												index={index}
+												items={keyItems}
+												disabled={readOnly}
+											/>
+										)}
 									</TableCell>
 								) : null}
 
 								{columns.map((column) => (
 									<TableCell key={column.name} className="px-2 align-top">
-										<RowInput control={control} index={index} column={column} />
+										{readOnly ? (
+											<RowValue
+												control={control}
+												index={index}
+												column={column}
+											/>
+										) : (
+											<RowInput
+												control={control}
+												index={index}
+												column={column}
+											/>
+										)}
 									</TableCell>
 								))}
 

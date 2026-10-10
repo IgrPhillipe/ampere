@@ -1,13 +1,17 @@
-import { CountCell } from "@components/CountCell";
 import { createDataTableColumnHelper } from "@components/DataTable";
-import { formatDate, formatKva } from "@features/shared";
+import { formatKva } from "@features/shared";
 import type { ReviewQueueItem } from "@services/review-queue";
 
+import { AlertsCell } from "./AlertsCell";
 import { AnalyzeButton } from "./AnalyzeButton";
 import { DeadlineCell } from "./DeadlineCell";
+import { DeadlineStatusBadge } from "./DeadlineStatusBadge";
 import { QueueItemIndicator } from "./QueueItemIndicator";
-import { ReviewQueueStatusSummary } from "./ReviewQueueStatusSummary";
-import { formatQueueItemOrigin, isUrgent } from "./review-queue-row";
+import {
+	formatQueueItemOrigin,
+	formatReviewCycle,
+	isUrgent,
+} from "./review-queue-row";
 
 const columnHelper = createDataTableColumnHelper<ReviewQueueItem>();
 
@@ -16,11 +20,11 @@ export type ReviewQueueColumnId =
 	| "protocol"
 	| "name"
 	| "status"
+	| "deadline"
+	| "cycle"
 	| "units"
 	| "demand"
 	| "warnings"
-	| "submittedAt"
-	| "deadline"
 	| "action";
 
 export const reviewQueueColumns = columnHelper.columns([
@@ -52,11 +56,28 @@ export const reviewQueueColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("deadlineStatus", {
 		id: "status",
-		header: "Situação",
+		header: "Prazo",
 		cell: ({ row }) => (
-			<div className="whitespace-normal">
-				<ReviewQueueStatusSummary item={row.original} />
-			</div>
+			<DeadlineStatusBadge deadlineStatus={row.original.deadlineStatus} />
+		),
+	}),
+	columnHelper.accessor("deadline", {
+		header: "Vencimento",
+		cell: ({ row }) => <DeadlineCell item={row.original} />,
+	}),
+	columnHelper.accessor("reviewCycle", {
+		id: "cycle",
+		header: "Envio",
+		cell: ({ row }) => (
+			<span
+				className={
+					row.original.reviewCycle > 1
+						? "text-sm whitespace-normal text-foreground"
+						: "text-sm text-muted-foreground"
+				}
+			>
+				{formatReviewCycle(row.original)}
+			</span>
 		),
 	}),
 	columnHelper.accessor("consumerUnitsCount", {
@@ -82,22 +103,7 @@ export const reviewQueueColumns = columnHelper.columns([
 	}),
 	columnHelper.accessor("warnings", {
 		header: "Alertas",
-		cell: ({ row }) => <CountCell count={row.original.warnings} />,
-	}),
-	columnHelper.accessor("submittedAt", {
-		header: "Enviado em",
-		cell: ({ row }) => (
-			<time
-				dateTime={row.original.submittedAt}
-				className="font-mono text-xs text-foreground"
-			>
-				{formatDate(row.original.submittedAt)}
-			</time>
-		),
-	}),
-	columnHelper.accessor("deadline", {
-		header: "Prazo",
-		cell: ({ row }) => <DeadlineCell item={row.original} />,
+		cell: ({ row }) => <AlertsCell item={row.original} />,
 	}),
 	columnHelper.display({
 		id: "action",

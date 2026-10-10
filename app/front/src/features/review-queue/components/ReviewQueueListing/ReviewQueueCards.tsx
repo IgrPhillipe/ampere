@@ -3,9 +3,13 @@ import { cn } from "@lib/utils";
 import type { ReviewQueueItem } from "@services/review-queue";
 
 import { AnalyzeButton } from "./AnalyzeButton";
+import { DeadlineStatusBadge } from "./DeadlineStatusBadge";
 import { QueueItemIndicator } from "./QueueItemIndicator";
-import { ReviewQueueStatusSummary } from "./ReviewQueueStatusSummary";
-import { formatQueueItemOrigin, isUrgent } from "./review-queue-row";
+import {
+	formatQueueItemOrigin,
+	formatReviewCycle,
+	isUrgent,
+} from "./review-queue-row";
 
 interface ReviewQueueCardsProps {
 	items: ReviewQueueItem[];
@@ -37,7 +41,12 @@ export const ReviewQueueCards = ({
 					</span>
 				</div>
 
-				<ReviewQueueStatusSummary item={item} />
+				<div className="flex flex-wrap items-center gap-2">
+					<DeadlineStatusBadge deadlineStatus={item.deadlineStatus} />
+					<span className="text-xs text-muted-foreground">
+						{formatReviewCycle(item)}
+					</span>
+				</div>
 
 				<dl className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-muted-foreground">
 					<div className="flex gap-1.5">

@@ -1,5 +1,6 @@
 import { ControlledInput, ControlledSelect } from "@components/form";
 import { useAuthStore, useZodForm } from "@features/shared";
+import { cn } from "@lib/utils";
 import {
 	type NormativeTable,
 	type NormativeTableCode,
@@ -29,6 +30,29 @@ interface NormativeTableFormProps {
 	onCreated: (table: NormativeTable) => void;
 	onClose: () => void;
 }
+
+interface ReadOnlyFieldProps {
+	label: string;
+	value: string;
+	mono?: boolean;
+	className?: string;
+}
+
+const ReadOnlyField = ({
+	label,
+	value,
+	mono,
+	className,
+}: ReadOnlyFieldProps) => (
+	<div className={cn("flex flex-col gap-1.5", className)}>
+		<dt className="text-xs leading-none tracking-wider text-muted-foreground uppercase">
+			{label}
+		</dt>
+		<dd className={cn("text-sm text-foreground", mono && "font-mono")}>
+			{value}
+		</dd>
+	</div>
+);
 
 export const NormativeTableForm = ({
 	table,
@@ -148,56 +172,70 @@ export const NormativeTableForm = ({
 				disabled={readOnly}
 				className="flex min-w-0 flex-1 flex-col gap-8 overflow-y-auto px-6 py-6"
 			>
-				<div className="grid gap-x-6 gap-y-6 sm:grid-cols-2">
-					<ControlledSelect
-						control={form.control}
-						name="code"
-						label="Tabela"
-						placeholder="Selecione a tabela da norma"
-						items={codeItems}
-						disabled={!isNew}
-						required
-						variant="underline"
-						fieldClassName="min-w-0 sm:col-span-2"
-						className="min-w-0 *:data-[slot=select-value]:truncate"
-					/>
+				{readOnly && table ? (
+					<dl className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+						<ReadOnlyField
+							label="Tabela"
+							value={codeItems[table.code] ?? table.title}
+							className="sm:col-span-2"
+						/>
+						<ReadOnlyField label="Identificação" value={table.identification} />
+						<ReadOnlyField label="Norma" value={standardLabel} mono />
+						<ReadOnlyField label="Item" value={table.item} />
+						<ReadOnlyField label="Página" value={table.page} mono />
+					</dl>
+				) : (
+					<div className="grid gap-x-6 gap-y-6 sm:grid-cols-2">
+						<ControlledSelect
+							control={form.control}
+							name="code"
+							label="Tabela"
+							placeholder="Selecione a tabela da norma"
+							items={codeItems}
+							disabled={!isNew}
+							required
+							variant="underline"
+							fieldClassName="min-w-0 sm:col-span-2"
+							className="min-w-0 *:data-[slot=select-value]:truncate"
+						/>
 
-					<ControlledInput
-						control={form.control}
-						name="identification"
-						label="Identificação"
-						placeholder="Ex.: Quadro 35"
-						required
-						variant="underline"
-					/>
+						<ControlledInput
+							control={form.control}
+							name="identification"
+							label="Identificação"
+							placeholder="Ex.: Quadro 35"
+							required
+							variant="underline"
+						/>
 
-					<div className="flex flex-col gap-2">
-						<span className="text-xs leading-none tracking-wider text-muted-foreground uppercase">
-							Norma
-						</span>
-						<span className="flex h-11 items-center border-b-2 border-transparent font-mono text-sm text-foreground">
-							{standardLabel}
-						</span>
+						<div className="flex flex-col gap-2">
+							<span className="text-xs leading-none tracking-wider text-muted-foreground uppercase">
+								Norma
+							</span>
+							<span className="flex h-11 items-center border-b-2 border-transparent font-mono text-sm text-foreground">
+								{standardLabel}
+							</span>
+						</div>
+
+						<ControlledInput
+							control={form.control}
+							name="item"
+							label="Item"
+							placeholder="Ex.: Anexo I, item 1"
+							required
+							variant="underline"
+						/>
+
+						<ControlledInput
+							control={form.control}
+							name="page"
+							label="Página"
+							inputMode="numeric"
+							required
+							variant="underline"
+						/>
 					</div>
-
-					<ControlledInput
-						control={form.control}
-						name="item"
-						label="Item"
-						placeholder="Ex.: Anexo I, item 1"
-						required
-						variant="underline"
-					/>
-
-					<ControlledInput
-						control={form.control}
-						name="page"
-						label="Página"
-						inputMode="numeric"
-						required
-						variant="underline"
-					/>
-				</div>
+				)}
 
 				<NormativeTableRowsEditor
 					control={form.control}

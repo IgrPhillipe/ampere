@@ -4,7 +4,7 @@ import type { ReviewQueueItem } from "@services/review-queue";
 
 const formatDays = (days: number) => `${days} ${days === 1 ? "dia" : "dias"}`;
 
-const formatWarnings = (warnings: number) =>
+export const formatWarnings = (warnings: number) =>
 	`${warnings} ${warnings === 1 ? "alerta" : "alertas"} na pré-validação do cálculo`;
 
 export const formatDeadlineDistance = ({
@@ -16,6 +16,9 @@ export const formatDeadlineDistance = ({
 	if (deadlineStatus === "DUE_TODAY") return "Último dia";
 	return `Faltam ${formatDays(daysRemaining)}`;
 };
+
+export const formatReviewCycle = ({ reviewCycle }: ReviewQueueItem) =>
+	reviewCycle > 1 ? `Reanálise (${reviewCycle}º envio)` : "1º envio";
 
 export const isUrgent = ({ deadlineStatus }: ReviewQueueItem) =>
 	deadlineStatus !== "ON_TIME";

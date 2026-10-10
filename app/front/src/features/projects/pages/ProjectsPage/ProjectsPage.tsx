@@ -75,9 +75,18 @@ export const ProjectsPage = () => {
 		[navigate],
 	);
 
+	// Resumes at the step the draft stopped: units, then calculation, then memorial.
 	const handleContinueDraft = useCallback(
-		(project: Project) =>
-			void navigate({ to: "/projetos/$id/dados", params: { id: project.id } }),
+		(project: Project) => {
+			const to =
+				project.consumerUnitsCount === 0
+					? "/projetos/$id/unidades"
+					: project.demandKva === null
+						? "/projetos/$id/calculo"
+						: "/projetos/$id/memorial";
+
+			void navigate({ to, params: { id: project.id } });
+		},
 		[navigate],
 	);
 
