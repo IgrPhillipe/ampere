@@ -7,7 +7,6 @@ export * from "./ProjectStamp";
 export * from "./ProjectStatusFilters";
 export * from "./ProjectStepper";
 export * from "./ProjectsTable";
-export * from "./ProjectToolbar";
 export * from "./SubmissionChecklistPanel";
 export * from "./TraceabilityPanel";
 export * from "./ValidationPanel";

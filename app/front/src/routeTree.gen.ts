@@ -9,19 +9,31 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
+import { Route as TabelasNormativasRouteImport } from './routes/tabelas-normativas'
+import { Route as FilaDeAnaliseRouteImport } from './routes/fila-de-analise'
+import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProjetosIndexRouteImport } from './routes/projetos/index'
 import { Route as ProjetosNovoRouteImport } from './routes/projetos/novo'
-import { Route as AdminNormasRouteImport } from './routes/admin/normas'
 import { Route as ProjetosIdUnidadesRouteImport } from './routes/projetos/$id/unidades'
 import { Route as ProjetosIdMemorialRouteImport } from './routes/projetos/$id/memorial'
 import { Route as ProjetosIdEnvioRouteImport } from './routes/projetos/$id/envio'
 import { Route as ProjetosIdDadosRouteImport } from './routes/projetos/$id/dados'
 import { Route as ProjetosIdCalculoRouteImport } from './routes/projetos/$id/calculo'
 
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const TabelasNormativasRoute = TabelasNormativasRouteImport.update({
+  id: '/tabelas-normativas',
+  path: '/tabelas-normativas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FilaDeAnaliseRoute = FilaDeAnaliseRouteImport.update({
+  id: '/fila-de-analise',
+  path: '/fila-de-analise',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -29,14 +41,14 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjetosIndexRoute = ProjetosIndexRouteImport.update({
+  id: '/projetos/',
+  path: '/projetos/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProjetosNovoRoute = ProjetosNovoRouteImport.update({
   id: '/projetos/novo',
   path: '/projetos/novo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminNormasRoute = AdminNormasRouteImport.update({
-  id: '/admin/normas',
-  path: '/admin/normas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjetosIdUnidadesRoute = ProjetosIdUnidadesRouteImport.update({
@@ -67,9 +79,11 @@ const ProjetosIdCalculoRoute = ProjetosIdCalculoRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/admin/normas': typeof AdminNormasRoute
+  '/entrar': typeof EntrarRoute
+  '/fila-de-analise': typeof FilaDeAnaliseRoute
+  '/tabelas-normativas': typeof TabelasNormativasRoute
   '/projetos/novo': typeof ProjetosNovoRoute
+  '/projetos/': typeof ProjetosIndexRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
   '/projetos/$id/envio': typeof ProjetosIdEnvioRoute
@@ -78,9 +92,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/admin/normas': typeof AdminNormasRoute
+  '/entrar': typeof EntrarRoute
+  '/fila-de-analise': typeof FilaDeAnaliseRoute
+  '/tabelas-normativas': typeof TabelasNormativasRoute
   '/projetos/novo': typeof ProjetosNovoRoute
+  '/projetos': typeof ProjetosIndexRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
   '/projetos/$id/envio': typeof ProjetosIdEnvioRoute
@@ -90,9 +106,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/admin/normas': typeof AdminNormasRoute
+  '/entrar': typeof EntrarRoute
+  '/fila-de-analise': typeof FilaDeAnaliseRoute
+  '/tabelas-normativas': typeof TabelasNormativasRoute
   '/projetos/novo': typeof ProjetosNovoRoute
+  '/projetos/': typeof ProjetosIndexRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
   '/projetos/$id/envio': typeof ProjetosIdEnvioRoute
@@ -103,9 +121,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/login'
-    | '/admin/normas'
+    | '/entrar'
+    | '/fila-de-analise'
+    | '/tabelas-normativas'
     | '/projetos/novo'
+    | '/projetos/'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
     | '/projetos/$id/envio'
@@ -114,9 +134,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/login'
-    | '/admin/normas'
+    | '/entrar'
+    | '/fila-de-analise'
+    | '/tabelas-normativas'
     | '/projetos/novo'
+    | '/projetos'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
     | '/projetos/$id/envio'
@@ -125,9 +147,11 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/login'
-    | '/admin/normas'
+    | '/entrar'
+    | '/fila-de-analise'
+    | '/tabelas-normativas'
     | '/projetos/novo'
+    | '/projetos/'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
     | '/projetos/$id/envio'
@@ -137,9 +161,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  LoginRoute: typeof LoginRoute
-  AdminNormasRoute: typeof AdminNormasRoute
+  EntrarRoute: typeof EntrarRoute
+  FilaDeAnaliseRoute: typeof FilaDeAnaliseRoute
+  TabelasNormativasRoute: typeof TabelasNormativasRoute
   ProjetosNovoRoute: typeof ProjetosNovoRoute
+  ProjetosIndexRoute: typeof ProjetosIndexRoute
   ProjetosIdCalculoRoute: typeof ProjetosIdCalculoRoute
   ProjetosIdDadosRoute: typeof ProjetosIdDadosRoute
   ProjetosIdEnvioRoute: typeof ProjetosIdEnvioRoute
@@ -149,11 +175,25 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/tabelas-normativas': {
+      id: '/tabelas-normativas'
+      path: '/tabelas-normativas'
+      fullPath: '/tabelas-normativas'
+      preLoaderRoute: typeof TabelasNormativasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fila-de-analise': {
+      id: '/fila-de-analise'
+      path: '/fila-de-analise'
+      fullPath: '/fila-de-analise'
+      preLoaderRoute: typeof FilaDeAnaliseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -163,18 +203,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projetos/': {
+      id: '/projetos/'
+      path: '/projetos'
+      fullPath: '/projetos/'
+      preLoaderRoute: typeof ProjetosIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/projetos/novo': {
       id: '/projetos/novo'
       path: '/projetos/novo'
       fullPath: '/projetos/novo'
       preLoaderRoute: typeof ProjetosNovoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/normas': {
-      id: '/admin/normas'
-      path: '/admin/normas'
-      fullPath: '/admin/normas'
-      preLoaderRoute: typeof AdminNormasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projetos/$id/unidades': {
@@ -217,9 +257,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  LoginRoute: LoginRoute,
-  AdminNormasRoute: AdminNormasRoute,
+  EntrarRoute: EntrarRoute,
+  FilaDeAnaliseRoute: FilaDeAnaliseRoute,
+  TabelasNormativasRoute: TabelasNormativasRoute,
   ProjetosNovoRoute: ProjetosNovoRoute,
+  ProjetosIndexRoute: ProjetosIndexRoute,
   ProjetosIdCalculoRoute: ProjetosIdCalculoRoute,
   ProjetosIdDadosRoute: ProjetosIdDadosRoute,
   ProjetosIdEnvioRoute: ProjetosIdEnvioRoute,

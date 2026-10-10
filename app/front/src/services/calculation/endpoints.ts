@@ -1,3 +1,4 @@
 export const CalculationEndpoints = {
-	calculation: (projectId: string) => `projects/${projectId}/calculation`,
+	create: (projectId: string) => `projects/${projectId}/calculations`,
+	latest: (projectId: string) => `projects/${projectId}/calculations/latest`,
 } as const;

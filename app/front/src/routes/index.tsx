@@ -1,8 +1,6 @@
-import { ProjectsPage } from "@features/projects";
-import { pageTitle } from "@lib/page-title";
+import { redirectToRoleHome } from "@lib/route-guard";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
-	head: () => ({ meta: [{ title: pageTitle("Meus Projetos") }] }),
-	component: ProjectsPage,
+	beforeLoad: redirectToRoleHome(),
 });

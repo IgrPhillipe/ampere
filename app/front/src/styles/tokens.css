@@ -50,12 +50,16 @@
 	--success-foreground: var(--neo-white);
 	--warning: var(--neo-sunset);
 	--warning-foreground: var(--neo-ink);
+	--info: var(--neo-sky);
+	--info-foreground: var(--neo-ink);
 	--border: var(--neo-sand-strong);
 	--input: #b0a9a3;
 	--ring: #007f33;
 	--disabled: var(--neo-gray-light);
 	--disabled-foreground: var(--neo-gray-medium);
 	--overlay: rgb(0 32 21 / 48%);
+	--tooltip: rgb(38 38 38 / 88%);
+	--tooltip-foreground: var(--neo-white);
 
 	/* Data visualization */
 	--chart-1: var(--neo-green);
@@ -144,12 +148,16 @@
 	--color-success-foreground: var(--success-foreground);
 	--color-warning: var(--warning);
 	--color-warning-foreground: var(--warning-foreground);
+	--color-info: var(--info);
+	--color-info-foreground: var(--info-foreground);
 	--color-border: var(--border);
 	--color-input: var(--input);
 	--color-ring: var(--ring);
 	--color-disabled: var(--disabled);
 	--color-disabled-foreground: var(--disabled-foreground);
 	--color-overlay: var(--overlay);
+	--color-tooltip: var(--tooltip);
+	--color-tooltip-foreground: var(--tooltip-foreground);
 
 	--color-brand-green: var(--neo-green);
 	--color-brand-green-dark: var(--neo-green-dark);

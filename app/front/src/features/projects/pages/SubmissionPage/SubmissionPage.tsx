@@ -86,7 +86,7 @@ export const SubmissionPage = ({ projectId }: SubmissionPageProps) => {
 			}`
 		: undefined;
 
-	const goToProjects = () => void navigate({ to: "/" });
+	const goToProjects = () => void navigate({ to: "/projetos" });
 
 	return (
 		<PageLayout
@@ -102,7 +102,7 @@ export const SubmissionPage = ({ projectId }: SubmissionPageProps) => {
 
 				<div className="px-6 pt-8 md:px-8">
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
-						Etapa 05: Envio
+						Etapa 05 de 05
 					</p>
 
 					<h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">

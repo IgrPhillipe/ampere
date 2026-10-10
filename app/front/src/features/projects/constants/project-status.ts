@@ -1,3 +1,4 @@
+import type { BadgeProps } from "@components/ui/badge";
 import type { ProjectStatus, ProjectStatusCounts } from "@services/projects";
 
 export const projectStatusLabels = {
@@ -15,3 +16,11 @@ export const projectStatusCountKeys = {
 	REJECTED: "rejected",
 	APPROVED: "approved",
 } as const satisfies Record<ProjectStatus, keyof ProjectStatusCounts>;
+
+export const projectStatusBadgeVariants = {
+	DRAFT: "neutral",
+	AWAITING_SUBMISSION: "warning",
+	UNDER_REVIEW: "info",
+	REJECTED: "destructive",
+	APPROVED: "success",
+} as const satisfies Record<ProjectStatus, BadgeProps["variant"]>;

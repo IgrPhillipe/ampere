@@ -1,0 +1,68 @@
+import { DataTable } from "@components/DataTable";
+import { EmptyState } from "@components/EmptyState";
+import { SkeletonTable } from "@components/SkeletonTable";
+import { Button } from "@components/ui/button";
+import type { ReviewQueueItem } from "@services/review-queue";
+
+import { ReviewQueueCards } from "./ReviewQueueCards";
+import {
+	type ReviewQueueColumnId,
+	reviewQueueColumns,
+} from "./review-queue-columns";
+
+const columnClassNames = {
+	attention: "w-10 pr-0",
+	protocol: "w-28 text-center",
+	status: "w-32 text-center",
+	deadline: "w-36 text-center",
+	cycle: "hidden xl:table-cell xl:w-28 text-center",
+	units: "hidden xl:table-cell xl:w-16 text-center",
+	demand: "w-28 text-center",
+	warnings: "w-20 text-center",
+	action: "w-32",
+} satisfies Partial<Record<ReviewQueueColumnId, string>>;
+
+interface ReviewQueueListingProps {
+	items: ReviewQueueItem[];
+	isLoading?: boolean;
+	onClearFilters?: () => void;
+}
+
+export const ReviewQueueListing = ({
+	items,
+	isLoading = false,
+	onClearFilters,
+}: ReviewQueueListingProps) => {
+	if (isLoading) return <SkeletonTable columns={10} />;
+
+	if (items.length === 0) {
+		return onClearFilters ? (
+			<EmptyState
+				title="Nenhum projeto encontrado para os critérios informados"
+				description="Verifique a busca ou limpe os filtros para ver toda a fila."
+				action={
+					<Button type="button" variant="outline" onClick={onClearFilters}>
+						Limpar Filtros
+					</Button>
+				}
+			/>
+		) : (
+			<EmptyState
+				title="Nenhum projeto aguardando análise"
+				description="Os projetos enviados pelos projetistas aparecem aqui."
+			/>
+		);
+	}
+
+	return (
+		<>
+			<ReviewQueueCards items={items} className="lg:hidden" />
+			<DataTable
+				columns={reviewQueueColumns}
+				data={items}
+				columnClassNames={columnClassNames}
+				className="hidden lg:block"
+			/>
+		</>
+	);
+};

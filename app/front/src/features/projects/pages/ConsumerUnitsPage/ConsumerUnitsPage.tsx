@@ -126,7 +126,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 
 				<div className="px-6 pt-8 md:px-8">
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
-						Etapa 02: Cadastro das unidades
+						Etapa 02 de 05
 					</p>
 
 					<h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">

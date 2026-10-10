@@ -1,5 +1,6 @@
 import { useAuthStore } from "@features/shared";
 import { getToastErrorMessage } from "@lib/api-error";
+import { getRoleHomePath } from "@lib/route-guard";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -20,7 +21,7 @@ export const useLogin = ({ redirectTo }: UseLoginOptions = {}) => {
 		onSuccess: ({ data }) => {
 			setSession({ ...data.user, token: data.token });
 
-			navigate({ to: redirectTo ?? "/" });
+			navigate({ to: redirectTo ?? getRoleHomePath(data.user.role) });
 
 			toast.success(`Bem-vindo, ${data.user.name}.`);
 		},

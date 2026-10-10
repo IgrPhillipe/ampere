@@ -1,3 +1,4 @@
+import { InlineActionButton } from "@components/InlineActionButton";
 import { Skeleton } from "@components/ui/skeleton";
 import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
@@ -6,8 +7,6 @@ import type {
 	GroupValidation,
 	ValidationIssue,
 } from "@services/consumer-units";
-
-import { InlineActionButton } from "../ProjectsTable/InlineActionButton";
 
 const issueActionLabels = {
 	REVIEW: "Corrigir Agora",

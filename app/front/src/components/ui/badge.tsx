@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 
 const badgeVariants = cva(
-	"inline-flex min-h-6 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border border-transparent px-2.5 py-1 text-xs leading-none font-semibold whitespace-nowrap transition-[background-color,border-color,color,box-shadow] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 aria-invalid:border-destructive aria-invalid:ring-destructive/20 [&>svg]:pointer-events-none [&>svg]:size-3",
+	"inline-flex min-h-6 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border border-transparent px-2.5 py-1 font-mono text-xs leading-none font-medium tracking-wider whitespace-nowrap uppercase transition-[background-color,border-color,color,box-shadow] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 aria-invalid:border-destructive aria-invalid:ring-destructive/20 [&>svg]:pointer-events-none [&>svg]:size-3",
 	{
 		variants: {
 			variant: {
@@ -21,6 +21,9 @@ const badgeVariants = cva(
 					"border-primary/20 bg-accent text-accent-foreground [a&]:hover:bg-accent/80",
 				warning:
 					"border-warning/40 bg-warning/20 text-warning-foreground [a&]:hover:bg-warning/30",
+				info: "border-info/40 bg-info/15 text-info-foreground",
+				neutral: "border-border bg-surface-hover text-muted-foreground",
+				tag: "border-border bg-transparent text-muted-foreground",
 			},
 		},
 		defaultVariants: {
@@ -53,4 +56,4 @@ function Badge({
 	});
 }
 
-export { Badge, badgeVariants };
+export { Badge, type BadgeProps, badgeVariants };

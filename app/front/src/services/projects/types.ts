@@ -1,3 +1,5 @@
+import type { SortDirection } from "@features/shared";
+
 import type {
 	BuildingCategory,
 	ConnectionType,
@@ -11,6 +13,7 @@ export interface ListProjectsParams {
 	pageSize?: number;
 	status?: ProjectStatus;
 	search?: string;
+	sort?: SortDirection;
 }
 
 /** Corpo de `POST /projects` — os oito campos da US02. */

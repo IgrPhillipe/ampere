@@ -54,7 +54,7 @@ Títulos usam Title Case: cada palavra começa em maiúscula, exceto artigos,
 preposições e conjunções curtas (a, o, e, de, da, do, em, para). Vale para
 títulos de página e de seção, itens da navegação, etapas do stepper, títulos de
 drawer, o `pageTitle` da aba e o texto de todos os botões. Exemplos: "Novo
-Projeto", "Parâmetros Técnicos", "Normas e Tabelas", "Salvar Grupo", "Aprovar e
+Projeto", "Parâmetros Técnicos", "Tabelas Normativas", "Salvar Grupo", "Aprovar e
 Publicar".
 
 Badges e rótulos de status também usam Title Case ("Aguardando Revisão", "Em
@@ -173,9 +173,22 @@ página e a seta seguinte na última.
 
 ### Badges
 
-Badges indicam estados curtos. `success`, `warning` e `destructive` usam fundo
-suave para não competir com a ação principal. O texto exibido é em português;
-valores da API são convertidos antes de chegar ao componente.
+Badge é só para status, sempre em caixa alta e mono (a primitiva já aplica). A
+cor diz quem precisa agir; quando ninguém precisa, o badge é neutro, para que
+os urgentes se destaquem.
+
+| Variante | Significado | Exemplos |
+| :--- | :--- | :--- |
+| `destructive` | bloqueia o fluxo | Reprovado, Atrasado |
+| `warning` | alguém precisa agir logo | Aguardando Envio, Vence Hoje, Rascunho de tabela |
+| `info` | em andamento com a Neoenergia | Em Análise |
+| `success` | resultado positivo final | Aprovado, Publicada |
+| `neutral` | nada a sinalizar | Rascunho, No Prazo, Substituída |
+| `tag` | marca que não é status, só com contorno | Reanálise |
+
+Verde fica reservado ao sucesso: processo em andamento não é verde. Contagens
+(pendências, alertas, UCs) não viram badge: são números em mono na própria
+coluna, e o zero fica em branco.
 
 ```tsx
 <Badge variant="success">Aprovado</Badge>
@@ -230,6 +243,31 @@ do mesmo formulário renderizavam diferentes.
 - `Card` agrupa conteúdo relacionado; não envolve uma seção inteira apenas para
   criar espaçamento.
 
+### Tooltips de Atenção
+
+O ícone de atenção (`AttentionIndicator`) marca a linha que pede ação e sempre
+explica o motivo num tooltip. A cor vem da severidade: `critical` (vermelho)
+para o que trava o fluxo, como projeto reprovado ou prazo vencido, e `warning`
+(laranja) para o que ainda pode esperar, como envio pendente, prazo que vence
+hoje ou alerta de pré-validação. O tooltip usa o token `tooltip` (cinza
+translúcido, texto branco) e o texto segue um formato único, `TooltipMessage`:
+
+| Parte | Conteúdo | Exemplo |
+| :--- | :--- | :--- |
+| `title` | o problema, em poucas palavras e com o número quando houver; não diz quem o causou | "Prazo vencido há 10 dias" |
+| `details` | os fatos que sustentam o problema, um por linha, sem ponto final | "Venceu em 29/09/2026", "2 alertas na pré-validação do cálculo" |
+| `action` | o que a pessoa deve fazer, numa frase | "Priorize esta análise." |
+
+Na coluna de ação, o botão cheio é só para o que a pessoa precisa fazer agora
+(corrigir, enviar, continuar, analisar um prazo crítico); consulta ou ação que
+pode esperar é um link de texto sublinhado. A diferença é de formato, não de
+cor: a gravidade já está no badge e no ícone.
+
+O problema mais grave vem no título; os outros entram em `details`. O leitor de
+tela recebe as mesmas partes numa frase só (`tooltipMessageText`). As mensagens
+de cada tela ficam juntas numa função (`getProjectAttention`,
+`getQueueItemAttention`), nunca espalhadas pelos componentes.
+
 ### Séries do Cálculo de Demanda
 
 As parcelas da demanda usam os tokens de gráfico, na ordem de cor do protótipo
@@ -261,7 +299,7 @@ app/front/src/components/layout/nav-items.ts
 
 `APP_NAV_ITEMS` é a fonte única do cabeçalho e do painel móvel. Uma área sem
 rota pode aparecer com `disabled: true` e só se torna interativa no mesmo commit
-que cria a rota. Item de área restrita leva `roles`: "Normas e tabelas" é
+que cria a rota. Item de área restrita leva `roles`: "Tabelas Normativas" é
 `roles: ["admin"]` e fica oculto para o projetista, em vez de aparecer
 desabilitado.
 

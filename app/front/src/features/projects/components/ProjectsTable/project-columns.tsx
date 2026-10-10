@@ -1,10 +1,12 @@
+import { CountCell } from "@components/CountCell";
 import { createDataTableColumnHelper } from "@components/DataTable";
 import { formatDate, formatKva } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import type { Project } from "@services/projects";
 
 import { ProjectActionIndicator } from "./ProjectActionIndicator";
-import { ProjectStatusSummary } from "./ProjectStatusSummary";
+import { ProjectRowActionButton } from "./ProjectRowActionButton";
+import { ProjectStatusBadge } from "./ProjectStatusBadge";
 import type { ProjectRowActions } from "./project-row";
 
 const columnHelper = createDataTableColumnHelper<Project>();
@@ -15,15 +17,14 @@ export type ProjectColumnId =
 	| "protocol"
 	| "name"
 	| "status"
+	| "pending"
 	| "units"
 	| "demand"
 	| "createdAt"
-	| "updatedAt";
+	| "updatedAt"
+	| "action";
 
-export const createProjectColumns = ({
-	onViewFindings,
-	onResumeSubmission,
-}: ProjectRowActions) =>
+export const createProjectColumns = (actions: ProjectRowActions) =>
 	columnHelper.columns([
 		columnHelper.display({
 			id: "attention",
@@ -49,15 +50,12 @@ export const createProjectColumns = ({
 		}),
 		columnHelper.accessor("status", {
 			header: "Situação",
-			cell: ({ row }) => (
-				<div className="whitespace-normal">
-					<ProjectStatusSummary
-						project={row.original}
-						onViewFindings={onViewFindings}
-						onResumeSubmission={onResumeSubmission}
-					/>
-				</div>
-			),
+			cell: ({ row }) => <ProjectStatusBadge project={row.original} />,
+		}),
+		columnHelper.accessor("pendingCount", {
+			id: "pending",
+			header: "Pendências",
+			cell: ({ row }) => <CountCell count={row.original.pendingCount} />,
 		}),
 		columnHelper.accessor("consumerUnitsCount", {
 			id: "units",
@@ -101,6 +99,19 @@ export const createProjectColumns = ({
 				>
 					{dayjs(row.original.updatedAt).fromNow()}
 				</time>
+			),
+		}),
+		columnHelper.display({
+			id: "action",
+			header: () => <span className="sr-only">Ação</span>,
+			cell: ({ row }) => (
+				<div className="flex justify-end">
+					<ProjectRowActionButton
+						project={row.original}
+						{...actions}
+						buttonClassName="w-full"
+					/>
+				</div>
 			),
 		}),
 	]);

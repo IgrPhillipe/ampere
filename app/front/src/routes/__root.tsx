@@ -10,7 +10,7 @@ import {
 import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
 
 /** Routes that need no session. Everything else goes through the guard. */
-const PUBLIC_PATHS = ["/login"];
+const PUBLIC_PATHS = ["/entrar"];
 
 const RootComponent = () => {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });

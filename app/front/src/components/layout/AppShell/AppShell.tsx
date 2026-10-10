@@ -14,7 +14,7 @@ export const AppShell = () => {
 	useEffect(() => {
 		if (isAuthenticated) return;
 
-		void navigate({ to: "/login", search: { redirect: pathname } });
+		void navigate({ to: "/entrar", search: { redirect: pathname } });
 	}, [isAuthenticated, navigate, pathname]);
 
 	return (

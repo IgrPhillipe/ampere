@@ -10,7 +10,7 @@ export const useLogout = () => {
 
 	// Navigate first: clearing the token under mounted queries refetches them and toasts a 401.
 	return useCallback(() => {
-		void navigate({ to: "/login" }).then(() => {
+		void navigate({ to: "/entrar" }).then(() => {
 			clearSession();
 			queryClient.clear();
 		});

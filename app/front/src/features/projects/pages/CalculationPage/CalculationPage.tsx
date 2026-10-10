@@ -90,7 +90,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 
 				<div className="px-6 pt-8 md:px-8">
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
-						Etapa 03: Memória de cálculo
+						Etapa 03 de 05
 					</p>
 
 					<h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">
