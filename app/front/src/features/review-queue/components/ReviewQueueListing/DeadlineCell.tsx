@@ -8,7 +8,7 @@ interface DeadlineCellProps {
 }
 
 export const DeadlineCell = ({ item }: DeadlineCellProps) => (
-	<div className="flex flex-col gap-0.5">
+	<div className="flex flex-col items-center gap-0.5">
 		<time
 			dateTime={item.deadline}
 			className="font-mono text-xs text-foreground"

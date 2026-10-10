@@ -15,8 +15,8 @@ import {
 const normativeTableColumnClassNames = {
 	standard: "w-32",
 	item: "hidden lg:table-cell lg:w-36",
-	rowCount: "w-20",
-	status: "w-36",
+	rowCount: "w-20 text-center",
+	status: "w-36 text-center",
 	registeredBy: "hidden xl:table-cell xl:w-44",
 	verifiedBy: "hidden lg:table-cell lg:w-44",
 	action: "w-32",
