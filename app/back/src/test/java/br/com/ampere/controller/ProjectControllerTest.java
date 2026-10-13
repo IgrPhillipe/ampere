@@ -134,7 +134,7 @@ class ProjectControllerTest {
   @Test
   void createsProjectAndAnswersCreated() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.create(any(), eq("user@ampere.com"))).thenReturn(draft());
+    when(service.create(any())).thenReturn(draft());
     authenticateAs("user@ampere.com");
 
     mockMvc(service)

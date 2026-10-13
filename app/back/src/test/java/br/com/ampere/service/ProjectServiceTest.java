@@ -26,6 +26,9 @@ import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.security.AuthenticatedUser;
+import br.com.ampere.security.CurrentUser;
+import br.com.ampere.security.ProjectAccessPolicy;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -38,13 +41,17 @@ import org.springframework.http.HttpStatus;
 
 class ProjectServiceTest {
 
+  private static final AuthenticatedUser USER =
+      new AuthenticatedUser(7L, "user@ampere.com", br.com.ampere.domain.UserRole.USER);
+
   @Test
   void normalizesSearchAndUsesStablePaginationOrder() {
     ProjectRepository projectRepository = mock(ProjectRepository.class);
     FindingRepository findingRepository = mock(FindingRepository.class);
-    when(projectRepository.searchProjects(isNull(), eq("\\%\\_\\\\"), any(Pageable.class)))
+    when(projectRepository.searchAccessibleProjects(
+            isNull(), eq("\\%\\_\\\\"), eq(7L), eq(false), any(Pageable.class)))
         .thenReturn(Page.empty());
-    when(projectRepository.countPerStatus()).thenReturn(List.of());
+    when(projectRepository.countAccessiblePerStatus(7L, false)).thenReturn(List.of());
     ProjectService service =
         new ProjectService(
             projectRepository,
@@ -53,12 +60,16 @@ class ProjectServiceTest {
             mock(CalculationRepository.class),
             mock(ProjectDocumentRepository.class),
             mock(ProjectCreation.class),
-            mock(ApplicableStandards.class));
+            mock(ApplicableStandards.class),
+            currentUser(),
+            mock(ProjectAccessPolicy.class));
 
     service.list(1, 20, null, " %_\\ ", SortDirection.DESC);
 
     ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-    verify(projectRepository).searchProjects(isNull(), eq("\\%\\_\\\\"), pageableCaptor.capture());
+    verify(projectRepository)
+        .searchAccessibleProjects(
+            isNull(), eq("\\%\\_\\\\"), eq(7L), eq(false), pageableCaptor.capture());
     Pageable pageable = pageableCaptor.getValue();
     assertThat(pageable.getPageNumber()).isZero();
     assertThat(pageable.getPageSize()).isEqualTo(20);
@@ -69,7 +80,8 @@ class ProjectServiceTest {
   @Test
   void ordersByTheOldestUpdateWhenAscending() {
     ProjectRepository projectRepository = mock(ProjectRepository.class);
-    when(projectRepository.searchProjects(isNull(), eq(""), any(Pageable.class)))
+    when(projectRepository.searchAccessibleProjects(
+            isNull(), eq(""), eq(7L), eq(false), any(Pageable.class)))
         .thenReturn(Page.empty());
     ProjectService service =
         new ProjectService(
@@ -79,12 +91,15 @@ class ProjectServiceTest {
             mock(CalculationRepository.class),
             mock(ProjectDocumentRepository.class),
             mock(ProjectCreation.class),
-            mock(ApplicableStandards.class));
+            mock(ApplicableStandards.class),
+            currentUser(),
+            mock(ProjectAccessPolicy.class));
 
     service.list(1, 20, null, null, SortDirection.ASC);
 
     ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-    verify(projectRepository).searchProjects(isNull(), eq(""), pageableCaptor.capture());
+    verify(projectRepository)
+        .searchAccessibleProjects(isNull(), eq(""), eq(7L), eq(false), pageableCaptor.capture());
     assertThat(pageableCaptor.getValue().getSort().stream().map(Object::toString))
         .containsExactly("updatedAt: ASC", "id: ASC");
   }
@@ -97,7 +112,7 @@ class ProjectServiceTest {
         .thenThrow(new DataIntegrityViolationException("duplicate protocol"))
         .thenReturn(created);
 
-    assertThat(service(creation).create(parameters(), "user@ampere.com")).isSameAs(created);
+    assertThat(service(creation).create(parameters())).isSameAs(created);
     verify(creation, times(2)).createWithGeneratedProtocol(any(), any());
   }
 
@@ -107,7 +122,7 @@ class ProjectServiceTest {
     when(creation.createWithGeneratedProtocol(any(), any()))
         .thenThrow(new DataIntegrityViolationException("duplicate protocol"));
 
-    assertThatThrownBy(() -> service(creation).create(parameters(), "user@ampere.com"))
+    assertThatThrownBy(() -> service(creation).create(parameters()))
         .isInstanceOf(BusinessException.class)
         .hasMessage("Não foi possível gerar o protocolo do projeto. Tente novamente.")
         .extracting(exception -> ((BusinessException) exception).getStatus())
@@ -191,7 +206,9 @@ class ProjectServiceTest {
         mock(CalculationRepository.class),
         mock(ProjectDocumentRepository.class),
         creation,
-        mock(ApplicableStandards.class));
+        mock(ApplicableStandards.class),
+        currentUser(),
+        mock(ProjectAccessPolicy.class));
   }
 
   private static ProjectService service(
@@ -210,7 +227,15 @@ class ProjectServiceTest {
         calculationRepository,
         mock(ProjectDocumentRepository.class),
         mock(ProjectCreation.class),
-        mock(ApplicableStandards.class));
+        mock(ApplicableStandards.class),
+        currentUser(),
+        mock(ProjectAccessPolicy.class));
+  }
+
+  private static CurrentUser currentUser() {
+    CurrentUser currentUser = mock(CurrentUser.class);
+    when(currentUser.get()).thenReturn(USER);
+    return currentUser;
   }
 
   private static ProjectParameters parameters() {

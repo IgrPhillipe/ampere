@@ -24,10 +24,14 @@ import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -48,6 +52,8 @@ class ProjectServiceIntegrationTest {
 
   @Autowired private UserRepository userRepository;
 
+  private User owner;
+
   @BeforeEach
   void clearProjects() {
     calculationRepository.deleteAll();
@@ -55,6 +61,10 @@ class ProjectServiceIntegrationTest {
     projectRepository.deleteAll();
     normativeTableRepository.deleteAll();
     standardRepository.deleteAll();
+    userRepository.deleteAll();
+    owner =
+        userRepository.save(new User("João Projetista", "joao@ampere.com", "hash", UserRole.USER));
+    authenticate(owner);
     standardRepository.saveAll(
         List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
   }
@@ -182,7 +192,7 @@ class ProjectServiceIntegrationTest {
 
   @Test
   void createsADraftProjectWithAGeneratedProtocolAndBothStandards() {
-    Project created = service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null);
+    Project created = service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY));
 
     assertThat(created.getId()).isNotNull();
     assertThat(created.getStatus()).isEqualTo(ProjectStatus.DRAFT);
@@ -196,27 +206,23 @@ class ProjectServiceIntegrationTest {
 
   @Test
   void assignsTheAuthenticatedUserAsTheOwner() {
-    User owner =
-        userRepository.save(new User("João Projetista", "joao@ampere.com", "hash", UserRole.USER));
-
-    Project created =
-        service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), "JOAO@ampere.com");
+    Project created = service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY));
 
     assertThat(created.getOwner().getId()).isEqualTo(owner.getId());
   }
 
   @Test
   void generatesSequentialProtocolsWithinTheYear() {
-    String first = service.create(parameters(BuildingCategory.MIXED), null).getProtocol();
-    String second = service.create(parameters(BuildingCategory.MIXED), null).getProtocol();
-    String third = service.create(parameters(BuildingCategory.NON_RESIDENTIAL), null).getProtocol();
+    String first = service.create(parameters(BuildingCategory.MIXED)).getProtocol();
+    String second = service.create(parameters(BuildingCategory.MIXED)).getProtocol();
+    String third = service.create(parameters(BuildingCategory.NON_RESIDENTIAL)).getProtocol();
 
     assertThat(List.of(first, second, third)).doesNotHaveDuplicates().isSorted();
   }
 
   @Test
   void updatesTheTechnicalParametersOfADraft() {
-    Long id = service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null).getId();
+    Long id = service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY)).getId();
 
     Project updated =
         service.update(
@@ -257,7 +263,7 @@ class ProjectServiceIntegrationTest {
 
   @Test
   void deletesADraftProjectAndItsFindings() {
-    Project draft = service.create(parameters(BuildingCategory.MIXED), null);
+    Project draft = service.create(parameters(BuildingCategory.MIXED));
     findingRepository.save(new Finding(draft));
 
     service.delete(draft.getId());
@@ -290,9 +296,26 @@ class ProjectServiceIntegrationTest {
         EntranceStandard.COLLECTIVE);
   }
 
-  private static Project project(
+  private Project project(
       String name, String address, String municipality, String protocol, ProjectStatus status) {
-    return new Project(name, address, municipality, protocol, status, buildingType(), List.of());
+    return new Project(
+        name, address, municipality, protocol, status, buildingType(), List.of(), owner);
+  }
+
+  @AfterEach
+  void clearAuthentication() {
+    SecurityContextHolder.clearContext();
+  }
+
+  private static void authenticate(User user) {
+    Jwt jwt =
+        Jwt.withTokenValue("token")
+            .header("alg", "none")
+            .subject(String.valueOf(user.getId()))
+            .claim("email", user.getEmail())
+            .claim("role", user.getRole().getValue())
+            .build();
+    SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
   }
 
   private static BuildingType buildingType() {

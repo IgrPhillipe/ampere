@@ -74,7 +74,7 @@ class MessageLocalizationTest {
 
   @Test
   void acceptsEnumValuesInAnyCaseInTheRequestBody() throws Exception {
-    when(projectService.create(any(), any())).thenReturn(draft());
+    when(projectService.create(any())).thenReturn(draft());
     Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("email", "a@b.com").build();
     SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
     MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(context).build();

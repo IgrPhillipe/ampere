@@ -20,12 +20,15 @@ import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SupplyVoltage;
+import br.com.ampere.domain.User;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.util.List;
@@ -34,6 +37,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -52,7 +58,11 @@ class ConsumerUnitGroupServiceIntegrationTest {
 
   @Autowired private ProjectRepository projectRepository;
 
+  @Autowired private UserRepository userRepository;
+
   @Autowired private EntityManager entityManager;
+
+  private User owner;
 
   @BeforeEach
   void clearProjects() {
@@ -60,6 +70,16 @@ class ConsumerUnitGroupServiceIntegrationTest {
     groupRepository.deleteAll();
     findingRepository.deleteAll();
     projectRepository.deleteAll();
+    userRepository.deleteAll();
+    owner = userRepository.save(new User("Usuário", "user@ampere.com", "hash", UserRole.USER));
+    Jwt jwt =
+        Jwt.withTokenValue("token")
+            .header("alg", "none")
+            .subject(String.valueOf(owner.getId()))
+            .claim("email", owner.getEmail())
+            .claim("role", owner.getRole().getValue())
+            .build();
+    SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
   }
 
   @Test
@@ -118,7 +138,8 @@ class ConsumerUnitGroupServiceIntegrationTest {
                 "2026-1003",
                 ProjectStatus.UNDER_REVIEW,
                 building(),
-                List.of()));
+                List.of(),
+                owner));
 
     assertThatThrownBy(() -> service.create(submitted.getId(), charging(true)))
         .isInstanceOf(BusinessException.class)
@@ -162,7 +183,8 @@ class ConsumerUnitGroupServiceIntegrationTest {
             "Cabo de Santo Agostinho",
             protocol,
             building(),
-            List.of()));
+            List.of(),
+            owner));
   }
 
   private static ResidentialMultifamily building() {
