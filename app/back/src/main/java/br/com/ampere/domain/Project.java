@@ -92,6 +92,9 @@ public class Project {
 
   private OffsetDateTime reviewedAt;
 
+  @Column(length = 2000)
+  private String reviewOpinion;
+
   @Column(nullable = false)
   private String searchIndex;
 
@@ -204,15 +207,24 @@ public class Project {
     this.status = ProjectStatus.UNDER_REVIEW;
     this.submittedAt = Objects.requireNonNull(submittedAt, "submittedAt");
     this.reviewedAt = null;
+    this.reviewOpinion = null;
     this.reviewCycle++;
   }
 
   public void approve(OffsetDateTime reviewedAt) {
-    conclude(ProjectStatus.APPROVED, reviewedAt);
+    approve(reviewedAt, null);
+  }
+
+  public void approve(OffsetDateTime reviewedAt, String opinion) {
+    conclude(ProjectStatus.APPROVED, reviewedAt, opinion);
   }
 
   public void reject(OffsetDateTime reviewedAt) {
-    conclude(ProjectStatus.REJECTED, reviewedAt);
+    reject(reviewedAt, null);
+  }
+
+  public void reject(OffsetDateTime reviewedAt, String opinion) {
+    conclude(ProjectStatus.REJECTED, reviewedAt, opinion);
   }
 
   public boolean assignReviewer(User reviewer) {
@@ -237,9 +249,13 @@ public class Project {
     return reviewer != null && reviewer.getId().equals(userId);
   }
 
-  private void conclude(ProjectStatus outcome, OffsetDateTime reviewedAt) {
+  private void conclude(ProjectStatus outcome, OffsetDateTime reviewedAt, String opinion) {
+    if (status != ProjectStatus.UNDER_REVIEW) {
+      throw new IllegalStateException("Only projects under review can receive a decision.");
+    }
     this.status = outcome;
     this.reviewedAt = Objects.requireNonNull(reviewedAt, "reviewedAt");
+    this.reviewOpinion = opinion == null || opinion.isBlank() ? null : opinion.trim();
   }
 
   /** Last day of the review period: 30 calendar days after the day of submission. */
@@ -341,6 +357,10 @@ public class Project {
 
   public OffsetDateTime getReviewedAt() {
     return reviewedAt;
+  }
+
+  public String getReviewOpinion() {
+    return reviewOpinion;
   }
 
   public User getOwner() {

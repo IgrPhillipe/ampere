@@ -29,11 +29,11 @@ public class Finding {
   private Project project;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @Column(nullable = false, columnDefinition = "varchar(255) default 'ADJUSTMENT'")
   private FindingSeverity severity;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @Column(nullable = false, columnDefinition = "varchar(255) default 'PROJECT_DATA'")
   private FindingStage stage;
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -45,7 +45,10 @@ public class Finding {
   @Enumerated(EnumType.STRING)
   private DocumentType documentType;
 
-  @Column(nullable = false, length = 2000)
+  @Column(
+      nullable = false,
+      length = 2000,
+      columnDefinition = "varchar(2000) default 'Apontamento pendente'")
   private String description;
 
   private String standardItem;
@@ -55,14 +58,17 @@ public class Finding {
   @JoinColumn(name = "author_id")
   private User author;
 
-  @Column(nullable = false, updatable = false)
+  @Column(
+      nullable = false,
+      updatable = false,
+      columnDefinition = "timestamp with time zone default CURRENT_TIMESTAMP")
   private OffsetDateTime createdAt;
 
-  @Column(nullable = false)
+  @Column(nullable = false, columnDefinition = "integer default 1")
   private int version;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @Column(nullable = false, columnDefinition = "varchar(255) default 'OPEN'")
   private FindingStatus status;
 
   protected Finding() {}
