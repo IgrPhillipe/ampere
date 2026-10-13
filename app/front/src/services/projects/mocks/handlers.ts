@@ -24,16 +24,16 @@ const normalize = (value: string) =>
 		.replace(/\p{Diacritic}/gu, "")
 		.toLowerCase();
 
-const problem = (detail: string, instance: string = e.list) =>
+const problem = (detail: string, instance: string = e.list, status = 400) =>
 	HttpResponse.json(
 		{
 			type: "about:blank",
-			title: "Bad Request",
-			status: 400,
+			title: status === 409 ? "Conflict" : "Bad Request",
+			status,
 			detail,
 			instance: `/${instance}`,
 		},
-		{ status: 400 },
+		{ status },
 	);
 
 /**
@@ -106,6 +106,35 @@ export const projectHandlers = [
 	http.get(url(e.statusCounts), () =>
 		HttpResponse.json(makeProjectStatusCountsResponse()),
 	),
+
+	http.delete(url(e.remove(":id")), ({ params }) => {
+		const index = MOCK_PROJECTS.findIndex(({ id }) => id === params.id);
+		const project = MOCK_PROJECTS[index];
+
+		if (!project) {
+			return HttpResponse.json(
+				{
+					type: "about:blank",
+					title: "Not Found",
+					status: 404,
+					detail: "Projeto não encontrado.",
+					instance: `/${e.remove(String(params.id))}`,
+				},
+				{ status: 404 },
+			);
+		}
+
+		if (project.status !== "DRAFT") {
+			return problem(
+				"Só é possível excluir um projeto em rascunho.",
+				e.remove(project.id),
+				409,
+			);
+		}
+
+		MOCK_PROJECTS.splice(index, 1);
+		return new HttpResponse(null, { status: 204 });
+	}),
 
 	http.post(url(e.create), async ({ request }) => {
 		const payload = createProjectSchema.safeParse(await request.json());
