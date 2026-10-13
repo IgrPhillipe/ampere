@@ -95,6 +95,69 @@ Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/i
 
 ---
 
+## Análise Técnica e Apontamentos
+
+As rotas abaixo exigem autenticação. O papel `admin` representa o analista. Um projeto
+`UNDER_REVIEW` é assumido por um único analista; repetir a atribuição pelo mesmo analista é
+idempotente e a tentativa de outro analista devolve `409 Conflict`.
+
+| Método e caminho | Quem usa | Regra principal |
+| :--- | :--- | :--- |
+| `POST /api/projects/{id}/review` | Analista | Assume a análise; não há redistribuição automática |
+| `GET /api/projects/{id}/findings` | Dono ou analista | Lista os apontamentos na ordem de criação |
+| `POST /api/projects/{id}/findings` | Analista atribuído | Cria um apontamento `DRAFT` na versão corrente |
+| `PUT /api/projects/{id}/findings/{findingId}` | Analista atribuído | Altera somente apontamento `DRAFT` |
+| `DELETE /api/projects/{id}/findings/{findingId}` | Analista atribuído | Exclui somente apontamento `DRAFT` |
+| `POST /api/projects/{id}/decision` | Analista atribuído | Aprova ou reprova e publica os rascunhos como `OPEN` |
+| `POST /api/projects/{id}/findings/{findingId}/resolution` | Analista atribuído | Na reanálise, aceita ou reabre apontamento de ciclo anterior |
+| `GET /api/projects/{id}/documents/{documentId}/file` | Dono ou analista atribuído | Devolve o arquivo com `Content-Type: application/pdf` |
+
+### Contrato do apontamento
+
+Criação e edição recebem:
+
+```json
+{
+  "severity": "BLOCKING",
+  "stage": "DOCUMENTS",
+  "consumerUnitGroupId": null,
+  "calculationStepCode": null,
+  "documentType": "SITE_PLAN",
+  "description": "Anexar a comprovação do sistema de recarga.",
+  "standardItem": "NDU 001 item 6.6"
+}
+```
+
+- `severity`: `BLOCKING` ou `ADJUSTMENT`.
+- `stage`: `PROJECT_DATA`, `CONSUMER_UNITS`, `CALCULATION` ou `DOCUMENTS`.
+- As referências a grupo, etapa do cálculo e tipo de documento são opcionais.
+- `description` é obrigatória; `standardItem` é opcional.
+- A resposta acrescenta autor, data, versão do ciclo e `status`.
+- Estados possíveis: `DRAFT`, `OPEN`, `FIXED`, `CONTESTED` e `RESOLVED`.
+
+### Decisão e reanálise
+
+`POST /decision` recebe um parecer obrigatório de até 2.000 caracteres:
+
+```json
+{
+  "decision": "REJECT",
+  "opinion": "Corrigir os itens apontados antes do reenvio."
+}
+```
+
+- `APPROVE` devolve `422 Unprocessable Entity` se existir apontamento `BLOCKING` não resolvido.
+- `REJECT` devolve `422 Unprocessable Entity` se não existir apontamento na versão corrente.
+- A decisão grava `reviewedAt` no projeto e transforma seus apontamentos `DRAFT` em `OPEN`.
+- Na reanálise, `/resolution` recebe `{"resolution":"ACCEPT"}` para marcar `RESOLVED`,
+  ou `{"resolution":"REOPEN"}` para voltar a `OPEN`. Apenas apontamentos de ciclos anteriores
+  podem ser resolvidos por essa rota.
+
+Erros de recurso ou acesso por proprietário incorreto usam `404`; papel ou analista incorreto usa
+`403`; conflito de atribuição/estado usa `409`; regra de decisão inválida usa `422`.
+
+---
+
 ## Variáveis de Ambiente
 
 | Variável | Obrigatória | Padrão | Descrição |
