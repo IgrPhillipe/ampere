@@ -72,7 +72,7 @@ public class ProjectDocumentService {
   }
 
   private Project editableOrFail(Long projectId) {
-    Project project = projectService.findById(projectId);
+    Project project = projectService.findWritableById(projectId);
     if (!project.canBeSubmitted()) {
       throw new BusinessException(SUBMITTED, HttpStatus.CONFLICT);
     }

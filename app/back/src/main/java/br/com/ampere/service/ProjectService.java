@@ -13,6 +13,7 @@ import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.security.AuthenticatedUser;
 import br.com.ampere.security.CurrentUser;
+import br.com.ampere.security.ProjectAccessPolicy;
 import br.com.ampere.utils.SearchTerms;
 import java.math.BigDecimal;
 import java.util.EnumMap;
@@ -45,6 +46,7 @@ public class ProjectService {
   private final ProjectCreation projectCreation;
   private final ApplicableStandards applicableStandards;
   private final CurrentUser currentUser;
+  private final ProjectAccessPolicy accessPolicy;
 
   public ProjectService(
       ProjectRepository projectRepository,
@@ -54,7 +56,8 @@ public class ProjectService {
       ProjectDocumentRepository documentRepository,
       ProjectCreation projectCreation,
       ApplicableStandards applicableStandards,
-      CurrentUser currentUser) {
+      CurrentUser currentUser,
+      ProjectAccessPolicy accessPolicy) {
     this.projectRepository = projectRepository;
     this.findingRepository = findingRepository;
     this.groupRepository = groupRepository;
@@ -63,6 +66,7 @@ public class ProjectService {
     this.projectCreation = projectCreation;
     this.applicableStandards = applicableStandards;
     this.currentUser = currentUser;
+    this.accessPolicy = accessPolicy;
   }
 
   @Transactional(readOnly = true)
@@ -100,13 +104,17 @@ public class ProjectService {
 
   @Transactional(readOnly = true)
   public Project findById(Long id) {
-    return projectRepository.findDetailById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND));
+    Project project = findExisting(id);
+    accessPolicy.requireRead(project, currentUser.get());
+    return project;
   }
 
-  public Project create(ProjectParameters parameters, String ownerEmail) {
+  public Project create(ProjectParameters parameters) {
+    AuthenticatedUser user = currentUser.get();
+    accessPolicy.requireProjectWrite(user);
     for (int attempt = 1; attempt <= PROTOCOL_ATTEMPTS; attempt++) {
       try {
-        return projectCreation.createWithGeneratedProtocol(parameters, ownerEmail);
+        return projectCreation.createWithGeneratedProtocol(parameters, user.email());
       } catch (DataIntegrityViolationException collision) {
         log.warn("Protocol collision on attempt {} of {}", attempt, PROTOCOL_ATTEMPTS);
       }
@@ -140,12 +148,22 @@ public class ProjectService {
   }
 
   Project draftOrFail(Long id, String message) {
-    Project project = findById(id);
+    Project project = findWritableById(id);
     if (!project.isDraft()) {
       throw new BusinessException(message, HttpStatus.CONFLICT);
     }
 
     return project;
+  }
+
+  Project findWritableById(Long id) {
+    Project project = findExisting(id);
+    accessPolicy.requireWrite(project, currentUser.get());
+    return project;
+  }
+
+  private Project findExisting(Long id) {
+    return projectRepository.findDetailById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND));
   }
 
   private Map<Long, Long> countPendingFindings(List<Long> projectIds) {

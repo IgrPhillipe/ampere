@@ -40,7 +40,7 @@ public class SubmissionService {
 
   @Transactional
   public Project submit(Long projectId) {
-    Project project = projectService.findById(projectId);
+    Project project = projectService.findWritableById(projectId);
     if (!project.canBeSubmitted()) {
       throw new BusinessException("Este projeto já foi enviado para análise.", HttpStatus.CONFLICT);
     }

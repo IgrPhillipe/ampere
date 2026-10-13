@@ -26,11 +26,15 @@ public class ProjectAccessPolicy {
   }
 
   public void requireWrite(Project project, AuthenticatedUser user) {
+    requireProjectWrite(user);
+
+    requireOwnership(project, user);
+  }
+
+  public void requireProjectWrite(AuthenticatedUser user) {
     if (user.isAdmin()) {
       throw new BusinessException(ADMIN_READ_ONLY, HttpStatus.FORBIDDEN);
     }
-
-    requireOwnership(project, user);
   }
 
   private static void requireOwnership(Project project, AuthenticatedUser user) {
