@@ -2,6 +2,7 @@ package br.com.ampere.controller;
 
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.FindingRequest;
+import br.com.ampere.dto.FindingResolutionRequest;
 import br.com.ampere.dto.FindingResponse;
 import br.com.ampere.service.FindingParameters;
 import br.com.ampere.service.FindingService;
@@ -60,6 +61,18 @@ public class FindingController {
   @Operation(operationId = "deleteFinding", summary = "Exclui um apontamento em rascunho")
   public void delete(@PathVariable Long projectId, @PathVariable Long findingId) {
     service.delete(projectId, findingId);
+  }
+
+  @PostMapping("/{findingId}/resolution")
+  @Operation(
+      operationId = "resolveFinding",
+      summary = "Aceita a correção ou reabre um apontamento na reanálise")
+  public ApiResponse<FindingResponse> resolve(
+      @PathVariable Long projectId,
+      @PathVariable Long findingId,
+      @Valid @RequestBody FindingResolutionRequest request) {
+    return ApiResponse.of(
+        FindingResponse.from(service.resolve(projectId, findingId, request.resolution())));
   }
 
   private static FindingParameters parametersOf(FindingRequest request) {

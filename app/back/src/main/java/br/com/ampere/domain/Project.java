@@ -280,6 +280,10 @@ public class Project {
     return status == ProjectStatus.DRAFT;
   }
 
+  public boolean isUnderReview() {
+    return status == ProjectStatus.UNDER_REVIEW;
+  }
+
   public boolean canBeSubmitted() {
     return status == ProjectStatus.DRAFT
         || status == ProjectStatus.AWAITING_SUBMISSION

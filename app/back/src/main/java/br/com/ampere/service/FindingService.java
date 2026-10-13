@@ -2,6 +2,7 @@ package br.com.ampere.service;
 
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingResolution;
 import br.com.ampere.domain.Project;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
@@ -79,6 +80,24 @@ public class FindingService {
   public void delete(Long projectId, Long findingId) {
     reviewService.assignedProject(projectId);
     findingRepository.delete(draftOrFail(projectId, findingId));
+  }
+
+  @Transactional
+  public Finding resolve(Long projectId, Long findingId, FindingResolution resolution) {
+    Project project = reviewService.assignedProject(projectId);
+    Finding finding = findOrFail(projectId, findingId);
+    if (finding.getVersion() >= project.getReviewCycle()) {
+      throw new BusinessException(
+          "Somente apontamentos de ciclos anteriores podem ser resolvidos na reanálise.",
+          HttpStatus.CONFLICT);
+    }
+
+    try {
+      finding.resolve(resolution);
+    } catch (IllegalStateException invalidState) {
+      throw new BusinessException(invalidState.getMessage(), HttpStatus.CONFLICT);
+    }
+    return finding;
   }
 
   Finding findOrFail(Long projectId, Long findingId) {

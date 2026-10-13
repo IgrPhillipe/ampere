@@ -108,6 +108,9 @@ public class ProjectReviewService {
       throw new BusinessException(
           "Somente o analista responsável pode alterar esta análise.", HttpStatus.FORBIDDEN);
     }
+    if (!project.isUnderReview()) {
+      throw new BusinessException("O projeto não está em análise.", HttpStatus.CONFLICT);
+    }
     return project;
   }
 

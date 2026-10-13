@@ -174,6 +174,16 @@ public class Finding {
     return severity == FindingSeverity.BLOCKING && status != FindingStatus.RESOLVED;
   }
 
+  public void resolve(FindingResolution resolution) {
+    if (status == FindingStatus.DRAFT) {
+      throw new IllegalStateException("Draft findings cannot be resolved.");
+    }
+    status =
+        Objects.requireNonNull(resolution, "resolution") == FindingResolution.ACCEPT
+            ? FindingStatus.RESOLVED
+            : FindingStatus.OPEN;
+  }
+
   private void requireDraft() {
     if (!isDraft()) {
       throw new IllegalStateException("Only draft findings can be changed.");
