@@ -106,6 +106,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
   Optional<Project> findByProtocol(String protocol);
 
+  List<Project> findAllByOwnerIsNull();
+
   interface ProjectStatusCount {
 
     ProjectStatus getStatus();

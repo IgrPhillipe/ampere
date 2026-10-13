@@ -260,6 +260,15 @@ public class Project {
     return email != null && owner.getEmail().equalsIgnoreCase(email);
   }
 
+  public boolean assignOwnerIfMissing(User owner) {
+    if (this.owner != null) {
+      return false;
+    }
+
+    this.owner = Objects.requireNonNull(owner, "owner");
+    return true;
+  }
+
   public Long getId() {
     return id;
   }
