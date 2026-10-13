@@ -6,6 +6,8 @@ import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.ProjectDocumentRepository;
+import br.com.ampere.security.AuthenticatedUser;
+import br.com.ampere.security.CurrentUser;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,11 +22,15 @@ public class ProjectDocumentService {
 
   private final ProjectService projectService;
   private final ProjectDocumentRepository documentRepository;
+  private final CurrentUser currentUser;
 
   public ProjectDocumentService(
-      ProjectService projectService, ProjectDocumentRepository documentRepository) {
+      ProjectService projectService,
+      ProjectDocumentRepository documentRepository,
+      CurrentUser currentUser) {
     this.projectService = projectService;
     this.documentRepository = documentRepository;
+    this.currentUser = currentUser;
   }
 
   @Transactional(readOnly = true)
@@ -32,6 +38,19 @@ public class ProjectDocumentService {
     projectService.findById(projectId);
 
     return documentRepository.findAllByProjectIdOrderByType(projectId);
+  }
+
+  @Transactional(readOnly = true)
+  public ProjectDocument file(Long projectId, Long documentId) {
+    Project project = projectService.findById(projectId);
+    AuthenticatedUser actor = currentUser.get();
+    if (actor.isAdmin() && !project.isAssignedTo(actor.id())) {
+      throw new NotFoundException(NOT_FOUND);
+    }
+
+    return documentRepository
+        .findByIdAndProjectId(documentId, projectId)
+        .orElseThrow(() -> new NotFoundException(NOT_FOUND));
   }
 
   @Transactional

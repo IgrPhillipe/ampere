@@ -10,8 +10,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.util.List;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,6 +50,28 @@ public class ProjectDocumentController {
   public ApiResponse<List<DocumentResponse>> list(@PathVariable Long projectId) {
     return ApiResponse.of(
         service.listByProject(projectId).stream().map(DocumentResponse::from).toList());
+  }
+
+  @GetMapping(value = "/{documentId}/file", produces = MediaType.APPLICATION_PDF_VALUE)
+  @Operation(
+      operationId = "downloadProjectDocument",
+      summary = "Exibe o PDF para o projetista dono ou o analista responsável")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Conteúdo do PDF"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "Projeto ou documento não encontrado")
+  })
+  public ResponseEntity<byte[]> file(@PathVariable Long projectId, @PathVariable Long documentId) {
+    var document = service.file(projectId, documentId);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_PDF)
+        .header(
+            HttpHeaders.CONTENT_DISPOSITION,
+            ContentDisposition.inline().filename(document.getFilename()).build().toString())
+        .body(document.getData());
   }
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
