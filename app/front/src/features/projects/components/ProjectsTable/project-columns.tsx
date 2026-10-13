@@ -109,7 +109,7 @@ export const createProjectColumns = (actions: ProjectRowActions) =>
 					<ProjectRowActionButton
 						project={row.original}
 						{...actions}
-						buttonClassName="w-full"
+						buttonClassName="w-24"
 					/>
 				</div>
 			),

@@ -8,15 +8,20 @@ import { Button } from "@components/ui/button";
 import {
 	type Project,
 	type ProjectStatusCounts,
+	useDeleteProject,
 	useGetProjectList,
 	useGetProjectStatusCounts,
 } from "@services/projects";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, CircleAlert } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
-import { ProjectStatusFilters, ProjectsTable } from "../../components";
+import {
+	ProjectDeleteDialog,
+	ProjectStatusFilters,
+	ProjectsTable,
+} from "../../components";
 import { useProjectFilters } from "../../hooks";
 
 const PAGE_SIZE = 10;
@@ -32,6 +37,8 @@ const emptyStatusCounts: ProjectStatusCounts = {
 
 export const ProjectsPage = () => {
 	const navigate = useNavigate();
+	const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+	const deleteProject = useDeleteProject();
 	const {
 		status,
 		search,
@@ -95,6 +102,18 @@ export const ProjectsPage = () => {
 			void navigate({ to: "/projetos/$id/envio", params: { id: project.id } }),
 		[navigate],
 	);
+
+	const handleDeleteProject = useCallback((project: Project) => {
+		setProjectToDelete(project);
+	}, []);
+
+	const confirmProjectDeletion = () => {
+		if (!projectToDelete) return;
+
+		deleteProject.mutate(projectToDelete.id, {
+			onSuccess: () => setProjectToDelete(null),
+		});
+	};
 
 	return (
 		<PageLayout
@@ -169,6 +188,7 @@ export const ProjectsPage = () => {
 							onResumeSubmission={handleResumeSubmission}
 							onContinueDraft={handleContinueDraft}
 							onViewProject={handleViewProject}
+							onDeleteProject={handleDeleteProject}
 							onClearFilters={hasActiveFilters ? clearFilters : undefined}
 						/>
 					)}
@@ -184,6 +204,15 @@ export const ProjectsPage = () => {
 					/>
 				) : null}
 			</section>
+
+			<ProjectDeleteDialog
+				project={projectToDelete}
+				isPending={deleteProject.isPending}
+				onOpenChange={(open) => {
+					if (!open) setProjectToDelete(null);
+				}}
+				onConfirm={confirmProjectDeletion}
+			/>
 		</PageLayout>
 	);
 };
