@@ -248,6 +248,18 @@ public class Project {
     return reviewCycle > 1;
   }
 
+  public boolean belongsTo(Long userId, String email) {
+    if (owner == null) {
+      return false;
+    }
+
+    if (userId != null && owner.getId() != null) {
+      return owner.getId().equals(userId);
+    }
+
+    return email != null && owner.getEmail().equalsIgnoreCase(email);
+  }
+
   public Long getId() {
     return id;
   }
