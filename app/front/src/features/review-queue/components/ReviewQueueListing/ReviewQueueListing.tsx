@@ -3,11 +3,13 @@ import { EmptyState } from "@components/EmptyState";
 import { SkeletonTable } from "@components/SkeletonTable";
 import { Button } from "@components/ui/button";
 import type { ReviewQueueItem } from "@services/review-queue";
+import { useMemo } from "react";
 
 import { ReviewQueueCards } from "./ReviewQueueCards";
 import {
+	createReviewQueueColumns,
 	type ReviewQueueColumnId,
-	reviewQueueColumns,
+	type ReviewQueueRowActions,
 } from "./review-queue-columns";
 
 const columnClassNames = {
@@ -22,7 +24,7 @@ const columnClassNames = {
 	action: "w-32",
 } satisfies Partial<Record<ReviewQueueColumnId, string>>;
 
-interface ReviewQueueListingProps {
+interface ReviewQueueListingProps extends ReviewQueueRowActions {
 	items: ReviewQueueItem[];
 	isLoading?: boolean;
 	onClearFilters?: () => void;
@@ -31,8 +33,14 @@ interface ReviewQueueListingProps {
 export const ReviewQueueListing = ({
 	items,
 	isLoading = false,
+	onAnalyze,
 	onClearFilters,
 }: ReviewQueueListingProps) => {
+	const columns = useMemo(
+		() => createReviewQueueColumns({ onAnalyze }),
+		[onAnalyze],
+	);
+
 	if (isLoading) return <SkeletonTable columns={10} />;
 
 	if (items.length === 0) {
@@ -56,9 +64,13 @@ export const ReviewQueueListing = ({
 
 	return (
 		<>
-			<ReviewQueueCards items={items} className="lg:hidden" />
+			<ReviewQueueCards
+				items={items}
+				onAnalyze={onAnalyze}
+				className="lg:hidden"
+			/>
 			<DataTable
-				columns={reviewQueueColumns}
+				columns={columns}
 				data={items}
 				columnClassNames={columnClassNames}
 				className="hidden lg:block"

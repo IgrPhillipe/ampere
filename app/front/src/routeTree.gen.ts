@@ -10,11 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TabelasNormativasRouteImport } from './routes/tabelas-normativas'
-import { Route as FilaDeAnaliseRouteImport } from './routes/fila-de-analise'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjetosIndexRouteImport } from './routes/projetos/index'
+import { Route as FilaDeAnaliseIndexRouteImport } from './routes/fila-de-analise/index'
 import { Route as ProjetosNovoRouteImport } from './routes/projetos/novo'
+import { Route as FilaDeAnaliseIdRouteImport } from './routes/fila-de-analise/$id'
 import { Route as ProjetosIdUnidadesRouteImport } from './routes/projetos/$id/unidades'
 import { Route as ProjetosIdMemorialRouteImport } from './routes/projetos/$id/memorial'
 import { Route as ProjetosIdEnvioRouteImport } from './routes/projetos/$id/envio'
@@ -24,11 +25,6 @@ import { Route as ProjetosIdCalculoRouteImport } from './routes/projetos/$id/cal
 const TabelasNormativasRoute = TabelasNormativasRouteImport.update({
   id: '/tabelas-normativas',
   path: '/tabelas-normativas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FilaDeAnaliseRoute = FilaDeAnaliseRouteImport.update({
-  id: '/fila-de-analise',
-  path: '/fila-de-analise',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarRoute = EntrarRouteImport.update({
@@ -46,9 +42,19 @@ const ProjetosIndexRoute = ProjetosIndexRouteImport.update({
   path: '/projetos/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FilaDeAnaliseIndexRoute = FilaDeAnaliseIndexRouteImport.update({
+  id: '/fila-de-analise/',
+  path: '/fila-de-analise/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProjetosNovoRoute = ProjetosNovoRouteImport.update({
   id: '/projetos/novo',
   path: '/projetos/novo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FilaDeAnaliseIdRoute = FilaDeAnaliseIdRouteImport.update({
+  id: '/fila-de-analise/$id',
+  path: '/fila-de-analise/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjetosIdUnidadesRoute = ProjetosIdUnidadesRouteImport.update({
@@ -80,9 +86,10 @@ const ProjetosIdCalculoRoute = ProjetosIdCalculoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
-  '/fila-de-analise': typeof FilaDeAnaliseRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
+  '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
+  '/fila-de-analise/': typeof FilaDeAnaliseIndexRoute
   '/projetos/': typeof ProjetosIndexRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
@@ -93,9 +100,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
-  '/fila-de-analise': typeof FilaDeAnaliseRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
+  '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
+  '/fila-de-analise': typeof FilaDeAnaliseIndexRoute
   '/projetos': typeof ProjetosIndexRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
@@ -107,9 +115,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
-  '/fila-de-analise': typeof FilaDeAnaliseRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
+  '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
+  '/fila-de-analise/': typeof FilaDeAnaliseIndexRoute
   '/projetos/': typeof ProjetosIndexRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
@@ -122,9 +131,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/entrar'
-    | '/fila-de-analise'
     | '/tabelas-normativas'
+    | '/fila-de-analise/$id'
     | '/projetos/novo'
+    | '/fila-de-analise/'
     | '/projetos/'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
@@ -135,9 +145,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/entrar'
-    | '/fila-de-analise'
     | '/tabelas-normativas'
+    | '/fila-de-analise/$id'
     | '/projetos/novo'
+    | '/fila-de-analise'
     | '/projetos'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
@@ -148,9 +159,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/entrar'
-    | '/fila-de-analise'
     | '/tabelas-normativas'
+    | '/fila-de-analise/$id'
     | '/projetos/novo'
+    | '/fila-de-analise/'
     | '/projetos/'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
@@ -162,9 +174,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EntrarRoute: typeof EntrarRoute
-  FilaDeAnaliseRoute: typeof FilaDeAnaliseRoute
   TabelasNormativasRoute: typeof TabelasNormativasRoute
+  FilaDeAnaliseIdRoute: typeof FilaDeAnaliseIdRoute
   ProjetosNovoRoute: typeof ProjetosNovoRoute
+  FilaDeAnaliseIndexRoute: typeof FilaDeAnaliseIndexRoute
   ProjetosIndexRoute: typeof ProjetosIndexRoute
   ProjetosIdCalculoRoute: typeof ProjetosIdCalculoRoute
   ProjetosIdDadosRoute: typeof ProjetosIdDadosRoute
@@ -180,13 +193,6 @@ declare module '@tanstack/react-router' {
       path: '/tabelas-normativas'
       fullPath: '/tabelas-normativas'
       preLoaderRoute: typeof TabelasNormativasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fila-de-analise': {
-      id: '/fila-de-analise'
-      path: '/fila-de-analise'
-      fullPath: '/fila-de-analise'
-      preLoaderRoute: typeof FilaDeAnaliseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrar': {
@@ -210,11 +216,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjetosIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fila-de-analise/': {
+      id: '/fila-de-analise/'
+      path: '/fila-de-analise'
+      fullPath: '/fila-de-analise/'
+      preLoaderRoute: typeof FilaDeAnaliseIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/projetos/novo': {
       id: '/projetos/novo'
       path: '/projetos/novo'
       fullPath: '/projetos/novo'
       preLoaderRoute: typeof ProjetosNovoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fila-de-analise/$id': {
+      id: '/fila-de-analise/$id'
+      path: '/fila-de-analise/$id'
+      fullPath: '/fila-de-analise/$id'
+      preLoaderRoute: typeof FilaDeAnaliseIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projetos/$id/unidades': {
@@ -258,9 +278,10 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EntrarRoute: EntrarRoute,
-  FilaDeAnaliseRoute: FilaDeAnaliseRoute,
   TabelasNormativasRoute: TabelasNormativasRoute,
+  FilaDeAnaliseIdRoute: FilaDeAnaliseIdRoute,
   ProjetosNovoRoute: ProjetosNovoRoute,
+  FilaDeAnaliseIndexRoute: FilaDeAnaliseIndexRoute,
   ProjetosIndexRoute: ProjetosIndexRoute,
   ProjetosIdCalculoRoute: ProjetosIdCalculoRoute,
   ProjetosIdDadosRoute: ProjetosIdDadosRoute,
