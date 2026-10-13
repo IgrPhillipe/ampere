@@ -14,6 +14,11 @@ public interface FindingRepository extends JpaRepository<Finding, Long> {
       SELECT finding.project.id AS projectId, COUNT(finding) AS total
       FROM Finding finding
       WHERE finding.project.id IN :projectIds
+        AND finding.status IN (
+          br.com.ampere.domain.FindingStatus.DRAFT,
+          br.com.ampere.domain.FindingStatus.OPEN,
+          br.com.ampere.domain.FindingStatus.CONTESTED
+        )
       GROUP BY finding.project.id
       """)
   List<FindingCount> countPerProject(@Param("projectIds") Collection<Long> projectIds);
