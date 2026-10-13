@@ -11,6 +11,8 @@ import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.security.AuthenticatedUser;
+import br.com.ampere.security.CurrentUser;
 import br.com.ampere.utils.SearchTerms;
 import java.math.BigDecimal;
 import java.util.EnumMap;
@@ -42,6 +44,7 @@ public class ProjectService {
   private final ProjectDocumentRepository documentRepository;
   private final ProjectCreation projectCreation;
   private final ApplicableStandards applicableStandards;
+  private final CurrentUser currentUser;
 
   public ProjectService(
       ProjectRepository projectRepository,
@@ -50,7 +53,8 @@ public class ProjectService {
       CalculationRepository calculationRepository,
       ProjectDocumentRepository documentRepository,
       ProjectCreation projectCreation,
-      ApplicableStandards applicableStandards) {
+      ApplicableStandards applicableStandards,
+      CurrentUser currentUser) {
     this.projectRepository = projectRepository;
     this.findingRepository = findingRepository;
     this.groupRepository = groupRepository;
@@ -58,6 +62,7 @@ public class ProjectService {
     this.documentRepository = documentRepository;
     this.projectCreation = projectCreation;
     this.applicableStandards = applicableStandards;
+    this.currentUser = currentUser;
   }
 
   @Transactional(readOnly = true)
@@ -67,8 +72,10 @@ public class ProjectService {
     PageRequest pageRequest =
         PageRequest.of(
             page - 1, pageSize, Sort.by(direction, "updatedAt").and(Sort.by(direction, "id")));
+    AuthenticatedUser user = currentUser.get();
     Page<Project> projects =
-        projectRepository.searchProjects(status, SearchTerms.normalize(search), pageRequest);
+        projectRepository.searchAccessibleProjects(
+            status, SearchTerms.normalize(search), user.id(), user.isAdmin(), pageRequest);
 
     List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
 
@@ -82,9 +89,10 @@ public class ProjectService {
 
   @Transactional(readOnly = true)
   public Map<ProjectStatus, Long> countPerStatus() {
+    AuthenticatedUser user = currentUser.get();
     Map<ProjectStatus, Long> counts = new EnumMap<>(ProjectStatus.class);
     projectRepository
-        .countPerStatus()
+        .countAccessiblePerStatus(user.id(), user.isAdmin())
         .forEach(count -> counts.put(count.getStatus(), count.getTotal()));
 
     return Map.copyOf(counts);
