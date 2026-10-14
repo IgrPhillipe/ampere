@@ -35,6 +35,17 @@ public class User {
   @Column(nullable = false)
   private UserRole role;
 
+  /** Professional registration. Null for accounts that predate the sign-up (seeded, admin). */
+  private String crea;
+
+  /** Two-letter state of the CREA registration. */
+  @Column(length = 2)
+  private String creaState;
+
+  private String company;
+
+  private String phone;
+
   @Column(nullable = false, updatable = false)
   private OffsetDateTime createdAt;
 
@@ -46,6 +57,38 @@ public class User {
     this.passwordHash = passwordHash;
     this.role = role;
     this.createdAt = OffsetDateTime.now(ZoneOffset.UTC);
+  }
+
+  /** A designer signing up: the professional data identify the technical responsible. */
+  public static User designer(
+      String name,
+      String email,
+      String passwordHash,
+      String crea,
+      String creaState,
+      String company,
+      String phone) {
+    User user = new User(name, email, passwordHash, UserRole.USER);
+    user.updateProfile(name, crea, creaState, company, phone);
+    return user;
+  }
+
+  public void updateProfile(
+      String name, String crea, String creaState, String company, String phone) {
+    this.name = name.trim();
+    this.crea = crea == null ? null : crea.trim();
+    this.creaState =
+        creaState == null ? null : creaState.trim().toUpperCase(java.util.Locale.ROOT);
+    this.company = blankToNull(company);
+    this.phone = blankToNull(phone);
+  }
+
+  public void changePasswordHash(String passwordHash) {
+    this.passwordHash = passwordHash;
+  }
+
+  private static String blankToNull(String value) {
+    return value == null || value.isBlank() ? null : value.trim();
   }
 
   @PrePersist
@@ -76,6 +119,22 @@ public class User {
 
   public UserRole getRole() {
     return role;
+  }
+
+  public String getCrea() {
+    return crea;
+  }
+
+  public String getCreaState() {
+    return creaState;
+  }
+
+  public String getCompany() {
+    return company;
+  }
+
+  public String getPhone() {
+    return phone;
   }
 
   public OffsetDateTime getCreatedAt() {
