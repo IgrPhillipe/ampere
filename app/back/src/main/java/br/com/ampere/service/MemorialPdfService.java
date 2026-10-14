@@ -5,6 +5,8 @@ import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.CalculationStep;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.User;
+import br.com.ampere.dto.TechnicalResponsibleResponse;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
@@ -125,6 +127,11 @@ public class MemorialPdfService {
     addSection(document, "1. Identificação do Projeto");
     addField(document, "Nome", project.getName());
     addField(document, "Protocolo", project.getProtocol());
+    User owner = project.getOwner();
+    if (owner != null && owner.getCrea() != null) {
+      addField(document, "Responsável técnico", owner.getName());
+      addField(document, "CREA", TechnicalResponsibleResponse.formatCrea(owner));
+    }
     addField(document, "Endereço", project.getAddress());
     addField(document, "Município", project.getMunicipality());
     addField(document, "Tipo de edificação", calculation.getBuildingType().label());

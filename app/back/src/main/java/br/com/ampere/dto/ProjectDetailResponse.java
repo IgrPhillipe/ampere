@@ -34,7 +34,8 @@ public record ProjectDetailResponse(
     EntranceStandard entranceStandard,
     List<StandardResponse> standards,
     String applicableStandards,
-    List<DemandRuleResponse> demandRules) {
+    List<DemandRuleResponse> demandRules,
+    TechnicalResponsibleResponse technicalResponsible) {
 
   public static ProjectDetailResponse from(Project project) {
     BuildingType buildingType = project.getBuildingType();
@@ -63,7 +64,8 @@ public record ProjectDetailResponse(
         buildingType.getEntranceStandard(),
         standards,
         standards.stream().map(StandardResponse::label).collect(Collectors.joining(" e ")),
-        buildingType.demandRules().stream().map(DemandRuleResponse::from).toList());
+        buildingType.demandRules().stream().map(DemandRuleResponse::from).toList(),
+        TechnicalResponsibleResponse.of(project.getOwner()));
   }
 
   private static String nameOf(User user) {
