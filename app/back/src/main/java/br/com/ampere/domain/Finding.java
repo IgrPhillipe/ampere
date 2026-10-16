@@ -37,7 +37,6 @@ public class Finding {
   private FindingStage stage;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "consumer_unit_group_id")
   private ConsumerUnitGroup consumerUnitGroup;
 
   private String calculationStepCode;
@@ -55,7 +54,6 @@ public class Finding {
 
   /** Nullable only for findings inserted before review authorship existed. */
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "author_id")
   private User author;
 
   @Column(
@@ -73,22 +71,6 @@ public class Finding {
 
   protected Finding() {}
 
-  /** Compatibility constructor for findings created by an older development seed. */
-  public Finding(Project project) {
-    this(
-        project,
-        FindingSeverity.ADJUSTMENT,
-        FindingStage.PROJECT_DATA,
-        null,
-        null,
-        null,
-        "Apontamento pendente",
-        null,
-        null,
-        Math.max(1, project.getReviewCycle()),
-        FindingStatus.OPEN);
-  }
-
   public Finding(
       Project project,
       FindingSeverity severity,
@@ -100,32 +82,9 @@ public class Finding {
       String standardItem,
       User author,
       int version) {
-    this(
-        project,
-        severity,
-        stage,
-        consumerUnitGroup,
-        calculationStepCode,
-        documentType,
-        description,
-        standardItem,
-        Objects.requireNonNull(author, "author"),
-        version,
-        FindingStatus.DRAFT);
-  }
-
-  private Finding(
-      Project project,
-      FindingSeverity severity,
-      FindingStage stage,
-      ConsumerUnitGroup consumerUnitGroup,
-      String calculationStepCode,
-      DocumentType documentType,
-      String description,
-      String standardItem,
-      User author,
-      int version,
-      FindingStatus status) {
+    if (version < 1) {
+      throw new IllegalArgumentException("version must be positive");
+    }
     this.project = Objects.requireNonNull(project, "project");
     this.severity = Objects.requireNonNull(severity, "severity");
     this.stage = Objects.requireNonNull(stage, "stage");
@@ -134,12 +93,9 @@ public class Finding {
     this.documentType = documentType;
     this.description = requireText(description, "description");
     this.standardItem = blankToNull(standardItem);
-    this.author = author;
-    if (version < 1) {
-      throw new IllegalArgumentException("version must be positive");
-    }
+    this.author = Objects.requireNonNull(author, "author");
     this.version = version;
-    this.status = Objects.requireNonNull(status, "status");
+    this.status = FindingStatus.DRAFT;
     this.createdAt = OffsetDateTime.now(ZoneOffset.UTC);
   }
 
@@ -151,7 +107,6 @@ public class Finding {
       DocumentType documentType,
       String description,
       String standardItem) {
-    requireDraft();
     this.severity = Objects.requireNonNull(severity, "severity");
     this.stage = Objects.requireNonNull(stage, "stage");
     this.consumerUnitGroup = consumerUnitGroup;
@@ -162,7 +117,6 @@ public class Finding {
   }
 
   public void publish() {
-    requireDraft();
     status = FindingStatus.OPEN;
   }
 
@@ -174,20 +128,16 @@ public class Finding {
     return severity == FindingSeverity.BLOCKING && status != FindingStatus.RESOLVED;
   }
 
+  /** Still waiting on the designer: a draft about to be published, or an open finding. */
+  public boolean isPending() {
+    return status == FindingStatus.DRAFT || status == FindingStatus.OPEN;
+  }
+
   public void resolve(FindingResolution resolution) {
-    if (status == FindingStatus.DRAFT) {
-      throw new IllegalStateException("Draft findings cannot be resolved.");
-    }
     status =
         Objects.requireNonNull(resolution, "resolution") == FindingResolution.ACCEPT
             ? FindingStatus.RESOLVED
             : FindingStatus.OPEN;
-  }
-
-  private void requireDraft() {
-    if (!isDraft()) {
-      throw new IllegalStateException("Only draft findings can be changed.");
-    }
   }
 
   private static String requireText(String value, String field) {

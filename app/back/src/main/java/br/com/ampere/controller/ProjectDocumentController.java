@@ -1,6 +1,7 @@
 package br.com.ampere.controller;
 
 import br.com.ampere.domain.DocumentType;
+import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.DocumentResponse;
 import br.com.ampere.service.AuthenticatedUser;
@@ -61,7 +62,7 @@ public class ProjectDocumentController {
   @GetMapping(value = "/{documentId}/file", produces = MediaType.APPLICATION_PDF_VALUE)
   @Operation(
       operationId = "downloadProjectDocument",
-      summary = "Exibe o PDF para o projetista dono ou o analista responsável")
+      summary = "Exibe o PDF para quem lê o projeto: o dono ou o analista")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -70,8 +71,12 @@ public class ProjectDocumentController {
         responseCode = "404",
         description = "Projeto ou documento não encontrado")
   })
-  public ResponseEntity<byte[]> file(@PathVariable Long projectId, @PathVariable Long documentId) {
-    var document = service.file(projectId, documentId);
+  public ResponseEntity<byte[]> file(
+      @PathVariable Long projectId,
+      @PathVariable Long documentId,
+      @AuthenticationPrincipal Jwt jwt) {
+    ProjectDocument document = service.file(projectId, documentId, userOf(jwt));
+
     return ResponseEntity.ok()
         .contentType(MediaType.APPLICATION_PDF)
         .header(

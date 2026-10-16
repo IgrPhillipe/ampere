@@ -1,6 +1,8 @@
 package br.com.ampere.repository;
 
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingStatus;
+import br.com.ampere.domain.ProjectStatus;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -16,14 +18,14 @@ public interface FindingRepository extends JpaRepository<Finding, Long> {
       SELECT finding.project.id AS projectId, COUNT(finding) AS total
       FROM Finding finding
       WHERE finding.project.id IN :projectIds
-        AND finding.status IN (
-          br.com.ampere.domain.FindingStatus.DRAFT,
-          br.com.ampere.domain.FindingStatus.OPEN,
-          br.com.ampere.domain.FindingStatus.CONTESTED
-        )
+        AND finding.status IN :statuses
+        AND finding.project.status <> :closed
       GROUP BY finding.project.id
       """)
-  List<FindingCount> countPerProject(@Param("projectIds") Collection<Long> projectIds);
+  List<FindingCount> countPerProject(
+      @Param("projectIds") Collection<Long> projectIds,
+      @Param("statuses") Collection<FindingStatus> statuses,
+      @Param("closed") ProjectStatus closed);
 
   void deleteAllByProjectId(Long projectId);
 

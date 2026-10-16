@@ -1,7 +1,7 @@
 package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -39,14 +39,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
 class ProjectReviewWorkflowIntegrationTest {
+
+  private static final String PASSWORD = "senha@123";
 
   private static final String FINDING_BODY =
       """
@@ -55,11 +59,13 @@ class ProjectReviewWorkflowIntegrationTest {
         "stage": "DOCUMENTS",
         "documentType": "SITE_PLAN",
         "description": "Anexar a comprovação do sistema de recarga.",
-        "standardItem": "NDU 001 item 6.6"
+        "standardItem": "DIS-NOR-053, item 6.17"
       }
       """;
 
   @Autowired private MockMvc mockMvc;
+  @Autowired private ObjectMapper objectMapper;
+  @Autowired private PasswordEncoder passwordEncoder;
   @Autowired private CalculationRepository calculationRepository;
   @Autowired private ConsumerUnitGroupRepository groupRepository;
   @Autowired private FindingRepository findingRepository;
@@ -82,22 +88,23 @@ class ProjectReviewWorkflowIntegrationTest {
     projectRepository.deleteAll();
     userRepository.deleteAll();
 
-    owner =
-        userRepository.save(new User("Ana Projetista", "ana@ampere.com", "hash", UserRole.USER));
+    String hash = passwordEncoder.encode(PASSWORD);
+    owner = userRepository.save(new User("Ana Projetista", "ana@ampere.com", hash, UserRole.USER));
     otherOwner =
-        userRepository.save(new User("Beto Projetista", "beto@ampere.com", "hash", UserRole.USER));
+        userRepository.save(new User("Beto Projetista", "beto@ampere.com", hash, UserRole.USER));
     analyst =
-        userRepository.save(new User("Alice Analista", "alice@ampere.com", "hash", UserRole.ADMIN));
+        userRepository.save(new User("Alice Analista", "alice@ampere.com", hash, UserRole.ADMIN));
     otherAnalyst =
-        userRepository.save(
-            new User("Carlos Analista", "carlos@ampere.com", "hash", UserRole.ADMIN));
+        userRepository.save(new User("Carlos Analista", "carlos@ampere.com", hash, UserRole.ADMIN));
     project = submittedProject("2026-7001", owner);
   }
 
   @Test
   void assignsExactlyOneAnalystAndOnlyThatAnalystCanWriteFindings() throws Exception {
     mockMvc
-        .perform(post("/projects/{id}/review", project.getId()).with(actor(owner)))
+        .perform(
+            post("/projects/{id}/review", project.getId())
+                .header(HttpHeaders.AUTHORIZATION, bearer(owner)))
         .andExpect(status().isForbidden());
     assign(project, analyst)
         .andExpect(status().isOk())
@@ -108,14 +115,14 @@ class ProjectReviewWorkflowIntegrationTest {
     mockMvc
         .perform(
             post("/projects/{id}/findings", project.getId())
-                .with(actor(otherAnalyst))
+                .header(HttpHeaders.AUTHORIZATION, bearer(otherAnalyst))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(FINDING_BODY))
         .andExpect(status().isForbidden());
     mockMvc
         .perform(
             post("/projects/{id}/findings", project.getId())
-                .with(actor(analyst))
+                .header(HttpHeaders.AUTHORIZATION, bearer(analyst))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(FINDING_BODY))
         .andExpect(status().isCreated())
@@ -124,12 +131,22 @@ class ProjectReviewWorkflowIntegrationTest {
         .andExpect(jsonPath("$.data.authorName").value("Alice Analista"));
 
     mockMvc
-        .perform(get("/projects/{id}/findings", project.getId()).with(actor(owner)))
+        .perform(
+            get("/projects/{id}/findings", project.getId())
+                .header(HttpHeaders.AUTHORIZATION, bearer(analyst)))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.data[0].description").value("Anexar a comprovação do sistema de recarga."));
     mockMvc
-        .perform(get("/projects/{id}/findings", project.getId()).with(actor(otherOwner)))
+        .perform(
+            get("/projects/{id}/findings", project.getId())
+                .header(HttpHeaders.AUTHORIZATION, bearer(owner)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data").isEmpty());
+    mockMvc
+        .perform(
+            get("/projects/{id}/findings", project.getId())
+                .header(HttpHeaders.AUTHORIZATION, bearer(otherOwner)))
         .andExpect(status().isNotFound());
   }
 
@@ -138,14 +155,15 @@ class ProjectReviewWorkflowIntegrationTest {
     assign(project, analyst).andExpect(status().isOk());
 
     decide(project, analyst, "REJECT", "Revisar os documentos.")
-        .andExpect(status().isUnprocessableEntity());
+        .andExpect(status().isUnprocessableContent());
     createFinding(project, analyst, FINDING_BODY).andExpect(status().isCreated());
     decide(project, analyst, "APPROVE", "Documentação aprovada.")
-        .andExpect(status().isUnprocessableEntity());
+        .andExpect(status().isUnprocessableContent());
     decide(project, otherAnalyst, "REJECT", "Revisar os documentos.")
         .andExpect(status().isForbidden());
     decide(project, analyst, "REJECT", "Revisar os documentos.")
         .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.projectId").value(String.valueOf(project.getId())))
         .andExpect(jsonPath("$.data.status").value("REJECTED"))
         .andExpect(jsonPath("$.data.opinion").value("Revisar os documentos."))
         .andExpect(jsonPath("$.data.reviewedAt").isNotEmpty());
@@ -158,14 +176,14 @@ class ProjectReviewWorkflowIntegrationTest {
     mockMvc
         .perform(
             put("/projects/{projectId}/findings/{findingId}", project.getId(), findingId)
-                .with(actor(analyst))
+                .header(HttpHeaders.AUTHORIZATION, bearer(analyst))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(FINDING_BODY))
         .andExpect(status().isConflict());
     mockMvc
         .perform(
             delete("/projects/{projectId}/findings/{findingId}", project.getId(), findingId)
-                .with(actor(analyst)))
+                .header(HttpHeaders.AUTHORIZATION, bearer(analyst)))
         .andExpect(status().isConflict());
   }
 
@@ -200,7 +218,49 @@ class ProjectReviewWorkflowIntegrationTest {
   }
 
   @Test
-  void servesAProjectPdfOnlyToItsOwnerAndAssignedAnalyst() throws Exception {
+  void rejectsTheReanalysisWithAReopenedFinding() throws Exception {
+    assign(project, analyst).andExpect(status().isOk());
+    createFinding(project, analyst, FINDING_BODY).andExpect(status().isCreated());
+    decide(project, analyst, "REJECT", "Corrigir item bloqueante.").andExpect(status().isOk());
+    Long findingId = findingRepository.findAll().getFirst().getId();
+    project.submit(OffsetDateTime.now(ZoneOffset.UTC));
+    projectRepository.flush();
+
+    resolve(project, findingId, analyst, "REOPEN").andExpect(status().isOk());
+
+    decide(project, analyst, "REJECT", "O item continua pendente.")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.status").value("REJECTED"));
+  }
+
+  @Test
+  void refusesAReferenceOutsideTheStage() throws Exception {
+    assign(project, analyst).andExpect(status().isOk());
+
+    createFinding(project, analyst, FINDING_BODY.replace("DOCUMENTS", "PROJECT_DATA"))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.detail").value("A referência não corresponde à etapa do apontamento."));
+  }
+
+  @Test
+  void validatesTheDecisionInPortuguese() throws Exception {
+    assign(project, analyst).andExpect(status().isOk());
+
+    mockMvc
+        .perform(
+            post("/projects/{id}/decision", project.getId())
+                .header(HttpHeaders.AUTHORIZATION, bearer(analyst))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.errors[*].defaultMessage")
+                .value(containsInAnyOrder("A decisão é obrigatória.", "O parecer é obrigatório.")));
+  }
+
+  @Test
+  void servesAProjectPdfToWhoeverReadsTheProject() throws Exception {
     byte[] pdf = "%PDF-1.7\nreview document".getBytes(StandardCharsets.US_ASCII);
     ProjectDocument document =
         documentRepository.save(
@@ -215,46 +275,46 @@ class ProjectReviewWorkflowIntegrationTest {
         .andExpect(content().bytes(pdf));
     file(project, document, analyst).andExpect(status().isOk()).andExpect(content().bytes(pdf));
     file(project, document, otherOwner).andExpect(status().isNotFound());
-    file(project, document, otherAnalyst).andExpect(status().isNotFound());
+    file(project, document, otherAnalyst).andExpect(status().isOk());
   }
 
-  private org.springframework.test.web.servlet.ResultActions assign(Project target, User actor)
-      throws Exception {
-    return mockMvc.perform(post("/projects/{id}/review", target.getId()).with(actor(actor)));
+  private ResultActions assign(Project target, User actor) throws Exception {
+    return mockMvc.perform(
+        post("/projects/{id}/review", target.getId())
+            .header(HttpHeaders.AUTHORIZATION, bearer(actor)));
   }
 
-  private org.springframework.test.web.servlet.ResultActions createFinding(
-      Project target, User actor, String body) throws Exception {
+  private ResultActions createFinding(Project target, User actor, String body) throws Exception {
     return mockMvc.perform(
         post("/projects/{id}/findings", target.getId())
-            .with(actor(actor))
+            .header(HttpHeaders.AUTHORIZATION, bearer(actor))
             .contentType(MediaType.APPLICATION_JSON)
             .content(body));
   }
 
-  private org.springframework.test.web.servlet.ResultActions decide(
-      Project target, User actor, String decision, String opinion) throws Exception {
+  private ResultActions decide(Project target, User actor, String decision, String opinion)
+      throws Exception {
     return mockMvc.perform(
         post("/projects/{id}/decision", target.getId())
-            .with(actor(actor))
+            .header(HttpHeaders.AUTHORIZATION, bearer(actor))
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"decision\":\"" + decision + "\",\"opinion\":\"" + opinion + "\"}"));
   }
 
-  private org.springframework.test.web.servlet.ResultActions resolve(
-      Project target, Long findingId, User actor, String resolution) throws Exception {
+  private ResultActions resolve(Project target, Long findingId, User actor, String resolution)
+      throws Exception {
     return mockMvc.perform(
         post("/projects/{projectId}/findings/{findingId}/resolution", target.getId(), findingId)
-            .with(actor(actor))
+            .header(HttpHeaders.AUTHORIZATION, bearer(actor))
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"resolution\":\"" + resolution + "\"}"));
   }
 
-  private org.springframework.test.web.servlet.ResultActions file(
-      Project target, ProjectDocument document, User actor) throws Exception {
+  private ResultActions file(Project target, ProjectDocument document, User actor)
+      throws Exception {
     return mockMvc.perform(
         get("/projects/{projectId}/documents/{documentId}/file", target.getId(), document.getId())
-            .with(actor(actor)));
+            .header(HttpHeaders.AUTHORIZATION, bearer(actor)));
   }
 
   private Project submittedProject(String protocol, User projectOwner) {
@@ -272,13 +332,21 @@ class ProjectReviewWorkflowIntegrationTest {
     return projectRepository.save(submitted);
   }
 
-  private static JwtRequestPostProcessor actor(User user) {
-    return jwt()
-        .jwt(
-            token ->
-                token
-                    .subject(String.valueOf(user.getId()))
-                    .claim("email", user.getEmail())
-                    .claim("role", user.getRole().getValue()));
+  private String bearer(User user) throws Exception {
+    String body =
+        mockMvc
+            .perform(
+                post("/auth/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"email\":\""
+                            + user.getEmail()
+                            + "\",\"password\":\""
+                            + PASSWORD
+                            + "\"}"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    return "Bearer " + objectMapper.readTree(body).path("data").path("token").asString();
   }
 }

@@ -75,7 +75,6 @@ public class Project {
   private User owner;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "reviewer_id")
   private User reviewer;
 
   @Column(nullable = false, columnDefinition = "integer default 0")
@@ -227,22 +226,8 @@ public class Project {
     conclude(ProjectStatus.REJECTED, reviewedAt, opinion);
   }
 
-  public boolean assignReviewer(User reviewer) {
-    if (status != ProjectStatus.UNDER_REVIEW) {
-      throw new IllegalStateException("Only projects under review can be assigned.");
-    }
-
-    User analyst = Objects.requireNonNull(reviewer, "reviewer");
-    if (this.reviewer == null) {
-      this.reviewer = analyst;
-      return true;
-    }
-
-    if (!this.reviewer.getId().equals(analyst.getId())) {
-      throw new IllegalStateException("Project already assigned to another reviewer.");
-    }
-
-    return false;
+  public void assignReviewer(User reviewer) {
+    this.reviewer = Objects.requireNonNull(reviewer, "reviewer");
   }
 
   public boolean isAssignedTo(Long userId) {
@@ -250,9 +235,6 @@ public class Project {
   }
 
   private void conclude(ProjectStatus outcome, OffsetDateTime reviewedAt, String opinion) {
-    if (status != ProjectStatus.UNDER_REVIEW) {
-      throw new IllegalStateException("Only projects under review can receive a decision.");
-    }
     this.status = outcome;
     this.reviewedAt = Objects.requireNonNull(reviewedAt, "reviewedAt");
     this.reviewOpinion = opinion == null || opinion.isBlank() ? null : opinion.trim();

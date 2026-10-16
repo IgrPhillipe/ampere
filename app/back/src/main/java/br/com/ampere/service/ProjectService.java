@@ -1,6 +1,7 @@
 package br.com.ampere.service;
 
 import br.com.ampere.domain.BuildingType;
+import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.SortDirection;
@@ -36,6 +37,10 @@ public class ProjectService {
   private static final String NOT_FOUND = "Projeto não encontrado.";
   private static final String ANALYST_READ_ONLY =
       "O perfil analista só consulta os projetos enviados para análise.";
+
+  /** What the designer still has to answer: drafts are hidden, an approval closes the rest. */
+  private static final List<FindingStatus> OPEN_FINDINGS =
+      List.of(FindingStatus.OPEN, FindingStatus.CONTESTED);
 
   private final ProjectRepository projectRepository;
   private final FindingRepository findingRepository;
@@ -174,7 +179,9 @@ public class ProjectService {
       return Map.of();
     }
 
-    return findingRepository.countPerProject(projectIds).stream()
+    return findingRepository
+        .countPerProject(projectIds, OPEN_FINDINGS, ProjectStatus.APPROVED)
+        .stream()
         .collect(
             Collectors.toUnmodifiableMap(
                 FindingRepository.FindingCount::getProjectId,

@@ -36,22 +36,26 @@ public class FindingService {
     this.reviewService = reviewService;
   }
 
+  /** The designer sees a finding only after the decision publishes it. */
   @Transactional(readOnly = true)
-  public List<Finding> list(Long projectId) {
-    projectService.findById(projectId);
-    return findingRepository.findAllByProjectIdOrderByCreatedAtAscIdAsc(projectId);
+  public List<Finding> list(Long projectId, AuthenticatedUser user) {
+    projectService.findById(projectId, user);
+
+    return findingRepository.findAllByProjectIdOrderByCreatedAtAscIdAsc(projectId).stream()
+        .filter(finding -> user.isAdmin() || !finding.isDraft())
+        .toList();
   }
 
   @Transactional
-  public Finding create(Long projectId, FindingParameters parameters) {
-    Project project = reviewService.assignedProject(projectId);
-    ConsumerUnitGroup group = referencedGroup(projectId, parameters.consumerUnitGroupId());
+  public Finding create(Long projectId, FindingParameters parameters, AuthenticatedUser user) {
+    Project project = reviewService.assignedProject(projectId, user);
+
     return findingRepository.save(
         new Finding(
             project,
             parameters.severity(),
             parameters.stage(),
-            group,
+            referencedGroup(projectId, parameters),
             parameters.calculationStepCode(),
             parameters.documentType(),
             parameters.description(),
@@ -61,30 +65,32 @@ public class FindingService {
   }
 
   @Transactional
-  public Finding update(Long projectId, Long findingId, FindingParameters parameters) {
-    reviewService.assignedProject(projectId);
+  public Finding update(
+      Long projectId, Long findingId, FindingParameters parameters, AuthenticatedUser user) {
+    reviewService.assignedProject(projectId, user);
     Finding finding = draftOrFail(projectId, findingId);
-    ConsumerUnitGroup group = referencedGroup(projectId, parameters.consumerUnitGroupId());
     finding.updateDraft(
         parameters.severity(),
         parameters.stage(),
-        group,
+        referencedGroup(projectId, parameters),
         parameters.calculationStepCode(),
         parameters.documentType(),
         parameters.description(),
         parameters.standardItem());
+
     return finding;
   }
 
   @Transactional
-  public void delete(Long projectId, Long findingId) {
-    reviewService.assignedProject(projectId);
+  public void delete(Long projectId, Long findingId, AuthenticatedUser user) {
+    reviewService.assignedProject(projectId, user);
     findingRepository.delete(draftOrFail(projectId, findingId));
   }
 
   @Transactional
-  public Finding resolve(Long projectId, Long findingId, FindingResolution resolution) {
-    Project project = reviewService.assignedProject(projectId);
+  public Finding resolve(
+      Long projectId, Long findingId, FindingResolution resolution, AuthenticatedUser user) {
+    Project project = reviewService.assignedProject(projectId, user);
     Finding finding = findOrFail(projectId, findingId);
     if (finding.getVersion() >= project.getReviewCycle()) {
       throw new BusinessException(
@@ -92,15 +98,12 @@ public class FindingService {
           HttpStatus.CONFLICT);
     }
 
-    try {
-      finding.resolve(resolution);
-    } catch (IllegalStateException invalidState) {
-      throw new BusinessException(invalidState.getMessage(), HttpStatus.CONFLICT);
-    }
+    finding.resolve(resolution);
+
     return finding;
   }
 
-  Finding findOrFail(Long projectId, Long findingId) {
+  private Finding findOrFail(Long projectId, Long findingId) {
     return findingRepository
         .findByIdAndProjectId(findingId, projectId)
         .orElseThrow(() -> new NotFoundException(NOT_FOUND));
@@ -111,15 +114,20 @@ public class FindingService {
     if (!finding.isDraft()) {
       throw new BusinessException(NOT_DRAFT, HttpStatus.CONFLICT);
     }
+
     return finding;
   }
 
-  private ConsumerUnitGroup referencedGroup(Long projectId, Long groupId) {
-    if (groupId == null) {
+  private ConsumerUnitGroup referencedGroup(Long projectId, FindingParameters parameters) {
+    if (!parameters.referencesFitStage()) {
+      throw new BusinessException("A referência não corresponde à etapa do apontamento.");
+    }
+    if (parameters.consumerUnitGroupId() == null) {
       return null;
     }
+
     return groupRepository
-        .findByIdAndProjectId(groupId, projectId)
+        .findByIdAndProjectId(parameters.consumerUnitGroupId(), projectId)
         .orElseThrow(() -> new NotFoundException("Grupo de unidades não encontrado."));
   }
 }
