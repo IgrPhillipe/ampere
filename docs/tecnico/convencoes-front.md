@@ -673,6 +673,7 @@ porte usando a tabela de equivalências em `app/front/.migration/2026-09-base-ui
 | Campo de formulário | `@components/form` (`ControlledInput`, `FormField`) |
 | Tabela | `@components/DataTable` (`DataTable`, `createDataTableColumnHelper`) |
 | Estado vazio / esqueleto | `@components/EmptyState`, `@components/SkeletonTable` |
+| Confirmação de ação | `@components/ConfirmDialog` |
 | Cabeçalho de página | `@components/layout` (`PageLayout`) |
 | Tokens e regras visuais | [`design-system-front.md`](design-system-front.md) |
 | Busca com atraso | `@features/shared` (`useDebouncedValue`) |

@@ -239,6 +239,7 @@ do mesmo formulário renderizavam diferentes.
 - `DataTable` padroniza cabeçalho, linhas, carregamento e resultado vazio.
 - `SkeletonTable` representa carregamento sem deslocar a estrutura.
 - `EmptyState` aceita ícone, título, descrição e ação.
+- `ConfirmDialog` pede confirmação antes de uma ação; `destructive` deixa o botão vermelho, e o diálogo não fecha enquanto a requisição roda.
 - `Tabs` usa indicador inferior verde, não uma coleção de botões soltos.
 - `Card` agrupa conteúdo relacionado; não envolve uma seção inteira apenas para
   criar espaçamento.
