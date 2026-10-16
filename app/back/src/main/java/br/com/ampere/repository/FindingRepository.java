@@ -32,6 +32,8 @@ public interface FindingRepository extends JpaRepository<Finding, Long> {
   @EntityGraph(attributePaths = {"author", "consumerUnitGroup"})
   List<Finding> findAllByProjectIdOrderByCreatedAtAscIdAsc(Long projectId);
 
+  List<Finding> findAllByConsumerUnitGroupId(Long groupId);
+
   @EntityGraph(attributePaths = {"author", "consumerUnitGroup"})
   Optional<Finding> findByIdAndProjectId(Long id, Long projectId);
 

@@ -7,6 +7,9 @@ import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.EvStationType;
+import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingSeverity;
+import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.GroupStatus;
@@ -161,6 +164,34 @@ class ConsumerUnitGroupServiceIntegrationTest {
 
     assertThat(groupRepository.count()).isZero();
     assertThat(projectRepository.existsById(projectId)).isFalse();
+  }
+
+  @Test
+  void keepsTheFindingWhenItsGroupIsDeleted() {
+    Project project = draft();
+    ConsumerUnitGroup group = service.create(project.getId(), commonArea(), designer);
+    Finding finding =
+        findingRepository.save(
+            new Finding(
+                project,
+                FindingSeverity.ADJUSTMENT,
+                FindingStage.CONSUMER_UNITS,
+                group,
+                null,
+                null,
+                "Revise a potência dos motores.",
+                null,
+                owner,
+                1));
+    entityManager.flush();
+
+    service.delete(project.getId(), group.getId(), designer);
+    entityManager.flush();
+    entityManager.clear();
+
+    assertThat(groupRepository.existsById(group.getId())).isFalse();
+    assertThat(findingRepository.findById(finding.getId()))
+        .hasValueSatisfying(kept -> assertThat(kept.getConsumerUnitGroup()).isNull());
   }
 
   private Project draft() {
