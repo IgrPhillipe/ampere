@@ -116,6 +116,11 @@ public class Finding {
     this.standardItem = blankToNull(standardItem);
   }
 
+  /** The group was deleted: the finding stays, pointing to the stage only. */
+  public void detachGroup() {
+    consumerUnitGroup = null;
+  }
+
   public void publish() {
     status = FindingStatus.OPEN;
   }
