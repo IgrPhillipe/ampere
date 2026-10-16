@@ -1,3 +1,4 @@
+import { ConfirmDialog } from "@components/ConfirmDialog";
 import {
 	Sheet,
 	SheetContent,
@@ -14,7 +15,6 @@ import {
 import { useState } from "react";
 
 import { EvChargingGroupForm } from "./EvChargingGroupForm";
-import { GroupDeleteDialog } from "./GroupDeleteDialog";
 import type { GroupFormProps } from "./group-form";
 import { LoadGroupForm } from "./LoadGroupForm";
 import { ResidentialGroupForm } from "./ResidentialGroupForm";
@@ -115,10 +115,19 @@ export const GroupSheet = ({
 			</Sheet>
 
 			{group ? (
-				<GroupDeleteDialog
-					groupName={group.name}
+				<ConfirmDialog
 					open={deleteConfirmationOpen}
+					title="Excluir grupo?"
+					description={
+						<>
+							O grupo <strong className="text-foreground">{group.name}</strong>{" "}
+							será removido do projeto. Esta ação não pode ser desfeita.
+						</>
+					}
+					confirmLabel="Excluir Grupo"
+					pendingLabel="Excluindo..."
 					isPending={deleteGroup.isPending}
+					destructive
 					onOpenChange={setDeleteConfirmationOpen}
 					onConfirm={remove}
 				/>

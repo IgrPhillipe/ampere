@@ -1,3 +1,4 @@
+import { ConfirmDialog } from "@components/ConfirmDialog";
 import { ControlledInput, ControlledSelect } from "@components/form";
 import { useAuthStore, useZodForm } from "@features/shared";
 import { cn } from "@lib/utils";
@@ -19,7 +20,6 @@ import {
 	toNormativeTableFormValues,
 	toNormativeTablePayload,
 } from "../../schemas";
-import { NormativeTableConfirmDialog } from "./NormativeTableConfirmDialog";
 import { NormativeTableFormFooter } from "./NormativeTableFormFooter";
 import { NormativeTableMetadata } from "./NormativeTableMetadata";
 import { NormativeTableRowsEditor } from "./NormativeTableRowsEditor";
@@ -258,7 +258,7 @@ export const NormativeTableForm = ({
 				onPublish={() => setPublishOpen(true)}
 			/>
 
-			<NormativeTableConfirmDialog
+			<ConfirmDialog
 				open={pendingCreation !== null}
 				title="Enviar a tabela para revisão?"
 				description="A tabela fica pendente até a aprovação de outro administrador. Os valores só entram no cálculo de demanda depois de aprovados."
@@ -271,7 +271,7 @@ export const NormativeTableForm = ({
 				onConfirm={confirmCreation}
 			/>
 
-			<NormativeTableConfirmDialog
+			<ConfirmDialog
 				open={isPublishOpen}
 				title="Aprovar e publicar a tabela?"
 				description="A revisão passa a valer no cálculo de demanda e substitui a tabela publicada de mesmo código. Uma tabela publicada não pode ser alterada."
