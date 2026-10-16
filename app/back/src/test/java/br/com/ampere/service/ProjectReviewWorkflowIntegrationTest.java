@@ -111,6 +111,13 @@ class ProjectReviewWorkflowIntegrationTest {
         .andExpect(jsonPath("$.data.reviewerId").value(analyst.getId()));
     assign(project, analyst).andExpect(status().isOk());
     assign(project, otherAnalyst).andExpect(status().isConflict());
+    mockMvc
+        .perform(
+            get("/projects/{id}", project.getId())
+                .header(HttpHeaders.AUTHORIZATION, bearer(otherAnalyst)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.ownerName").value("Ana Projetista"))
+        .andExpect(jsonPath("$.data.reviewerName").value("Alice Analista"));
 
     mockMvc
         .perform(
