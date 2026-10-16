@@ -74,6 +74,9 @@ public class Project {
   @JoinColumn(name = "owner_id")
   private User owner;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  private User reviewer;
+
   @Column(nullable = false, columnDefinition = "integer default 0")
   private int reviewCycle;
 
@@ -87,6 +90,9 @@ public class Project {
   private OffsetDateTime submittedAt;
 
   private OffsetDateTime reviewedAt;
+
+  @Column(length = 2000)
+  private String reviewOpinion;
 
   @Column(nullable = false)
   private String searchIndex;
@@ -200,20 +206,38 @@ public class Project {
     this.status = ProjectStatus.UNDER_REVIEW;
     this.submittedAt = Objects.requireNonNull(submittedAt, "submittedAt");
     this.reviewedAt = null;
+    this.reviewOpinion = null;
     this.reviewCycle++;
   }
 
   public void approve(OffsetDateTime reviewedAt) {
-    conclude(ProjectStatus.APPROVED, reviewedAt);
+    approve(reviewedAt, null);
+  }
+
+  public void approve(OffsetDateTime reviewedAt, String opinion) {
+    conclude(ProjectStatus.APPROVED, reviewedAt, opinion);
   }
 
   public void reject(OffsetDateTime reviewedAt) {
-    conclude(ProjectStatus.REJECTED, reviewedAt);
+    reject(reviewedAt, null);
   }
 
-  private void conclude(ProjectStatus outcome, OffsetDateTime reviewedAt) {
+  public void reject(OffsetDateTime reviewedAt, String opinion) {
+    conclude(ProjectStatus.REJECTED, reviewedAt, opinion);
+  }
+
+  public void assignReviewer(User reviewer) {
+    this.reviewer = Objects.requireNonNull(reviewer, "reviewer");
+  }
+
+  public boolean isAssignedTo(Long userId) {
+    return reviewer != null && reviewer.getId().equals(userId);
+  }
+
+  private void conclude(ProjectStatus outcome, OffsetDateTime reviewedAt, String opinion) {
     this.status = outcome;
     this.reviewedAt = Objects.requireNonNull(reviewedAt, "reviewedAt");
+    this.reviewOpinion = opinion == null || opinion.isBlank() ? null : opinion.trim();
   }
 
   /** Last day of the review period: 30 calendar days after the day of submission. */
@@ -236,6 +260,10 @@ public class Project {
 
   public boolean isDraft() {
     return status == ProjectStatus.DRAFT;
+  }
+
+  public boolean isUnderReview() {
+    return status == ProjectStatus.UNDER_REVIEW;
   }
 
   public boolean canBeSubmitted() {
@@ -308,8 +336,16 @@ public class Project {
     return reviewedAt;
   }
 
+  public String getReviewOpinion() {
+    return reviewOpinion;
+  }
+
   public User getOwner() {
     return owner;
+  }
+
+  public User getReviewer() {
+    return reviewer;
   }
 
   public int getReviewCycle() {

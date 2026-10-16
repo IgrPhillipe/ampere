@@ -8,6 +8,8 @@ import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingSeverity;
+import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
@@ -84,8 +86,9 @@ class ProjectServiceIntegrationTest {
             "Olinda",
             "2026-1002",
             ProjectStatus.APPROVED));
-    findingRepository.save(new Finding(rejectedProject));
-    findingRepository.save(new Finding(rejectedProject));
+    findingRepository.save(published(finding(rejectedProject)));
+    findingRepository.save(published(finding(rejectedProject)));
+    findingRepository.save(finding(rejectedProject));
 
     ProjectListing listing =
         service.list(1, 20, ProjectStatus.REJECTED, "VILA", SortDirection.DESC, designer);
@@ -270,12 +273,13 @@ class ProjectServiceIntegrationTest {
   @Test
   void deletesADraftProjectAndItsFindings() {
     Project draft = service.create(parameters(BuildingCategory.MIXED), designer);
-    findingRepository.save(new Finding(draft));
+    findingRepository.save(published(finding(draft)));
 
     service.delete(draft.getId(), designer);
 
     assertThat(projectRepository.findById(draft.getId())).isEmpty();
-    assertThat(findingRepository.countPerProject(List.of(draft.getId()))).isEmpty();
+    assertThat(findingRepository.findAllByProjectIdOrderByCreatedAtAscIdAsc(draft.getId()))
+        .isEmpty();
   }
 
   @Test
@@ -306,6 +310,26 @@ class ProjectServiceIntegrationTest {
       String name, String address, String municipality, String protocol, ProjectStatus status) {
     return new Project(
         name, address, municipality, protocol, status, buildingType(), List.of(), owner);
+  }
+
+  private Finding finding(Project project) {
+    return new Finding(
+        project,
+        FindingSeverity.ADJUSTMENT,
+        FindingStage.PROJECT_DATA,
+        null,
+        null,
+        null,
+        "Informe o número do lote.",
+        null,
+        owner,
+        1);
+  }
+
+  private static Finding published(Finding finding) {
+    finding.publish();
+
+    return finding;
   }
 
   private static BuildingType buildingType() {

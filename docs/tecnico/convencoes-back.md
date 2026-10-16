@@ -276,7 +276,7 @@ Decisões:
 - **E-mail desconhecido e senha errada respondem igual.** Distinguir os dois revelaria quais e-mails existem na base.
 - **`/auth/me` relê o usuário do banco** em vez de confiar no token: nome e papel gravados no token ficam desatualizados.
 
-**Rotas restritas por papel ficam no `SecurityConfig`.** As tabelas normativas (`/normative-tables/**`) e a fila de análise (`/review-queue/**`) não são do projetista: o `SecurityConfig` converte o claim `role` do token em `ROLE_ADMIN` ou `ROLE_USER` e exige `hasRole("ADMIN")` nesses caminhos. Sem o papel, a resposta é 403 no mesmo `ProblemDetail` do resto da API. Rota nova de analista entra no mesmo `requestMatchers`.
+**Rotas restritas por papel ficam no `SecurityConfig`.** As tabelas normativas (`/normative-tables/**`), a fila de análise (`/review-queue/**`) e a escrita da análise (atribuição, decisão e apontamentos) não são do projetista: o `SecurityConfig` converte o claim `role` do token em `ROLE_ADMIN` ou `ROLE_USER` e exige `hasRole("ADMIN")` nesses caminhos. Sem o papel, a resposta é 403 no mesmo `ProblemDetail` do resto da API. Rota nova de analista entra no mesmo `requestMatchers`.
 
 Os papéis atuais (`user` / `admin`) são placeholder e dependem da **Q1c** em [`questoes-em-aberto.md`](../produto/questoes-em-aberto.md): *"pessoa de fora da Neoenergia pode acessar um sistema interno?"*. A resolução da Q1c é aplicada aqui e na pendência 13.
 
@@ -589,6 +589,7 @@ A mensagem é o que o usuário lê: em português e sem jargão. O front descart
 | Seed das tabelas em desenvolvimento | `config/NormativeTableSeed` |
 | Geração de protocolo | `utils/Protocols` |
 | Regra de dono do projeto | `service/ProjectService`, `service/AuthenticatedUser` |
+| Análise técnica e apontamentos | `service/ProjectReviewService`, `service/FindingService` |
 | Documentação da API | `/api/docs` |
 
 ---

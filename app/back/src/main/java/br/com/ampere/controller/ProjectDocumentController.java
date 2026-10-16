@@ -1,6 +1,7 @@
 package br.com.ampere.controller;
 
 import br.com.ampere.domain.DocumentType;
+import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.DocumentResponse;
 import br.com.ampere.service.AuthenticatedUser;
@@ -11,8 +12,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.util.List;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -53,6 +57,32 @@ public class ProjectDocumentController {
         service.listByProject(projectId, userOf(jwt)).stream()
             .map(DocumentResponse::from)
             .toList());
+  }
+
+  @GetMapping(value = "/{documentId}/file", produces = MediaType.APPLICATION_PDF_VALUE)
+  @Operation(
+      operationId = "downloadProjectDocument",
+      summary = "Exibe o PDF para quem lê o projeto: o dono ou o analista")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Conteúdo do PDF"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "Projeto ou documento não encontrado")
+  })
+  public ResponseEntity<byte[]> file(
+      @PathVariable Long projectId,
+      @PathVariable Long documentId,
+      @AuthenticationPrincipal Jwt jwt) {
+    ProjectDocument document = service.file(projectId, documentId, userOf(jwt));
+
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_PDF)
+        .header(
+            HttpHeaders.CONTENT_DISPOSITION,
+            ContentDisposition.inline().filename(document.getFilename()).build().toString())
+        .body(document.getData());
   }
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

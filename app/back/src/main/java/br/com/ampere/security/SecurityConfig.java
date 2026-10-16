@@ -52,6 +52,17 @@ public class SecurityConfig {
                         "/normative-tables", "/normative-tables/**",
                         "/review-queue", "/review-queue/**")
                     .hasRole("ADMIN")
+                    .requestMatchers(
+                        "/projects/*/review",
+                        "/projects/*/decision",
+                        "/projects/*/findings/*/resolution")
+                    .hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/projects/*/findings")
+                    .hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/projects/*/findings/*")
+                    .hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/projects/*/findings/*")
+                    .hasRole("ADMIN")
                     .anyRequest()
                     .authenticated())
         .oauth2ResourceServer(

@@ -101,7 +101,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       """)
   Optional<String> findHighestProtocolOfYear(@Param("year") String year);
 
-  @EntityGraph(attributePaths = {"buildingType", "standards", "owner"})
+  @EntityGraph(attributePaths = {"buildingType", "standards", "owner", "reviewer"})
   Optional<Project> findDetailById(Long id);
 
   Optional<Project> findByProtocol(String protocol);

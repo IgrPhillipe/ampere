@@ -34,6 +34,15 @@ public class ProjectDocumentService {
     return documentRepository.findAllByProjectIdOrderByType(projectId);
   }
 
+  @Transactional(readOnly = true)
+  public ProjectDocument file(Long projectId, Long documentId, AuthenticatedUser user) {
+    projectService.findById(projectId, user);
+
+    return documentRepository
+        .findByIdAndProjectId(documentId, projectId)
+        .orElseThrow(() -> new NotFoundException(NOT_FOUND));
+  }
+
   @Transactional
   public ProjectDocument upload(
       Long projectId,

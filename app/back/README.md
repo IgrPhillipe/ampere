@@ -97,6 +97,53 @@ Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/i
 
 ---
 
+## Análise Técnica e Apontamentos
+
+O papel `admin` representa o analista. Um projeto `UNDER_REVIEW` é assumido por um único analista: repetir a atribuição não muda nada, e outro analista recebe 409. As rotas de escrita do analista são restritas ao `admin` pelo `SecurityConfig`.
+
+| Método e caminho | Quem usa | Regra principal |
+| :--- | :--- | :--- |
+| `POST /api/projects/{id}/review` | Analista | Assume a análise |
+| `GET /api/projects/{id}/findings` | Dono ou analista | Lista na ordem de criação; o dono não vê rascunhos |
+| `POST /api/projects/{id}/findings` | Analista atribuído | Cria um apontamento `DRAFT` no ciclo atual |
+| `PUT /api/projects/{id}/findings/{findingId}` | Analista atribuído | Altera só apontamento `DRAFT` |
+| `DELETE /api/projects/{id}/findings/{findingId}` | Analista atribuído | Exclui só apontamento `DRAFT` |
+| `POST /api/projects/{id}/decision` | Analista atribuído | Aprova ou reprova e publica os rascunhos como `OPEN` |
+| `POST /api/projects/{id}/findings/{findingId}/resolution` | Analista atribuído | Na reanálise, aceita ou reabre apontamento de ciclo anterior |
+| `GET /api/projects/{id}/documents/{documentId}/file` | Dono ou analista | Devolve o PDF; vale a mesma regra de leitura do projeto |
+
+### Contrato do Apontamento
+
+```json
+{
+  "severity": "BLOCKING",
+  "stage": "DOCUMENTS",
+  "consumerUnitGroupId": null,
+  "calculationStepCode": null,
+  "documentType": "ART",
+  "description": "A ART não traz a assinatura do responsável técnico.",
+  "standardItem": "DIS-NOR-053, item 6.17"
+}
+```
+
+- `severity`: `BLOCKING` ou `ADJUSTMENT`. `stage`: `PROJECT_DATA`, `CONSUMER_UNITS`, `CALCULATION` ou `DOCUMENTS`.
+- A referência é opcional e só vale na sua etapa: grupo em `CONSUMER_UNITS`, parcela do cálculo em `CALCULATION`, tipo de documento em `DOCUMENTS`. Referência fora da etapa responde 400.
+- A resposta acrescenta autor, data, ciclo (`version`) e `status`: `DRAFT`, `OPEN`, `FIXED`, `CONTESTED` ou `RESOLVED`.
+
+### Decisão e Reanálise
+
+`POST /decision` recebe `{"decision": "APPROVE" | "REJECT", "opinion": "..."}`, com parecer obrigatório de até 2.000 caracteres.
+
+- `APPROVE` responde 422 se houver apontamento `BLOCKING` não resolvido.
+- `REJECT` responde 422 se não houver apontamento pendente: rascunho do ciclo atual ou apontamento reaberto.
+- A decisão grava `reviewedAt` e o parecer, e publica os rascunhos como `OPEN`.
+- A contagem de pendências da listagem do projetista ignora rascunhos e projetos aprovados.
+- `/resolution` recebe `{"resolution": "ACCEPT"}` para `RESOLVED` ou `{"resolution": "REOPEN"}` para `OPEN`, só para apontamentos de ciclos anteriores.
+
+Projeto de outro dono ou inexistente responde 404; papel ou analista errado, 403; atribuição ou estado em conflito, 409; regra da decisão, 422.
+
+---
+
 ## Variáveis de Ambiente
 
 | Variável | Obrigatória | Padrão | Descrição |
