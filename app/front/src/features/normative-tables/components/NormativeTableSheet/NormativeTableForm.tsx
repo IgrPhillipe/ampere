@@ -65,6 +65,7 @@ export const NormativeTableForm = ({
 	const publishTable = usePublishNormativeTable();
 	const deleteTable = useDeleteNormativeTable();
 	const [isPublishOpen, setPublishOpen] = useState(false);
+	const [isDeleteOpen, setDeleteOpen] = useState(false);
 	const [pendingCreation, setPendingCreation] =
 		useState<NormativeTablePayload | null>(null);
 	const email = useAuthStore((state) => state.user?.email);
@@ -148,7 +149,10 @@ export const NormativeTableForm = ({
 	const remove = () => {
 		if (!table) return;
 
-		deleteTable.mutate(table.id, { onSuccess: onClose });
+		deleteTable.mutate(table.id, {
+			onSuccess: onClose,
+			onSettled: () => setDeleteOpen(false),
+		});
 	};
 
 	const publish = () => {
@@ -254,7 +258,7 @@ export const NormativeTableForm = ({
 				isSaving={createTable.isPending || updateTable.isPending}
 				isDeleting={deleteTable.isPending}
 				onCancel={onClose}
-				onDelete={remove}
+				onDelete={() => setDeleteOpen(true)}
 				onPublish={() => setPublishOpen(true)}
 			/>
 
@@ -280,6 +284,25 @@ export const NormativeTableForm = ({
 				isPending={publishTable.isPending}
 				onOpenChange={setPublishOpen}
 				onConfirm={publish}
+			/>
+
+			<ConfirmDialog
+				open={isDeleteOpen}
+				title="Excluir tabela?"
+				description={
+					<>
+						A tabela{" "}
+						<strong className="text-foreground">{table?.identification}</strong>
+						, ainda aguardando revisão, será excluída. Esta ação não pode ser
+						desfeita.
+					</>
+				}
+				confirmLabel="Excluir Tabela"
+				pendingLabel="Excluindo..."
+				isPending={deleteTable.isPending}
+				destructive
+				onOpenChange={setDeleteOpen}
+				onConfirm={remove}
 			/>
 		</form>
 	);
