@@ -50,7 +50,9 @@ export const ProjectStamp = ({
 		</StampCell>
 
 		<StampCell isLoading={isLoading} label="Responsável técnico">
-			{project ? "Não informado" : undefined}
+			{project?.technicalResponsible
+				? `${project.technicalResponsible.name}, CREA ${project.technicalResponsible.crea}`
+				: undefined}
 		</StampCell>
 
 		<StampCell isLoading={isLoading} label="Unidades">

@@ -260,7 +260,7 @@ O `DataSeeder` insere seis projetos e quatro apontamentos no primeiro boot, apen
 
 `POST /api/auth/login` troca e-mail e senha por um **JWT assinado com HS256**, e `GET /api/auth/me` devolve o usuário da sessão. O token vai no header `Authorization: Bearer`, que o front já envia.
 
-**Aberto:** o próprio login e a documentação (`/api/docs`, `/api/v3/api-docs`). **Todo o resto exige token**, inclusive `/api/projects`.
+**Aberto:** o login, o cadastro (`/api/auth/register`) e a documentação (`/api/docs`, `/api/v3/api-docs`). Nas duas rotas de entrada o `SecurityConfig` ignora o token enviado: um token vencido salvo no navegador recusaria a requisição antes de ela chegar à rota. **Todo o resto exige token**, inclusive `/api/projects`.
 
 | Onde | O quê |
 | :--- | :--- |
@@ -589,6 +589,7 @@ A mensagem é o que o usuário lê: em português e sem jargão. O front descart
 | Seed das tabelas em desenvolvimento | `config/NormativeTableSeed` |
 | Geração de protocolo | `utils/Protocols` |
 | Regra de dono do projeto | `service/ProjectService`, `service/AuthenticatedUser` |
+| Cadastro e perfil | `service/UserService`, `controller/UserController` |
 | Análise técnica e apontamentos | `service/ProjectReviewService`, `service/FindingService` |
 | Documentação da API | `/api/docs` |
 

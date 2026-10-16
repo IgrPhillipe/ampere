@@ -120,7 +120,7 @@ public class DataSeeder implements CommandLineRunner {
     String hash = passwordEncoder.encode(DEVELOPMENT_PASSWORD);
     List<User> missing =
         List.of(
-                new User("Usuário Teste", "user@ampere.com", hash, UserRole.USER),
+                User.designer("Usuário Teste", "user@ampere.com", hash, "123456", "PE", null, null),
                 new User("Admin Teste", "admin@ampere.com", hash, UserRole.ADMIN),
                 new User("Revisor Teste", "revisor@ampere.com", hash, UserRole.ADMIN))
             .stream()
