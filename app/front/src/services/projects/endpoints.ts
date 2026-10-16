@@ -4,4 +4,5 @@ export const ProjectEndpoints = {
 	statusCounts: "projects/status-counts",
 	detail: (id: string) => `projects/${id}`,
 	update: (id: string) => `projects/${id}`,
+	remove: (id: string) => `projects/${id}`,
 } as const;

@@ -8,6 +8,7 @@ import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
+import br.com.ampere.domain.User;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -24,6 +25,8 @@ public record ProjectDetailResponse(
     OffsetDateTime createdAt,
     OffsetDateTime updatedAt,
     OffsetDateTime submittedAt,
+    String ownerName,
+    String reviewerName,
     BuildingCategory buildingType,
     Integer floors,
     SupplyVoltage voltage,
@@ -51,6 +54,8 @@ public record ProjectDetailResponse(
         project.getCreatedAt(),
         project.getUpdatedAt(),
         project.getSubmittedAt(),
+        nameOf(project.getOwner()),
+        nameOf(project.getReviewer()),
         buildingType.category(),
         buildingType.getFloors(),
         buildingType.getVoltage(),
@@ -59,5 +64,9 @@ public record ProjectDetailResponse(
         standards,
         standards.stream().map(StandardResponse::label).collect(Collectors.joining(" e ")),
         buildingType.demandRules().stream().map(DemandRuleResponse::from).toList());
+  }
+
+  private static String nameOf(User user) {
+    return user == null ? null : user.getName();
   }
 }

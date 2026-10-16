@@ -47,10 +47,10 @@ public class DemandCalculationService {
 
   /** Every run is kept: a later one does not overwrite what an earlier one showed. */
   @Transactional
-  public Calculation calculate(Long projectId) {
+  public Calculation calculate(Long projectId, AuthenticatedUser user) {
     Project project =
         projectService.draftOrFail(
-            projectId, "Só é possível calcular a demanda de um projeto em rascunho.");
+            projectId, "Só é possível calcular a demanda de um projeto em rascunho.", user);
     List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(projectId);
     if (groups.isEmpty()) {
       throw unprocessable("Cadastre ao menos um grupo de unidades antes de calcular a demanda.");
@@ -81,8 +81,8 @@ public class DemandCalculationService {
   }
 
   @Transactional(readOnly = true)
-  public Calculation latest(Long projectId) {
-    projectService.findById(projectId);
+  public Calculation latest(Long projectId, AuthenticatedUser user) {
+    projectService.findById(projectId, user);
 
     return calculationRepository
         .findFirstByProjectIdOrderByIdDesc(projectId)

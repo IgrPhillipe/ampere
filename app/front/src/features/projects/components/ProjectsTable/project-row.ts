@@ -39,6 +39,7 @@ export interface ProjectRowActions {
 	onResumeSubmission: (project: Project) => void;
 	onContinueDraft: (project: Project) => void;
 	onViewProject: (project: Project) => void;
+	onDeleteProject: (project: Project) => void;
 }
 
 interface ProjectRowAction {

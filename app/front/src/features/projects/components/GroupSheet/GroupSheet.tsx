@@ -1,3 +1,4 @@
+import { ConfirmDialog } from "@components/ConfirmDialog";
 import {
 	Sheet,
 	SheetContent,
@@ -11,6 +12,7 @@ import {
 	useDeleteConsumerUnitGroup,
 	useUpdateConsumerUnitGroup,
 } from "@services/consumer-units";
+import { useState } from "react";
 
 import { EvChargingGroupForm } from "./EvChargingGroupForm";
 import type { GroupFormProps } from "./group-form";
@@ -51,15 +53,20 @@ export const GroupSheet = ({
 }: GroupSheetProps) => {
 	const updateGroup = useUpdateConsumerUnitGroup(projectId);
 	const deleteGroup = useDeleteConsumerUnitGroup(projectId);
+	const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
 
 	const group = opened?.group;
+	const closeSheet = () => {
+		setDeleteConfirmationOpen(false);
+		onClose();
+	};
 
 	const save = (payload: ConsumerUnitGroupPayload) => {
 		if (!group) return;
 
 		updateGroup.mutate(
 			{ projectId, groupId: group.id, payload },
-			{ onSuccess: onClose },
+			{ onSuccess: closeSheet },
 		);
 	};
 
@@ -68,42 +75,63 @@ export const GroupSheet = ({
 
 		deleteGroup.mutate(
 			{ projectId, groupId: group.id },
-			{ onSuccess: onClose },
+			{ onSuccess: closeSheet },
 		);
 	};
 
 	return (
-		<Sheet
-			open={opened !== null}
-			onOpenChange={(open) => {
-				if (!open) onClose();
-			}}
-		>
-			<SheetContent className="w-full gap-0 bg-card sm:max-w-xl">
-				{group ? (
-					<>
-						<SheetHeader className="border-b border-border px-6 py-6">
-							<SheetTitle className="font-heading text-xl">
-								{group.name}
-							</SheetTitle>
-							<SheetDescription>{group.summary}</SheetDescription>
-						</SheetHeader>
+		<>
+			<Sheet
+				open={opened !== null}
+				onOpenChange={(open) => {
+					if (!open && !deleteGroup.isPending) closeSheet();
+				}}
+			>
+				<SheetContent className="w-full gap-0 bg-card sm:max-w-xl">
+					{group ? (
+						<>
+							<SheetHeader className="border-b border-border px-6 py-6">
+								<SheetTitle className="font-heading text-xl">
+									{group.name}
+								</SheetTitle>
+								<SheetDescription>{group.summary}</SheetDescription>
+							</SheetHeader>
 
-						{/* `key` resets the form when another group opens. */}
-						<div key={group.id} className="flex min-h-0 flex-1 flex-col">
-							{renderGroupForm(group, {
-								focusField: opened?.focusField,
-								readOnly,
-								isSaving: updateGroup.isPending,
-								isDeleting: deleteGroup.isPending,
-								onSave: save,
-								onCancel: onClose,
-								onDelete: remove,
-							})}
-						</div>
-					</>
-				) : null}
-			</SheetContent>
-		</Sheet>
+							{/* `key` resets the form when another group opens. */}
+							<div key={group.id} className="flex min-h-0 flex-1 flex-col">
+								{renderGroupForm(group, {
+									focusField: opened?.focusField,
+									readOnly,
+									isSaving: updateGroup.isPending,
+									isDeleting: deleteGroup.isPending,
+									onSave: save,
+									onCancel: closeSheet,
+									onDelete: () => setDeleteConfirmationOpen(true),
+								})}
+							</div>
+						</>
+					) : null}
+				</SheetContent>
+			</Sheet>
+
+			{group ? (
+				<ConfirmDialog
+					open={deleteConfirmationOpen}
+					title="Excluir grupo?"
+					description={
+						<>
+							O grupo <strong className="text-foreground">{group.name}</strong>{" "}
+							será removido do projeto. Esta ação não pode ser desfeita.
+						</>
+					}
+					confirmLabel="Excluir Grupo"
+					pendingLabel="Excluindo..."
+					isPending={deleteGroup.isPending}
+					destructive
+					onOpenChange={setDeleteConfirmationOpen}
+					onConfirm={remove}
+				/>
+			) : null}
+		</>
 	);
 };

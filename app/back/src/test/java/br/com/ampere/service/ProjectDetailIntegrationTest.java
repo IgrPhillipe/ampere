@@ -8,11 +8,14 @@ import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
+import br.com.ampere.domain.User;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
+import br.com.ampere.repository.UserRepository;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +38,8 @@ class ProjectDetailIntegrationTest {
 
   @Autowired private NormativeTableRepository normativeTableRepository;
 
+  @Autowired private UserRepository userRepository;
+
   @BeforeEach
   @AfterEach
   void clearProjects() {
@@ -43,12 +48,16 @@ class ProjectDetailIntegrationTest {
     projectRepository.deleteAll();
     normativeTableRepository.deleteAll();
     standardRepository.deleteAll();
+    userRepository.deleteAll();
   }
 
   @Test
   void loadsTheBuildingTypeAndTheStandardsOutsideTheTransaction() {
     standardRepository.saveAll(
         List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
+    User owner =
+        userRepository.save(new User("João Projetista", "joao@ampere.com", "hash", UserRole.USER));
+    AuthenticatedUser designer = new AuthenticatedUser(owner.getId(), UserRole.USER);
     Long id =
         service
             .create(
@@ -61,10 +70,10 @@ class ProjectDetailIntegrationTest {
                     SupplyVoltage.V380_220,
                     ConnectionType.THREE_PHASE,
                     EntranceStandard.COLLECTIVE),
-                null)
+                designer)
             .getId();
 
-    Project project = service.findById(id);
+    Project project = service.findById(id, designer);
 
     assertThat(project.getStandards()).extracting(Standard::getRevision).hasSize(2);
     assertThat(project.getBuildingType().demandRules()).hasSize(2);

@@ -28,16 +28,29 @@ public class ProjectDocumentService {
   }
 
   @Transactional(readOnly = true)
-  public List<ProjectDocument> listByProject(Long projectId) {
-    projectService.findById(projectId);
+  public List<ProjectDocument> listByProject(Long projectId, AuthenticatedUser user) {
+    projectService.findById(projectId, user);
 
     return documentRepository.findAllByProjectIdOrderByType(projectId);
   }
 
+  @Transactional(readOnly = true)
+  public ProjectDocument file(Long projectId, Long documentId, AuthenticatedUser user) {
+    projectService.findById(projectId, user);
+
+    return documentRepository
+        .findByIdAndProjectId(documentId, projectId)
+        .orElseThrow(() -> new NotFoundException(NOT_FOUND));
+  }
+
   @Transactional
   public ProjectDocument upload(
-      Long projectId, DocumentType type, String originalFilename, byte[] content) {
-    Project project = editableOrFail(projectId);
+      Long projectId,
+      DocumentType type,
+      String originalFilename,
+      byte[] content,
+      AuthenticatedUser user) {
+    Project project = editableOrFail(projectId, user);
     if (!ProjectDocument.isPdf(content)) {
       throw new BusinessException("Envie o documento em PDF.");
     }
@@ -60,8 +73,8 @@ public class ProjectDocumentService {
   }
 
   @Transactional
-  public void delete(Long projectId, Long documentId) {
-    editableOrFail(projectId);
+  public void delete(Long projectId, Long documentId, AuthenticatedUser user) {
+    editableOrFail(projectId, user);
     ProjectDocument document =
         documentRepository
             .findById(documentId)
@@ -71,8 +84,8 @@ public class ProjectDocumentService {
     documentRepository.delete(document);
   }
 
-  private Project editableOrFail(Long projectId) {
-    Project project = projectService.findById(projectId);
+  private Project editableOrFail(Long projectId, AuthenticatedUser user) {
+    Project project = projectService.findWritableById(projectId, user);
     if (!project.canBeSubmitted()) {
       throw new BusinessException(SUBMITTED, HttpStatus.CONFLICT);
     }

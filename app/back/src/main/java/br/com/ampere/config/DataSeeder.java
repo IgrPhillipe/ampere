@@ -3,9 +3,12 @@ package br.com.ampere.config;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
+import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingSeverity;
+import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.LampTechnology;
@@ -92,16 +95,28 @@ public class DataSeeder implements CommandLineRunner {
   @Override
   @Transactional
   public void run(String... args) {
-    User owner = seedUsers();
+    List<User> inserted = seedUsers();
+    User owner = developmentUser(inserted, "user@ampere.com");
+    assignOwnerToLegacyProjects(owner);
     List<Standard> standards = seedStandards();
-    seedDevelopmentData(standards, owner);
+    seedDevelopmentData(standards, owner, developmentUser(inserted, "admin@ampere.com"));
     seedGroups();
     seedNormativeTables(standards);
     seedSubmittedCalculations();
   }
 
+  /** Projects seeded before ownership existed go to the development designer. */
+  private void assignOwnerToLegacyProjects(User owner) {
+    List<Project> orphans = projectRepository.findAllByOwnerIsNull();
+    if (!orphans.isEmpty()) {
+      orphans.forEach(project -> project.assignOwner(owner));
+      projectRepository.saveAll(orphans);
+      log.info("DataSeeder: owner assigned to {} legacy projects.", orphans.size());
+    }
+  }
+
   /** Per e-mail, so an older database also gets the reviewer the second reading needs. */
-  private User seedUsers() {
+  private List<User> seedUsers() {
     String hash = passwordEncoder.encode(DEVELOPMENT_PASSWORD);
     List<User> missing =
         List.of(
@@ -116,10 +131,14 @@ public class DataSeeder implements CommandLineRunner {
       log.info("DataSeeder: {} development users inserted.", missing.size());
     }
 
-    return missing.stream()
-        .filter(user -> user.getEmail().equals("user@ampere.com"))
+    return missing;
+  }
+
+  private User developmentUser(List<User> inserted, String email) {
+    return inserted.stream()
+        .filter(user -> user.getEmail().equals(email))
         .findFirst()
-        .or(() -> userRepository.findByEmail("user@ampere.com"))
+        .or(() -> userRepository.findByEmail(email))
         .orElseThrow();
   }
 
@@ -149,7 +168,7 @@ public class DataSeeder implements CommandLineRunner {
     return standards;
   }
 
-  private void seedDevelopmentData(List<Standard> standards, User owner) {
+  private void seedDevelopmentData(List<Standard> standards, User owner, User analyst) {
     if (projectRepository.count() > 0) {
       return;
     }
@@ -282,12 +301,38 @@ public class DataSeeder implements CommandLineRunner {
             anotherRejected,
             approved));
 
-    findingRepository.saveAll(
+    List<Finding> findings =
         List.of(
-            new Finding(rejected),
-            new Finding(rejected),
-            new Finding(rejected),
-            new Finding(anotherRejected)));
+            finding(
+                rejected,
+                FindingSeverity.BLOCKING,
+                FindingStage.DOCUMENTS,
+                DocumentType.ART,
+                "A ART não traz a assinatura do responsável técnico.",
+                analyst),
+            finding(
+                rejected,
+                FindingSeverity.BLOCKING,
+                FindingStage.CONSUMER_UNITS,
+                null,
+                "A área útil do apartamento tipo B diverge da planta baixa.",
+                analyst),
+            finding(
+                rejected,
+                FindingSeverity.ADJUSTMENT,
+                FindingStage.PROJECT_DATA,
+                null,
+                "Informe o número do lote no endereço.",
+                analyst),
+            finding(
+                anotherRejected,
+                FindingSeverity.BLOCKING,
+                FindingStage.DOCUMENTS,
+                DocumentType.SITE_PLAN,
+                "A planta de situação está sem escala.",
+                analyst));
+    findings.forEach(Finding::publish);
+    findingRepository.saveAll(findings);
 
     log.info("DataSeeder: eight projects and four findings inserted.");
   }
@@ -533,6 +578,26 @@ public class DataSeeder implements CommandLineRunner {
             null,
             null,
             null));
+  }
+
+  private static Finding finding(
+      Project project,
+      FindingSeverity severity,
+      FindingStage stage,
+      DocumentType documentType,
+      String description,
+      User author) {
+    return new Finding(
+        project,
+        severity,
+        stage,
+        null,
+        null,
+        documentType,
+        description,
+        null,
+        author,
+        project.getReviewCycle());
   }
 
   private static Project seed(

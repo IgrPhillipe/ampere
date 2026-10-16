@@ -48,3 +48,7 @@ export const updateProject = async ({
 
 	return projectDetailResponseSchema.parse(response);
 };
+
+export const deleteProject = async (id: string) => {
+	await http.delete(e.remove(id));
+};

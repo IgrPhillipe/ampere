@@ -1,5 +1,13 @@
 import { RowAction } from "@components/RowAction";
+import { Button } from "@components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@components/ui/dropdown-menu";
 import type { Project } from "@services/projects";
+import { EllipsisVertical, Trash2 } from "lucide-react";
 
 import { getProjectRowAction, type ProjectRowActions } from "./project-row";
 
@@ -16,11 +24,43 @@ export const ProjectRowActionButton = ({
 	const action = getProjectRowAction(project);
 
 	return (
-		<RowAction
-			label={action.label}
-			required={action.required}
-			buttonClassName={buttonClassName}
-			onClick={() => action.run(actions, project)}
-		/>
+		<div className="flex items-center justify-end gap-1">
+			<RowAction
+				label={action.label}
+				required={action.required}
+				buttonClassName={buttonClassName}
+				onClick={() => action.run(actions, project)}
+			/>
+
+			{project.status === "DRAFT" ? (
+				<DropdownMenu>
+					<DropdownMenuTrigger
+						render={
+							<Button
+								type="button"
+								variant="ghost"
+								size="icon-xs"
+								aria-label={`Ações do projeto ${project.name}`}
+							/>
+						}
+					>
+						<EllipsisVertical aria-hidden="true" />
+					</DropdownMenuTrigger>
+
+					<DropdownMenuContent align="end">
+						<DropdownMenuItem
+							variant="destructive"
+							onClick={() => actions.onDeleteProject(project)}
+						>
+							<Trash2 aria-hidden="true" />
+							Excluir Projeto
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			) : (
+				// Keeps the main action aligned with the rows that have the menu.
+				<span aria-hidden="true" className="size-8 shrink-0" />
+			)}
+		</div>
 	);
 };

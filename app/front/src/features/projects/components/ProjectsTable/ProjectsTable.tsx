@@ -38,6 +38,7 @@ export const ProjectsTable = ({
 	onResumeSubmission,
 	onContinueDraft,
 	onViewProject,
+	onDeleteProject,
 	onClearFilters,
 	className,
 }: ProjectsTableProps) => {
@@ -47,8 +48,15 @@ export const ProjectsTable = ({
 			onResumeSubmission,
 			onContinueDraft,
 			onViewProject,
+			onDeleteProject,
 		}),
-		[onViewFindings, onResumeSubmission, onContinueDraft, onViewProject],
+		[
+			onViewFindings,
+			onResumeSubmission,
+			onContinueDraft,
+			onViewProject,
+			onDeleteProject,
+		],
 	);
 	const columns = useMemo(() => createProjectColumns(actions), [actions]);
 
