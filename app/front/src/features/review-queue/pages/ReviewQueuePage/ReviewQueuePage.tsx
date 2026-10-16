@@ -3,9 +3,11 @@ import { PageLayout } from "@components/layout";
 import { Pagination } from "@components/Pagination";
 import { Button } from "@components/ui/button";
 import {
+	type ReviewQueueItem,
 	useGetReviewQueue,
 	useGetReviewQueueIndicators,
 } from "@services/review-queue";
+import { useNavigate } from "@tanstack/react-router";
 import { CircleAlert } from "lucide-react";
 
 import { ReviewQueueListing, ReviewQueueToolbar } from "../../components";
@@ -35,6 +37,10 @@ export const ReviewQueuePage = () => {
 		sort,
 	});
 	const indicatorsQuery = useGetReviewQueueIndicators();
+	const navigate = useNavigate();
+
+	const analyze = (item: ReviewQueueItem) =>
+		void navigate({ to: "/fila-de-analise/$id", params: { id: item.id } });
 
 	const pagination = queueQuery.data?.pagination;
 	const hasError = queueQuery.isError || indicatorsQuery.isError;
@@ -83,6 +89,7 @@ export const ReviewQueuePage = () => {
 						<ReviewQueueListing
 							items={queueQuery.data?.data ?? []}
 							isLoading={queueQuery.isPending}
+							onAnalyze={analyze}
 							onClearFilters={hasActiveFilters ? clearFilters : undefined}
 						/>
 					)}

@@ -27,7 +27,9 @@ const item: ReviewQueueItem = {
 
 describe("ReviewQueueListing", () => {
 	it("renders its loading state", () => {
-		const { container } = render(<ReviewQueueListing items={[]} isLoading />);
+		const { container } = render(
+			<ReviewQueueListing items={[]} isLoading onAnalyze={vi.fn()} />,
+		);
 
 		expect(
 			container.querySelectorAll('[data-slot="skeleton"]'),
@@ -36,7 +38,13 @@ describe("ReviewQueueListing", () => {
 
 	it("renders an empty state with a filter reset", () => {
 		const onClearFilters = vi.fn();
-		render(<ReviewQueueListing items={[]} onClearFilters={onClearFilters} />);
+		render(
+			<ReviewQueueListing
+				items={[]}
+				onAnalyze={vi.fn()}
+				onClearFilters={onClearFilters}
+			/>,
+		);
 
 		fireEvent.click(screen.getByRole("button", { name: "Limpar Filtros" }));
 		expect(onClearFilters).toHaveBeenCalledOnce();
@@ -45,6 +53,7 @@ describe("ReviewQueueListing", () => {
 	it("splits the deadline date from the deadline status", () => {
 		render(
 			<ReviewQueueListing
+				onAnalyze={vi.fn()}
 				items={[
 					{
 						...item,
@@ -72,7 +81,7 @@ describe("ReviewQueueListing", () => {
 	});
 
 	it("joins the municipality and the designer without a middle dot", () => {
-		render(<ReviewQueueListing items={[item]} />);
+		render(<ReviewQueueListing items={[item]} onAnalyze={vi.fn()} />);
 
 		expect(
 			screen.getAllByText("Jaboatão dos Guararapes, João Projetista"),
@@ -81,14 +90,23 @@ describe("ReviewQueueListing", () => {
 });
 
 describe("AnalyzeButton", () => {
-	it("does not navigate while the analysis screen does not exist", () => {
-		const initialUrl = window.location.href;
-		render(<AnalyzeButton urgent />);
+	it("opens the analysis of the row", () => {
+		const onAnalyze = vi.fn();
+		render(<AnalyzeButton urgent onAnalyze={onAnalyze} />);
 
 		const button = screen.getByRole("button", { name: /analisar/i });
 		fireEvent.click(button);
 
-		expect(button).toHaveAttribute("aria-disabled", "true");
-		expect(window.location.href).toBe(initialUrl);
+		expect(button).not.toHaveAttribute("aria-disabled");
+		expect(onAnalyze).toHaveBeenCalledOnce();
+	});
+
+	it("hands the clicked item to the listing callback", () => {
+		const onAnalyze = vi.fn();
+		render(<ReviewQueueListing items={[item]} onAnalyze={onAnalyze} />);
+
+		fireEvent.click(screen.getAllByRole("button", { name: /analisar/i })[0]);
+
+		expect(onAnalyze).toHaveBeenCalledWith(item);
 	});
 });

@@ -5,19 +5,21 @@ import type { ReviewQueueItem } from "@services/review-queue";
 import { AnalyzeButton } from "./AnalyzeButton";
 import { DeadlineStatusBadge } from "./DeadlineStatusBadge";
 import { QueueItemIndicator } from "./QueueItemIndicator";
+import type { ReviewQueueRowActions } from "./review-queue-columns";
 import {
 	formatQueueItemOrigin,
 	formatReviewCycle,
 	isUrgent,
 } from "./review-queue-row";
 
-interface ReviewQueueCardsProps {
+interface ReviewQueueCardsProps extends ReviewQueueRowActions {
 	items: ReviewQueueItem[];
 	className?: string;
 }
 
 export const ReviewQueueCards = ({
 	items,
+	onAnalyze,
 	className,
 }: ReviewQueueCardsProps) => (
 	<ul className={cn("flex flex-col bg-card", className)}>
@@ -83,7 +85,11 @@ export const ReviewQueueCards = ({
 				</dl>
 
 				<div className="flex justify-end">
-					<AnalyzeButton urgent={isUrgent(item)} buttonClassName="w-32" />
+					<AnalyzeButton
+						urgent={isUrgent(item)}
+						onAnalyze={() => onAnalyze(item)}
+						buttonClassName="w-32"
+					/>
 				</div>
 			</li>
 		))}
