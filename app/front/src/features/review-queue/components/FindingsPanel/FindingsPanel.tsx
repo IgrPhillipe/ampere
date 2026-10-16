@@ -6,7 +6,7 @@ import type { Finding } from "@services/project-review";
 import type { FindingFormValues } from "../../schemas";
 import type { FindingEditor, FindingReferenceOptions } from "../../types";
 import {
-	isCurrentCycleFinding,
+	isDraftFinding,
 	isPendingFinding,
 } from "../ReviewDecision/review-decision";
 import { FindingCard, type FindingCardActions } from "./FindingCard";
@@ -16,6 +16,7 @@ interface FindingsPanelProps extends FindingCardActions {
 	findings?: Finding[];
 	isLoading?: boolean;
 	editable: boolean;
+	underReview: boolean;
 	editor: FindingEditor;
 	autoFocusForm?: boolean;
 	referenceOptions: FindingReferenceOptions;
@@ -30,6 +31,7 @@ export const FindingsPanel = ({
 	findings,
 	isLoading = false,
 	editable,
+	underReview,
 	editor,
 	autoFocusForm = false,
 	referenceOptions,
@@ -40,9 +42,9 @@ export const FindingsPanel = ({
 	className,
 	...actions
 }: FindingsPanelProps) => {
-	const current = findings?.filter(isCurrentCycleFinding) ?? [];
+	const current = findings?.filter(isDraftFinding) ?? [];
 	const previous =
-		findings?.filter((finding) => !isCurrentCycleFinding(finding)) ?? [];
+		findings?.filter((finding) => !isDraftFinding(finding)) ?? [];
 	const pending = findings?.filter(isPendingFinding).length ?? 0;
 	const editingId = editor.mode === "edit" ? editor.findingId : undefined;
 
@@ -128,12 +130,14 @@ export const FindingsPanel = ({
 								id="apontamentos-anteriores-titulo"
 								className="text-base font-semibold text-foreground"
 							>
-								Da Análise Anterior
+								{underReview ? "Da Análise Anterior" : "Enviados ao Projetista"}
 							</h3>
-							<p className="mt-1 text-sm text-muted-foreground">
-								Confira a resposta do projetista e aceite a correção ou reabra o
-								apontamento.
-							</p>
+							{underReview ? (
+								<p className="mt-1 text-sm text-muted-foreground">
+									Confira a resposta do projetista e aceite a correção ou reabra
+									o apontamento.
+								</p>
+							) : null}
 							{renderList(previous)}
 						</section>
 					) : null}

@@ -16,16 +16,17 @@ import {
 	findingStatusLabels,
 } from "../../constants";
 import type { FindingReferenceOptions } from "../../types";
-import { isCurrentCycleFinding } from "../ReviewDecision/review-decision";
+import { isDraftFinding } from "../ReviewDecision/review-decision";
 import { describeFindingReference } from "./finding-form";
 
-const missingResponse = {
-	DRAFT: "Ainda não enviado ao projetista.",
+/** The answer itself arrives with the US09; until then the status says what the designer did. */
+const designerAnswers = {
+	DRAFT: null,
 	OPEN: "Sem resposta do projetista.",
 	FIXED: "O projetista marcou o apontamento como corrigido.",
 	CONTESTED: "O projetista contestou o apontamento.",
-	RESOLVED: "Sem resposta do projetista.",
-} as const satisfies Record<FindingStatus, string>;
+	RESOLVED: null,
+} as const satisfies Record<FindingStatus, string | null>;
 
 export interface FindingCardActions {
 	onEdit: (finding: Finding) => void;
@@ -52,8 +53,9 @@ export const FindingCard = ({
 	onResolve,
 }: FindingCardProps) => {
 	const reference = describeFindingReference(finding, referenceOptions);
-	const isDraft = isCurrentCycleFinding(finding);
+	const isDraft = isDraftFinding(finding);
 	const isPending = pendingId === finding.id;
+	const answer = designerAnswers[finding.status];
 
 	return (
 		<li
@@ -94,24 +96,14 @@ export const FindingCard = ({
 				{isDraft ? null : `, ${finding.version}º envio`}
 			</p>
 
-			{isDraft ? null : (
+			{answer ? (
 				<blockquote className="border-l-2 border-border pl-3">
 					<p className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 						Resposta do projetista
 					</p>
-					<p className="mt-1 text-sm whitespace-pre-line text-foreground">
-						{finding.response ?? missingResponse[finding.status]}
-					</p>
-					{finding.respondedAt ? (
-						<time
-							dateTime={finding.respondedAt}
-							className="mt-1 block text-xs text-muted-foreground"
-						>
-							{formatDate(finding.respondedAt)}
-						</time>
-					) : null}
+					<p className="mt-1 text-sm text-foreground">{answer}</p>
 				</blockquote>
-			)}
+			) : null}
 
 			{editable ? (
 				<div className="flex flex-wrap justify-end gap-2">

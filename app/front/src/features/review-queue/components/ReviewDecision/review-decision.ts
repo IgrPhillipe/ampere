@@ -1,13 +1,16 @@
 import type { Finding } from "@services/project-review";
 
-export const isCurrentCycleFinding = (finding: Finding) =>
-	finding.status === "DRAFT";
+export const isDraftFinding = (finding: Finding) => finding.status === "DRAFT";
 
 export const isPendingFinding = (finding: Finding) =>
 	finding.status !== "RESOLVED";
 
 export const isOpenBlockingFinding = (finding: Finding) =>
 	finding.severity === "BLOCKING" && isPendingFinding(finding);
+
+/** Same rule as the API: a rejection rests on a draft or on a reopened finding. */
+const supportsRejection = (finding: Finding) =>
+	finding.status === "DRAFT" || finding.status === "OPEN";
 
 export interface DecisionAvailability {
 	pendingCount: number;
@@ -20,12 +23,11 @@ export const getDecisionAvailability = (
 	findings: Finding[],
 ): DecisionAvailability => {
 	const openBlocking = findings.filter(isOpenBlockingFinding);
-	const hasDraft = findings.some(isCurrentCycleFinding);
 
 	const approveBlockedReason =
 		openBlocking.length === 0
 			? null
-			: openBlocking.some(isCurrentCycleFinding)
+			: openBlocking.some(isDraftFinding)
 				? "Exclua o apontamento bloqueante ou reprove o projeto."
 				: "Aceite a correção dos apontamentos bloqueantes ou reprove o projeto.";
 
@@ -33,8 +35,8 @@ export const getDecisionAvailability = (
 		pendingCount: findings.filter(isPendingFinding).length,
 		blockingCount: openBlocking.length,
 		approveBlockedReason,
-		rejectBlockedReason: hasDraft
+		rejectBlockedReason: findings.some(supportsRejection)
 			? null
-			: "Registre ao menos um apontamento nesta análise para reprovar o projeto.",
+			: "Registre um apontamento ou reabra um anterior para reprovar o projeto.",
 	};
 };

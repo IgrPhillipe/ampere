@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { FindingReferenceOptions } from "../../types";
-import { toFindingPayload } from "./finding-form";
+import { buildFindingReferenceOptions, toFindingPayload } from "./finding-form";
 
 const options: FindingReferenceOptions = {
 	PROJECT_DATA: {},
@@ -51,5 +51,20 @@ describe("toFindingPayload", () => {
 			calculationStepCode: null,
 			standardItem: "DIS-NOR-053, item 6.27.3",
 		});
+	});
+});
+
+describe("buildFindingReferenceOptions", () => {
+	it("offers the groups, the demand steps and the documents, not the calculation item", () => {
+		expect(
+			buildFindingReferenceOptions({
+				groups: [{ id: "7", name: "Recarga veicular" }],
+				steps: [{ code: "Dve", title: "Recarga de veículos" }],
+				checklistItems: [
+					{ key: "CALCULATION", label: "Cálculo de demanda" },
+					{ key: "ART", label: "ART" },
+				],
+			}),
+		).toEqual(options);
 	});
 });

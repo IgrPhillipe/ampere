@@ -43,8 +43,13 @@ export const DecisionDialog = ({
 	onOpenChange,
 	onConfirm,
 }: DecisionDialogProps) => (
-	<Dialog open={decision !== null} onOpenChange={onOpenChange}>
-		<DialogContent className="bg-card">
+	<Dialog
+		open={decision !== null}
+		onOpenChange={(open) => {
+			if (!isPending) onOpenChange(open);
+		}}
+	>
+		<DialogContent className="bg-card" showCloseButton={!isPending}>
 			{decision ? (
 				<DecisionForm
 					key={decision}
@@ -108,7 +113,12 @@ const DecisionForm = ({
 			/>
 
 			<DialogFooter>
-				<Button type="button" variant="ghost" onClick={onCancel}>
+				<Button
+					type="button"
+					variant="ghost"
+					onClick={onCancel}
+					disabled={isPending}
+				>
 					Cancelar
 				</Button>
 

@@ -27,7 +27,7 @@ describe("getDecisionAvailability", () => {
 			blockingCount: 0,
 			approveBlockedReason: null,
 			rejectBlockedReason:
-				"Registre ao menos um apontamento nesta análise para reprovar o projeto.",
+				"Registre um apontamento ou reabra um anterior para reprovar o projeto.",
 		});
 	});
 
@@ -56,6 +56,24 @@ describe("getDecisionAvailability", () => {
 			"Aceite a correção dos apontamentos bloqueantes ou reprove o projeto.",
 		);
 		expect(availability.pendingCount).toBe(1);
+	});
+
+	it("rejects a reanalysis on a reopened finding, as the API does", () => {
+		const availability = getDecisionAvailability([
+			{ ...finding, severity: "BLOCKING", status: "OPEN" },
+		]);
+
+		expect(availability.rejectBlockedReason).toBeNull();
+		expect(availability.approveBlockedReason).not.toBeNull();
+	});
+
+	it("needs a reopened finding to reject when every previous one was fixed", () => {
+		expect(
+			getDecisionAvailability([{ ...finding, status: "FIXED" }])
+				.rejectBlockedReason,
+		).toBe(
+			"Registre um apontamento ou reabra um anterior para reprovar o projeto.",
+		);
 	});
 
 	it("stops counting a resolved finding as pending", () => {

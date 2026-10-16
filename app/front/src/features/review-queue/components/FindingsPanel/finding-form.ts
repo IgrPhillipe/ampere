@@ -52,3 +52,29 @@ export const describeFindingReference = (
 
 	return reference ? (options[finding.stage][reference] ?? reference) : null;
 };
+
+interface ReferenceSources {
+	groups: { id: string; name: string }[];
+	steps: { code: string; title: string }[];
+	checklistItems: { key: string; label: string }[];
+}
+
+/** What each stage can point to: the groups, the demand steps and the attached documents. */
+export const buildFindingReferenceOptions = ({
+	groups,
+	steps,
+	checklistItems,
+}: ReferenceSources): FindingReferenceOptions => ({
+	PROJECT_DATA: {},
+	CONSUMER_UNITS: Object.fromEntries(
+		groups.map((group) => [group.id, group.name]),
+	),
+	CALCULATION: Object.fromEntries(
+		steps.map((step) => [step.code, `${step.title} (${step.code})`]),
+	),
+	DOCUMENTS: Object.fromEntries(
+		checklistItems
+			.filter((item) => item.key !== "CALCULATION")
+			.map((item) => [item.key, item.label]),
+	),
+});

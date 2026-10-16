@@ -4,21 +4,23 @@ import { Skeleton } from "@components/ui/skeleton";
 import { formatDate, formatDecimal } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ProjectDocument } from "@services/submission";
-import { FileText, Lock } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useState } from "react";
 
 import { PdfViewer } from "./PdfViewer";
 
-const formatFileSize = (bytes: number) =>
-	bytes >= 1024 * 1024
-		? `${formatDecimal(bytes / (1024 * 1024), 1)} MB`
-		: `${formatDecimal(bytes / 1024, 0)} KB`;
+const formatFileSize = (bytes: number) => {
+	if (bytes < 1024) return `${bytes} B`;
+
+	return bytes < 1024 * 1024
+		? `${formatDecimal(bytes / 1024, 0)} KB`
+		: `${formatDecimal(bytes / (1024 * 1024), 1)} MB`;
+};
 
 interface ReviewDocumentsProps {
 	projectId: string;
 	documents?: ProjectDocument[];
 	isLoading?: boolean;
-	canOpen: boolean;
 	onCreateFinding?: (document: ProjectDocument) => void;
 	className?: string;
 }
@@ -27,7 +29,6 @@ export const ReviewDocuments = ({
 	projectId,
 	documents,
 	isLoading = false,
-	canOpen,
 	onCreateFinding,
 	className,
 }: ReviewDocumentsProps) => {
@@ -107,19 +108,7 @@ export const ReviewDocuments = ({
 				})}
 			</ul>
 
-			{canOpen ? (
-				<PdfViewer
-					key={selected.id}
-					projectId={projectId}
-					document={selected}
-				/>
-			) : (
-				<EmptyState
-					title="Visualização restrita ao analista responsável"
-					description="Os anexos abrem apenas para quem assumiu a análise deste projeto."
-					icon={Lock}
-				/>
-			)}
+			<PdfViewer key={selected.id} projectId={projectId} document={selected} />
 		</div>
 	);
 };

@@ -49,8 +49,6 @@ export const findingSchema = z.object({
 	createdAt: z.iso.datetime({ offset: true }),
 	version: z.number().int().positive(),
 	status: findingStatusSchema,
-	response: z.string().nullish(),
-	respondedAt: z.iso.datetime({ offset: true }).nullish(),
 });
 
 export type Finding = z.infer<typeof findingSchema>;
@@ -75,7 +73,7 @@ export const reviewAssignmentResponseSchema = apiResponseSchema(
 );
 
 export const reviewDecisionResultSchema = z.object({
-	projectId: z.coerce.string(),
+	projectId: z.string(),
 	status: projectStatusSchema,
 	opinion: z.string().nullable(),
 	reviewedAt: z.iso.datetime({ offset: true }),

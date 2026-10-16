@@ -33,19 +33,19 @@ import { useEffect, useState } from "react";
 
 import {
 	AutomaticVerification,
+	buildFindingReferenceOptions,
 	checkToFindingValues,
 	DecisionDialog,
 	DecisionFooter,
 	FindingsPanel,
 	getDecisionAvailability,
-	isCurrentCycleFinding,
+	isDraftFinding,
 	ReviewDocuments,
 	ReviewHeader,
-	toFindingFormValues,
 	toFindingPayload,
 } from "../../components";
+import { useFindingEditor } from "../../hooks";
 import type { FindingFormValues } from "../../schemas";
-import type { FindingEditor, FindingReferenceOptions } from "../../types";
 
 interface ProjectReviewPageProps {
 	projectId: string;
@@ -87,36 +87,20 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 	const resolveMutation = useResolveFinding();
 	const decideMutation = useDecideProjectReview();
 
-	const [editor, setEditor] = useState<FindingEditor>({
-		mode: "create",
-		key: 0,
-		values: {},
-	});
-	const [autoFocusForm, setAutoFocusForm] = useState(false);
+	const findingEditor = useFindingEditor();
+	const { editor } = findingEditor;
 	const [decision, setDecision] = useState<ReviewDecision | null>(null);
 
-	const referenceOptions: FindingReferenceOptions = {
-		PROJECT_DATA: {},
-		CONSUMER_UNITS: Object.fromEntries(
-			groups.map((group) => [group.id, group.name]),
-		),
-		CALCULATION: Object.fromEntries(
-			(calculation?.steps ?? []).map((step) => [
-				step.code,
-				`${step.title} (${step.code})`,
-			]),
-		),
-		DOCUMENTS: Object.fromEntries(
-			(checklist?.items ?? [])
-				.filter((item) => item.key !== "CALCULATION")
-				.map((item) => [item.key, item.label]),
-		),
-	};
+	const referenceOptions = buildFindingReferenceOptions({
+		groups,
+		steps: calculation?.steps ?? [],
+		checklistItems: checklist?.items ?? [],
+	});
 
 	const availability = getDecisionAvailability(findings ?? []);
 	const reanalysis =
 		isUnderReview &&
-		(findings ?? []).some((finding) => !isCurrentCycleFinding(finding));
+		(findings ?? []).some((finding) => !isDraftFinding(finding));
 
 	const units = validation
 		? `${validation.totalUnits} em ${validation.totalGroups} ${
@@ -130,40 +114,19 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 			? calculation.totals.finalKva
 			: undefined;
 
-	const startFinding = (values: Partial<FindingFormValues>) => {
-		setEditor((current) => ({ mode: "create", key: current.key + 1, values }));
-		setAutoFocusForm(true);
-	};
-
-	const resetEditor = () => {
-		setEditor((current) => ({
-			mode: "create",
-			key: current.key + 1,
-			values: {},
-		}));
-		setAutoFocusForm(false);
-	};
-
-	const editFinding = (finding: Finding) => {
-		setEditor((current) => ({
-			mode: "edit",
-			key: current.key + 1,
-			findingId: finding.id,
-			values: toFindingFormValues(finding),
-		}));
-		setAutoFocusForm(true);
-	};
-
 	const saveFinding = (values: FindingFormValues) => {
 		const payload = toFindingPayload(values, referenceOptions);
 
 		if (editor.mode === "edit") {
 			updateMutation.mutate(
 				{ projectId, findingId: editor.findingId, payload },
-				{ onSuccess: resetEditor },
+				{ onSuccess: findingEditor.reset },
 			);
 		} else {
-			createMutation.mutate({ projectId, payload }, { onSuccess: resetEditor });
+			createMutation.mutate(
+				{ projectId, payload },
+				{ onSuccess: findingEditor.reset },
+			);
 		}
 	};
 
@@ -173,7 +136,7 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 			{
 				onSuccess: () => {
 					if (editor.mode === "edit" && editor.findingId === finding.id) {
-						resetEditor();
+						findingEditor.reset();
 					}
 				},
 			},
@@ -293,7 +256,8 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 										isLoading={calculationQuery.isPending}
 										onCreateFinding={
 											editable
-												? (check) => startFinding(checkToFindingValues(check))
+												? (check) =>
+														findingEditor.start(checkToFindingValues(check))
 												: undefined
 										}
 									/>
@@ -325,7 +289,7 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 								}
 								onOpenGroup={(group) => {
 									if (!editable) return;
-									startFinding({
+									findingEditor.start({
 										stage: "CONSUMER_UNITS",
 										reference: group.id,
 									});
@@ -338,13 +302,10 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 								projectId={projectId}
 								documents={checklist?.documents}
 								isLoading={submissionQuery.isPending}
-								canOpen={
-									isAssigned || (project !== undefined && !isUnderReview)
-								}
 								onCreateFinding={
 									editable
 										? (document) =>
-												startFinding({
+												findingEditor.start({
 													stage: "DOCUMENTS",
 													reference: document.type,
 												})
@@ -366,14 +327,15 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 						findings={findings}
 						isLoading={findingsQuery.isPending}
 						editable={editable}
+						underReview={isUnderReview}
 						editor={editor}
-						autoFocusForm={autoFocusForm}
+						autoFocusForm={findingEditor.autoFocus}
 						referenceOptions={referenceOptions}
 						isSaving={createMutation.isPending || updateMutation.isPending}
 						pendingId={pendingId}
 						onSubmit={saveFinding}
-						onCancelEdit={resetEditor}
-						onEdit={editFinding}
+						onCancelEdit={findingEditor.reset}
+						onEdit={findingEditor.edit}
 						onDelete={removeFinding}
 						onResolve={resolveFinding}
 						className="border-t border-border lg:border-t-0 lg:border-l"
