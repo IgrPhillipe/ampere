@@ -2,6 +2,7 @@ package br.com.ampere.security;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import javax.crypto.SecretKey;
@@ -21,6 +22,8 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -29,6 +32,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableConfigurationProperties({JwtProperties.class, CorsProperties.class})
 public class SecurityConfig {
+
+  private static final String[] PUBLIC_AUTH_PATHS = {"/auth/login", "/auth/register"};
 
   /** No session and no CSRF: the client is a SPA that sends the token on every request. */
   @Bean
@@ -44,7 +49,7 @@ public class SecurityConfig {
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers(HttpMethod.POST, "/auth/login", "/auth/register")
+                auth.requestMatchers(HttpMethod.POST, PUBLIC_AUTH_PATHS)
                     .permitAll()
                     .requestMatchers("/docs/**", "/swagger-ui/**", "/v3/api-docs/**")
                     .permitAll()
@@ -70,10 +75,22 @@ public class SecurityConfig {
                 oauth2
                     .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
                     .authenticationEntryPoint(handler)
-                    .accessDeniedHandler(handler))
+                    .accessDeniedHandler(handler)
+                    .bearerTokenResolver(ignoringPublicAuthPaths()))
         .exceptionHandling(
             exceptions -> exceptions.authenticationEntryPoint(handler).accessDeniedHandler(handler))
         .build();
+  }
+
+  /**
+   * A stale token saved in the browser would refuse the sign-in before it runs, so it is ignored.
+   */
+  private static BearerTokenResolver ignoringPublicAuthPaths() {
+    DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
+    return request -> {
+      String path = request.getRequestURI().substring(request.getContextPath().length());
+      return Arrays.asList(PUBLIC_AUTH_PATHS).contains(path) ? null : resolver.resolve(request);
+    };
   }
 
   /** The "role" claim written by {@link TokenService} becomes ROLE_ADMIN or ROLE_USER. */

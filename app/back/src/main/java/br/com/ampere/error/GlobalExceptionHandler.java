@@ -12,6 +12,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -111,6 +112,12 @@ public class GlobalExceptionHandler {
 
     return ProblemDetail.forStatusAndDetail(
         HttpStatus.BAD_REQUEST, "O parâmetro '" + name + "' é obrigatório.");
+  }
+
+  @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+  public ProblemDetail handleUnsupportedMediaType(HttpMediaTypeNotSupportedException exception) {
+    return ProblemDetail.forStatusAndDetail(
+        HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Envie o corpo da requisição em JSON.");
   }
 
   @ExceptionHandler(MaxUploadSizeExceededException.class)
