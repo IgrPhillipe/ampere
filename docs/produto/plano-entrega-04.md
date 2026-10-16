@@ -59,7 +59,7 @@ O padrão é o mesmo das Entregas 02 e 03: uma issue por história, que funciona
 **Dependências:**
 
 - O `AT17-INFRA` abre a Sprint 4. Ele define quem lê e quem escreve cada projeto.
-- O `AT19-INFRA` precisa estar pronto antes do front da US07, na Sprint 4, e da US09, na Sprint 5.
+- O `AT19-INFRA` precisa estar pronto antes do front da US09, na Sprint 5.
 - A US07 abre o ciclo: a US08, a US09 e os painéis (US16 e US17) leem os apontamentos e as decisões que ela grava.
 - Na Sprint 6, o back da US08 entra antes do back da US12, que lê os mesmos eventos.
 - O `AT26-INFRA` precisa estar pronto antes da Sprint 8.
@@ -118,13 +118,10 @@ O `Project` guarda o `owner` desde o #86, mas nenhum service o confere. Qualquer
 - [ ] Testes de acesso entre dois projetistas e entre projetista e analista
 
 ### `AT19-INFRA: Desenhar no Figma as telas da análise e da correção [Gestão]` (#112)
-`Sprint 4`, `Gestão`
+`Sprint 5`, `Gestão`
 
-- [ ] H7: formulário de novo apontamento, modal de decisão e visualizador de documentos
 - [ ] Tela de correção e reenvio do projetista (US09), que não tem protótipo
 - [ ] Selo de apontamento dentro das etapas H3 e H4
-- [ ] H6, H7 e H8: trocar "NDU 001" e "Tabela 3, 5 e 6" pela DIS-NOR-053 e pela DIS-NOR-030, como o `AT11-INFRA` fez com o texto da US03 e da US04
-- [ ] H3: decidir a coluna "Fator" (pendência 27) e desenhar o `Sheet` de grupo (pendência 29)
 
 ### `AT18-INFRA: Atualizar o Google Sites com os ajustes pós-retro [Gestão]` (#111)
 `Sprint 5`, `Gestão`
