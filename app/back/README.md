@@ -65,7 +65,7 @@ API em `http://localhost:8080/api`, documentação em `http://localhost:8080/api
 
 | E-mail | Senha | Papel |
 | :--- | :--- | :--- |
-| `user@ampere.com` | `senha@123` | `user` |
+| `user@ampere.com` | `senha@123` | `user`, com CREA 123456/PE |
 | `admin@ampere.com` | `senha@123` | `admin` |
 | `revisor@ampere.com` | `senha@123` | `admin` |
 
@@ -78,6 +78,20 @@ curl -s -X POST http://localhost:8080/api/auth/login \
 ```
 
 As tabelas normativas (`/api/normative-tables/**`) e a fila (`/api/review-queue/**`) exigem o papel `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`. O papel `admin` representa o analista na fila técnica.
+
+### Cadastro e Perfil
+
+| Método e caminho | O que faz |
+| :--- | :--- |
+| `POST /api/auth/register` | Cria a conta de projetista, aberto, e já devolve o token como o login |
+| `GET /api/users/me` | Perfil da sessão com os dados profissionais |
+| `PUT /api/users/me` | Atualiza nome, CREA, UF, empresa e telefone; o e-mail não muda |
+| `PUT /api/users/me/password` | Troca a senha informando a atual |
+
+- O cadastro sempre cria o papel `user`; analistas são criados pelo administrador.
+- E-mail único sem diferença de maiúsculas: repetido responde 409. A senha tem ao menos 8 caracteres, com letra e número.
+- O CREA é só o número, e a UF vai no campo próprio. É obrigatório para o projetista e opcional para o analista.
+- O nome e o CREA do dono saem em `technicalResponsible` no detalhe do projeto e no memorial em PDF.
 
 Cada projeto pertence a quem o criou. O projetista vê só os próprios projetos; o analista lê os enviados para análise e não altera nenhum. Os projetos do seed pertencem a `user@ampere.com`. Detalhes em [`convencoes-back.md`](../../docs/tecnico/convencoes-back.md#dono-do-projeto).
 
