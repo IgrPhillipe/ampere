@@ -26,14 +26,18 @@ import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SupplyVoltage;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.GlobalExceptionHandler;
 import br.com.ampere.error.NotFoundException;
+import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.ConsumerUnitGroupService;
 import br.com.ampere.service.GroupParameters;
 import br.com.ampere.service.GroupValidation;
 import java.math.BigDecimal;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.MessageSource;
@@ -41,10 +45,16 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 class ConsumerUnitGroupControllerTest {
+
+  private static final AuthenticatedUser DESIGNER = new AuthenticatedUser(7L, UserRole.USER);
 
   private static final Project PROJECT =
       Project.draft(
@@ -59,7 +69,7 @@ class ConsumerUnitGroupControllerTest {
   @Test
   void savesAnIncompleteGroupAndAnswersWhatItLacks() throws Exception {
     ConsumerUnitGroupService service = mock(ConsumerUnitGroupService.class);
-    when(service.create(eq(1L), any())).thenReturn(charging(null));
+    when(service.create(eq(1L), any(), eq(DESIGNER))).thenReturn(charging(null));
 
     mockMvc(service)
         .perform(
@@ -88,7 +98,7 @@ class ConsumerUnitGroupControllerTest {
         .andExpect(jsonPath("$.data.usefulArea").doesNotExist());
 
     ArgumentCaptor<GroupParameters> parameters = ArgumentCaptor.forClass(GroupParameters.class);
-    verify(service).create(eq(1L), parameters.capture());
+    verify(service).create(eq(1L), parameters.capture(), eq(DESIGNER));
     assertThat(parameters.getValue().kind()).isEqualTo(GroupKind.EV_CHARGING);
     assertThat(parameters.getValue().spec().powerPerPointKw()).isEqualByComparingTo("7.4");
     assertThat(parameters.getValue().spec().loadManagement()).isNull();
@@ -98,7 +108,7 @@ class ConsumerUnitGroupControllerTest {
   @Test
   void convertsTheLoadsOfALoadGroup() throws Exception {
     ConsumerUnitGroupService service = mock(ConsumerUnitGroupService.class);
-    when(service.create(eq(1L), any())).thenReturn(charging(true));
+    when(service.create(eq(1L), any(), eq(DESIGNER))).thenReturn(charging(true));
 
     mockMvc(service)
         .perform(
@@ -120,7 +130,7 @@ class ConsumerUnitGroupControllerTest {
         .andExpect(status().isCreated());
 
     ArgumentCaptor<GroupParameters> parameters = ArgumentCaptor.forClass(GroupParameters.class);
-    verify(service).create(eq(1L), parameters.capture());
+    verify(service).create(eq(1L), parameters.capture(), eq(DESIGNER));
     assertThat(parameters.getValue().spec().items())
         .singleElement()
         .satisfies(item -> assertThat(item.getDescription()).isEqualTo("Elevador"));
@@ -160,7 +170,7 @@ class ConsumerUnitGroupControllerTest {
   @Test
   void answersTheValidationOfTheStep() throws Exception {
     ConsumerUnitGroupService service = mock(ConsumerUnitGroupService.class);
-    when(service.validation(1L))
+    when(service.validation(1L, DESIGNER))
         .thenReturn(new GroupValidation(false, 2, 5, 55, new BigDecimal("452.00")));
 
     mockMvc(service)
@@ -176,7 +186,7 @@ class ConsumerUnitGroupControllerTest {
   @Test
   void answersNotFoundForAnUnknownProject() throws Exception {
     ConsumerUnitGroupService service = mock(ConsumerUnitGroupService.class);
-    when(service.list(99L)).thenThrow(new NotFoundException("Projeto não encontrado."));
+    when(service.list(99L, DESIGNER)).thenThrow(new NotFoundException("Projeto não encontrado."));
 
     mockMvc(service)
         .perform(get("/projects/99/consumer-unit-groups"))
@@ -187,7 +197,7 @@ class ConsumerUnitGroupControllerTest {
   @Test
   void answersConflictOutsideADraftOrWhenTheKindChanges() throws Exception {
     ConsumerUnitGroupService service = mock(ConsumerUnitGroupService.class);
-    when(service.update(eq(1L), eq(7L), any()))
+    when(service.update(eq(1L), eq(7L), any(), eq(DESIGNER)))
         .thenThrow(
             new BusinessException(
                 "O tipo de um grupo não muda. Exclua o grupo e cadastre outro.",
@@ -197,7 +207,7 @@ class ConsumerUnitGroupControllerTest {
                 "Só é possível alterar as unidades de um projeto em rascunho.",
                 HttpStatus.CONFLICT))
         .when(service)
-        .delete(1L, 8L);
+        .delete(1L, 8L, DESIGNER);
     MockMvc mockMvc = mockMvc(service);
 
     mockMvc
@@ -245,6 +255,25 @@ class ConsumerUnitGroupControllerTest {
     return source;
   }
 
+  @BeforeEach
+  void authenticateAsDesigner() {
+    SecurityContextHolder.getContext()
+        .setAuthentication(new JwtAuthenticationToken(designerToken()));
+  }
+
+  @AfterEach
+  void clearAuthentication() {
+    SecurityContextHolder.clearContext();
+  }
+
+  private static Jwt designerToken() {
+    return Jwt.withTokenValue("token")
+        .header("alg", "none")
+        .subject(String.valueOf(DESIGNER.id()))
+        .claim("role", DESIGNER.role().getValue())
+        .build();
+  }
+
   private static MockMvc mockMvc(ConsumerUnitGroupService service) {
     DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
     new EnumParameterConfig().addFormatters(conversionService);
@@ -252,6 +281,7 @@ class ConsumerUnitGroupControllerTest {
     return MockMvcBuilders.standaloneSetup(new ConsumerUnitGroupController(service))
         .setConversionService(conversionService)
         .setControllerAdvice(new GlobalExceptionHandler(messageSource()))
+        .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
         .build();
   }
 }

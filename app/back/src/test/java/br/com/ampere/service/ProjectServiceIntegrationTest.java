@@ -24,14 +24,10 @@ import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -54,6 +50,8 @@ class ProjectServiceIntegrationTest {
 
   private User owner;
 
+  private AuthenticatedUser designer;
+
   @BeforeEach
   void clearProjects() {
     calculationRepository.deleteAll();
@@ -64,7 +62,7 @@ class ProjectServiceIntegrationTest {
     userRepository.deleteAll();
     owner =
         userRepository.save(new User("João Projetista", "joao@ampere.com", "hash", UserRole.USER));
-    authenticate(owner);
+    designer = new AuthenticatedUser(owner.getId(), UserRole.USER);
     standardRepository.saveAll(
         List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
   }
@@ -90,7 +88,7 @@ class ProjectServiceIntegrationTest {
     findingRepository.save(new Finding(rejectedProject));
 
     ProjectListing listing =
-        service.list(1, 20, ProjectStatus.REJECTED, "VILA", SortDirection.DESC);
+        service.list(1, 20, ProjectStatus.REJECTED, "VILA", SortDirection.DESC, designer);
 
     assertThat(listing.totalElements()).isOne();
     assertThat(listing.projects()).containsExactly(rejectedProject);
@@ -102,7 +100,7 @@ class ProjectServiceIntegrationTest {
     projectRepository.save(project("A", "Rua A, 1", "Recife", "2026-9001", ProjectStatus.REJECTED));
     projectRepository.save(project("B", "Rua B, 2", "Recife", "2026-9002", ProjectStatus.APPROVED));
 
-    assertThat(service.countPerStatus())
+    assertThat(service.countPerStatus(designer))
         .containsEntry(ProjectStatus.REJECTED, 1L)
         .containsEntry(ProjectStatus.APPROVED, 1L)
         .doesNotContainKey(ProjectStatus.DRAFT);
@@ -119,7 +117,7 @@ class ProjectServiceIntegrationTest {
                 "2026-5231",
                 ProjectStatus.UNDER_REVIEW));
 
-    ProjectListing listing = service.list(1, 20, null, "5231", SortDirection.DESC);
+    ProjectListing listing = service.list(1, 20, null, "5231", SortDirection.DESC, designer);
 
     assertThat(listing.projects()).containsExactly(project);
     assertThat(listing.pendingCountFor(project)).isZero();
@@ -135,11 +133,12 @@ class ProjectServiceIntegrationTest {
             "2026-5231",
             ProjectStatus.UNDER_REVIEW));
 
-    ProjectListing listing = service.list(1, 20, null, "projeto inexistente", SortDirection.DESC);
+    ProjectListing listing =
+        service.list(1, 20, null, "projeto inexistente", SortDirection.DESC, designer);
 
     assertThat(listing.projects()).isEmpty();
     assertThat(listing.pendingCounts()).isEmpty();
-    assertThat(service.countPerStatus()).containsEntry(ProjectStatus.UNDER_REVIEW, 1L);
+    assertThat(service.countPerStatus(designer)).containsEntry(ProjectStatus.UNDER_REVIEW, 1L);
   }
 
   @Test
@@ -153,11 +152,11 @@ class ProjectServiceIntegrationTest {
                 "2026-5231",
                 ProjectStatus.UNDER_REVIEW));
 
-    assertThat(service.list(1, 20, null, "edificio", SortDirection.DESC).projects())
+    assertThat(service.list(1, 20, null, "edificio", SortDirection.DESC, designer).projects())
         .containsExactly(project);
-    assertThat(service.list(1, 20, null, "EDIFÍCIO", SortDirection.DESC).projects())
+    assertThat(service.list(1, 20, null, "EDIFÍCIO", SortDirection.DESC, designer).projects())
         .containsExactly(project);
-    assertThat(service.list(1, 20, null, "Edifício", SortDirection.DESC).projects())
+    assertThat(service.list(1, 20, null, "Edifício", SortDirection.DESC, designer).projects())
         .containsExactly(project);
   }
 
@@ -172,7 +171,8 @@ class ProjectServiceIntegrationTest {
             ProjectStatus.UNDER_REVIEW));
 
     // Address and municipality are outside the search contract.
-    assertThat(service.list(1, 20, null, "Recife", SortDirection.DESC).projects()).isEmpty();
+    assertThat(service.list(1, 20, null, "Recife", SortDirection.DESC, designer).projects())
+        .isEmpty();
   }
 
   @Test
@@ -185,14 +185,16 @@ class ProjectServiceIntegrationTest {
             "2026-8475",
             ProjectStatus.REJECTED));
 
-    assertThat(service.list(1, 20, null, "%", SortDirection.DESC).projects()).isEmpty();
-    assertThat(service.list(1, 20, null, "_", SortDirection.DESC).projects()).isEmpty();
-    assertThat(service.list(1, 20, null, "vila%nova", SortDirection.DESC).projects()).isEmpty();
+    assertThat(service.list(1, 20, null, "%", SortDirection.DESC, designer).projects()).isEmpty();
+    assertThat(service.list(1, 20, null, "_", SortDirection.DESC, designer).projects()).isEmpty();
+    assertThat(service.list(1, 20, null, "vila%nova", SortDirection.DESC, designer).projects())
+        .isEmpty();
   }
 
   @Test
   void createsADraftProjectWithAGeneratedProtocolAndBothStandards() {
-    Project created = service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY));
+    Project created =
+        service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer);
 
     assertThat(created.getId()).isNotNull();
     assertThat(created.getStatus()).isEqualTo(ProjectStatus.DRAFT);
@@ -206,23 +208,26 @@ class ProjectServiceIntegrationTest {
 
   @Test
   void assignsTheAuthenticatedUserAsTheOwner() {
-    Project created = service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY));
+    Project created =
+        service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer);
 
     assertThat(created.getOwner().getId()).isEqualTo(owner.getId());
   }
 
   @Test
   void generatesSequentialProtocolsWithinTheYear() {
-    String first = service.create(parameters(BuildingCategory.MIXED)).getProtocol();
-    String second = service.create(parameters(BuildingCategory.MIXED)).getProtocol();
-    String third = service.create(parameters(BuildingCategory.NON_RESIDENTIAL)).getProtocol();
+    String first = service.create(parameters(BuildingCategory.MIXED), designer).getProtocol();
+    String second = service.create(parameters(BuildingCategory.MIXED), designer).getProtocol();
+    String third =
+        service.create(parameters(BuildingCategory.NON_RESIDENTIAL), designer).getProtocol();
 
     assertThat(List.of(first, second, third)).doesNotHaveDuplicates().isSorted();
   }
 
   @Test
   void updatesTheTechnicalParametersOfADraft() {
-    Long id = service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY)).getId();
+    Long id =
+        service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer).getId();
 
     Project updated =
         service.update(
@@ -235,7 +240,8 @@ class ProjectServiceIntegrationTest {
                 3,
                 SupplyVoltage.V220_127,
                 ConnectionType.SINGLE_PHASE,
-                EntranceStandard.INDIVIDUAL));
+                EntranceStandard.INDIVIDUAL),
+            designer);
 
     assertThat(updated.getName()).isEqualTo("Comercial Praça Sul");
     assertThat(updated.getMunicipality()).isEqualTo("Olinda");
@@ -256,17 +262,17 @@ class ProjectServiceIntegrationTest {
                 ProjectStatus.UNDER_REVIEW));
 
     assertThatThrownBy(
-            () -> service.update(underReview.getId(), parameters(BuildingCategory.MIXED)))
+            () -> service.update(underReview.getId(), parameters(BuildingCategory.MIXED), designer))
         .isInstanceOf(BusinessException.class)
         .hasMessage("Só é possível alterar um projeto em rascunho.");
   }
 
   @Test
   void deletesADraftProjectAndItsFindings() {
-    Project draft = service.create(parameters(BuildingCategory.MIXED));
+    Project draft = service.create(parameters(BuildingCategory.MIXED), designer);
     findingRepository.save(new Finding(draft));
 
-    service.delete(draft.getId());
+    service.delete(draft.getId(), designer);
 
     assertThat(projectRepository.findById(draft.getId())).isEmpty();
     assertThat(findingRepository.countPerProject(List.of(draft.getId()))).isEmpty();
@@ -278,7 +284,7 @@ class ProjectServiceIntegrationTest {
         projectRepository.save(
             project("Praça Sul", "Rua do Sol, 302", "Olinda", "2026-5232", ProjectStatus.APPROVED));
 
-    assertThatThrownBy(() -> service.delete(approved.getId()))
+    assertThatThrownBy(() -> service.delete(approved.getId(), designer))
         .isInstanceOf(BusinessException.class)
         .hasMessage("Só é possível excluir um projeto em rascunho.");
     assertThat(projectRepository.findById(approved.getId())).isPresent();
@@ -300,22 +306,6 @@ class ProjectServiceIntegrationTest {
       String name, String address, String municipality, String protocol, ProjectStatus status) {
     return new Project(
         name, address, municipality, protocol, status, buildingType(), List.of(), owner);
-  }
-
-  @AfterEach
-  void clearAuthentication() {
-    SecurityContextHolder.clearContext();
-  }
-
-  private static void authenticate(User user) {
-    Jwt jwt =
-        Jwt.withTokenValue("token")
-            .header("alg", "none")
-            .subject(String.valueOf(user.getId()))
-            .claim("email", user.getEmail())
-            .claim("role", user.getRole().getValue())
-            .build();
-    SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
   }
 
   private static BuildingType buildingType() {

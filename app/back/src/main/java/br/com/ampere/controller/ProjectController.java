@@ -9,6 +9,7 @@ import br.com.ampere.dto.ProjectDetailResponse;
 import br.com.ampere.dto.ProjectRequest;
 import br.com.ampere.dto.ProjectResponse;
 import br.com.ampere.dto.ProjectStatusCounts;
+import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.ProjectListing;
 import br.com.ampere.service.ProjectParameters;
 import br.com.ampere.service.ProjectService;
@@ -20,6 +21,8 @@ import jakarta.validation.Valid;
 import java.util.List;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,9 +65,10 @@ public class ProjectController {
           String search,
       @Parameter(description = "Ordenação pela última atualização")
           @RequestParam(defaultValue = "DESC")
-          SortDirection sort) {
+          SortDirection sort,
+      @AuthenticationPrincipal Jwt jwt) {
     ProjectListing listing =
-        service.list(pagination.page(), pagination.pageSize(), status, search, sort);
+        service.list(pagination.page(), pagination.pageSize(), status, search, sort, userOf(jwt));
     List<ProjectResponse> projects =
         listing.projects().stream()
             .map(
@@ -90,8 +94,8 @@ public class ProjectController {
         responseCode = "200",
         description = "Contadores por situação")
   })
-  public ApiResponse<ProjectStatusCounts> statusCounts() {
-    return ApiResponse.of(ProjectStatusCounts.from(service.countPerStatus()));
+  public ApiResponse<ProjectStatusCounts> statusCounts(@AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(ProjectStatusCounts.from(service.countPerStatus(userOf(jwt))));
   }
 
   @PostMapping
@@ -107,11 +111,16 @@ public class ProjectController {
         responseCode = "400",
         description = "Dados da edificação inválidos"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "O perfil analista não altera projetos"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "409",
         description = "Não foi possível gerar o protocolo")
   })
-  public ApiResponse<ProjectDetailResponse> create(@Valid @RequestBody ProjectRequest request) {
-    return ApiResponse.of(ProjectDetailResponse.from(service.create(parametersOf(request))));
+  public ApiResponse<ProjectDetailResponse> create(
+      @Valid @RequestBody ProjectRequest request, @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(
+        ProjectDetailResponse.from(service.create(parametersOf(request), userOf(jwt))));
   }
 
   @GetMapping("/{id}")
@@ -127,8 +136,9 @@ public class ProjectController {
         responseCode = "404",
         description = "Projeto não encontrado")
   })
-  public ApiResponse<ProjectDetailResponse> detail(@PathVariable Long id) {
-    return ApiResponse.of(ProjectDetailResponse.from(service.findById(id)));
+  public ApiResponse<ProjectDetailResponse> detail(
+      @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(ProjectDetailResponse.from(service.findById(id, userOf(jwt))));
   }
 
   @PutMapping("/{id}")
@@ -141,6 +151,9 @@ public class ProjectController {
         responseCode = "400",
         description = "Dados da edificação inválidos"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "O perfil analista não altera projetos"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Projeto não encontrado"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -148,8 +161,11 @@ public class ProjectController {
         description = "O projeto não está mais em rascunho")
   })
   public ApiResponse<ProjectDetailResponse> update(
-      @PathVariable Long id, @Valid @RequestBody ProjectRequest request) {
-    return ApiResponse.of(ProjectDetailResponse.from(service.update(id, parametersOf(request))));
+      @PathVariable Long id,
+      @Valid @RequestBody ProjectRequest request,
+      @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(
+        ProjectDetailResponse.from(service.update(id, parametersOf(request), userOf(jwt))));
   }
 
   @DeleteMapping("/{id}")
@@ -160,14 +176,17 @@ public class ProjectController {
         responseCode = "204",
         description = "Projeto excluído"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "O perfil analista não altera projetos"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Projeto não encontrado"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "409",
         description = "O projeto não está mais em rascunho")
   })
-  public void delete(@PathVariable Long id) {
-    service.delete(id);
+  public void delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+    service.delete(id, userOf(jwt));
   }
 
   private static ProjectParameters parametersOf(ProjectRequest request) {
@@ -180,5 +199,9 @@ public class ProjectController {
         request.voltage(),
         request.connectionType(),
         request.entranceStandard());
+  }
+
+  private static AuthenticatedUser userOf(Jwt jwt) {
+    return AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role"));
   }
 }

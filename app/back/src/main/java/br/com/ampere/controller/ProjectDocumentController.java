@@ -3,6 +3,7 @@ package br.com.ampere.controller;
 import br.com.ampere.domain.DocumentType;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.DocumentResponse;
+import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.ProjectDocumentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,6 +13,8 @@ import java.io.IOException;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,9 +47,12 @@ public class ProjectDocumentController {
         responseCode = "404",
         description = "Projeto não encontrado")
   })
-  public ApiResponse<List<DocumentResponse>> list(@PathVariable Long projectId) {
+  public ApiResponse<List<DocumentResponse>> list(
+      @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        service.listByProject(projectId).stream().map(DocumentResponse::from).toList());
+        service.listByProject(projectId, userOf(jwt)).stream()
+            .map(DocumentResponse::from)
+            .toList());
   }
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -62,6 +68,9 @@ public class ProjectDocumentController {
         responseCode = "400",
         description = "Arquivo que não é PDF, ou tipo ausente ou inválido"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "O perfil analista não altera projetos"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Projeto não encontrado"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -74,11 +83,13 @@ public class ProjectDocumentController {
   public ApiResponse<DocumentResponse> upload(
       @PathVariable Long projectId,
       @Parameter(description = "Tipo do documento") @RequestParam DocumentType type,
-      @Parameter(description = "Arquivo PDF") @RequestPart MultipartFile file)
+      @Parameter(description = "Arquivo PDF") @RequestPart MultipartFile file,
+      @AuthenticationPrincipal Jwt jwt)
       throws IOException {
     return ApiResponse.of(
         DocumentResponse.from(
-            service.upload(projectId, type, file.getOriginalFilename(), file.getBytes())));
+            service.upload(
+                projectId, type, file.getOriginalFilename(), file.getBytes(), userOf(jwt))));
   }
 
   @DeleteMapping("/{documentId}")
@@ -89,13 +100,23 @@ public class ProjectDocumentController {
         responseCode = "204",
         description = "Documento removido"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "O perfil analista não altera projetos"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Projeto ou documento não encontrado"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "409",
         description = "Projeto já enviado para análise")
   })
-  public void delete(@PathVariable Long projectId, @PathVariable Long documentId) {
-    service.delete(projectId, documentId);
+  public void delete(
+      @PathVariable Long projectId,
+      @PathVariable Long documentId,
+      @AuthenticationPrincipal Jwt jwt) {
+    service.delete(projectId, documentId, userOf(jwt));
+  }
+
+  private static AuthenticatedUser userOf(Jwt jwt) {
+    return AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role"));
   }
 }
