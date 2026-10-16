@@ -56,7 +56,7 @@ Scaffold em `app/back`: Java 21 com Spring Boot 4.1 e Spring Data JPA sobre Post
 
 Como executar: [`app/back/README.md`](../../app/back/README.md).
 
-Estado atual: autenticação por JWT, com a rota `/admin/**` restrita ao papel `ADMIN`. O schema é gerado pelo Hibernate (`ddl-auto=update`), sem migrations versionadas. Pendências em [`pendencias.md`](../pendencias.md).
+Estado atual: autenticação por JWT, com as tabelas normativas e a fila restritas ao papel `ADMIN` e cada projeto restrito ao seu dono. O schema é gerado pelo Hibernate (`ddl-auto=update`), sem migrations versionadas. Pendências em [`pendencias.md`](../pendencias.md).
 
 ---
 
