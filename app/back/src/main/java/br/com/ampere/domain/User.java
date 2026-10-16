@@ -134,6 +134,15 @@ public class User {
     return creaState;
   }
 
+  /** The CREA as the stamp and the memorial print it, such as "123456/PE". */
+  public String creaWithState() {
+    if (crea == null) {
+      return null;
+    }
+
+    return creaState == null ? crea : crea + "/" + creaState;
+  }
+
   public String getCompany() {
     return company;
   }

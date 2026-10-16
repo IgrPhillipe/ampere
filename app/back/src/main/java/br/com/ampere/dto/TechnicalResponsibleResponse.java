@@ -11,12 +11,6 @@ public record TechnicalResponsibleResponse(String name, String crea) {
       return null;
     }
 
-    return new TechnicalResponsibleResponse(owner.getName(), formatCrea(owner));
-  }
-
-  public static String formatCrea(User user) {
-    return user.getCreaState() == null
-        ? user.getCrea()
-        : user.getCrea() + "/" + user.getCreaState();
+    return new TechnicalResponsibleResponse(owner.getName(), owner.creaWithState());
   }
 }
