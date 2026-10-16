@@ -7,30 +7,45 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@components/ui/dialog";
+import { cn } from "@lib/utils";
+import type { ReactNode } from "react";
 
-interface NormativeTableConfirmDialogProps {
+interface ConfirmDialogProps {
 	open: boolean;
 	title: string;
-	description: string;
+	description: ReactNode;
 	confirmLabel: string;
 	pendingLabel: string;
 	isPending: boolean;
+	destructive?: boolean;
 	onOpenChange: (open: boolean) => void;
 	onConfirm: () => void;
+	className?: string;
 }
 
-export const NormativeTableConfirmDialog = ({
+/** Stays open while the request runs, so the action cannot be dismissed halfway. */
+export const ConfirmDialog = ({
 	open,
 	title,
 	description,
 	confirmLabel,
 	pendingLabel,
 	isPending,
+	destructive = false,
 	onOpenChange,
 	onConfirm,
-}: NormativeTableConfirmDialogProps) => (
-	<Dialog open={open} onOpenChange={onOpenChange}>
-		<DialogContent className="bg-card">
+	className,
+}: ConfirmDialogProps) => (
+	<Dialog
+		open={open}
+		onOpenChange={(nextOpen) => {
+			if (!isPending) onOpenChange(nextOpen);
+		}}
+	>
+		<DialogContent
+			className={cn("bg-card", className)}
+			showCloseButton={!isPending}
+		>
 			<DialogHeader>
 				<DialogTitle className="font-heading text-xl">{title}</DialogTitle>
 				<DialogDescription>{description}</DialogDescription>
@@ -41,11 +56,17 @@ export const NormativeTableConfirmDialog = ({
 					type="button"
 					variant="ghost"
 					onClick={() => onOpenChange(false)}
+					disabled={isPending}
 				>
 					Cancelar
 				</Button>
 
-				<Button type="button" onClick={onConfirm} disabled={isPending}>
+				<Button
+					type="button"
+					variant={destructive ? "destructive" : "default"}
+					onClick={onConfirm}
+					disabled={isPending}
+				>
 					{isPending ? pendingLabel : confirmLabel}
 				</Button>
 			</DialogFooter>
