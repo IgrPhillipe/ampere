@@ -248,6 +248,18 @@ public class Project {
     return reviewCycle > 1;
   }
 
+  public boolean wasSubmitted() {
+    return submittedAt != null;
+  }
+
+  public boolean isOwnedBy(Long userId) {
+    return owner != null && owner.getId().equals(userId);
+  }
+
+  public void assignOwner(User owner) {
+    this.owner = Objects.requireNonNull(owner, "owner");
+  }
+
   public Long getId() {
     return id;
   }

@@ -34,6 +34,8 @@ public class ProjectService {
 
   private static final int PROTOCOL_ATTEMPTS = 3;
   private static final String NOT_FOUND = "Projeto não encontrado.";
+  private static final String ANALYST_READ_ONLY =
+      "O perfil analista só consulta os projetos enviados para análise.";
 
   private final ProjectRepository projectRepository;
   private final FindingRepository findingRepository;
@@ -62,13 +64,19 @@ public class ProjectService {
 
   @Transactional(readOnly = true)
   public ProjectListing list(
-      int page, int pageSize, ProjectStatus status, String search, SortDirection sort) {
+      int page,
+      int pageSize,
+      ProjectStatus status,
+      String search,
+      SortDirection sort,
+      AuthenticatedUser user) {
     Sort.Direction direction = Sort.Direction.valueOf(sort.name());
     PageRequest pageRequest =
         PageRequest.of(
             page - 1, pageSize, Sort.by(direction, "updatedAt").and(Sort.by(direction, "id")));
     Page<Project> projects =
-        projectRepository.searchProjects(status, SearchTerms.normalize(search), pageRequest);
+        projectRepository.searchAccessibleProjects(
+            status, SearchTerms.normalize(search), user.id(), user.isAdmin(), pageRequest);
 
     List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
 
@@ -81,24 +89,33 @@ public class ProjectService {
   }
 
   @Transactional(readOnly = true)
-  public Map<ProjectStatus, Long> countPerStatus() {
+  public Map<ProjectStatus, Long> countPerStatus(AuthenticatedUser user) {
     Map<ProjectStatus, Long> counts = new EnumMap<>(ProjectStatus.class);
     projectRepository
-        .countPerStatus()
+        .countAccessiblePerStatus(user.id(), user.isAdmin())
         .forEach(count -> counts.put(count.getStatus(), count.getTotal()));
 
     return Map.copyOf(counts);
   }
 
   @Transactional(readOnly = true)
-  public Project findById(Long id) {
-    return projectRepository.findDetailById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND));
+  public Project findById(Long id, AuthenticatedUser user) {
+    Project project =
+        projectRepository.findDetailById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND));
+    boolean visible = user.isAdmin() ? project.wasSubmitted() : project.isOwnedBy(user.id());
+    if (!visible) {
+      // Same answer as a missing id, so another owner's project is not revealed.
+      throw new NotFoundException(NOT_FOUND);
+    }
+
+    return project;
   }
 
-  public Project create(ProjectParameters parameters, String ownerEmail) {
+  public Project create(ProjectParameters parameters, AuthenticatedUser user) {
+    designerOrFail(user);
     for (int attempt = 1; attempt <= PROTOCOL_ATTEMPTS; attempt++) {
       try {
-        return projectCreation.createWithGeneratedProtocol(parameters, ownerEmail);
+        return projectCreation.createWithGeneratedProtocol(parameters, user.id());
       } catch (DataIntegrityViolationException collision) {
         log.warn("Protocol collision on attempt {} of {}", attempt, PROTOCOL_ATTEMPTS);
       }
@@ -109,8 +126,8 @@ public class ProjectService {
   }
 
   @Transactional
-  public Project update(Long id, ProjectParameters parameters) {
-    Project project = draftOrFail(id, "Só é possível alterar um projeto em rascunho.");
+  public Project update(Long id, ProjectParameters parameters, AuthenticatedUser user) {
+    Project project = draftOrFail(id, "Só é possível alterar um projeto em rascunho.", user);
     BuildingType buildingType = parameters.toBuildingType();
 
     project.rename(parameters.name(), parameters.address(), parameters.municipality());
@@ -121,8 +138,8 @@ public class ProjectService {
   }
 
   @Transactional
-  public void delete(Long id) {
-    Project project = draftOrFail(id, "Só é possível excluir um projeto em rascunho.");
+  public void delete(Long id, AuthenticatedUser user) {
+    Project project = draftOrFail(id, "Só é possível excluir um projeto em rascunho.", user);
 
     calculationRepository.deleteAllByProjectId(id);
     findingRepository.deleteAllByProjectId(id);
@@ -131,13 +148,25 @@ public class ProjectService {
     projectRepository.delete(project);
   }
 
-  Project draftOrFail(Long id, String message) {
-    Project project = findById(id);
+  Project draftOrFail(Long id, String message, AuthenticatedUser user) {
+    Project project = findWritableById(id, user);
     if (!project.isDraft()) {
       throw new BusinessException(message, HttpStatus.CONFLICT);
     }
 
     return project;
+  }
+
+  Project findWritableById(Long id, AuthenticatedUser user) {
+    designerOrFail(user);
+
+    return findById(id, user);
+  }
+
+  private static void designerOrFail(AuthenticatedUser user) {
+    if (user.isAdmin()) {
+      throw new BusinessException(ANALYST_READ_ONLY, HttpStatus.FORBIDDEN);
+    }
   }
 
   private Map<Long, Long> countPendingFindings(List<Long> projectIds) {

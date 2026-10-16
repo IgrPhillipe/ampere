@@ -3,6 +3,7 @@ package br.com.ampere.controller;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.ProjectDetailResponse;
 import br.com.ampere.dto.SubmissionChecklistResponse;
+import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.MemorialPdfService;
 import br.com.ampere.service.SubmissionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +13,8 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,8 +47,9 @@ public class SubmissionController {
         responseCode = "404",
         description = "Projeto não encontrado ou ainda sem cálculo")
   })
-  public ResponseEntity<byte[]> memorial(@PathVariable Long projectId) {
-    MemorialPdfService.Memorial memorial = memorialPdfService.generate(projectId);
+  public ResponseEntity<byte[]> memorial(
+      @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
+    MemorialPdfService.Memorial memorial = memorialPdfService.generate(projectId, userOf(jwt));
 
     return ResponseEntity.ok()
         .contentType(MediaType.APPLICATION_PDF)
@@ -67,8 +71,10 @@ public class SubmissionController {
         responseCode = "404",
         description = "Projeto não encontrado")
   })
-  public ApiResponse<SubmissionChecklistResponse> submission(@PathVariable Long projectId) {
-    return ApiResponse.of(SubmissionChecklistResponse.from(submissionService.checklist(projectId)));
+  public ApiResponse<SubmissionChecklistResponse> submission(
+      @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(
+        SubmissionChecklistResponse.from(submissionService.checklist(projectId, userOf(jwt))));
   }
 
   @PostMapping("/submission")
@@ -77,6 +83,9 @@ public class SubmissionController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
         description = "Projeto enviado, com o status UNDER_REVIEW"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "O perfil analista não altera projetos"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Projeto não encontrado"),
@@ -87,7 +96,13 @@ public class SubmissionController {
         responseCode = "422",
         description = "Falta o cálculo ou algum documento obrigatório")
   })
-  public ApiResponse<ProjectDetailResponse> submit(@PathVariable Long projectId) {
-    return ApiResponse.of(ProjectDetailResponse.from(submissionService.submit(projectId)));
+  public ApiResponse<ProjectDetailResponse> submit(
+      @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(
+        ProjectDetailResponse.from(submissionService.submit(projectId, userOf(jwt))));
+  }
+
+  private static AuthenticatedUser userOf(Jwt jwt) {
+    return AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role"));
   }
 }

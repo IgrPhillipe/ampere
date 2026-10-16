@@ -66,8 +66,8 @@ public class MemorialPdfService {
   public record Memorial(String filename, byte[] content) {}
 
   @Transactional(readOnly = true)
-  public Memorial generate(Long projectId) {
-    Project project = projectService.findById(projectId);
+  public Memorial generate(Long projectId, AuthenticatedUser user) {
+    Project project = projectService.findById(projectId, user);
     Calculation calculation =
         calculationRepository
             .findFirstByProjectIdOrderByIdDesc(projectId)

@@ -19,14 +19,22 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       """
       SELECT project
       FROM Project project
-      WHERE (:status IS NULL OR project.status = :status)
+      WHERE (
+          (:admin = true AND project.submittedAt IS NOT NULL)
+          OR (:admin = false AND project.owner.id = :ownerId)
+        )
+        AND (:status IS NULL OR project.status = :status)
         AND (
           :search = ''
           OR project.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
         )
       """)
-  Page<Project> searchProjects(
-      @Param("status") ProjectStatus status, @Param("search") String search, Pageable pageable);
+  Page<Project> searchAccessibleProjects(
+      @Param("status") ProjectStatus status,
+      @Param("search") String search,
+      @Param("ownerId") Long ownerId,
+      @Param("admin") boolean admin,
+      Pageable pageable);
 
   @EntityGraph(attributePaths = "owner")
   @Query(
@@ -76,9 +84,14 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       """
       SELECT project.status AS status, COUNT(project) AS total
       FROM Project project
+      WHERE (
+        (:admin = true AND project.submittedAt IS NOT NULL)
+        OR (:admin = false AND project.owner.id = :ownerId)
+      )
       GROUP BY project.status
       """)
-  List<ProjectStatusCount> countPerStatus();
+  List<ProjectStatusCount> countAccessiblePerStatus(
+      @Param("ownerId") Long ownerId, @Param("admin") boolean admin);
 
   @Query(
       """
@@ -88,10 +101,12 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       """)
   Optional<String> findHighestProtocolOfYear(@Param("year") String year);
 
-  @EntityGraph(attributePaths = {"buildingType", "standards"})
+  @EntityGraph(attributePaths = {"buildingType", "standards", "owner"})
   Optional<Project> findDetailById(Long id);
 
   Optional<Project> findByProtocol(String protocol);
+
+  List<Project> findAllByOwnerIsNull();
 
   interface ProjectStatusCount {
 

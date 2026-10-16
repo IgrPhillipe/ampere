@@ -93,11 +93,22 @@ public class DataSeeder implements CommandLineRunner {
   @Transactional
   public void run(String... args) {
     User owner = seedUsers();
+    assignOwnerToLegacyProjects(owner);
     List<Standard> standards = seedStandards();
     seedDevelopmentData(standards, owner);
     seedGroups();
     seedNormativeTables(standards);
     seedSubmittedCalculations();
+  }
+
+  /** Projects seeded before ownership existed go to the development designer. */
+  private void assignOwnerToLegacyProjects(User owner) {
+    List<Project> orphans = projectRepository.findAllByOwnerIsNull();
+    if (!orphans.isEmpty()) {
+      orphans.forEach(project -> project.assignOwner(owner));
+      projectRepository.saveAll(orphans);
+      log.info("DataSeeder: owner assigned to {} legacy projects.", orphans.size());
+    }
   }
 
   /** Per e-mail, so an older database also gets the reviewer the second reading needs. */

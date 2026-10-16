@@ -29,7 +29,12 @@ class OpenApiConfigTest {
     Operation operation =
         ProjectController.class
             .getMethod(
-                "list", PageQuery.class, ProjectStatus.class, String.class, SortDirection.class)
+                "list",
+                PageQuery.class,
+                ProjectStatus.class,
+                String.class,
+                SortDirection.class,
+                Jwt.class)
             .getAnnotation(Operation.class);
 
     assertThat(tag.name()).isEqualTo("Projects");
@@ -39,9 +44,10 @@ class OpenApiConfigTest {
   @Test
   void documentsTheProjectCrudWithStableNames() throws NoSuchMethodException {
     assertThat(operationId("create", ProjectRequest.class, Jwt.class)).isEqualTo("createProject");
-    assertThat(operationId("detail", Long.class)).isEqualTo("getProject");
-    assertThat(operationId("update", Long.class, ProjectRequest.class)).isEqualTo("updateProject");
-    assertThat(operationId("delete", Long.class)).isEqualTo("deleteProject");
+    assertThat(operationId("detail", Long.class, Jwt.class)).isEqualTo("getProject");
+    assertThat(operationId("update", Long.class, ProjectRequest.class, Jwt.class))
+        .isEqualTo("updateProject");
+    assertThat(operationId("delete", Long.class, Jwt.class)).isEqualTo("deleteProject");
   }
 
   private static String operationId(String method, Class<?>... parameters)

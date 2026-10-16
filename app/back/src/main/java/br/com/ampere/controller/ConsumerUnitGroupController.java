@@ -6,6 +6,7 @@ import br.com.ampere.dto.ConsumerUnitGroupRequest;
 import br.com.ampere.dto.ConsumerUnitGroupResponse;
 import br.com.ampere.dto.GroupValidationResponse;
 import br.com.ampere.dto.LoadItemRequest;
+import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.ConsumerUnitGroupService;
 import br.com.ampere.service.GroupParameters;
 import br.com.ampere.service.GroupValidation;
@@ -15,6 +16,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,9 +53,12 @@ public class ConsumerUnitGroupController {
         responseCode = "404",
         description = "Projeto não encontrado")
   })
-  public ApiResponse<List<ConsumerUnitGroupResponse>> list(@PathVariable Long projectId) {
+  public ApiResponse<List<ConsumerUnitGroupResponse>> list(
+      @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        service.list(projectId).stream().map(ConsumerUnitGroupResponse::from).toList());
+        service.list(projectId, userOf(jwt)).stream()
+            .map(ConsumerUnitGroupResponse::from)
+            .toList());
   }
 
   @GetMapping("/validation")
@@ -67,8 +73,9 @@ public class ConsumerUnitGroupController {
         responseCode = "404",
         description = "Projeto não encontrado")
   })
-  public ApiResponse<GroupValidationResponse> validation(@PathVariable Long projectId) {
-    GroupValidation validation = service.validation(projectId);
+  public ApiResponse<GroupValidationResponse> validation(
+      @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
+    GroupValidation validation = service.validation(projectId, userOf(jwt));
 
     return ApiResponse.of(
         new GroupValidationResponse(
@@ -92,6 +99,9 @@ public class ConsumerUnitGroupController {
         responseCode = "400",
         description = "Dados do grupo inválidos"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "O perfil analista não altera projetos"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Projeto não encontrado"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -99,9 +109,12 @@ public class ConsumerUnitGroupController {
         description = "O projeto não está mais em rascunho")
   })
   public ApiResponse<ConsumerUnitGroupResponse> create(
-      @PathVariable Long projectId, @Valid @RequestBody ConsumerUnitGroupRequest request) {
+      @PathVariable Long projectId,
+      @Valid @RequestBody ConsumerUnitGroupRequest request,
+      @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        ConsumerUnitGroupResponse.from(service.create(projectId, parametersOf(request))));
+        ConsumerUnitGroupResponse.from(
+            service.create(projectId, parametersOf(request), userOf(jwt))));
   }
 
   @PutMapping("/{groupId}")
@@ -114,6 +127,9 @@ public class ConsumerUnitGroupController {
         responseCode = "400",
         description = "Dados do grupo inválidos"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "O perfil analista não altera projetos"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Projeto ou grupo não encontrado"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -123,9 +139,11 @@ public class ConsumerUnitGroupController {
   public ApiResponse<ConsumerUnitGroupResponse> update(
       @PathVariable Long projectId,
       @PathVariable Long groupId,
-      @Valid @RequestBody ConsumerUnitGroupRequest request) {
+      @Valid @RequestBody ConsumerUnitGroupRequest request,
+      @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        ConsumerUnitGroupResponse.from(service.update(projectId, groupId, parametersOf(request))));
+        ConsumerUnitGroupResponse.from(
+            service.update(projectId, groupId, parametersOf(request), userOf(jwt))));
   }
 
   @DeleteMapping("/{groupId}")
@@ -136,14 +154,18 @@ public class ConsumerUnitGroupController {
         responseCode = "204",
         description = "Grupo excluído"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "O perfil analista não altera projetos"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Projeto ou grupo não encontrado"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "409",
         description = "O projeto não está mais em rascunho")
   })
-  public void delete(@PathVariable Long projectId, @PathVariable Long groupId) {
-    service.delete(projectId, groupId);
+  public void delete(
+      @PathVariable Long projectId, @PathVariable Long groupId, @AuthenticationPrincipal Jwt jwt) {
+    service.delete(projectId, groupId, userOf(jwt));
   }
 
   private static GroupParameters parametersOf(ConsumerUnitGroupRequest request) {
@@ -164,5 +186,9 @@ public class ConsumerUnitGroupController {
             request.incorporatedInVehicle(),
             request.loadManagement(),
             request.stationType()));
+  }
+
+  private static AuthenticatedUser userOf(Jwt jwt) {
+    return AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role"));
   }
 }
