@@ -5,6 +5,9 @@ import { AppConfig } from "@/config";
 
 import { type ApiHTTPError, parseSpringErrorBody } from "./api-error";
 
+const isLogin = (request: Request) =>
+	new URL(request.url).pathname.endsWith("/auth/login");
+
 export const http = ky.create({
 	prefix: AppConfig.API_URL,
 	timeout: 30_000,
@@ -14,14 +17,17 @@ export const http = ky.create({
 			({ request }) => {
 				const { token } = useAuthStore.getState().user ?? {};
 
-				if (token) request.headers.set("Authorization", `Bearer ${token}`);
+				// The server refuses a stale token even on the login.
+				if (token && !isLogin(request)) {
+					request.headers.set("Authorization", `Bearer ${token}`);
+				}
 			},
 		],
 		/** A session the server refuses tears down the local session. */
 		afterResponse: [
 			({ request, response }) => {
 				if (response.status !== 401) return;
-				if (new URL(request.url).pathname.endsWith("/auth/login")) return;
+				if (isLogin(request)) return;
 
 				useAuthStore.getState().logout();
 			},
