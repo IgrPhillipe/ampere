@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Pattern;
 
 /** Body of {@code PUT /users/me/password}. */
 public record ChangePasswordRequest(
-    @NotBlank String currentPassword,
-    @NotBlank @Pattern(regexp = Passwords.POLICY, message = Passwords.MESSAGE)
+    @NotBlank(message = "A senha atual é obrigatória.") String currentPassword,
+    @NotBlank(message = "A nova senha é obrigatória.")
+        @Pattern(regexp = Passwords.POLICY, message = Passwords.MESSAGE)
         String newPassword) {}

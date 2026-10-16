@@ -11,6 +11,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Locale;
 
 @Entity
 @Table(name = "app_user")
@@ -76,9 +77,8 @@ public class User {
   public void updateProfile(
       String name, String crea, String creaState, String company, String phone) {
     this.name = name.trim();
-    this.crea = crea == null ? null : crea.trim();
-    this.creaState =
-        creaState == null ? null : creaState.trim().toUpperCase(java.util.Locale.ROOT);
+    this.crea = upperOrNull(crea);
+    this.creaState = upperOrNull(creaState);
     this.company = blankToNull(company);
     this.phone = blankToNull(phone);
   }
@@ -91,6 +91,11 @@ public class User {
     return value == null || value.isBlank() ? null : value.trim();
   }
 
+  private static String upperOrNull(String value) {
+    String trimmed = blankToNull(value);
+    return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
+  }
+
   @PrePersist
   private void onPersist() {
     createdAt = OffsetDateTime.now(ZoneOffset.UTC);
@@ -98,7 +103,7 @@ public class User {
 
   /** The form the column stores and every lookup compares against. */
   public static String normalizeEmail(String email) {
-    return email == null ? null : email.trim().toLowerCase(java.util.Locale.ROOT);
+    return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
   }
 
   public Long getId() {

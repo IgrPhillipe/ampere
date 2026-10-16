@@ -24,7 +24,6 @@ import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
-import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
@@ -33,6 +32,8 @@ import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.parser.PdfTextExtractor;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -108,11 +109,14 @@ class SubmissionIntegrationTest {
             standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
     owner =
         userRepository.save(
-            new User(
+            User.designer(
                 "Usuário Teste",
                 "user@ampere.com",
                 passwordEncoder.encode(PASSWORD),
-                UserRole.USER));
+                "123456",
+                "PE",
+                null,
+                null));
     token = token("user@ampere.com");
   }
 
@@ -262,6 +266,18 @@ class SubmissionIntegrationTest {
             .getContentAsByteArray();
 
     assertThat(new String(body, 0, 5, StandardCharsets.US_ASCII)).isEqualTo("%PDF-");
+  }
+
+  @Test
+  void theMemorialNamesTheTechnicalResponsible() throws Exception {
+    Project project = calculatedDraft();
+
+    byte[] body =
+        perform(get(memorialOf(project))).andReturn().getResponse().getContentAsByteArray();
+
+    assertThat(new PdfTextExtractor(new PdfReader(body)).getTextFromPage(1))
+        .contains("Responsável técnico: Usuário Teste")
+        .contains("CREA: 123456/PE");
   }
 
   private Project draft() {

@@ -4,8 +4,11 @@ import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.ChangePasswordRequest;
 import br.com.ampere.dto.ProfileRequest;
 import br.com.ampere.dto.ProfileResponse;
+import br.com.ampere.service.AuthenticatedUser;
+import br.com.ampere.service.ProfileParameters;
 import br.com.ampere.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -31,22 +34,65 @@ public class UserController {
 
   @GetMapping
   @Operation(operationId = "getProfile", summary = "Perfil do usuário da sessão")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Perfil com os dados profissionais"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "Sessão ausente ou inválida")
+  })
   public ApiResponse<ProfileResponse> profile(@AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(service.profile(jwt.getSubject()));
+    return ApiResponse.of(ProfileResponse.from(service.profile(userOf(jwt))));
   }
 
   @PutMapping
-  @Operation(operationId = "updateProfile", summary = "Atualiza os dados profissionais")
+  @Operation(operationId = "updateProfile", summary = "Atualiza o nome e os dados profissionais")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Perfil atualizado"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "Dados inválidos, ou projetista sem CREA"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "Sessão ausente ou inválida")
+  })
   public ApiResponse<ProfileResponse> update(
-      @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody ProfileRequest request) {
-    return ApiResponse.of(service.updateProfile(jwt.getSubject(), request));
+      @Valid @RequestBody ProfileRequest request, @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(
+        ProfileResponse.from(service.updateProfile(parametersOf(request), userOf(jwt))));
   }
 
   @PutMapping("/password")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(operationId = "changePassword", summary = "Troca a senha informando a atual")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "204",
+        description = "Senha trocada"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "Nova senha fora da política"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "401",
+        description = "Sessão ausente ou inválida"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "422",
+        description = "Senha atual incorreta")
+  })
   public void changePassword(
-      @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody ChangePasswordRequest request) {
-    service.changePassword(jwt.getSubject(), request);
+      @Valid @RequestBody ChangePasswordRequest request, @AuthenticationPrincipal Jwt jwt) {
+    service.changePassword(request.currentPassword(), request.newPassword(), userOf(jwt));
+  }
+
+  private static ProfileParameters parametersOf(ProfileRequest request) {
+    return new ProfileParameters(
+        request.name(), request.crea(), request.creaState(), request.company(), request.phone());
+  }
+
+  private static AuthenticatedUser userOf(Jwt jwt) {
+    return AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role"));
   }
 }

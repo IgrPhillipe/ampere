@@ -6,6 +6,7 @@ import br.com.ampere.dto.LoginRequest;
 import br.com.ampere.dto.LoginResponse;
 import br.com.ampere.dto.RegisterRequest;
 import br.com.ampere.service.AuthService;
+import br.com.ampere.service.ProfileParameters;
 import br.com.ampere.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -42,11 +43,23 @@ public class AuthController {
         responseCode = "201",
         description = "Conta criada, com token e usuário"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "Dados inválidos ou senha fora da política"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "409",
         description = "Já existe uma conta com este e-mail")
   })
   public ApiResponse<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
-    return ApiResponse.of(userService.register(request));
+    return ApiResponse.of(
+        userService.register(
+            request.email(),
+            request.password(),
+            new ProfileParameters(
+                request.name(),
+                request.crea(),
+                request.creaState(),
+                request.company(),
+                request.phone())));
   }
 
   @PostMapping("/login")

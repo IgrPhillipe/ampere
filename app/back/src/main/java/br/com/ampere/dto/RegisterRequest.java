@@ -8,14 +8,22 @@ import jakarta.validation.constraints.Size;
 
 /** Sign-up posted to {@code POST /auth/register}. */
 public record RegisterRequest(
-    @NotBlank @Size(max = 120) String name,
-    @NotBlank @Email String email,
-    @NotBlank @Pattern(regexp = Passwords.POLICY, message = Passwords.MESSAGE) String password,
-    @NotBlank @Size(max = 20) String crea,
-    @NotBlank @Pattern(regexp = "[A-Za-z]{2}", message = "Informe a UF com duas letras.")
+    @NotBlank(message = "O nome é obrigatório.")
+        @Size(max = 120, message = "O nome deve ter no máximo {max} caracteres.")
+        String name,
+    @NotBlank(message = "O e-mail é obrigatório.") @Email(message = "Informe um e-mail válido.")
+        String email,
+    @NotBlank(message = "A senha é obrigatória.")
+        @Pattern(regexp = Passwords.POLICY, message = Passwords.MESSAGE)
+        String password,
+    @NotBlank(message = "O CREA é obrigatório.")
+        @Pattern(regexp = Crea.NUMBER, message = Crea.NUMBER_MESSAGE)
+        String crea,
+    @NotBlank(message = "A UF do CREA é obrigatória.")
+        @Pattern(regexp = Crea.STATE, message = Crea.STATE_MESSAGE)
         String creaState,
-    @Size(max = 120) String company,
-    @Size(max = 20) String phone) {
+    @Size(max = 120, message = "A empresa deve ter no máximo {max} caracteres.") String company,
+    @Size(max = 20, message = "O telefone deve ter no máximo {max} caracteres.") String phone) {
 
   public RegisterRequest {
     email = User.normalizeEmail(email);

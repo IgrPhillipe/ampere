@@ -1,12 +1,9 @@
 package br.com.ampere.service;
 
 import br.com.ampere.domain.User;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.dto.AuthUserResponse;
-import br.com.ampere.dto.ChangePasswordRequest;
 import br.com.ampere.dto.LoginResponse;
-import br.com.ampere.dto.ProfileRequest;
-import br.com.ampere.dto.ProfileResponse;
-import br.com.ampere.dto.RegisterRequest;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.security.TokenService;
@@ -16,7 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Sign-up and the designer's own profile. */
+/** Sign-up and the profile of whoever is signed in. */
 @Service
 public class UserService {
 
@@ -33,22 +30,22 @@ public class UserService {
     this.tokenService = tokenService;
   }
 
-  /** Always the designer role: analysts are created by the administrator. */
+  /** Always the designer role: analysts are created by the administrator. Signs in like login. */
   @Transactional
-  public LoginResponse register(RegisterRequest request) {
-    if (userRepository.findByEmail(request.email()).isPresent()) {
+  public LoginResponse register(String email, String password, ProfileParameters profile) {
+    if (userRepository.findByEmail(email).isPresent()) {
       throw new BusinessException(EMAIL_TAKEN, HttpStatus.CONFLICT);
     }
 
     User user =
         User.designer(
-            request.name(),
-            request.email(),
-            passwordEncoder.encode(request.password()),
-            request.crea(),
-            request.creaState(),
-            request.company(),
-            request.phone());
+            profile.name(),
+            email,
+            passwordEncoder.encode(password),
+            profile.crea(),
+            profile.creaState(),
+            profile.company(),
+            profile.phone());
     try {
       user = userRepository.saveAndFlush(user);
     } catch (DataIntegrityViolationException race) {
@@ -59,44 +56,47 @@ public class UserService {
   }
 
   @Transactional(readOnly = true)
-  public ProfileResponse profile(String userId) {
-    return ProfileResponse.from(find(userId));
+  public User profile(AuthenticatedUser user) {
+    return find(user);
+  }
+
+  /** The CREA identifies the technical responsible, so a designer cannot leave it empty. */
+  @Transactional
+  public User updateProfile(ProfileParameters profile, AuthenticatedUser user) {
+    User person = find(user);
+    if (person.getRole() == UserRole.USER
+        && (isBlank(profile.crea()) || isBlank(profile.creaState()))) {
+      throw new BusinessException("Informe o número do CREA e a UF.");
+    }
+
+    person.updateProfile(
+        profile.name(), profile.crea(), profile.creaState(), profile.company(), profile.phone());
+
+    return person;
   }
 
   @Transactional
-  public ProfileResponse updateProfile(String userId, ProfileRequest request) {
-    User user = find(userId);
-    user.updateProfile(
-        request.name(), request.crea(), request.creaState(), request.company(), request.phone());
-
-    return ProfileResponse.from(user);
-  }
-
-  @Transactional
-  public void changePassword(String userId, ChangePasswordRequest request) {
-    User user = find(userId);
-    if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+  public void changePassword(String currentPassword, String newPassword, AuthenticatedUser user) {
+    User person = find(user);
+    if (!passwordEncoder.matches(currentPassword, person.getPasswordHash())) {
       throw new BusinessException(
           "A senha atual está incorreta.", HttpStatus.UNPROCESSABLE_CONTENT);
     }
 
-    user.changePasswordHash(passwordEncoder.encode(request.newPassword()));
+    person.changePasswordHash(passwordEncoder.encode(newPassword));
   }
 
-  private User find(String userId) {
-    Long id;
-    try {
-      id = Long.valueOf(userId);
-    } catch (NumberFormatException exception) {
-      throw new BusinessException("Sessão inválida. Entre novamente.", HttpStatus.UNAUTHORIZED);
-    }
-
+  private User find(AuthenticatedUser user) {
     return userRepository
-        .findById(id)
+        .findById(user.id())
         .orElseThrow(
             () ->
                 new BusinessException(
                     "A sessão aponta para um usuário que não existe mais.",
                     HttpStatus.UNAUTHORIZED));
+  }
+
+  private static boolean isBlank(String value) {
+    return value == null || value.isBlank();
   }
 }
