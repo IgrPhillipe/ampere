@@ -20,6 +20,7 @@ import br.com.ampere.domain.NonResidential;
 import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
@@ -31,13 +32,20 @@ import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
+import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.DemandCalculationService;
+import com.lowagie.text.Document;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.PdfWriter;
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -64,6 +72,7 @@ public class DataSeeder implements CommandLineRunner {
   private final NormativeTableRepository normativeTableRepository;
   private final UserRepository userRepository;
   private final CalculationRepository calculationRepository;
+  private final ProjectDocumentRepository documentRepository;
   private final DemandCalculationService demandCalculation;
   private final PasswordEncoder passwordEncoder;
 
@@ -79,6 +88,7 @@ public class DataSeeder implements CommandLineRunner {
       NormativeTableRepository normativeTableRepository,
       UserRepository userRepository,
       CalculationRepository calculationRepository,
+      ProjectDocumentRepository documentRepository,
       DemandCalculationService demandCalculation,
       PasswordEncoder passwordEncoder) {
     this.projectRepository = projectRepository;
@@ -88,6 +98,7 @@ public class DataSeeder implements CommandLineRunner {
     this.normativeTableRepository = normativeTableRepository;
     this.userRepository = userRepository;
     this.calculationRepository = calculationRepository;
+    this.documentRepository = documentRepository;
     this.demandCalculation = demandCalculation;
     this.passwordEncoder = passwordEncoder;
   }
@@ -103,6 +114,7 @@ public class DataSeeder implements CommandLineRunner {
     seedGroups();
     seedNormativeTables(standards);
     seedSubmittedCalculations();
+    seedSubmittedDocuments();
   }
 
   /** Projects seeded before ownership existed go to the development designer. */
@@ -284,11 +296,13 @@ public class DataSeeder implements CommandLineRunner {
     underReviewInTime.reject(now.minusDays(12));
     underReviewInTime.submit(now.minusDays(10));
     rejected.submit(now.minusDays(12));
-    rejected.reject(now);
+    rejected.reject(now, "Corrija a ART e a área do apartamento tipo B antes de reenviar.");
     approved.submit(now.minusDays(20));
     approved.approve(now);
     anotherRejected.submit(now.minusDays(60));
-    anotherRejected.reject(now.minusDays(35));
+    anotherRejected.reject(now.minusDays(35), "Envie a planta de situação com escala.");
+    List.of(underReviewInTime, rejected, anotherRejected, approved)
+        .forEach(project -> project.assignReviewer(analyst));
 
     projectRepository.saveAll(
         List.of(
@@ -468,6 +482,43 @@ public class DataSeeder implements CommandLineRunner {
                     }));
 
     log.info("DataSeeder: groups and calculations inserted in the submitted projects.");
+  }
+
+  /** Every project past the draft gets the three PDFs, so review and resubmission can open them. */
+  private void seedSubmittedDocuments() {
+    if (documentRepository.count() > 0) {
+      return;
+    }
+
+    List<ProjectDocument> documents =
+        projectRepository.findAll().stream()
+            .filter(project -> !project.isDraft())
+            .flatMap(
+                project ->
+                    Arrays.stream(DocumentType.values())
+                        .map(
+                            type ->
+                                new ProjectDocument(
+                                    project,
+                                    type,
+                                    type.name().toLowerCase() + ".pdf",
+                                    samplePdf(type, project))))
+            .toList();
+    documentRepository.saveAll(documents);
+
+    log.info("DataSeeder: {} documents attached to the submitted projects.", documents.size());
+  }
+
+  private static byte[] samplePdf(DocumentType type, Project project) {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    Document document = new Document(PageSize.A4);
+    PdfWriter.getInstance(document, output);
+    document.open();
+    document.add(new Paragraph(type.label()));
+    document.add(new Paragraph(project.getName() + ", protocolo " + project.getProtocol()));
+    document.close();
+
+    return output.toByteArray();
   }
 
   private static ConsumerUnitGroup commonArea(Project project) {

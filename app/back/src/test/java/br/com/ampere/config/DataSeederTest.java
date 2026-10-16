@@ -14,6 +14,7 @@ import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DeadlineStatus;
+import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.GroupStatus;
@@ -21,6 +22,7 @@ import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
@@ -31,6 +33,7 @@ import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
+import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
@@ -213,6 +216,7 @@ class DataSeederTest {
         existingNormativeTables(),
         userRepository,
         mock(CalculationRepository.class),
+        mock(ProjectDocumentRepository.class),
         mock(DemandCalculationService.class),
         new BCryptPasswordEncoder());
   }
@@ -227,6 +231,7 @@ class DataSeederTest {
         existingNormativeTables(),
         mock(UserRepository.class),
         mock(CalculationRepository.class),
+        mock(ProjectDocumentRepository.class),
         mock(DemandCalculationService.class),
         new BCryptPasswordEncoder());
   }
@@ -240,6 +245,7 @@ class DataSeederTest {
         normativeTableRepository,
         mock(UserRepository.class),
         mock(CalculationRepository.class),
+        mock(ProjectDocumentRepository.class),
         mock(DemandCalculationService.class),
         new BCryptPasswordEncoder());
   }
@@ -437,6 +443,7 @@ class DataSeederTest {
             existingNormativeTables(),
             mock(UserRepository.class),
             calculationRepository,
+            mock(ProjectDocumentRepository.class),
             demandCalculation,
             new BCryptPasswordEncoder())
         .run();
@@ -462,11 +469,53 @@ class DataSeederTest {
             existingNormativeTables(),
             mock(UserRepository.class),
             calculationRepository,
+            mock(ProjectDocumentRepository.class),
             demandCalculation,
             new BCryptPasswordEncoder())
         .run();
 
     verify(demandCalculation, never()).compute(any(), any());
+  }
+
+  @Test
+  void attachesTheThreePdfsToEveryProjectPastTheDraft() {
+    ProjectRepository projectRepository = projectRepositoryWithProjects();
+    Project draft = project("2026-1001", ProjectStatus.DRAFT);
+    Project rejected = project("2026-1004", ProjectStatus.REJECTED);
+    when(projectRepository.findAll()).thenReturn(List.of(draft, rejected));
+    ProjectDocumentRepository documentRepository = mock(ProjectDocumentRepository.class);
+
+    new DataSeeder(
+            projectRepository,
+            mock(FindingRepository.class),
+            mock(ConsumerUnitGroupRepository.class),
+            seededStandards(),
+            existingNormativeTables(),
+            mock(UserRepository.class),
+            mock(CalculationRepository.class),
+            documentRepository,
+            mock(DemandCalculationService.class),
+            new BCryptPasswordEncoder())
+        .run();
+
+    ArgumentCaptor<Iterable<ProjectDocument>> captor = iterableCaptor();
+    verify(documentRepository).saveAll(captor.capture());
+    assertThat(captor.getValue())
+        .hasSize(DocumentType.values().length)
+        .allMatch(document -> document.getProject() == rejected)
+        .allMatch(document -> ProjectDocument.isPdf(document.getData()));
+  }
+
+  private static Project project(String protocol, ProjectStatus status) {
+    return new Project(
+        "Condomínio Vila Nova",
+        "Avenida Barreto de Menezes, 88",
+        "Jaboatão dos Guararapes",
+        protocol,
+        status,
+        new ResidentialMultifamily(
+            6, SupplyVoltage.V220_127, ConnectionType.TWO_PHASE, EntranceStandard.INDIVIDUAL),
+        List.of());
   }
 
   private static ProjectRepository projectRepositoryWithProjects() {
