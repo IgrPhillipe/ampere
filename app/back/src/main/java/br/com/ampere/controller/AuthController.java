@@ -7,6 +7,7 @@ import br.com.ampere.dto.LoginResponse;
 import br.com.ampere.dto.RegisterRequest;
 import br.com.ampere.service.AuthService;
 import br.com.ampere.service.ProfileParameters;
+import br.com.ampere.service.SignIn;
 import br.com.ampere.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -50,7 +51,7 @@ public class AuthController {
         description = "Já existe uma conta com este e-mail")
   })
   public ApiResponse<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
-    return ApiResponse.of(
+    SignIn signIn =
         userService.register(
             request.email(),
             request.password(),
@@ -59,7 +60,9 @@ public class AuthController {
                 request.crea(),
                 request.creaState(),
                 request.company(),
-                request.phone())));
+                request.phone()));
+
+    return ApiResponse.of(new LoginResponse(signIn.token(), AuthUserResponse.from(signIn.user())));
   }
 
   @PostMapping("/login")

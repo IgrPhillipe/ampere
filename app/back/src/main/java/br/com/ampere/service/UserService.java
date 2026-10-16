@@ -2,8 +2,6 @@ package br.com.ampere.service;
 
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
-import br.com.ampere.dto.AuthUserResponse;
-import br.com.ampere.dto.LoginResponse;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.security.TokenService;
@@ -32,7 +30,7 @@ public class UserService {
 
   /** Always the designer role: analysts are created by the administrator. Signs in like login. */
   @Transactional
-  public LoginResponse register(String email, String password, ProfileParameters profile) {
+  public SignIn register(String email, String password, ProfileParameters profile) {
     if (userRepository.findByEmail(email).isPresent()) {
       throw new BusinessException(EMAIL_TAKEN, HttpStatus.CONFLICT);
     }
@@ -52,7 +50,7 @@ public class UserService {
       throw new BusinessException(EMAIL_TAKEN, HttpStatus.CONFLICT);
     }
 
-    return new LoginResponse(tokenService.issue(user), AuthUserResponse.from(user));
+    return new SignIn(tokenService.issue(user), user);
   }
 
   @Transactional(readOnly = true)
