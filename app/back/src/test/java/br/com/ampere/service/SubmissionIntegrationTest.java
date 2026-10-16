@@ -87,6 +87,8 @@ class SubmissionIntegrationTest {
 
   private List<Standard> standards;
 
+  private User owner;
+
   @BeforeEach
   void seed() throws Exception {
     documentRepository.deleteAll();
@@ -104,9 +106,13 @@ class SubmissionIntegrationTest {
     normativeTableRepository.saveAll(
         NormativeTableSeed.all(
             standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
-    userRepository.save(
-        new User(
-            "Usuário Teste", "user@ampere.com", passwordEncoder.encode(PASSWORD), UserRole.USER));
+    owner =
+        userRepository.save(
+            new User(
+                "Usuário Teste",
+                "user@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.USER));
     token = token("user@ampere.com");
   }
 
@@ -276,7 +282,8 @@ class SubmissionIntegrationTest {
                     SupplyVoltage.V380_220,
                     ConnectionType.THREE_PHASE,
                     EntranceStandard.COLLECTIVE),
-                standards));
+                standards,
+                owner));
     groupRepository.save(
         GroupKind.RESIDENTIAL.create(
             project,

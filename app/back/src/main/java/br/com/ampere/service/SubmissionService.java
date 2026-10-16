@@ -32,15 +32,15 @@ public class SubmissionService {
   }
 
   @Transactional(readOnly = true)
-  public SubmissionChecklist checklist(Long projectId) {
-    projectService.findById(projectId);
+  public SubmissionChecklist checklist(Long projectId, AuthenticatedUser user) {
+    projectService.findById(projectId, user);
 
     return checklistOf(projectId);
   }
 
   @Transactional
-  public Project submit(Long projectId) {
-    Project project = projectService.findById(projectId);
+  public Project submit(Long projectId, AuthenticatedUser user) {
+    Project project = projectService.findWritableById(projectId, user);
     if (!project.canBeSubmitted()) {
       throw new BusinessException("Este projeto já foi enviado para análise.", HttpStatus.CONFLICT);
     }

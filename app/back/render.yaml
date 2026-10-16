@@ -1,0 +1,16 @@
+# Exported from Render on 2026-10-13T12:57:21Z
+version: "1"
+projects:
+- name: ampere
+  environments:
+  - name: Production
+    databases:
+    - name: ampere-db
+      databaseName: ampere_db
+      user: ampere_db_user
+      plan: free
+      region: oregon
+      ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
+      postgresMajorVersion: "18"

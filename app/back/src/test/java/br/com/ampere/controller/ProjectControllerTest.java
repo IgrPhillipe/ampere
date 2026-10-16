@@ -26,6 +26,7 @@ import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.PageQuery;
 import br.com.ampere.dto.ProjectResponse;
@@ -33,6 +34,7 @@ import br.com.ampere.dto.ProjectStatusCounts;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.GlobalExceptionHandler;
 import br.com.ampere.error.NotFoundException;
+import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.ProjectListing;
 import br.com.ampere.service.ProjectService;
 import java.math.BigDecimal;
@@ -41,6 +43,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.ResourceBundleMessageSource;
@@ -55,6 +58,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 class ProjectControllerTest {
+
+  private static final AuthenticatedUser DESIGNER = new AuthenticatedUser(7L, UserRole.USER);
 
   @Test
   void rejectsInvalidPaginationParameters() throws Exception {
@@ -99,12 +104,17 @@ class ProjectControllerTest {
             Map.of(42L, 3L),
             Map.of(42L, 55L),
             Map.of(42L, new BigDecimal("165.00")));
-    when(service.list(1, 20, ProjectStatus.REJECTED, "vila", SortDirection.ASC))
+    when(service.list(1, 20, ProjectStatus.REJECTED, "vila", SortDirection.ASC, DESIGNER))
         .thenReturn(listing);
     ProjectController controller = new ProjectController(service);
 
     ApiResponse<List<ProjectResponse>> response =
-        controller.list(new PageQuery(1, 20), ProjectStatus.REJECTED, "vila", SortDirection.ASC);
+        controller.list(
+            new PageQuery(1, 20),
+            ProjectStatus.REJECTED,
+            "vila",
+            SortDirection.ASC,
+            designerToken());
 
     assertThat(response.data()).hasSize(1);
     assertThat(response.data().getFirst().id()).isEqualTo("42");
@@ -119,10 +129,11 @@ class ProjectControllerTest {
   @Test
   void exposesGlobalStatusCountsOnItsOwnEndpoint() {
     ProjectService service = mock(ProjectService.class);
-    when(service.countPerStatus())
+    when(service.countPerStatus(DESIGNER))
         .thenReturn(Map.of(ProjectStatus.REJECTED, 2L, ProjectStatus.APPROVED, 1L));
 
-    ApiResponse<ProjectStatusCounts> response = new ProjectController(service).statusCounts();
+    ApiResponse<ProjectStatusCounts> response =
+        new ProjectController(service).statusCounts(designerToken());
 
     assertThat(response.data().total()).isEqualTo(3);
     assertThat(response.data().rejected()).isEqualTo(2);
@@ -134,8 +145,7 @@ class ProjectControllerTest {
   @Test
   void createsProjectAndAnswersCreated() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.create(any(), eq("user@ampere.com"))).thenReturn(draft());
-    authenticateAs("user@ampere.com");
+    when(service.create(any(), eq(DESIGNER))).thenReturn(draft());
 
     mockMvc(service)
         .perform(post("/projects").contentType(MediaType.APPLICATION_JSON).content(validBody()))
@@ -192,7 +202,8 @@ class ProjectControllerTest {
   @Test
   void answersNotFoundForAnUnknownProject() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.findById(99L)).thenThrow(new NotFoundException("Projeto não encontrado."));
+    when(service.findById(99L, DESIGNER))
+        .thenThrow(new NotFoundException("Projeto não encontrado."));
 
     mockMvc(service)
         .perform(get("/projects/99"))
@@ -203,7 +214,7 @@ class ProjectControllerTest {
   @Test
   void answersConflictWhenTheProjectIsNoLongerADraft() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.update(eq(1L), any()))
+    when(service.update(eq(1L), any(), eq(DESIGNER)))
         .thenThrow(
             new BusinessException(
                 "Só é possível alterar um projeto em rascunho.", HttpStatus.CONFLICT));
@@ -211,7 +222,7 @@ class ProjectControllerTest {
             new BusinessException(
                 "Só é possível excluir um projeto em rascunho.", HttpStatus.CONFLICT))
         .when(service)
-        .delete(1L);
+        .delete(1L, DESIGNER);
     MockMvc mockMvc = mockMvc(service);
 
     mockMvc
@@ -275,14 +286,23 @@ class ProjectControllerTest {
     return source;
   }
 
+  @BeforeEach
+  void authenticateAsDesigner() {
+    SecurityContextHolder.getContext()
+        .setAuthentication(new JwtAuthenticationToken(designerToken()));
+  }
+
   @AfterEach
   void clearAuthentication() {
     SecurityContextHolder.clearContext();
   }
 
-  private static void authenticateAs(String email) {
-    Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").claim("email", email).build();
-    SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
+  private static Jwt designerToken() {
+    return Jwt.withTokenValue("token")
+        .header("alg", "none")
+        .subject(String.valueOf(DESIGNER.id()))
+        .claim("role", DESIGNER.role().getValue())
+        .build();
   }
 
   private static MockMvc mockMvc(ProjectService service) {

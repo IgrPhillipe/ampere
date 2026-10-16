@@ -2,11 +2,14 @@ package br.com.ampere.controller;
 
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.CalculationResponse;
+import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.DemandCalculationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +38,9 @@ public class DemandCalculationController {
         responseCode = "201",
         description = "Cálculo feito"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "O perfil analista não altera projetos"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Projeto não encontrado"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -44,8 +50,9 @@ public class DemandCalculationController {
         responseCode = "422",
         description = "Grupos com pendência, ou tabela normativa não publicada")
   })
-  public ApiResponse<CalculationResponse> calculate(@PathVariable Long projectId) {
-    return ApiResponse.of(CalculationResponse.from(service.calculate(projectId)));
+  public ApiResponse<CalculationResponse> calculate(
+      @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(CalculationResponse.from(service.calculate(projectId, userOf(jwt))));
   }
 
   @GetMapping("/latest")
@@ -58,7 +65,12 @@ public class DemandCalculationController {
         responseCode = "404",
         description = "Projeto não encontrado, ou ainda sem cálculo")
   })
-  public ApiResponse<CalculationResponse> latest(@PathVariable Long projectId) {
-    return ApiResponse.of(CalculationResponse.from(service.latest(projectId)));
+  public ApiResponse<CalculationResponse> latest(
+      @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(CalculationResponse.from(service.latest(projectId, userOf(jwt))));
+  }
+
+  private static AuthenticatedUser userOf(Jwt jwt) {
+    return AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role"));
   }
 }

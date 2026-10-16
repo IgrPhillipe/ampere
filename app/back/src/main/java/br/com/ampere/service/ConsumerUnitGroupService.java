@@ -27,27 +27,29 @@ public class ConsumerUnitGroupService {
   }
 
   @Transactional(readOnly = true)
-  public List<ConsumerUnitGroup> list(Long projectId) {
-    projectService.findById(projectId);
+  public List<ConsumerUnitGroup> list(Long projectId, AuthenticatedUser user) {
+    projectService.findById(projectId, user);
 
     return groupRepository.findAllByProjectIdOrderById(projectId);
   }
 
   @Transactional(readOnly = true)
-  public GroupValidation validation(Long projectId) {
-    return GroupValidation.of(list(projectId));
+  public GroupValidation validation(Long projectId, AuthenticatedUser user) {
+    return GroupValidation.of(list(projectId, user));
   }
 
   @Transactional
-  public ConsumerUnitGroup create(Long projectId, GroupParameters parameters) {
-    Project project = projectService.draftOrFail(projectId, NOT_DRAFT);
+  public ConsumerUnitGroup create(
+      Long projectId, GroupParameters parameters, AuthenticatedUser user) {
+    Project project = projectService.draftOrFail(projectId, NOT_DRAFT, user);
 
     return groupRepository.save(parameters.kind().create(project, parameters.spec()));
   }
 
   @Transactional
-  public ConsumerUnitGroup update(Long projectId, Long groupId, GroupParameters parameters) {
-    projectService.draftOrFail(projectId, NOT_DRAFT);
+  public ConsumerUnitGroup update(
+      Long projectId, Long groupId, GroupParameters parameters, AuthenticatedUser user) {
+    projectService.draftOrFail(projectId, NOT_DRAFT, user);
     ConsumerUnitGroup group = findOrFail(projectId, groupId);
     if (group.kind() != parameters.kind()) {
       throw new BusinessException(
@@ -60,8 +62,8 @@ public class ConsumerUnitGroupService {
   }
 
   @Transactional
-  public void delete(Long projectId, Long groupId) {
-    projectService.draftOrFail(projectId, NOT_DRAFT);
+  public void delete(Long projectId, Long groupId, AuthenticatedUser user) {
+    projectService.draftOrFail(projectId, NOT_DRAFT, user);
 
     groupRepository.delete(findOrFail(projectId, groupId));
   }

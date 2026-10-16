@@ -78,6 +78,8 @@ class DemandCalculationIntegrationTest {
 
   private List<Standard> standards;
 
+  private User owner;
+
   @BeforeEach
   void seed() throws Exception {
     calculationRepository.deleteAll();
@@ -91,9 +93,13 @@ class DemandCalculationIntegrationTest {
     standards =
         standardRepository.saveAll(
             List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
-    userRepository.save(
-        new User(
-            "Usuário Teste", "user@ampere.com", passwordEncoder.encode(PASSWORD), UserRole.USER));
+    owner =
+        userRepository.save(
+            new User(
+                "Usuário Teste",
+                "user@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.USER));
     token = token("user@ampere.com");
   }
 
@@ -189,7 +195,8 @@ class DemandCalculationIntegrationTest {
                 "2026-2002",
                 ProjectStatus.UNDER_REVIEW,
                 building(),
-                standards));
+                standards,
+                owner));
 
     mockMvc
         .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
@@ -212,7 +219,8 @@ class DemandCalculationIntegrationTest {
                 "2026-2001",
                 ProjectStatus.DRAFT,
                 building(),
-                standards));
+                standards,
+                owner));
     groupRepository.saveAll(
         List.of(
             apartments(project, "Apartamento tipo A", 24, "68"),

@@ -12,5 +12,7 @@ public interface ProjectDocumentRepository extends JpaRepository<ProjectDocument
 
   Optional<ProjectDocument> findByProjectIdAndType(Long projectId, DocumentType type);
 
+  Optional<ProjectDocument> findByIdAndProjectId(Long id, Long projectId);
+
   void deleteAllByProjectId(Long projectId);
 }

@@ -317,6 +317,26 @@ class DataSeederTest {
   }
 
   @Test
+  void assignsTheDefaultDesignerToLegacyProjectsWithoutAnOwner() {
+    ProjectRepository projectRepository = projectRepositoryWithProjects();
+    Project legacyProject = mock(Project.class);
+    when(projectRepository.findAllByOwnerIsNull()).thenReturn(List.of(legacyProject));
+
+    seeder(
+            projectRepository,
+            mock(FindingRepository.class),
+            seededStandards(),
+            mock(UserRepository.class))
+        .run();
+
+    verify(legacyProject).assignOwner(any(User.class));
+    ArgumentCaptor<Iterable<Project>> projectsCaptor = iterableCaptor();
+    verify(projectRepository).saveAll(projectsCaptor.capture());
+    assertThat(StreamSupport.stream(projectsCaptor.getValue().spliterator(), false))
+        .containsExactly(legacyProject);
+  }
+
+  @Test
   void doesNotDuplicateUsersOnRestart() {
     UserRepository userRepository = mock(UserRepository.class);
     when(userRepository.findByEmail(any())).thenReturn(Optional.of(mock(User.class)));
