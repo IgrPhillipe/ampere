@@ -1,10 +1,12 @@
 package br.com.ampere.service;
 
 import br.com.ampere.domain.ConsumerUnitGroup;
+import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
+import br.com.ampere.repository.FindingRepository;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,11 +20,15 @@ public class ConsumerUnitGroupService {
       "Só é possível alterar as unidades de um projeto em rascunho.";
 
   private final ConsumerUnitGroupRepository groupRepository;
+  private final FindingRepository findingRepository;
   private final ProjectService projectService;
 
   public ConsumerUnitGroupService(
-      ConsumerUnitGroupRepository groupRepository, ProjectService projectService) {
+      ConsumerUnitGroupRepository groupRepository,
+      FindingRepository findingRepository,
+      ProjectService projectService) {
     this.groupRepository = groupRepository;
+    this.findingRepository = findingRepository;
     this.projectService = projectService;
   }
 
@@ -64,8 +70,11 @@ public class ConsumerUnitGroupService {
   @Transactional
   public void delete(Long projectId, Long groupId, AuthenticatedUser user) {
     projectService.draftOrFail(projectId, NOT_DRAFT, user);
+    ConsumerUnitGroup group = findOrFail(projectId, groupId);
 
-    groupRepository.delete(findOrFail(projectId, groupId));
+    // A finding may point to the group: keep the finding, drop the reference.
+    findingRepository.findAllByConsumerUnitGroupId(groupId).forEach(Finding::detachGroup);
+    groupRepository.delete(group);
   }
 
   private ConsumerUnitGroup findOrFail(Long projectId, Long groupId) {
