@@ -57,7 +57,10 @@ export const ProjectRowActionButton = ({
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
-			) : null}
+			) : (
+				// Keeps the main action aligned with the rows that have the menu.
+				<span aria-hidden="true" className="size-8 shrink-0" />
+			)}
 		</div>
 	);
 };
