@@ -622,6 +622,11 @@ No envio e em cada reenvio, o sistema grava a versão do projeto com:
 
 O memorial da versão não é regerado: alterações feitas depois da reprovação entram apenas na versão seguinte. A aba "Histórico" ([US08](#us08-linha-do-tempo-e-histórico-do-protocolo)) lista as versões com o download do memorial de cada uma e um comparativo da demanda e dos grupos entre duas versões.
 
+**Autenticidade do memorial:**
+- O PDF leva nos metadados o título, o projetista, o protocolo, a versão e as normas aplicadas.
+- No envio, o sistema grava o SHA-256 do PDF e imprime no rodapé um código de verificação derivado dele.
+- A página pública "Verificar Autenticidade" recebe o código ou o arquivo e informa se o PDF corresponde a uma versão registrada, com o protocolo, a versão e a data do envio. Qualquer alteração no arquivo muda o hash, e a verificação falha.
+
 ### Confirmação (Critérios de Aceite - BDD)
 
 #### Cenário 1 (Positivo): Memorial da Versão Preservado Após Correção
@@ -636,10 +641,18 @@ O memorial da versão não é regerado: alterações feitas depois da reprovaç�
 - **Então** o sistema destaca os grupos incluídos, removidos e alterados
 - **E** exibe a demanda total de cada versão.
 
+#### Cenário 3 (Negativo): Memorial Alterado Fora do Sistema
+- **Dado** que o memorial da versão 1 foi editado depois do download
+- **Quando** o arquivo é enviado em "Verificar Autenticidade"
+- **Então** o sistema informa que o documento não corresponde a nenhuma versão registrada
+- **E** o código impresso no rodapé continua levando à versão original.
+
 ### Checklist de Implementação
 - [ ] Gravar a versão com memorial, cálculo e documentos a cada envio
 - [ ] Baixar o memorial de qualquer versão
 - [ ] Comparar a demanda e os grupos entre duas versões
+- [ ] Gravar o hash e os metadados do memorial e imprimir o código de verificação
+- [ ] Verificar a autenticidade do memorial pelo código ou pelo arquivo
 
 ---
 
