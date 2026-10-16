@@ -294,25 +294,16 @@ public class Project {
     return reviewCycle > 1;
   }
 
-  public boolean belongsTo(Long userId, String email) {
-    if (owner == null) {
-      return false;
-    }
-
-    if (userId != null && owner.getId() != null) {
-      return owner.getId().equals(userId);
-    }
-
-    return email != null && owner.getEmail().equalsIgnoreCase(email);
+  public boolean wasSubmitted() {
+    return submittedAt != null;
   }
 
-  public boolean assignOwnerIfMissing(User owner) {
-    if (this.owner != null) {
-      return false;
-    }
+  public boolean isOwnedBy(Long userId) {
+    return owner != null && owner.getId().equals(userId);
+  }
 
+  public void assignOwner(User owner) {
     this.owner = Objects.requireNonNull(owner, "owner");
-    return true;
   }
 
   public Long getId() {

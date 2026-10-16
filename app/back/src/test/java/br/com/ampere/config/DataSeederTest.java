@@ -320,7 +320,6 @@ class DataSeederTest {
   void assignsTheDefaultDesignerToLegacyProjectsWithoutAnOwner() {
     ProjectRepository projectRepository = projectRepositoryWithProjects();
     Project legacyProject = mock(Project.class);
-    when(legacyProject.assignOwnerIfMissing(any())).thenReturn(true);
     when(projectRepository.findAllByOwnerIsNull()).thenReturn(List.of(legacyProject));
 
     seeder(
@@ -330,7 +329,7 @@ class DataSeederTest {
             mock(UserRepository.class))
         .run();
 
-    verify(legacyProject).assignOwnerIfMissing(any(User.class));
+    verify(legacyProject).assignOwner(any(User.class));
     ArgumentCaptor<Iterable<Project>> projectsCaptor = iterableCaptor();
     verify(projectRepository).saveAll(projectsCaptor.capture());
     assertThat(StreamSupport.stream(projectsCaptor.getValue().spliterator(), false))

@@ -19,6 +19,8 @@ import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.SupplyVoltage;
+import br.com.ampere.domain.User;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
@@ -26,9 +28,6 @@ import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
-import br.com.ampere.security.AuthenticatedUser;
-import br.com.ampere.security.CurrentUser;
-import br.com.ampere.security.ProjectAccessPolicy;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -41,8 +40,7 @@ import org.springframework.http.HttpStatus;
 
 class ProjectServiceTest {
 
-  private static final AuthenticatedUser USER =
-      new AuthenticatedUser(7L, "user@ampere.com", br.com.ampere.domain.UserRole.USER);
+  private static final AuthenticatedUser DESIGNER = new AuthenticatedUser(7L, UserRole.USER);
 
   @Test
   void normalizesSearchAndUsesStablePaginationOrder() {
@@ -60,11 +58,9 @@ class ProjectServiceTest {
             mock(CalculationRepository.class),
             mock(ProjectDocumentRepository.class),
             mock(ProjectCreation.class),
-            mock(ApplicableStandards.class),
-            currentUser(),
-            mock(ProjectAccessPolicy.class));
+            mock(ApplicableStandards.class));
 
-    service.list(1, 20, null, " %_\\ ", SortDirection.DESC);
+    service.list(1, 20, null, " %_\\ ", SortDirection.DESC, DESIGNER);
 
     ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
     verify(projectRepository)
@@ -91,11 +87,9 @@ class ProjectServiceTest {
             mock(CalculationRepository.class),
             mock(ProjectDocumentRepository.class),
             mock(ProjectCreation.class),
-            mock(ApplicableStandards.class),
-            currentUser(),
-            mock(ProjectAccessPolicy.class));
+            mock(ApplicableStandards.class));
 
-    service.list(1, 20, null, null, SortDirection.ASC);
+    service.list(1, 20, null, null, SortDirection.ASC, DESIGNER);
 
     ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
     verify(projectRepository)
@@ -112,7 +106,7 @@ class ProjectServiceTest {
         .thenThrow(new DataIntegrityViolationException("duplicate protocol"))
         .thenReturn(created);
 
-    assertThat(service(creation).create(parameters())).isSameAs(created);
+    assertThat(service(creation).create(parameters(), DESIGNER)).isSameAs(created);
     verify(creation, times(2)).createWithGeneratedProtocol(any(), any());
   }
 
@@ -122,7 +116,7 @@ class ProjectServiceTest {
     when(creation.createWithGeneratedProtocol(any(), any()))
         .thenThrow(new DataIntegrityViolationException("duplicate protocol"));
 
-    assertThatThrownBy(() -> service(creation).create(parameters()))
+    assertThatThrownBy(() -> service(creation).create(parameters(), DESIGNER))
         .isInstanceOf(BusinessException.class)
         .hasMessage("Não foi possível gerar o protocolo do projeto. Tente novamente.")
         .extracting(exception -> ((BusinessException) exception).getStatus())
@@ -136,23 +130,24 @@ class ProjectServiceTest {
     when(projectRepository.findDetailById(99L)).thenReturn(Optional.empty());
     ProjectService service = service(projectRepository, mock(FindingRepository.class));
 
-    assertThatThrownBy(() -> service.findById(99L))
+    assertThatThrownBy(() -> service.findById(99L, DESIGNER))
         .isInstanceOf(NotFoundException.class)
         .hasMessage("Projeto não encontrado.");
-    assertThatThrownBy(() -> service.update(99L, parameters()))
+    assertThatThrownBy(() -> service.update(99L, parameters(), DESIGNER))
         .isInstanceOf(NotFoundException.class);
-    assertThatThrownBy(() -> service.delete(99L)).isInstanceOf(NotFoundException.class);
+    assertThatThrownBy(() -> service.delete(99L, DESIGNER)).isInstanceOf(NotFoundException.class);
   }
 
   @Test
   void refusesToUpdateAProjectThatLeftDraft() {
     ProjectRepository projectRepository = mock(ProjectRepository.class);
-    when(projectRepository.findDetailById(1L))
-        .thenReturn(Optional.of(projectWith(ProjectStatus.UNDER_REVIEW)));
+    Project project = projectWith(ProjectStatus.UNDER_REVIEW);
+    when(projectRepository.findDetailById(1L)).thenReturn(Optional.of(project));
 
     assertThatThrownBy(
             () ->
-                service(projectRepository, mock(FindingRepository.class)).update(1L, parameters()))
+                service(projectRepository, mock(FindingRepository.class))
+                    .update(1L, parameters(), DESIGNER))
         .isInstanceOf(BusinessException.class)
         .hasMessage("Só é possível alterar um projeto em rascunho.");
   }
@@ -161,10 +156,10 @@ class ProjectServiceTest {
   void refusesToDeleteAProjectThatLeftDraft() {
     ProjectRepository projectRepository = mock(ProjectRepository.class);
     FindingRepository findingRepository = mock(FindingRepository.class);
-    when(projectRepository.findDetailById(1L))
-        .thenReturn(Optional.of(projectWith(ProjectStatus.APPROVED)));
+    Project project = projectWith(ProjectStatus.APPROVED);
+    when(projectRepository.findDetailById(1L)).thenReturn(Optional.of(project));
 
-    assertThatThrownBy(() -> service(projectRepository, findingRepository).delete(1L))
+    assertThatThrownBy(() -> service(projectRepository, findingRepository).delete(1L, DESIGNER))
         .isInstanceOf(BusinessException.class)
         .hasMessage("Só é possível excluir um projeto em rascunho.");
     verify(projectRepository, times(0)).delete(any());
@@ -178,7 +173,7 @@ class ProjectServiceTest {
     Project project = projectWith(ProjectStatus.DRAFT);
     when(projectRepository.findDetailById(1L)).thenReturn(Optional.of(project));
 
-    service(projectRepository, findingRepository, calculationRepository).delete(1L);
+    service(projectRepository, findingRepository, calculationRepository).delete(1L, DESIGNER);
 
     InOrder order = inOrder(calculationRepository, findingRepository, projectRepository);
     order.verify(calculationRepository).deleteAllByProjectId(1L);
@@ -195,7 +190,15 @@ class ProjectServiceTest {
         status,
         new ResidentialMultifamily(
             6, SupplyVoltage.V220_127, ConnectionType.TWO_PHASE, EntranceStandard.INDIVIDUAL),
-        List.of());
+        List.of(),
+        designer());
+  }
+
+  private static User designer() {
+    User designer = mock(User.class);
+    when(designer.getId()).thenReturn(DESIGNER.id());
+
+    return designer;
   }
 
   private static ProjectService service(ProjectCreation creation) {
@@ -206,9 +209,7 @@ class ProjectServiceTest {
         mock(CalculationRepository.class),
         mock(ProjectDocumentRepository.class),
         creation,
-        mock(ApplicableStandards.class),
-        currentUser(),
-        mock(ProjectAccessPolicy.class));
+        mock(ApplicableStandards.class));
   }
 
   private static ProjectService service(
@@ -227,15 +228,7 @@ class ProjectServiceTest {
         calculationRepository,
         mock(ProjectDocumentRepository.class),
         mock(ProjectCreation.class),
-        mock(ApplicableStandards.class),
-        currentUser(),
-        mock(ProjectAccessPolicy.class));
-  }
-
-  private static CurrentUser currentUser() {
-    CurrentUser currentUser = mock(CurrentUser.class);
-    when(currentUser.get()).thenReturn(USER);
-    return currentUser;
+        mock(ApplicableStandards.class));
   }
 
   private static ProjectParameters parameters() {

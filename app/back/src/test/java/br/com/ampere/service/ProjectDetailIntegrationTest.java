@@ -22,9 +22,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 @SpringBootTest
 class ProjectDetailIntegrationTest {
@@ -44,27 +41,8 @@ class ProjectDetailIntegrationTest {
   @Autowired private UserRepository userRepository;
 
   @BeforeEach
-  void setUp() {
-    clearProjects();
-    User owner =
-        userRepository.save(new User("João Projetista", "joao@ampere.com", "hash", UserRole.USER));
-    Jwt jwt =
-        Jwt.withTokenValue("token")
-            .header("alg", "none")
-            .subject(String.valueOf(owner.getId()))
-            .claim("email", owner.getEmail())
-            .claim("role", owner.getRole().getValue())
-            .build();
-    SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
-  }
-
   @AfterEach
-  void tearDown() {
-    SecurityContextHolder.clearContext();
-    clearProjects();
-  }
-
-  private void clearProjects() {
+  void clearProjects() {
     calculationRepository.deleteAll();
     findingRepository.deleteAll();
     projectRepository.deleteAll();
@@ -77,6 +55,9 @@ class ProjectDetailIntegrationTest {
   void loadsTheBuildingTypeAndTheStandardsOutsideTheTransaction() {
     standardRepository.saveAll(
         List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
+    User owner =
+        userRepository.save(new User("João Projetista", "joao@ampere.com", "hash", UserRole.USER));
+    AuthenticatedUser designer = new AuthenticatedUser(owner.getId(), UserRole.USER);
     Long id =
         service
             .create(
@@ -88,10 +69,11 @@ class ProjectDetailIntegrationTest {
                     12,
                     SupplyVoltage.V380_220,
                     ConnectionType.THREE_PHASE,
-                    EntranceStandard.COLLECTIVE))
+                    EntranceStandard.COLLECTIVE),
+                designer)
             .getId();
 
-    Project project = service.findById(id);
+    Project project = service.findById(id, designer);
 
     assertThat(project.getStandards()).extracting(Standard::getRevision).hasSize(2);
     assertThat(project.getBuildingType().demandRules()).hasSize(2);

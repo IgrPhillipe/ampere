@@ -276,9 +276,32 @@ Decisões:
 - **E-mail desconhecido e senha errada respondem igual.** Distinguir os dois revelaria quais e-mails existem na base.
 - **`/auth/me` relê o usuário do banco** em vez de confiar no token: nome e papel gravados no token ficam desatualizados.
 
-**Só `/admin/**` é restrito por papel.** É a área das tabelas normativas, que não é do projetista: `SecurityConfig` converte o claim `role` do token em `ROLE_ADMIN` ou `ROLE_USER` e exige `hasRole("ADMIN")` nesse prefixo. Sem o papel, a resposta é 403 no mesmo `ProblemDetail` do resto da API. Rota nova de analista (a fila da US06) entra no mesmo `requestMatchers`.
+**Rotas restritas por papel ficam no `SecurityConfig`.** As tabelas normativas (`/normative-tables/**`) e a fila de análise (`/review-queue/**`) não são do projetista: o `SecurityConfig` converte o claim `role` do token em `ROLE_ADMIN` ou `ROLE_USER` e exige `hasRole("ADMIN")` nesses caminhos. Sem o papel, a resposta é 403 no mesmo `ProblemDetail` do resto da API. Rota nova de analista entra no mesmo `requestMatchers`.
 
-As outras rotas continuam sem papel. Os papéis atuais (`user` / `admin`) são placeholder e dependem da **Q1c** em [`questoes-em-aberto.md`](../produto/questoes-em-aberto.md): *"pessoa de fora da Neoenergia pode acessar um sistema interno?"*. A resolução da Q1c é aplicada aqui e na pendência 13.
+Os papéis atuais (`user` / `admin`) são placeholder e dependem da **Q1c** em [`questoes-em-aberto.md`](../produto/questoes-em-aberto.md): *"pessoa de fora da Neoenergia pode acessar um sistema interno?"*. A resolução da Q1c é aplicada aqui e na pendência 13.
+
+### Dono do Projeto
+
+`/projects/**` não é restrito por papel no `SecurityConfig`: a regra depende do projeto, então fica no `ProjectService`.
+
+| Papel | Lê | Escreve |
+| :--- | :--- | :--- |
+| `user` (projetista) | só os próprios projetos | só os próprios projetos |
+| `admin` (analista) | todos os projetos já enviados | nada: 403 |
+
+- **Projeto de outro dono responde 404**, igual a um id inexistente. Um 403 confirmaria que o projeto existe.
+- **Rascunho também responde 404 ao analista**: ele só vê o que foi enviado para análise.
+- **Listagem, busca e contadores filtram no banco** (`searchAccessibleProjects`, `countAccessiblePerStatus`), não na memória.
+- A regra vale para tudo que fica aninhado no projeto: grupos, cálculo, documentos, memorial e envio. Os services desses recursos passam por `ProjectService.findById` (leitura), `findWritableById` ou `draftOrFail` (escrita), e não leem o projeto direto do repository.
+
+**O service não lê o contexto de segurança.** O controller recebe `@AuthenticationPrincipal Jwt` e converte o token em `AuthenticatedUser` (id e papel), que o service recebe como último parâmetro. Token sem id ou papel válido responde 401.
+
+```java
+public ApiResponse<ProjectDetailResponse> detail(
+    @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+  return ApiResponse.of(ProjectDetailResponse.from(service.findById(id, userOf(jwt))));
+}
+```
 
 **Não há segredo versionado.** `JWT_SECRET` resolve em três caminhos, em `security/JwtSecret`:
 
@@ -565,6 +588,7 @@ A mensagem é o que o usuário lê: em português e sem jargão. O front descart
 | Motor de cálculo | `domain/DemandEngine`, `domain/DemandComponent`, `service/DemandCalculationService` |
 | Seed das tabelas em desenvolvimento | `config/NormativeTableSeed` |
 | Geração de protocolo | `utils/Protocols` |
+| Regra de dono do projeto | `service/ProjectService`, `service/AuthenticatedUser` |
 | Documentação da API | `/api/docs` |
 
 ---

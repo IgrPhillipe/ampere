@@ -37,9 +37,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -64,6 +61,8 @@ class ConsumerUnitGroupServiceIntegrationTest {
 
   private User owner;
 
+  private AuthenticatedUser designer;
+
   @BeforeEach
   void clearProjects() {
     calculationRepository.deleteAll();
@@ -72,25 +71,18 @@ class ConsumerUnitGroupServiceIntegrationTest {
     projectRepository.deleteAll();
     userRepository.deleteAll();
     owner = userRepository.save(new User("Usuário", "user@ampere.com", "hash", UserRole.USER));
-    Jwt jwt =
-        Jwt.withTokenValue("token")
-            .header("alg", "none")
-            .subject(String.valueOf(owner.getId()))
-            .claim("email", owner.getEmail())
-            .claim("role", owner.getRole().getValue())
-            .build();
-    SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
+    designer = new AuthenticatedUser(owner.getId(), UserRole.USER);
   }
 
   @Test
   void keepsTheLoadsOfALoadGroupInTheirOrder() {
     Long projectId = draft().getId();
 
-    Long groupId = service.create(projectId, commonArea()).getId();
+    Long groupId = service.create(projectId, commonArea(), designer).getId();
     entityManager.flush();
     entityManager.clear();
 
-    ConsumerUnitGroup group = service.list(projectId).getFirst();
+    ConsumerUnitGroup group = service.list(projectId, designer).getFirst();
     assertThat(group.getId()).isEqualTo(groupId);
     assertThat(group).isInstanceOf(LoadGroup.class);
     assertThat(((LoadGroup) group).getItems())
@@ -102,26 +94,26 @@ class ConsumerUnitGroupServiceIntegrationTest {
   @Test
   void releasesTheCalculationOnlyWhenEveryGroupIsValidated() {
     Long projectId = draft().getId();
-    assertThat(service.validation(projectId).canCalculate()).isFalse();
+    assertThat(service.validation(projectId, designer).canCalculate()).isFalse();
 
-    ConsumerUnitGroup charging = service.create(projectId, charging(null));
-    GroupValidation pending = service.validation(projectId);
+    ConsumerUnitGroup charging = service.create(projectId, charging(null), designer);
+    GroupValidation pending = service.validation(projectId, designer);
     assertThat(pending.canCalculate()).isFalse();
     assertThat(pending.pendingIssues()).isEqualTo(1);
     assertThat(pending.totalUnits()).isEqualTo(6);
     assertThat(pending.totalDeclaredLoadKw()).isEqualByComparingTo("44.4");
 
-    service.update(projectId, charging.getId(), charging(true));
+    service.update(projectId, charging.getId(), charging(true), designer);
 
-    assertThat(service.validation(projectId).canCalculate()).isTrue();
+    assertThat(service.validation(projectId, designer).canCalculate()).isTrue();
   }
 
   @Test
   void refusesToChangeTheKindOfAGroup() {
     Long projectId = draft().getId();
-    Long groupId = service.create(projectId, charging(true)).getId();
+    Long groupId = service.create(projectId, charging(true), designer).getId();
 
-    assertThatThrownBy(() -> service.update(projectId, groupId, commonArea()))
+    assertThatThrownBy(() -> service.update(projectId, groupId, commonArea(), designer))
         .isInstanceOfSatisfying(
             BusinessException.class,
             error -> assertThat(error.getStatus()).isEqualTo(HttpStatus.CONFLICT));
@@ -141,7 +133,7 @@ class ConsumerUnitGroupServiceIntegrationTest {
                 List.of(),
                 owner));
 
-    assertThatThrownBy(() -> service.create(submitted.getId(), charging(true)))
+    assertThatThrownBy(() -> service.create(submitted.getId(), charging(true), designer))
         .isInstanceOf(BusinessException.class)
         .hasMessage("Só é possível alterar as unidades de um projeto em rascunho.");
   }
@@ -150,9 +142,9 @@ class ConsumerUnitGroupServiceIntegrationTest {
   void doesNotFindAGroupThroughAnotherProject() {
     Long projectId = draft().getId();
     Long otherProjectId = draft("2026-1009").getId();
-    Long groupId = service.create(projectId, charging(true)).getId();
+    Long groupId = service.create(projectId, charging(true), designer).getId();
 
-    assertThatThrownBy(() -> service.delete(otherProjectId, groupId))
+    assertThatThrownBy(() -> service.delete(otherProjectId, groupId, designer))
         .isInstanceOf(NotFoundException.class)
         .hasMessage("Grupo de unidades não encontrado.");
   }
@@ -160,11 +152,11 @@ class ConsumerUnitGroupServiceIntegrationTest {
   @Test
   void deletesTheGroupsTogetherWithTheProject() {
     Long projectId = draft().getId();
-    service.create(projectId, commonArea());
-    service.create(projectId, charging(true));
+    service.create(projectId, commonArea(), designer);
+    service.create(projectId, charging(true), designer);
     entityManager.flush();
 
-    projectService.delete(projectId);
+    projectService.delete(projectId, designer);
     entityManager.flush();
 
     assertThat(groupRepository.count()).isZero();

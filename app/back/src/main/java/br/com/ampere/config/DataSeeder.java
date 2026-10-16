@@ -101,14 +101,13 @@ public class DataSeeder implements CommandLineRunner {
     seedSubmittedCalculations();
   }
 
+  /** Projects seeded before ownership existed go to the development designer. */
   private void assignOwnerToLegacyProjects(User owner) {
-    List<Project> updated =
-        projectRepository.findAllByOwnerIsNull().stream()
-            .filter(project -> project.assignOwnerIfMissing(owner))
-            .toList();
-    if (!updated.isEmpty()) {
-      projectRepository.saveAll(updated);
-      log.info("DataSeeder: owner assigned to {} legacy projects.", updated.size());
+    List<Project> orphans = projectRepository.findAllByOwnerIsNull();
+    if (!orphans.isEmpty()) {
+      orphans.forEach(project -> project.assignOwner(owner));
+      projectRepository.saveAll(orphans);
+      log.info("DataSeeder: owner assigned to {} legacy projects.", orphans.size());
     }
   }
 

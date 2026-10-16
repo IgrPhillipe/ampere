@@ -29,13 +29,11 @@ public class ProjectCreation {
   }
 
   @Transactional
-  public Project createWithGeneratedProtocol(ProjectParameters parameters, String ownerEmail) {
+  public Project createWithGeneratedProtocol(ProjectParameters parameters, Long ownerId) {
     User owner =
-        ownerEmail == null
-            ? null
-            : userRepository
-                .findByEmail(User.normalizeEmail(ownerEmail))
-                .orElseThrow(() -> new NotFoundException("Usuário autenticado não encontrado."));
+        userRepository
+            .findById(ownerId)
+            .orElseThrow(() -> new NotFoundException("Usuário autenticado não encontrado."));
     BuildingType buildingType = parameters.toBuildingType();
     int year = LocalDate.now().getYear();
     String protocol =

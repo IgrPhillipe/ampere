@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 class OpenApiConfigTest {
 
@@ -28,7 +29,12 @@ class OpenApiConfigTest {
     Operation operation =
         ProjectController.class
             .getMethod(
-                "list", PageQuery.class, ProjectStatus.class, String.class, SortDirection.class)
+                "list",
+                PageQuery.class,
+                ProjectStatus.class,
+                String.class,
+                SortDirection.class,
+                Jwt.class)
             .getAnnotation(Operation.class);
 
     assertThat(tag.name()).isEqualTo("Projects");
@@ -37,10 +43,11 @@ class OpenApiConfigTest {
 
   @Test
   void documentsTheProjectCrudWithStableNames() throws NoSuchMethodException {
-    assertThat(operationId("create", ProjectRequest.class)).isEqualTo("createProject");
-    assertThat(operationId("detail", Long.class)).isEqualTo("getProject");
-    assertThat(operationId("update", Long.class, ProjectRequest.class)).isEqualTo("updateProject");
-    assertThat(operationId("delete", Long.class)).isEqualTo("deleteProject");
+    assertThat(operationId("create", ProjectRequest.class, Jwt.class)).isEqualTo("createProject");
+    assertThat(operationId("detail", Long.class, Jwt.class)).isEqualTo("getProject");
+    assertThat(operationId("update", Long.class, ProjectRequest.class, Jwt.class))
+        .isEqualTo("updateProject");
+    assertThat(operationId("delete", Long.class, Jwt.class)).isEqualTo("deleteProject");
   }
 
   private static String operationId(String method, Class<?>... parameters)
