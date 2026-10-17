@@ -1,0 +1,14 @@
+{
+	"name": "ampere",
+	"private": true,
+	"scripts": {
+		"dev": "concurrently --kill-others --names back,front --prefix-colors blue,green \"docker compose -f app/back/docker-compose.yml up --build\" \"pnpm --dir app/front dev\""
+	},
+	"devDependencies": {
+		"concurrently": "^9.2.1"
+	},
+	"packageManager": "pnpm@10.33.2",
+	"engines": {
+		"node": ">=24"
+	}
+}

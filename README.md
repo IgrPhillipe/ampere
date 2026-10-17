@@ -79,6 +79,12 @@ cd app/front && cp .env.example .env && pnpm install && pnpm dev
 
 O front sobe em `http://localhost:5173` e faz proxy de `/api` para o back-end, que precisa estar rodando. Credenciais de teste e comandos em [`app/front/README.md`](app/front/README.md).
 
+**Tudo junto.** Com os dois `.env` criados e as dependências do front instaladas, a raiz sobe banco, API e front num terminal só. `Ctrl+C` derruba os três.
+
+```bash
+pnpm install && pnpm dev
+```
+
 ---
 
 ## Entregas
