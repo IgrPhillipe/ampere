@@ -109,6 +109,7 @@ public class DataSeeder implements CommandLineRunner {
     List<User> inserted = seedUsers();
     User owner = developmentUser(inserted, "user@ampere.com");
     assignOwnerToLegacyProjects(owner);
+    startReviewCycleOfLegacySubmissions();
     List<Standard> standards = seedStandards();
     seedDevelopmentData(standards, owner, developmentUser(inserted, "admin@ampere.com"));
     seedGroups();
@@ -124,6 +125,14 @@ public class DataSeeder implements CommandLineRunner {
       orphans.forEach(project -> project.assignOwner(owner));
       projectRepository.saveAll(orphans);
       log.info("DataSeeder: owner assigned to {} legacy projects.", orphans.size());
+    }
+  }
+
+  /** Projects submitted before review cycles existed count as the first submission. */
+  private void startReviewCycleOfLegacySubmissions() {
+    int updated = projectRepository.startReviewCycleOfLegacySubmissions();
+    if (updated > 0) {
+      log.info("DataSeeder: review cycle started for {} legacy projects.", updated);
     }
   }
 

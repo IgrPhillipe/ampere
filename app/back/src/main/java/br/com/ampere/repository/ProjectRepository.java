@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -107,6 +108,18 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
   Optional<Project> findByProtocol(String protocol);
 
   List<Project> findAllByOwnerIsNull();
+
+  @Modifying
+  @Query(
+      """
+      UPDATE Project project
+      SET project.reviewCycle = 1
+      WHERE project.reviewCycle = 0
+        AND project.status NOT IN (
+          br.com.ampere.domain.ProjectStatus.DRAFT,
+          br.com.ampere.domain.ProjectStatus.AWAITING_SUBMISSION)
+      """)
+  int startReviewCycleOfLegacySubmissions();
 
   interface ProjectStatusCount {
 
