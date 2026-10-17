@@ -210,14 +210,38 @@ Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (
 | **Front-end** | [`CalculationPage`](app/front/src/features/projects/pages/CalculationPage/CalculationPage.tsx), [`NormativeTablesPage`](app/front/src/features/admin/pages/NormativeTablesPage/NormativeTablesPage.tsx) |
 | **Issues** | [#54](https://github.com/IgrPhillipe/ampere/issues/54), [#59](https://github.com/IgrPhillipe/ampere/issues/59), [#60](https://github.com/IgrPhillipe/ampere/issues/60), [#68](https://github.com/IgrPhillipe/ampere/issues/68) |
 
-US05 e US06 estão em desenvolvimento na Sprint 3.
+##### US05: Geração de Memorial e Envio do Projeto
+
+> **Como** projetista externo,  
+> **Quero** gerar o memorial descritivo padronizado no formato da Neoenergia e validar o checklist documental,  
+> **Para que** a submissão ocorra sem risco de reprovação por documentação incompleta.
+
+| Item | Descrição |
+| :--- | :--- |
+| **Entregue** | Memorial descritivo de cálculo de demanda em PDF, com prévia na tela e download, na identidade visual do sistema<br>Checagem antes do envio: cálculo concluído e anexos obrigatórios (ART, diagrama unifilar e planta de situação)<br>"Enviar para Análise" liberado somente com o checklist completo<br>Envio gera o protocolo, registra a data e muda o status para "Em análise"<br>Tela de envio concluído com o que foi enviado e os próximos passos |
+| **Back-end** | [`SubmissionService`](app/back/src/main/java/br/com/ampere/service/SubmissionService.java), [`SubmissionChecklist`](app/back/src/main/java/br/com/ampere/service/SubmissionChecklist.java), [`ProjectDocument`](app/back/src/main/java/br/com/ampere/domain/ProjectDocument.java), [`MemorialPdfService`](app/back/src/main/java/br/com/ampere/service/MemorialPdfService.java), [`SubmissionController`](app/back/src/main/java/br/com/ampere/controller/SubmissionController.java) |
+| **Front-end** | [`MemorialPage`](app/front/src/features/projects/pages/MemorialPage/MemorialPage.tsx), [`SubmissionPage`](app/front/src/features/projects/pages/SubmissionPage/SubmissionPage.tsx) |
+| **Issues** | [#55](https://github.com/IgrPhillipe/ampere/issues/55), [#61](https://github.com/IgrPhillipe/ampere/issues/61), [#62](https://github.com/IgrPhillipe/ampere/issues/62) |
+
+##### US06: Fila de Análise Técnica Priorizada
+
+> **Como** analista da Neoenergia,  
+> **Quero** visualizar a fila de projetos ordenada por prazo de vencimento e pré-validada pelo sistema,  
+> **Para que** eu possa priorizar os atendimentos críticos e focar a análise no julgamento técnico humano.
+
+| Item | Descrição |
+| :--- | :--- |
+| **Entregue** | Fila dos projetos em análise ordenada pela urgência do prazo de 30 dias: atrasado, vence hoje ou no prazo<br>Indicadores no topo: todos na fila, vencendo o prazo, acima de 50 kVA e reanálise, que também filtram a listagem<br>Alertas da pré-validação do último cálculo em cada projeto<br>Busca por protocolo, projetista ou município<br>"Analisar" abre a análise do projeto |
+| **Back-end** | [`ReviewQueueService`](app/back/src/main/java/br/com/ampere/service/ReviewQueueService.java), [`ReviewQueueListing`](app/back/src/main/java/br/com/ampere/service/ReviewQueueListing.java), [`DeadlineStatus`](app/back/src/main/java/br/com/ampere/domain/DeadlineStatus.java), [`ReviewQueueController`](app/back/src/main/java/br/com/ampere/controller/ReviewQueueController.java) |
+| **Front-end** | [`ReviewQueuePage`](app/front/src/features/review-queue/pages/ReviewQueuePage/ReviewQueuePage.tsx) |
+| **Issues** | [#56](https://github.com/IgrPhillipe/ampere/issues/56), [#63](https://github.com/IgrPhillipe/ampere/issues/63), [#64](https://github.com/IgrPhillipe/ampere/issues/64) |
 
 #### Requisitos de POO
 
 | Requisito | Onde é atendido |
 | :--- | :--- |
-| Classes de domínio persistidas | `ConsumerUnitGroup` e subclasses, `Calculation` e `NormativeTable` |
-| Histórias que leem e escrevem no banco | US03 grava e lê os grupos; US04 lê as tabelas publicadas e grava o cálculo |
+| Classes de domínio persistidas | `ConsumerUnitGroup` e subclasses, `Calculation`, `NormativeTable` e `ProjectDocument` |
+| Histórias que leem e escrevem no banco | US03 grava e lê os grupos; US04 lê as tabelas publicadas e grava o cálculo; US05 grava os anexos e o envio; US06 lê a fila dos projetos em análise |
 | **Herança** | `ConsumerUnitGroup` abstrata, estendida por `ResidentialGroup`, `LoadGroup` e `EvChargingGroup` |
 | **Polimorfismo** | Cada subclasse sobrescreve `validate()` e `demand()`. O `DemandEngine` percorre os grupos sem condicional por tipo. `DemandComponent` e `LoadCategory` implementam o cálculo em cada constante |
 | **Encapsulamento** | `NormativeTable` muda de estado somente por `revise`, `publish` e `supersede`, e quem cadastra não publica. `Calculation` não tem setters |
