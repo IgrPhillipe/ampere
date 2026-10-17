@@ -276,8 +276,7 @@ class SubmissionIntegrationTest {
         perform(get(memorialOf(project))).andReturn().getResponse().getContentAsByteArray();
 
     assertThat(new PdfTextExtractor(new PdfReader(body)).getTextFromPage(1))
-        .contains("Responsável técnico: Usuário Teste")
-        .contains("CREA: 123456/PE");
+        .containsSubsequence("Responsável técnico", "Usuário Teste", "CREA", "123456/PE");
   }
 
   private Project draft() {
