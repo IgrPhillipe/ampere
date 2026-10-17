@@ -6,7 +6,7 @@ import { formatDateTime, padCount } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import { useGetLatestCalculation } from "@services/calculation";
 import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
-import { useGetProject } from "@services/projects";
+import { type ProjectStatus, useGetProject } from "@services/projects";
 import { useGetMemorial, useGetSubmission } from "@services/submission";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Check, CircleAlert, Download, Send } from "lucide-react";
@@ -18,6 +18,11 @@ interface SubmissionPageProps {
 }
 
 const REVIEW_PERIOD_DAYS = 30;
+
+const TITLE_BY_STATUS: Partial<Record<ProjectStatus, string>> = {
+	APPROVED: "Projeto Aprovado",
+	REJECTED: "Projeto Reprovado",
+};
 
 export const SubmissionPage = ({ projectId }: SubmissionPageProps) => {
 	const navigate = useNavigate();
@@ -106,7 +111,8 @@ export const SubmissionPage = ({ projectId }: SubmissionPageProps) => {
 					</p>
 
 					<h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">
-						Projeto Enviado para Análise
+						{(project && TITLE_BY_STATUS[project.status]) ??
+							"Projeto Enviado para Análise"}
 					</h1>
 				</div>
 
