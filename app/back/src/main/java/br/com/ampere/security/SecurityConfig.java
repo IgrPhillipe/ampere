@@ -116,7 +116,7 @@ public class SecurityConfig {
     }
 
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOriginPatterns(properties.allowedOrigins());
+    configuration.setAllowedOriginPatterns(properties.origins());
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
     configuration.setMaxAge(Duration.ofHours(1));

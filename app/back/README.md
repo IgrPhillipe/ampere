@@ -169,6 +169,7 @@ Projeto de outro dono ou inexistente responde 404; papel ou analista errado, 403
 | `JWT_SECRET` | Em produção | | Assina o token; mínimo de 32 caracteres. Sem ela o profile `prod` não sobe. Fora de produção, a API gera uma chave por execução |
 | `JWT_EXPIRATION` | Não | `8h` | Validade do token |
 | `CORS_ALLOWED_ORIGINS` | Não | vazio | Origens externas que podem chamar a API, separadas por vírgula. Aceita padrão: `https://ampere-virid.vercel.app,https://*-igrph.vercel.app`. Vazio: apenas a mesma origem |
+| `CORS_PREVIEW_ORIGINS` | Não | `https://ampere-*-igrph.vercel.app` | Deploy previews do front na Vercel, somados a `CORS_ALLOWED_ORIGINS`. O padrão cobre `ampere-<hash>-igrph.vercel.app` e `ampere-git-<branch>-igrph.vercel.app` |
 | `DDL_AUTO` | Não | `update` | Alavanca de recuperação de schema. `create` apaga e recria o schema a cada inicialização; use uma vez e **remova a variável** |
 
 Gerar um segredo:

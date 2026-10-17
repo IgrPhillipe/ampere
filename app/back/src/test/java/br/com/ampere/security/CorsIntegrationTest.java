@@ -5,6 +5,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -14,7 +16,11 @@ import org.springframework.test.web.servlet.MockMvc;
 /** Front and API on different domains — Vercel calling Render — depend on this. */
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource(properties = "ampere.cors.allowed-origins=https://exemplo.vercel.app")
+@TestPropertySource(
+    properties = {
+      "ampere.cors.allowed-origins=https://exemplo.vercel.app",
+      "ampere.cors.preview-origins=https://ampere-*-igrph.vercel.app"
+    })
 class CorsIntegrationTest {
 
   private static final String ORIGIN = "https://exemplo.vercel.app";
@@ -31,6 +37,33 @@ class CorsIntegrationTest {
                 .header("Access-Control-Request-Headers", "Authorization"))
         .andExpect(status().isOk())
         .andExpect(header().string("Access-Control-Allow-Origin", ORIGIN));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "https://ampere-d33nkxy0q-igrph.vercel.app",
+        "https://ampere-git-feat-memorial-pdf-identidade-igrph.vercel.app"
+      })
+  void answersThePreflightOfADeployPreview(String preview) throws Exception {
+    mockMvc
+        .perform(
+            options("/projects")
+                .header("Origin", preview)
+                .header("Access-Control-Request-Method", "GET")
+                .header("Access-Control-Request-Headers", "Authorization"))
+        .andExpect(status().isOk())
+        .andExpect(header().string("Access-Control-Allow-Origin", preview));
+  }
+
+  @Test
+  void refusesThePreflightOfAPreviewFromAnotherVercelAccount() throws Exception {
+    mockMvc
+        .perform(
+            options("/projects")
+                .header("Origin", "https://ampere-d33nkxy0q-outra-conta.vercel.app")
+                .header("Access-Control-Request-Method", "GET"))
+        .andExpect(status().isForbidden());
   }
 
   @Test
