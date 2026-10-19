@@ -252,9 +252,10 @@ Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (
 | Artefato | Link |
 | :--- | :--- |
 | Histórias implementadas (POST-IT) | [Histórias implementadas](#histórias-implementadas-1) |
-| Print do GitHub Issues | ![Print das GitHub Issues](docs/produto/issues-entrega-03.png) |
-| Screencast do sistema | [YouTube](https://youtu.be/ID_DO_VIDEO) |
-| Screencast da explicação do código | [YouTube](https://youtu.be/ID_DO_VIDEO) |
+| Print do GitHub Issues (Sprint 2) | ![Print das GitHub Issues](docs/produto/Issues-Sprint02.png) |
+| Print do GitHub Issues (Sprint 3) | ![Print das GitHub Issues](docs/produto/Issues-Sprint03.png) |
+| Screencast do sistema | [YouTube](https://youtu.be/0YldcnTvi8g) |
+| Screencast da explicação do código | [YouTube](https://youtu.be/EUo41qSNQ8I) |
 
 ### Entrega 04
 
