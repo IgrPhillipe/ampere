@@ -12,7 +12,7 @@ export const MOCK_PROJECTS: Project[] = [
 		updatedAt: "2026-09-18T10:30:00Z",
 		pendingCount: 0,
 		consumerUnitsCount: 0,
-		demandKva: null,
+		demandKva: 82.4,
 	},
 	{
 		id: "2",
@@ -25,7 +25,7 @@ export const MOCK_PROJECTS: Project[] = [
 		updatedAt: "2026-09-14T14:20:00Z",
 		pendingCount: 3,
 		consumerUnitsCount: 0,
-		demandKva: null,
+		demandKva: 41.5,
 	},
 	{
 		id: "3",
@@ -38,7 +38,7 @@ export const MOCK_PROJECTS: Project[] = [
 		updatedAt: "2026-08-12T09:15:00Z",
 		pendingCount: 0,
 		consumerUnitsCount: 0,
-		demandKva: null,
+		demandKva: 120,
 	},
 	{
 		id: "4",
@@ -64,7 +64,7 @@ export const MOCK_PROJECTS: Project[] = [
 		updatedAt: "2026-09-09T11:00:00Z",
 		pendingCount: 0,
 		consumerUnitsCount: 0,
-		demandKva: null,
+		demandKva: 64.2,
 	},
 	{
 		id: "6",
@@ -77,7 +77,7 @@ export const MOCK_PROJECTS: Project[] = [
 		updatedAt: "2026-09-11T16:45:00Z",
 		pendingCount: 0,
 		consumerUnitsCount: 0,
-		demandKva: null,
+		demandKva: 230.5,
 	},
 	{
 		id: "7",
@@ -90,7 +90,7 @@ export const MOCK_PROJECTS: Project[] = [
 		updatedAt: "2026-09-03T08:20:00Z",
 		pendingCount: 0,
 		consumerUnitsCount: 0,
-		demandKva: null,
+		demandKva: 156,
 	},
 	{
 		id: "8",
@@ -103,7 +103,7 @@ export const MOCK_PROJECTS: Project[] = [
 		updatedAt: "2026-09-02T13:10:00Z",
 		pendingCount: 0,
 		consumerUnitsCount: 0,
-		demandKva: null,
+		demandKva: 48.3,
 	},
 	{
 		id: "9",
@@ -116,7 +116,7 @@ export const MOCK_PROJECTS: Project[] = [
 		updatedAt: "2026-08-29T15:35:00Z",
 		pendingCount: 1,
 		consumerUnitsCount: 0,
-		demandKva: null,
+		demandKva: 37.9,
 	},
 	{
 		id: "10",
@@ -129,7 +129,7 @@ export const MOCK_PROJECTS: Project[] = [
 		updatedAt: "2026-08-21T10:05:00Z",
 		pendingCount: 0,
 		consumerUnitsCount: 0,
-		demandKva: null,
+		demandKva: 95.1,
 	},
 	{
 		id: "11",
@@ -142,7 +142,7 @@ export const MOCK_PROJECTS: Project[] = [
 		updatedAt: "2026-08-18T17:00:00Z",
 		pendingCount: 0,
 		consumerUnitsCount: 0,
-		demandKva: null,
+		demandKva: 310.2,
 	},
 	{
 		id: "12",

@@ -10,12 +10,18 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { CircleAlert } from "lucide-react";
 
-import { ReviewQueueListing, ReviewQueueToolbar } from "../../components";
+import {
+	ReviewQueueActiveFilters,
+	ReviewQueueFilterControls,
+	ReviewQueueListing,
+	ReviewQueueToolbar,
+} from "../../components";
 import { useReviewQueueFilters } from "../../hooks";
 
 const PAGE_SIZE = 10;
 
 export const ReviewQueuePage = () => {
+	const filters = useReviewQueueFilters();
 	const {
 		filter,
 		search,
@@ -27,14 +33,18 @@ export const ReviewQueuePage = () => {
 		setSearch,
 		setPage,
 		setSort,
+		sortBy,
 		clearFilters,
-	} = useReviewQueueFilters();
+	} = filters;
 	const queueQuery = useGetReviewQueue({
 		page,
 		pageSize: PAGE_SIZE,
 		filter,
 		search: debouncedSearch || undefined,
-		sort,
+		sort: sort.column,
+		direction: sort.direction,
+		reviewer: filters.reviewer ?? undefined,
+		municipality: filters.municipality ?? undefined,
 	});
 	const indicatorsQuery = useGetReviewQueueIndicators();
 	const navigate = useNavigate();
@@ -64,6 +74,8 @@ export const ReviewQueuePage = () => {
 					indicators={indicatorsQuery.data?.data}
 					sort={sort}
 					onSortChange={setSort}
+					refinements={<ReviewQueueFilterControls filters={filters} />}
+					activeFilters={<ReviewQueueActiveFilters filters={filters} />}
 				/>
 
 				<div className="flex-1 px-gutter py-4 md:px-gutter-md md:py-5">
@@ -90,6 +102,8 @@ export const ReviewQueuePage = () => {
 							items={queueQuery.data?.data ?? []}
 							isLoading={queueQuery.isPending}
 							onAnalyze={analyze}
+							sort={sort}
+							onSortChange={sortBy}
 							onClearFilters={hasActiveFilters ? clearFilters : undefined}
 						/>
 					)}

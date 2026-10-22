@@ -22,7 +22,7 @@ describe("ReviewQueueToolbar", () => {
 				filter="ALL"
 				onFilterChange={onFilterChange}
 				indicators={counts}
-				sort="ASC"
+				sort={{ column: "deadline", direction: "ASC" }}
 				onSortChange={vi.fn()}
 			/>,
 		);
@@ -32,7 +32,7 @@ describe("ReviewQueueToolbar", () => {
 		expect(onFilterChange).toHaveBeenCalledWith("DUE_SOON");
 	});
 
-	it("toggles deadline sorting", () => {
+	it("sorts by another column in its natural direction", async () => {
 		const onSortChange = vi.fn();
 		render(
 			<ReviewQueueToolbar
@@ -41,15 +41,21 @@ describe("ReviewQueueToolbar", () => {
 				filter="ALL"
 				onFilterChange={vi.fn()}
 				indicators={counts}
-				sort="ASC"
+				sort={{ column: "deadline", direction: "ASC" }}
 				onSortChange={onSortChange}
 			/>,
 		);
 
 		fireEvent.click(
-			screen.getByRole("button", { name: "Ordenar por prazo decrescente" }),
+			screen.getByRole("button", { name: "Ordenar por vencimento, crescente" }),
+		);
+		fireEvent.click(
+			await screen.findByRole("menuitemradio", { name: "Demanda" }),
 		);
 
-		expect(onSortChange).toHaveBeenCalledWith("DESC");
+		expect(onSortChange).toHaveBeenCalledWith({
+			column: "demand",
+			direction: "DESC",
+		});
 	});
 });

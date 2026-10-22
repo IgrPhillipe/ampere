@@ -266,7 +266,10 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
   inicial (`getRoleHomePath`). O título da página, o item do menu e o `pageTitle`
   da aba usam o mesmo nome.
 - Parâmetros de query repetem os da API (`page`, `search`, `status`, `filter`,
-  `sort=ASC|DESC`), para a URL e a requisição dizerem a mesma coisa.
+  `sort=<coluna>` com `direction=ASC|DESC`, `municipality`...), para a URL e a
+  requisição dizerem a mesma coisa. Valor igual ao padrão sai da URL: a
+  ordenação padrão da listagem não escreve `sort`, e a direção natural da
+  coluna não escreve `direction`.
 - Roteamento por arquivo em `src/routes/`, cada arquivo exportando `Route`.
 - `src/routeTree.gen.ts` é **gerado** pelo plugin do Vite e **commitado**, para
   que `pnpm type-check` funcione sem rodar o dev server antes. Nunca edite à

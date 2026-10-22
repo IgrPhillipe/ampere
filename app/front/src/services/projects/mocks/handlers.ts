@@ -1,3 +1,5 @@
+import { sortDirectionSchema } from "@features/shared";
+import dayjs from "@lib/dayjs";
 import { HttpResponse, http } from "msw";
 import { z } from "zod";
 
@@ -6,6 +8,9 @@ import {
 	buildingCategorySchema,
 	connectionTypeSchema,
 	entranceStandardSchema,
+	type Project,
+	type ProjectSort,
+	projectSortSchema,
 	projectStatusSchema,
 	supplyVoltageSchema,
 } from "../schemas";
@@ -35,6 +40,19 @@ const problem = (detail: string, instance: string = e.list) =>
 		},
 		{ status: 400 },
 	);
+
+const isIsoDate = (value: string) => dayjs(value, "YYYY-MM-DD", true).isValid();
+
+const sortValue: Record<ProjectSort, (project: Project) => number | string> = {
+	name: (project) => normalize(project.name),
+	demand: (project) => project.demandKva ?? -1,
+	createdAt: (project) => project.createdAt,
+	updatedAt: (project) => project.updatedAt,
+};
+
+/** The mock has no findings: a rejected project with pending items stands in for an open blocking one. */
+const hasBlockingFinding = (project: Project) =>
+	project.status === "REJECTED" && project.pendingCount > 0;
 
 /**
  * Espelha o `ProjectRequest` do back, limites e mensagens inclusive. O mock so
@@ -75,10 +93,50 @@ export const projectHandlers = [
 			return problem("Status de projeto inválido.");
 		}
 
+		const sort = projectSortSchema.safeParse(
+			searchParams.get("sort") ?? "updatedAt",
+		);
+		const direction = sortDirectionSchema.safeParse(
+			searchParams.get("direction") ?? "DESC",
+		);
+
+		if (!sort.success) return problem("Ordenação inválida.");
+		if (!direction.success) return problem("Direção de ordenação inválida.");
+
+		const municipality = searchParams.get("municipality")?.trim();
+		const createdFrom = searchParams.get("createdFrom");
+		const createdTo = searchParams.get("createdTo");
+
+		if (
+			(createdFrom && !isIsoDate(createdFrom)) ||
+			(createdTo && !isIsoDate(createdTo))
+		) {
+			return problem("Data inválida. Use o formato AAAA-MM-DD.");
+		}
+
+		if (createdFrom && createdTo && createdFrom > createdTo) {
+			return problem("A data inicial deve ser anterior ou igual à data final.");
+		}
+
+		const hasBlocking = searchParams.get("hasBlocking") === "true";
+
 		const filteredProjects = MOCK_PROJECTS.filter((project) => {
 			if (parsedStatus?.success && project.status !== parsedStatus.data) {
 				return false;
 			}
+
+			if (
+				municipality &&
+				project.municipality.toLowerCase() !== municipality.toLowerCase()
+			) {
+				return false;
+			}
+
+			const createdOn = project.createdAt.slice(0, 10);
+
+			if (createdFrom && createdOn < createdFrom) return false;
+			if (createdTo && createdOn > createdTo) return false;
+			if (hasBlocking && !hasBlockingFinding(project)) return false;
 
 			if (!search) return true;
 
@@ -90,8 +148,17 @@ export const projectHandlers = [
 			return searchableContent.includes(search);
 		});
 
+		const value = sortValue[sort.data];
+		const sign = direction.data === "ASC" ? 1 : -1;
+		const sortedProjects = filteredProjects.toSorted((a, b) => {
+			const left = value(a);
+			const right = value(b);
+
+			return left === right ? 0 : left < right ? -sign : sign;
+		});
+
 		const start = (page - 1) * pageSize;
-		const projects = filteredProjects.slice(start, start + pageSize);
+		const projects = sortedProjects.slice(start, start + pageSize);
 
 		return HttpResponse.json(
 			makeProjectList({
@@ -102,6 +169,14 @@ export const projectHandlers = [
 			}),
 		);
 	}),
+
+	http.get(url(e.municipalities), () =>
+		HttpResponse.json({
+			data: [
+				...new Set(MOCK_PROJECTS.map((project) => project.municipality)),
+			].toSorted((a, b) => a.localeCompare(b, "pt-BR")),
+		}),
+	),
 
 	http.get(url(e.statusCounts), () =>
 		HttpResponse.json(makeProjectStatusCountsResponse()),
