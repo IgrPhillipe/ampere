@@ -6,6 +6,7 @@ import {
 	useGetLatestCalculation,
 } from "@services/calculation";
 import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
+import { useGetFindingList } from "@services/project-review";
 import { projectKeys, useGetProject } from "@services/projects";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -30,6 +31,12 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 	const projectQuery = useGetProject(projectId);
 	const validationQuery = useGetConsumerUnitGroupValidation(projectId);
 	const project = projectQuery.data?.data;
+	const findingsQuery = useGetFindingList(projectId, {
+		enabled: project?.status === "REJECTED",
+	});
+	const stageFindings =
+		findingsQuery.data?.data.filter(({ stage }) => stage === "CALCULATION") ??
+		[];
 	const validation = validationQuery.data?.data;
 	const isDraft = project?.status === "DRAFT";
 	const canCalculate = validation?.canCalculate ?? false;
@@ -138,7 +145,11 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 				) : (
 					<div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_440px]">
 						<div className="flex flex-col gap-10 px-6 py-8 md:px-8">
-							<CalculationSteps steps={result?.steps} isLoading={isLoading} />
+							<CalculationSteps
+								steps={result?.steps}
+								findings={stageFindings}
+								isLoading={isLoading}
+							/>
 							<LoadComposition
 								composition={result?.composition}
 								calculatedKva={result?.totals.calculatedKva}

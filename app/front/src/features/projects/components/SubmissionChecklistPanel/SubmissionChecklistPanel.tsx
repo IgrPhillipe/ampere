@@ -2,6 +2,7 @@ import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
+import type { Finding } from "@services/project-review";
 import type {
 	ChecklistItem,
 	DocumentType,
@@ -12,11 +13,14 @@ import { Check, Paperclip, TriangleAlert, X } from "lucide-react";
 import { type ChangeEvent, useRef } from "react";
 import { toast } from "sonner";
 
+import { FindingBadge } from "../FindingBadge";
+
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 interface SubmissionChecklistPanelProps {
 	checklist?: SubmissionChecklist;
 	isLoading?: boolean;
+	findings?: Finding[];
 	editable: boolean;
 	uploadingType?: DocumentType;
 	removingId?: string;
@@ -39,6 +43,7 @@ interface ItemProps {
 	editable: boolean;
 	isUploading: boolean;
 	isRemoving: boolean;
+	findings: Finding[];
 	onUpload: (type: DocumentType, file: File) => void;
 	onRemove: (document: ProjectDocument) => void;
 }
@@ -49,6 +54,7 @@ const Item = ({
 	editable,
 	isUploading,
 	isRemoving,
+	findings,
 	onUpload,
 	onRemove,
 }: ItemProps) => {
@@ -95,6 +101,7 @@ const Item = ({
 						{item.completed ? " (conferido)" : " (pendente)"}
 					</span>
 				</span>
+				<FindingBadge findings={findings} className="mt-1" />
 				{document ? (
 					<span className="truncate text-xs text-muted-foreground">
 						{document.filename} ({formatSize(document.fileSize)})
@@ -153,6 +160,7 @@ const Item = ({
 export const SubmissionChecklistPanel = ({
 	checklist,
 	isLoading = false,
+	findings = [],
 	editable,
 	uploadingType,
 	removingId,
@@ -215,6 +223,12 @@ export const SubmissionChecklistPanel = ({
 								isRemoving={
 									document !== undefined && removingId === document.id
 								}
+								findings={findings.filter(
+									(finding) =>
+										finding.documentType === item.key ||
+										(finding.documentType === null &&
+											finding.stage === "DOCUMENTS"),
+								)}
 								onUpload={onUpload}
 								onRemove={onRemove}
 							/>

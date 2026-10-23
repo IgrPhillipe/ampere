@@ -1,10 +1,12 @@
 import { formatDecimal, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ConsumerUnitGroup } from "@services/consumer-units";
+import type { Finding } from "@services/project-review";
 import type { Control } from "react-hook-form";
 
 import type { GroupUsageType } from "../../constants";
 import type { NewGroupFormValues } from "../../schemas";
+import { FindingBadge } from "../FindingBadge";
 import { GroupIdentity } from "./GroupIdentity";
 import { GroupStatusLabel } from "./GroupStatusLabel";
 import { type GroupRowActions, isPendingGroup, loadShare } from "./group-row";
@@ -14,6 +16,7 @@ import { newGroupStatus } from "./new-group";
 interface ConsumerUnitGroupCardsProps extends GroupRowActions {
 	groups: ConsumerUnitGroup[];
 	totalLoadKw: number;
+	findings: Finding[];
 	newGroupControl?: Control<NewGroupFormValues>;
 	newGroupUsageType?: GroupUsageType;
 	className?: string;
@@ -31,6 +34,7 @@ const Figure = ({ label, value }: { label: string; value: string }) => (
 export const ConsumerUnitGroupCards = ({
 	groups,
 	totalLoadKw,
+	findings,
 	onOpenGroup,
 	newGroupControl,
 	newGroupUsageType,
@@ -50,6 +54,11 @@ export const ConsumerUnitGroupCards = ({
 					group={group}
 					share={loadShare(group, totalLoadKw)}
 					onOpen={() => onOpenGroup(group)}
+				/>
+				<FindingBadge
+					findings={findings.filter(
+						(finding) => finding.consumerUnitGroupId === group.id,
+					)}
 				/>
 
 				<dl className="flex flex-wrap gap-x-6 gap-y-2">

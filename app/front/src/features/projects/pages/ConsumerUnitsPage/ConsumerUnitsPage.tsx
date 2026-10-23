@@ -10,6 +10,7 @@ import {
 	useGetConsumerUnitGroupList,
 	useGetConsumerUnitGroupValidation,
 } from "@services/consumer-units";
+import { useGetFindingList } from "@services/project-review";
 import { useGetProject } from "@services/projects";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, CircleAlert, Layers, Plus } from "lucide-react";
@@ -62,6 +63,13 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 	// `form.watch` is memoized by the React Compiler.
 	const usageType = useWatch({ control: form.control, name: "usageType" });
 	const project = projectQuery.data?.data;
+	const findingsQuery = useGetFindingList(projectId, {
+		enabled: project?.status === "REJECTED",
+	});
+	const stageFindings =
+		findingsQuery.data?.data.filter(
+			({ stage }) => stage === "CONSUMER_UNITS",
+		) ?? [];
 	const groups = groupsQuery.data?.data ?? [];
 	const validation = validationQuery.data?.data;
 	const canCalculate = validation?.canCalculate ?? false;
@@ -187,6 +195,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 
 							<ConsumerUnitGroupsTable
 								groups={groups}
+								findings={stageFindings}
 								totalLoadKw={validation?.totalDeclaredLoadKw ?? 0}
 								isLoading={groupsQuery.isPending}
 								onOpenGroup={openGroup}

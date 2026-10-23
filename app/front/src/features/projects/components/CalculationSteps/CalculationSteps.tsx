@@ -2,13 +2,16 @@ import { Skeleton } from "@components/ui/skeleton";
 import { formatDecimal, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { CalculationStep } from "@services/calculation";
+import type { Finding } from "@services/project-review";
 import { useState } from "react";
 
 import { demandSeriesClassNames } from "../../constants";
+import { FindingBadge } from "../FindingBadge";
 
 interface CalculationStepsProps {
 	steps?: CalculationStep[];
 	isLoading?: boolean;
+	findings?: Finding[];
 	className?: string;
 }
 
@@ -17,6 +20,7 @@ const STEP_COUNT = 5;
 export const CalculationSteps = ({
 	steps,
 	isLoading = false,
+	findings = [],
 	className,
 }: CalculationStepsProps) => (
 	<section aria-labelledby="etapas-titulo" className={className}>
@@ -48,14 +52,26 @@ export const CalculationSteps = ({
 		) : (
 			<ol className="flex flex-col">
 				{steps.map((step) => (
-					<StepRow key={step.code} step={step} />
+					<StepRow
+						key={step.code}
+						step={step}
+						findings={findings.filter(
+							(finding) => finding.calculationStepCode === step.code,
+						)}
+					/>
 				))}
 			</ol>
 		)}
 	</section>
 );
 
-const StepRow = ({ step }: { step: CalculationStep }) => {
+const StepRow = ({
+	step,
+	findings,
+}: {
+	step: CalculationStep;
+	findings: Finding[];
+}) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const isTotal = step.code === "Ded";
 	// The band of Tabela 1 or 2 explains why the total differs from the sum.
@@ -88,6 +104,7 @@ const StepRow = ({ step }: { step: CalculationStep }) => {
 			</span>
 
 			<div className="flex min-w-0 flex-col gap-1">
+				<FindingBadge findings={findings} className="mb-1" />
 				<h3 className="text-base font-medium text-foreground">
 					{step.title}
 					<span className="sr-only"> ({step.code})</span>

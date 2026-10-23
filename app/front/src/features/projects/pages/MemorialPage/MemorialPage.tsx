@@ -3,6 +3,7 @@ import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { useGetLatestCalculation } from "@services/calculation";
 import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
+import { useGetFindingList } from "@services/project-review";
 import { useGetProject } from "@services/projects";
 import {
 	type DocumentType,
@@ -42,6 +43,11 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const submitMutation = useSubmitProject();
 
 	const project = projectQuery.data?.data;
+	const findingsQuery = useGetFindingList(projectId, {
+		enabled: project?.status === "REJECTED",
+	});
+	const documentFindings =
+		findingsQuery.data?.data.filter(({ stage }) => stage === "DOCUMENTS") ?? [];
 	const validation = validationQuery.data?.data;
 	const checklist = submissionQuery.data?.data;
 	const editable =
@@ -149,6 +155,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 
 						<SubmissionChecklistPanel
 							checklist={checklist}
+							findings={documentFindings}
 							isLoading={submissionQuery.isPending}
 							editable={editable}
 							uploadingType={

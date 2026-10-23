@@ -2,7 +2,9 @@ import { createDataTableColumnHelper } from "@components/DataTable";
 import { formatDecimal, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ConsumerUnitGroup } from "@services/consumer-units";
+import type { Finding } from "@services/project-review";
 
+import { FindingBadge } from "../FindingBadge";
 import { GroupIdentity } from "./GroupIdentity";
 import { GroupStatusLabel } from "./GroupStatusLabel";
 import { type GroupRowActions, isPendingGroup, loadShare } from "./group-row";
@@ -14,11 +16,13 @@ export type GroupColumnId = "name" | "quantity" | "load" | "factor" | "status";
 
 interface GroupColumnsOptions extends GroupRowActions {
 	totalLoadKw: number;
+	findings: Finding[];
 }
 
 export const createGroupColumns = ({
 	onOpenGroup,
 	totalLoadKw,
+	findings,
 }: GroupColumnsOptions) =>
 	columnHelper.columns([
 		columnHelper.accessor("name", {
@@ -35,6 +39,12 @@ export const createGroupColumns = ({
 						group={row.original}
 						share={loadShare(row.original, totalLoadKw)}
 						onOpen={() => onOpenGroup(row.original)}
+					/>
+					<FindingBadge
+						findings={findings.filter(
+							(finding) => finding.consumerUnitGroupId === row.original.id,
+						)}
+						className="mt-2"
 					/>
 				</div>
 			),

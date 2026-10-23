@@ -1,5 +1,6 @@
 export * from "./CalculationSteps";
 export * from "./ConsumerUnitGroupsTable";
+export * from "./FindingBadge";
 export * from "./GroupSheet";
 export * from "./LoadComposition";
 export * from "./MemorialPreview";
