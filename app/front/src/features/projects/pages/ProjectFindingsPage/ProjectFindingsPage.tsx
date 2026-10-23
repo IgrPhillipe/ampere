@@ -3,12 +3,14 @@ import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import type { Finding } from "@services/project-review";
-import { useGetFindingList } from "@services/project-review";
+import { useGetFindingList, useRespondFinding } from "@services/project-review";
 import { useGetProject } from "@services/projects";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, CircleAlert, ClipboardCheck } from "lucide-react";
+import { useState } from "react";
 
 import { ProjectFindingsOverview } from "../../components";
+import type { FindingResponseValues } from "../../schemas";
 
 interface ProjectFindingsPageProps {
 	projectId: string;
@@ -20,6 +22,11 @@ export const ProjectFindingsPage = ({
 	const navigate = useNavigate();
 	const projectQuery = useGetProject(projectId);
 	const findingsQuery = useGetFindingList(projectId);
+	const respondMutation = useRespondFinding();
+	const [responseEditor, setResponseEditor] = useState<{
+		findingId: string;
+		status: FindingResponseValues["status"];
+	} | null>(null);
 	const project = projectQuery.data?.data;
 	const findings = findingsQuery.data?.data;
 	const hasError = projectQuery.isError || findingsQuery.isError;
@@ -34,6 +41,19 @@ export const ProjectFindingsPage = ({
 		} as const;
 
 		void navigate({ to: to[finding.stage], params: { id: projectId } });
+	};
+	const submitResponse = (values: FindingResponseValues) => {
+		if (!responseEditor) return;
+
+		respondMutation.mutate(
+			{
+				projectId,
+				findingId: responseEditor.findingId,
+				status: values.status,
+				response: values.response || undefined,
+			},
+			{ onSuccess: () => setResponseEditor(null) },
+		);
 	};
 
 	return (
@@ -96,7 +116,14 @@ export const ProjectFindingsPage = ({
 					<ProjectFindingsOverview
 						findings={findings}
 						reviewOpinion={project?.reviewOpinion}
+						responseEditor={responseEditor ?? undefined}
+						isResponding={respondMutation.isPending}
 						onOpenStage={openStage}
+						onStartResponse={(finding, status) =>
+							setResponseEditor({ findingId: finding.id, status })
+						}
+						onSubmitResponse={submitResponse}
+						onCancelResponse={() => setResponseEditor(null)}
 					/>
 				) : null}
 			</section>

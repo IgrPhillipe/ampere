@@ -1,5 +1,6 @@
 import type { Finding } from "@services/project-review";
 
+import type { FindingResponseValues } from "../../schemas";
 import { ProjectFindingCard } from "./ProjectFindingCard";
 
 const severityOrder = { BLOCKING: 0, ADJUSTMENT: 1 } as const;
@@ -7,13 +8,29 @@ const severityOrder = { BLOCKING: 0, ADJUSTMENT: 1 } as const;
 interface ProjectFindingsOverviewProps {
 	findings: Finding[];
 	reviewOpinion?: string | null;
+	responseEditor?: {
+		findingId: string;
+		status: FindingResponseValues["status"];
+	};
+	isResponding: boolean;
 	onOpenStage: (finding: Finding) => void;
+	onStartResponse: (
+		finding: Finding,
+		status: FindingResponseValues["status"],
+	) => void;
+	onSubmitResponse: (values: FindingResponseValues) => void;
+	onCancelResponse: () => void;
 }
 
 export const ProjectFindingsOverview = ({
 	findings,
 	reviewOpinion,
+	responseEditor,
+	isResponding,
 	onOpenStage,
+	onStartResponse,
+	onSubmitResponse,
+	onCancelResponse,
 }: ProjectFindingsOverviewProps) => {
 	const orderedFindings = [...findings].sort(
 		(left, right) =>
@@ -43,7 +60,16 @@ export const ProjectFindingsOverview = ({
 						<ProjectFindingCard
 							key={finding.id}
 							finding={finding}
+							responseStatus={
+								responseEditor?.findingId === finding.id
+									? responseEditor.status
+									: undefined
+							}
+							isResponding={isResponding}
 							onOpenStage={onOpenStage}
+							onStartResponse={onStartResponse}
+							onSubmitResponse={onSubmitResponse}
+							onCancelResponse={onCancelResponse}
 						/>
 					))}
 				</ul>
