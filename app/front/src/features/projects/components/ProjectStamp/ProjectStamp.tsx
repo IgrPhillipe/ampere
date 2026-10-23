@@ -37,7 +37,8 @@ export const ProjectStamp = ({
 }: ProjectStampProps) => (
 	<dl
 		className={cn(
-			"grid border-b border-border bg-card sm:grid-cols-2 lg:grid-cols-4",
+			"grid border-b border-border bg-card sm:grid-cols-2",
+			project && project.reviewCycle > 0 ? "lg:grid-cols-5" : "lg:grid-cols-4",
 			className,
 		)}
 	>
@@ -66,5 +67,11 @@ export const ProjectStamp = ({
 				</time>
 			) : undefined}
 		</StampCell>
+
+		{project && project.reviewCycle > 0 ? (
+			<StampCell isLoading={isLoading} label="Versão">
+				Versão {project.reviewCycle}
+			</StampCell>
+		) : null}
 	</dl>
 );

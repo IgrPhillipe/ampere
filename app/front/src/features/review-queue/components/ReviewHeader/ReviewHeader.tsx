@@ -65,6 +65,9 @@ export const ReviewHeader = ({
 						{projectStatusLabels[project.status]}
 					</Badge>
 					{reanalysis ? <Badge variant="tag">Reanálise</Badge> : null}
+					{project.reviewCycle > 0 ? (
+						<Badge variant="neutral">Versão {project.reviewCycle}</Badge>
+					) : null}
 					<span className="text-sm text-muted-foreground">
 						{project.address}, {project.municipality}
 					</span>

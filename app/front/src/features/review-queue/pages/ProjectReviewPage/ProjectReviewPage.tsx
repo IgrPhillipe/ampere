@@ -39,7 +39,6 @@ import {
 	DecisionFooter,
 	FindingsPanel,
 	getDecisionAvailability,
-	isDraftFinding,
 	ReviewDocuments,
 	ReviewHeader,
 	toFindingPayload,
@@ -98,9 +97,7 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 	});
 
 	const availability = getDecisionAvailability(findings ?? []);
-	const reanalysis =
-		isUnderReview &&
-		(findings ?? []).some((finding) => !isDraftFinding(finding));
+	const reanalysis = isUnderReview && (project?.reviewCycle ?? 0) > 1;
 
 	const units = validation
 		? `${validation.totalUnits} em ${validation.totalGroups} ${
@@ -223,6 +220,23 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 							apontamentos e decide.
 						</span>
 					</p>
+				) : null}
+
+				{reanalysis && project?.changeSummary ? (
+					<section
+						aria-labelledby="change-summary-title"
+						className="border-b border-border bg-accent px-6 py-4 md:px-8"
+					>
+						<p
+							id="change-summary-title"
+							className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase"
+						>
+							Resumo das alterações · Versão {project.reviewCycle}
+						</p>
+						<p className="mt-2 text-sm whitespace-pre-line text-foreground">
+							{project.changeSummary}
+						</p>
+					</section>
 				) : null}
 
 				<div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_400px]">

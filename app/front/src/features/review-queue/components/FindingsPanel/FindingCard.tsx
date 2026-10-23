@@ -19,7 +19,6 @@ import type { FindingReferenceOptions } from "../../types";
 import { isDraftFinding } from "../ReviewDecision/review-decision";
 import { describeFindingReference } from "./finding-form";
 
-/** The answer itself arrives with the US09; until then the status says what the designer did. */
 const designerAnswers = {
 	DRAFT: null,
 	OPEN: "Sem resposta do projetista.",
@@ -55,7 +54,7 @@ export const FindingCard = ({
 	const reference = describeFindingReference(finding, referenceOptions);
 	const isDraft = isDraftFinding(finding);
 	const isPending = pendingId === finding.id;
-	const answer = designerAnswers[finding.status];
+	const answer = finding.response || designerAnswers[finding.status];
 
 	return (
 		<li
@@ -102,6 +101,14 @@ export const FindingCard = ({
 						Resposta do projetista
 					</p>
 					<p className="mt-1 text-sm text-foreground">{answer}</p>
+					{finding.respondedAt ? (
+						<p className="mt-1 text-xs text-muted-foreground">
+							Respondido em{" "}
+							<time dateTime={finding.respondedAt}>
+								{formatDate(finding.respondedAt)}
+							</time>
+						</p>
+					) : null}
 				</blockquote>
 			) : null}
 
