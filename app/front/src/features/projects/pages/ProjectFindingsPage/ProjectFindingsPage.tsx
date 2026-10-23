@@ -2,10 +2,13 @@ import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
+import type { Finding } from "@services/project-review";
 import { useGetFindingList } from "@services/project-review";
 import { useGetProject } from "@services/projects";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, CircleAlert, ClipboardCheck } from "lucide-react";
+
+import { ProjectFindingsOverview } from "../../components";
 
 interface ProjectFindingsPageProps {
 	projectId: string;
@@ -22,6 +25,16 @@ export const ProjectFindingsPage = ({
 	const hasError = projectQuery.isError || findingsQuery.isError;
 
 	const backToProjects = () => void navigate({ to: "/projetos" });
+	const openStage = (finding: Finding) => {
+		const to = {
+			PROJECT_DATA: "/projetos/$id/dados",
+			CONSUMER_UNITS: "/projetos/$id/unidades",
+			CALCULATION: "/projetos/$id/calculo",
+			DOCUMENTS: "/projetos/$id/memorial",
+		} as const;
+
+		void navigate({ to: to[finding.stage], params: { id: projectId } });
+	};
 
 	return (
 		<PageLayout
@@ -79,12 +92,13 @@ export const ProjectFindingsPage = ({
 						description="Este projeto não possui correções registradas para o ciclo atual."
 						icon={ClipboardCheck}
 					/>
-				) : (
-					<div aria-live="polite" className="text-sm text-muted-foreground">
-						{findings?.length}{" "}
-						{findings?.length === 1 ? "apontamento" : "apontamentos"}
-					</div>
-				)}
+				) : findings ? (
+					<ProjectFindingsOverview
+						findings={findings}
+						reviewOpinion={project?.reviewOpinion}
+						onOpenStage={openStage}
+					/>
+				) : null}
 			</section>
 		</PageLayout>
 	);
