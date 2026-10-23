@@ -21,6 +21,7 @@ import br.com.ampere.config.EnumParameterConfig;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SortDirection;
@@ -83,6 +84,33 @@ class ProjectControllerTest {
   }
 
   @Test
+  void rejectsInvalidSortColumnOrDirection() throws Exception {
+    MockMvc mockMvc = mockMvc(mock(ProjectService.class));
+
+    mockMvc.perform(get("/projects").param("sort", "ASC")).andExpect(status().isBadRequest());
+    mockMvc
+        .perform(get("/projects").param("sort", "unsupported"))
+        .andExpect(status().isBadRequest());
+    mockMvc
+        .perform(get("/projects").param("direction", "INVALID"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void exposesMunicipalitiesEndpoint() throws Exception {
+    ProjectService service = mock(ProjectService.class);
+    when(service.listMunicipalities(DESIGNER)).thenReturn(List.of("Olinda", "Recife"));
+
+    MockMvc mockMvc = mockMvc(service);
+    mockMvc
+        .perform(get("/projects/municipalities"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(2)))
+        .andExpect(jsonPath("$.data[0]").value("Olinda"))
+        .andExpect(jsonPath("$.data[1]").value("Recife"));
+  }
+
+  @Test
   void wrapsProjectListingAndPaginationInApiResponse() {
     Project project = mock(Project.class);
     when(project.getId()).thenReturn(42L);
@@ -104,7 +132,18 @@ class ProjectControllerTest {
             Map.of(42L, 3L),
             Map.of(42L, 55L),
             Map.of(42L, new BigDecimal("165.00")));
-    when(service.list(1, 20, ProjectStatus.REJECTED, "vila", SortDirection.ASC, DESIGNER))
+    when(service.list(
+            1,
+            20,
+            ProjectStatus.REJECTED,
+            "vila",
+            ProjectSort.UPDATED_AT,
+            SortDirection.ASC,
+            null,
+            null,
+            null,
+            null,
+            DESIGNER))
         .thenReturn(listing);
     ProjectController controller = new ProjectController(service);
 
@@ -113,7 +152,12 @@ class ProjectControllerTest {
             new PageQuery(1, 20),
             ProjectStatus.REJECTED,
             "vila",
+            ProjectSort.UPDATED_AT,
             SortDirection.ASC,
+            null,
+            null,
+            null,
+            null,
             designerToken());
 
     assertThat(response.data()).hasSize(1);

@@ -3,6 +3,7 @@ package br.com.ampere.service;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.error.BusinessException;
@@ -14,22 +15,29 @@ import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.utils.SearchTerms;
 import java.math.BigDecimal;
+import java.text.Collator;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProjectService {
+
+  public static final ZoneId ZONE = ZoneId.of("America/Recife");
 
   private static final Logger log = LoggerFactory.getLogger(ProjectService.class);
 
@@ -73,15 +81,40 @@ public class ProjectService {
       int pageSize,
       ProjectStatus status,
       String search,
-      SortDirection sort,
+      ProjectSort sort,
+      SortDirection direction,
+      String municipality,
+      LocalDate createdFrom,
+      LocalDate createdTo,
+      Boolean hasBlocking,
       AuthenticatedUser user) {
-    Sort.Direction direction = Sort.Direction.valueOf(sort.name());
-    PageRequest pageRequest =
-        PageRequest.of(
-            page - 1, pageSize, Sort.by(direction, "updatedAt").and(Sort.by(direction, "id")));
+    if (createdFrom != null && createdTo != null && createdFrom.isAfter(createdTo)) {
+      throw new BusinessException(
+          "A data inicial deve ser anterior ou igual à data final.", HttpStatus.BAD_REQUEST);
+    }
+
+    OffsetDateTime from =
+        createdFrom != null ? createdFrom.atStartOfDay(ZONE).toOffsetDateTime() : null;
+    OffsetDateTime to =
+        createdTo != null ? createdTo.plusDays(1).atStartOfDay(ZONE).toOffsetDateTime() : null;
+    ProjectSort effectiveSort = sort != null ? sort : ProjectSort.UPDATED_AT;
+    SortDirection effectiveDirection = direction != null ? direction : SortDirection.DESC;
+    boolean filterBlocking = Boolean.TRUE.equals(hasBlocking);
+
+    PageRequest pageRequest = PageRequest.of(page - 1, pageSize);
     Page<Project> projects =
         projectRepository.searchAccessibleProjects(
-            status, SearchTerms.normalize(search), user.id(), user.isAdmin(), pageRequest);
+            status,
+            SearchTerms.normalize(search),
+            user.id(),
+            user.isAdmin(),
+            municipality,
+            from,
+            to,
+            filterBlocking,
+            effectiveSort,
+            effectiveDirection,
+            pageRequest);
 
     List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
 
@@ -91,6 +124,25 @@ public class ProjectService {
         countPendingFindings(projectIds),
         countUnits(projectIds),
         latestDemands(projectIds));
+  }
+
+  @Transactional(readOnly = true)
+  public List<String> listMunicipalities(AuthenticatedUser user) {
+    // The name is stored as typed, so the same city may come in different cases; the
+    // capitalized spelling wins, whatever order the database returns them in.
+    Collator collator = Collator.getInstance(Locale.of("pt", "BR"));
+    collator.setStrength(Collator.SECONDARY);
+    Map<String, String> unique = new TreeMap<>(collator);
+    projectRepository.findAccessibleMunicipalities(user.id(), user.isAdmin()).stream()
+        .map(String::trim)
+        .forEach(
+            municipality ->
+                unique.merge(
+                    municipality,
+                    municipality,
+                    (kept, other) -> kept.compareTo(other) <= 0 ? kept : other));
+
+    return List.copyOf(unique.values());
   }
 
   @Transactional(readOnly = true)

@@ -1,5 +1,7 @@
 package br.com.ampere.config;
 
+import br.com.ampere.domain.ProjectSort;
+import br.com.ampere.domain.ReviewQueueSort;
 import br.com.ampere.error.BusinessException;
 import java.util.Arrays;
 import java.util.Locale;
@@ -19,6 +21,8 @@ public class EnumParameterConfig implements WebMvcConfigurer {
 
   @Override
   public void addFormatters(FormatterRegistry registry) {
+    registry.addConverter(String.class, ProjectSort.class, ProjectSort::from);
+    registry.addConverter(String.class, ReviewQueueSort.class, ReviewQueueSort::from);
     registry.addConverterFactory(new StringToEnumConverterFactory());
   }
 
