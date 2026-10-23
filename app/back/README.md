@@ -95,6 +95,22 @@ As tabelas normativas (`/api/normative-tables/**`) e a fila (`/api/review-queue/
 
 Cada projeto pertence a quem o criou. O projetista vê só os próprios projetos; o analista lê os enviados para análise e não altera nenhum. Os projetos do seed pertencem a `user@ampere.com`. Detalhes em [`convencoes-back.md`](../../docs/tecnico/convencoes-back.md#dono-do-projeto).
 
+### Gestão de Usuários
+
+Restrita ao papel `admin` pelo `SecurityConfig`.
+
+| Método e caminho | O que faz |
+| :--- | :--- |
+| `GET /api/admin/users` | Lista em ordem de nome; `search` busca no nome e no e-mail sem acentos, `role` filtra por `user` ou `admin` |
+| `POST /api/admin/users` | Cria a conta com nome, e-mail e papel; devolve a senha temporária |
+| `PUT /api/admin/users/{id}` | Altera nome, papel e situação (`active`); é por aqui que se desativa e reativa |
+| `POST /api/admin/users/{id}/password-reset` | Gera uma nova senha temporária |
+
+- A senha temporária só sai na resposta da criação e da redefinição. Não há e-mail: o administrador a repassa.
+- Com senha temporária, `mustChangePassword` vem `true` no login e em `/api/auth/me`, até a troca em `PUT /api/users/me/password`.
+- Conta inativa recebe 403 no login, com *"Conta desativada. Procure a Neoenergia."*, mas só se a senha estiver certa. O token já emitido passa a responder 401 com a mesma mensagem: o filtro do JWT relê a situação e o papel da conta a cada requisição, e papel alterado também derruba o token.
+- O administrador não desativa a própria conta nem remove o próprio papel `admin`.
+
 ---
 
 ## Fila de Análise

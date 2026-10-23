@@ -590,6 +590,7 @@ A mensagem é o que o usuário lê: em português e sem jargão. O front descart
 | Geração de protocolo | `utils/Protocols` |
 | Regra de dono do projeto | `service/ProjectService`, `service/AuthenticatedUser` |
 | Cadastro e perfil | `service/UserService`, `controller/UserController` |
+| Gestão de usuários e bloqueio de conta inativa | `service/UserAdministrationService`, `security/ActiveAccountConverter` |
 | Análise técnica e apontamentos | `service/ProjectReviewService`, `service/FindingService` |
 | Documentação da API | `/api/docs` |
 
