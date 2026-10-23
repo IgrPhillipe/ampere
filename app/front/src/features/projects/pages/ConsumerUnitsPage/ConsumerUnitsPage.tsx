@@ -73,7 +73,8 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 	const groups = groupsQuery.data?.data ?? [];
 	const validation = validationQuery.data?.data;
 	const canCalculate = validation?.canCalculate ?? false;
-	const isEditable = project?.status === "DRAFT";
+	const isEditable =
+		project?.status === "DRAFT" || project?.status === "REJECTED";
 	const hasError =
 		projectQuery.isError || groupsQuery.isError || validationQuery.isError;
 

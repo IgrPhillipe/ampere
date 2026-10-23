@@ -106,7 +106,10 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 		({ stage }) => stage === "PROJECT_DATA",
 	);
 	const validation = validationQuery.data?.data;
-	const isEditable = projectId === undefined || project?.status === "DRAFT";
+	const isEditable =
+		projectId === undefined ||
+		project?.status === "DRAFT" ||
+		project?.status === "REJECTED";
 	const isSaving = createProject.isPending || updateProject.isPending;
 
 	const form = useZodForm(projectCreationSchema, {

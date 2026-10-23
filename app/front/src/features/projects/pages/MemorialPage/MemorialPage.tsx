@@ -51,7 +51,9 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const validation = validationQuery.data?.data;
 	const checklist = submissionQuery.data?.data;
 	const editable =
-		project?.status === "DRAFT" || project?.status === "AWAITING_SUBMISSION";
+		project?.status === "DRAFT" ||
+		project?.status === "AWAITING_SUBMISSION" ||
+		project?.status === "REJECTED";
 	const submitted = project !== undefined && !editable;
 	const neverCalculated = calculationQuery.data === null;
 	const hasError =
