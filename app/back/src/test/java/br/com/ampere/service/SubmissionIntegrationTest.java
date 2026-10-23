@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -14,8 +15,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import br.com.ampere.config.NormativeTableSeed;
 import br.com.ampere.domain.ConnectionType;
+import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EntranceStandard;
+import br.com.ampere.domain.EvStationType;
+import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingSeverity;
+import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.Project;
@@ -24,6 +30,7 @@ import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
@@ -127,6 +134,8 @@ class SubmissionIntegrationTest {
     perform(get(submissionOf(project)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.canSubmit").value(false))
+        .andExpect(jsonPath("$.data.unansweredBlocking").value(0))
+        .andExpect(jsonPath("$.data.requiresChangeSummary").value(false))
         .andExpect(jsonPath("$.data.items", hasSize(4)))
         .andExpect(jsonPath("$.data.items[0].key").value("CALCULATION"))
         .andExpect(jsonPath("$.data.items[0].completed").value(false))
@@ -277,6 +286,196 @@ class SubmissionIntegrationTest {
 
     assertThat(new PdfTextExtractor(new PdfReader(body)).getTextFromPage(1))
         .containsSubsequence("Responsável técnico", "Usuário Teste", "CREA", "123456/PE");
+  }
+
+  @Test
+  void blocksResubmissionWhileBlockingFindingsOrSummaryArePendingAndThenResubmitsAsReanalysis()
+      throws Exception {
+    User analyst =
+        userRepository.save(
+            new User(
+                "Admin Teste",
+                "admin@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.ADMIN));
+    String analystToken = token("admin@ampere.com");
+
+    Project project = calculatedDraft();
+    for (DocumentType type : DocumentType.values()) {
+      upload(project, type, type.name() + ".pdf", PDF).andExpect(status().isCreated());
+    }
+    perform(
+            post(submitOf(project))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"changeSummary\":\"Ignorado no primeiro envio.\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.reviewCycle").value(1))
+        .andExpect(jsonPath("$.data.changeSummary").doesNotExist());
+
+    project.assignReviewer(analyst);
+    project.reject(
+        java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC),
+        "Corrija a ART e a área do apartamento.");
+    projectRepository.flush();
+
+    Finding firstBlocking =
+        findingRepository.save(
+            publishedFinding(
+                project,
+                FindingSeverity.BLOCKING,
+                FindingStage.DOCUMENTS,
+                DocumentType.ART,
+                "Assinar a ART.",
+                analyst));
+    Finding secondBlocking =
+        findingRepository.save(
+            publishedFinding(
+                project,
+                FindingSeverity.BLOCKING,
+                FindingStage.CONSUMER_UNITS,
+                null,
+                "Revisar a área útil.",
+                analyst));
+    findingRepository.save(
+        publishedFinding(
+            project,
+            FindingSeverity.ADJUSTMENT,
+            FindingStage.PROJECT_DATA,
+            null,
+            "Detalhar o endereço.",
+            analyst));
+
+    perform(get(submissionOf(project)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.canSubmit").value(false))
+        .andExpect(jsonPath("$.data.unansweredBlocking").value(2))
+        .andExpect(jsonPath("$.data.requiresChangeSummary").value(true));
+
+    perform(
+            post(submitOf(project))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"changeSummary\":\"Corrigido.\"}"))
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Responda os apontamentos bloqueantes antes de reenviar. Pendentes: 2."));
+
+    perform(
+            put("/projects/" + project.getId() + "/findings/" + firstBlocking.getId() + "/response")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\":\"FIXED\"}"))
+        .andExpect(status().isOk());
+    perform(
+            put("/projects/"
+                    + project.getId()
+                    + "/findings/"
+                    + secondBlocking.getId()
+                    + "/response")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"status\":\"CONTESTED\",\"response\":\"A área confere com a prancha 2.\"}"))
+        .andExpect(status().isOk());
+
+    perform(get(submissionOf(project)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.canSubmit").value(true))
+        .andExpect(jsonPath("$.data.unansweredBlocking").value(0))
+        .andExpect(jsonPath("$.data.requiresChangeSummary").value(true));
+
+    perform(post(submitOf(project)))
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(
+            jsonPath("$.detail").value("Informe o resumo das alterações para reenviar o projeto."));
+    perform(
+            post(submitOf(project))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"changeSummary\":\"   \"}"))
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(
+            jsonPath("$.detail").value("Informe o resumo das alterações para reenviar o projeto."));
+    perform(
+            post(submitOf(project))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"changeSummary\":\"" + "x".repeat(2001) + "\"}"))
+        .andExpect(status().isBadRequest());
+
+    ConsumerUnitGroup pendingGroup =
+        groupRepository.save(
+            GroupKind.EV_CHARGING.create(
+                project,
+                new GroupSpec(
+                    "Recarga VE",
+                    4,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    new BigDecimal("7.4"),
+                    false,
+                    null,
+                    EvStationType.COLLECTIVE)));
+    perform(
+            post(submitOf(project))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"changeSummary\":\"Adicionei recarga VE.\"}"))
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Há grupos com pendências. Corrija-os antes de calcular a demanda."));
+    groupRepository.delete(pendingGroup);
+    groupRepository.flush();
+
+    long calculationsBefore = calculationRepository.count();
+
+    perform(
+            post(submitOf(project))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"changeSummary\":\"Substituí a ART assinada e justifiquei a área.\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.status").value("UNDER_REVIEW"))
+        .andExpect(jsonPath("$.data.reviewCycle").value(2))
+        .andExpect(jsonPath("$.data.reviewOpinion").doesNotExist())
+        .andExpect(
+            jsonPath("$.data.changeSummary")
+                .value("Substituí a ART assinada e justifiquei a área."))
+        .andExpect(jsonPath("$.data.reviewerName").value("Admin Teste"));
+
+    assertThat(calculationRepository.count()).isEqualTo(calculationsBefore + 1);
+
+    mockMvc
+        .perform(
+            get("/review-queue")
+                .param("filter", "REANALYSIS")
+                .header("Authorization", "Bearer " + analystToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].id").value(String.valueOf(project.getId())))
+        .andExpect(jsonPath("$.data[0].reanalysis").value(true));
+  }
+
+  private static Finding publishedFinding(
+      Project project,
+      FindingSeverity severity,
+      FindingStage stage,
+      DocumentType documentType,
+      String description,
+      User author) {
+    Finding finding =
+        new Finding(
+            project,
+            severity,
+            stage,
+            null,
+            null,
+            documentType,
+            description,
+            null,
+            author,
+            project.getReviewCycle());
+    finding.publish();
+    return finding;
   }
 
   private Project draft() {

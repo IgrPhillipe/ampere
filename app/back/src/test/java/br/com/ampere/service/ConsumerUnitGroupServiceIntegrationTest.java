@@ -142,6 +142,31 @@ class ConsumerUnitGroupServiceIntegrationTest {
   }
 
   @Test
+  void createsUpdatesAndDeletesGroupsOnARejectedProjectWithoutChangingItsStatus() {
+    Project rejected =
+        projectRepository.save(
+            new Project(
+                "Condomínio Vila Nova",
+                "Avenida Barreto de Menezes, 88",
+                "Jaboatão dos Guararapes",
+                "2026-1004",
+                ProjectStatus.REJECTED,
+                building(),
+                List.of(),
+                owner));
+
+    ConsumerUnitGroup created = service.create(rejected.getId(), charging(false), designer);
+    ConsumerUnitGroup updated =
+        service.update(rejected.getId(), created.getId(), charging(true), designer);
+    assertThat(updated.getId()).isEqualTo(created.getId());
+    service.delete(rejected.getId(), created.getId(), designer);
+
+    assertThat(groupRepository.findAllByProjectIdOrderById(rejected.getId())).isEmpty();
+    assertThat(projectRepository.findById(rejected.getId()).orElseThrow().getStatus())
+        .isEqualTo(ProjectStatus.REJECTED);
+  }
+
+  @Test
   void doesNotFindAGroupThroughAnotherProject() {
     Long projectId = draft().getId();
     Long otherProjectId = draft("2026-1009").getId();

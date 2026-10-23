@@ -203,6 +203,25 @@ class DemandCalculationIntegrationTest {
         .andExpect(status().isConflict());
   }
 
+  @Test
+  void recalculatesDemandForARejectedProjectKeepingItsStatus() throws Exception {
+    publishTables();
+    Project project = draftWithPrototypeGroups(true);
+    project.submit(java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC).minusDays(5));
+    project.reject(
+        java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC), "Rever fator de demanda.");
+    projectRepository.flush();
+
+    mockMvc
+        .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.totals.finalKva").value(165.00));
+
+    org.assertj.core.api.Assertions.assertThat(
+            projectRepository.findById(project.getId()).orElseThrow().getStatus())
+        .isEqualTo(ProjectStatus.REJECTED);
+  }
+
   private void publishTables() {
     normativeTableRepository.saveAll(
         NormativeTableSeed.all(

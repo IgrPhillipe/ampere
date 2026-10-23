@@ -132,7 +132,7 @@ public class ProjectService {
 
   @Transactional
   public Project update(Long id, ProjectParameters parameters, AuthenticatedUser user) {
-    Project project = draftOrFail(id, "Só é possível alterar um projeto em rascunho.", user);
+    Project project = editableOrFail(id, "Só é possível alterar um projeto em rascunho.", user);
     BuildingType buildingType = parameters.toBuildingType();
 
     project.rename(parameters.name(), parameters.address(), parameters.municipality());
@@ -151,6 +151,15 @@ public class ProjectService {
     groupRepository.deleteAllByProjectId(id);
     documentRepository.deleteAllByProjectId(id);
     projectRepository.delete(project);
+  }
+
+  Project editableOrFail(Long id, String message, AuthenticatedUser user) {
+    Project project = findWritableById(id, user);
+    if (!project.isEditable()) {
+      throw new BusinessException(message, HttpStatus.CONFLICT);
+    }
+
+    return project;
   }
 
   Project draftOrFail(Long id, String message, AuthenticatedUser user) {

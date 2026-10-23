@@ -69,6 +69,11 @@ public class Finding {
   @Column(nullable = false, columnDefinition = "varchar(255) default 'OPEN'")
   private FindingStatus status;
 
+  @Column(length = 2000)
+  private String response;
+
+  private OffsetDateTime respondedAt;
+
   protected Finding() {}
 
   public Finding(
@@ -136,6 +141,25 @@ public class Finding {
   /** Still waiting on the designer: a draft about to be published, or an open finding. */
   public boolean isPending() {
     return status == FindingStatus.DRAFT || status == FindingStatus.OPEN;
+  }
+
+  public boolean awaitsResponseIn(int reviewCycle) {
+    return version == reviewCycle
+        && status != FindingStatus.DRAFT
+        && status != FindingStatus.RESOLVED;
+  }
+
+  public void respond(FindingStatus status, String response, OffsetDateTime respondedAt) {
+    if (status != FindingStatus.FIXED && status != FindingStatus.CONTESTED) {
+      throw new IllegalArgumentException("status must be FIXED or CONTESTED");
+    }
+    String normalized = blankToNull(response);
+    if (status == FindingStatus.CONTESTED && normalized == null) {
+      throw new IllegalArgumentException("response is required when CONTESTED");
+    }
+    this.status = status;
+    this.response = normalized;
+    this.respondedAt = Objects.requireNonNull(respondedAt, "respondedAt");
   }
 
   public void resolve(FindingResolution resolution) {
@@ -207,5 +231,13 @@ public class Finding {
 
   public FindingStatus getStatus() {
     return status;
+  }
+
+  public String getResponse() {
+    return response;
+  }
+
+  public OffsetDateTime getRespondedAt() {
+    return respondedAt;
   }
 }

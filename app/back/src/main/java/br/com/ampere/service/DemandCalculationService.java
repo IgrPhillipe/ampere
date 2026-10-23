@@ -49,7 +49,7 @@ public class DemandCalculationService {
   @Transactional
   public Calculation calculate(Long projectId, AuthenticatedUser user) {
     Project project =
-        projectService.draftOrFail(
+        projectService.editableOrFail(
             projectId, "Só é possível calcular a demanda de um projeto em rascunho.", user);
     List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(projectId);
     if (groups.isEmpty()) {
