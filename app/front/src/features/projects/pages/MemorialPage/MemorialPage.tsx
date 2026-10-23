@@ -73,7 +73,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 		deleteMutation.mutate({ projectId, documentId: document.id });
 
 	const submit = () =>
-		submitMutation.mutate(projectId, { onSuccess: goToSubmission });
+		submitMutation.mutate({ projectId }, { onSuccess: goToSubmission });
 
 	const retry = () => {
 		void projectQuery.refetch();

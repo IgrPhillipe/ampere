@@ -18,6 +18,8 @@ const finding: Finding = {
 	createdAt: "2026-10-13T12:00:00Z",
 	version: 1,
 	status: "DRAFT",
+	response: null,
+	respondedAt: null,
 };
 
 describe("getDecisionAvailability", () => {

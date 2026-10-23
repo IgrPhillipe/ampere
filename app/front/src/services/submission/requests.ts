@@ -9,6 +9,7 @@ import {
 import type {
 	DeleteDocumentParams,
 	Memorial,
+	SubmitProjectParams,
 	UploadDocumentParams,
 } from "./types";
 
@@ -52,8 +53,15 @@ export const deleteDocument = async ({
 	await http.delete(e.document(projectId, documentId));
 };
 
-export const submitProject = async (projectId: string) => {
-	const response = await http.post(e.submission(projectId)).json<unknown>();
+export const submitProject = async ({
+	projectId,
+	changeSummary,
+}: SubmitProjectParams) => {
+	const response = await http
+		.post(e.submission(projectId), {
+			...(changeSummary === undefined ? {} : { json: { changeSummary } }),
+		})
+		.json<unknown>();
 
 	return submitProjectResponseSchema.parse(response);
 };
