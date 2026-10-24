@@ -1,7 +1,5 @@
 package br.com.ampere.config;
 
-import br.com.ampere.domain.ProjectSort;
-import br.com.ampere.domain.ReviewQueueSort;
 import br.com.ampere.error.BusinessException;
 import java.util.Arrays;
 import java.util.Locale;
@@ -15,14 +13,12 @@ import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import tools.jackson.databind.MapperFeature;
 
-/** Configures case-insensitive conversion to enum values, in query parameters and in the body. */
+/** Case-insensitive enums; the query string also ignores underscores ({@code createdAt}). */
 @Configuration
 public class EnumParameterConfig implements WebMvcConfigurer {
 
   @Override
   public void addFormatters(FormatterRegistry registry) {
-    registry.addConverter(String.class, ProjectSort.class, ProjectSort::from);
-    registry.addConverter(String.class, ReviewQueueSort.class, ReviewQueueSort::from);
     registry.addConverterFactory(new StringToEnumConverterFactory());
   }
 
@@ -46,15 +42,22 @@ public class EnumParameterConfig implements WebMvcConfigurer {
         return null;
       }
 
-      try {
-        return (T) Enum.valueOf(targetType, source.trim().toUpperCase(Locale.ROOT));
-      } catch (IllegalArgumentException exception) {
-        String acceptedValues =
-            Arrays.stream(targetType.getEnumConstants())
-                .map(Enum::name)
-                .collect(Collectors.joining(", "));
-        throw new BusinessException("Valor inválido. Valores aceitos: " + acceptedValues + ".");
+      String key = keyOf(source);
+      for (T constant : targetType.getEnumConstants()) {
+        if (keyOf(constant.name()).equals(key)) {
+          return constant;
+        }
       }
+
+      String acceptedValues =
+          Arrays.stream(targetType.getEnumConstants())
+              .map(Enum::name)
+              .collect(Collectors.joining(", "));
+      throw new BusinessException("Valor inválido. Valores aceitos: " + acceptedValues + ".");
+    }
+
+    private static String keyOf(String value) {
+      return value.trim().replace("_", "").toUpperCase(Locale.ROOT);
     }
   }
 }

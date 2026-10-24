@@ -10,32 +10,35 @@ import java.time.OffsetDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+/** Listings whose filters and sort column vary per request, so the query is built at runtime. */
 public interface ProjectRepositoryCustom {
 
-  Page<Project> searchAccessibleProjects(
-      ProjectStatus status,
-      String search,
+  Page<Project> searchAccessibleProjects(ProjectSearch search, Pageable pageable);
+
+  Page<Project> searchReviewQueue(ReviewQueueSearch search, Pageable pageable);
+
+  /** A null or blank filter does not filter; {@code search} is already folded and escaped. */
+  record ProjectSearch(
       Long ownerId,
       boolean admin,
-      String municipality,
-      OffsetDateTime createdFrom,
-      OffsetDateTime createdTo,
-      boolean hasBlocking,
-      ProjectSort sort,
-      SortDirection direction,
-      Pageable pageable);
-
-  Page<Project> searchReviewQueue(
       ProjectStatus status,
       String search,
-      boolean dueSoon,
+      String municipality,
+      OffsetDateTime createdFrom,
+      OffsetDateTime createdBefore,
+      boolean hasBlocking,
+      ProjectSort sort,
+      SortDirection direction) {}
+
+  /** A null or blank filter does not filter; {@code search} is already folded and escaped. */
+  record ReviewQueueSearch(
+      String search,
       OffsetDateTime submittedBefore,
-      boolean highDemand,
-      BigDecimal minimumDemand,
+      BigDecimal demandAbove,
       boolean reanalysis,
       String municipality,
-      String reviewer,
+      Long reviewerId,
+      boolean unassigned,
       ReviewQueueSort sort,
-      SortDirection direction,
-      Pageable pageable);
+      SortDirection direction) {}
 }

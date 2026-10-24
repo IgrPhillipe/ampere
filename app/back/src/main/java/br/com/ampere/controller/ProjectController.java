@@ -11,6 +11,7 @@ import br.com.ampere.dto.ProjectRequest;
 import br.com.ampere.dto.ProjectResponse;
 import br.com.ampere.dto.ProjectStatusCounts;
 import br.com.ampere.service.AuthenticatedUser;
+import br.com.ampere.service.ProjectListQuery;
 import br.com.ampere.service.ProjectListing;
 import br.com.ampere.service.ProjectParameters;
 import br.com.ampere.service.ProjectService;
@@ -22,6 +23,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -76,26 +78,22 @@ public class ProjectController {
           String municipality,
       @Parameter(description = "Data inicial de criação (inclusive), no formato YYYY-MM-DD")
           @RequestParam(required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate createdFrom,
       @Parameter(description = "Data final de criação (inclusive), no formato YYYY-MM-DD")
           @RequestParam(required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate createdTo,
-      @Parameter(description = "Filtra apenas projetos com apontamentos bloqueantes abertos")
-          @RequestParam(required = false)
-          Boolean hasBlocking,
+      @Parameter(description = "Só os projetos com apontamento bloqueante em aberto")
+          @RequestParam(defaultValue = "false")
+          boolean hasBlocking,
       @AuthenticationPrincipal Jwt jwt) {
     ProjectListing listing =
         service.list(
             pagination.page(),
             pagination.pageSize(),
-            status,
-            search,
-            sort,
-            direction,
-            municipality,
-            createdFrom,
-            createdTo,
-            hasBlocking,
+            new ProjectListQuery(
+                status, search, sort, direction, municipality, createdFrom, createdTo, hasBlocking),
             userOf(jwt));
     List<ProjectResponse> projects =
         listing.projects().stream()

@@ -294,8 +294,9 @@ class ReviewQueueIntegrationTest {
   void rejectsAnUnknownQueueSort() throws Exception {
     asAnalyst(get("/review-queue").param("sort", "oldest_first"))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("deadline")))
-        .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("demand")));
+        .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("DEADLINE")))
+        .andExpect(
+            jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("SUBMITTED_AT")));
   }
 
   @Test
@@ -331,28 +332,31 @@ class ReviewQueueIntegrationTest {
   }
 
   @Test
-  void ordersQueueByDemandAndWarnings() throws Exception {
-    Project p1 = projectRepository.save(project("2026-6001", ProjectStatus.DRAFT));
-    addPrototypeGroups(p1);
-    mockMvc
-        .perform(
-            post("/projects/" + p1.getId() + "/calculations")
-                .header("Authorization", "Bearer " + token("user@ampere.com")))
-        .andExpect(status().isCreated());
-    p1.submit(now.minusDays(5));
+  void ordersByTheLatestDemandWarningsAndSubmission() throws Exception {
+    Project small = projectRepository.save(project("2026-6001", ProjectStatus.DRAFT));
+    groupRepository.save(apartments(small, "Apartamento único", 2, "40"));
+    calculate(small);
+    small.submit(now.minusDays(5));
+    Project large = projectRepository.save(project("2026-6002", ProjectStatus.DRAFT));
+    addPrototypeGroups(large);
+    calculate(large);
+    large.submit(now.minusDays(4));
 
-    Project p2 = projectRepository.save(project("2026-6002", ProjectStatus.DRAFT));
-    addPrototypeGroups(p2);
-    calculate(p2);
-    p2.submit(now.minusDays(4));
-
-    asAnalyst(get("/review-queue").param("sort", "demand").param("direction", "ASC"))
+    asAnalyst(get("/review-queue"))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-6001"))
+        .andExpect(jsonPath("$.data[1].protocol").value("2026-6002"));
+    asAnalyst(get("/review-queue").param("sort", "demand").param("direction", "DESC"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data", hasSize(2)));
-
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-6002"))
+        .andExpect(jsonPath("$.data[1].protocol").value("2026-6001"));
     asAnalyst(get("/review-queue").param("sort", "warnings").param("direction", "DESC"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data", hasSize(2)));
+        .andExpect(jsonPath("$.data[0].warnings").value(1))
+        .andExpect(jsonPath("$.data[1].warnings").value(0));
+    asAnalyst(get("/review-queue").param("sort", "submittedAt").param("direction", "DESC"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-6002"))
+        .andExpect(jsonPath("$.data[1].protocol").value("2026-6001"));
   }
 
   @Test
@@ -368,19 +372,16 @@ class ReviewQueueIntegrationTest {
     p2.submit(now.minusDays(3));
     projectRepository.save(p2);
 
-    // Filtro por município
     asAnalyst(get("/review-queue").param("municipality", "recife"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-7001"));
 
-    // Filtro por reviewer (atribuído ao admin)
     asAnalyst(get("/review-queue").param("reviewer", String.valueOf(admin.getId())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-7001"));
 
-    // Filtro por reviewer none (sem analista)
     asAnalyst(get("/review-queue").param("reviewer", "none"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(1)))
@@ -399,9 +400,7 @@ class ReviewQueueIntegrationTest {
   }
 
   @Test
-  void scenario1PositiveCombinedFiltersAndOrdering() throws Exception {
-    // Cenário 1 (Positivo): analista na Fila filtra "Recife", marca "Reanálise" e ordena por
-    // demanda decrescente
+  void combinesMunicipalityReanalysisAndDemandSort() throws Exception {
     Project r1 = projectRepository.save(project("2026-8001", ProjectStatus.DRAFT));
     r1.rename("Reanálise Maior Demanda", "Rua A", "Recife");
     addPrototypeGroups(r1);
@@ -437,25 +436,6 @@ class ReviewQueueIntegrationTest {
         .andExpect(jsonPath("$.data", hasSize(2)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-8001"))
         .andExpect(jsonPath("$.data[1].protocol").value("2026-8002"));
-  }
-
-  @Test
-  void scenario2NegativeCombinationWithoutResult() throws Exception {
-    // Cenário 2 (Negativo): projetista filtrou município sem projetos no período escolhido
-    Project p = project("2026-9001", ProjectStatus.DRAFT);
-    p.rename("Projeto Recife", "Rua 1", "Recife");
-    projectRepository.save(p);
-
-    mockMvc
-        .perform(
-            get("/projects")
-                .header("Authorization", "Bearer " + token("user@ampere.com"))
-                .param("municipality", "Caruaru")
-                .param("createdFrom", "2026-01-01")
-                .param("createdTo", "2026-01-31"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data", hasSize(0)))
-        .andExpect(jsonPath("$.pagination.total").value(0));
   }
 
   @Test

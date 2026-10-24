@@ -30,7 +30,9 @@ import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -57,6 +59,8 @@ class ProjectServiceIntegrationTest {
   @Autowired private NormativeTableRepository normativeTableRepository;
 
   @Autowired private UserRepository userRepository;
+
+  @Autowired private EntityManager entityManager;
 
   private User owner;
 
@@ -196,177 +200,132 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
-  void ordersByNameAlphabeticallyCaseInsensitive() {
-    Project b =
-        projectRepository.save(
-            project("beta", "Rua B", "Recife", "2026-0002", ProjectStatus.DRAFT));
-    Project a =
-        projectRepository.save(
-            project("Alpha", "Rua A", "Recife", "2026-0001", ProjectStatus.DRAFT));
-    Project g =
-        projectRepository.save(
-            project("Gama", "Rua G", "Recife", "2026-0003", ProjectStatus.DRAFT));
+  void ordersByNameIgnoringCase() {
+    Project beta = save("beta", "Recife", "2026-0002");
+    Project alpha = save("Alpha", "Recife", "2026-0001");
+    Project gama = save("Gama", "Recife", "2026-0003");
 
-    ProjectListing asc =
-        service.list(
-            1,
-            20,
-            null,
-            null,
-            ProjectSort.NAME,
-            SortDirection.ASC,
-            null,
-            null,
-            null,
-            null,
-            designer);
-    assertThat(asc.projects()).containsExactly(a, b, g);
-
-    ProjectListing desc =
-        service.list(
-            1,
-            20,
-            null,
-            null,
-            ProjectSort.NAME,
-            SortDirection.DESC,
-            null,
-            null,
-            null,
-            null,
-            designer);
-    assertThat(desc.projects()).containsExactly(g, b, a);
+    assertThat(list(sortedBy(ProjectSort.NAME, SortDirection.ASC)).projects())
+        .containsExactly(alpha, beta, gama);
+    assertThat(list(sortedBy(ProjectSort.NAME, SortDirection.DESC)).projects())
+        .containsExactly(gama, beta, alpha);
   }
 
   @Test
-  void ordersByDemandWithProjectsWithoutCalculationAtTheEndInBothDirections() {
-    Project p100 =
-        projectRepository.save(
-            project("P100", "Rua 1", "Recife", "2026-0100", ProjectStatus.DRAFT));
-    Project p50 =
-        projectRepository.save(project("P50", "Rua 2", "Recife", "2026-0050", ProjectStatus.DRAFT));
-    Project pNone =
-        projectRepository.save(
-            project("PNone", "Rua 3", "Recife", "2026-0000", ProjectStatus.DRAFT));
+  void ordersByTheLatestDemandWithUncalculatedProjectsLastInBothDirections() {
+    Project hundred = save("P100", "Recife", "2026-0100");
+    Project fifty = save("P50", "Recife", "2026-0050");
+    Project uncalculated = save("PNone", "Recife", "2026-0000");
+    withDemand(hundred, new BigDecimal("10.00"));
+    withDemand(hundred, new BigDecimal("100.00"));
+    withDemand(fifty, new BigDecimal("50.00"));
 
-    withDemand(p100, new BigDecimal("100.00"));
-    withDemand(p50, new BigDecimal("50.00"));
-
-    ProjectListing asc =
-        service.list(
-            1,
-            20,
-            null,
-            null,
-            ProjectSort.DEMAND,
-            SortDirection.ASC,
-            null,
-            null,
-            null,
-            null,
-            designer);
-    assertThat(asc.projects()).containsExactly(p50, p100, pNone);
-
-    ProjectListing desc =
-        service.list(
-            1,
-            20,
-            null,
-            null,
-            ProjectSort.DEMAND,
-            SortDirection.DESC,
-            null,
-            null,
-            null,
-            null,
-            designer);
-    assertThat(desc.projects()).containsExactly(p100, p50, pNone);
+    assertThat(list(sortedBy(ProjectSort.DEMAND, SortDirection.ASC)).projects())
+        .containsExactly(fifty, hundred, uncalculated);
+    assertThat(list(sortedBy(ProjectSort.DEMAND, SortDirection.DESC)).projects())
+        .containsExactly(hundred, fifty, uncalculated);
   }
 
   @Test
-  void filtersByMunicipalityExactCaseInsensitive() {
-    Project recife =
-        projectRepository.save(project("A", "Rua 1", "Recife", "2026-0010", ProjectStatus.DRAFT));
-    projectRepository.save(project("B", "Rua 2", "Olinda", "2026-0020", ProjectStatus.DRAFT));
+  void ordersByCreationAndBreaksTiesByIdInTheSameDirection() {
+    Project first = save("A", "Recife", "2026-0001");
+    Project second = save("B", "Recife", "2026-0002");
+    Project oldest = save("C", "Recife", "2026-0003");
+    stamp(first, "createdAt", "2026-10-05T12:00Z");
+    stamp(second, "createdAt", "2026-10-05T12:00Z");
+    stamp(oldest, "createdAt", "2026-10-01T12:00Z");
+
+    assertThat(list(sortedBy(ProjectSort.CREATED_AT, SortDirection.ASC)).projects())
+        .containsExactly(oldest, first, second);
+    assertThat(list(sortedBy(ProjectSort.CREATED_AT, SortDirection.DESC)).projects())
+        .containsExactly(second, first, oldest);
+  }
+
+  @Test
+  void ordersByTheLastUpdateAndBreaksTiesById() {
+    Project first = save("A", "Recife", "2026-0001");
+    Project second = save("B", "Recife", "2026-0002");
+    Project latest = save("C", "Recife", "2026-0003");
+    stamp(first, "updatedAt", "2026-10-05T12:00Z");
+    stamp(second, "updatedAt", "2026-10-05T12:00Z");
+    stamp(latest, "updatedAt", "2026-10-09T12:00Z");
+
+    assertThat(list(sortedBy(ProjectSort.UPDATED_AT, SortDirection.DESC)).projects())
+        .containsExactly(latest, second, first);
+    assertThat(list(sortedBy(ProjectSort.UPDATED_AT, SortDirection.ASC)).projects())
+        .containsExactly(first, second, latest);
+  }
+
+  @Test
+  void filtersByTheCreationPeriodInRecifeTime() {
+    Project dayBefore = save("A", "Recife", "2026-0001");
+    Project firstDay = save("B", "Recife", "2026-0002");
+    Project lastDay = save("C", "Recife", "2026-0003");
+    Project dayAfter = save("D", "Recife", "2026-0004");
+    stamp(dayBefore, "createdAt", "2026-09-30T23:30-03:00");
+    stamp(firstDay, "createdAt", "2026-10-01T00:30-03:00");
+    stamp(lastDay, "createdAt", "2026-10-10T23:30-03:00");
+    stamp(dayAfter, "createdAt", "2026-10-11T00:05-03:00");
 
     ProjectListing listing =
-        service.list(
-            1,
-            20,
-            null,
-            null,
-            ProjectSort.UPDATED_AT,
-            SortDirection.DESC,
-            "recife",
-            null,
-            null,
-            null,
-            designer);
-    assertThat(listing.projects()).containsExactly(recife);
+        list(filtered(null, LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 10), false));
+
+    assertThat(listing.projects()).containsExactlyInAnyOrder(firstDay, lastDay);
   }
 
   @Test
-  void filtersByHasBlockingTrue() {
-    Project blockingProject =
-        projectRepository.save(
-            project("Com Bloqueio", "Rua 1", "Recife", "2026-0030", ProjectStatus.UNDER_REVIEW));
-    Project otherProject =
-        projectRepository.save(
-            project("Sem Bloqueio", "Rua 2", "Recife", "2026-0040", ProjectStatus.UNDER_REVIEW));
+  void filtersByMunicipalityIgnoringCaseAndSurroundingSpaces() {
+    Project recife = save("A", "Recife ", "2026-0010");
+    save("B", "Olinda", "2026-0020");
+    save("C", "Recife Antigo", "2026-0030");
 
-    Finding openBlocking =
-        new Finding(
-            blockingProject,
-            FindingSeverity.BLOCKING,
-            FindingStage.PROJECT_DATA,
-            null,
-            null,
-            null,
-            "Documento obrigatório faltando.",
-            null,
-            owner,
-            1);
-    openBlocking.publish();
-    findingRepository.save(openBlocking);
+    assertThat(list(filtered(" recife", null, null, false)).projects()).containsExactly(recife);
+  }
 
-    Finding openAdjustment =
-        new Finding(
-            otherProject,
-            FindingSeverity.ADJUSTMENT,
-            FindingStage.PROJECT_DATA,
-            null,
-            null,
-            null,
-            "Pequeno ajuste no memorial.",
-            null,
-            owner,
-            1);
-    openAdjustment.publish();
-    findingRepository.save(openAdjustment);
+  @Test
+  void filtersByOpenBlockingFindingsOnly() {
+    Project blocked = save("A", "Recife", "2026-0030");
+    Project adjusted = save("B", "Recife", "2026-0040");
+    Project drafted = save("C", "Recife", "2026-0050");
+    findingRepository.save(published(finding(blocked, FindingSeverity.BLOCKING)));
+    findingRepository.save(published(finding(adjusted, FindingSeverity.ADJUSTMENT)));
+    findingRepository.save(finding(drafted, FindingSeverity.BLOCKING));
+
+    assertThat(list(filtered(null, null, null, true)).projects()).containsExactly(blocked);
+  }
+
+  @Test
+  void combinesTheFiltersWithTheSort() {
+    Project zeta = save("Zeta", "Recife", "2026-0001");
+    Project alpha = save("Alpha", "Recife", "2026-0002");
+    Project olinda = save("Beta", "Olinda", "2026-0003");
+    save("Gama", "Recife", "2026-0004");
+    for (Project blocked : List.of(zeta, alpha, olinda)) {
+      findingRepository.save(published(finding(blocked, FindingSeverity.BLOCKING)));
+    }
 
     ProjectListing listing =
-        service.list(
-            1,
-            20,
-            null,
-            null,
-            ProjectSort.UPDATED_AT,
-            SortDirection.DESC,
-            null,
-            null,
-            null,
-            true,
-            designer);
-    assertThat(listing.projects()).containsExactly(blockingProject);
+        list(
+            new ProjectListQuery(
+                ProjectStatus.UNDER_REVIEW,
+                null,
+                ProjectSort.NAME,
+                SortDirection.ASC,
+                "Recife",
+                null,
+                null,
+                true));
+
+    assertThat(listing.projects()).containsExactly(alpha, zeta);
+    assertThat(listing.totalElements()).isEqualTo(2);
   }
 
   @Test
   void listsDistinctMunicipalitiesForDesignerAndAnalyst() {
-    projectRepository.save(project("A", "Rua 1", "Recife", "2026-0010", ProjectStatus.DRAFT));
-    projectRepository.save(project("B", "Rua 2", "Olinda", "2026-0020", ProjectStatus.DRAFT));
-    projectRepository.save(project("C", "Rua 3", "recife", "2026-0030", ProjectStatus.DRAFT));
-    projectRepository.save(
-        project("E", "Rua 5", "Jaboatão dos Guararapes", "2026-0050", ProjectStatus.DRAFT));
+    save("A", "Recife", "2026-0010");
+    save("B", "Olinda", "2026-0020");
+    save("C", "recife ", "2026-0030");
+    save("E", "Jaboatão dos Guararapes", "2026-0050");
 
     User analystUser =
         userRepository.save(new User("Admin", "admin@ampere.com", "hash", UserRole.ADMIN));
@@ -484,18 +443,44 @@ class ProjectServiceIntegrationTest {
   }
 
   private ProjectListing list(ProjectStatus status, String search) {
-    return service.list(
-        1,
-        20,
-        status,
-        search,
+    return list(
+        new ProjectListQuery(
+            status, search, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, false));
+  }
+
+  private ProjectListing list(ProjectListQuery query) {
+    return service.list(1, 20, query, designer);
+  }
+
+  private static ProjectListQuery sortedBy(ProjectSort sort, SortDirection direction) {
+    return new ProjectListQuery(null, null, sort, direction, null, null, null, false);
+  }
+
+  private static ProjectListQuery filtered(
+      String municipality, LocalDate createdFrom, LocalDate createdTo, boolean hasBlocking) {
+    return new ProjectListQuery(
+        null,
+        null,
         ProjectSort.UPDATED_AT,
         SortDirection.DESC,
-        null,
-        null,
-        null,
-        null,
-        designer);
+        municipality,
+        createdFrom,
+        createdTo,
+        hasBlocking);
+  }
+
+  private Project save(String name, String municipality, String protocol) {
+    return projectRepository.save(
+        project(name, "Rua " + name, municipality, protocol, ProjectStatus.UNDER_REVIEW));
+  }
+
+  /** The entity sets its own timestamps, so tests move them with a bulk update. */
+  private void stamp(Project project, String field, String instant) {
+    entityManager
+        .createQuery("UPDATE Project project SET project." + field + " = :at WHERE project = :p")
+        .setParameter("at", OffsetDateTime.parse(instant))
+        .setParameter("p", project)
+        .executeUpdate();
   }
 
   private void withDemand(Project project, BigDecimal demandKva) {
@@ -584,9 +569,13 @@ class ProjectServiceIntegrationTest {
   }
 
   private Finding finding(Project project) {
+    return finding(project, FindingSeverity.ADJUSTMENT);
+  }
+
+  private Finding finding(Project project, FindingSeverity severity) {
     return new Finding(
         project,
-        FindingSeverity.ADJUSTMENT,
+        severity,
         FindingStage.PROJECT_DATA,
         null,
         null,

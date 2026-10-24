@@ -3,9 +3,7 @@ package br.com.ampere.service;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
-import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
-import br.com.ampere.domain.SortDirection;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
@@ -13,12 +11,12 @@ import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.repository.ProjectRepositoryCustom.ProjectSearch;
 import br.com.ampere.utils.SearchTerms;
 import java.math.BigDecimal;
 import java.text.Collator;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
@@ -36,8 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProjectService {
-
-  public static final ZoneId ZONE = ZoneId.of("America/Recife");
 
   private static final Logger log = LoggerFactory.getLogger(ProjectService.class);
 
@@ -77,44 +73,27 @@ public class ProjectService {
 
   @Transactional(readOnly = true)
   public ProjectListing list(
-      int page,
-      int pageSize,
-      ProjectStatus status,
-      String search,
-      ProjectSort sort,
-      SortDirection direction,
-      String municipality,
-      LocalDate createdFrom,
-      LocalDate createdTo,
-      Boolean hasBlocking,
-      AuthenticatedUser user) {
-    if (createdFrom != null && createdTo != null && createdFrom.isAfter(createdTo)) {
-      throw new BusinessException(
-          "A data inicial deve ser anterior ou igual à data final.", HttpStatus.BAD_REQUEST);
+      int page, int pageSize, ProjectListQuery query, AuthenticatedUser user) {
+    if (query.createdFrom() != null
+        && query.createdTo() != null
+        && query.createdFrom().isAfter(query.createdTo())) {
+      throw new BusinessException("A data inicial deve ser anterior ou igual à data final.");
     }
 
-    OffsetDateTime from =
-        createdFrom != null ? createdFrom.atStartOfDay(ZONE).toOffsetDateTime() : null;
-    OffsetDateTime to =
-        createdTo != null ? createdTo.plusDays(1).atStartOfDay(ZONE).toOffsetDateTime() : null;
-    ProjectSort effectiveSort = sort != null ? sort : ProjectSort.UPDATED_AT;
-    SortDirection effectiveDirection = direction != null ? direction : SortDirection.DESC;
-    boolean filterBlocking = Boolean.TRUE.equals(hasBlocking);
-
-    PageRequest pageRequest = PageRequest.of(page - 1, pageSize);
     Page<Project> projects =
         projectRepository.searchAccessibleProjects(
-            status,
-            SearchTerms.normalize(search),
-            user.id(),
-            user.isAdmin(),
-            municipality,
-            from,
-            to,
-            filterBlocking,
-            effectiveSort,
-            effectiveDirection,
-            pageRequest);
+            new ProjectSearch(
+                user.id(),
+                user.isAdmin(),
+                query.status(),
+                SearchTerms.normalize(query.search()),
+                query.municipality(),
+                startOf(query.createdFrom()),
+                query.createdTo() == null ? null : startOf(query.createdTo().plusDays(1)),
+                query.hasBlocking(),
+                query.sort(),
+                query.direction()),
+            PageRequest.of(page - 1, pageSize));
 
     List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
 
@@ -128,19 +107,13 @@ public class ProjectService {
 
   @Transactional(readOnly = true)
   public List<String> listMunicipalities(AuthenticatedUser user) {
-    // The name is stored as typed, so the same city may come in different cases; the
-    // capitalized spelling wins, whatever order the database returns them in.
+    // Spellings differing only in case collapse into the first in code point order.
     Collator collator = Collator.getInstance(Locale.of("pt", "BR"));
     collator.setStrength(Collator.SECONDARY);
     Map<String, String> unique = new TreeMap<>(collator);
     projectRepository.findAccessibleMunicipalities(user.id(), user.isAdmin()).stream()
         .map(String::trim)
-        .forEach(
-            municipality ->
-                unique.merge(
-                    municipality,
-                    municipality,
-                    (kept, other) -> kept.compareTo(other) <= 0 ? kept : other));
+        .forEach(municipality -> unique.merge(municipality, municipality, ProjectService::first));
 
     return List.copyOf(unique.values());
   }
@@ -250,6 +223,14 @@ public class ProjectService {
             Collectors.toUnmodifiableMap(
                 ConsumerUnitGroupRepository.UnitCount::getProjectId,
                 ConsumerUnitGroupRepository.UnitCount::getTotal));
+  }
+
+  private static OffsetDateTime startOf(LocalDate day) {
+    return day == null ? null : day.atStartOfDay(ReviewQueueService.ZONE).toOffsetDateTime();
+  }
+
+  private static String first(String kept, String other) {
+    return kept.compareTo(other) <= 0 ? kept : other;
   }
 
   private Map<Long, BigDecimal> latestDemands(List<Long> projectIds) {

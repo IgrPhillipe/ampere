@@ -36,9 +36,11 @@ import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.GlobalExceptionHandler;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.service.AuthenticatedUser;
+import br.com.ampere.service.ProjectListQuery;
 import br.com.ampere.service.ProjectListing;
 import br.com.ampere.service.ProjectService;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -90,10 +92,48 @@ class ProjectControllerTest {
     mockMvc.perform(get("/projects").param("sort", "ASC")).andExpect(status().isBadRequest());
     mockMvc
         .perform(get("/projects").param("sort", "unsupported"))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value(containsString("CREATED_AT")));
     mockMvc
         .perform(get("/projects").param("direction", "INVALID"))
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void bindsTheFiltersAndTheCamelCaseSortColumn() throws Exception {
+    ProjectService service = mock(ProjectService.class);
+    ProjectListQuery query =
+        new ProjectListQuery(
+            null,
+            null,
+            ProjectSort.CREATED_AT,
+            SortDirection.ASC,
+            "Recife",
+            LocalDate.of(2026, 10, 1),
+            LocalDate.of(2026, 10, 10),
+            true);
+    when(service.list(1, 20, query, DESIGNER))
+        .thenReturn(new ProjectListing(List.of(), 0, Map.of(), Map.of(), Map.of()));
+
+    mockMvc(service)
+        .perform(
+            get("/projects")
+                .param("sort", "createdAt")
+                .param("direction", "asc")
+                .param("municipality", "Recife")
+                .param("createdFrom", "2026-10-01")
+                .param("createdTo", "2026-10-10")
+                .param("hasBlocking", "true"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.pagination.total").value(0));
+  }
+
+  @Test
+  void rejectsADateOutsideTheIsoFormat() throws Exception {
+    mockMvc(mock(ProjectService.class))
+        .perform(get("/projects").param("createdFrom", "01/10/2026"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value(containsString("createdFrom")));
   }
 
   @Test
@@ -135,14 +175,15 @@ class ProjectControllerTest {
     when(service.list(
             1,
             20,
-            ProjectStatus.REJECTED,
-            "vila",
-            ProjectSort.UPDATED_AT,
-            SortDirection.ASC,
-            null,
-            null,
-            null,
-            null,
+            new ProjectListQuery(
+                ProjectStatus.REJECTED,
+                "vila",
+                ProjectSort.UPDATED_AT,
+                SortDirection.ASC,
+                null,
+                null,
+                null,
+                false),
             DESIGNER))
         .thenReturn(listing);
     ProjectController controller = new ProjectController(service);
@@ -157,7 +198,7 @@ class ProjectControllerTest {
             null,
             null,
             null,
-            null,
+            false,
             designerToken());
 
     assertThat(response.data()).hasSize(1);

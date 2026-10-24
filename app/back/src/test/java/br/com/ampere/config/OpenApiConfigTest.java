@@ -40,7 +40,7 @@ class OpenApiConfigTest {
                 String.class,
                 LocalDate.class,
                 LocalDate.class,
-                Boolean.class,
+                boolean.class,
                 Jwt.class)
             .getAnnotation(Operation.class);
 

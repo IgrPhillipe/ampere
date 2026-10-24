@@ -10,6 +10,7 @@ import br.com.ampere.dto.ReviewQueueIndicatorsResponse;
 import br.com.ampere.dto.ReviewQueueItemResponse;
 import br.com.ampere.dto.ReviewerOptionResponse;
 import br.com.ampere.service.ReviewQueueListing;
+import br.com.ampere.service.ReviewQueueQuery;
 import br.com.ampere.service.ReviewQueueService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -74,12 +75,7 @@ public class ReviewQueueController {
         service.list(
             pagination.page(),
             pagination.pageSize(),
-            search,
-            filter,
-            sort,
-            direction,
-            reviewer,
-            municipality);
+            new ReviewQueueQuery(search, filter, sort, direction, reviewer, municipality));
     List<ReviewQueueItemResponse> items =
         listing.entries().stream().map(ReviewQueueItemResponse::from).toList();
 
