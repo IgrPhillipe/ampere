@@ -52,7 +52,7 @@ export const ControlledSelect = <T extends FieldValues>({
 	placeholder = "Selecione uma opção",
 	items,
 	disabled,
-	variant = "default",
+	variant = "underline",
 	required = false,
 	className,
 	fieldClassName,

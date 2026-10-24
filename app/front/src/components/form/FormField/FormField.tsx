@@ -25,7 +25,7 @@ export const FormField = ({
 	label,
 	description,
 	error,
-	variant = "default",
+	variant = "underline",
 	required = false,
 	children,
 	className,

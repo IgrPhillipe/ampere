@@ -202,16 +202,18 @@ coluna, e o zero fica em branco.
 contorno, foco e estado desabilitado. Em formulários, use os wrappers de
 `@components/form`, que conectam rótulo, descrição e erro acessível.
 
-`Input` e `SelectTrigger` têm duas variantes:
+`Input`, `Textarea` e `SelectTrigger` têm duas variantes:
 
-- `default`: campo em caixa, com contorno e sombra. É o padrão.
 - `underline`: campo sem caixa, só com a linha de base e o rótulo em
-  sobrescrita. Indicado para formulários longos, em que a moldura de cada campo
-  compete com a hierarquia das seções. Usado na criação de projeto.
+  sobrescrita. É o padrão em todo o sistema: cadastro, login, grupos,
+  apontamentos, parecer e tabelas normativas.
+- `default`: campo em caixa, com contorno e sombra. Não é usado hoje; um campo
+  em caixa arredondada destoa dos demais.
 
-A variante é passada ao wrapper, não ao primitivo. `ControlledInput` e
-`ControlledSelect` aceitam `variant` e aplicam a mesma escolha ao rótulo e ao
-controle, o que impede os dois de ficarem com variantes diferentes.
+A variante é passada ao wrapper, não ao primitivo. `ControlledInput`,
+`ControlledSelect`, `ControlledTextarea` e `ControlledCombobox` aceitam
+`variant` e aplicam a mesma escolha ao rótulo e ao controle, o que impede os
+dois de ficarem com variantes diferentes.
 
 Campo obrigatório usa `required`, nunca asterisco digitado no texto do rótulo.
 O marcador visual é `aria-hidden`, e o leitor de tela anuncia "obrigatório" em
@@ -220,7 +222,7 @@ vez de "asterisco". O `required` também chega ao controle: atributo nativo no
 atributo nativo.
 
 ```tsx
-<ControlledInput control={form.control} name="name" label="Nome" variant="underline" />
+<ControlledInput control={form.control} name="name" label="Nome" required />
 ```
 
 No `underline`, foco e erro ficam na própria linha, nunca no anel: um `ring` em

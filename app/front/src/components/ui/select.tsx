@@ -28,7 +28,7 @@ const selectTriggerVariants = cva(
 			},
 		},
 		defaultVariants: {
-			variant: "default",
+			variant: "underline",
 		},
 	},
 );

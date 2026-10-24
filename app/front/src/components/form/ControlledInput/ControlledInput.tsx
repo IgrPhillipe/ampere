@@ -33,7 +33,7 @@ export const ControlledInput = <T extends FieldValues>({
 	name,
 	label,
 	description,
-	variant = "default",
+	variant = "underline",
 	required = false,
 	className,
 	fieldClassName,
