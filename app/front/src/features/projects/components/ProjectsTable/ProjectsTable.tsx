@@ -2,8 +2,9 @@ import { DataTable } from "@components/DataTable";
 import { EmptyState } from "@components/EmptyState";
 import { SkeletonTable } from "@components/SkeletonTable";
 import { Button } from "@components/ui/button";
+import type { ListSort } from "@features/shared";
 import { cn } from "@lib/utils";
-import type { Project } from "@services/projects";
+import type { Project, ProjectSort } from "@services/projects";
 import { useMemo } from "react";
 
 import { ProjectCards } from "./ProjectCards";
@@ -23,9 +24,18 @@ const projectColumnClassNames = {
 	action: "w-36",
 } satisfies Partial<Record<ProjectColumnId, string>>;
 
+const sortableColumns = [
+	"name",
+	"demand",
+	"createdAt",
+	"updatedAt",
+] as const satisfies readonly ProjectSort[];
+
 interface ProjectsTableProps extends ProjectRowActions {
 	projects: Project[];
 	isLoading?: boolean;
+	sort?: ListSort<ProjectSort>;
+	onSortChange?: (column: ProjectSort) => void;
 	/** Without it the empty state offers no way out of an over-narrow filter. */
 	onClearFilters?: () => void;
 	className?: string;
@@ -39,6 +49,8 @@ export const ProjectsTable = ({
 	onContinueDraft,
 	onViewProject,
 	onDeleteProject,
+	sort,
+	onSortChange,
 	onClearFilters,
 	className,
 }: ProjectsTableProps) => {
@@ -69,7 +81,7 @@ export const ProjectsTable = ({
 		return onClearFilters ? (
 			<EmptyState
 				title="Nenhum projeto encontrado para os critérios informados"
-				description="Verifique o protocolo ou o nome do projeto, ou limpe os filtros para ver todos."
+				description="Revise a busca e os filtros, ou limpe os filtros para ver todos os projetos."
 				action={
 					<Button type="button" variant="outline" onClick={onClearFilters}>
 						Limpar Filtros
@@ -92,10 +104,13 @@ export const ProjectsTable = ({
 				className={cn("lg:hidden", className)}
 			/>
 
-			<DataTable
+			<DataTable<Project, ProjectColumnId, ProjectSort>
 				columns={columns}
 				data={projects}
 				columnClassNames={projectColumnClassNames}
+				sortableColumns={sortableColumns}
+				sort={sort}
+				onSortChange={onSortChange}
 				className={cn("hidden lg:block", className)}
 			/>
 		</>
