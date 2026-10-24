@@ -7,12 +7,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-/** Body of {@code POST /admin/users}. The password is generated, never sent. */
+/** Body of {@code POST /users}. The password is generated, never sent. */
 public record CreateUserRequest(
     @NotBlank(message = "O nome é obrigatório.")
         @Size(max = 120, message = "O nome deve ter no máximo {max} caracteres.")
         String name,
-    @NotBlank(message = "O e-mail é obrigatório.") @Email(message = "Informe um e-mail válido.")
+    @NotBlank(message = "O e-mail é obrigatório.")
+        @Email(message = "Informe um e-mail válido.")
+        @Size(max = 255, message = "O e-mail deve ter no máximo {max} caracteres.")
         String email,
     @NotNull(message = "O papel é obrigatório.") UserRole role) {
 

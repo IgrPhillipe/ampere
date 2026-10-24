@@ -63,7 +63,7 @@ public class User {
   private OffsetDateTime lastLoginAt;
 
   /** Name and e-mail without accents, in lowercase, for the administrator's search. */
-  @Column(nullable = false, columnDefinition = "varchar(255) default ''")
+  @Column(nullable = false, columnDefinition = "text default ''")
   private String searchIndex;
 
   protected User() {}
@@ -74,7 +74,7 @@ public class User {
     this.passwordHash = passwordHash;
     this.role = role;
     this.createdAt = OffsetDateTime.now(ZoneOffset.UTC);
-    this.searchIndex = searchIndexOf(name, this.email);
+    indexForSearch();
   }
 
   /** An account the administrator creates: it signs in with a temporary password. */
@@ -139,19 +139,20 @@ public class User {
     return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
   }
 
+  /** Also fills the index of accounts created before it existed. */
+  public void indexForSearch() {
+    searchIndex = SearchTerms.fold(name + " " + email);
+  }
+
   @PrePersist
   private void onPersist() {
     createdAt = OffsetDateTime.now(ZoneOffset.UTC);
-    searchIndex = searchIndexOf(name, email);
+    indexForSearch();
   }
 
   @PreUpdate
   private void onUpdate() {
-    searchIndex = searchIndexOf(name, email);
-  }
-
-  private static String searchIndexOf(String name, String email) {
-    return SearchTerms.fold(name + " " + email);
+    indexForSearch();
   }
 
   /** The form the column stores and every lookup compares against. */
