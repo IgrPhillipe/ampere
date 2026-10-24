@@ -31,8 +31,9 @@ A aplicação sobe em `http://localhost:5173`. O proxy do Vite encaminha as
 chamadas para `/api` a `http://localhost:8080`, onde roda o back-end Spring Boot.
 
 Por padrão o front consome a API real. Com `VITE_ENABLE_MSW=true`, o MSW
-responde no lugar dela só nos fluxos de login e listagem de projetos. Usuários
-de teste (os mesmos do seeder do back-end):
+responde no lugar dela só nos fluxos de login e listagem de projetos. Principais
+usuários de teste (a lista completa e os cenários estão em
+[`docs/produto/dados-de-demonstracao.md`](../../docs/produto/dados-de-demonstracao.md)):
 
 | E-mail | Senha | Papel |
 | :--- | :--- | :--- |

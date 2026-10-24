@@ -61,16 +61,21 @@ API em `http://localhost:8080/api`, documentação em `http://localhost:8080/api
 
 ## Autenticação
 
-`/api/projects` exige token. A cada inicialização fora dos profiles `prod` e `test`, ou com o profile `demo`, o `DataSeeder` cria os quatro usuários de desenvolvimento que ainda não existem (a checagem é por e-mail):
+`/api/projects` exige token. A cada inicialização fora dos profiles `prod` e `test`, ou com o profile `demo`, o `DataSeeder` cria os usuários de desenvolvimento que ainda não existem (a checagem é por e-mail). Todos têm a senha `senha@123`:
 
-| E-mail | Senha | Papel |
+| E-mail | Papel | Observação |
 | :--- | :--- | :--- |
-| `user@ampere.com` | `senha@123` | `user`, com CREA 123456/PE |
-| `admin@ampere.com` | `senha@123` | `admin` |
-| `conferente@ampere.com` | `senha@123` | `admin` |
-| `revisor@ampere.com` | `senha@123` | `reviewer` |
+| `user@ampere.com` | `user` | CREA 123456/PE |
+| `projetista@ampere.com` | `user` | Carla Projetista, CREA 654321/PE |
+| `joao@ampere.com` | `user` | João Batista, CREA 223344/PB, projetos em Pedras de Fogo |
+| `novo@ampere.com` | `user` | Diego Novato, senha temporária: troca no primeiro login |
+| `inativo@ampere.com` | `user` | Conta desativada |
+| `admin@ampere.com` | `admin` | |
+| `conferente@ampere.com` | `admin` | Publica as tabelas que o admin cadastra |
+| `revisor@ampere.com` | `reviewer` | |
+| `analista@ampere.com` | `reviewer` | Ana Analista |
 
-O `DemoScenarioSeeder` completa o banco com projetos em cada etapa da análise, uma segunda analista (`analista@ampere.com`) e um projetista inativo (`inativo@ampere.com`), com a mesma senha. Em produção, `SPRING_PROFILES_ACTIVE=prod,demo` liga os dois seeds e mantém o `JWT_SECRET` obrigatório.
+O `DemoScenarioSeeder` cria, por protocolo, os projetos de cada caso do sistema: rascunhos, análise, reprovações, aprovações e revisões de tabela normativa. Cada cenário só entra se o protocolo estiver livre, com datas coerentes e prazos relativos ao momento do seed. `ampere.seed.reset-scenarios=true` (ou `SEED_RESET_SCENARIOS=true`) apaga e recria só os projetos do seed. Os cenários estão em [`docs/produto/dados-de-demonstracao.md`](../../docs/produto/dados-de-demonstracao.md). Em produção, `SPRING_PROFILES_ACTIVE=prod,demo` liga os dois seeds e mantém o `JWT_SECRET` obrigatório; nesse caso o seed nunca altera um projeto que não criou.
 
 O conferente existe para a dupla leitura das tabelas normativas: quem cadastra uma tabela não a publica. O revisor é o analista; num banco antigo, em que ele era `admin`, o `DataSeeder` o passa para `reviewer`.
 
@@ -96,7 +101,7 @@ As tabelas normativas (`/api/normative-tables/**`) e a gestão de usuários (`/a
 - O CREA é só o número, e a UF vai no campo próprio. É obrigatório para o projetista e opcional para o analista.
 - O nome e o CREA do dono saem em `technicalResponsible` no detalhe do projeto e no memorial em PDF.
 
-Cada projeto pertence a quem o criou. O projetista vê só os próprios projetos; o analista lê os enviados para análise e não altera nenhum. Os projetos do seed pertencem a `user@ampere.com`. Detalhes em [`convencoes-back.md`](../../docs/tecnico/convencoes-back.md#dono-do-projeto).
+Cada projeto pertence a quem o criou. O projetista vê só os próprios projetos; o analista lê os enviados para análise e não altera nenhum. Os projetos do seed pertencem a `user@ampere.com`, `projetista@ampere.com`, `joao@ampere.com`, `inativo@ampere.com` e `admin@ampere.com`. Detalhes em [`convencoes-back.md`](../../docs/tecnico/convencoes-back.md#dono-do-projeto).
 
 ### Gestão de Usuários
 
