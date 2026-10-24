@@ -119,7 +119,7 @@ export const ProjectDetailHeader = ({
 				{project ? <HeaderDate value={project.createdAt} /> : undefined}
 			</HeaderCell>
 
-			<HeaderCell isLoading={isLoading} label="Recebido em">
+			<HeaderCell isLoading={isLoading} label="Enviado em">
 				{project?.submittedAt ? (
 					<HeaderDate value={project.submittedAt} />
 				) : undefined}

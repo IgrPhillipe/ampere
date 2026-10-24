@@ -86,7 +86,7 @@ describe("ProjectDetailPage", () => {
 		expect(screen.getByText("Protocolo 2026-1004")).toBeVisible();
 		expect(screen.queryByText(/Análise do Projeto/)).not.toBeInTheDocument();
 		expect(screen.getByText("Criado em")).toBeVisible();
-		expect(screen.getByText("Recebido em")).toBeVisible();
+		expect(screen.getByText("Enviado em")).toBeVisible();
 		for (const tab of [
 			"Memória de Cálculo",
 			"Unidades Consumidoras",
