@@ -378,6 +378,7 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 				totalLoadKw={validation?.totalDeclaredLoadKw ?? 0}
 				documents={checklist?.documents}
 				markedFindings={markedFindings}
+				groupHint="Selecione o nome de um grupo para ver os dados dele."
 				onOpenGroup={openGroup}
 			/>
 
