@@ -59,6 +59,7 @@ export const ConsumerUnitGroupCards = ({
 					findings={findings.filter(
 						(finding) => finding.consumerUnitGroupId === group.id,
 					)}
+					target={`grupo-${group.id}`}
 				/>
 
 				<dl className="flex flex-wrap gap-x-6 gap-y-2">

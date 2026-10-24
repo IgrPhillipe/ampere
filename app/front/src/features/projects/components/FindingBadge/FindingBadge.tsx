@@ -1,31 +1,46 @@
 import { Badge } from "@components/ui/badge";
 import type { Finding } from "@services/project-review";
 import { MessageSquareWarning } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface FindingBadgeProps {
 	findings?: Finding[];
+	/** Item the findings shortcut points to, matched against the URL hash. */
+	target?: string;
 	className?: string;
 }
 
 export const FindingBadge = ({
 	findings = [],
+	target,
 	className,
 }: FindingBadgeProps) => {
-	const active = findings.filter(
-		({ status }) => status !== "DRAFT" && status !== "RESOLVED",
-	);
-	if (active.length === 0) return null;
+	const ref = useRef<HTMLSpanElement>(null);
+	const count = findings.length;
 
-	const hasBlocking = active.some(({ severity }) => severity === "BLOCKING");
+	useEffect(() => {
+		const badge = ref.current;
+		// The same group renders as a card and as a row: only the visible one scrolls.
+		if (!target || !badge?.offsetParent) return;
+		if (window.location.hash === `#${target}`) {
+			badge.scrollIntoView({ block: "center" });
+		}
+	}, [target, count]);
+
+	if (count === 0) return null;
 
 	return (
 		<Badge
-			variant={hasBlocking ? "destructive" : "warning"}
+			ref={ref}
+			variant={
+				findings.some(({ severity }) => severity === "BLOCKING")
+					? "destructive"
+					: "warning"
+			}
 			className={className}
-			title={`${active.length} ${active.length === 1 ? "apontamento" : "apontamentos"} nesta etapa`}
 		>
 			<MessageSquareWarning aria-hidden="true" />
-			{active.length} {active.length === 1 ? "apontamento" : "apontamentos"}
+			{count} {count === 1 ? "Apontamento" : "Apontamentos"}
 		</Badge>
 	);
 };

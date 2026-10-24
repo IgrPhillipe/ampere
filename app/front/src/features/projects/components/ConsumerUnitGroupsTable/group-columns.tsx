@@ -44,6 +44,7 @@ export const createGroupColumns = ({
 						findings={findings.filter(
 							(finding) => finding.consumerUnitGroupId === row.original.id,
 						)}
+						target={`grupo-${row.original.id}`}
 						className="mt-2"
 					/>
 				</div>

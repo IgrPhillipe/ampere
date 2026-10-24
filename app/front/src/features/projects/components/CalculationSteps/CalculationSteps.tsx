@@ -104,7 +104,11 @@ const StepRow = ({
 			</span>
 
 			<div className="flex min-w-0 flex-col gap-1">
-				<FindingBadge findings={findings} className="mb-1" />
+				<FindingBadge
+					findings={findings}
+					target={`parcela-${step.code}`}
+					className="mb-1"
+				/>
 				<h3 className="text-base font-medium text-foreground">
 					{step.title}
 					<span className="sr-only"> ({step.code})</span>

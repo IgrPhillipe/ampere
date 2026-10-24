@@ -101,7 +101,11 @@ const Item = ({
 						{item.completed ? " (conferido)" : " (pendente)"}
 					</span>
 				</span>
-				<FindingBadge findings={findings} className="mt-1" />
+				<FindingBadge
+					findings={findings}
+					target={`documento-${item.key}`}
+					className="mt-1"
+				/>
 				{document ? (
 					<span className="truncate text-xs text-muted-foreground">
 						{document.filename} ({formatSize(document.fileSize)})
@@ -207,34 +211,39 @@ export const SubmissionChecklistPanel = ({
 					))}
 				</div>
 			) : (
-				<ul className="mt-6 flex flex-col">
-					{checklist.items.map((item) => {
-						const document = checklist.documents.find(
-							({ type }) => type === item.key,
-						);
+				<>
+					<FindingBadge
+						findings={findings.filter(
+							(finding) => finding.documentType === null,
+						)}
+						className="mt-6"
+					/>
+					<ul className="mt-6 flex flex-col">
+						{checklist.items.map((item) => {
+							const document = checklist.documents.find(
+								({ type }) => type === item.key,
+							);
 
-						return (
-							<Item
-								key={item.key}
-								item={item}
-								document={document}
-								editable={editable}
-								isUploading={uploadingType === item.key}
-								isRemoving={
-									document !== undefined && removingId === document.id
-								}
-								findings={findings.filter(
-									(finding) =>
-										finding.documentType === item.key ||
-										(finding.documentType === null &&
-											finding.stage === "DOCUMENTS"),
-								)}
-								onUpload={onUpload}
-								onRemove={onRemove}
-							/>
-						);
-					})}
-				</ul>
+							return (
+								<Item
+									key={item.key}
+									item={item}
+									document={document}
+									editable={editable}
+									isUploading={uploadingType === item.key}
+									isRemoving={
+										document !== undefined && removingId === document.id
+									}
+									findings={findings.filter(
+										(finding) => finding.documentType === item.key,
+									)}
+									onUpload={onUpload}
+									onRemove={onRemove}
+								/>
+							);
+						})}
+					</ul>
+				</>
 			)}
 
 			<div className="mt-10">
