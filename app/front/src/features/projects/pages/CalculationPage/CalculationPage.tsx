@@ -109,7 +109,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 				<div className="flex-1 px-6 py-8 md:px-8">
 					<EmptyState
 						title="Pendências impedem o cálculo"
-						description="Corrija os grupos marcados na etapa de unidades consumidoras para calcular a demanda."
+						description="Corrija os grupos marcados na seção de unidades consumidoras para calcular a demanda."
 						icon={CircleAlert}
 						action={
 							<Button type="button" variant="outline" onClick={backToUnits}>

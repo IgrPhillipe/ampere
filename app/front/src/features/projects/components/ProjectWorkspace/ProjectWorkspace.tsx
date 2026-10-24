@@ -33,11 +33,14 @@ import {
 
 const submitHintId = "envio-pendencias";
 
+/** The overview path also matches every section below it, so it is the fallback. */
 const useCurrentSection = (projectId: string) => {
 	const matchRoute = useMatchRoute();
+	const [overview, ...sections] = PROJECT_SECTIONS;
 
-	return PROJECT_SECTIONS.find(({ to }) =>
-		matchRoute({ to, params: { id: projectId } }),
+	return (
+		sections.find(({ to }) => matchRoute({ to, params: { id: projectId } })) ??
+		overview
 	);
 };
 
@@ -174,7 +177,7 @@ export const ProjectWorkspace = ({
 
 	const breadcrumb: BreadcrumbItem[] = [root];
 	if (project) {
-		const isOverview = current?.key === "overview";
+		const isOverview = current.key === "overview";
 		breadcrumb.push(
 			isOverview
 				? { label: project.name }
@@ -184,7 +187,7 @@ export const ProjectWorkspace = ({
 						params: { id: projectId },
 					},
 		);
-		if (current && !isOverview) breadcrumb.push({ label: current.label });
+		if (!isOverview) breadcrumb.push({ label: current.label });
 	}
 
 	return (
