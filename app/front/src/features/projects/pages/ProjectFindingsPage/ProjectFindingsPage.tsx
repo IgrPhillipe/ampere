@@ -68,7 +68,8 @@ export const ProjectFindingsPage = ({
 				validation.totalGroups === 1 ? "grupo" : "grupos"
 			}`
 		: undefined;
-	const hasError = projectQuery.isError || findingsQuery.isError;
+	const hasError =
+		projectQuery.isError || findingsQuery.isError || submissionQuery.isError;
 
 	const referenceOptions = buildFindingReferenceOptions({
 		groups: groupsQuery.data?.data ?? [],
@@ -161,6 +162,7 @@ export const ProjectFindingsPage = ({
 								onClick={() => {
 									void projectQuery.refetch();
 									void findingsQuery.refetch();
+									void submissionQuery.refetch();
 								}}
 							>
 								Tentar Novamente
