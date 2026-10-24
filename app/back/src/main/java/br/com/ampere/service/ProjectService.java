@@ -107,8 +107,15 @@ public class ProjectService {
 
   /** The designers of the projects the user reaches, for the admin's filter. */
   @Transactional(readOnly = true)
-  public List<User> listOwners(AuthenticatedUser user) {
-    return projectRepository.findAccessibleOwners(user.id(), user.projectVisibility());
+  public OwnerListing listOwners(int page, int pageSize, String search, AuthenticatedUser user) {
+    Page<User> owners =
+        projectRepository.findAccessibleOwners(
+            user.id(),
+            user.projectVisibility(),
+            SearchTerms.normalize(search),
+            PageRequest.of(page - 1, pageSize));
+
+    return new OwnerListing(owners.getContent(), owners.getTotalElements());
   }
 
   @Transactional(readOnly = true)

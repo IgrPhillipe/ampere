@@ -1,33 +1,13 @@
 import { EmptyState } from "@components/EmptyState";
-import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { getHttpStatus } from "@lib/api-error";
 import { useGetLatestCalculation } from "@services/calculation";
-import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
-import { useGetFindingList } from "@services/project-review";
 import { useGetProject } from "@services/projects";
-import {
-	type DocumentType,
-	type ProjectDocument,
-	useDeleteDocument,
-	useGetMemorial,
-	useGetSubmission,
-	useSubmitProject,
-	useUploadDocument,
-} from "@services/submission";
+import { useGetMemorial } from "@services/submission";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Calculator, CircleAlert } from "lucide-react";
+import { ArrowRight, Calculator, CircleAlert } from "lucide-react";
 
-import {
-	MemorialPreview,
-	ProjectBreadcrumb,
-	ProjectStamp,
-	ProjectStepper,
-	StageFindingsNotice,
-	StepFooter,
-	SubmissionChecklistPanel,
-} from "../../components";
-import { stageFindingsOf } from "../../constants";
+import { MemorialPreview, StepFooter } from "../../components";
 import { useProjectPermissions } from "../../hooks";
 
 interface MemorialPageProps {
@@ -37,224 +17,112 @@ interface MemorialPageProps {
 export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const navigate = useNavigate();
 	const projectQuery = useGetProject(projectId);
-	const validationQuery = useGetConsumerUnitGroupValidation(projectId);
 	const calculationQuery = useGetLatestCalculation(projectId);
-	const submissionQuery = useGetSubmission(projectId);
 	const calculation = calculationQuery.data?.data;
 	const memorialQuery = useGetMemorial(projectId, {
 		enabled: calculation !== undefined,
 	});
-	const uploadMutation = useUploadDocument();
-	const deleteMutation = useDeleteDocument();
-	const submitMutation = useSubmitProject();
 
 	const project = projectQuery.data?.data;
-	const findingsQuery = useGetFindingList(projectId, {
-		enabled: project?.status === "REJECTED",
-	});
-	const documentFindings = stageFindingsOf(
-		findingsQuery.data?.data,
-		project,
-		"DOCUMENTS",
-	);
-	const validation = validationQuery.data?.data;
-	const checklist = submissionQuery.data?.data;
-	const { canEditDocuments: editable, isOwner } =
-		useProjectPermissions(project);
-	const submitted =
-		project !== undefined &&
-		project.status !== "DRAFT" &&
-		project.status !== "AWAITING_SUBMISSION" &&
-		project.status !== "REJECTED";
+	const { canEdit } = useProjectPermissions(project);
 	const neverCalculated = calculationQuery.data === null;
 	const outdated = getHttpStatus(memorialQuery.error) === 409;
 	const hasError =
 		projectQuery.isError ||
 		calculationQuery.isError ||
-		submissionQuery.isError ||
 		(memorialQuery.isError && !outdated);
 
-	const units = validation
-		? `${validation.totalUnits} em ${validation.totalGroups} ${
-				validation.totalGroups === 1 ? "grupo" : "grupos"
-			}`
-		: undefined;
+	const goTo = (to: "/projetos/$id/calculo" | "/projetos/$id/documentos") =>
+		void navigate({ to, params: { id: projectId } });
 
-	const backToCalculation = () =>
-		void navigate({ to: "/projetos/$id/calculo", params: { id: projectId } });
-
-	const goToDetail = () =>
-		void navigate({ to: "/projetos/$id", params: { id: projectId } });
-
-	const upload = (type: DocumentType, file: File) =>
-		uploadMutation.mutate({ projectId, type, file });
-
-	const remove = (document: ProjectDocument) =>
-		deleteMutation.mutate({ projectId, documentId: document.id });
-
-	const submit = () =>
-		submitMutation.mutate({ projectId }, { onSuccess: goToDetail });
-
-	const retry = () => {
-		void projectQuery.refetch();
-		void calculationQuery.refetch();
-		void submissionQuery.refetch();
-		void memorialQuery.refetch();
-	};
+	const content = hasError ? (
+		<EmptyState
+			title="Não foi possível gerar o memorial"
+			description="Confira o aviso exibido e tente novamente."
+			icon={CircleAlert}
+			action={
+				<Button
+					type="button"
+					variant="outline"
+					onClick={() => {
+						void projectQuery.refetch();
+						void calculationQuery.refetch();
+						void memorialQuery.refetch();
+					}}
+				>
+					Tentar Novamente
+				</Button>
+			}
+		/>
+	) : neverCalculated ? (
+		<EmptyState
+			title={
+				canEdit
+					? "Calcule a demanda antes de gerar o memorial"
+					: "Este projeto não tem memorial"
+			}
+			description={
+				canEdit
+					? "O memorial é montado a partir do último cálculo de demanda do projeto."
+					: "O projeto foi enviado sem passar pela memória de cálculo."
+			}
+			icon={Calculator}
+			action={
+				canEdit ? (
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => goTo("/projetos/$id/calculo")}
+					>
+						Ir para o Cálculo
+					</Button>
+				) : undefined
+			}
+		/>
+	) : outdated ? (
+		<EmptyState
+			title="Recalcule a demanda antes de gerar o memorial"
+			description="Os dados do projeto mudaram depois do último cálculo."
+			icon={Calculator}
+			action={
+				<Button
+					type="button"
+					variant="outline"
+					onClick={() => goTo("/projetos/$id/calculo")}
+				>
+					Ir para o Cálculo
+				</Button>
+			}
+		/>
+	) : (
+		<MemorialPreview
+			project={project}
+			calculation={calculation}
+			memorial={memorialQuery.data}
+			isLoading={memorialQuery.isPending}
+		/>
+	);
 
 	return (
-		<PageLayout
-			bleed
-			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
-		>
-			<div className="flex flex-1 flex-col bg-card">
-				<div className="border-b border-border px-6 py-4 md:px-8">
-					<ProjectBreadcrumb project={project} current="Memorial" />
-				</div>
+		<div className="flex flex-1 flex-col">
+			<div className="flex-1 px-6 py-8 md:px-8">{content}</div>
 
-				<ProjectStamp
-					project={project}
-					isLoading={projectQuery.isPending || validationQuery.isPending}
-					units={units}
-				/>
-
-				<div className="px-6 pt-8 md:px-8">
-					<p className="text-xs tracking-wider text-muted-foreground uppercase">
-						Etapa 04 de 05
-					</p>
-
-					<h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">
-						Memorial
-					</h1>
-				</div>
-
-				<ProjectStepper current={3} projectId={projectId} className="mt-6" />
-
-				<StageFindingsNotice
-					projectId={projectId}
-					findings={documentFindings}
-					documents={checklist?.documents}
-					references={Object.fromEntries(
-						(checklist?.items ?? []).map((item) => [item.key, item.label]),
-					)}
-					className="mt-6"
-				/>
-
-				{neverCalculated ? (
-					<div className="flex-1 px-6 py-8 md:px-8">
-						<EmptyState
-							title="Calcule a demanda antes de gerar o memorial"
-							description="O memorial é montado a partir do último cálculo de demanda do projeto."
-							icon={Calculator}
-							action={
-								<Button
-									type="button"
-									variant="outline"
-									onClick={backToCalculation}
-								>
-									<ArrowLeft aria-hidden="true" />
-									Voltar ao Cálculo
-								</Button>
-							}
-						/>
-					</div>
-				) : outdated ? (
-					<div className="flex-1 px-6 py-8 md:px-8">
-						<EmptyState
-							title="Recalcule a demanda antes de gerar o memorial"
-							description="Os dados do projeto mudaram depois do último cálculo."
-							icon={Calculator}
-							action={
-								<Button
-									type="button"
-									variant="outline"
-									onClick={backToCalculation}
-								>
-									<ArrowLeft aria-hidden="true" />
-									Voltar ao Cálculo
-								</Button>
-							}
-						/>
-					</div>
-				) : hasError ? (
-					<div className="flex-1 px-6 py-8 md:px-8">
-						<EmptyState
-							title="Não foi possível gerar o memorial"
-							description="Confira o aviso exibido e tente novamente."
-							icon={CircleAlert}
-							action={
-								<Button type="button" variant="outline" onClick={retry}>
-									Tentar Novamente
-								</Button>
-							}
-						/>
-					</div>
-				) : (
-					<div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_400px]">
-						<MemorialPreview
-							project={project}
-							calculation={calculation}
-							memorial={memorialQuery.data}
-							isLoading={memorialQuery.isPending}
-							className="px-6 py-8 md:px-8"
-						/>
-
-						<SubmissionChecklistPanel
-							projectId={projectId}
-							checklist={checklist}
-							findings={documentFindings}
-							isLoading={submissionQuery.isPending}
-							editable={editable}
-							uploadingType={
-								uploadMutation.isPending
-									? uploadMutation.variables?.type
-									: undefined
-							}
-							removingId={
-								deleteMutation.isPending
-									? deleteMutation.variables?.documentId
-									: undefined
-							}
-							onUpload={upload}
-							onRemove={remove}
-							className="order-first border-b border-border lg:order-none lg:border-b-0 lg:border-l"
-						/>
-					</div>
-				)}
-
+			{canEdit ? (
 				<StepFooter
-					previous={{ label: "Cálculo de Demanda", onClick: backToCalculation }}
+					previous={{
+						label: "Cálculo de Demanda",
+						onClick: () => goTo("/projetos/$id/calculo"),
+					}}
 				>
-					{project?.status === "REJECTED" ? (
-						<Button
-							type="button"
-							onClick={() =>
-								void navigate({
-									to: "/projetos/$id",
-									params: { id: projectId },
-								})
-							}
-						>
-							{isOwner ? "Revisar e Reenviar" : "Ver Projeto"}
-							<ArrowRight aria-hidden="true" />
-						</Button>
-					) : submitted || (project !== undefined && !isOwner) ? (
-						<Button type="button" onClick={goToDetail}>
-							Ver Projeto
-							<ArrowRight aria-hidden="true" />
-						</Button>
-					) : (
-						<Button
-							type="button"
-							disabled={!checklist?.canSubmit || submitMutation.isPending}
-							onClick={submit}
-						>
-							Enviar para Análise
-							<ArrowRight aria-hidden="true" />
-						</Button>
-					)}
+					<Button
+						type="button"
+						onClick={() => goTo("/projetos/$id/documentos")}
+					>
+						Ir para Documentos
+						<ArrowRight aria-hidden="true" />
+					</Button>
 				</StepFooter>
-			</div>
-		</PageLayout>
+			) : null}
+		</div>
 	);
 };

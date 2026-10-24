@@ -1,4 +1,4 @@
-import type { ListProjectsParams } from "./types";
+import type { ListOwnersParams, ListProjectsParams } from "./types";
 
 export const projectKeys = {
 	all: () => ["projects"] as const,
@@ -7,6 +7,8 @@ export const projectKeys = {
 		[...projectKeys.lists(), params] as const,
 	statusCounts: () => [...projectKeys.all(), "status-counts"] as const,
 	owners: () => [...projectKeys.all(), "owners"] as const,
+	ownerList: (params: ListOwnersParams = {}) =>
+		[...projectKeys.owners(), params] as const,
 	details: () => [...projectKeys.all(), "detail"] as const,
 	detail: (id: string) => [...projectKeys.details(), id] as const,
 };

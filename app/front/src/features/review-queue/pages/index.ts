@@ -1,2 +1,2 @@
-export * from "./ProjectReviewPage";
+export * from "./ProjectReviewWorkspace";
 export * from "./ReviewQueuePage";

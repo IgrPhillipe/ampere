@@ -24,7 +24,8 @@ public record CalculationResponse(
     List<Check> checks,
     int checksCount,
     int warningsCount,
-    List<Table> appliedTables) {
+    List<Table> appliedTables,
+    boolean outdated) {
 
   private static final int COMPONENTS = 4;
   private static final BigDecimal HUNDRED = new BigDecimal("100");
@@ -74,6 +75,11 @@ public record CalculationResponse(
       String identification, String standard, String revision, String item, String page) {}
 
   public static CalculationResponse from(Calculation calculation) {
+    return from(calculation, false);
+  }
+
+  /** {@code outdated}: the project data changed after this run, while it can still be edited. */
+  public static CalculationResponse from(Calculation calculation, boolean outdated) {
     List<CalculationStep> steps = calculation.getSteps();
     List<CalculationCheck> checks = calculation.getChecks();
 
@@ -107,7 +113,8 @@ public record CalculationResponse(
             .toList(),
         checks.size(),
         (int) checks.stream().filter(check -> check.getStatus() == CheckStatus.WARNING).count(),
-        calculation.getAppliedTables().stream().map(CalculationResponse::table).toList());
+        calculation.getAppliedTables().stream().map(CalculationResponse::table).toList(),
+        outdated);
   }
 
   private static StandardResponse standard(String name, String revision) {

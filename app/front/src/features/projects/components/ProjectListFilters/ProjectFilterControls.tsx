@@ -1,5 +1,5 @@
 import { type DateRange, DateRangeFilter } from "@components/DateRangeFilter";
-import { FilterMenu } from "@components/FilterMenu";
+import { InfiniteFilterMenu } from "@components/InfiniteFilterMenu";
 import { MultiFilterMenu } from "@components/MultiFilterMenu";
 import { SearchableFilterMenu } from "@components/SearchableFilterMenu";
 import {
@@ -11,8 +11,9 @@ import {
 import {
 	type ProjectFindingsFilter,
 	projectFindingsFilterSchema,
-	useGetProjectOwnerList,
+	useGetProjectOwnerInfiniteList,
 } from "@services/projects";
+import { useState } from "react";
 
 import { projectFindingsFilterLabels } from "../../constants/project-findings";
 
@@ -29,6 +30,8 @@ const findingsOptions = projectFindingsFilterSchema.options.map((value) => ({
 interface ProjectFilterControlsProps {
 	showOwner?: boolean;
 	owner?: string | null;
+	/** The selected designer's name, which may not be among the loaded owners. */
+	ownerName?: string;
 	onOwnerChange?: (owner: string | null) => void;
 	state: ConcessionState[];
 	onStateChange: (state: ConcessionState[]) => void;
@@ -43,6 +46,7 @@ interface ProjectFilterControlsProps {
 export const ProjectFilterControls = ({
 	showOwner = false,
 	owner = null,
+	ownerName,
 	onOwnerChange,
 	state,
 	onStateChange,
@@ -53,22 +57,32 @@ export const ProjectFilterControls = ({
 	findings,
 	onFindingsChange,
 }: ProjectFilterControlsProps) => {
-	const ownersQuery = useGetProjectOwnerList({ enabled: showOwner });
-	const owners = (ownersQuery.data?.data ?? []).map(({ id, name }) => ({
-		value: id,
-		label: name,
-	}));
+	const [ownerSearch, setOwnerSearch] = useState("");
+	const ownersQuery = useGetProjectOwnerInfiniteList({
+		search: ownerSearch,
+		enabled: showOwner,
+	});
+	const owners = (ownersQuery.data?.pages ?? [])
+		.flatMap(({ data }) => data)
+		.map(({ id, name }) => ({ value: id, label: name }));
 
 	return (
 		<>
 			{showOwner && onOwnerChange ? (
-				<FilterMenu
+				<InfiniteFilterMenu
 					label="Projetista"
 					allLabel="Todos"
+					searchPlaceholder="Buscar projetista"
+					emptyMessage="Nenhum projetista encontrado."
 					options={owners}
 					value={owner}
+					selectedLabel={ownerName}
 					onValueChange={onOwnerChange}
-					disabled={ownersQuery.isPending}
+					onSearchChange={setOwnerSearch}
+					hasNextPage={ownersQuery.hasNextPage}
+					isFetchingNextPage={ownersQuery.isFetchingNextPage}
+					isLoading={ownersQuery.isPending}
+					onLoadMore={() => void ownersQuery.fetchNextPage()}
 				/>
 			) : null}
 			<MultiFilterMenu

@@ -16,7 +16,7 @@ import {
 	ReviewQueueListing,
 	ReviewQueueToolbar,
 } from "../../components";
-import { useReviewQueueFilters } from "../../hooks";
+import { useReviewQueueFilters, useSelectedOwnerName } from "../../hooks";
 
 const PAGE_SIZE = 10;
 
@@ -42,8 +42,13 @@ export const ReviewQueuePage = () => {
 	const navigate = useNavigate();
 
 	const analyze = (item: ReviewQueueItem) =>
-		void navigate({ to: "/fila-de-analise/$id", params: { id: item.id } });
+		void navigate({ to: "/projetos/$id", params: { id: item.id } });
 
+	// A kept previous page may belong to another designer, so it names no one.
+	const ownerName = useSelectedOwnerName(
+		filters.owner,
+		queueQuery.isPlaceholderData ? [] : (queueQuery.data?.data ?? []),
+	);
 	const pagination = queueQuery.data?.pagination;
 	const hasError = queueQuery.isError || indicatorsQuery.isError;
 
@@ -70,13 +75,18 @@ export const ReviewQueuePage = () => {
 						<ReviewQueueFilterControls
 							reviewer={filters.reviewer}
 							onReviewerChange={filters.setReviewer}
+							owner={filters.owner}
+							ownerName={ownerName}
+							onOwnerChange={filters.setOwner}
 							state={filters.state}
 							onStateChange={filters.setState}
 							municipality={filters.municipality}
 							onMunicipalityChange={filters.setMunicipality}
 						/>
 					}
-					activeFilters={<ReviewQueueActiveFilters filters={filters} />}
+					activeFilters={
+						<ReviewQueueActiveFilters filters={filters} ownerName={ownerName} />
+					}
 				/>
 
 				<div className="flex-1 px-gutter py-4 md:px-gutter-md md:py-5">

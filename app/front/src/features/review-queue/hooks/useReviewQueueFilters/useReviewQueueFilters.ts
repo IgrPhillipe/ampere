@@ -46,6 +46,9 @@ const toReviewer = (value: string | null) =>
 		? value
 		: null;
 
+const toOwner = (value: string | null) =>
+	value && /^\d+$/.test(value) ? value : null;
+
 export const useReviewQueueFilters = () => {
 	const [query, setQuery] = useQueryStates({
 		filter: parseAsStringLiteral(reviewQueueFilterSchema.options).withDefault(
@@ -60,11 +63,13 @@ export const useReviewQueueFilters = () => {
 		),
 		direction: parseAsStringLiteral(sortDirectionSchema.options),
 		reviewer: parseAsString,
+		owner: parseAsString,
 		state: parseAsNativeArrayOf(parseAsStringLiteral(CONCESSION_STATES)),
 		municipality: parseAsNativeArrayOf(parseAsString),
 	});
 	const { filter, search, page, state, municipality } = query;
 	const reviewer = toReviewer(query.reviewer);
+	const owner = toOwner(query.owner);
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
 	const sort = useMemo<ListSort<ReviewQueueSort>>(
@@ -83,10 +88,11 @@ export const useReviewQueueFilters = () => {
 			sort: sort.column,
 			direction: sort.direction,
 			reviewer: reviewer ?? undefined,
+			owner: owner ?? undefined,
 			state: state.length ? state : undefined,
 			municipality: municipality.length ? municipality : undefined,
 		}),
-		[page, filter, debouncedSearch, sort, reviewer, state, municipality],
+		[page, filter, debouncedSearch, sort, reviewer, owner, state, municipality],
 	);
 
 	const setFilter = useCallback(
@@ -139,6 +145,13 @@ export const useReviewQueueFilters = () => {
 		[setQuery],
 	);
 
+	const setOwner = useCallback(
+		(value: string | null) => {
+			void setQuery({ owner: value, page: null });
+		},
+		[setQuery],
+	);
+
 	// Municipalities of the states still chosen stay; the others go with their state.
 	const setState = useCallback(
 		(value: ConcessionState[]) => {
@@ -171,6 +184,7 @@ export const useReviewQueueFilters = () => {
 			filter: null,
 			search: null,
 			reviewer: null,
+			owner: null,
 			state: null,
 			municipality: null,
 			page: null,
@@ -183,6 +197,7 @@ export const useReviewQueueFilters = () => {
 		page,
 		sort,
 		reviewer,
+		owner,
 		state,
 		municipality,
 		params,
@@ -190,6 +205,7 @@ export const useReviewQueueFilters = () => {
 			filter !== "ALL" ||
 			search.trim() !== "" ||
 			reviewer !== null ||
+			owner !== null ||
 			state.length > 0 ||
 			municipality.length > 0,
 		setFilter,
@@ -198,6 +214,7 @@ export const useReviewQueueFilters = () => {
 		setSort,
 		sortBy,
 		setReviewer,
+		setOwner,
 		setState,
 		setMunicipality,
 		clearFilters,

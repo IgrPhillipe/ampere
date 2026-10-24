@@ -40,6 +40,14 @@ export const findingStatusLabels = {
 	RESOLVED: "Resolvido",
 } as const satisfies Record<FindingStatus, string>;
 
+/** The analyst reopened it after the designer's answer: it waits on a new one. */
+export const isReopened = (finding: Pick<Finding, "status" | "respondedAt">) =>
+	finding.status === "OPEN" && Boolean(finding.respondedAt);
+
+export const findingStatusLabelOf = (
+	finding: Pick<Finding, "status" | "respondedAt">,
+) => (isReopened(finding) ? "Reaberto" : findingStatusLabels[finding.status]);
+
 export const findingStatusBadgeVariants = {
 	DRAFT: "neutral",
 	OPEN: "warning",
@@ -131,7 +139,7 @@ export const getFindingAttention = (findings: Finding[]): AttentionMessage => {
 			: "warning",
 		title: `${count} ${count === 1 ? "apontamento" : "apontamentos"} neste item`,
 		details: findings.map(({ description }) => description.replace(/\.$/, "")),
-		action: "Corrija aqui e responda no detalhe do projeto.",
+		action: "Corrija aqui e responda no aviso do topo da seção.",
 	};
 };
 

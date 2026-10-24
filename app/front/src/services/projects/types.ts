@@ -28,6 +28,12 @@ export interface ListProjectsParams {
 	owner?: string;
 }
 
+export interface ListOwnersParams {
+	page?: number;
+	pageSize?: number;
+	search?: string;
+}
+
 /** Corpo de `POST /projects`: os campos da US02. */
 export interface CreateProjectPayload {
 	name: string;

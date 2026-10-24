@@ -14,6 +14,7 @@ import br.com.ampere.dto.ProjectResponse;
 import br.com.ampere.dto.ProjectStatusCounts;
 import br.com.ampere.dto.UserOptionResponse;
 import br.com.ampere.service.AuthenticatedUser;
+import br.com.ampere.service.OwnerListing;
 import br.com.ampere.service.ProjectListQuery;
 import br.com.ampere.service.ProjectListing;
 import br.com.ampere.service.ProjectParameters;
@@ -133,15 +134,27 @@ public class ProjectController {
   @GetMapping("/owners")
   @Operation(
       operationId = "listProjectOwners",
-      summary = "Lista os projetistas dos projetos visíveis para o usuário")
+      summary = "Lista os projetistas dos projetos visíveis para o usuário, com busca e paginação")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
-        description = "Projetistas em ordem de nome")
+        description = "Página de projetistas em ordem de nome"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "Parâmetros inválidos")
   })
-  public ApiResponse<List<UserOptionResponse>> owners(@AuthenticationPrincipal Jwt jwt) {
+  public ApiResponse<List<UserOptionResponse>> owners(
+      @Valid @ParameterObject PageQuery pagination,
+      @Parameter(description = "Termo buscado no nome do projetista")
+          @RequestParam(required = false)
+          String search,
+      @AuthenticationPrincipal Jwt jwt) {
+    OwnerListing listing =
+        service.listOwners(pagination.page(), pagination.pageSize(), search, userOf(jwt));
+
     return ApiResponse.of(
-        service.listOwners(userOf(jwt)).stream().map(UserOptionResponse::from).toList());
+        listing.owners().stream().map(UserOptionResponse::from).toList(),
+        new Pagination(listing.totalElements(), pagination.page(), pagination.pageSize()));
   }
 
   @GetMapping("/status-counts")

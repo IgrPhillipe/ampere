@@ -120,7 +120,7 @@ const Item = ({
 					</span>
 				) : item.completed ? null : (
 					<span className="text-xs text-destructive">
-						Calcule a demanda na etapa anterior
+						Calcule a demanda na seção de cálculo
 					</span>
 				)}
 			</div>

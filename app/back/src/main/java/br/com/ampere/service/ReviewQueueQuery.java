@@ -13,6 +13,7 @@ public record ReviewQueueQuery(
     ReviewQueueSort sort,
     SortDirection direction,
     String reviewer,
+    Long owner,
     Collection<BrazilianState> states,
     Collection<String> municipalities) {
 

@@ -2,6 +2,7 @@ import { Button } from "@components/ui/button";
 import type { Finding } from "@services/project-review";
 import { ArrowRight } from "lucide-react";
 
+import { isReopened } from "../../constants";
 import type { FindingResponseValues } from "../../schemas";
 import { FindingAnswer, FindingSummary } from "../FindingDetails";
 import { FindingResponseForm } from "./FindingResponseForm";
@@ -12,7 +13,8 @@ interface ProjectFindingCardProps {
 	canRespond: boolean;
 	responseStatus?: FindingResponseValues["status"];
 	isResponding: boolean;
-	onOpenStage: (finding: Finding) => void;
+	/** Left out when the project cannot be edited: its sections only show it. */
+	onOpenStage?: (finding: Finding) => void;
 	onStartResponse: (
 		finding: Finding,
 		status: FindingResponseValues["status"],
@@ -44,7 +46,11 @@ export const ProjectFindingCard = ({
 			/>
 
 			<FindingAnswer
-				title="Resposta do Projetista"
+				title={
+					isReopened(finding)
+						? "Resposta Anterior do Projetista"
+						: "Resposta do Projetista"
+				}
 				text={finding.response}
 				fallback={
 					finding.status === "FIXED"
@@ -54,18 +60,25 @@ export const ProjectFindingCard = ({
 				respondedAt={finding.respondedAt}
 			/>
 
+			{isReopened(finding) ? (
+				<p className="text-sm text-muted-foreground">
+					O analista reabriu o apontamento. Responda de novo.
+				</p>
+			) : null}
 			<div className="flex flex-col gap-3">
 				<div className="flex flex-wrap gap-2">
-					<Button
-						type="button"
-						variant="outline"
-						size="xs"
-						aria-describedby={descriptionId}
-						onClick={() => onOpenStage(finding)}
-					>
-						Ir para a Etapa
-						<ArrowRight aria-hidden="true" />
-					</Button>
+					{onOpenStage ? (
+						<Button
+							type="button"
+							variant="outline"
+							size="xs"
+							aria-describedby={descriptionId}
+							onClick={() => onOpenStage(finding)}
+						>
+							Ir para a Seção
+							<ArrowRight aria-hidden="true" />
+						</Button>
+					) : null}
 					{canRespond ? (
 						<>
 							<Button

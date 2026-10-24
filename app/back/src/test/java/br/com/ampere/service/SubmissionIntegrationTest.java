@@ -303,6 +303,17 @@ class SubmissionIntegrationTest {
   }
 
   @Test
+  void theLatestCalculationSaysWhenTheDataChangedAfterIt() throws Exception {
+    Project project = calculatedDraft();
+    String latest = "/projects/" + project.getId() + "/calculations/latest";
+
+    perform(get(latest)).andExpect(jsonPath("$.data.outdated").value(false));
+
+    groupRepository.save(residentialGroup(project, "Apartamento tipo B", 10));
+    perform(get(latest)).andExpect(jsonPath("$.data.outdated").value(true));
+  }
+
+  @Test
   void theMemorialRefusesACalculationOlderThanTheData() throws Exception {
     Project project = calculatedDraft();
     groupRepository.save(residentialGroup(project, "Apartamento tipo B", 10));
