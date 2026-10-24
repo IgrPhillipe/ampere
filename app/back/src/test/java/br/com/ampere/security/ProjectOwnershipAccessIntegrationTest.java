@@ -260,7 +260,14 @@ class ProjectOwnershipAccessIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.pagination.total").value(4))
         .andExpect(
-            jsonPath("$.data[?(@.protocol == '2026-3001')].ownerName").value("Beto Projetista"));
+            jsonPath("$.data[?(@.protocol == '2026-3001')].ownerName").value("Beto Projetista"))
+        .andExpect(
+            jsonPath("$.data[?(@.protocol == '2026-3001')].ownerId")
+                .value(String.valueOf(secondDraft.getOwner().getId())));
+    mockMvc
+        .perform(get("/projects/{id}", secondDraft.getId()).header("Authorization", admin))
+        .andExpect(
+            jsonPath("$.data.ownerId").value(String.valueOf(secondDraft.getOwner().getId())));
     mockMvc
         .perform(get("/projects/status-counts").header("Authorization", admin))
         .andExpect(status().isOk())
