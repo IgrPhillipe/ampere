@@ -23,7 +23,7 @@ A norma foi revisada sete vezes em menos de quatro anos. Os parâmetros normativ
 
 ## Design OOP (Requisito POO)
 
-A disciplina de **Programação Orientada a Objetos** exige que o motor seja modelado explicitamente com classes de domínio. O diagrama de classes e a justificativa de design ficam nesta seção.
+A disciplina de **Programação Orientada a Objetos** exige que o motor seja modelado explicitamente com classes de domínio. Herança, polimorfismo e encapsulamento de cada entrega estão nas seções "Requisitos de POO" do [README](../../README.md); as classes persistidas, em [`app/back/README.md`](../../app/back/README.md).
 
 Premissas iniciais em [`docs/negocio/premissas-desafio.md`](../negocio/premissas-desafio.md#requisito-poo).
 
@@ -56,7 +56,7 @@ Scaffold em `app/back`: Java 21 com Spring Boot 4.1 e Spring Data JPA sobre Post
 
 Como executar: [`app/back/README.md`](../../app/back/README.md).
 
-Estado atual: autenticação por JWT, com as tabelas normativas e a fila restritas ao papel `ADMIN` e cada projeto restrito ao seu dono. O schema é gerado pelo Hibernate (`ddl-auto=update`), sem migrations versionadas. Pendências em [`pendencias.md`](../pendencias.md).
+Estado atual: autenticação por JWT, com as tabelas normativas restritas ao papel `admin`, a fila aos papéis `reviewer` e `admin` e cada projeto restrito ao seu dono. O schema é gerado pelo Hibernate (`ddl-auto=update`), sem migrations versionadas. Pendências em [`pendencias.md`](../pendencias.md).
 
 ---
 
