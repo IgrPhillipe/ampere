@@ -1,10 +1,11 @@
 import { Skeleton } from "@components/ui/skeleton";
+import type { FindingReferenceOptions } from "@features/projects";
 import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
 
 import type { FindingFormValues } from "../../schemas";
-import type { FindingEditor, FindingReferenceOptions } from "../../types";
+import type { FindingEditor } from "../../types";
 import {
 	isDraftFinding,
 	isPendingFinding,

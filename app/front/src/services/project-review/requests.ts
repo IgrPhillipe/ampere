@@ -13,6 +13,7 @@ import type {
 	DeleteFindingParams,
 	DocumentFile,
 	ResolveFindingParams,
+	RespondFindingParams,
 	UpdateFindingParams,
 } from "./types";
 
@@ -70,6 +71,19 @@ export const resolveFinding = async ({
 		.json<unknown>();
 
 	return findingResponseSchema.parse(response);
+};
+
+export const respondFinding = async ({
+	projectId,
+	findingId,
+	status,
+	response,
+}: RespondFindingParams) => {
+	const result = await http
+		.put(e.response(projectId, findingId), { json: { status, response } })
+		.json<unknown>();
+
+	return findingResponseSchema.parse(result);
 };
 
 export const decideProjectReview = async ({

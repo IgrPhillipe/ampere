@@ -21,6 +21,7 @@ import { Route as ProjetosIdMemorialRouteImport } from './routes/projetos/$id/me
 import { Route as ProjetosIdEnvioRouteImport } from './routes/projetos/$id/envio'
 import { Route as ProjetosIdDadosRouteImport } from './routes/projetos/$id/dados'
 import { Route as ProjetosIdCalculoRouteImport } from './routes/projetos/$id/calculo'
+import { Route as ProjetosIdApontamentosRouteImport } from './routes/projetos/$id/apontamentos'
 
 const TabelasNormativasRoute = TabelasNormativasRouteImport.update({
   id: '/tabelas-normativas',
@@ -82,6 +83,11 @@ const ProjetosIdCalculoRoute = ProjetosIdCalculoRouteImport.update({
   path: '/projetos/$id/calculo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjetosIdApontamentosRoute = ProjetosIdApontamentosRouteImport.update({
+  id: '/projetos/$id/apontamentos',
+  path: '/projetos/$id/apontamentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/projetos/novo': typeof ProjetosNovoRoute
   '/fila-de-analise/': typeof FilaDeAnaliseIndexRoute
   '/projetos/': typeof ProjetosIndexRoute
+  '/projetos/$id/apontamentos': typeof ProjetosIdApontamentosRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
   '/projetos/$id/envio': typeof ProjetosIdEnvioRoute
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/projetos/novo': typeof ProjetosNovoRoute
   '/fila-de-analise': typeof FilaDeAnaliseIndexRoute
   '/projetos': typeof ProjetosIndexRoute
+  '/projetos/$id/apontamentos': typeof ProjetosIdApontamentosRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
   '/projetos/$id/envio': typeof ProjetosIdEnvioRoute
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/projetos/novo': typeof ProjetosNovoRoute
   '/fila-de-analise/': typeof FilaDeAnaliseIndexRoute
   '/projetos/': typeof ProjetosIndexRoute
+  '/projetos/$id/apontamentos': typeof ProjetosIdApontamentosRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
   '/projetos/$id/envio': typeof ProjetosIdEnvioRoute
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/projetos/novo'
     | '/fila-de-analise/'
     | '/projetos/'
+    | '/projetos/$id/apontamentos'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
     | '/projetos/$id/envio'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/projetos/novo'
     | '/fila-de-analise'
     | '/projetos'
+    | '/projetos/$id/apontamentos'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
     | '/projetos/$id/envio'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/projetos/novo'
     | '/fila-de-analise/'
     | '/projetos/'
+    | '/projetos/$id/apontamentos'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
     | '/projetos/$id/envio'
@@ -179,6 +191,7 @@ export interface RootRouteChildren {
   ProjetosNovoRoute: typeof ProjetosNovoRoute
   FilaDeAnaliseIndexRoute: typeof FilaDeAnaliseIndexRoute
   ProjetosIndexRoute: typeof ProjetosIndexRoute
+  ProjetosIdApontamentosRoute: typeof ProjetosIdApontamentosRoute
   ProjetosIdCalculoRoute: typeof ProjetosIdCalculoRoute
   ProjetosIdDadosRoute: typeof ProjetosIdDadosRoute
   ProjetosIdEnvioRoute: typeof ProjetosIdEnvioRoute
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjetosIdCalculoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projetos/$id/apontamentos': {
+      id: '/projetos/$id/apontamentos'
+      path: '/projetos/$id/apontamentos'
+      fullPath: '/projetos/$id/apontamentos'
+      preLoaderRoute: typeof ProjetosIdApontamentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -283,6 +303,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProjetosNovoRoute: ProjetosNovoRoute,
   FilaDeAnaliseIndexRoute: FilaDeAnaliseIndexRoute,
   ProjetosIndexRoute: ProjetosIndexRoute,
+  ProjetosIdApontamentosRoute: ProjetosIdApontamentosRoute,
   ProjetosIdCalculoRoute: ProjetosIdCalculoRoute,
   ProjetosIdDadosRoute: ProjetosIdDadosRoute,
   ProjetosIdEnvioRoute: ProjetosIdEnvioRoute,

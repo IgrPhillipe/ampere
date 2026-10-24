@@ -6,6 +6,7 @@ import {
 	useGetLatestCalculation,
 } from "@services/calculation";
 import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
+import { useGetFindingList } from "@services/project-review";
 import { projectKeys, useGetProject } from "@services/projects";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -19,6 +20,7 @@ import {
 	ProjectStepper,
 	TraceabilityPanel,
 } from "../../components";
+import { stageFindingsOf } from "../../constants";
 
 interface CalculationPageProps {
 	projectId: string;
@@ -30,14 +32,23 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 	const projectQuery = useGetProject(projectId);
 	const validationQuery = useGetConsumerUnitGroupValidation(projectId);
 	const project = projectQuery.data?.data;
+	const findingsQuery = useGetFindingList(projectId, {
+		enabled: project?.status === "REJECTED",
+	});
+	const stageFindings = stageFindingsOf(
+		findingsQuery.data?.data,
+		project,
+		"CALCULATION",
+	);
 	const validation = validationQuery.data?.data;
-	const isDraft = project?.status === "DRAFT";
+	const isEditable =
+		project?.status === "DRAFT" || project?.status === "REJECTED";
 	const canCalculate = validation?.canCalculate ?? false;
 	const latestQuery = useGetLatestCalculation(projectId, {
-		enabled: project !== undefined && !isDraft,
+		enabled: project !== undefined && !isEditable,
 	});
 	const runQuery = useCalculateDemand(projectId, {
-		enabled: isDraft && canCalculate,
+		enabled: isEditable && canCalculate,
 	});
 
 	// The listing shows the demand of the latest calculation.
@@ -47,8 +58,8 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 		void queryClient.invalidateQueries({ queryKey: projectKeys.all() });
 	}, [calculatedAt, queryClient]);
 
-	const result = isDraft ? runQuery.data?.data : latestQuery.data?.data;
-	const isBlocked = isDraft && validation !== undefined && !canCalculate;
+	const result = isEditable ? runQuery.data?.data : latestQuery.data?.data;
+	const isBlocked = isEditable && validation !== undefined && !canCalculate;
 	const neverCalculated = latestQuery.data === null;
 	const hasError =
 		projectQuery.isError ||
@@ -69,7 +80,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 	const retry = () => {
 		void projectQuery.refetch();
 		void validationQuery.refetch();
-		if (isDraft) {
+		if (isEditable) {
 			void runQuery.refetch();
 		} else {
 			void latestQuery.refetch();
@@ -138,7 +149,11 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 				) : (
 					<div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_440px]">
 						<div className="flex flex-col gap-10 px-6 py-8 md:px-8">
-							<CalculationSteps steps={result?.steps} isLoading={isLoading} />
+							<CalculationSteps
+								steps={result?.steps}
+								findings={stageFindings}
+								isLoading={isLoading}
+							/>
 							<LoadComposition
 								composition={result?.composition}
 								calculatedKva={result?.totals.calculatedKva}

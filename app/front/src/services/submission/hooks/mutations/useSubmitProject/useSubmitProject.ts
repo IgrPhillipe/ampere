@@ -11,7 +11,7 @@ export const useSubmitProject = () => {
 
 	return useMutation({
 		mutationFn: submitProject,
-		onSuccess: async (response, projectId) => {
+		onSuccess: async (response, { projectId }) => {
 			queryClient.setQueryData(projectKeys.detail(projectId), response);
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: projectKeys.all() }),

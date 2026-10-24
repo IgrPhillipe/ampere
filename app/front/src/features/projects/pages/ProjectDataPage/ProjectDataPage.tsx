@@ -3,6 +3,7 @@ import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { useZodForm } from "@features/shared";
 import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
+import { useGetFindingList } from "@services/project-review";
 import {
 	type BuildingCategory,
 	type ConnectionType,
@@ -18,7 +19,8 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useEffect } from "react";
 import { useFormState } from "react-hook-form";
 
-import { ProjectStamp, ProjectStepper } from "../../components";
+import { FindingBadge, ProjectStamp, ProjectStepper } from "../../components";
+import { stageFindingsOf } from "../../constants";
 import {
 	type ProjectCreationFormValues,
 	projectCreationSchema,
@@ -98,8 +100,19 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 		enabled: projectId !== undefined,
 	});
 	const project = projectQuery.data?.data;
+	const findingsQuery = useGetFindingList(projectId ?? "", {
+		enabled: project?.status === "REJECTED",
+	});
+	const stageFindings = stageFindingsOf(
+		findingsQuery.data?.data,
+		project,
+		"PROJECT_DATA",
+	);
 	const validation = validationQuery.data?.data;
-	const isEditable = projectId === undefined || project?.status === "DRAFT";
+	const isEditable =
+		projectId === undefined ||
+		project?.status === "DRAFT" ||
+		project?.status === "REJECTED";
 	const isSaving = createProject.isPending || updateProject.isPending;
 
 	const form = useZodForm(projectCreationSchema, {
@@ -198,9 +211,12 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 						className="min-w-0 space-y-10 px-6 py-8 md:px-8"
 					>
 						<section>
-							<h2 className="border-b border-foreground pb-3 text-lg font-semibold text-foreground">
-								Identificação
-							</h2>
+							<div className="flex flex-wrap items-center justify-between gap-3 border-b border-foreground pb-3">
+								<h2 className="text-lg font-semibold text-foreground">
+									Identificação
+								</h2>
+								<FindingBadge findings={stageFindings} />
+							</div>
 
 							<div className="mt-6 grid gap-x-8 gap-y-6 md:grid-cols-2">
 								<ControlledInput
