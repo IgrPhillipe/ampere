@@ -40,6 +40,7 @@ describe("getProjectPermissions", () => {
 			canEdit: true,
 			canEditDocuments: true,
 			canDelete: true,
+			canEditInAnyStatus: true,
 		});
 	});
 
@@ -48,6 +49,7 @@ describe("getProjectPermissions", () => {
 			canEdit: false,
 			canEditDocuments: false,
 			canDelete: false,
+			canEditInAnyStatus: false,
 		});
 	});
 });

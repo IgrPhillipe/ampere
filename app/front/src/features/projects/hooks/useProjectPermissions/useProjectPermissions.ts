@@ -8,9 +8,11 @@ export interface ProjectPermissions {
 	canEditDocuments: boolean;
 	/** Only a draft, unless the admin deletes it. */
 	canDelete: boolean;
+	/** "Editar Projeto" past the draft is the admin's alone. */
+	canEditInAnyStatus: boolean;
 }
 
-/** Mirrors the back: the admin writes any project in any status, the designer only before the review. */
+/** Mirrors the back: the admin writes any project, the designer a draft or a rejection. */
 export const getProjectPermissions = (
 	role: UserRole | undefined,
 	status: ProjectStatus | undefined,
@@ -28,6 +30,7 @@ export const getProjectPermissions = (
 					status === "AWAITING_SUBMISSION" ||
 					status === "REJECTED")),
 		canDelete: isAdmin || (isDesigner && status === "DRAFT"),
+		canEditInAnyStatus: isAdmin,
 	};
 };
 
