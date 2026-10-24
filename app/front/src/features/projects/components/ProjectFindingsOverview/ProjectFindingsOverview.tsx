@@ -115,11 +115,17 @@ export const ProjectFindingsOverview = ({
 				) : null}
 			</div>
 
-			<aside className="flex h-fit flex-col border border-border bg-surface-hover">
+			<aside
+				aria-labelledby="review-opinion-title"
+				className="flex h-fit flex-col border border-border bg-background"
+			>
 				<div className="p-5">
-					<p className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+					<h2
+						id="review-opinion-title"
+						className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase"
+					>
 						Parecer da Reprovação
-					</p>
+					</h2>
 					<p className="mt-4 text-sm whitespace-pre-line text-foreground">
 						{project.reviewOpinion ||
 							"O analista não registrou um parecer geral."}
