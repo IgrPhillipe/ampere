@@ -11,6 +11,8 @@ const project: Project = {
 	municipality: "Caruaru",
 	state: "PE",
 	protocol: "2026-0441",
+	ownerId: "1",
+	ownerName: "Usuário Teste",
 	status: "DRAFT",
 	createdAt: "2026-09-09T08:00:00Z",
 	updatedAt: "2026-09-18T09:40:00Z",
@@ -34,7 +36,7 @@ describe("ProjectDeleteDialog", () => {
 		expect(screen.getByText(project.protocol)).toBeInTheDocument();
 		expect(
 			screen.getByText(
-				/grupos de unidades consumidoras, cálculos e documentos/i,
+				/grupos de unidades consumidoras, cálculos, documentos e apontamentos/i,
 			),
 		).toBeInTheDocument();
 	});

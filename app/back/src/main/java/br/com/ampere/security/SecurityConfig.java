@@ -1,5 +1,6 @@
 package br.com.ampere.security;
 
+import br.com.ampere.domain.UserRole;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import java.time.Duration;
 import java.util.Arrays;
@@ -35,6 +36,14 @@ public class SecurityConfig {
 
   private static final String[] PUBLIC_AUTH_PATHS = {"/auth/login", "/auth/register"};
 
+  private static final String ADMIN = UserRole.ADMIN.name();
+
+  private static final String[] REVIEWING_ROLES =
+      Arrays.stream(UserRole.values())
+          .filter(UserRole::canReview)
+          .map(UserRole::name)
+          .toArray(String[]::new);
+
   /** No session and no CSRF: the client is a SPA that sends the token on every request. */
   @Bean
   public SecurityFilterChain filterChain(
@@ -57,21 +66,21 @@ public class SecurityConfig {
                     .requestMatchers("/users/me", "/users/me/**")
                     .authenticated()
                     .requestMatchers(
-                        "/normative-tables", "/normative-tables/**",
-                        "/review-queue", "/review-queue/**",
-                        "/users", "/users/**")
-                    .hasRole("ADMIN")
+                        "/normative-tables", "/normative-tables/**", "/users", "/users/**")
+                    .hasRole(ADMIN)
                     .requestMatchers(
+                        "/review-queue",
+                        "/review-queue/**",
                         "/projects/*/review",
                         "/projects/*/decision",
                         "/projects/*/findings/*/resolution")
-                    .hasRole("ADMIN")
+                    .hasAnyRole(REVIEWING_ROLES)
                     .requestMatchers(HttpMethod.POST, "/projects/*/findings")
-                    .hasRole("ADMIN")
+                    .hasAnyRole(REVIEWING_ROLES)
                     .requestMatchers(HttpMethod.PUT, "/projects/*/findings/*")
-                    .hasRole("ADMIN")
+                    .hasAnyRole(REVIEWING_ROLES)
                     .requestMatchers(HttpMethod.DELETE, "/projects/*/findings/*")
-                    .hasRole("ADMIN")
+                    .hasAnyRole(REVIEWING_ROLES)
                     .anyRequest()
                     .authenticated())
         .oauth2ResourceServer(
@@ -97,7 +106,7 @@ public class SecurityConfig {
     };
   }
 
-  /** The "role" claim written by {@link TokenService} becomes ROLE_ADMIN or ROLE_USER. */
+  /** The "role" claim written by {@link TokenService} becomes the ROLE_ authority. */
   @Bean
   public JwtAuthenticationConverter jwtAuthenticationConverter() {
     JwtAuthenticationConverter converter = new JwtAuthenticationConverter();

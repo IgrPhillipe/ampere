@@ -14,6 +14,7 @@ export type ProjectStatus = z.infer<typeof projectStatusSchema>;
 
 export const projectSortSchema = z.enum([
 	"name",
+	"owner",
 	"demand",
 	"createdAt",
 	"updatedAt",
@@ -36,6 +37,8 @@ export const projectSchema = z.object({
 	municipality: z.string(),
 	state: brazilianStateSchema,
 	protocol: z.string(),
+	ownerId: z.string().nullable(),
+	ownerName: z.string().nullable(),
 	status: projectStatusSchema,
 	createdAt: z.iso.datetime({ offset: true }),
 	updatedAt: z.iso.datetime({ offset: true }),
@@ -72,6 +75,17 @@ export const projectStatusCountsResponseSchema = apiResponseSchema(
 export type ProjectStatusCountsResponse = z.infer<
 	typeof projectStatusCountsResponseSchema
 >;
+
+export const projectOwnerSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+});
+
+export type ProjectOwner = z.infer<typeof projectOwnerSchema>;
+
+export const projectOwnerListResponseSchema = apiResponseSchema(
+	z.array(projectOwnerSchema),
+);
 
 /**
  * Parametros tecnicos da edificacao. Espelham os enums do back
@@ -133,6 +147,7 @@ export const projectDetailSchema = z.object({
 	createdAt: z.iso.datetime({ offset: true }),
 	updatedAt: z.iso.datetime({ offset: true }),
 	submittedAt: z.iso.datetime({ offset: true }).nullish(),
+	ownerId: z.string().nullish(),
 	ownerName: z.string().nullish(),
 	reviewerName: z.string().nullish(),
 	reviewCycle: z.number().int().nonnegative(),

@@ -17,6 +17,7 @@ export type ProjectColumnId =
 	| "attention"
 	| "protocol"
 	| "name"
+	| "owner"
 	| "status"
 	| "pending"
 	| "units"
@@ -25,7 +26,14 @@ export type ProjectColumnId =
 	| "updatedAt"
 	| "action";
 
-export const createProjectColumns = (actions: ProjectRowActions) =>
+interface ProjectColumnOptions {
+	showOwner: boolean;
+}
+
+export const createProjectColumns = (
+	actions: ProjectRowActions,
+	{ showOwner }: ProjectColumnOptions,
+) =>
 	columnHelper.columns([
 		columnHelper.display({
 			id: "attention",
@@ -52,9 +60,28 @@ export const createProjectColumns = (actions: ProjectRowActions) =>
 						{row.original.address},{" "}
 						{formatPlace(row.original.municipality, row.original.state)}
 					</span>
+					{showOwner ? (
+						// Below `xl` the "Projetista" column is hidden, so the name carries it.
+						<span className="text-xs text-muted-foreground xl:hidden">
+							{row.original.ownerName ?? "Não informado"}
+						</span>
+					) : null}
 				</div>
 			),
 		}),
+		...(showOwner
+			? [
+					columnHelper.accessor("ownerName", {
+						id: "owner",
+						header: "Projetista",
+						cell: ({ row }) => (
+							<span className="text-sm whitespace-normal text-foreground">
+								{row.original.ownerName ?? "Não informado"}
+							</span>
+						),
+					}),
+				]
+			: []),
 		columnHelper.accessor("status", {
 			header: "Situação",
 			cell: ({ row }) => <ProjectStatusBadge project={row.original} />,

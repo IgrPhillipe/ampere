@@ -5,6 +5,7 @@ import { ProjectEndpoints as e } from "./endpoints";
 import {
 	projectDetailResponseSchema,
 	projectListResponseSchema,
+	projectOwnerListResponseSchema,
 	projectStatusCountsResponseSchema,
 } from "./schemas";
 import type { CreateProjectPayload, ListProjectsParams } from "./types";
@@ -21,6 +22,12 @@ export const getProjectStatusCounts = async () => {
 	const response = await http.get(e.statusCounts).json<unknown>();
 
 	return projectStatusCountsResponseSchema.parse(response);
+};
+
+export const getProjectOwnerList = async () => {
+	const response = await http.get(e.owners).json<unknown>();
+
+	return projectOwnerListResponseSchema.parse(response);
 };
 
 export const getProject = async (id: string) => {

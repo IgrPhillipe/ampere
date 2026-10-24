@@ -25,6 +25,7 @@ export interface ListProjectsParams {
 	/** `YYYY-MM-DD`, inclusive. */
 	createdTo?: string;
 	findings?: ProjectFindingsFilter[];
+	owner?: string;
 }
 
 /** Corpo de `POST /projects`: os campos da US02. */

@@ -10,6 +10,7 @@ import type { ProjectRowActions } from "./project-row";
 
 interface ProjectCardsProps extends ProjectRowActions {
 	projects: Project[];
+	showOwner?: boolean;
 	className?: string;
 }
 
@@ -22,6 +23,7 @@ interface ProjectCardsProps extends ProjectRowActions {
  */
 export const ProjectCards = ({
 	projects,
+	showOwner = false,
 	className,
 	...actions
 }: ProjectCardsProps) => (
@@ -58,6 +60,13 @@ export const ProjectCards = ({
 							<dd className="font-mono font-semibold text-foreground">
 								{padCount(project.pendingCount)}
 							</dd>
+						</div>
+					) : null}
+
+					{showOwner ? (
+						<div className="flex gap-1.5">
+							<dt>Projetista</dt>
+							<dd>{project.ownerName ?? "Não informado"}</dd>
 						</div>
 					) : null}
 

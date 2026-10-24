@@ -16,6 +16,7 @@ import { Route as ProjetosIndexRouteImport } from './routes/projetos/index'
 import { Route as FilaDeAnaliseIndexRouteImport } from './routes/fila-de-analise/index'
 import { Route as ProjetosNovoRouteImport } from './routes/projetos/novo'
 import { Route as FilaDeAnaliseIdRouteImport } from './routes/fila-de-analise/$id'
+import { Route as ProjetosIdIndexRouteImport } from './routes/projetos/$id/index'
 import { Route as ProjetosIdUnidadesRouteImport } from './routes/projetos/$id/unidades'
 import { Route as ProjetosIdMemorialRouteImport } from './routes/projetos/$id/memorial'
 import { Route as ProjetosIdEnvioRouteImport } from './routes/projetos/$id/envio'
@@ -56,6 +57,11 @@ const ProjetosNovoRoute = ProjetosNovoRouteImport.update({
 const FilaDeAnaliseIdRoute = FilaDeAnaliseIdRouteImport.update({
   id: '/fila-de-analise/$id',
   path: '/fila-de-analise/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjetosIdIndexRoute = ProjetosIdIndexRouteImport.update({
+  id: '/projetos/$id/',
+  path: '/projetos/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjetosIdUnidadesRoute = ProjetosIdUnidadesRouteImport.update({
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/projetos/$id/envio': typeof ProjetosIdEnvioRoute
   '/projetos/$id/memorial': typeof ProjetosIdMemorialRoute
   '/projetos/$id/unidades': typeof ProjetosIdUnidadesRoute
+  '/projetos/$id/': typeof ProjetosIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/projetos/$id/envio': typeof ProjetosIdEnvioRoute
   '/projetos/$id/memorial': typeof ProjetosIdMemorialRoute
   '/projetos/$id/unidades': typeof ProjetosIdUnidadesRoute
+  '/projetos/$id': typeof ProjetosIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/projetos/$id/envio': typeof ProjetosIdEnvioRoute
   '/projetos/$id/memorial': typeof ProjetosIdMemorialRoute
   '/projetos/$id/unidades': typeof ProjetosIdUnidadesRoute
+  '/projetos/$id/': typeof ProjetosIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/projetos/$id/envio'
     | '/projetos/$id/memorial'
     | '/projetos/$id/unidades'
+    | '/projetos/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/projetos/$id/envio'
     | '/projetos/$id/memorial'
     | '/projetos/$id/unidades'
+    | '/projetos/$id'
   id:
     | '__root__'
     | '/'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/projetos/$id/envio'
     | '/projetos/$id/memorial'
     | '/projetos/$id/unidades'
+    | '/projetos/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -197,6 +209,7 @@ export interface RootRouteChildren {
   ProjetosIdEnvioRoute: typeof ProjetosIdEnvioRoute
   ProjetosIdMemorialRoute: typeof ProjetosIdMemorialRoute
   ProjetosIdUnidadesRoute: typeof ProjetosIdUnidadesRoute
+  ProjetosIdIndexRoute: typeof ProjetosIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -248,6 +261,13 @@ declare module '@tanstack/react-router' {
       path: '/fila-de-analise/$id'
       fullPath: '/fila-de-analise/$id'
       preLoaderRoute: typeof FilaDeAnaliseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projetos/$id/': {
+      id: '/projetos/$id/'
+      path: '/projetos/$id'
+      fullPath: '/projetos/$id/'
+      preLoaderRoute: typeof ProjetosIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projetos/$id/unidades': {
@@ -309,6 +329,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProjetosIdEnvioRoute: ProjetosIdEnvioRoute,
   ProjetosIdMemorialRoute: ProjetosIdMemorialRoute,
   ProjetosIdUnidadesRoute: ProjetosIdUnidadesRoute,
+  ProjetosIdIndexRoute: ProjetosIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

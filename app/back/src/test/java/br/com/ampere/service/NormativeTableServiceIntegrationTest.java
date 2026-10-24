@@ -4,13 +4,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.ampere.config.NormativeTableSeed;
 import br.com.ampere.domain.NormativeTable;
+import br.com.ampere.domain.NormativeTableCode;
+import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.Standard;
+import br.com.ampere.domain.StandardName;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
@@ -22,6 +27,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 /** No transaction here on purpose: the controller maps the rows after the service returns. */
 @SpringBootTest
 class NormativeTableServiceIntegrationTest {
+
+  private static final AuthenticatedUser ADMIN = new AuthenticatedUser(1L, UserRole.ADMIN);
 
   @Autowired private NormativeTableService service;
 
@@ -54,11 +61,34 @@ class NormativeTableServiceIntegrationTest {
         NormativeTableSeed.all(
             standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
 
-    List<NormativeTable> tables = service.list();
-    NormativeTable detail = service.findById(tables.get(0).getId());
+    List<NormativeTable> tables = service.list(NormativeTableQuery.all(), ADMIN);
+    NormativeTable detail = service.findById(tables.get(0).getId(), ADMIN);
 
     assertThat(tables).allSatisfy(table -> assertThat(table.getRows()).isNotEmpty());
     assertThat(tables.get(0).getStandard().getRevision()).isNotBlank();
     assertThat(detail.getRows()).isNotEmpty();
+  }
+
+  @Test
+  void filtersTheStoredTablesByStatus() {
+    List<Standard> standards =
+        standardRepository.saveAll(
+            List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
+    normativeTableRepository.saveAll(
+        NormativeTableSeed.all(
+            standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
+
+    List<NormativeTable> tables =
+        service.list(
+            new NormativeTableQuery(
+                "dis-nor-030", Set.of(NormativeTableStatus.PUBLISHED), null, null),
+            ADMIN);
+
+    assertThat(tables)
+        .isNotEmpty()
+        .allSatisfy(
+            table -> assertThat(table.getCode().standard()).isEqualTo(StandardName.DIS_NOR_030));
+    assertThat(tables.get(0).getCode())
+        .isEqualTo(NormativeTableCode.T6_RESIDENTIAL_LIGHTING_OUTLETS);
   }
 }

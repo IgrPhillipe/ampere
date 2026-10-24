@@ -10,6 +10,8 @@ const project: Project = {
 	municipality: "Recife",
 	state: "PE",
 	protocol: "2026-0475",
+	ownerId: "1",
+	ownerName: "Usuário Teste",
 	status: "DRAFT",
 	createdAt: "2026-10-01T12:00:00Z",
 	updatedAt: "2026-10-02T12:00:00Z",

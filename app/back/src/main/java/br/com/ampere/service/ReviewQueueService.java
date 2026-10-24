@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,7 +57,9 @@ public class ReviewQueueService {
   }
 
   @Transactional(readOnly = true)
-  public ReviewQueueListing list(int page, int pageSize, ReviewQueueQuery query) {
+  public ReviewQueueListing list(
+      int page, int pageSize, ReviewQueueQuery query, AuthenticatedUser user) {
+    user.requireReviewer();
     String reviewer = query.reviewer() == null ? "" : query.reviewer().trim();
     boolean unassigned = UNASSIGNED.equalsIgnoreCase(reviewer);
     LocalDate today = LocalDate.now(ZONE);
@@ -100,13 +103,17 @@ public class ReviewQueueService {
     return new ReviewQueueListing(entries, projects.getTotalElements());
   }
 
+  /** Whoever can take a project from the queue: active analysts and admins. */
   @Transactional(readOnly = true)
-  public List<User> reviewers() {
-    return userRepository.findAllByRoleOrderByNameAsc(UserRole.ADMIN);
+  public List<User> reviewers(AuthenticatedUser user) {
+    user.requireReviewer();
+    return userRepository.findAllByRoleInAndActiveTrueOrderByNameAsc(
+        Arrays.stream(UserRole.values()).filter(UserRole::canReview).toList());
   }
 
   @Transactional(readOnly = true)
-  public ReviewQueueIndicators indicators() {
+  public ReviewQueueIndicators indicators(AuthenticatedUser user) {
+    user.requireReviewer();
     LocalDate today = LocalDate.now(ZONE);
     OffsetDateTime startOfToday = today.atStartOfDay(ZONE).toOffsetDateTime();
     OffsetDateTime startOfMonth = today.withDayOfMonth(1).atStartOfDay(ZONE).toOffsetDateTime();
@@ -162,7 +169,7 @@ public class ReviewQueueService {
         userRepository
             .findById(id)
             .orElseThrow(() -> new BusinessException("Analista informado não encontrado."));
-    if (user.getRole() != UserRole.ADMIN) {
+    if (!user.getRole().canReview()) {
       throw new BusinessException("O usuário informado não é um analista.");
     }
 

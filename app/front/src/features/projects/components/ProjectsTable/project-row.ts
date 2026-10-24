@@ -34,10 +34,10 @@ export const getProjectAttention = (
 
 /** An object, not positional callbacks: they share a signature, so a swap would compile. */
 export interface ProjectRowActions {
-	onViewFindings: (project: Project) => void;
 	onResumeSubmission: (project: Project) => void;
 	onContinueDraft: (project: Project) => void;
 	onViewProject: (project: Project) => void;
+	onEditProject: (project: Project) => void;
 	onDeleteProject: (project: Project) => void;
 }
 
@@ -48,12 +48,24 @@ interface ProjectRowAction {
 	run: (actions: ProjectRowActions, project: Project) => void;
 }
 
-export const getProjectRowAction = (project: Project): ProjectRowAction => {
+/** Correcting and submitting belong to the owner; anyone else only views. */
+export const getProjectRowAction = (
+	project: Project,
+	isOwner = true,
+): ProjectRowAction => {
+	if (!isOwner && project.status !== "DRAFT") {
+		return {
+			label: "Ver Projeto",
+			required: false,
+			run: (actions) => actions.onViewProject(project),
+		};
+	}
+
 	if (project.status === "REJECTED") {
 		return {
 			label: "Corrigir",
 			required: true,
-			run: (actions) => actions.onViewFindings(project),
+			run: (actions) => actions.onViewProject(project),
 		};
 	}
 

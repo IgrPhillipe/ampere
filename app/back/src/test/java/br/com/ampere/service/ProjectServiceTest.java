@@ -17,6 +17,7 @@ import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.ProjectVisibility;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.SupplyVoltage;
@@ -65,7 +66,8 @@ class ProjectServiceTest {
                 Set.of("Recife"),
                 LocalDate.of(2026, 10, 1),
                 LocalDate.of(2026, 10, 10),
-                Set.of(OpenFindingsFilter.ANY_OPEN)),
+                Set.of(OpenFindingsFilter.ANY_OPEN),
+                null),
             DESIGNER);
 
     ArgumentCaptor<ProjectSearch> searchCaptor = ArgumentCaptor.forClass(ProjectSearch.class);
@@ -73,8 +75,8 @@ class ProjectServiceTest {
     verify(projectRepository)
         .searchAccessibleProjects(searchCaptor.capture(), pageableCaptor.capture());
     ProjectSearch search = searchCaptor.getValue();
-    assertThat(search.ownerId()).isEqualTo(7L);
-    assertThat(search.admin()).isFalse();
+    assertThat(search.userId()).isEqualTo(7L);
+    assertThat(search.visibility()).isEqualTo(ProjectVisibility.OWN);
     assertThat(search.search()).isEqualTo("\\%\\_\\\\");
     assertThat(search.createdFrom()).isEqualTo(OffsetDateTime.parse("2026-10-01T00:00-03:00"));
     assertThat(search.createdBefore()).isEqualTo(OffsetDateTime.parse("2026-10-11T00:00-03:00"));
@@ -97,6 +99,7 @@ class ProjectServiceTest {
             null,
             LocalDate.of(2026, 10, 10),
             LocalDate.of(2026, 10, 1),
+            null,
             null);
 
     assertThatThrownBy(

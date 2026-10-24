@@ -61,15 +61,16 @@ API em `http://localhost:8080/api`, documentação em `http://localhost:8080/api
 
 ## Autenticação
 
-`/api/projects` exige token. A cada inicialização, o `DataSeeder` cria os três usuários de desenvolvimento que ainda não existem (a checagem é por e-mail):
+`/api/projects` exige token. A cada inicialização, o `DataSeeder` cria os quatro usuários de desenvolvimento que ainda não existem (a checagem é por e-mail):
 
 | E-mail | Senha | Papel |
 | :--- | :--- | :--- |
 | `user@ampere.com` | `senha@123` | `user`, com CREA 123456/PE |
 | `admin@ampere.com` | `senha@123` | `admin` |
-| `revisor@ampere.com` | `senha@123` | `admin` |
+| `conferente@ampere.com` | `senha@123` | `admin` |
+| `revisor@ampere.com` | `senha@123` | `reviewer` |
 
-O revisor existe para a dupla leitura das tabelas normativas: quem cadastra uma tabela não a publica.
+O conferente existe para a dupla leitura das tabelas normativas: quem cadastra uma tabela não a publica. O revisor é o analista; num banco antigo, em que ele era `admin`, o `DataSeeder` o passa para `reviewer`.
 
 ```bash
 curl -s -X POST http://localhost:8080/api/auth/login \
@@ -77,7 +78,7 @@ curl -s -X POST http://localhost:8080/api/auth/login \
   -d '{"email":"user@ampere.com","password":"senha@123"}'
 ```
 
-As tabelas normativas (`/api/normative-tables/**`), a fila (`/api/review-queue/**`) e a gestão de usuários (`/api/users/**`, exceto `/api/users/me`) exigem o papel `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`. O papel `admin` representa o analista na fila técnica.
+As tabelas normativas (`/api/normative-tables/**`) e a gestão de usuários (`/api/users/**`, exceto `/api/users/me`) exigem o papel `admin`; a fila (`/api/review-queue/**`) aceita `reviewer` e `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`.
 
 ### Cadastro e Perfil
 
@@ -101,7 +102,7 @@ Restrita ao papel `admin` pelo `SecurityConfig`, sem prefixo de papel no caminho
 
 | Método e caminho | O que faz |
 | :--- | :--- |
-| `GET /api/users` | Lista em ordem de nome, paginada; `search` busca no nome e no e-mail sem acentos, `role` filtra por `user` ou `admin` |
+| `GET /api/users` | Lista em ordem de nome, paginada; `search` busca no nome e no e-mail sem acentos, `role` filtra por `user`, `reviewer` ou `admin` |
 | `POST /api/users` | Cria a conta com nome, e-mail e papel; devolve a senha temporária |
 | `PUT /api/users/{id}` | Substitui nome, papel e situação (`active`), os três obrigatórios; é por aqui que se desativa e reativa. O e-mail não muda |
 | `POST /api/users/{id}/password-reset` | Gera uma nova senha temporária |
@@ -131,7 +132,7 @@ Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/i
 
 ## Análise Técnica e Apontamentos
 
-O papel `admin` representa o analista. Um projeto `UNDER_REVIEW` é assumido por um único analista: repetir a atribuição não muda nada, e outro analista recebe 409. As rotas de escrita do analista são restritas ao `admin` pelo `SecurityConfig`.
+O papel `reviewer` representa o analista, e o `admin` faz tudo o que ele faz. Um projeto `UNDER_REVIEW` é assumido por um único analista: repetir a atribuição não muda nada, e outro analista recebe 409. As rotas de escrita da análise são restritas a `reviewer` e `admin` pelo `SecurityConfig`.
 
 | Método e caminho | Quem usa | Regra principal |
 | :--- | :--- | :--- |

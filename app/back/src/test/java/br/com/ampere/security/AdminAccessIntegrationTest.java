@@ -1,5 +1,6 @@
 package br.com.ampere.security;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -27,7 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-/** /admin is the normative tables area: ADMIN only, typed by one person and verified by another. */
+/** The normative tables are ADMIN only, typed by one administrator and verified by another. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -84,7 +85,8 @@ class AdminAccessIntegrationTest {
         List.of(
             new User("Usuário", "user@ampere.com", hash, UserRole.USER),
             new User("Admin", "admin@ampere.com", hash, UserRole.ADMIN),
-            new User("Revisor", "revisor@ampere.com", hash, UserRole.ADMIN)));
+            new User("Conferente", "conferente@ampere.com", hash, UserRole.ADMIN),
+            new User("Revisor", "revisor@ampere.com", hash, UserRole.REVIEWER)));
   }
 
   @Test
@@ -94,6 +96,39 @@ class AdminAccessIntegrationTest {
         .andExpect(status().isForbidden())
         .andExpect(
             jsonPath("$.detail").value(ProblemDetailAuthenticationHandler.FORBIDDEN_MESSAGE));
+  }
+
+  @Test
+  void anAnalystCannotSeePublishOrDeleteTheNormativeTables() throws Exception {
+    String id = create(bearer("admin@ampere.com"));
+    String reviewer = bearer("revisor@ampere.com");
+
+    mockMvc
+        .perform(get("/normative-tables").header("Authorization", reviewer))
+        .andExpect(status().isForbidden());
+    mockMvc
+        .perform(post("/normative-tables/" + id + "/publication").header("Authorization", reviewer))
+        .andExpect(status().isForbidden());
+    mockMvc
+        .perform(delete("/normative-tables/" + id).header("Authorization", reviewer))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void anAdminDeletesADraftButNotAPublishedTable() throws Exception {
+    String admin = bearer("admin@ampere.com");
+    String draft = create(admin);
+    String published = create(admin);
+    mockMvc.perform(
+        post("/normative-tables/" + published + "/publication")
+            .header("Authorization", bearer("conferente@ampere.com")));
+
+    mockMvc
+        .perform(delete("/normative-tables/" + draft).header("Authorization", admin))
+        .andExpect(status().isNoContent());
+    mockMvc
+        .perform(delete("/normative-tables/" + published).header("Authorization", admin))
+        .andExpect(status().isConflict());
   }
 
   @Test
@@ -122,16 +157,16 @@ class AdminAccessIntegrationTest {
         .andExpect(
             jsonPath("$.detail")
                 .value(
-                    "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por um"
-                        + " revisor."));
+                    "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por outro"
+                        + " administrador."));
 
     mockMvc
         .perform(
             post("/normative-tables/" + id + "/publication")
-                .header("Authorization", bearer("revisor@ampere.com")))
+                .header("Authorization", bearer("conferente@ampere.com")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.status").value("PUBLISHED"))
-        .andExpect(jsonPath("$.data.verifiedBy").value("revisor@ampere.com"));
+        .andExpect(jsonPath("$.data.verifiedBy").value("conferente@ampere.com"));
 
     mockMvc
         .perform(
@@ -145,7 +180,7 @@ class AdminAccessIntegrationTest {
   @Test
   void publishingANewRevisionSupersedesThePreviousOne() throws Exception {
     String admin = bearer("admin@ampere.com");
-    String reviewer = bearer("revisor@ampere.com");
+    String reviewer = bearer("conferente@ampere.com");
     String first = create(admin);
     mockMvc.perform(
         post("/normative-tables/" + first + "/publication").header("Authorization", reviewer));

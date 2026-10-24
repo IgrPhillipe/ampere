@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const userRoleSchema = z.enum([
 	"user",
+	"reviewer",
 	"admin",
 ]) satisfies z.ZodType<UserRole>;
 

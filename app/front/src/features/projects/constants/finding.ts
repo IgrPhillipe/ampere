@@ -134,7 +134,7 @@ export const getFindingAttention = (findings: Finding[]): AttentionMessage => {
 			: "warning",
 		title: `${count} ${count === 1 ? "apontamento" : "apontamentos"} neste item`,
 		details: findings.map(({ description }) => description.replace(/\.$/, "")),
-		action: "Corrija aqui e responda na tela de apontamentos.",
+		action: "Corrija aqui e responda no detalhe do projeto.",
 	};
 };
 

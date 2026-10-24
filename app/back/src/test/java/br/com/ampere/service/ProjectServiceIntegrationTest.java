@@ -302,6 +302,7 @@ class ProjectServiceIntegrationTest {
             null,
             null,
             null,
+            null,
             null);
 
     assertThat(list(inParaiba).projects()).containsExactly(pedras);
@@ -339,7 +340,8 @@ class ProjectServiceIntegrationTest {
                     null,
                     null,
                     null,
-                    Set.of(OpenFindingsFilter.BLOCKING_OPEN, OpenFindingsFilter.NONE_OPEN)))
+                    Set.of(OpenFindingsFilter.BLOCKING_OPEN, OpenFindingsFilter.NONE_OPEN),
+                    null))
                 .projects())
         .containsExactlyInAnyOrder(blocked, drafted, resolved, clean);
   }
@@ -358,6 +360,7 @@ class ProjectServiceIntegrationTest {
             SortDirection.DESC,
             null,
             Set.of("recife", " Olinda "),
+            null,
             null,
             null,
             null);
@@ -386,7 +389,8 @@ class ProjectServiceIntegrationTest {
                 Set.of("Recife"),
                 null,
                 null,
-                Set.of(OpenFindingsFilter.BLOCKING_OPEN)));
+                Set.of(OpenFindingsFilter.BLOCKING_OPEN),
+                null));
 
     assertThat(listing.projects()).containsExactly(alpha, zeta);
     assertThat(listing.totalElements()).isEqualTo(2);
@@ -610,6 +614,7 @@ class ProjectServiceIntegrationTest {
             null,
             null,
             null,
+            null,
             null));
   }
 
@@ -618,7 +623,7 @@ class ProjectServiceIntegrationTest {
   }
 
   private static ProjectListQuery sortedBy(ProjectSort sort, SortDirection direction) {
-    return new ProjectListQuery(null, null, sort, direction, null, null, null, null, null);
+    return new ProjectListQuery(null, null, sort, direction, null, null, null, null, null, null);
   }
 
   private static ProjectListQuery filtered(
@@ -632,6 +637,7 @@ class ProjectServiceIntegrationTest {
         municipality == null ? null : Set.of(municipality),
         createdFrom,
         createdTo,
+        null,
         null);
   }
 
@@ -645,7 +651,8 @@ class ProjectServiceIntegrationTest {
         null,
         null,
         null,
-        findings == null ? null : Set.of(findings));
+        findings == null ? null : Set.of(findings),
+        null);
   }
 
   private Project save(String name, String municipality, String protocol) {

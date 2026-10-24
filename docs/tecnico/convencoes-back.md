@@ -111,7 +111,7 @@ O caminho nomeia o recurso, no plural e em kebab-case; o método HTTP diz a aç�
 - Sem verbo no caminho: enviar um projeto é `POST /projects/{id}/submission`, publicar uma tabela é `POST /normative-tables/{id}/publication`.
 - Recurso de um projeto fica aninhado nele: `/projects/{id}/consumer-unit-groups`, `/projects/{id}/calculations`, `/projects/{id}/documents`.
 - Coleção que guarda todo o histórico é plural, e o mais recente é `/latest`: `GET /projects/{id}/calculations/latest`.
-- Sem papel no caminho: `/normative-tables`, `/review-queue` e `/users` são restritos ao `admin` pelo `SecurityConfig`, não por um prefixo `/admin`.
+- Sem papel no caminho: `/normative-tables` e `/users` são restritos ao `admin`, e `/review-queue` ao `reviewer` e ao `admin`, pelo `SecurityConfig`, não por um prefixo `/admin`.
 - Ordenação de lista usa `sort=<coluna>` e `direction=ASC|DESC` (`SortDirection`). Cada lista tem o enum das suas colunas (`ProjectSort`, `ReviewQueueSort`), e o empate sai pelo `id`.
 
 ### Envelope
@@ -278,9 +278,19 @@ Decisões:
 - **Toda requisição relê a situação e o papel da conta.** O `ActiveAccountConverter` lê só `active` e `role` pela chave primária: conta desativada responde 401 com *"Conta desativada. Procure a Neoenergia."*, e papel alterado ou conta inexistente derrubam o token. Sem isso, o token valeria até expirar.
 - **Conta inativa só é avisada a quem acerta a senha.** O login responde 403 com a mensagem da conta desativada; senha errada continua no 401 de sempre.
 
-**Rotas restritas por papel ficam no `SecurityConfig`.** As tabelas normativas (`/normative-tables/**`), a fila de análise (`/review-queue/**`), a gestão de usuários (`/users/**`, exceto `/users/me`, que vem antes no `SecurityConfig`) e a escrita da análise (atribuição, decisão e apontamentos) não são do projetista: o `SecurityConfig` converte o claim `role` do token em `ROLE_ADMIN` ou `ROLE_USER` e exige `hasRole("ADMIN")` nesses caminhos. Sem o papel, a resposta é 403 no mesmo `ProblemDetail` do resto da API. Rota nova de analista entra no mesmo `requestMatchers`.
+**Rotas restritas por papel ficam no `SecurityConfig`.** O claim `role` do token vira `ROLE_USER`, `ROLE_REVIEWER` ou `ROLE_ADMIN`. Sem o papel, a resposta é 403 no mesmo `ProblemDetail` do resto da API.
 
-Os papéis atuais (`user` / `admin`) são placeholder e dependem da **Q1c** em [`questoes-em-aberto.md`](../produto/questoes-em-aberto.md): *"pessoa de fora da Neoenergia pode acessar um sistema interno?"*. A resolução da Q1c é aplicada aqui e na pendência 13.
+| Papel | O que é | Caminhos exclusivos |
+| :--- | :--- | :--- |
+| `user` | projetista | nenhum: projetos e perfil |
+| `reviewer` | analista | fila (`/review-queue/**`) e escrita da análise (atribuição, decisão e apontamentos), junto com o `admin` |
+| `admin` | acesso total | tabelas normativas (`/normative-tables/**`) e gestão de usuários (`/users/**`, exceto `/users/me`, que vem antes no `SecurityConfig`), além de tudo o que o `reviewer` faz |
+
+`UserRole.canReview()` diz quem analisa; o `SecurityConfig` monta `hasAnyRole` a partir dele. Rota nova de análise entra no mesmo `requestMatchers`.
+
+A publicação de tabela normativa exige um segundo `admin`, diferente de quem cadastrou. O seed de desenvolvimento tem dois: `admin@ampere.com` cadastra e `conferente@ampere.com` publica.
+
+**Papel novo no enum exige reescrever o `CHECK` da coluna.** O Hibernate cria `app_user_role_check` com os valores do enum, e o `ddl-auto=update` não o refaz. O `config/UserRoleConstraint` reescreve o `CHECK` a cada subida, até o Flyway da pendência 16.
 
 ### Dono do Projeto
 
@@ -288,12 +298,19 @@ Os papéis atuais (`user` / `admin`) são placeholder e dependem da **Q1c** em [
 
 | Papel | Lê | Escreve |
 | :--- | :--- | :--- |
-| `user` (projetista) | só os próprios projetos | só os próprios projetos |
-| `admin` (analista) | todos os projetos já enviados | nada: 403 |
+| `user` (projetista) | só os próprios projetos | só os próprios, em rascunho ou reprovado (documentos também aguardando envio); exclusão só em rascunho |
+| `reviewer` (analista) | todos os projetos já enviados | nada: 403 |
+| `admin` | todos os projetos, de qualquer dono e situação | os de qualquer dono, com as mesmas regras de situação do projetista |
 
 - **Projeto de outro dono responde 404**, igual a um id inexistente. Um 403 confirmaria que o projeto existe.
 - **Rascunho também responde 404 ao analista**: ele só vê o que foi enviado para análise.
-- **Listagem, busca e contadores filtram no banco** (`searchAccessibleProjects`, `countAccessiblePerStatus`), não na memória.
+- **O `admin` passa só pela regra de dono** (`ProjectVisibility.ALL`), nunca pelas de situação: projeto em análise ou aprovado fica congelado para todos, e a exclusão vale só para rascunho.
+- **Responder apontamento e enviar são do dono** (`ProjectService.findOwnedById`): o `admin` recebe 403 em projeto de outro projetista.
+- **Projeto criado pelo `admin` é do próprio `admin`.** O corpo de `POST /projects` não tem dono.
+- **Ninguém analisa o próprio projeto.** Assumir a análise de um projeto seu responde 403, mesmo para o `admin`.
+- **Os services repetem a regra de papel do `SecurityConfig`** (`AuthenticatedUser.requireReviewer()` e `requireAdmin()`), para que um matcher fora do lugar não abra a rota.
+- **Troca de papel com trabalho em andamento responde 409**: projetista com projeto não aprovado, ou analista com análise em andamento que perderia a análise.
+- **Listagem, busca, municípios e contadores filtram no banco** (`searchAccessibleProjects`, `findAccessibleMunicipalities`, `countAccessiblePerStatus`), não na memória. O alcance de cada papel é o `ProjectVisibility` (`OWN`, `SUBMITTED`, `ALL`), lido de `AuthenticatedUser.projectVisibility()`.
 - A regra vale para tudo que fica aninhado no projeto: grupos, cálculo, documentos, memorial e envio. Os services desses recursos passam por `ProjectService.findById` (leitura), `findWritableById`, `draftOrFail` ou `editableOrFail` (escrita; o último aceita rascunho e reprovado), e não leem o projeto direto do repository.
 
 **O service não lê o contexto de segurança.** O controller recebe `@AuthenticationPrincipal Jwt` e converte o token em `AuthenticatedUser` (id e papel), que o service recebe como último parâmetro. Token sem id ou papel válido responde 401.

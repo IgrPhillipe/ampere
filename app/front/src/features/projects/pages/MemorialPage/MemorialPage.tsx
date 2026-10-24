@@ -24,6 +24,7 @@ import {
 	SubmissionChecklistPanel,
 } from "../../components";
 import { stageFindingsOf } from "../../constants";
+import { useProjectPermissions } from "../../hooks";
 
 interface MemorialPageProps {
 	projectId: string;
@@ -54,11 +55,13 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	);
 	const validation = validationQuery.data?.data;
 	const checklist = submissionQuery.data?.data;
-	const editable =
-		project?.status === "DRAFT" ||
-		project?.status === "AWAITING_SUBMISSION" ||
-		project?.status === "REJECTED";
-	const submitted = project !== undefined && !editable;
+	const { canEditDocuments: editable, isOwner } =
+		useProjectPermissions(project);
+	const submitted =
+		project !== undefined &&
+		project.status !== "DRAFT" &&
+		project.status !== "AWAITING_SUBMISSION" &&
+		project.status !== "REJECTED";
 	const neverCalculated = calculationQuery.data === null;
 	const hasError =
 		projectQuery.isError ||
@@ -75,8 +78,8 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const backToCalculation = () =>
 		void navigate({ to: "/projetos/$id/calculo", params: { id: projectId } });
 
-	const goToSubmission = () =>
-		void navigate({ to: "/projetos/$id/envio", params: { id: projectId } });
+	const goToDetail = () =>
+		void navigate({ to: "/projetos/$id", params: { id: projectId } });
 
 	const upload = (type: DocumentType, file: File) =>
 		uploadMutation.mutate({ projectId, type, file });
@@ -85,7 +88,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 		deleteMutation.mutate({ projectId, documentId: document.id });
 
 	const submit = () =>
-		submitMutation.mutate({ projectId }, { onSuccess: goToSubmission });
+		submitMutation.mutate({ projectId }, { onSuccess: goToDetail });
 
 	const retry = () => {
 		void projectQuery.refetch();
@@ -197,17 +200,17 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 							type="button"
 							onClick={() =>
 								void navigate({
-									to: "/projetos/$id/apontamentos",
+									to: "/projetos/$id",
 									params: { id: projectId },
 								})
 							}
 						>
-							Revisar e Reenviar
+							{isOwner ? "Revisar e Reenviar" : "Ver Projeto"}
 							<ArrowRight aria-hidden="true" />
 						</Button>
-					) : submitted ? (
-						<Button type="button" onClick={goToSubmission}>
-							Ver Envio
+					) : submitted || (project !== undefined && !isOwner) ? (
+						<Button type="button" onClick={goToDetail}>
+							Ver Projeto
 							<ArrowRight aria-hidden="true" />
 						</Button>
 					) : (

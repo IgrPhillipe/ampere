@@ -18,7 +18,8 @@ public record ProjectListQuery(
     Collection<String> municipalities,
     LocalDate createdFrom,
     LocalDate createdTo,
-    Collection<OpenFindingsFilter> findings) {
+    Collection<OpenFindingsFilter> findings,
+    Long owner) {
 
   public ProjectListQuery {
     states = FilterValues.setOf(states, "state");

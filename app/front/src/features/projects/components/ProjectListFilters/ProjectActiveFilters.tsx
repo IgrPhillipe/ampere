@@ -1,6 +1,7 @@
 import { type ActiveFilter, ActiveFilters } from "@components/ActiveFilters";
 import type { DateRange } from "@components/DateRangeFilter";
 import { formatDate } from "@features/shared";
+import { useGetProjectOwnerList } from "@services/projects";
 
 import { projectFindingsFilterLabels } from "../../constants/project-findings";
 import { projectStatusLabels } from "../../constants/project-status";
@@ -19,7 +20,8 @@ const periodLabel = ({ from, to }: DateRange) => {
 export const ProjectActiveFilters = ({
 	filters,
 }: ProjectActiveFiltersProps) => {
-	const { status, search, municipality, period, findings } = filters;
+	const { status, search, municipality, period, findings, owner } = filters;
+	const ownersQuery = useGetProjectOwnerList({ enabled: owner !== null });
 	const active: ActiveFilter[] = [];
 
 	if (status) {
@@ -35,6 +37,18 @@ export const ProjectActiveFilters = ({
 			id: "search",
 			label: `Busca: ${search.trim()}`,
 			onRemove: () => filters.setSearch(""),
+		});
+	}
+
+	// Waits for the names, so the tag never flashes the raw id.
+	if (owner && !ownersQuery.isPending) {
+		const name =
+			ownersQuery.data?.data.find(({ id }) => id === owner)?.name ?? owner;
+
+		active.push({
+			id: "owner",
+			label: `Projetista: ${name}`,
+			onRemove: () => filters.setOwner(null),
 		});
 	}
 

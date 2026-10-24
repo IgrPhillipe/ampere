@@ -5,6 +5,7 @@ import { Pagination } from "@components/Pagination";
 import { SearchInput } from "@components/SearchInput";
 import { SortMenu, type SortOption } from "@components/SortMenu";
 import { Button } from "@components/ui/button";
+import { useAuthStore } from "@features/shared";
 import {
 	type Project,
 	type ProjectSort,
@@ -24,6 +25,7 @@ import {
 	ProjectStatusFilters,
 	ProjectsTable,
 } from "../../components";
+import { getProjectsPageTitle } from "../../constants";
 import { PROJECT_SORT_DIRECTIONS, useProjectFilters } from "../../hooks";
 
 const PAGE_SIZE = 10;
@@ -33,6 +35,11 @@ const sortOptions: SortOption<ProjectSort>[] = [
 	{ value: "createdAt", label: "Criação" },
 	{ value: "name", label: "Nome" },
 	{ value: "demand", label: "Demanda" },
+];
+
+const adminSortOptions: SortOption<ProjectSort>[] = [
+	...sortOptions,
+	{ value: "owner", label: "Projetista" },
 ];
 
 const emptyStatusCounts: ProjectStatusCounts = {
@@ -46,6 +53,8 @@ const emptyStatusCounts: ProjectStatusCounts = {
 
 export const ProjectsPage = () => {
 	const navigate = useNavigate();
+	const role = useAuthStore((state) => state.user?.role);
+	const isAdmin = role === "admin";
 	const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 	const deleteProject = useDeleteProject();
 	const filters = useProjectFilters();
@@ -73,15 +82,6 @@ export const ProjectsPage = () => {
 	const pagination = projectsQuery.data?.pagination;
 	const hasError = projectsQuery.isError || statusCountsQuery.isError;
 
-	const handleViewFindings = useCallback(
-		(project: Project) =>
-			void navigate({
-				to: "/projetos/$id/apontamentos",
-				params: { id: project.id },
-			}),
-		[navigate],
-	);
-
 	const handleResumeSubmission = useCallback(
 		(project: Project) =>
 			void navigate({
@@ -108,7 +108,13 @@ export const ProjectsPage = () => {
 
 	const handleViewProject = useCallback(
 		(project: Project) =>
-			void navigate({ to: "/projetos/$id/envio", params: { id: project.id } }),
+			void navigate({ to: "/projetos/$id", params: { id: project.id } }),
+		[navigate],
+	);
+
+	const handleEditProject = useCallback(
+		(project: Project) =>
+			void navigate({ to: "/projetos/$id/dados", params: { id: project.id } }),
 		[navigate],
 	);
 
@@ -126,8 +132,12 @@ export const ProjectsPage = () => {
 
 	return (
 		<PageLayout
-			title="Meus Projetos"
-			description="Acompanhe o andamento dos projetos enviados à Neoenergia Pernambuco."
+			title={getProjectsPageTitle(role)}
+			description={
+				isAdmin
+					? "Todos os projetos dos projetistas, em qualquer situação."
+					: "Acompanhe o andamento dos projetos enviados à Neoenergia Pernambuco."
+			}
 			bleed
 			actions={
 				<Button
@@ -163,7 +173,7 @@ export const ProjectsPage = () => {
 					}
 					sort={
 						<SortMenu
-							options={sortOptions}
+							options={isAdmin ? adminSortOptions : sortOptions}
 							value={sort}
 							directions={PROJECT_SORT_DIRECTIONS}
 							onValueChange={setSort}
@@ -171,6 +181,9 @@ export const ProjectsPage = () => {
 					}
 					refinements={
 						<ProjectFilterControls
+							showOwner={isAdmin}
+							owner={filters.owner}
+							onOwnerChange={filters.setOwner}
 							state={filters.state}
 							onStateChange={filters.setState}
 							municipality={filters.municipality}
@@ -206,11 +219,12 @@ export const ProjectsPage = () => {
 					) : (
 						<ProjectsTable
 							projects={projects}
+							showOwner={isAdmin}
 							isLoading={projectsQuery.isPending}
-							onViewFindings={handleViewFindings}
 							onResumeSubmission={handleResumeSubmission}
 							onContinueDraft={handleContinueDraft}
 							onViewProject={handleViewProject}
+							onEditProject={handleEditProject}
 							onDeleteProject={handleDeleteProject}
 							sort={sort}
 							onSortChange={sortBy}

@@ -37,6 +37,7 @@ const DEFAULT_SORT: ProjectSort = "updatedAt";
 
 export const PROJECT_SORT_DIRECTIONS: SortDirections<ProjectSort> = {
 	name: "ASC",
+	owner: "ASC",
 	demand: "DESC",
 	createdAt: "DESC",
 	updatedAt: "DESC",
@@ -65,8 +66,9 @@ export const useProjectFilters = () => {
 		findings: parseAsNativeArrayOf(
 			parseAsStringLiteral(projectFindingsFilterSchema.options),
 		),
+		owner: parseAsString,
 	});
-	const { status, search, page, state, municipality, findings } = query;
+	const { status, search, page, state, municipality, findings, owner } = query;
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
 	const sort = useMemo<ListSort<ProjectSort>>(
@@ -97,6 +99,7 @@ export const useProjectFilters = () => {
 			createdFrom: period.from ?? undefined,
 			createdTo: period.to ?? undefined,
 			findings: findings.length ? findings : undefined,
+			owner: owner ?? undefined,
 		}),
 		[
 			page,
@@ -107,6 +110,7 @@ export const useProjectFilters = () => {
 			municipality,
 			period,
 			findings,
+			owner,
 		],
 	);
 
@@ -195,6 +199,13 @@ export const useProjectFilters = () => {
 		[setQuery],
 	);
 
+	const setOwner = useCallback(
+		(value: string | null) => {
+			void setQuery({ owner: value, page: null });
+		},
+		[setQuery],
+	);
+
 	const clearFilters = useCallback(() => {
 		void setQuery({
 			status: null,
@@ -204,6 +215,7 @@ export const useProjectFilters = () => {
 			createdFrom: null,
 			createdTo: null,
 			findings: null,
+			owner: null,
 			page: null,
 		});
 	}, [setQuery]);
@@ -217,6 +229,7 @@ export const useProjectFilters = () => {
 		municipality,
 		period,
 		findings,
+		owner,
 		params,
 		// An empty list under an active filter asks for "Limpar Filtros"; without one, it does not.
 		hasActiveFilters:
@@ -226,7 +239,8 @@ export const useProjectFilters = () => {
 			municipality.length > 0 ||
 			period.from !== null ||
 			period.to !== null ||
-			findings.length > 0,
+			findings.length > 0 ||
+			owner !== null,
 		setStatus,
 		setSearch,
 		setPage,
@@ -236,6 +250,7 @@ export const useProjectFilters = () => {
 		setMunicipality,
 		setPeriod,
 		setFindings,
+		setOwner,
 		clearFilters,
 	};
 };

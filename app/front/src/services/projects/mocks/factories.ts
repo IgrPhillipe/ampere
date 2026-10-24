@@ -83,6 +83,8 @@ export const makeCreatedProject = (
 		municipality: payload.municipality,
 		state: payload.state,
 		protocol: `2026-${id.padStart(4, "0")}`,
+		ownerId: "1",
+		ownerName: "Usuário Teste",
 		status: "DRAFT",
 		createdAt: now,
 		updatedAt: now,

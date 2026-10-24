@@ -14,7 +14,7 @@ public interface NormativeTableRepository extends JpaRepository<NormativeTable, 
   List<NormativeTable> findAllByStatus(NormativeTableStatus status);
 
   @EntityGraph(attributePaths = {"standard", "rows"})
-  List<NormativeTable> findAllByOrderByCodeAscIdDesc();
+  List<NormativeTable> findListingBy();
 
   @EntityGraph(attributePaths = {"standard", "rows"})
   Optional<NormativeTable> findDetailById(Long id);

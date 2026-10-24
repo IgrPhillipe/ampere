@@ -1,14 +1,18 @@
 package br.com.ampere.service;
 
 import br.com.ampere.domain.NormativeTable;
+import br.com.ampere.domain.NormativeTableSort;
 import br.com.ampere.domain.NormativeTableStatus;
+import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.StandardRepository;
+import br.com.ampere.utils.SearchTerms;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,23 +33,32 @@ public class NormativeTableService {
     this.standardRepository = standardRepository;
   }
 
-  /** In catalogue order (Quadro 33 before Tabela 1 before Tabela 19), newest revision first. */
+  /** In memory: the title and the catalogue order live in the enum, and the list is small. */
   @Transactional(readOnly = true)
-  public List<NormativeTable> list() {
-    return tableRepository.findAllByOrderByCodeAscIdDesc().stream()
+  public List<NormativeTable> list(NormativeTableQuery query, AuthenticatedUser user) {
+    user.requireAdmin();
+    String search = SearchTerms.fold(query.search());
+
+    return tableRepository.findListingBy().stream()
+        .filter(table -> query.statuses().isEmpty() || query.statuses().contains(table.getStatus()))
+        .filter(table -> search.isEmpty() || matches(table, search))
         .sorted(
-            Comparator.comparing(NormativeTable::getCode)
+            comparatorOf(query.sort(), query.direction())
                 .thenComparing(NormativeTable::getId, Comparator.reverseOrder()))
         .toList();
   }
 
   @Transactional(readOnly = true)
-  public NormativeTable findById(Long id) {
+  public NormativeTable findById(Long id, AuthenticatedUser user) {
+    user.requireAdmin();
+
     return tableRepository.findDetailById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND));
   }
 
   @Transactional
-  public NormativeTable create(NormativeTableParameters parameters, String registeredBy) {
+  public NormativeTable create(
+      NormativeTableParameters parameters, String registeredBy, AuthenticatedUser user) {
+    user.requireAdmin();
     NormativeTable table =
         new NormativeTable(
             standardOf(parameters),
@@ -61,8 +74,9 @@ public class NormativeTableService {
   }
 
   @Transactional
-  public NormativeTable update(Long id, NormativeTableParameters parameters) {
-    NormativeTable table = draftOrFail(id, NOT_DRAFT);
+  public NormativeTable update(
+      Long id, NormativeTableParameters parameters, AuthenticatedUser user) {
+    NormativeTable table = draftOrFail(id, NOT_DRAFT, user);
     if (table.getCode() != parameters.code()) {
       throw new BusinessException(
           "A tabela de uma revisão não muda. Cadastre outra tabela.", HttpStatus.CONFLICT);
@@ -77,11 +91,11 @@ public class NormativeTableService {
 
   /** The verifier must not be who typed it; the previous published revision is superseded. */
   @Transactional
-  public NormativeTable publish(Long id, String verifiedBy) {
-    NormativeTable table = draftOrFail(id, "Esta tabela já foi publicada.");
+  public NormativeTable publish(Long id, String verifiedBy, AuthenticatedUser user) {
+    NormativeTable table = draftOrFail(id, "Esta tabela já foi publicada.", user);
     if (!table.isVerifiableBy(verifiedBy)) {
       throw new BusinessException(
-          "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por um revisor.",
+          "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por outro administrador.",
           HttpStatus.CONFLICT);
     }
     rejectProblems(table);
@@ -95,12 +109,13 @@ public class NormativeTableService {
   }
 
   @Transactional
-  public void delete(Long id) {
-    tableRepository.delete(draftOrFail(id, "Só é possível excluir uma tabela aguardando revisão."));
+  public void delete(Long id, AuthenticatedUser user) {
+    tableRepository.delete(
+        draftOrFail(id, "Só é possível excluir uma tabela aguardando revisão.", user));
   }
 
-  private NormativeTable draftOrFail(Long id, String message) {
-    NormativeTable table = findById(id);
+  private NormativeTable draftOrFail(Long id, String message, AuthenticatedUser user) {
+    NormativeTable table = findById(id, user);
     if (!table.isDraft()) {
       throw new BusinessException(message, HttpStatus.CONFLICT);
     }
@@ -114,6 +129,36 @@ public class NormativeTableService {
     return standardRepository.findByNameInOrderByName(List.of(name)).stream()
         .findFirst()
         .orElseThrow(() -> new NotFoundException("Norma " + name + " não cadastrada."));
+  }
+
+  private static boolean matches(NormativeTable table, String search) {
+    return Stream.of(
+            table.getIdentification(),
+            table.getCode().title(),
+            table.getItem(),
+            table.getCode().standard().code())
+        .map(SearchTerms::fold)
+        .anyMatch(text -> text.contains(search));
+  }
+
+  /** Drafts have no publication date and stay after the published ones in either direction. */
+  private static Comparator<NormativeTable> comparatorOf(
+      NormativeTableSort sort, SortDirection direction) {
+    Comparator<NormativeTable> column =
+        switch (sort) {
+          case CODE -> Comparator.comparing(NormativeTable::getCode);
+          case REGISTERED_AT -> Comparator.comparing(NormativeTable::getRegisteredAt);
+          case VERIFIED_AT ->
+              Comparator.comparing(
+                  NormativeTable::getVerifiedAt, Comparator.nullsLast(Comparator.naturalOrder()));
+        };
+    Comparator<NormativeTable> directed =
+        direction == SortDirection.DESC ? column.reversed() : column;
+
+    return sort == NormativeTableSort.VERIFIED_AT
+        ? Comparator.comparing((NormativeTable table) -> table.getVerifiedAt() == null)
+            .thenComparing(directed)
+        : directed;
   }
 
   private static void rejectProblems(NormativeTable table) {

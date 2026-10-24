@@ -17,7 +17,7 @@ import java.util.Map;
 public final class NormativeTableSeed {
 
   public static final String REGISTERED_BY = "admin@ampere.com";
-  public static final String VERIFIED_BY = "revisor@ampere.com";
+  public static final String VERIFIED_BY = "conferente@ampere.com";
 
   private NormativeTableSeed() {}
 

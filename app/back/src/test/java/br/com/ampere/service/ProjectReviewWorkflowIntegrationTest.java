@@ -93,7 +93,8 @@ class ProjectReviewWorkflowIntegrationTest {
     otherOwner =
         userRepository.save(new User("Beto Projetista", "beto@ampere.com", hash, UserRole.USER));
     analyst =
-        userRepository.save(new User("Alice Analista", "alice@ampere.com", hash, UserRole.ADMIN));
+        userRepository.save(
+            new User("Alice Analista", "alice@ampere.com", hash, UserRole.REVIEWER));
     otherAnalyst =
         userRepository.save(new User("Carlos Analista", "carlos@ampere.com", hash, UserRole.ADMIN));
     project = submittedProject("2026-7001", owner);
@@ -204,6 +205,27 @@ class ProjectReviewWorkflowIntegrationTest {
     decide(approvable, analyst, "APPROVE", "Projeto em conformidade.")
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.status").value("APPROVED"));
+  }
+
+  @Test
+  void nobodyReviewsTheirOwnProject() throws Exception {
+    Project own = submittedProject("2026-7004", otherAnalyst);
+
+    assign(own, otherAnalyst)
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.detail").value("Você não pode analisar um projeto seu."));
+  }
+
+  /** {@code otherAnalyst} is an admin: the admin reviews like the analyst does. */
+  @Test
+  void theAdminAssignsWritesFindingsAndDecides() throws Exception {
+    Project rejectable = submittedProject("2026-7003", owner);
+    assign(rejectable, otherAnalyst).andExpect(status().isOk());
+    createFinding(rejectable, otherAnalyst, FINDING_BODY).andExpect(status().isCreated());
+
+    decide(rejectable, otherAnalyst, "REJECT", "Falta a comprovação do sistema de recarga.")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.status").value("REJECTED"));
   }
 
   @Test
