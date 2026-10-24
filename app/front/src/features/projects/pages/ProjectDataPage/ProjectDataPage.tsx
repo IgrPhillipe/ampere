@@ -20,6 +20,7 @@ import { useEffect } from "react";
 import { useFormState } from "react-hook-form";
 
 import { FindingBadge, ProjectStamp, ProjectStepper } from "../../components";
+import { stageFindingsOf } from "../../constants";
 import {
 	type ProjectCreationFormValues,
 	projectCreationSchema,
@@ -102,8 +103,10 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 	const findingsQuery = useGetFindingList(projectId ?? "", {
 		enabled: project?.status === "REJECTED",
 	});
-	const stageFindings = findingsQuery.data?.data.filter(
-		({ stage }) => stage === "PROJECT_DATA",
+	const stageFindings = stageFindingsOf(
+		findingsQuery.data?.data,
+		project,
+		"PROJECT_DATA",
 	);
 	const validation = validationQuery.data?.data;
 	const isEditable =

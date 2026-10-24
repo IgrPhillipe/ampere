@@ -25,7 +25,7 @@ import {
 	ProjectStepper,
 	ValidationPanel,
 } from "../../components";
-import { GROUP_USAGE_TYPES } from "../../constants";
+import { GROUP_USAGE_TYPES, stageFindingsOf } from "../../constants";
 import { type NewGroupFormValues, newGroupSchema } from "../../schemas";
 
 const pendingCounterId = "unidades-pendencias";
@@ -66,10 +66,11 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 	const findingsQuery = useGetFindingList(projectId, {
 		enabled: project?.status === "REJECTED",
 	});
-	const stageFindings =
-		findingsQuery.data?.data.filter(
-			({ stage }) => stage === "CONSUMER_UNITS",
-		) ?? [];
+	const stageFindings = stageFindingsOf(
+		findingsQuery.data?.data,
+		project,
+		"CONSUMER_UNITS",
+	);
 	const groups = groupsQuery.data?.data ?? [];
 	const validation = validationQuery.data?.data;
 	const canCalculate = validation?.canCalculate ?? false;

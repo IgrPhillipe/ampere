@@ -20,6 +20,7 @@ import {
 	ProjectStepper,
 	TraceabilityPanel,
 } from "../../components";
+import { stageFindingsOf } from "../../constants";
 
 interface CalculationPageProps {
 	projectId: string;
@@ -34,9 +35,11 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 	const findingsQuery = useGetFindingList(projectId, {
 		enabled: project?.status === "REJECTED",
 	});
-	const stageFindings =
-		findingsQuery.data?.data.filter(({ stage }) => stage === "CALCULATION") ??
-		[];
+	const stageFindings = stageFindingsOf(
+		findingsQuery.data?.data,
+		project,
+		"CALCULATION",
+	);
 	const validation = validationQuery.data?.data;
 	const isEditable =
 		project?.status === "DRAFT" || project?.status === "REJECTED";
