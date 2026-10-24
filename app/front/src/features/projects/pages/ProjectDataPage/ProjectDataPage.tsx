@@ -297,7 +297,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 						</section>
 					</fieldset>
 
-					<aside className="flex flex-col border-t border-border lg:border-t-0 lg:border-l">
+					<aside className="order-first flex flex-col border-b border-border lg:order-none lg:border-b-0 lg:border-l">
 						{/* The exact revision only exists after the POST (`ApplicableStandards`). */}
 						<div className="bg-primary px-6 pt-8 pb-6 text-primary-foreground">
 							<p className="border-b border-primary-foreground/85 pb-3 font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase">

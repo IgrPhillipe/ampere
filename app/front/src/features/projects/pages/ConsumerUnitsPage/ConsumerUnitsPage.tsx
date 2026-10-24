@@ -225,6 +225,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 							validation={validation}
 							isLoading={validationQuery.isPending || groupsQuery.isPending}
 							counterId={pendingCounterId}
+							className="order-first lg:order-none"
 							onOpenIssue={(group, issue) =>
 								setOpened({ group, focusField: issue.field })
 							}
