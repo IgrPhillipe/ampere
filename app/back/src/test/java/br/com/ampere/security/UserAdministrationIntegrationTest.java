@@ -8,10 +8,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.ampere.domain.ConnectionType;
+import br.com.ampere.domain.EntranceStandard;
+import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ResidentialMultifamily;
+import br.com.ampere.domain.Standard;
+import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
+import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.AuthService;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +45,7 @@ class UserAdministrationIntegrationTest {
 
   @Autowired private MockMvc mockMvc;
   @Autowired private UserRepository userRepository;
+  @Autowired private ProjectRepository projectRepository;
   @Autowired private PasswordEncoder passwordEncoder;
   @Autowired private ObjectMapper objectMapper;
 
@@ -397,6 +407,53 @@ class UserAdministrationIntegrationTest {
   }
 
   @Test
+  void keepsTheRoleOfADesignerWithProjectsInProgress() throws Exception {
+    projectRepository.save(project("2026-9001", designer));
+
+    mockMvc
+        .perform(
+            authorized(put("/users/" + designer.getId()), token("admin@ampere.com", PASSWORD))
+                .content("{\"name\":\"João Projetista\",\"role\":\"reviewer\",\"active\":true}"))
+        .andExpect(status().isConflict())
+        .andExpect(
+            jsonPath("$.detail")
+                .value(
+                    "Este projetista tem projetos em andamento. Conclua-os antes de mudar o papel."));
+  }
+
+  @Test
+  void keepsTheRoleOfAnAnalystWithReviewsInProgress() throws Exception {
+    User reviewer =
+        userRepository.save(
+            new User(
+                "Revisor",
+                "revisor@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.REVIEWER));
+    Project underReview = project("2026-9002", designer);
+    underReview.submit(OffsetDateTime.now(ZoneOffset.UTC));
+    underReview.assignReviewer(reviewer);
+    projectRepository.save(underReview);
+    String adminToken = token("admin@ampere.com", PASSWORD);
+
+    mockMvc
+        .perform(
+            authorized(put("/users/" + reviewer.getId()), adminToken)
+                .content("{\"name\":\"Revisor\",\"role\":\"user\",\"active\":true}"))
+        .andExpect(status().isConflict())
+        .andExpect(
+            jsonPath("$.detail")
+                .value(
+                    "Este analista tem análises em andamento. Conclua-as antes de mudar o papel."));
+    // The admin still reviews, so the review in progress is kept.
+    mockMvc
+        .perform(
+            authorized(put("/users/" + reviewer.getId()), adminToken)
+                .content("{\"name\":\"Revisor\",\"role\":\"admin\",\"active\":true}"))
+        .andExpect(status().isOk());
+  }
+
+  @Test
   void movesADesignerToTheAnalystRoleAndFiltersByIt() throws Exception {
     String adminToken = token("admin@ampere.com", PASSWORD);
 
@@ -484,5 +541,17 @@ class UserAdministrationIntegrationTest {
   private JsonNode body(org.springframework.test.web.servlet.ResultActions result)
       throws Exception {
     return objectMapper.readTree(result.andReturn().getResponse().getContentAsString());
+  }
+
+  private static Project project(String protocol, User owner) {
+    return Project.draft(
+        "Residencial " + protocol,
+        "Rua do Projeto, 10",
+        "Recife",
+        protocol,
+        new ResidentialMultifamily(
+            6, SupplyVoltage.V220_127, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
+        List.<Standard>of(),
+        owner);
   }
 }

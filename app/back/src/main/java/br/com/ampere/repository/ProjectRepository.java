@@ -13,6 +13,10 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProjectRepository extends JpaRepository<Project, Long>, ProjectRepositoryCustom {
 
+  boolean existsByOwnerIdAndStatusNot(Long ownerId, ProjectStatus status);
+
+  boolean existsByReviewerIdAndStatus(Long reviewerId, ProjectStatus status);
+
   long countByStatusAndSubmittedAtIsNotNull(ProjectStatus status);
 
   long countByReviewedAtGreaterThanEqual(OffsetDateTime since);

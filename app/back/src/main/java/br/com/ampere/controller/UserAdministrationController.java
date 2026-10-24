@@ -114,7 +114,10 @@ public class UserAdministrationController {
         description = "Apenas o papel ADMIN gerencia usuários"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
-        description = "Usuário não encontrado")
+        description = "Usuário não encontrado"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "409",
+        description = "Troca de papel com projetos ou análises em andamento")
   })
   public ApiResponse<ManagedUserResponse> update(
       @PathVariable Long id,

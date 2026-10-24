@@ -1,9 +1,11 @@
 package br.com.ampere.service;
 
+import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
+import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.SearchTerms;
 import br.com.ampere.utils.TemporaryPasswords;
@@ -21,10 +23,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserAdministrationService {
 
   private final UserRepository userRepository;
+  private final ProjectRepository projectRepository;
   private final PasswordEncoder passwordEncoder;
 
-  public UserAdministrationService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+  public UserAdministrationService(
+      UserRepository userRepository,
+      ProjectRepository projectRepository,
+      PasswordEncoder passwordEncoder) {
     this.userRepository = userRepository;
+    this.projectRepository = projectRepository;
     this.passwordEncoder = passwordEncoder;
   }
 
@@ -76,6 +83,10 @@ public class UserAdministrationService {
       }
     }
 
+    if (parameters.role() != user.getRole()) {
+      ongoingWorkOrFail(user, parameters.role());
+    }
+
     user.administer(parameters.name(), parameters.role(), active);
 
     return user;
@@ -89,6 +100,24 @@ public class UserAdministrationService {
     user.resetPassword(passwordEncoder.encode(temporaryPassword));
 
     return new TemporaryAccess(user, temporaryPassword);
+  }
+
+  /** A new role would orphan the projects the designer still owns or the reviews in progress. */
+  private void ongoingWorkOrFail(User user, UserRole role) {
+    if (user.getRole() == UserRole.USER
+        && projectRepository.existsByOwnerIdAndStatusNot(user.getId(), ProjectStatus.APPROVED)) {
+      throw new BusinessException(
+          "Este projetista tem projetos em andamento. Conclua-os antes de mudar o papel.",
+          HttpStatus.CONFLICT);
+    }
+    if (user.getRole().canReview()
+        && !role.canReview()
+        && projectRepository.existsByReviewerIdAndStatus(
+            user.getId(), ProjectStatus.UNDER_REVIEW)) {
+      throw new BusinessException(
+          "Este analista tem análises em andamento. Conclua-as antes de mudar o papel.",
+          HttpStatus.CONFLICT);
+    }
   }
 
   private User find(Long id) {
