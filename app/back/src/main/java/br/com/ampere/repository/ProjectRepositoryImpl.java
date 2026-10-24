@@ -36,6 +36,10 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
   private static final String BLOCKING = "br.com.ampere.domain.FindingSeverity.BLOCKING";
 
+  private static final String REVIEW_QUEUE =
+      "WHERE project.status = br.com.ampere.domain.ProjectStatus.UNDER_REVIEW"
+          + " AND project.submittedAt IS NOT NULL";
+
   @PersistenceContext private EntityManager entityManager;
 
   @Override
@@ -103,10 +107,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
   @Override
   public Page<Project> searchReviewQueue(ReviewQueueSearch search, Pageable pageable) {
-    StringBuilder where =
-        new StringBuilder(
-            "WHERE project.status = br.com.ampere.domain.ProjectStatus.UNDER_REVIEW"
-                + " AND project.submittedAt IS NOT NULL");
+    StringBuilder where = new StringBuilder(REVIEW_QUEUE);
     Map<String, Object> parameters = new HashMap<>();
 
     if (!search.search().isEmpty()) {
@@ -131,6 +132,10 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
       where.append(" AND project.reviewer.id = :reviewerId");
       parameters.put("reviewerId", search.reviewerId());
     }
+    if (search.ownerId() != null) {
+      where.append(" AND project.owner.id = :ownerId");
+      parameters.put("ownerId", search.ownerId());
+    }
 
     String direction = search.direction().name();
     String column =
@@ -150,18 +155,17 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
   }
 
   @Override
-  public List<User> findAccessibleOwners(Long userId, ProjectVisibility visibility) {
+  public Page<User> findAccessibleOwners(
+      Long userId, ProjectVisibility visibility, String search, Pageable pageable) {
     Map<String, Object> parameters = new HashMap<>();
     StringBuilder where = visibleTo(userId, visibility, parameters);
-    TypedQuery<User> query =
-        entityManager.createQuery(
-            "SELECT DISTINCT owner FROM Project project JOIN project.owner owner "
-                + where
-                + " ORDER BY owner.name ASC",
-            User.class);
-    parameters.forEach(query::setParameter);
 
-    return query.getResultList();
+    return owners(where, parameters, search, pageable);
+  }
+
+  @Override
+  public Page<User> findReviewQueueOwners(String search, Pageable pageable) {
+    return owners(new StringBuilder(REVIEW_QUEUE), new HashMap<>(), search, pageable);
   }
 
   @Override
@@ -217,6 +221,37 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
       where.append(" AND LOWER(TRIM(project.municipality)) IN :municipalities");
       parameters.put("municipalities", folded);
     }
+  }
+
+  private Page<User> owners(
+      CharSequence projectWhere, Map<String, Object> parameters, String search, Pageable pageable) {
+    StringBuilder where =
+        new StringBuilder(
+            "WHERE owner.id IN (SELECT project.owner.id FROM Project project "
+                + projectWhere
+                + ")");
+    if (!search.isEmpty()) {
+      where.append(" AND owner.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'");
+      parameters.put("search", search);
+    }
+
+    TypedQuery<Long> count =
+        entityManager.createQuery("SELECT COUNT(owner) FROM User owner " + where, Long.class);
+    parameters.forEach(count::setParameter);
+    long total = count.getSingleResult();
+    if (total == 0) {
+      return Page.empty(pageable);
+    }
+
+    TypedQuery<User> query =
+        entityManager.createQuery(
+            "SELECT owner FROM User owner " + where + " ORDER BY owner.name ASC, owner.id ASC",
+            User.class);
+    parameters.forEach(query::setParameter);
+    query.setFirstResult((int) pageable.getOffset());
+    query.setMaxResults(pageable.getPageSize());
+
+    return new PageImpl<>(query.getResultList(), pageable, total);
   }
 
   private Page<Project> page(

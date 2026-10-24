@@ -12,6 +12,14 @@ export interface ListReviewQueueParams {
 	direction?: SortDirection;
 	/** An analyst id, or `UNASSIGNED_REVIEWER`. */
 	reviewer?: string;
+	/** A designer id. */
+	owner?: string;
 	state?: BrazilianState[];
 	municipality?: string[];
+}
+
+export interface ListQueueOwnersParams {
+	page?: number;
+	pageSize?: number;
+	search?: string;
 }

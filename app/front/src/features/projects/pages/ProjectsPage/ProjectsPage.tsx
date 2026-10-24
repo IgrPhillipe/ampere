@@ -26,7 +26,11 @@ import {
 	ProjectsTable,
 } from "../../components";
 import { getProjectsPageTitle } from "../../constants";
-import { PROJECT_SORT_DIRECTIONS, useProjectFilters } from "../../hooks";
+import {
+	PROJECT_SORT_DIRECTIONS,
+	useProjectFilters,
+	useSelectedOwnerName,
+} from "../../hooks";
 
 const PAGE_SIZE = 10;
 
@@ -78,6 +82,7 @@ export const ProjectsPage = () => {
 	const statusCountsQuery = useGetProjectStatusCounts();
 
 	const projects = projectsQuery.data?.data ?? [];
+	const ownerName = useSelectedOwnerName(filters.owner, projects);
 	const counts = statusCountsQuery.data?.data ?? emptyStatusCounts;
 	const pagination = projectsQuery.data?.pagination;
 	const hasError = projectsQuery.isError || statusCountsQuery.isError;
@@ -183,6 +188,7 @@ export const ProjectsPage = () => {
 						<ProjectFilterControls
 							showOwner={isAdmin}
 							owner={filters.owner}
+							ownerName={ownerName}
 							onOwnerChange={filters.setOwner}
 							state={filters.state}
 							onStateChange={filters.setState}
@@ -194,7 +200,9 @@ export const ProjectsPage = () => {
 							onFindingsChange={filters.setFindings}
 						/>
 					}
-					activeFilters={<ProjectActiveFilters filters={filters} />}
+					activeFilters={
+						<ProjectActiveFilters filters={filters} ownerName={ownerName} />
+					}
 				/>
 
 				<div className="flex-1 px-gutter py-4 md:px-gutter-md md:py-5">

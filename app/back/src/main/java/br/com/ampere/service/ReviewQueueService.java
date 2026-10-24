@@ -75,6 +75,7 @@ public class ReviewQueueService {
                 query.municipalities(),
                 reviewer.isEmpty() || unassigned ? null : analystId(reviewer),
                 unassigned,
+                query.owner(),
                 query.sort(),
                 query.direction()),
             PageRequest.of(page - 1, pageSize));
@@ -109,6 +110,17 @@ public class ReviewQueueService {
     user.requireReviewer();
     return userRepository.findAllByRoleInAndActiveTrueOrderByNameAsc(
         Arrays.stream(UserRole.values()).filter(UserRole::canReview).toList());
+  }
+
+  /** The designers with a project waiting in the queue, for the owner filter. */
+  @Transactional(readOnly = true)
+  public OwnerListing owners(int page, int pageSize, String search, AuthenticatedUser user) {
+    user.requireReviewer();
+    Page<User> owners =
+        projectRepository.findReviewQueueOwners(
+            SearchTerms.normalize(search), PageRequest.of(page - 1, pageSize));
+
+    return new OwnerListing(owners.getContent(), owners.getTotalElements());
   }
 
   @Transactional(readOnly = true)
@@ -151,6 +163,7 @@ public class ReviewQueueService {
                 Set.of(),
                 null,
                 false,
+                null,
                 ReviewQueueSort.DEADLINE,
                 SortDirection.ASC),
             PageRequest.of(0, 1))

@@ -23,7 +23,12 @@ public interface ProjectRepositoryCustom {
 
   Page<Project> searchReviewQueue(ReviewQueueSearch search, Pageable pageable);
 
-  List<User> findAccessibleOwners(Long userId, ProjectVisibility visibility);
+  /** The designers of the projects the role reaches; {@code search} is folded and escaped. */
+  Page<User> findAccessibleOwners(
+      Long userId, ProjectVisibility visibility, String search, Pageable pageable);
+
+  /** The designers with a project in the review queue; {@code search} is folded and escaped. */
+  Page<User> findReviewQueueOwners(String search, Pageable pageable);
 
   List<StatusCount> countAccessiblePerStatus(Long userId, ProjectVisibility visibility);
 
@@ -54,6 +59,7 @@ public interface ProjectRepositoryCustom {
       Collection<String> municipalities,
       Long reviewerId,
       boolean unassigned,
+      Long ownerId,
       ReviewQueueSort sort,
       SortDirection direction) {}
 }

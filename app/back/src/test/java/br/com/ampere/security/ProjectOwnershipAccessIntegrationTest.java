@@ -321,6 +321,45 @@ class ProjectOwnershipAccessIntegrationTest {
   }
 
   @Test
+  void searchesAndPagesTheDesignersWithinWhatTheRoleReaches() throws Exception {
+    String admin = bearer("admin@ampere.com");
+    mockMvc
+        .perform(get("/projects/owners").param("search", "BETO").header("Authorization", admin))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[*].name").value(contains("Beto Projetista")))
+        .andExpect(jsonPath("$.pagination.total").value(1));
+    mockMvc
+        .perform(
+            get("/projects/owners").param("search", "projétista").header("Authorization", admin))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.pagination.total").value(2));
+    mockMvc
+        .perform(get("/projects/owners").param("search", "%").header("Authorization", admin))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.pagination.total").value(0));
+
+    mockMvc
+        .perform(
+            get("/projects/owners")
+                .param("page", "2")
+                .param("pageSize", "1")
+                .header("Authorization", admin))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[*].name").value(contains("Beto Projetista")))
+        .andExpect(jsonPath("$.pagination.total").value(2))
+        .andExpect(jsonPath("$.pagination.page").value(2))
+        .andExpect(jsonPath("$.pagination.pageSize").value(1));
+
+    mockMvc
+        .perform(
+            get("/projects/owners")
+                .param("search", "beto")
+                .header("Authorization", bearer("ana@ampere.com")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.pagination.total").value(0));
+  }
+
+  @Test
   void analystCannotAnswerFindingsOrUploadDocuments() throws Exception {
     String analyst = bearer("revisor@ampere.com");
     String base = "/projects/" + firstSubmitted.getId();

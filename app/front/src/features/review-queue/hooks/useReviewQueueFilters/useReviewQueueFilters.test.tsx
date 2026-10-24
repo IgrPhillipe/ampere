@@ -20,7 +20,7 @@ const renderFilters = (searchParams = "") => {
 describe("useReviewQueueFilters", () => {
 	it("converts invalid URL values to safe defaults", () => {
 		const { result } = renderFilters(
-			"?page=not-a-page&filter=INVALID&sort=INVALID&direction=UP&reviewer=x y",
+			"?page=not-a-page&filter=INVALID&sort=INVALID&direction=UP&reviewer=x y&owner=x y",
 		);
 
 		expect(result.current.page).toBe(1);
@@ -30,6 +30,7 @@ describe("useReviewQueueFilters", () => {
 			direction: "ASC",
 		});
 		expect(result.current.reviewer).toBeNull();
+		expect(result.current.owner).toBeNull();
 		expect(result.current.hasActiveFilters).toBe(false);
 	});
 
@@ -56,7 +57,7 @@ describe("useReviewQueueFilters", () => {
 
 	it("builds the API params from the URL", () => {
 		const { result } = renderFilters(
-			"?filter=REANALYSIS&sort=demand&reviewer=none&municipality=Recife",
+			"?filter=REANALYSIS&sort=demand&reviewer=none&owner=7&municipality=Recife",
 		);
 
 		expect(result.current.params).toEqual({
@@ -66,8 +67,29 @@ describe("useReviewQueueFilters", () => {
 			sort: "demand",
 			direction: "DESC",
 			reviewer: "none",
+			owner: "7",
 			municipality: ["Recife"],
 		});
+	});
+
+	it("counts the designer as an active filter", () => {
+		const { result } = renderFilters("?owner=7");
+
+		expect(result.current.owner).toBe("7");
+		expect(result.current.hasActiveFilters).toBe(true);
+	});
+
+	it("stores the designer in the URL and returns to the first page", async () => {
+		const { result, lastUrl } = renderFilters("?page=3");
+
+		act(() => result.current.setOwner("7"));
+
+		await waitFor(() => expect(lastUrl()?.get("owner")).toBe("7"));
+		expect(lastUrl()?.has("page")).toBe(false);
+
+		act(() => result.current.setOwner(null));
+
+		await waitFor(() => expect(lastUrl()?.has("owner")).toBe(false));
 	});
 
 	it("stores search in the URL and returns to the first page", async () => {
@@ -114,7 +136,7 @@ describe("useReviewQueueFilters", () => {
 
 	it("clears the filters and keeps the sort", async () => {
 		const { result, lastUrl } = renderFilters(
-			"?filter=DUE_SOON&search=Olinda&reviewer=2&municipality=Olinda%2FPE&sort=demand",
+			"?filter=DUE_SOON&search=Olinda&reviewer=2&owner=7&municipality=Olinda%2FPE&sort=demand",
 		);
 
 		act(() => result.current.clearFilters());

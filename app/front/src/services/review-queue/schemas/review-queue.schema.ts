@@ -30,6 +30,13 @@ export const reviewerSchema = z.object({
 
 export type Reviewer = z.infer<typeof reviewerSchema>;
 
+export const queueOwnerSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+});
+
+export type QueueOwner = z.infer<typeof queueOwnerSchema>;
+
 export const deadlineStatusSchema = z.enum(["OVERDUE", "DUE_TODAY", "ON_TIME"]);
 
 export type DeadlineStatus = z.infer<typeof deadlineStatusSchema>;
@@ -87,3 +94,12 @@ export const reviewerListResponseSchema = apiResponseSchema(
 );
 
 export type ReviewerListResponse = z.infer<typeof reviewerListResponseSchema>;
+
+/** `GET /review-queue/owners`: the designers with a project in the queue. */
+export const queueOwnerListResponseSchema = paginatedResponseSchema(
+	z.array(queueOwnerSchema),
+);
+
+export type QueueOwnerListResponse = z.infer<
+	typeof queueOwnerListResponseSchema
+>;

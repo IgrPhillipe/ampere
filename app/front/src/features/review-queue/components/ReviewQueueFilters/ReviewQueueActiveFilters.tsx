@@ -15,13 +15,16 @@ const filterLabels: Record<Exclude<ReviewQueueFilter, "ALL">, string> = {
 
 interface ReviewQueueActiveFiltersProps {
 	filters: ReviewQueueFilters;
+	/** The selected designer's name, resolved by the page. */
+	ownerName?: string;
 }
 
 export const ReviewQueueActiveFilters = ({
 	filters,
+	ownerName,
 }: ReviewQueueActiveFiltersProps) => {
 	const reviewersQuery = useGetReviewerList();
-	const { filter, search, reviewer, municipality } = filters;
+	const { filter, search, reviewer, owner, municipality } = filters;
 	const active: ActiveFilter[] = [];
 
 	if (filter !== "ALL") {
@@ -55,6 +58,14 @@ export const ReviewQueueActiveFilters = ({
 			id: "reviewer",
 			label: `Analista: ${name}`,
 			onRemove: () => filters.setReviewer(null),
+		});
+	}
+
+	if (owner && ownerName) {
+		active.push({
+			id: "owner",
+			label: `Projetista: ${ownerName}`,
+			onRemove: () => filters.setOwner(null),
 		});
 	}
 
