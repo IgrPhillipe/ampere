@@ -78,6 +78,28 @@ describe("ProjectAddressFields", () => {
 		expect(getPostalCodeAddress).toHaveBeenCalledWith("50030230");
 	});
 
+	it("refuses a CEP outside the concession area", async () => {
+		vi.mocked(getPostalCodeAddress).mockResolvedValue({
+			cep: "01310-100",
+			logradouro: "Avenida Paulista",
+			bairro: "Bela Vista",
+			localidade: "São Paulo",
+			uf: "SP",
+		});
+		renderForm();
+
+		fireEvent.change(screen.getByLabelText(/CEP/), {
+			target: { value: "01310100" },
+		});
+
+		expect(
+			await screen.findByText(
+				"Fora da área atendida pela Neoenergia Pernambuco: Pernambuco ou Pedras de Fogo (PB).",
+			),
+		).toBeInTheDocument();
+		expect(screen.getByRole("status")).toHaveTextContent(/^\s*\|\s*\|\s*$/);
+	});
+
 	it("asks for the state and the municipality when the CEP is unknown", async () => {
 		vi.mocked(getPostalCodeAddress).mockResolvedValue(null);
 		renderForm();

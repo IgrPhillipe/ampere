@@ -7,6 +7,13 @@ import {
 import { useEffect } from "react";
 import { type UseFormReturn, useWatch } from "react-hook-form";
 
+import {
+	CONCESSION_STATES,
+	concessionMunicipalities,
+	coversAddress,
+	isConcessionState,
+	OUTSIDE_CONCESSION_MESSAGE,
+} from "../../constants/concession-area";
 import type { ProjectCreationFormValues } from "../../schemas";
 
 interface ProjectAddressFieldsProps {
@@ -24,10 +31,15 @@ export const ProjectAddressFields = ({ form }: ProjectAddressFieldsProps) => {
 	const lookup = useGetPostalCodeAddress(digits);
 
 	const stateItems = Object.fromEntries(
-		(statesQuery.data ?? []).map(({ sigla, nome }) => [sigla, nome]),
+		(statesQuery.data ?? [])
+			.filter(({ sigla }) => CONCESSION_STATES.some((code) => code === sigla))
+			.map(({ sigla, nome }) => [sigla, nome]),
 	);
 	const municipalityItems = Object.fromEntries(
-		(municipalitiesQuery.data ?? []).map((name) => [name, name]),
+		(state
+			? concessionMunicipalities(state, municipalitiesQuery.data ?? [])
+			: []
+		).map((name) => [name, name]),
 	);
 
 	// A loaded project already has its address; only a CEP the user typed fills the rest.
@@ -44,6 +56,12 @@ export const ProjectAddressFields = ({ form }: ProjectAddressFieldsProps) => {
 		}
 
 		const { cep, uf, localidade, logradouro, bairro } = lookup.data;
+
+		if (!isConcessionState(uf) || !coversAddress(uf, localidade)) {
+			setError("postalCode", { message: OUTSIDE_CONCESSION_MESSAGE });
+			return;
+		}
+
 		const options = { shouldDirty: true, shouldValidate: true };
 
 		setValue("postalCode", cep, options);

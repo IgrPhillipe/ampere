@@ -23,6 +23,7 @@ import {
 	ProjectStamp,
 	ProjectStepper,
 } from "../../components";
+import { isConcessionState } from "../../constants/concession-area";
 import {
 	type ProjectCreationFormValues,
 	projectCreationSchema,
@@ -82,10 +83,12 @@ const progressCounterId = "projeto-preenchimento";
 const isFilled = (value: unknown) =>
 	value !== undefined && value !== null && value !== "" && !Number.isNaN(value);
 
-const formValuesOf = (project: ProjectDetail): ProjectCreationFormValues => ({
+const formValuesOf = (
+	project: ProjectDetail,
+): Partial<ProjectCreationFormValues> => ({
 	name: project.name,
 	postalCode: formatPostalCode(project.postalCode ?? ""),
-	state: project.state,
+	state: isConcessionState(project.state) ? project.state : undefined,
 	municipality: project.municipality,
 	address: project.address,
 	buildingType: project.buildingType,
