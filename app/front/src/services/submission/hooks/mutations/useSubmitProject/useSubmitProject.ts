@@ -1,6 +1,4 @@
 import { getToastErrorMessage } from "@lib/api-error";
-import { calculationKeys } from "@services/calculation";
-import { projectReviewKeys } from "@services/project-review";
 import { projectKeys } from "@services/projects";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -19,12 +17,6 @@ export const useSubmitProject = () => {
 				queryClient.invalidateQueries({ queryKey: projectKeys.all() }),
 				queryClient.invalidateQueries({
 					queryKey: submissionKeys.checklist(projectId),
-				}),
-				queryClient.invalidateQueries({
-					queryKey: projectReviewKeys.findings(projectId),
-				}),
-				queryClient.invalidateQueries({
-					queryKey: calculationKeys.all(),
 				}),
 			]);
 		},

@@ -1,6 +1,6 @@
 import { apiResponseSchema } from "@features/shared";
-import { projectStatusSchema } from "@services/projects/schemas/project.schema";
-import { documentTypeSchema } from "@services/submission/schemas/submission.schema";
+import { projectStatusSchema } from "@services/projects";
+import { documentTypeSchema } from "@services/submission";
 import { z } from "zod";
 
 export const findingSeveritySchema = z.enum(["BLOCKING", "ADJUSTMENT"]);
