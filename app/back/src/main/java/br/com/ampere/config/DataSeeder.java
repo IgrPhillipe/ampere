@@ -60,7 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** Populates development tables on the first application startup. */
 @Component
-@Profile("!prod & !test")
+@Profile("(!prod & !test) | demo")
 public class DataSeeder implements CommandLineRunner {
 
   private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);

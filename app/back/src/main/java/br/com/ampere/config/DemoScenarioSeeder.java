@@ -69,7 +69,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /** Development projects for every step of the review, added by protocol after the DataSeeder. */
 @Component
-@Profile("!prod & !test")
+@Profile("(!prod & !test) | demo")
 public class DemoScenarioSeeder {
 
   private static final Logger log = LoggerFactory.getLogger(DemoScenarioSeeder.class);
