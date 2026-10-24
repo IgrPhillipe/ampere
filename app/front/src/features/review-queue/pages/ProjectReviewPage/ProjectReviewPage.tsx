@@ -264,6 +264,17 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 				<ProjectDetailTabs
 					projectId={projectId}
 					calculation={calculation}
+					failed={{
+						calculation: calculationQuery.isError,
+						groups: groupsQuery.isError,
+						documents: submissionQuery.isError,
+					}}
+					onRetry={() => {
+						void calculationQuery.refetch();
+						void groupsQuery.refetch();
+						void validationQuery.refetch();
+						void submissionQuery.refetch();
+					}}
 					groups={groups}
 					totalLoadKw={validation?.totalDeclaredLoadKw ?? 0}
 					documents={checklist?.documents}

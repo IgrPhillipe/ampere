@@ -112,6 +112,12 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 			: [];
 
 	const backToProjects = () => void navigate({ to: "/projetos" });
+	const retryTabs = () => {
+		void calculationQuery.refetch();
+		void groupsQuery.refetch();
+		void validationQuery.refetch();
+		void submissionQuery.refetch();
+	};
 	const openStage = (finding: Finding) =>
 		void navigate({
 			to: stageRoutes[finding.stage],
@@ -261,9 +267,29 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 				</ProjectDetailFooter>
 			}
 			aside={
-				project ? (
+				findingsQuery.isError || submissionQuery.isError ? (
+					<div className="px-6 py-8 md:px-8">
+						<EmptyState
+							title="Não foi possível carregar os apontamentos"
+							description="Confira o aviso exibido e tente novamente."
+							icon={CircleAlert}
+							action={
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => {
+										void findingsQuery.refetch();
+										void submissionQuery.refetch();
+									}}
+								>
+									Tentar Novamente
+								</Button>
+							}
+						/>
+					</div>
+				) : project ? (
 					<ProjectFindingsOverview
-						findings={findingsQuery.isError ? [] : findings}
+						findings={findings}
 						project={project}
 						referenceOptions={referenceOptions}
 						canRespond={actions.respondFindings}
@@ -303,6 +329,12 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 			<ProjectDetailTabs
 				projectId={projectId}
 				calculation={calculation}
+				failed={{
+					calculation: calculationQuery.isError,
+					groups: groupsQuery.isError,
+					documents: submissionQuery.isError,
+				}}
+				onRetry={retryTabs}
 				groups={groupsQuery.data?.data}
 				totalLoadKw={validation?.totalDeclaredLoadKw ?? 0}
 				documents={checklist?.documents}

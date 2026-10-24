@@ -16,6 +16,7 @@ import { ProjectDetailPage } from "./ProjectDetailPage";
 const state = vi.hoisted(() => ({
 	project: undefined as unknown,
 	findings: [] as unknown[],
+	failed: false,
 }));
 
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn() }));
@@ -27,7 +28,10 @@ vi.mock("@services/projects", async (importOriginal) => ({
 
 vi.mock("@services/project-review", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/project-review")>()),
-	useGetFindingList: () => loadedQuery({ data: state.findings }),
+	useGetFindingList: () => ({
+		...loadedQuery(state.failed ? undefined : { data: state.findings }),
+		isError: state.failed,
+	}),
 	useRespondFinding: () => idleMutation(),
 	useGetDocumentFile: () => ({ isPending: true }),
 }));
@@ -76,6 +80,7 @@ const renderPage = () =>
 describe("ProjectDetailPage", () => {
 	beforeEach(() => {
 		state.findings = [makeFinding()];
+		state.failed = false;
 	});
 
 	it("shows the shared header and tabs without the analysis label", () => {
@@ -153,6 +158,23 @@ describe("ProjectDetailPage", () => {
 		).not.toBeInTheDocument();
 		expect(
 			screen.queryByRole("button", { name: "Reenviar Projeto" }),
+		).not.toBeInTheDocument();
+	});
+
+	it("offers a retry when the findings fail to load", () => {
+		signInAs("user");
+		state.project = makeProjectDetail({ status: "REJECTED" });
+		state.failed = true;
+		renderPage();
+
+		expect(
+			screen.getByText("Não foi possível carregar os apontamentos"),
+		).toBeVisible();
+		expect(
+			screen.getByRole("button", { name: "Tentar Novamente" }),
+		).toBeVisible();
+		expect(
+			screen.queryByText("Nenhum apontamento publicado para este projeto."),
 		).not.toBeInTheDocument();
 	});
 });
