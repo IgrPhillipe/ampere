@@ -52,6 +52,7 @@ const renderOverview = (
 			findings={findings}
 			project={project}
 			referenceOptions={referenceOptions}
+			canRespond
 			isResponding={false}
 			onOpenStage={vi.fn()}
 			onStartResponse={onStartResponse}

@@ -73,15 +73,6 @@ export const ProjectsPage = () => {
 	const pagination = projectsQuery.data?.pagination;
 	const hasError = projectsQuery.isError || statusCountsQuery.isError;
 
-	const handleViewFindings = useCallback(
-		(project: Project) =>
-			void navigate({
-				to: "/projetos/$id/apontamentos",
-				params: { id: project.id },
-			}),
-		[navigate],
-	);
-
 	const handleResumeSubmission = useCallback(
 		(project: Project) =>
 			void navigate({
@@ -108,7 +99,7 @@ export const ProjectsPage = () => {
 
 	const handleViewProject = useCallback(
 		(project: Project) =>
-			void navigate({ to: "/projetos/$id/envio", params: { id: project.id } }),
+			void navigate({ to: "/projetos/$id", params: { id: project.id } }),
 		[navigate],
 	);
 
@@ -205,7 +196,6 @@ export const ProjectsPage = () => {
 						<ProjectsTable
 							projects={projects}
 							isLoading={projectsQuery.isPending}
-							onViewFindings={handleViewFindings}
 							onResumeSubmission={handleResumeSubmission}
 							onContinueDraft={handleContinueDraft}
 							onViewProject={handleViewProject}

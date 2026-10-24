@@ -44,7 +44,6 @@ interface ProjectsTableProps extends ProjectRowActions {
 export const ProjectsTable = ({
 	projects,
 	isLoading = false,
-	onViewFindings,
 	onResumeSubmission,
 	onContinueDraft,
 	onViewProject,
@@ -56,19 +55,12 @@ export const ProjectsTable = ({
 }: ProjectsTableProps) => {
 	const actions = useMemo(
 		() => ({
-			onViewFindings,
 			onResumeSubmission,
 			onContinueDraft,
 			onViewProject,
 			onDeleteProject,
 		}),
-		[
-			onViewFindings,
-			onResumeSubmission,
-			onContinueDraft,
-			onViewProject,
-			onDeleteProject,
-		],
+		[onResumeSubmission, onContinueDraft, onViewProject, onDeleteProject],
 	);
 	const columns = useMemo(() => createProjectColumns(actions), [actions]);
 

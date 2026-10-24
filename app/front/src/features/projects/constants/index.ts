@@ -1,5 +1,6 @@
 export * from "./consumer-unit-group";
 export * from "./demand";
 export * from "./finding";
+export * from "./project-detail-actions";
 export * from "./project-findings";
 export * from "./project-status";

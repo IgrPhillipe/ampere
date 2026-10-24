@@ -83,7 +83,7 @@ export const ProjectFindingCard = ({
 				</blockquote>
 			) : null}
 
-			<div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+			<div className="flex flex-col gap-3">
 				<p className="text-xs text-muted-foreground">
 					{finding.authorName ?? "Analista não informado"}, em{" "}
 					<time dateTime={finding.createdAt}>

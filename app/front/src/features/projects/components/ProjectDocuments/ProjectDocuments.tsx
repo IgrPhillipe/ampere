@@ -17,24 +17,23 @@ const formatFileSize = (bytes: number) => {
 		: `${formatDecimal(bytes / (1024 * 1024), 1)} MB`;
 };
 
-interface ReviewDocumentsProps {
+interface ProjectDocumentsProps {
 	projectId: string;
+	/** `undefined` while loading. */
 	documents?: ProjectDocument[];
-	isLoading?: boolean;
 	onCreateFinding?: (document: ProjectDocument) => void;
 	className?: string;
 }
 
-export const ReviewDocuments = ({
+export const ProjectDocuments = ({
 	projectId,
 	documents,
-	isLoading = false,
 	onCreateFinding,
 	className,
-}: ReviewDocumentsProps) => {
+}: ProjectDocumentsProps) => {
 	const [selectedId, setSelectedId] = useState<string>();
 
-	if (isLoading || !documents) {
+	if (!documents) {
 		return (
 			<div aria-busy="true" className={cn("flex flex-col gap-3", className)}>
 				<Skeleton className="h-12 w-full" />
