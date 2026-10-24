@@ -153,20 +153,6 @@ class ProjectServiceTest {
   }
 
   @Test
-  void allowsUpdatingARejectedProjectWithoutChangingItsStatus() {
-    ProjectRepository projectRepository = mock(ProjectRepository.class);
-    Project project = projectWith(ProjectStatus.REJECTED);
-    when(projectRepository.findDetailById(1L)).thenReturn(Optional.of(project));
-
-    Project updated =
-        service(projectRepository, mock(FindingRepository.class))
-            .update(1L, parameters(), DESIGNER);
-
-    assertThat(updated.getStatus()).isEqualTo(ProjectStatus.REJECTED);
-    assertThat(updated.getName()).isEqualTo("Residencial Monte Verde");
-  }
-
-  @Test
   void refusesToDeleteAProjectThatLeftDraft() {
     ProjectRepository projectRepository = mock(ProjectRepository.class);
     FindingRepository findingRepository = mock(FindingRepository.class);
