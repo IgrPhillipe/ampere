@@ -8,7 +8,7 @@ import {
 import type { ReviewQueueFilters } from "../../hooks";
 
 const filterLabels: Record<Exclude<ReviewQueueFilter, "ALL">, string> = {
-	DUE_SOON: "Vencendo o Prazo",
+	DUE_SOON: "Vencendo o prazo",
 	HIGH_DEMAND: "Acima de 50 kVA",
 	REANALYSIS: "Reanálise",
 };
@@ -40,12 +40,16 @@ export const ReviewQueueActiveFilters = ({
 		});
 	}
 
-	if (reviewer) {
+	if (reviewer === UNASSIGNED_REVIEWER) {
+		active.push({
+			id: "reviewer",
+			label: "Sem analista",
+			onRemove: () => filters.setReviewer(null),
+		});
+	} else if (reviewer && !reviewersQuery.isPending) {
 		const name =
-			reviewer === UNASSIGNED_REVIEWER
-				? "Sem Analista"
-				: (reviewersQuery.data?.data.find(({ id }) => id === reviewer)?.name ??
-					reviewer);
+			reviewersQuery.data?.data.find(({ id }) => id === reviewer)?.name ??
+			reviewer;
 
 		active.push({
 			id: "reviewer",

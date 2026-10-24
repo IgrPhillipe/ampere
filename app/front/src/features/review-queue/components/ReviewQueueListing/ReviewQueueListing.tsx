@@ -60,7 +60,7 @@ export const ReviewQueueListing = ({
 		return onClearFilters ? (
 			<EmptyState
 				title="Nenhum projeto encontrado para os critérios informados"
-				description="Verifique a busca ou limpe os filtros para ver toda a fila."
+				description="Revise a busca e os filtros, ou limpe os filtros para ver toda a fila."
 				action={
 					<Button type="button" variant="outline" onClick={onClearFilters}>
 						Limpar Filtros
