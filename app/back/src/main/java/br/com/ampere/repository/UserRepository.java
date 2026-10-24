@@ -2,6 +2,7 @@ package br.com.ampere.repository;
 
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -39,4 +40,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
       @Param("role") UserRole role, @Param("search") String search, Pageable pageable);
 
   List<User> findAllBySearchIndex(String searchIndex);
+
+  List<User> findAllByRoleInAndActiveTrueOrderByNameAsc(Collection<UserRole> roles);
 }

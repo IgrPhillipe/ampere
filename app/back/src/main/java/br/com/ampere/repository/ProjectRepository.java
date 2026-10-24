@@ -2,82 +2,38 @@ package br.com.ampere.repository;
 
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
-import java.math.BigDecimal;
+import br.com.ampere.domain.ProjectVisibility;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface ProjectRepository extends JpaRepository<Project, Long> {
+public interface ProjectRepository extends JpaRepository<Project, Long>, ProjectRepositoryCustom {
 
-  /** The owner is fetched with the page: the admin's listing shows who designed each project. */
-  @EntityGraph(attributePaths = "owner")
   @Query(
       """
-      SELECT project
+      SELECT DISTINCT project.municipality
       FROM Project project
       WHERE (
           :everyProject = true
           OR (:submittedOnly = true AND project.submittedAt IS NOT NULL)
-          OR (:submittedOnly = false AND project.owner.id = :ownerId)
+          OR (:everyProject = false AND :submittedOnly = false AND project.owner.id = :ownerId)
         )
-        AND (:status IS NULL OR project.status = :status)
-        AND (
-          :search = ''
-          OR project.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
-        )
+      ORDER BY project.municipality ASC
       """)
-  Page<Project> searchAccessibleProjects(
-      @Param("status") ProjectStatus status,
-      @Param("search") String search,
+  List<String> findAccessibleMunicipalities(
       @Param("ownerId") Long ownerId,
       @Param("everyProject") boolean everyProject,
-      @Param("submittedOnly") boolean submittedOnly,
-      Pageable pageable);
+      @Param("submittedOnly") boolean submittedOnly);
 
-  @EntityGraph(attributePaths = "owner")
-  @Query(
-      """
-      SELECT project
-      FROM Project project
-      WHERE project.status = :status
-        AND project.submittedAt IS NOT NULL
-        AND (
-          :search = ''
-          OR project.reviewSearchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
-        )
-        AND (:dueSoon = false OR project.submittedAt < :submittedBefore)
-        AND (:reanalysis = false OR project.reviewCycle > 1)
-        AND (
-          :highDemand = false
-          OR EXISTS (
-            SELECT calculation.id
-            FROM Calculation calculation
-            WHERE calculation.project = project
-              AND calculation.id = (
-                SELECT MAX(latest.id)
-                FROM Calculation latest
-                WHERE latest.project = project
-              )
-              AND calculation.finalTotalDemand > :minimumDemand
-          )
-        )
-      """)
-  Page<Project> searchReviewQueue(
-      @Param("status") ProjectStatus status,
-      @Param("search") String search,
-      @Param("dueSoon") boolean dueSoon,
-      @Param("submittedBefore") OffsetDateTime submittedBefore,
-      @Param("highDemand") boolean highDemand,
-      @Param("minimumDemand") BigDecimal minimumDemand,
-      @Param("reanalysis") boolean reanalysis,
-      Pageable pageable);
+  default List<String> findAccessibleMunicipalities(Long ownerId, ProjectVisibility visibility) {
+    return findAccessibleMunicipalities(
+        ownerId, visibility == ProjectVisibility.ALL, visibility == ProjectVisibility.SUBMITTED);
+  }
 
   long countByStatusAndSubmittedAtIsNotNull(ProjectStatus status);
 
@@ -92,7 +48,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       WHERE (
         :everyProject = true
         OR (:submittedOnly = true AND project.submittedAt IS NOT NULL)
-        OR (:submittedOnly = false AND project.owner.id = :ownerId)
+        OR (:everyProject = false AND :submittedOnly = false AND project.owner.id = :ownerId)
       )
       GROUP BY project.status
       """)
@@ -100,6 +56,12 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       @Param("ownerId") Long ownerId,
       @Param("everyProject") boolean everyProject,
       @Param("submittedOnly") boolean submittedOnly);
+
+  default List<ProjectStatusCount> countAccessiblePerStatus(
+      Long ownerId, ProjectVisibility visibility) {
+    return countAccessiblePerStatus(
+        ownerId, visibility == ProjectVisibility.ALL, visibility == ProjectVisibility.SUBMITTED);
+  }
 
   @Query(
       """

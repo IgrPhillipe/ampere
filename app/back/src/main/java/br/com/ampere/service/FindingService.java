@@ -2,12 +2,15 @@ package br.com.ampere.service;
 
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingAnswer;
 import br.com.ampere.domain.FindingResolution;
 import br.com.ampere.domain.Project;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -99,6 +102,31 @@ public class FindingService {
     }
 
     finding.resolve(resolution);
+
+    return finding;
+  }
+
+  @Transactional
+  public Finding respond(
+      Long projectId,
+      Long findingId,
+      FindingAnswer answer,
+      String response,
+      AuthenticatedUser user) {
+    if (answer == FindingAnswer.CONTESTED && (response == null || response.isBlank())) {
+      throw new BusinessException("A justificativa é obrigatória para contestar o apontamento.");
+    }
+    Project project = projectService.findWritableById(projectId, user);
+    if (!project.isRejected()) {
+      throw new BusinessException(
+          "Só é possível responder apontamentos de um projeto reprovado.", HttpStatus.CONFLICT);
+    }
+    Finding finding = findOrFail(projectId, findingId);
+    if (!finding.awaitsResponse()) {
+      throw new BusinessException("Este apontamento não aguarda resposta.", HttpStatus.CONFLICT);
+    }
+
+    finding.respond(answer, response, OffsetDateTime.now(ZoneOffset.UTC));
 
     return finding;
   }

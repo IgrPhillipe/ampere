@@ -1,6 +1,7 @@
 package br.com.ampere.repository;
 
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingSeverity;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.ProjectStatus;
 import java.util.Collection;
@@ -36,6 +37,9 @@ public interface FindingRepository extends JpaRepository<Finding, Long> {
 
   @EntityGraph(attributePaths = {"author", "consumerUnitGroup"})
   Optional<Finding> findByIdAndProjectId(Long id, Long projectId);
+
+  long countByProjectIdAndSeverityAndStatus(
+      Long projectId, FindingSeverity severity, FindingStatus status);
 
   interface FindingCount {
 

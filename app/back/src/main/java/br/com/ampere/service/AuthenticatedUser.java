@@ -1,5 +1,6 @@
 package br.com.ampere.service;
 
+import br.com.ampere.domain.ProjectVisibility;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.error.BusinessException;
 import org.springframework.http.HttpStatus;
@@ -25,5 +26,13 @@ public record AuthenticatedUser(Long id, UserRole role) {
 
   public boolean canReview() {
     return role.canReview();
+  }
+
+  public ProjectVisibility projectVisibility() {
+    return switch (role) {
+      case USER -> ProjectVisibility.OWN;
+      case REVIEWER -> ProjectVisibility.SUBMITTED;
+      case ADMIN -> ProjectVisibility.ALL;
+    };
   }
 }

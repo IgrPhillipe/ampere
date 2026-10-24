@@ -1,6 +1,7 @@
 package br.com.ampere.controller;
 
 import br.com.ampere.dto.ApiResponse;
+import br.com.ampere.dto.FindingAnswerRequest;
 import br.com.ampere.dto.FindingRequest;
 import br.com.ampere.dto.FindingResolutionRequest;
 import br.com.ampere.dto.FindingResponse;
@@ -164,6 +165,40 @@ public class FindingController {
     return ApiResponse.of(
         FindingResponse.from(
             service.resolve(projectId, findingId, request.resolution(), userOf(jwt))));
+  }
+
+  @PutMapping("/{findingId}/response")
+  @Operation(
+      operationId = "respondToFinding",
+      summary = "Registra a correção ou a contestação do projetista para um apontamento")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Resposta registrada"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description =
+            "Situação ausente ou inválida, contestação sem justificativa, ou texto acima do"
+                + " limite"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "O perfil analista não responde apontamentos"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "Projeto ou apontamento não encontrado"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "409",
+        description = "O projeto não está reprovado, ou o apontamento não aguarda resposta")
+  })
+  public ApiResponse<FindingResponse> respond(
+      @PathVariable Long projectId,
+      @PathVariable Long findingId,
+      @Valid @RequestBody FindingAnswerRequest request,
+      @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(
+        FindingResponse.from(
+            service.respond(
+                projectId, findingId, request.status(), request.response(), userOf(jwt))));
   }
 
   private static FindingParameters parametersOf(FindingRequest request) {

@@ -6,4 +6,5 @@ export const reviewQueueKeys = {
 	list: (params: ListReviewQueueParams = {}) =>
 		[...reviewQueueKeys.lists(), params] as const,
 	indicators: () => [...reviewQueueKeys.all(), "indicators"] as const,
+	reviewers: () => [...reviewQueueKeys.all(), "reviewers"] as const,
 };

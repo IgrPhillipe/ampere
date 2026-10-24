@@ -302,7 +302,7 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 
 ### `AT01-US18: Back-end dos filtros e da ordenação [Backend]` (#109)
 
-- [ ] `GET /api/projects` com `sort` (`name`, `demand`, `createdAt`, `updatedAt`), `direction`, `municipality`, `createdFrom`, `createdTo` e `hasBlocking`
+- [ ] `GET /api/projects` com `sort` (`name`, `demand`, `createdAt`, `updatedAt`), `direction`, `municipality`, `createdFrom`, `createdTo` e `findings`
 - [ ] `GET /api/review-queue` com `sort` (`deadline`, `submittedAt`, `demand`, `warnings`), `reviewer` e `municipality`
 - [ ] `GET /api/projects/municipalities` para as opções do filtro
 - [ ] Ordenação estável pelo id no empate, como no #86
