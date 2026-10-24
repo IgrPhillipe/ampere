@@ -118,7 +118,7 @@ export const ProjectFindingsOverview = ({
 			<aside className="flex h-fit flex-col border border-border bg-surface-hover">
 				<div className="p-5">
 					<p className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-						Parecer da reprovação
+						Parecer da Reprovação
 					</p>
 					<p className="mt-4 text-sm whitespace-pre-line text-foreground">
 						{project.reviewOpinion ||
