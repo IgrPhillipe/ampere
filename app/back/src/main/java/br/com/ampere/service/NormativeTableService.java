@@ -1,14 +1,18 @@
 package br.com.ampere.service;
 
 import br.com.ampere.domain.NormativeTable;
+import br.com.ampere.domain.NormativeTableSort;
 import br.com.ampere.domain.NormativeTableStatus;
+import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.StandardRepository;
+import br.com.ampere.utils.SearchTerms;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,12 +33,24 @@ public class NormativeTableService {
     this.standardRepository = standardRepository;
   }
 
-  /** In catalogue order (Quadro 33 before Tabela 1 before Tabela 19), newest revision first. */
+  /**
+   * Filtered and sorted in memory: the title and the catalogue order (Quadro 33 before Tabela 1
+   * before Tabela 19) live in {@link br.com.ampere.domain.NormativeTableCode}, not in a column, and
+   * the whole list is a few revisions of nineteen tables. Ties go to the newest revision.
+   */
   @Transactional(readOnly = true)
-  public List<NormativeTable> list() {
-    return tableRepository.findAllByOrderByCodeAscIdDesc().stream()
+  public List<NormativeTable> list(NormativeTableQuery query) {
+    String search = SearchTerms.fold(query.search());
+
+    return tableRepository.findListingBy().stream()
+        .filter(table -> query.statuses().isEmpty() || query.statuses().contains(table.getStatus()))
+        .filter(
+            table ->
+                query.standards().isEmpty()
+                    || query.standards().contains(table.getCode().standard()))
+        .filter(table -> search.isEmpty() || matches(table, search))
         .sorted(
-            Comparator.comparing(NormativeTable::getCode)
+            comparatorOf(query.sort(), query.direction())
                 .thenComparing(NormativeTable::getId, Comparator.reverseOrder()))
         .toList();
   }
@@ -114,6 +130,37 @@ public class NormativeTableService {
     return standardRepository.findByNameInOrderByName(List.of(name)).stream()
         .findFirst()
         .orElseThrow(() -> new NotFoundException("Norma " + name + " não cadastrada."));
+  }
+
+  private static boolean matches(NormativeTable table, String search) {
+    return Stream.of(
+            table.getIdentification(),
+            table.getCode().title(),
+            table.getItem(),
+            table.getCode().standard().code())
+        .map(SearchTerms::fold)
+        .anyMatch(text -> text.contains(search));
+  }
+
+  /** Drafts have no publication date and stay after the published ones in either direction. */
+  private static Comparator<NormativeTable> comparatorOf(
+      NormativeTableSort sort, SortDirection direction) {
+    Comparator<NormativeTable> column =
+        switch (sort) {
+          case CODE -> Comparator.comparing(NormativeTable::getCode);
+          case TITLE -> Comparator.comparing(table -> SearchTerms.fold(table.getCode().title()));
+          case REGISTERED_AT -> Comparator.comparing(NormativeTable::getRegisteredAt);
+          case VERIFIED_AT ->
+              Comparator.comparing(
+                  NormativeTable::getVerifiedAt, Comparator.nullsLast(Comparator.naturalOrder()));
+        };
+    Comparator<NormativeTable> directed =
+        direction == SortDirection.DESC ? column.reversed() : column;
+
+    return sort == NormativeTableSort.VERIFIED_AT
+        ? Comparator.comparing((NormativeTable table) -> table.getVerifiedAt() == null)
+            .thenComparing(directed)
+        : directed;
   }
 
   private static void rejectProblems(NormativeTable table) {

@@ -1,17 +1,24 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.NormativeTableSort;
+import br.com.ampere.domain.NormativeTableStatus;
+import br.com.ampere.domain.SortDirection;
+import br.com.ampere.domain.StandardName;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.NormativeTableCodeResponse;
 import br.com.ampere.dto.NormativeTableRequest;
 import br.com.ampere.dto.NormativeTableResponse;
 import br.com.ampere.dto.NormativeTableRowRequest;
 import br.com.ampere.service.NormativeTableParameters;
+import br.com.ampere.service.NormativeTableQuery;
 import br.com.ampere.service.NormativeTableService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -22,6 +29,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -52,14 +60,43 @@ public class NormativeTableController {
   }
 
   @GetMapping
-  @Operation(operationId = "listNormativeTables", summary = "Lista as tabelas cadastradas")
+  @Operation(
+      operationId = "listNormativeTables",
+      summary = "Lista as tabelas cadastradas, filtradas e ordenadas")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
-        description = "Tabelas cadastradas, sem as linhas")
+        description = "Tabelas cadastradas, sem as linhas"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "Parâmetros inválidos")
   })
-  public ApiResponse<List<NormativeTableResponse>> list() {
-    return ApiResponse.of(service.list().stream().map(NormativeTableResponse::summary).toList());
+  public ApiResponse<List<NormativeTableResponse>> list(
+      @Parameter(description = "Termo buscado na identificação, no título, no item ou na norma")
+          @RequestParam(required = false)
+          String search,
+      @Parameter(description = "Situações usadas para filtrar as tabelas; repita o parâmetro")
+          @RequestParam(name = "status", required = false)
+          List<NormativeTableStatus> statuses,
+      @Parameter(description = "Normas de origem usadas para filtrar; repita o parâmetro")
+          @RequestParam(name = "standard", required = false)
+          List<StandardName> standards,
+      @Parameter(description = "Coluna usada na ordenação (code, title, registeredAt, verifiedAt)")
+          @RequestParam(defaultValue = "code")
+          NormativeTableSort sort,
+      @Parameter(description = "Direção da ordenação (ASC, DESC)")
+          @RequestParam(defaultValue = "ASC")
+          SortDirection direction) {
+    NormativeTableQuery query =
+        new NormativeTableQuery(
+            search,
+            statuses == null ? null : Set.copyOf(statuses),
+            standards == null ? null : Set.copyOf(standards),
+            sort,
+            direction);
+
+    return ApiResponse.of(
+        service.list(query).stream().map(NormativeTableResponse::summary).toList());
   }
 
   @GetMapping("/{id}")

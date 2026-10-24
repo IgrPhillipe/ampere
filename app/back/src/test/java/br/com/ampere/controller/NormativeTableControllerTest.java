@@ -1,0 +1,107 @@
+package br.com.ampere.controller;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import br.com.ampere.config.EnumParameterConfig;
+import br.com.ampere.domain.NormativeTableSort;
+import br.com.ampere.domain.NormativeTableStatus;
+import br.com.ampere.domain.SortDirection;
+import br.com.ampere.domain.StandardName;
+import br.com.ampere.error.GlobalExceptionHandler;
+import br.com.ampere.service.NormativeTableQuery;
+import br.com.ampere.service.NormativeTableService;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.format.support.DefaultFormattingConversionService;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+class NormativeTableControllerTest {
+
+  @Test
+  void listsInCatalogueOrderWithoutParameters() throws Exception {
+    NormativeTableService service = service();
+
+    mockMvc(service).perform(get("/normative-tables")).andExpect(status().isOk());
+
+    assertThat(queryOf(service)).isEqualTo(NormativeTableQuery.all());
+  }
+
+  @Test
+  void bindsTheFiltersAndTheSort() throws Exception {
+    NormativeTableService service = service();
+
+    mockMvc(service)
+        .perform(
+            get("/normative-tables")
+                .param("search", "quadro")
+                .param("status", "DRAFT", "PUBLISHED")
+                .param("standard", "DIS_NOR_030")
+                .param("sort", "verifiedAt")
+                .param("direction", "DESC"))
+        .andExpect(status().isOk());
+
+    assertThat(queryOf(service))
+        .isEqualTo(
+            new NormativeTableQuery(
+                "quadro",
+                Set.of(NormativeTableStatus.DRAFT, NormativeTableStatus.PUBLISHED),
+                Set.of(StandardName.DIS_NOR_030),
+                NormativeTableSort.VERIFIED_AT,
+                SortDirection.DESC));
+  }
+
+  @Test
+  void returnsTheAcceptedSortColumns() throws Exception {
+    mockMvc(service())
+        .perform(get("/normative-tables").param("sort", "rows"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail", containsString("REGISTERED_AT")));
+  }
+
+  private static NormativeTableService service() {
+    NormativeTableService service = mock(NormativeTableService.class);
+    when(service.list(any())).thenReturn(List.of());
+
+    return service;
+  }
+
+  private static NormativeTableQuery queryOf(NormativeTableService service) {
+    ArgumentCaptor<NormativeTableQuery> query = ArgumentCaptor.forClass(NormativeTableQuery.class);
+    verify(service).list(query.capture());
+
+    return query.getValue();
+  }
+
+  private static MockMvc mockMvc(NormativeTableService service) {
+    DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
+    new EnumParameterConfig().addFormatters(conversionService);
+
+    return MockMvcBuilders.standaloneSetup(new NormativeTableController(service))
+        .setConversionService(conversionService)
+        .setControllerAdvice(new GlobalExceptionHandler(messageSource()))
+        .build();
+  }
+
+  /** Same basename Spring Boot registers in production. */
+  private static MessageSource messageSource() {
+    ResourceBundleMessageSource source = new ResourceBundleMessageSource();
+    source.setBasename("messages");
+    source.setDefaultEncoding("UTF-8");
+    source.setUseCodeAsDefaultMessage(false);
+
+    return source;
+  }
+}
