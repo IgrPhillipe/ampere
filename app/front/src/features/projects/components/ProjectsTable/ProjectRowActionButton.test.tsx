@@ -20,7 +20,6 @@ const project: Project = {
 };
 
 const actions = (): ProjectRowActions => ({
-	onViewFindings: vi.fn(),
 	onResumeSubmission: vi.fn(),
 	onContinueDraft: vi.fn(),
 	onViewProject: vi.fn(),
@@ -42,14 +41,14 @@ describe("ProjectRowActionButton", () => {
 
 	it.each([
 		0, 1, 3,
-	])("opens the findings of a rejected project with %i pending", (pendingCount) => {
+	])("opens the detail of a rejected project with %i pending", (pendingCount) => {
 		const callbacks = actions();
 		const rejected = { ...project, status: "REJECTED" as const, pendingCount };
 		render(<ProjectRowActionButton project={rejected} {...callbacks} />);
 
 		fireEvent.click(screen.getByRole("button", { name: "Corrigir" }));
 
-		expect(callbacks.onViewFindings).toHaveBeenCalledWith(rejected);
+		expect(callbacks.onViewProject).toHaveBeenCalledWith(rejected);
 	});
 
 	it.each([
