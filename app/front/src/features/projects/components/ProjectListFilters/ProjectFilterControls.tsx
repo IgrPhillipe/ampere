@@ -1,17 +1,25 @@
-import { DateRangeFilter } from "@components/DateRangeFilter";
+import { type DateRange, DateRangeFilter } from "@components/DateRangeFilter";
 import { FilterSelect } from "@components/FilterSelect";
 import { Label } from "@components/ui/label";
 import { Switch } from "@components/ui/switch";
 import { useGetMunicipalityList } from "@services/projects";
 
-import type { ProjectFilters } from "../../hooks";
-
 interface ProjectFilterControlsProps {
-	filters: ProjectFilters;
+	municipality: string | null;
+	onMunicipalityChange: (municipality: string | null) => void;
+	period: DateRange;
+	onPeriodChange: (period: DateRange) => void;
+	hasBlocking: boolean;
+	onHasBlockingChange: (hasBlocking: boolean) => void;
 }
 
 export const ProjectFilterControls = ({
-	filters,
+	municipality,
+	onMunicipalityChange,
+	period,
+	onPeriodChange,
+	hasBlocking,
+	onHasBlockingChange,
 }: ProjectFilterControlsProps) => {
 	const municipalitiesQuery = useGetMunicipalityList();
 	const municipalities = (municipalitiesQuery.data?.data ?? []).map((name) => ({
@@ -23,25 +31,20 @@ export const ProjectFilterControls = ({
 		<>
 			<FilterSelect
 				label="Município"
-				allLabel="Todos os Municípios"
+				allLabel="Todos os municípios"
 				options={municipalities}
-				value={filters.municipality}
-				onValueChange={filters.setMunicipality}
+				value={municipality}
+				onValueChange={onMunicipalityChange}
 				disabled={municipalitiesQuery.isPending}
 			/>
 			<DateRangeFilter
 				label="Criado entre"
-				from={filters.createdFrom}
-				to={filters.createdTo}
-				onFromChange={filters.setCreatedFrom}
-				onToChange={filters.setCreatedTo}
+				value={period}
+				onValueChange={onPeriodChange}
 			/>
 			<Label className="h-11 cursor-pointer font-normal">
-				<Switch
-					checked={filters.hasBlocking}
-					onCheckedChange={filters.setHasBlocking}
-				/>
-				Com Apontamento Bloqueante
+				<Switch checked={hasBlocking} onCheckedChange={onHasBlockingChange} />
+				Com apontamento bloqueante
 			</Label>
 		</>
 	);

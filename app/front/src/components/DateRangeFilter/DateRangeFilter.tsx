@@ -1,47 +1,63 @@
 import { Input } from "@components/ui/input";
 import { cn } from "@lib/utils";
 
+/** `YYYY-MM-DD` on both ends; `null` leaves that end open. */
+export interface DateRange {
+	from: string | null;
+	to: string | null;
+}
+
 interface DateRangeFilterProps {
 	label: string;
-	/** `YYYY-MM-DD`, or `null` for an open start. */
-	from: string | null;
-	/** `YYYY-MM-DD`, or `null` for an open end. */
-	to: string | null;
-	onFromChange: (value: string | null) => void;
-	onToChange: (value: string | null) => void;
+	value: DateRange;
+	onValueChange: (value: DateRange) => void;
 	className?: string;
 }
 
 export const DateRangeFilter = ({
 	label,
-	from,
-	to,
-	onFromChange,
-	onToChange,
+	value,
+	onValueChange,
 	className,
-}: DateRangeFilterProps) => (
-	<fieldset className={cn("min-w-0", className)}>
-		<legend className="mb-1.5 text-xs font-medium text-muted-foreground">
-			{label}
-		</legend>
-		<div className="flex items-center gap-2">
-			<Input
-				type="date"
-				aria-label="Data inicial"
-				value={from ?? ""}
-				max={to ?? undefined}
-				onChange={(event) => onFromChange(event.target.value || null)}
-				className="sm:w-40"
-			/>
-			<span className="text-sm text-muted-foreground">até</span>
-			<Input
-				type="date"
-				aria-label="Data final"
-				value={to ?? ""}
-				min={from ?? undefined}
-				onChange={(event) => onToChange(event.target.value || null)}
-				className="sm:w-40"
-			/>
-		</div>
-	</fieldset>
-);
+}: DateRangeFilterProps) => {
+	const changeFrom = (from: string | null) =>
+		onValueChange({
+			from,
+			to: from && value.to && value.to < from ? null : value.to,
+		});
+
+	const changeTo = (to: string | null) =>
+		onValueChange({
+			from: to && value.from && to < value.from ? null : value.from,
+			to,
+		});
+
+	return (
+		<fieldset className={cn("min-w-0", className)}>
+			<legend className="mb-1.5 text-xs font-medium text-muted-foreground">
+				{label}
+			</legend>
+			<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+				<Input
+					type="date"
+					aria-label="Data inicial"
+					value={value.from ?? ""}
+					max={value.to ?? undefined}
+					onChange={(event) => changeFrom(event.target.value || null)}
+					className="sm:w-40"
+				/>
+				<span className="hidden text-sm text-muted-foreground sm:inline">
+					até
+				</span>
+				<Input
+					type="date"
+					aria-label="Data final"
+					value={value.to ?? ""}
+					min={value.from ?? undefined}
+					onChange={(event) => changeTo(event.target.value || null)}
+					className="sm:w-40"
+				/>
+			</div>
+		</fieldset>
+	);
+};

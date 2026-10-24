@@ -6,6 +6,7 @@ import {
 	useDebouncedValue,
 } from "@features/shared";
 import {
+	type ListReviewQueueParams,
 	type ReviewQueueFilter,
 	type ReviewQueueSort,
 	reviewQueueFilterSchema,
@@ -65,6 +66,19 @@ export const useReviewQueueFilters = () => {
 			direction: query.direction ?? REVIEW_QUEUE_SORT_DIRECTIONS[query.sort],
 		}),
 		[query.sort, query.direction],
+	);
+
+	const params = useMemo<Omit<ListReviewQueueParams, "pageSize">>(
+		() => ({
+			page,
+			filter,
+			search: debouncedSearch || undefined,
+			sort: sort.column,
+			direction: sort.direction,
+			reviewer: reviewer ?? undefined,
+			municipality: municipality ?? undefined,
+		}),
+		[page, filter, debouncedSearch, sort, reviewer, municipality],
 	);
 
 	const setFilter = useCallback(
@@ -137,11 +151,11 @@ export const useReviewQueueFilters = () => {
 	return {
 		filter,
 		search,
-		debouncedSearch,
 		page,
 		sort,
 		reviewer,
 		municipality,
+		params,
 		hasActiveFilters:
 			filter !== "ALL" ||
 			search.trim() !== "" ||

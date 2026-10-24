@@ -53,8 +53,6 @@ export const ProjectsPage = () => {
 	const {
 		status,
 		search,
-		debouncedSearch,
-		page,
 		sort,
 		hasActiveFilters,
 		setStatus,
@@ -65,16 +63,8 @@ export const ProjectsPage = () => {
 		clearFilters,
 	} = filters;
 	const projectsQuery = useGetProjectList({
-		page,
+		...filters.params,
 		pageSize: PAGE_SIZE,
-		status: status ?? undefined,
-		search: debouncedSearch || undefined,
-		sort: sort.column,
-		direction: sort.direction,
-		municipality: filters.municipality ?? undefined,
-		createdFrom: filters.createdFrom ?? undefined,
-		createdTo: filters.createdTo ?? undefined,
-		hasBlocking: filters.hasBlocking || undefined,
 	});
 	// Counters get their own query: they are global and change with neither page nor search.
 	const statusCountsQuery = useGetProjectStatusCounts();
@@ -177,7 +167,16 @@ export const ProjectsPage = () => {
 							onValueChange={setSort}
 						/>
 					}
-					refinements={<ProjectFilterControls filters={filters} />}
+					refinements={
+						<ProjectFilterControls
+							municipality={filters.municipality}
+							onMunicipalityChange={filters.setMunicipality}
+							period={filters.period}
+							onPeriodChange={filters.setPeriod}
+							hasBlocking={filters.hasBlocking}
+							onHasBlockingChange={filters.setHasBlocking}
+						/>
+					}
 					activeFilters={<ProjectActiveFilters filters={filters} />}
 				/>
 

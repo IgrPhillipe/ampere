@@ -53,6 +53,22 @@ describe("useReviewQueueFilters", () => {
 		expect(result.current.hasActiveFilters).toBe(true);
 	});
 
+	it("builds the API params from the URL", () => {
+		const { result } = renderFilters(
+			"?filter=REANALYSIS&sort=demand&reviewer=none&municipality=Recife",
+		);
+
+		expect(result.current.params).toEqual({
+			page: 1,
+			filter: "REANALYSIS",
+			search: undefined,
+			sort: "demand",
+			direction: "DESC",
+			reviewer: "none",
+			municipality: "Recife",
+		});
+	});
+
 	it("stores search in the URL and returns to the first page", async () => {
 		const { result, lastUrl } = renderFilters("?page=3");
 

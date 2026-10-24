@@ -5,20 +5,24 @@ import {
 	useGetReviewerList,
 } from "@services/review-queue";
 
-import type { ReviewQueueFilters } from "../../hooks";
-
 interface ReviewQueueFilterControlsProps {
-	filters: ReviewQueueFilters;
+	reviewer: string | null;
+	onReviewerChange: (reviewer: string | null) => void;
+	municipality: string | null;
+	onMunicipalityChange: (municipality: string | null) => void;
 }
 
 export const ReviewQueueFilterControls = ({
-	filters,
+	reviewer,
+	onReviewerChange,
+	municipality,
+	onMunicipalityChange,
 }: ReviewQueueFilterControlsProps) => {
 	const reviewersQuery = useGetReviewerList();
 	const municipalitiesQuery = useGetMunicipalityList();
 
 	const reviewers = [
-		{ value: UNASSIGNED_REVIEWER, label: "Sem Analista" },
+		{ value: UNASSIGNED_REVIEWER, label: "Sem analista" },
 		...(reviewersQuery.data?.data ?? []).map(({ id, name }) => ({
 			value: id,
 			label: name,
@@ -33,18 +37,18 @@ export const ReviewQueueFilterControls = ({
 		<>
 			<FilterSelect
 				label="Analista"
-				allLabel="Todos os Analistas"
+				allLabel="Todos os analistas"
 				options={reviewers}
-				value={filters.reviewer}
-				onValueChange={filters.setReviewer}
+				value={reviewer}
+				onValueChange={onReviewerChange}
 				disabled={reviewersQuery.isPending}
 			/>
 			<FilterSelect
 				label="Município"
-				allLabel="Todos os Municípios"
+				allLabel="Todos os municípios"
 				options={municipalities}
-				value={filters.municipality}
-				onValueChange={filters.setMunicipality}
+				value={municipality}
+				onValueChange={onMunicipalityChange}
 				disabled={municipalitiesQuery.isPending}
 			/>
 		</>

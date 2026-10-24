@@ -1,4 +1,5 @@
 import { type ActiveFilter, ActiveFilters } from "@components/ActiveFilters";
+import type { DateRange } from "@components/DateRangeFilter";
 import { formatDate } from "@features/shared";
 
 import { projectStatusLabels } from "../../constants/project-status";
@@ -8,7 +9,7 @@ interface ProjectActiveFiltersProps {
 	filters: ProjectFilters;
 }
 
-const periodLabel = (from: string | null, to: string | null) => {
+const periodLabel = ({ from, to }: DateRange) => {
 	if (from && to) return `Criado de ${formatDate(from)} a ${formatDate(to)}`;
 	if (from) return `Criado a partir de ${formatDate(from)}`;
 	return `Criado até ${formatDate(to ?? "")}`;
@@ -17,8 +18,7 @@ const periodLabel = (from: string | null, to: string | null) => {
 export const ProjectActiveFilters = ({
 	filters,
 }: ProjectActiveFiltersProps) => {
-	const { status, search, municipality, createdFrom, createdTo, hasBlocking } =
-		filters;
+	const { status, search, municipality, period, hasBlocking } = filters;
 	const active: ActiveFilter[] = [];
 
 	if (status) {
@@ -45,18 +45,18 @@ export const ProjectActiveFilters = ({
 		});
 	}
 
-	if (createdFrom || createdTo) {
+	if (period.from || period.to) {
 		active.push({
 			id: "period",
-			label: periodLabel(createdFrom, createdTo),
-			onRemove: filters.clearPeriod,
+			label: periodLabel(period),
+			onRemove: () => filters.setPeriod({ from: null, to: null }),
 		});
 	}
 
 	if (hasBlocking) {
 		active.push({
 			id: "hasBlocking",
-			label: "Com Apontamento Bloqueante",
+			label: "Com apontamento bloqueante",
 			onRemove: () => filters.setHasBlocking(false),
 		});
 	}

@@ -30,28 +30,45 @@ describe("useProjectFilters", () => {
 
 	it("ignores invalid dates and an inverted period", () => {
 		expect(
-			renderFilters("?createdFrom=31/08/2026").result.current.createdFrom,
-		).toBeNull();
+			renderFilters("?createdFrom=31/08/2026").result.current.period,
+		).toEqual({ from: null, to: null });
 
 		const { result } = renderFilters(
 			"?createdFrom=2026-09-01&createdTo=2026-08-01",
 		);
 
-		expect(result.current.createdFrom).toBe("2026-09-01");
-		expect(result.current.createdTo).toBeNull();
+		expect(result.current.period).toEqual({ from: "2026-09-01", to: null });
 	});
 
-	it("drops the end of the period when the new start passes it", async () => {
-		const { result, onUrlUpdate, lastUrl } = renderFilters(
-			"?createdTo=2026-08-01&page=2",
+	it("stores the period and returns to the first page", async () => {
+		const { result, onUrlUpdate, lastUrl } = renderFilters("?page=2");
+
+		act(() =>
+			result.current.setPeriod({ from: "2026-08-01", to: "2026-08-31" }),
 		);
 
-		act(() => result.current.setCreatedFrom("2026-08-15"));
-
 		await waitFor(() => expect(onUrlUpdate).toHaveBeenCalled());
-		expect(lastUrl()?.get("createdFrom")).toBe("2026-08-15");
-		expect(lastUrl()?.has("createdTo")).toBe(false);
+		expect(lastUrl()?.get("createdFrom")).toBe("2026-08-01");
+		expect(lastUrl()?.get("createdTo")).toBe("2026-08-31");
 		expect(lastUrl()?.has("page")).toBe(false);
+	});
+
+	it("builds the API params from the URL", () => {
+		const { result } = renderFilters(
+			"?sort=name&municipality=Recife&createdTo=2026-08-31&hasBlocking=true&page=3",
+		);
+
+		expect(result.current.params).toEqual({
+			page: 3,
+			status: undefined,
+			search: undefined,
+			sort: "name",
+			direction: "ASC",
+			municipality: "Recife",
+			createdFrom: undefined,
+			createdTo: "2026-08-31",
+			hasBlocking: true,
+		});
 	});
 
 	it("stores the blocking filter only when it is on", async () => {

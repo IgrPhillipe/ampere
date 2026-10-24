@@ -1,3 +1,4 @@
+import type { DateRange } from "@components/DateRangeFilter";
 import {
 	type ListSort,
 	nextSort,
@@ -7,6 +8,7 @@ import {
 } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import {
+	type ListProjectsParams,
 	type ProjectSort,
 	type ProjectStatus,
 	projectSortSchema,
@@ -65,13 +67,28 @@ export const useProjectFilters = () => {
 		[query.sort, query.direction],
 	);
 
-	const createdFrom = toIsoDate(query.createdFrom);
-	const parsedCreatedTo = toIsoDate(query.createdTo);
-	// An inverted period from a hand-edited URL would come back as a 400; the start wins.
-	const createdTo =
-		createdFrom && parsedCreatedTo && parsedCreatedTo < createdFrom
-			? null
-			: parsedCreatedTo;
+	const period = useMemo<DateRange>(() => {
+		const from = toIsoDate(query.createdFrom);
+		const to = toIsoDate(query.createdTo);
+
+		// An inverted period from a hand-edited URL would come back as a 400; the start wins.
+		return { from, to: from && to && to < from ? null : to };
+	}, [query.createdFrom, query.createdTo]);
+
+	const params = useMemo<Omit<ListProjectsParams, "pageSize">>(
+		() => ({
+			page,
+			status: status ?? undefined,
+			search: debouncedSearch || undefined,
+			sort: sort.column,
+			direction: sort.direction,
+			municipality: municipality ?? undefined,
+			createdFrom: period.from ?? undefined,
+			createdTo: period.to ?? undefined,
+			hasBlocking: hasBlocking || undefined,
+		}),
+		[page, status, debouncedSearch, sort, municipality, period, hasBlocking],
+	);
 
 	const setStatus = useCallback(
 		(nextStatus: ProjectStatus | null) => {
@@ -120,35 +137,16 @@ export const useProjectFilters = () => {
 		[setQuery],
 	);
 
-	const setCreatedFrom = useCallback(
-		(value: string | null) => {
-			const from = toIsoDate(value);
-
+	const setPeriod = useCallback(
+		({ from, to }: DateRange) => {
 			void setQuery({
-				createdFrom: from,
-				...(from && createdTo && createdTo < from ? { createdTo: null } : {}),
+				createdFrom: toIsoDate(from),
+				createdTo: toIsoDate(to),
 				page: null,
 			});
 		},
-		[createdTo, setQuery],
+		[setQuery],
 	);
-
-	const setCreatedTo = useCallback(
-		(value: string | null) => {
-			const to = toIsoDate(value);
-
-			void setQuery({
-				createdTo: to,
-				...(to && createdFrom && to < createdFrom ? { createdFrom: null } : {}),
-				page: null,
-			});
-		},
-		[createdFrom, setQuery],
-	);
-
-	const clearPeriod = useCallback(() => {
-		void setQuery({ createdFrom: null, createdTo: null, page: null });
-	}, [setQuery]);
 
 	const setHasBlocking = useCallback(
 		(value: boolean) => {
@@ -172,20 +170,19 @@ export const useProjectFilters = () => {
 	return {
 		status,
 		search,
-		debouncedSearch,
 		page,
 		sort,
 		municipality,
-		createdFrom,
-		createdTo,
+		period,
 		hasBlocking,
+		params,
 		// An empty list under an active filter asks for "Limpar Filtros"; without one, it does not.
 		hasActiveFilters:
 			status !== null ||
 			search.trim() !== "" ||
 			municipality !== null ||
-			createdFrom !== null ||
-			createdTo !== null ||
+			period.from !== null ||
+			period.to !== null ||
 			hasBlocking,
 		setStatus,
 		setSearch,
@@ -193,9 +190,7 @@ export const useProjectFilters = () => {
 		setSort,
 		sortBy,
 		setMunicipality,
-		setCreatedFrom,
-		setCreatedTo,
-		clearPeriod,
+		setPeriod,
 		setHasBlocking,
 		clearFilters,
 	};

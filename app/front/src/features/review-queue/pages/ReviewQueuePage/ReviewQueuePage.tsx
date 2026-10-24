@@ -25,8 +25,6 @@ export const ReviewQueuePage = () => {
 	const {
 		filter,
 		search,
-		debouncedSearch,
-		page,
 		sort,
 		hasActiveFilters,
 		setFilter,
@@ -37,14 +35,8 @@ export const ReviewQueuePage = () => {
 		clearFilters,
 	} = filters;
 	const queueQuery = useGetReviewQueue({
-		page,
+		...filters.params,
 		pageSize: PAGE_SIZE,
-		filter,
-		search: debouncedSearch || undefined,
-		sort: sort.column,
-		direction: sort.direction,
-		reviewer: filters.reviewer ?? undefined,
-		municipality: filters.municipality ?? undefined,
 	});
 	const indicatorsQuery = useGetReviewQueueIndicators();
 	const navigate = useNavigate();
@@ -74,7 +66,14 @@ export const ReviewQueuePage = () => {
 					indicators={indicatorsQuery.data?.data}
 					sort={sort}
 					onSortChange={setSort}
-					refinements={<ReviewQueueFilterControls filters={filters} />}
+					refinements={
+						<ReviewQueueFilterControls
+							reviewer={filters.reviewer}
+							onReviewerChange={filters.setReviewer}
+							municipality={filters.municipality}
+							onMunicipalityChange={filters.setMunicipality}
+						/>
+					}
 					activeFilters={<ReviewQueueActiveFilters filters={filters} />}
 				/>
 
