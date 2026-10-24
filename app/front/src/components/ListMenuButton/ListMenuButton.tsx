@@ -38,7 +38,7 @@ export const ListMenuButtonText = ({
 }: ListMenuButtonTextProps) => (
 	<>
 		<span className="text-muted-foreground">{label}</span>
-		<span className="max-w-56 truncate font-semibold">{value}</span>
+		<span className="max-w-40 truncate font-semibold">{value}</span>
 		{icon}
 	</>
 );

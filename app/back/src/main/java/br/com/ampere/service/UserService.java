@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserService {
 
-  static final String EMAIL_TAKEN = "Já existe uma conta com este e-mail.";
+  public static final String EMAIL_TAKEN = "Já existe uma conta com este e-mail.";
 
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
@@ -44,6 +44,7 @@ public class UserService {
             profile.creaState(),
             profile.company(),
             profile.phone());
+    user.recordSignIn();
     try {
       user = userRepository.saveAndFlush(user);
     } catch (DataIntegrityViolationException race) {

@@ -1,12 +1,23 @@
 import { FilterTiles } from "@components/FilterTiles";
 import { ListToolbar } from "@components/ListToolbar";
 import { SearchInput } from "@components/SearchInput";
-import { SortToggle } from "@components/SortToggle";
-import { padCount, type SortDirection } from "@features/shared";
+import { SortMenu, type SortOption } from "@components/SortMenu";
+import { type ListSort, padCount } from "@features/shared";
 import type {
 	ReviewQueueFilter,
 	ReviewQueueIndicators,
+	ReviewQueueSort,
 } from "@services/review-queue";
+import type { ReactNode } from "react";
+
+import { REVIEW_QUEUE_SORT_DIRECTIONS } from "../../hooks";
+
+const sortOptions: SortOption<ReviewQueueSort>[] = [
+	{ value: "deadline", label: "Vencimento" },
+	{ value: "submittedAt", label: "Recebimento" },
+	{ value: "demand", label: "Demanda" },
+	{ value: "warnings", label: "Alertas" },
+];
 
 const formatPercent = (value: number) =>
 	`${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
@@ -17,8 +28,10 @@ interface ReviewQueueToolbarProps {
 	onFilterChange: (filter: ReviewQueueFilter) => void;
 	search: string;
 	onSearchChange: (value: string) => void;
-	sort: SortDirection;
-	onSortChange: (sort: SortDirection) => void;
+	sort: ListSort<ReviewQueueSort>;
+	onSortChange: (sort: ListSort<ReviewQueueSort>) => void;
+	refinements?: ReactNode;
+	activeFilters?: ReactNode;
 	className?: string;
 }
 
@@ -30,6 +43,8 @@ export const ReviewQueueToolbar = ({
 	onSearchChange,
 	sort,
 	onSortChange,
+	refinements,
+	activeFilters,
 	className,
 }: ReviewQueueToolbarProps) => (
 	<ListToolbar
@@ -83,11 +98,14 @@ export const ReviewQueueToolbar = ({
 			/>
 		}
 		sort={
-			<SortToggle
-				label="Prazo"
-				descending={sort === "DESC"}
-				onToggle={() => onSortChange(sort === "ASC" ? "DESC" : "ASC")}
+			<SortMenu
+				options={sortOptions}
+				value={sort}
+				directions={REVIEW_QUEUE_SORT_DIRECTIONS}
+				onValueChange={onSortChange}
 			/>
 		}
+		refinements={refinements}
+		activeFilters={activeFilters}
 	/>
 );

@@ -111,8 +111,8 @@ O caminho nomeia o recurso, no plural e em kebab-case; o método HTTP diz a aç�
 - Sem verbo no caminho: enviar um projeto é `POST /projects/{id}/submission`, publicar uma tabela é `POST /normative-tables/{id}/publication`.
 - Recurso de um projeto fica aninhado nele: `/projects/{id}/consumer-unit-groups`, `/projects/{id}/calculations`, `/projects/{id}/documents`.
 - Coleção que guarda todo o histórico é plural, e o mais recente é `/latest`: `GET /projects/{id}/calculations/latest`.
-- Sem papel no caminho: `/normative-tables` e `/review-queue` são restritos ao `admin` pelo `SecurityConfig`, não por um prefixo `/admin`.
-- Ordenação de lista com uma chave só usa `sort=ASC|DESC` (`SortDirection`); a chave é a da própria lista (prazo na fila, última atualização em projetos).
+- Sem papel no caminho: `/normative-tables`, `/review-queue` e `/users` são restritos ao `admin` pelo `SecurityConfig`, não por um prefixo `/admin`.
+- Ordenação de lista usa `sort=<coluna>` e `direction=ASC|DESC` (`SortDirection`). Cada lista tem o enum das suas colunas (`ProjectSort`, `ReviewQueueSort`), e o empate sai pelo `id`.
 
 ### Envelope
 
@@ -158,7 +158,7 @@ Não repita conversão e normalização em cada controller ou service. Peças co
 | :--- | :--- |
 | `PageQuery` | Valores padrão e Bean Validation de `page` e `pageSize` |
 | `SearchTerms` | `trim` e escape de `\`, `%` e `_` antes de consultas com `LIKE` |
-| `EnumParameterConfig` | Conversão case-insensitive de texto para qualquer enum da API |
+| `EnumParameterConfig` | Conversão de texto para qualquer enum da API, sem diferenciar caixa nem `_`: `createdAt` chega como `CREATED_AT` |
 | `messages.properties` | Mensagens localizadas para falhas de binding do Spring |
 
 Controllers recebem enums diretamente. Isso mantém a validação no limite HTTP e permite que o OpenAPI publique os valores aceitos:
@@ -275,8 +275,10 @@ Decisões:
 - **Senha é BCrypt**, e `AuthUserResponse` não tem campo de hash: o DTO garante que ele não vaza.
 - **E-mail desconhecido e senha errada respondem igual.** Distinguir os dois revelaria quais e-mails existem na base.
 - **`/auth/me` relê o usuário do banco** em vez de confiar no token: nome e papel gravados no token ficam desatualizados.
+- **Toda requisição relê a situação e o papel da conta.** O `ActiveAccountConverter` lê só `active` e `role` pela chave primária: conta desativada responde 401 com *"Conta desativada. Procure a Neoenergia."*, e papel alterado ou conta inexistente derrubam o token. Sem isso, o token valeria até expirar.
+- **Conta inativa só é avisada a quem acerta a senha.** O login responde 403 com a mensagem da conta desativada; senha errada continua no 401 de sempre.
 
-**Rotas restritas por papel ficam no `SecurityConfig`.** As tabelas normativas (`/normative-tables/**`), a fila de análise (`/review-queue/**`) e a escrita da análise (atribuição, decisão e apontamentos) não são do projetista: o `SecurityConfig` converte o claim `role` do token em `ROLE_ADMIN` ou `ROLE_USER` e exige `hasRole("ADMIN")` nesses caminhos. Sem o papel, a resposta é 403 no mesmo `ProblemDetail` do resto da API. Rota nova de analista entra no mesmo `requestMatchers`.
+**Rotas restritas por papel ficam no `SecurityConfig`.** As tabelas normativas (`/normative-tables/**`), a fila de análise (`/review-queue/**`), a gestão de usuários (`/users/**`, exceto `/users/me`, que vem antes no `SecurityConfig`) e a escrita da análise (atribuição, decisão e apontamentos) não são do projetista: o `SecurityConfig` converte o claim `role` do token em `ROLE_ADMIN` ou `ROLE_USER` e exige `hasRole("ADMIN")` nesses caminhos. Sem o papel, a resposta é 403 no mesmo `ProblemDetail` do resto da API. Rota nova de analista entra no mesmo `requestMatchers`.
 
 Os papéis atuais (`user` / `admin`) são placeholder e dependem da **Q1c** em [`questoes-em-aberto.md`](../produto/questoes-em-aberto.md): *"pessoa de fora da Neoenergia pode acessar um sistema interno?"*. A resolução da Q1c é aplicada aqui e na pendência 13.
 
@@ -292,7 +294,7 @@ Os papéis atuais (`user` / `admin`) são placeholder e dependem da **Q1c** em [
 - **Projeto de outro dono responde 404**, igual a um id inexistente. Um 403 confirmaria que o projeto existe.
 - **Rascunho também responde 404 ao analista**: ele só vê o que foi enviado para análise.
 - **Listagem, busca e contadores filtram no banco** (`searchAccessibleProjects`, `countAccessiblePerStatus`), não na memória.
-- A regra vale para tudo que fica aninhado no projeto: grupos, cálculo, documentos, memorial e envio. Os services desses recursos passam por `ProjectService.findById` (leitura), `findWritableById` ou `draftOrFail` (escrita), e não leem o projeto direto do repository.
+- A regra vale para tudo que fica aninhado no projeto: grupos, cálculo, documentos, memorial e envio. Os services desses recursos passam por `ProjectService.findById` (leitura), `findWritableById`, `draftOrFail` ou `editableOrFail` (escrita; o último aceita rascunho e reprovado), e não leem o projeto direto do repository.
 
 **O service não lê o contexto de segurança.** O controller recebe `@AuthenticationPrincipal Jwt` e converte o token em `AuthenticatedUser` (id e papel), que o service recebe como último parâmetro. Token sem id ou papel válido responde 401.
 
@@ -531,6 +533,8 @@ public ApiResponse<List<ProjectResponse>> list(
 
 O front numera páginas a partir de **1** e o Spring Data a partir de **0**, daí o `page - 1`.
 
+Quando os filtros são opcionais e a coluna de ordenação varia, o repository monta o JPQL com só os filtros informados, como o `ProjectRepositoryImpl`. Valor do usuário entra só por parâmetro da query; na string vai apenas texto fixo e o nome de um enum. Ordenação por dado de outra tabela, como a demanda do último cálculo, é uma subquery no `ORDER BY`, para a paginação continuar no banco.
+
 ---
 
 ## Receita: CRUD Completo
@@ -590,6 +594,7 @@ A mensagem é o que o usuário lê: em português e sem jargão. O front descart
 | Geração de protocolo | `utils/Protocols` |
 | Regra de dono do projeto | `service/ProjectService`, `service/AuthenticatedUser` |
 | Cadastro e perfil | `service/UserService`, `controller/UserController` |
+| Gestão de usuários e bloqueio de conta inativa | `service/UserAdministrationService`, `security/ActiveAccountConverter` |
 | Análise técnica e apontamentos | `service/ProjectReviewService`, `service/FindingService` |
 | Documentação da API | `/api/docs` |
 

@@ -22,7 +22,9 @@ public record FindingResponse(
     String authorName,
     OffsetDateTime createdAt,
     int version,
-    FindingStatus status) {
+    FindingStatus status,
+    String response,
+    OffsetDateTime respondedAt) {
 
   public static FindingResponse from(Finding finding) {
     User author = finding.getAuthor();
@@ -42,6 +44,8 @@ public record FindingResponse(
         author == null ? null : author.getName(),
         finding.getCreatedAt(),
         finding.getVersion(),
-        finding.getStatus());
+        finding.getStatus(),
+        finding.getResponse(),
+        finding.getRespondedAt());
   }
 }

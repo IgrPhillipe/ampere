@@ -1,5 +1,5 @@
 import { createDataTableColumnHelper } from "@components/DataTable";
-import { formatKva } from "@features/shared";
+import { formatDate, formatKva } from "@features/shared";
 import type { ReviewQueueItem } from "@services/review-queue";
 
 import { AlertsCell } from "./AlertsCell";
@@ -21,6 +21,7 @@ export type ReviewQueueColumnId =
 	| "name"
 	| "status"
 	| "deadline"
+	| "submittedAt"
 	| "cycle"
 	| "units"
 	| "demand"
@@ -71,6 +72,17 @@ export const createReviewQueueColumns = ({
 		columnHelper.accessor("deadline", {
 			header: "Vencimento",
 			cell: ({ row }) => <DeadlineCell item={row.original} />,
+		}),
+		columnHelper.accessor("submittedAt", {
+			header: "Recebido",
+			cell: ({ row }) => (
+				<time
+					dateTime={row.original.submittedAt}
+					className="font-mono text-xs text-foreground"
+				>
+					{formatDate(row.original.submittedAt)}
+				</time>
+			),
 		}),
 		columnHelper.accessor("reviewCycle", {
 			id: "cycle",

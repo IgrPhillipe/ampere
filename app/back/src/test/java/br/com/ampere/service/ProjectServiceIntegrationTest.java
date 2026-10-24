@@ -5,12 +5,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.BuildingType;
+import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.ConnectionType;
+import br.com.ampere.domain.DemandComponent;
+import br.com.ampere.domain.DemandResult;
+import br.com.ampere.domain.DemandStep;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingResolution;
 import br.com.ampere.domain.FindingSeverity;
 import br.com.ampere.domain.FindingStage;
+import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SortDirection;
@@ -25,6 +32,11 @@ import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +61,8 @@ class ProjectServiceIntegrationTest {
   @Autowired private NormativeTableRepository normativeTableRepository;
 
   @Autowired private UserRepository userRepository;
+
+  @Autowired private EntityManager entityManager;
 
   private User owner;
 
@@ -90,8 +104,7 @@ class ProjectServiceIntegrationTest {
     findingRepository.save(published(finding(rejectedProject)));
     findingRepository.save(finding(rejectedProject));
 
-    ProjectListing listing =
-        service.list(1, 20, ProjectStatus.REJECTED, "VILA", SortDirection.DESC, designer);
+    ProjectListing listing = list(ProjectStatus.REJECTED, "VILA");
 
     assertThat(listing.totalElements()).isOne();
     assertThat(listing.projects()).containsExactly(rejectedProject);
@@ -120,7 +133,7 @@ class ProjectServiceIntegrationTest {
                 "2026-5231",
                 ProjectStatus.UNDER_REVIEW));
 
-    ProjectListing listing = service.list(1, 20, null, "5231", SortDirection.DESC, designer);
+    ProjectListing listing = list(null, "5231");
 
     assertThat(listing.projects()).containsExactly(project);
     assertThat(listing.pendingCountFor(project)).isZero();
@@ -136,8 +149,7 @@ class ProjectServiceIntegrationTest {
             "2026-5231",
             ProjectStatus.UNDER_REVIEW));
 
-    ProjectListing listing =
-        service.list(1, 20, null, "projeto inexistente", SortDirection.DESC, designer);
+    ProjectListing listing = list(null, "projeto inexistente");
 
     assertThat(listing.projects()).isEmpty();
     assertThat(listing.pendingCounts()).isEmpty();
@@ -155,12 +167,9 @@ class ProjectServiceIntegrationTest {
                 "2026-5231",
                 ProjectStatus.UNDER_REVIEW));
 
-    assertThat(service.list(1, 20, null, "edificio", SortDirection.DESC, designer).projects())
-        .containsExactly(project);
-    assertThat(service.list(1, 20, null, "EDIFÍCIO", SortDirection.DESC, designer).projects())
-        .containsExactly(project);
-    assertThat(service.list(1, 20, null, "Edifício", SortDirection.DESC, designer).projects())
-        .containsExactly(project);
+    assertThat(list(null, "edificio").projects()).containsExactly(project);
+    assertThat(list(null, "EDIFÍCIO").projects()).containsExactly(project);
+    assertThat(list(null, "Edifício").projects()).containsExactly(project);
   }
 
   @Test
@@ -174,8 +183,7 @@ class ProjectServiceIntegrationTest {
             ProjectStatus.UNDER_REVIEW));
 
     // Address and municipality are outside the search contract.
-    assertThat(service.list(1, 20, null, "Recife", SortDirection.DESC, designer).projects())
-        .isEmpty();
+    assertThat(list(null, "Recife").projects()).isEmpty();
   }
 
   @Test
@@ -188,10 +196,163 @@ class ProjectServiceIntegrationTest {
             "2026-8475",
             ProjectStatus.REJECTED));
 
-    assertThat(service.list(1, 20, null, "%", SortDirection.DESC, designer).projects()).isEmpty();
-    assertThat(service.list(1, 20, null, "_", SortDirection.DESC, designer).projects()).isEmpty();
-    assertThat(service.list(1, 20, null, "vila%nova", SortDirection.DESC, designer).projects())
-        .isEmpty();
+    assertThat(list(null, "%").projects()).isEmpty();
+    assertThat(list(null, "_").projects()).isEmpty();
+    assertThat(list(null, "vila%nova").projects()).isEmpty();
+  }
+
+  @Test
+  void ordersByNameIgnoringCase() {
+    Project beta = save("beta", "Recife", "2026-0002");
+    Project alpha = save("Alpha", "Recife", "2026-0001");
+    Project gama = save("Gama", "Recife", "2026-0003");
+
+    assertThat(list(sortedBy(ProjectSort.NAME, SortDirection.ASC)).projects())
+        .containsExactly(alpha, beta, gama);
+    assertThat(list(sortedBy(ProjectSort.NAME, SortDirection.DESC)).projects())
+        .containsExactly(gama, beta, alpha);
+  }
+
+  @Test
+  void ordersByTheLatestDemandWithUncalculatedProjectsLastInBothDirections() {
+    Project hundred = save("P100", "Recife", "2026-0100");
+    Project fifty = save("P50", "Recife", "2026-0050");
+    Project uncalculated = save("PNone", "Recife", "2026-0000");
+    withDemand(hundred, new BigDecimal("10.00"));
+    withDemand(hundred, new BigDecimal("100.00"));
+    withDemand(fifty, new BigDecimal("50.00"));
+
+    assertThat(list(sortedBy(ProjectSort.DEMAND, SortDirection.ASC)).projects())
+        .containsExactly(fifty, hundred, uncalculated);
+    assertThat(list(sortedBy(ProjectSort.DEMAND, SortDirection.DESC)).projects())
+        .containsExactly(hundred, fifty, uncalculated);
+  }
+
+  @Test
+  void ordersByCreationAndBreaksTiesByIdInTheSameDirection() {
+    Project first = save("A", "Recife", "2026-0001");
+    Project second = save("B", "Recife", "2026-0002");
+    Project oldest = save("C", "Recife", "2026-0003");
+    stamp(first, "createdAt", "2026-10-05T12:00Z");
+    stamp(second, "createdAt", "2026-10-05T12:00Z");
+    stamp(oldest, "createdAt", "2026-10-01T12:00Z");
+
+    assertThat(list(sortedBy(ProjectSort.CREATED_AT, SortDirection.ASC)).projects())
+        .containsExactly(oldest, first, second);
+    assertThat(list(sortedBy(ProjectSort.CREATED_AT, SortDirection.DESC)).projects())
+        .containsExactly(second, first, oldest);
+  }
+
+  @Test
+  void ordersByTheLastUpdateAndBreaksTiesById() {
+    Project first = save("A", "Recife", "2026-0001");
+    Project second = save("B", "Recife", "2026-0002");
+    Project latest = save("C", "Recife", "2026-0003");
+    stamp(first, "updatedAt", "2026-10-05T12:00Z");
+    stamp(second, "updatedAt", "2026-10-05T12:00Z");
+    stamp(latest, "updatedAt", "2026-10-09T12:00Z");
+
+    assertThat(list(sortedBy(ProjectSort.UPDATED_AT, SortDirection.DESC)).projects())
+        .containsExactly(latest, second, first);
+    assertThat(list(sortedBy(ProjectSort.UPDATED_AT, SortDirection.ASC)).projects())
+        .containsExactly(first, second, latest);
+  }
+
+  @Test
+  void filtersByTheCreationPeriodInRecifeTime() {
+    Project dayBefore = save("A", "Recife", "2026-0001");
+    Project firstDay = save("B", "Recife", "2026-0002");
+    Project lastDay = save("C", "Recife", "2026-0003");
+    Project dayAfter = save("D", "Recife", "2026-0004");
+    stamp(dayBefore, "createdAt", "2026-09-30T23:30-03:00");
+    stamp(firstDay, "createdAt", "2026-10-01T00:30-03:00");
+    stamp(lastDay, "createdAt", "2026-10-10T23:30-03:00");
+    stamp(dayAfter, "createdAt", "2026-10-11T00:05-03:00");
+
+    ProjectListing listing =
+        list(filtered(null, LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 10)));
+
+    assertThat(listing.projects()).containsExactlyInAnyOrder(firstDay, lastDay);
+  }
+
+  @Test
+  void filtersByMunicipalityIgnoringCaseAndSurroundingSpaces() {
+    Project recife = save("A", "Recife ", "2026-0010");
+    save("B", "Olinda", "2026-0020");
+    save("C", "Recife Antigo", "2026-0030");
+
+    assertThat(list(filtered(" recife", null, null)).projects()).containsExactly(recife);
+  }
+
+  @Test
+  void filtersByTheFindingsStillOpen() {
+    Project blocked = save("A", "Recife", "2026-0030");
+    Project adjusted = save("B", "Recife", "2026-0040");
+    Project drafted = save("C", "Recife", "2026-0050");
+    Project resolved = save("D", "Recife", "2026-0060");
+    Project clean = save("E", "Recife", "2026-0070");
+    findingRepository.save(published(finding(blocked, FindingSeverity.BLOCKING)));
+    findingRepository.save(published(finding(adjusted, FindingSeverity.ADJUSTMENT)));
+    findingRepository.save(finding(drafted, FindingSeverity.BLOCKING));
+    Finding accepted = published(finding(resolved, FindingSeverity.BLOCKING));
+    accepted.resolve(FindingResolution.ACCEPT);
+    findingRepository.save(accepted);
+
+    assertThat(list(filtered(OpenFindingsFilter.BLOCKING_OPEN)).projects())
+        .containsExactly(blocked);
+    assertThat(list(filtered(OpenFindingsFilter.ANY_OPEN)).projects())
+        .containsExactlyInAnyOrder(blocked, adjusted);
+    assertThat(list(filtered(OpenFindingsFilter.NONE_OPEN)).projects())
+        .containsExactlyInAnyOrder(drafted, resolved, clean);
+    assertThat(list(filtered((OpenFindingsFilter) null)).projects()).hasSize(5);
+  }
+
+  @Test
+  void combinesTheFiltersWithTheSort() {
+    Project zeta = save("Zeta", "Recife", "2026-0001");
+    Project alpha = save("Alpha", "Recife", "2026-0002");
+    Project olinda = save("Beta", "Olinda", "2026-0003");
+    save("Gama", "Recife", "2026-0004");
+    for (Project blocked : List.of(zeta, alpha, olinda)) {
+      findingRepository.save(published(finding(blocked, FindingSeverity.BLOCKING)));
+    }
+
+    ProjectListing listing =
+        list(
+            new ProjectListQuery(
+                ProjectStatus.UNDER_REVIEW,
+                null,
+                ProjectSort.NAME,
+                SortDirection.ASC,
+                "Recife",
+                null,
+                null,
+                OpenFindingsFilter.BLOCKING_OPEN));
+
+    assertThat(listing.projects()).containsExactly(alpha, zeta);
+    assertThat(listing.totalElements()).isEqualTo(2);
+  }
+
+  @Test
+  void listsDistinctMunicipalitiesForDesignerAndAnalyst() {
+    save("A", "Recife", "2026-0010");
+    save("B", "Olinda", "2026-0020");
+    save("C", "recife ", "2026-0030");
+    save("E", "Jaboatão dos Guararapes", "2026-0050");
+
+    User analystUser =
+        userRepository.save(new User("Admin", "admin@ampere.com", "hash", UserRole.ADMIN));
+    AuthenticatedUser analyst = new AuthenticatedUser(analystUser.getId(), UserRole.ADMIN);
+
+    assertThat(service.listMunicipalities(designer))
+        .containsExactly("Jaboatão dos Guararapes", "Olinda", "Recife");
+    assertThat(service.listMunicipalities(analyst)).isEmpty();
+
+    Project submitted = project("D", "Rua 4", "Caruaru", "2026-0040", ProjectStatus.UNDER_REVIEW);
+    submitted.submit(OffsetDateTime.now(ZoneOffset.UTC));
+    projectRepository.save(submitted);
+
+    assertThat(service.listMunicipalities(analyst)).containsExactly("Caruaru");
   }
 
   @Test
@@ -267,7 +428,28 @@ class ProjectServiceIntegrationTest {
     assertThatThrownBy(
             () -> service.update(underReview.getId(), parameters(BuildingCategory.MIXED), designer))
         .isInstanceOf(BusinessException.class)
-        .hasMessage("Só é possível alterar um projeto em rascunho.");
+        .hasMessage("Só é possível alterar um projeto em rascunho ou reprovado.");
+  }
+
+  @Test
+  void updatesARejectedProjectKeepingItsRejectedStatusAndRefusesToDeleteIt() {
+    Project rejected =
+        projectRepository.save(
+            project(
+                "Condomínio Vila Nova",
+                "Avenida Barreto de Menezes, 88",
+                "Jaboatão dos Guararapes",
+                "2026-5239",
+                ProjectStatus.REJECTED));
+
+    Project updated =
+        service.update(rejected.getId(), parameters(BuildingCategory.MIXED), designer);
+
+    assertThat(updated.getStatus()).isEqualTo(ProjectStatus.REJECTED);
+    assertThat(updated.getBuildingType().category()).isEqualTo(BuildingCategory.MIXED);
+    assertThatThrownBy(() -> service.delete(rejected.getId(), designer))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("Só é possível excluir um projeto em rascunho.");
   }
 
   @Test
@@ -294,6 +476,119 @@ class ProjectServiceIntegrationTest {
     assertThat(projectRepository.findById(approved.getId())).isPresent();
   }
 
+  private ProjectListing list(ProjectStatus status, String search) {
+    return list(
+        new ProjectListQuery(
+            status, search, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, null));
+  }
+
+  private ProjectListing list(ProjectListQuery query) {
+    return service.list(1, 20, query, designer);
+  }
+
+  private static ProjectListQuery sortedBy(ProjectSort sort, SortDirection direction) {
+    return new ProjectListQuery(null, null, sort, direction, null, null, null, null);
+  }
+
+  private static ProjectListQuery filtered(
+      String municipality, LocalDate createdFrom, LocalDate createdTo) {
+    return new ProjectListQuery(
+        null,
+        null,
+        ProjectSort.UPDATED_AT,
+        SortDirection.DESC,
+        municipality,
+        createdFrom,
+        createdTo,
+        null);
+  }
+
+  private static ProjectListQuery filtered(OpenFindingsFilter findings) {
+    return new ProjectListQuery(
+        null, null, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, findings);
+  }
+
+  private Project save(String name, String municipality, String protocol) {
+    return projectRepository.save(
+        project(name, "Rua " + name, municipality, protocol, ProjectStatus.UNDER_REVIEW));
+  }
+
+  /** The entity sets its own timestamps, so tests move them with a bulk update. */
+  private void stamp(Project project, String field, String instant) {
+    entityManager
+        .createQuery("UPDATE Project project SET project." + field + " = :at WHERE project = :p")
+        .setParameter("at", OffsetDateTime.parse(instant))
+        .setParameter("p", project)
+        .executeUpdate();
+  }
+
+  private void withDemand(Project project, BigDecimal demandKva) {
+    List<DemandStep> steps =
+        List.of(
+            new DemandStep(
+                DemandComponent.RESIDENTIAL_UNITS.symbol(),
+                DemandComponent.RESIDENTIAL_UNITS.title(),
+                false,
+                "",
+                List.of(),
+                BigDecimal.ZERO,
+                null,
+                List.of(),
+                null),
+            new DemandStep(
+                DemandComponent.CONDOMINIUM_SERVICES.symbol(),
+                DemandComponent.CONDOMINIUM_SERVICES.title(),
+                false,
+                "",
+                List.of(),
+                BigDecimal.ZERO,
+                null,
+                List.of(),
+                null),
+            new DemandStep(
+                DemandComponent.NON_RESIDENTIAL_UNITS.symbol(),
+                DemandComponent.NON_RESIDENTIAL_UNITS.title(),
+                false,
+                "",
+                List.of(),
+                BigDecimal.ZERO,
+                null,
+                List.of(),
+                null),
+            new DemandStep(
+                DemandComponent.EV_CHARGING.symbol(),
+                DemandComponent.EV_CHARGING.title(),
+                false,
+                "",
+                List.of(),
+                BigDecimal.ZERO,
+                null,
+                List.of(),
+                null),
+            new DemandStep(
+                "Ded",
+                "Demanda Total da Edificação",
+                true,
+                "",
+                List.of(),
+                demandKva,
+                null,
+                List.of(),
+                null));
+    DemandResult result =
+        new DemandResult(
+            steps,
+            demandKva,
+            demandKva,
+            demandKva,
+            false,
+            null,
+            new BigDecimal("50.00"),
+            List.of(),
+            List.of());
+    calculationRepository.save(new Calculation(project, result, "{}"));
+  }
+
   private static ProjectParameters parameters(BuildingCategory category) {
     return new ProjectParameters(
         "Residencial Monte Verde",
@@ -313,9 +608,13 @@ class ProjectServiceIntegrationTest {
   }
 
   private Finding finding(Project project) {
+    return finding(project, FindingSeverity.ADJUSTMENT);
+  }
+
+  private Finding finding(Project project, FindingSeverity severity) {
     return new Finding(
         project,
-        FindingSeverity.ADJUSTMENT,
+        severity,
         FindingStage.PROJECT_DATA,
         null,
         null,

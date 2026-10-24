@@ -4,6 +4,7 @@ export * from "./GroupSheet";
 export * from "./LoadComposition";
 export * from "./MemorialPreview";
 export * from "./ProjectDeleteDialog";
+export * from "./ProjectListFilters";
 export * from "./ProjectStamp";
 export * from "./ProjectStatusFilters";
 export * from "./ProjectStepper";
