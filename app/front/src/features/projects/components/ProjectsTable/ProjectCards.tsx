@@ -1,7 +1,8 @@
 import {
-	formatDateTime,
+	formatDate,
 	formatKva,
 	formatPlace,
+	formatTime,
 	padCount,
 } from "@features/shared";
 import { cn } from "@lib/utils";
@@ -22,16 +23,55 @@ interface ProjectCardsProps extends ProjectRowActions {
 interface FigureProps {
 	label: string;
 	children: ReactNode;
+	className?: string;
 }
 
-const Figure = ({ label, children }: FigureProps) => (
-	<div className="flex min-w-0 flex-col gap-1">
+const Figure = ({ label, children, className }: FigureProps) => (
+	<div className={cn("flex min-w-0 flex-col gap-1", className)}>
 		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 			{label}
 		</dt>
-		<dd className="font-mono text-sm text-foreground">{children}</dd>
+		<dd className="font-mono text-xs text-foreground">{children}</dd>
 	</div>
 );
+
+const DateTime = ({ value }: { value: string }) => (
+	<time dateTime={value} className="flex flex-col">
+		<span>{formatDate(value)}</span>
+		<span className="text-muted-foreground">{formatTime(value)}</span>
+	</time>
+);
+
+const figuresOf = (project: Project, showOwner: boolean) => [
+	...(showOwner
+		? [
+				{
+					label: "Projetista",
+					value: (
+						<span className="font-sans">
+							{project.ownerName ?? "Não informado"}
+						</span>
+					),
+				},
+			]
+		: []),
+	...(project.pendingCount > 0
+		? [{ label: "Pendências", value: padCount(project.pendingCount) }]
+		: []),
+	{ label: "UCs", value: String(project.consumerUnitsCount) },
+	{
+		label: "Demanda",
+		value: (
+			<span className="whitespace-nowrap">
+				{project.demandKva === null
+					? "Sem cálculo"
+					: formatKva(project.demandKva, 1)}
+			</span>
+		),
+	},
+	{ label: "Criado em", value: <DateTime value={project.createdAt} /> },
+	{ label: "Atualizado", value: <DateTime value={project.updatedAt} /> },
+];
 
 /** The listing on a narrow screen: one block per project, with the table's columns as labels. */
 export const ProjectCards = ({
@@ -44,7 +84,7 @@ export const ProjectCards = ({
 		{projects.map((project) => (
 			<li
 				key={project.id}
-				className="flex flex-col gap-4 border-b border-border px-6 py-4 last:border-b-0"
+				className="flex flex-col gap-4 border-b border-border py-4 last:border-b-0"
 			>
 				<div className="flex flex-col gap-1">
 					<div className="flex items-start justify-between gap-3">
@@ -66,44 +106,27 @@ export const ProjectCards = ({
 
 				<ProjectStatusBadge project={project} />
 
-				<div className="flex items-end justify-between gap-4">
-					<dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-3">
-						{showOwner ? (
-							<Figure label="Projetista">
-								<span className="font-sans">
-									{project.ownerName ?? "Não informado"}
-								</span>
+				<div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-3">
+					<dl className="contents">
+						{figuresOf(project, showOwner).map((figure, index) => (
+							<Figure
+								key={figure.label}
+								label={figure.label}
+								className={index % 2 === 0 ? "col-start-1" : "col-start-2"}
+							>
+								{figure.value}
 							</Figure>
-						) : null}
-
-						{project.pendingCount > 0 ? (
-							<Figure label="Pendências">
-								{padCount(project.pendingCount)}
-							</Figure>
-						) : null}
-
-						<Figure label="UCs">{project.consumerUnitsCount}</Figure>
-
-						<Figure label="Demanda">
-							{project.demandKva === null
-								? "Sem cálculo"
-								: formatKva(project.demandKva, 1)}
-						</Figure>
-
-						<Figure label="Criado em">
-							<time dateTime={project.createdAt}>
-								{formatDateTime(project.createdAt)}
-							</time>
-						</Figure>
-
-						<Figure label="Atualizado">
-							<time dateTime={project.updatedAt}>
-								{formatDateTime(project.updatedAt)}
-							</time>
-						</Figure>
+						))}
 					</dl>
 
-					<ProjectRowActionButton project={project} {...actions} />
+					<div
+						className="col-start-3 self-end justify-self-end"
+						style={{
+							gridRow: Math.ceil(figuresOf(project, showOwner).length / 2),
+						}}
+					>
+						<ProjectRowActionButton project={project} {...actions} />
+					</div>
 				</div>
 			</li>
 		))}
