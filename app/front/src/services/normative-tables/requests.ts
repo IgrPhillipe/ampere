@@ -1,3 +1,4 @@
+import { toSearchParams } from "@features/shared";
 import { http } from "@lib/http";
 
 import { NormativeTableEndpoints as e } from "./endpoints";
@@ -6,7 +7,7 @@ import {
 	normativeTableListResponseSchema,
 	normativeTableResponseSchema,
 } from "./schemas";
-import type { NormativeTablePayload } from "./types";
+import type { ListNormativeTablesParams, NormativeTablePayload } from "./types";
 
 export const getNormativeTableCodes = async () => {
 	const response = await http.get(e.codes).json<unknown>();
@@ -14,8 +15,12 @@ export const getNormativeTableCodes = async () => {
 	return normativeTableCodeListResponseSchema.parse(response);
 };
 
-export const getNormativeTableList = async () => {
-	const response = await http.get(e.list).json<unknown>();
+export const getNormativeTableList = async (
+	params: ListNormativeTablesParams = {},
+) => {
+	const response = await http
+		.get(e.list, { searchParams: toSearchParams({ ...params }) })
+		.json<unknown>();
 
 	return normativeTableListResponseSchema.parse(response);
 };

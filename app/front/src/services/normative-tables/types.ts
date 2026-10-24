@@ -1,3 +1,14 @@
+import type { SortDirection } from "@features/shared";
+
+import type { NormativeTableSort, NormativeTableStatus } from "./schemas";
+
+export interface ListNormativeTablesParams {
+	search?: string;
+	status?: NormativeTableStatus;
+	sort?: NormativeTableSort;
+	direction?: SortDirection;
+}
+
 export interface NormativeTableRowPayload {
 	key?: string | null;
 	lowerBound?: number | null;
