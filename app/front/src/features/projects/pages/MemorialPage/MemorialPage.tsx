@@ -1,6 +1,7 @@
 import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
+import { getHttpStatus } from "@lib/api-error";
 import { useGetLatestCalculation } from "@services/calculation";
 import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
 import { useGetFindingList } from "@services/project-review";
@@ -63,11 +64,12 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 		project.status !== "AWAITING_SUBMISSION" &&
 		project.status !== "REJECTED";
 	const neverCalculated = calculationQuery.data === null;
+	const outdated = getHttpStatus(memorialQuery.error) === 409;
 	const hasError =
 		projectQuery.isError ||
 		calculationQuery.isError ||
 		submissionQuery.isError ||
-		memorialQuery.isError;
+		(memorialQuery.isError && !outdated);
 
 	const units = validation
 		? `${validation.totalUnits} em ${validation.totalGroups} ${
@@ -126,6 +128,24 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 						<EmptyState
 							title="Calcule a demanda antes de gerar o memorial"
 							description="O memorial é montado a partir do último cálculo de demanda do projeto."
+							icon={Calculator}
+							action={
+								<Button
+									type="button"
+									variant="outline"
+									onClick={backToCalculation}
+								>
+									<ArrowLeft aria-hidden="true" />
+									Voltar ao Cálculo
+								</Button>
+							}
+						/>
+					</div>
+				) : outdated ? (
+					<div className="flex-1 px-6 py-8 md:px-8">
+						<EmptyState
+							title="Recalcule a demanda antes de gerar o memorial"
+							description="Os dados do projeto mudaram depois do último cálculo."
 							icon={Calculator}
 							action={
 								<Button
