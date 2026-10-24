@@ -189,6 +189,7 @@ export const ProjectFindingsPage = ({
 						resubmission={
 							project.status === "REJECTED" && checklist ? (
 								<ResubmissionPanel
+									nextVersion={project.reviewCycle + 1}
 									unansweredBlocking={checklist.unansweredBlocking}
 									canSubmit={checklist.canSubmit}
 									isPending={submitMutation.isPending}

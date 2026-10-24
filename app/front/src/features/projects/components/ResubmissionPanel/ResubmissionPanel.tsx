@@ -6,6 +6,7 @@ import { RotateCcw, TriangleAlert } from "lucide-react";
 import { type ResubmissionValues, resubmissionSchema } from "../../schemas";
 
 interface ResubmissionPanelProps {
+	nextVersion: number;
 	unansweredBlocking: number;
 	canSubmit: boolean;
 	isPending: boolean;
@@ -18,6 +19,7 @@ const blockingMessage = (count: number) =>
 	} antes de reenviar.`;
 
 export const ResubmissionPanel = ({
+	nextVersion,
 	unansweredBlocking,
 	canSubmit,
 	isPending,
@@ -44,6 +46,9 @@ export const ResubmissionPanel = ({
 					Reenviar Projeto
 				</h2>
 			</div>
+			<p className="mt-2 text-sm text-muted-foreground">
+				O projeto volta à análise como Versão {nextVersion}.
+			</p>
 
 			{alert ? (
 				<p

@@ -7,6 +7,7 @@ describe("ResubmissionPanel", () => {
 	it("blocks resubmission while blocking findings are unanswered", () => {
 		render(
 			<ResubmissionPanel
+				nextVersion={2}
 				unansweredBlocking={2}
 				canSubmit={false}
 				isPending={false}
@@ -26,6 +27,7 @@ describe("ResubmissionPanel", () => {
 		const onSubmit = vi.fn();
 		render(
 			<ResubmissionPanel
+				nextVersion={2}
 				unansweredBlocking={0}
 				canSubmit
 				isPending={false}
