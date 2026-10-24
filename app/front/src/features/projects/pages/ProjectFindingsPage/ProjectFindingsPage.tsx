@@ -28,7 +28,11 @@ import {
 	ProjectStamp,
 	ResubmissionPanel,
 } from "../../components";
-import { buildFindingReferenceOptions, findingTarget } from "../../constants";
+import {
+	buildFindingReferenceOptions,
+	findingTarget,
+	projectVersion,
+} from "../../constants";
 import type { FindingResponseValues, ResubmissionValues } from "../../schemas";
 
 const stageRoutes = {
@@ -170,7 +174,11 @@ export const ProjectFindingsPage = ({
 						}
 					/>
 				) : projectQuery.isPending || findingsQuery.isPending ? (
-					<div aria-label="Carregando apontamentos" className="space-y-4">
+					<div
+						role="status"
+						aria-label="Carregando apontamentos"
+						className="space-y-4"
+					>
 						<Skeleton className="h-24 w-full" />
 						<Skeleton className="h-40 w-full" />
 						<Skeleton className="h-40 w-full" />
@@ -189,9 +197,19 @@ export const ProjectFindingsPage = ({
 						responseEditor={responseEditor ?? undefined}
 						isResponding={respondMutation.isPending}
 						resubmission={
-							project.status === "REJECTED" && checklist ? (
+							submissionQuery.isPending ? (
+								<div
+									role="status"
+									aria-label="Carregando o reenvio"
+									className="space-y-3 border-t border-border p-5"
+								>
+									<Skeleton className="h-5 w-40" />
+									<Skeleton className="h-24 w-full" />
+									<Skeleton className="h-9 w-full" />
+								</div>
+							) : checklist?.requiresChangeSummary ? (
 								<ResubmissionPanel
-									nextVersion={project.reviewCycle + 1}
+									nextVersion={projectVersion(project)}
 									unansweredBlocking={checklist.unansweredBlocking}
 									canSubmit={checklist.canSubmit}
 									isPending={submitMutation.isPending}
