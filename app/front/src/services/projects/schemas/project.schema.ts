@@ -83,7 +83,8 @@ export const projectOwnerSchema = z.object({
 
 export type ProjectOwner = z.infer<typeof projectOwnerSchema>;
 
-export const projectOwnerListResponseSchema = apiResponseSchema(
+/** `GET /projects/owners`, searchable and paginated. */
+export const projectOwnerListResponseSchema = paginatedResponseSchema(
 	z.array(projectOwnerSchema),
 );
 

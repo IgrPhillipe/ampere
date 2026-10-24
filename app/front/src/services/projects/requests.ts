@@ -8,7 +8,11 @@ import {
 	projectOwnerListResponseSchema,
 	projectStatusCountsResponseSchema,
 } from "./schemas";
-import type { CreateProjectPayload, ListProjectsParams } from "./types";
+import type {
+	CreateProjectPayload,
+	ListOwnersParams,
+	ListProjectsParams,
+} from "./types";
 
 export const getProjectList = async (params: ListProjectsParams = {}) => {
 	const response = await http
@@ -24,8 +28,10 @@ export const getProjectStatusCounts = async () => {
 	return projectStatusCountsResponseSchema.parse(response);
 };
 
-export const getProjectOwnerList = async () => {
-	const response = await http.get(e.owners).json<unknown>();
+export const getProjectOwnerList = async (params: ListOwnersParams = {}) => {
+	const response = await http
+		.get(e.owners, { searchParams: toSearchParams({ ...params }) })
+		.json<unknown>();
 
 	return projectOwnerListResponseSchema.parse(response);
 };
