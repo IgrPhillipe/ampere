@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -128,8 +128,6 @@ describe("ProjectDetailPage", () => {
 		});
 		renderPage();
 
-		expect(screen.getByRole("button", { name: "Corrigido" })).toBeVisible();
-		expect(screen.getByRole("button", { name: "Contestar" })).toBeVisible();
 		expect(
 			screen.getByRole("button", { name: "Reenviar Projeto" }),
 		).toBeVisible();
@@ -139,6 +137,10 @@ describe("ProjectDetailPage", () => {
 		expect(
 			screen.queryByRole("button", { name: "Aprovar Projeto" }),
 		).not.toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole("button", { name: /A ART não traz/ }));
+		expect(screen.getByRole("button", { name: "Corrigido" })).toBeVisible();
+		expect(screen.getByRole("button", { name: "Contestar" })).toBeVisible();
 	});
 
 	it("keeps the designer read only while the project is under review", () => {

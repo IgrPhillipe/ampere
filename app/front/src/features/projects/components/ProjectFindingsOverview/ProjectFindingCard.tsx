@@ -36,7 +36,7 @@ export const ProjectFindingCard = ({
 	const formId = `finding-${finding.id}-response`;
 
 	return (
-		<li className="flex flex-col gap-4 border-b border-border py-5 last:border-b-0">
+		<div className="flex flex-col gap-4">
 			<FindingSummary
 				finding={finding}
 				reference={reference}
@@ -106,6 +106,6 @@ export const ProjectFindingCard = ({
 					onCancel={onCancelResponse}
 				/>
 			) : null}
-		</li>
+		</div>
 	);
 };

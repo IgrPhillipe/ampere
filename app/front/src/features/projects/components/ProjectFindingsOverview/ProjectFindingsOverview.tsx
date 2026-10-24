@@ -3,7 +3,7 @@ import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
 import type { ProjectDetail } from "@services/projects";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
 import {
 	awaitsDesignerResponse,
@@ -11,6 +11,7 @@ import {
 	type FindingReferenceOptions,
 } from "../../constants";
 import type { FindingResponseValues } from "../../schemas";
+import { FindingDialog, FindingRow } from "../FindingDetails";
 import { ProjectFindingCard } from "./ProjectFindingCard";
 
 const severityOrder = { BLOCKING: 0, ADJUSTMENT: 1 } as const;
@@ -70,25 +71,24 @@ export const ProjectFindingsOverview = ({
 		.filter((finding) => !awaiting(finding))
 		.sort(byPriority);
 	const opinionTitle = opinionTitles[project.status];
+	const [openedId, setOpenedId] = useState<string | null>(null);
+	const opened = findings?.find((finding) => finding.id === openedId);
+	const referenceOf = (finding: Finding) =>
+		describeFindingReference(finding, referenceOptions);
 
 	const renderCard = (finding: Finding) => (
-		<ProjectFindingCard
+		<FindingRow
 			key={finding.id}
 			finding={finding}
-			reference={describeFindingReference(finding, referenceOptions)}
-			canRespond={canRespond && awaiting(finding)}
-			responseStatus={
-				responseEditor?.findingId === finding.id
-					? responseEditor.status
-					: undefined
-			}
-			isResponding={isResponding}
-			onOpenStage={onOpenStage}
-			onStartResponse={onStartResponse}
-			onSubmitResponse={onSubmitResponse}
-			onCancelResponse={onCancelResponse}
+			reference={referenceOf(finding)}
+			onOpen={() => setOpenedId(finding.id)}
 		/>
 	);
+
+	const closeDialog = () => {
+		setOpenedId(null);
+		onCancelResponse();
+	};
 
 	return (
 		<div className={cn("flex flex-col gap-8 px-6 py-8 md:px-8", className)}>
@@ -154,6 +154,33 @@ export const ProjectFindingsOverview = ({
 					<ul>{history.map(renderCard)}</ul>
 				</section>
 			) : null}
+
+			<FindingDialog
+				finding={opened}
+				reference={opened ? referenceOf(opened) : null}
+				onClose={closeDialog}
+			>
+				{opened ? (
+					<ProjectFindingCard
+						finding={opened}
+						reference={referenceOf(opened)}
+						canRespond={canRespond && awaiting(opened)}
+						responseStatus={
+							responseEditor?.findingId === opened.id
+								? responseEditor.status
+								: undefined
+						}
+						isResponding={isResponding}
+						onOpenStage={(finding) => {
+							setOpenedId(null);
+							onOpenStage(finding);
+						}}
+						onStartResponse={onStartResponse}
+						onSubmitResponse={onSubmitResponse}
+						onCancelResponse={onCancelResponse}
+					/>
+				) : null}
+			</FindingDialog>
 		</div>
 	);
 };

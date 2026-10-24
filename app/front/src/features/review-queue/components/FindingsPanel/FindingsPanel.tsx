@@ -1,7 +1,13 @@
 import { Skeleton } from "@components/ui/skeleton";
-import type { FindingReferenceOptions } from "@features/projects";
+import {
+	describeFindingReference,
+	FindingDialog,
+	type FindingReferenceOptions,
+	FindingRow,
+} from "@features/projects";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
+import { useState } from "react";
 
 import type { FindingFormValues } from "../../schemas";
 import type { FindingEditor } from "../../types";
@@ -44,17 +50,32 @@ export const FindingsPanel = ({
 		findings?.filter((finding) => !isDraftFinding(finding)) ?? [];
 	const editingId = editor.mode === "edit" ? editor.findingId : undefined;
 
+	const [openedId, setOpenedId] = useState<string | null>(null);
+	const opened = findings?.find((finding) => finding.id === openedId);
+	const close = () => setOpenedId(null);
+	// The dialog closes first: editing happens in the side form.
+	const dialogActions: FindingCardActions = {
+		onEdit: (finding) => {
+			close();
+			actions.onEdit(finding);
+		},
+		onDelete: (finding) => {
+			close();
+			actions.onDelete(finding);
+		},
+		onResolve: actions.onResolve,
+	};
+
 	const renderList = (items: Finding[]) => (
 		<ul className="flex flex-col">
 			{items.map((finding) => (
-				<FindingCard
+				<FindingRow
 					key={finding.id}
 					finding={finding}
-					referenceOptions={referenceOptions}
-					editable={editable}
-					pendingId={pendingId}
+					reference={describeFindingReference(finding, referenceOptions)}
+					showVersion={!isDraftFinding(finding)}
 					isSelected={finding.id === editingId}
-					{...actions}
+					onOpen={() => setOpenedId(finding.id)}
 				/>
 			))}
 		</ul>
@@ -142,6 +163,24 @@ export const FindingsPanel = ({
 					) : null}
 				</>
 			)}
+
+			<FindingDialog
+				finding={opened}
+				reference={
+					opened ? describeFindingReference(opened, referenceOptions) : null
+				}
+				onClose={close}
+			>
+				{opened ? (
+					<FindingCard
+						finding={opened}
+						referenceOptions={referenceOptions}
+						editable={editable}
+						pendingId={pendingId}
+						{...dialogActions}
+					/>
+				) : null}
+			</FindingDialog>
 		</aside>
 	);
 };

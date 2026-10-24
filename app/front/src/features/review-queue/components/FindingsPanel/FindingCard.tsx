@@ -5,7 +5,6 @@ import {
 	type FindingReferenceOptions,
 	FindingSummary,
 } from "@features/projects";
-import { cn } from "@lib/utils";
 import type {
 	Finding,
 	FindingResolution,
@@ -33,7 +32,6 @@ interface FindingCardProps extends FindingCardActions {
 	referenceOptions: FindingReferenceOptions;
 	editable: boolean;
 	pendingId?: string;
-	isSelected?: boolean;
 }
 
 export const FindingCard = ({
@@ -41,7 +39,6 @@ export const FindingCard = ({
 	referenceOptions,
 	editable,
 	pendingId,
-	isSelected = false,
 	onEdit,
 	onDelete,
 	onResolve,
@@ -50,12 +47,7 @@ export const FindingCard = ({
 	const isDraft = isDraftFinding(finding);
 	const isPending = pendingId === finding.id;
 	return (
-		<li
-			className={cn(
-				"flex flex-col gap-4 border-b border-border py-5 last:border-b-0",
-				isSelected && "-mx-3 rounded-xs bg-surface-hover px-3",
-			)}
-		>
+		<div className="flex flex-col gap-4">
 			<FindingSummary
 				finding={finding}
 				reference={reference}
@@ -119,6 +111,6 @@ export const FindingCard = ({
 					)}
 				</div>
 			) : null}
-		</li>
+		</div>
 	);
 };
