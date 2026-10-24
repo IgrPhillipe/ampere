@@ -4,7 +4,6 @@ import { X } from "lucide-react";
 
 export interface ActiveFilter {
 	id: string;
-	/** What the chip reads: "Município: Recife/PE". */
 	label: string;
 	onRemove: () => void;
 }

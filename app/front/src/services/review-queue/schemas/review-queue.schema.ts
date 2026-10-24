@@ -10,7 +10,6 @@ export const reviewQueueFilterSchema = z.enum([
 
 export type ReviewQueueFilter = z.infer<typeof reviewQueueFilterSchema>;
 
-/** Columns `GET /review-queue` sorts by. */
 export const reviewQueueSortSchema = z.enum([
 	"deadline",
 	"submittedAt",
@@ -81,7 +80,6 @@ export type ReviewQueueIndicatorsResponse = z.infer<
 	typeof reviewQueueIndicatorsResponseSchema
 >;
 
-/** `GET /review-queue/reviewers`: the analysts the queue can be filtered by. */
 export const reviewerListResponseSchema = apiResponseSchema(
 	z.array(reviewerSchema),
 );

@@ -20,7 +20,6 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 
 export interface SortOption<TColumn extends string> {
 	value: TColumn;
-	/** Title Case: "Prazo", "Atualização". */
 	label: string;
 }
 

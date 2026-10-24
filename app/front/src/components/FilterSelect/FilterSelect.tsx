@@ -18,12 +18,10 @@ export interface FilterOption {
 
 interface FilterSelectProps {
 	label: string;
-	/** `null` means no filter. */
 	value: string | null;
 	onValueChange: (value: string | null) => void;
 	/** An array, not a map: numeric ids as object keys would jump ahead of the rest. */
 	options: readonly FilterOption[];
-	/** The option that clears the filter: "Todos". */
 	allLabel: string;
 	disabled?: boolean;
 	className?: string;

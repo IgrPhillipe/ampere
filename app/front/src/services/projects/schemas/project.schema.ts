@@ -11,7 +11,6 @@ export const projectStatusSchema = z.enum([
 
 export type ProjectStatus = z.infer<typeof projectStatusSchema>;
 
-/** Columns `GET /projects` sorts by. */
 export const projectSortSchema = z.enum([
 	"name",
 	"demand",
@@ -64,7 +63,6 @@ export type ProjectStatusCountsResponse = z.infer<
 	typeof projectStatusCountsResponseSchema
 >;
 
-/** `GET /projects/municipalities`: the municipalities the user can see, in alphabetical order. */
 export const municipalityListResponseSchema = apiResponseSchema(
 	z.array(z.string()),
 );

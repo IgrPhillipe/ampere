@@ -11,10 +11,9 @@ export type SortDirections<TColumn extends string> = Record<
 	SortDirection
 >;
 
-export const flipDirection = (direction: SortDirection): SortDirection =>
+const flipDirection = (direction: SortDirection): SortDirection =>
 	direction === "ASC" ? "DESC" : "ASC";
 
-/** Clicking the sorted column flips it; any other column starts in its natural direction. */
 export const nextSort = <TColumn extends string>(
 	current: ListSort<TColumn>,
 	column: TColumn,
