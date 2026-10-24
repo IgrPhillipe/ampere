@@ -32,7 +32,7 @@ export const ListToolbar = ({
 			<div className="flex flex-col gap-4 border-b border-border px-gutter py-4 md:px-gutter-md">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					{search}
-					<div className="flex items-center gap-2">
+					<div className="flex flex-wrap items-center gap-2">
 						{sort}
 						{refinements ? (
 							<Button
