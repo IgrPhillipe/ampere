@@ -335,42 +335,53 @@ class ProjectOwnershipAccessIntegrationTest {
   }
 
   @Test
-  void adminEditsAndDeletesAnotherOwnersProjectAfterTheSubmission() throws Exception {
+  void adminEditsAndDeletesAnotherOwnersDraft() throws Exception {
     String admin = bearer("admin@ampere.com");
 
     mockMvc
         .perform(
-            put("/projects/{id}", firstSubmitted.getId())
+            put("/projects/{id}", secondDraft.getId())
                 .header("Authorization", admin)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(PROJECT_BODY))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.name").value("Residencial Monte Verde"));
     mockMvc
-        .perform(delete("/projects/{id}", secondSubmitted.getId()).header("Authorization", admin))
+        .perform(delete("/projects/{id}", secondDraft.getId()).header("Authorization", admin))
         .andExpect(status().isNoContent());
-    mockMvc
-        .perform(get("/projects/{id}", secondSubmitted.getId()).header("Authorization", admin))
-        .andExpect(status().isNotFound());
   }
 
-  /** Past the role and status guards, a submitted project without groups is just incomplete. */
+  /** The admin skips the owner rule, never the status: a submitted project is frozen. */
   @Test
-  void adminWritesTheContentOfASubmittedProject() throws Exception {
+  void adminCannotChangeASubmittedProject() throws Exception {
     String admin = bearer("admin@ampere.com");
     String base = "/projects/" + firstSubmitted.getId();
 
     mockMvc
+        .perform(
+            put(base)
+                .header("Authorization", admin)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(PROJECT_BODY))
+        .andExpect(status().isConflict());
+    mockMvc.perform(delete(base).header("Authorization", admin)).andExpect(status().isConflict());
+    mockMvc
         .perform(post(base + "/calculations").header("Authorization", admin))
-        .andExpect(status().isUnprocessableContent());
+        .andExpect(status().isConflict());
     mockMvc
         .perform(delete(base + "/consumer-unit-groups/1").header("Authorization", admin))
-        .andExpect(status().isNotFound());
+        .andExpect(status().isConflict());
     mockMvc
         .perform(delete(base + "/documents/1").header("Authorization", admin))
-        .andExpect(status().isNotFound());
+        .andExpect(status().isConflict());
     mockMvc
-        .perform(post(base + "/submission").header("Authorization", admin))
+        .perform(
+            multipart(base + "/documents")
+                .file(
+                    new MockMultipartFile(
+                        "file", "art.pdf", "application/pdf", "%PDF-1.4".getBytes()))
+                .param("type", "ART")
+                .header("Authorization", admin))
         .andExpect(status().isConflict());
   }
 

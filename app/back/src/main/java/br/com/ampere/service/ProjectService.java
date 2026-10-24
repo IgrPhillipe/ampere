@@ -186,20 +186,18 @@ public class ProjectService {
     projectRepository.delete(project);
   }
 
-  /** The admin edits a project in any status; the designer only a draft or a rejection. */
   Project editableOrFail(Long id, String message, AuthenticatedUser user) {
     Project project = findWritableById(id, user);
-    if (!project.isEditable() && !user.isAdmin()) {
+    if (!project.isEditable()) {
       throw new BusinessException(message, HttpStatus.CONFLICT);
     }
 
     return project;
   }
 
-  /** The admin deletes a project in any status; the designer only a draft. */
   Project draftOrFail(Long id, String message, AuthenticatedUser user) {
     Project project = findWritableById(id, user);
-    if (!project.isDraft() && !user.isAdmin()) {
+    if (!project.isDraft()) {
       throw new BusinessException(message, HttpStatus.CONFLICT);
     }
 
