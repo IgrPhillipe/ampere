@@ -84,6 +84,7 @@ export const StageFindingsNotice = ({
 							<FindingSummary
 								finding={finding}
 								reference={referenceOf(finding, references)}
+								variant="inline"
 							/>
 							<FindingAnswer
 								title="Resposta do Projetista"

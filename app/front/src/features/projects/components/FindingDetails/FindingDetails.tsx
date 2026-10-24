@@ -10,7 +10,7 @@ import {
 import { formatDateTime } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import {
 	findingSeverityBadgeVariants,
@@ -49,12 +49,31 @@ const MetaItem = ({ label, person, at, value }: MetaItemProps) => (
 	</div>
 );
 
+interface MetaCellProps {
+	label: string;
+	children: ReactNode;
+}
+
+/** Same square as the project header metrics, so a finding reads like the project. */
+const MetaCell = ({ label, children }: MetaCellProps) => (
+	<div className="flex min-w-0 flex-col gap-1.5 bg-card px-6 py-3 last:odd:col-span-2 sm:last:odd:col-span-1">
+		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+			{label}
+		</dt>
+		<dd className="font-mono text-sm break-words text-foreground">
+			{children}
+		</dd>
+	</div>
+);
+
 interface FindingSummaryProps {
 	finding: Finding;
 	reference: string | null;
 	/** A draft has no submission yet. */
 	showVersion?: boolean;
 	descriptionId?: string;
+	/** `dialog` leaves the item to the dialog header and lays the metadata as squares. */
+	variant?: "dialog" | "inline";
 }
 
 /** Badges, then what to fix, then who asked, when and in which submission. */
@@ -63,50 +82,97 @@ export const FindingSummary = ({
 	reference,
 	showVersion = true,
 	descriptionId,
-}: FindingSummaryProps) => (
-	<>
-		<div className="flex flex-wrap items-center gap-2">
-			<Badge variant={findingSeverityBadgeVariants[finding.severity]}>
-				{findingSeverityLabels[finding.severity]}
-			</Badge>
-			<Badge variant={findingStatusBadgeVariants[finding.status]}>
-				{findingStatusLabels[finding.status]}
-			</Badge>
-		</div>
+	variant = "dialog",
+}: FindingSummaryProps) => {
+	const cells = [
+		{
+			label: "Analista",
+			value: (
+				<span className="font-sans">
+					{finding.authorName ?? "Não informado"}
+				</span>
+			),
+		},
+		{
+			label: "Registrado em",
+			value: (
+				<time dateTime={finding.createdAt}>
+					{formatDateTime(finding.createdAt)}
+				</time>
+			),
+		},
+		...(showVersion
+			? [{ label: "Envio", value: `${finding.version}º envio` }]
+			: []),
+		...(finding.standardItem
+			? [{ label: "Item da norma", value: finding.standardItem }]
+			: []),
+	];
 
-		<div className="flex flex-col gap-1.5">
-			<p className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-				{findingStageLabels[finding.stage]}
-				{reference ? `: ${reference}` : null}
-			</p>
-			<p
-				id={descriptionId}
-				className="text-base leading-snug font-medium break-words whitespace-pre-line text-foreground"
-			>
-				{finding.description}
-			</p>
-			{finding.standardItem ? (
-				<p className="text-xs text-muted-foreground">
-					Item da norma{" "}
-					<span className="font-mono text-foreground">
-						{finding.standardItem}
-					</span>
+	return (
+		<>
+			<div className="flex flex-wrap items-center gap-2">
+				<Badge variant={findingSeverityBadgeVariants[finding.severity]}>
+					{findingSeverityLabels[finding.severity]}
+				</Badge>
+				<Badge variant={findingStatusBadgeVariants[finding.status]}>
+					{findingStatusLabels[finding.status]}
+				</Badge>
+			</div>
+
+			<div className="flex flex-col gap-1.5">
+				{variant === "inline" ? (
+					<p className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+						{findingStageLabels[finding.stage]}
+						{reference ? `: ${reference}` : null}
+					</p>
+				) : null}
+				<p
+					id={descriptionId}
+					className="text-base leading-snug font-medium break-words whitespace-pre-line text-foreground"
+				>
+					{finding.description}
 				</p>
-			) : null}
-		</div>
+				{variant === "inline" && finding.standardItem ? (
+					<p className="text-xs text-muted-foreground">
+						Item da norma{" "}
+						<span className="font-mono text-foreground">
+							{finding.standardItem}
+						</span>
+					</p>
+				) : null}
+			</div>
 
-		<dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
-			<MetaItem
-				label="Registro"
-				person={finding.authorName ?? "Analista não informado"}
-				at={finding.createdAt}
-			/>
-			{showVersion ? (
-				<MetaItem label="Envio" value={`${finding.version}º envio`} />
-			) : null}
-		</dl>
-	</>
-);
+			{variant === "dialog" ? (
+				<dl
+					style={
+						{
+							"--meta-columns": `repeat(${cells.length}, minmax(0, 1fr))`,
+						} as CSSProperties
+					}
+					className="-mx-6 grid grid-cols-2 gap-px border-y border-border bg-border sm:grid-cols-(--meta-columns)"
+				>
+					{cells.map((cell) => (
+						<MetaCell key={cell.label} label={cell.label}>
+							{cell.value}
+						</MetaCell>
+					))}
+				</dl>
+			) : (
+				<dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+					<MetaItem
+						label="Registro"
+						person={finding.authorName ?? "Analista não informado"}
+						at={finding.createdAt}
+					/>
+					{showVersion ? (
+						<MetaItem label="Envio" value={`${finding.version}º envio`} />
+					) : null}
+				</dl>
+			)}
+		</>
+	);
+};
 
 interface FindingAnswerProps {
 	title: string;
