@@ -12,6 +12,7 @@ const project: Project = {
 	address: "Rodovia BR-104, km 8",
 	municipality: "Caruaru",
 	protocol: "2026-0441",
+	ownerName: "Usuário Teste",
 	status: "DRAFT",
 	createdAt: "2026-09-09T08:00:00Z",
 	updatedAt: "2026-09-18T09:40:00Z",

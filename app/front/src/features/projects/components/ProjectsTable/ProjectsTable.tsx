@@ -14,6 +14,7 @@ import type { ProjectRowActions } from "./project-row";
 const projectColumnClassNames = {
 	attention: "w-10 pr-0",
 	protocol: "w-32 text-center",
+	owner: "hidden xl:table-cell xl:w-36",
 	status: "w-48 text-center",
 	pending: "w-28 text-center",
 	units: "hidden xl:table-cell xl:w-16 text-center",
@@ -25,6 +26,8 @@ const projectColumnClassNames = {
 
 interface ProjectsTableProps extends ProjectRowActions {
 	projects: Project[];
+	/** Adds the "Projetista" column and card line. */
+	showOwner?: boolean;
 	isLoading?: boolean;
 	/** Without it the empty state offers no way out of an over-narrow filter. */
 	onClearFilters?: () => void;
@@ -33,6 +36,7 @@ interface ProjectsTableProps extends ProjectRowActions {
 
 export const ProjectsTable = ({
 	projects,
+	showOwner = false,
 	isLoading = false,
 	onViewFindings,
 	onResumeSubmission,
@@ -61,7 +65,10 @@ export const ProjectsTable = ({
 			onDeleteProject,
 		],
 	);
-	const columns = useMemo(() => createProjectColumns(actions), [actions]);
+	const columns = useMemo(
+		() => createProjectColumns(actions, { showOwner }),
+		[actions, showOwner],
+	);
 
 	// Carregamento e vazio ficam aqui, e nao dentro do `DataTable`, porque a
 	// tabela e os cartoes sao duas renderizacoes da mesma lista: deixar para o
@@ -91,6 +98,7 @@ export const ProjectsTable = ({
 		<>
 			<ProjectCards
 				projects={projects}
+				showOwner={showOwner}
 				{...actions}
 				className={cn("lg:hidden", className)}
 			/>

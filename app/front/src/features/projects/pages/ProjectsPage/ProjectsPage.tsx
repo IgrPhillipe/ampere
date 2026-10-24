@@ -196,6 +196,7 @@ export const ProjectsPage = () => {
 					) : (
 						<ProjectsTable
 							projects={projects}
+							showOwner={role === "admin"}
 							isLoading={projectsQuery.isPending}
 							onViewFindings={handleViewFindings}
 							onResumeSubmission={handleResumeSubmission}

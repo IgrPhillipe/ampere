@@ -17,6 +17,7 @@ export const projectSchema = z.object({
 	address: z.string(),
 	municipality: z.string(),
 	protocol: z.string(),
+	ownerName: z.string().nullable(),
 	status: projectStatusSchema,
 	createdAt: z.iso.datetime({ offset: true }),
 	updatedAt: z.iso.datetime({ offset: true }),
