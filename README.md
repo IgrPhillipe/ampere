@@ -93,8 +93,8 @@ pnpm install && pnpm dev
 | :--- | :--- | :--- |
 | [Entrega 01](#entrega-01) | 31/08/2026 | Finalizada |
 | [Entrega 02](#entrega-02) | 21/09/2026 | Finalizada |
-| [Entrega 03](#entrega-03) | 19/10/2026 | Em andamento |
-| [Entrega 04](#entrega-04) | 09/11/2026 | Não iniciada |
+| [Entrega 03](#entrega-03) | 19/10/2026 | Finalizada |
+| [Entrega 04](#entrega-04) | 09/11/2026 | Em andamento |
 
 Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (POO) e [`docs/cronograma-projetos3.md`](docs/cronograma-projetos3.md) (Projetos 3).
 
@@ -138,7 +138,7 @@ Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (
 
 | Item | Descrição |
 | :--- | :--- |
-| **Entregue** | Listagem com nome, endereço, quantidade de UCs, demanda, status e última atualização<br>Filtros por situação com contagem, preservados na URL<br>Busca por nome ou protocolo<br>Estado vazio "Nenhum projeto encontrado para os critérios informados"<br>Atalho "Ver apontamentos" nos projetos reprovados |
+| **Entregue** | Listagem com nome, endereço, quantidade de UCs, demanda, status e última atualização<br>Filtros por situação com contagem, preservados na URL<br>Busca por nome ou protocolo<br>Estado vazio "Nenhum projeto encontrado para os critérios informados"<br>Atalho "Corrigir" nos projetos reprovados |
 | **Back-end** | [`ProjectController`](app/back/src/main/java/br/com/ampere/controller/ProjectController.java), [`ProjectListing`](app/back/src/main/java/br/com/ampere/service/ProjectListing.java) |
 | **Front-end** | [`ProjectsPage`](app/front/src/features/projects/pages/ProjectsPage/ProjectsPage.tsx) |
 | **Issues** | [#13](https://github.com/IgrPhillipe/ampere/issues/13), [#19](https://github.com/IgrPhillipe/ampere/issues/19), [#23](https://github.com/IgrPhillipe/ampere/issues/23) |
@@ -206,8 +206,8 @@ Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (
 | Item | Descrição |
 | :--- | :--- |
 | **Entregue** | Motor de cálculo com as parcelas Drf, Ds, Dc e Dve e a demanda total Ded (DIS-NOR-053 Anexo I e DIS-NOR-030)<br>Memória de cálculo por etapa, com fórmula, valores e tabela normativa aplicada<br>Painel de rastreabilidade: demanda calculada, mínimo por tensão, corrente, padrão de entrada, proteção geral e ramal<br>Cada cálculo gravado com as revisões das normas e as tabelas aplicadas no momento<br>Tabelas normativas no banco, cadastradas e aprovadas por pessoas diferentes na área administrativa<br>Exemplos 1 e 2 do Anexo I da DIS-NOR-053 como testes de regressão |
-| **Back-end** | [`DemandEngine`](app/back/src/main/java/br/com/ampere/domain/DemandEngine.java), [`Calculation`](app/back/src/main/java/br/com/ampere/domain/Calculation.java), [`NormativeTable`](app/back/src/main/java/br/com/ampere/domain/NormativeTable.java), [`DemandCalculationController`](app/back/src/main/java/br/com/ampere/controller/DemandCalculationController.java), [`AdminNormativeTableController`](app/back/src/main/java/br/com/ampere/controller/AdminNormativeTableController.java) |
-| **Front-end** | [`CalculationPage`](app/front/src/features/projects/pages/CalculationPage/CalculationPage.tsx), [`NormativeTablesPage`](app/front/src/features/admin/pages/NormativeTablesPage/NormativeTablesPage.tsx) |
+| **Back-end** | [`DemandEngine`](app/back/src/main/java/br/com/ampere/domain/DemandEngine.java), [`Calculation`](app/back/src/main/java/br/com/ampere/domain/Calculation.java), [`NormativeTable`](app/back/src/main/java/br/com/ampere/domain/NormativeTable.java), [`DemandCalculationController`](app/back/src/main/java/br/com/ampere/controller/DemandCalculationController.java), [`NormativeTableController`](app/back/src/main/java/br/com/ampere/controller/NormativeTableController.java) |
+| **Front-end** | [`CalculationPage`](app/front/src/features/projects/pages/CalculationPage/CalculationPage.tsx), [`NormativeTablesPage`](app/front/src/features/normative-tables/pages/NormativeTablesPage/NormativeTablesPage.tsx) |
 | **Issues** | [#54](https://github.com/IgrPhillipe/ampere/issues/54), [#59](https://github.com/IgrPhillipe/ampere/issues/59), [#60](https://github.com/IgrPhillipe/ampere/issues/60), [#68](https://github.com/IgrPhillipe/ampere/issues/68) |
 
 ##### US05: Geração de Memorial e Envio do Projeto
@@ -218,9 +218,9 @@ Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (
 
 | Item | Descrição |
 | :--- | :--- |
-| **Entregue** | Memorial descritivo de cálculo de demanda em PDF, com prévia na tela e download, na identidade visual do sistema<br>Checagem antes do envio: cálculo concluído e anexos obrigatórios (ART, diagrama unifilar e planta de situação)<br>"Enviar para Análise" liberado somente com o checklist completo<br>Envio gera o protocolo, registra a data e muda o status para "Em análise"<br>Tela de envio concluído com o que foi enviado e os próximos passos |
+| **Entregue** | Memorial descritivo de cálculo de demanda em PDF, com prévia na tela e download, na identidade visual do sistema<br>Checagem antes do envio: cálculo concluído e anexos obrigatórios (ART, diagrama unifilar e planta de situação)<br>"Enviar para Análise" liberado somente com o checklist completo<br>Envio registra a data e muda o status para "Em análise" |
 | **Back-end** | [`SubmissionService`](app/back/src/main/java/br/com/ampere/service/SubmissionService.java), [`SubmissionChecklist`](app/back/src/main/java/br/com/ampere/service/SubmissionChecklist.java), [`ProjectDocument`](app/back/src/main/java/br/com/ampere/domain/ProjectDocument.java), [`MemorialPdfService`](app/back/src/main/java/br/com/ampere/service/MemorialPdfService.java), [`SubmissionController`](app/back/src/main/java/br/com/ampere/controller/SubmissionController.java) |
-| **Front-end** | [`MemorialPage`](app/front/src/features/projects/pages/MemorialPage/MemorialPage.tsx), [`SubmissionPage`](app/front/src/features/projects/pages/SubmissionPage/SubmissionPage.tsx) |
+| **Front-end** | [`MemorialPage`](app/front/src/features/projects/pages/MemorialPage/MemorialPage.tsx), [`ProjectDetailPage`](app/front/src/features/projects/pages/ProjectDetailPage/ProjectDetailPage.tsx) |
 | **Issues** | [#55](https://github.com/IgrPhillipe/ampere/issues/55), [#61](https://github.com/IgrPhillipe/ampere/issues/61), [#62](https://github.com/IgrPhillipe/ampere/issues/62) |
 
 ##### US06: Fila de Análise Técnica Priorizada
@@ -260,7 +260,8 @@ Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (
 ### Entrega 04
 
 - **Data:** 09/11/2026
-- **Escopo:** histórias restantes e fechamento do produto para a apresentação final.
+- **Escopo:** US07, US08, US09, US12, US18 e US20, nas Sprints 4 a 6 (04/10 a 01/11).
+- **Planejamento:** [`docs/produto/plano-entrega-04.md`](docs/produto/plano-entrega-04.md) e [milestone Entrega 04](https://github.com/IgrPhillipe/ampere/milestone/3).
 
 #### Artefatos
 
