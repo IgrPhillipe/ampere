@@ -81,7 +81,12 @@ public class ProjectService {
             page - 1, pageSize, Sort.by(direction, "updatedAt").and(Sort.by(direction, "id")));
     Page<Project> projects =
         projectRepository.searchAccessibleProjects(
-            status, SearchTerms.normalize(search), user.id(), user.isAdmin(), pageRequest);
+            status,
+            SearchTerms.normalize(search),
+            user.id(),
+            user.isAdmin(),
+            user.isReviewer(),
+            pageRequest);
 
     List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
 
@@ -97,7 +102,7 @@ public class ProjectService {
   public Map<ProjectStatus, Long> countPerStatus(AuthenticatedUser user) {
     Map<ProjectStatus, Long> counts = new EnumMap<>(ProjectStatus.class);
     projectRepository
-        .countAccessiblePerStatus(user.id(), user.isAdmin())
+        .countAccessiblePerStatus(user.id(), user.isAdmin(), user.isReviewer())
         .forEach(count -> counts.put(count.getStatus(), count.getTotal()));
 
     return Map.copyOf(counts);
@@ -107,8 +112,7 @@ public class ProjectService {
   public Project findById(Long id, AuthenticatedUser user) {
     Project project =
         projectRepository.findDetailById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND));
-    boolean visible = user.isAdmin() ? project.wasSubmitted() : project.isOwnedBy(user.id());
-    if (!visible) {
+    if (!isVisibleTo(project, user)) {
       // Same answer as a missing id, so another owner's project is not revealed.
       throw new NotFoundException(NOT_FOUND);
     }
@@ -117,7 +121,7 @@ public class ProjectService {
   }
 
   public Project create(ProjectParameters parameters, AuthenticatedUser user) {
-    designerOrFail(user);
+    writerOrFail(user);
     for (int attempt = 1; attempt <= PROTOCOL_ATTEMPTS; attempt++) {
       try {
         return projectCreation.createWithGeneratedProtocol(parameters, user.id());
@@ -153,9 +157,10 @@ public class ProjectService {
     projectRepository.delete(project);
   }
 
+  /** The admin edits a project in any status; everyone else only edits a draft. */
   Project draftOrFail(Long id, String message, AuthenticatedUser user) {
     Project project = findWritableById(id, user);
-    if (!project.isDraft()) {
+    if (!project.isDraft() && !user.isAdmin()) {
       throw new BusinessException(message, HttpStatus.CONFLICT);
     }
 
@@ -163,13 +168,22 @@ public class ProjectService {
   }
 
   Project findWritableById(Long id, AuthenticatedUser user) {
-    designerOrFail(user);
+    writerOrFail(user);
 
     return findById(id, user);
   }
 
-  private static void designerOrFail(AuthenticatedUser user) {
+  /** The admin sees every project, the analyst what was submitted, the designer their own. */
+  private static boolean isVisibleTo(Project project, AuthenticatedUser user) {
     if (user.isAdmin()) {
+      return true;
+    }
+
+    return user.isReviewer() ? project.wasSubmitted() : project.isOwnedBy(user.id());
+  }
+
+  private static void writerOrFail(AuthenticatedUser user) {
+    if (user.isReviewer()) {
       throw new BusinessException(ANALYST_READ_ONLY, HttpStatus.FORBIDDEN);
     }
   }

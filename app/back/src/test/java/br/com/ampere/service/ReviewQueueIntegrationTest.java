@@ -103,11 +103,21 @@ class ReviewQueueIntegrationTest {
     owner =
         userRepository.save(new User("João Projetista", "user@ampere.com", hash, UserRole.USER));
     userRepository.save(new User("Admin", "admin@ampere.com", hash, UserRole.ADMIN));
+    userRepository.save(new User("Revisor", "revisor@ampere.com", hash, UserRole.REVIEWER));
     now = OffsetDateTime.now(ZoneOffset.UTC);
   }
 
   @Test
-  void onlyTheAnalystSeesTheQueue() throws Exception {
+  void onlyTheAnalystAndTheAdminSeeTheQueue() throws Exception {
+    for (String email : List.of("revisor@ampere.com", "admin@ampere.com")) {
+      mockMvc
+          .perform(get("/review-queue").header("Authorization", "Bearer " + token(email)))
+          .andExpect(status().isOk());
+      mockMvc
+          .perform(
+              get("/review-queue/indicators").header("Authorization", "Bearer " + token(email)))
+          .andExpect(status().isOk());
+    }
     mockMvc
         .perform(get("/review-queue").header("Authorization", "Bearer " + token("user@ampere.com")))
         .andExpect(status().isForbidden());

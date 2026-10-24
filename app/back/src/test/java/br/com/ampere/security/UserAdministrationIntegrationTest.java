@@ -221,6 +221,33 @@ class UserAdministrationIntegrationTest {
         .andExpect(status().isForbidden());
   }
 
+  @Test
+  void keepsTheManagementFromTheAnalyst() throws Exception {
+    userRepository.save(
+        new User(
+            "Revisor", "revisor@ampere.com", passwordEncoder.encode(PASSWORD), UserRole.REVIEWER));
+    String reviewerToken = token("revisor@ampere.com", PASSWORD);
+
+    mockMvc.perform(authorized(get("/users"), reviewerToken)).andExpect(status().isForbidden());
+    mockMvc
+        .perform(
+            authorized(post("/users"), reviewerToken)
+                .content("{\"name\":\"Ana\",\"email\":\"ana@ampere.com\",\"role\":\"admin\"}"))
+        .andExpect(status().isForbidden());
+    mockMvc.perform(authorized(get("/users/me"), reviewerToken)).andExpect(status().isOk());
+  }
+
+  @Test
+  void createsAnAnalystWithTheReviewerRole() throws Exception {
+    mockMvc
+        .perform(
+            authorized(post("/users"), token("admin@ampere.com", PASSWORD))
+                .content(
+                    "{\"name\":\"Rita Analista\",\"email\":\"rita@ampere.com\",\"role\":\"reviewer\"}"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.user.role").value("reviewer"));
+  }
+
   /** The management lives under "/users", but the own profile stays open to every role. */
   @Test
   void keepsTheOwnProfileOpenToTheDesigner() throws Exception {

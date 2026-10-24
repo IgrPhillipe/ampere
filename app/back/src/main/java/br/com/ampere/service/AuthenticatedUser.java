@@ -18,4 +18,12 @@ public record AuthenticatedUser(Long id, UserRole role) {
   public boolean isAdmin() {
     return role == UserRole.ADMIN;
   }
+
+  public boolean isReviewer() {
+    return role == UserRole.REVIEWER;
+  }
+
+  public boolean canReview() {
+    return role.canReview();
+  }
 }

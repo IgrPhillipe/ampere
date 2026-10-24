@@ -37,7 +37,8 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * A designer reaches only their own projects; the analyst reads the submitted ones, never writes.
+ * A designer reaches only their own projects; the analyst reads the submitted ones, never writes;
+ * the admin reads and writes every project in any status.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -83,13 +84,16 @@ class ProjectOwnershipAccessIntegrationTest {
     normativeTableRepository.deleteAll();
     standardRepository.deleteAll();
     userRepository.deleteAll();
+    standardRepository.saveAll(
+        List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
 
     String hash = passwordEncoder.encode(PASSWORD);
     User firstDesigner =
         userRepository.save(new User("Ana Projetista", "ana@ampere.com", hash, UserRole.USER));
     User secondDesigner =
         userRepository.save(new User("Beto Projetista", "beto@ampere.com", hash, UserRole.USER));
-    userRepository.save(new User("Alice Analista", "admin@ampere.com", hash, UserRole.ADMIN));
+    userRepository.save(new User("Alice Analista", "revisor@ampere.com", hash, UserRole.REVIEWER));
+    userRepository.save(new User("Carla Admin", "admin@ampere.com", hash, UserRole.ADMIN));
 
     firstDraft = projectRepository.save(project("Projeto Ana", "2026-2001", firstDesigner));
     firstSubmitted = submitted("Projeto Ana Enviado", "2026-2002", firstDesigner);
@@ -177,7 +181,7 @@ class ProjectOwnershipAccessIntegrationTest {
 
   @Test
   void analystReadsAllSubmittedProjectsButCannotSeeDrafts() throws Exception {
-    String analyst = bearer("admin@ampere.com");
+    String analyst = bearer("revisor@ampere.com");
     mockMvc
         .perform(get("/projects").header("Authorization", analyst))
         .andExpect(status().isOk())
@@ -198,7 +202,7 @@ class ProjectOwnershipAccessIntegrationTest {
 
   @Test
   void analystCountsOnlyTheSubmittedProjects() throws Exception {
-    String analyst = bearer("admin@ampere.com");
+    String analyst = bearer("revisor@ampere.com");
 
     mockMvc
         .perform(get("/projects/status-counts").header("Authorization", analyst))
@@ -210,7 +214,7 @@ class ProjectOwnershipAccessIntegrationTest {
 
   @Test
   void analystCannotWriteThroughDesignerEndpoints() throws Exception {
-    String analyst = bearer("admin@ampere.com");
+    String analyst = bearer("revisor@ampere.com");
     String base = "/projects/" + firstSubmitted.getId();
 
     mockMvc
@@ -242,6 +246,87 @@ class ProjectOwnershipAccessIntegrationTest {
     mockMvc
         .perform(post(base + "/submission").header("Authorization", analyst))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void adminListsAndCountsEveryProjectIncludingDrafts() throws Exception {
+    String admin = bearer("admin@ampere.com");
+
+    mockMvc
+        .perform(get("/projects").header("Authorization", admin))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.pagination.total").value(4));
+    mockMvc
+        .perform(get("/projects/status-counts").header("Authorization", admin))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.total").value(4))
+        .andExpect(jsonPath("$.data.draft").value(2))
+        .andExpect(jsonPath("$.data.underReview").value(2));
+    mockMvc
+        .perform(get("/projects/{id}", secondDraft.getId()).header("Authorization", admin))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void adminEditsAndDeletesAnotherOwnersProjectAfterTheSubmission() throws Exception {
+    String admin = bearer("admin@ampere.com");
+
+    mockMvc
+        .perform(
+            put("/projects/{id}", firstSubmitted.getId())
+                .header("Authorization", admin)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(PROJECT_BODY))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.name").value("Residencial Monte Verde"));
+    mockMvc
+        .perform(delete("/projects/{id}", secondSubmitted.getId()).header("Authorization", admin))
+        .andExpect(status().isNoContent());
+    mockMvc
+        .perform(get("/projects/{id}", secondSubmitted.getId()).header("Authorization", admin))
+        .andExpect(status().isNotFound());
+  }
+
+  /** Past the role and status guards, a submitted project without groups is just incomplete. */
+  @Test
+  void adminWritesTheContentOfASubmittedProject() throws Exception {
+    String admin = bearer("admin@ampere.com");
+    String base = "/projects/" + firstSubmitted.getId();
+
+    mockMvc
+        .perform(post(base + "/calculations").header("Authorization", admin))
+        .andExpect(status().isUnprocessableContent());
+    mockMvc
+        .perform(delete(base + "/consumer-unit-groups/1").header("Authorization", admin))
+        .andExpect(status().isNotFound());
+    mockMvc
+        .perform(delete(base + "/documents/1").header("Authorization", admin))
+        .andExpect(status().isNotFound());
+    mockMvc
+        .perform(post(base + "/submission").header("Authorization", admin))
+        .andExpect(status().isConflict());
+  }
+
+  @Test
+  void adminCreatesAProject() throws Exception {
+    mockMvc
+        .perform(
+            post("/projects")
+                .header("Authorization", bearer("admin@ampere.com"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(PROJECT_BODY))
+        .andExpect(status().isCreated());
+  }
+
+  @Test
+  void designerStillCannotEditASubmittedProject() throws Exception {
+    mockMvc
+        .perform(
+            put("/projects/{id}", firstSubmitted.getId())
+                .header("Authorization", bearer("ana@ampere.com"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(PROJECT_BODY))
+        .andExpect(status().isConflict());
   }
 
   private Project submitted(String name, String protocol, User owner) {

@@ -21,8 +21,9 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       SELECT project
       FROM Project project
       WHERE (
-          (:admin = true AND project.submittedAt IS NOT NULL)
-          OR (:admin = false AND project.owner.id = :ownerId)
+          :everyProject = true
+          OR (:submittedOnly = true AND project.submittedAt IS NOT NULL)
+          OR (:submittedOnly = false AND project.owner.id = :ownerId)
         )
         AND (:status IS NULL OR project.status = :status)
         AND (
@@ -34,7 +35,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       @Param("status") ProjectStatus status,
       @Param("search") String search,
       @Param("ownerId") Long ownerId,
-      @Param("admin") boolean admin,
+      @Param("everyProject") boolean everyProject,
+      @Param("submittedOnly") boolean submittedOnly,
       Pageable pageable);
 
   @EntityGraph(attributePaths = "owner")
@@ -86,13 +88,16 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       SELECT project.status AS status, COUNT(project) AS total
       FROM Project project
       WHERE (
-        (:admin = true AND project.submittedAt IS NOT NULL)
-        OR (:admin = false AND project.owner.id = :ownerId)
+        :everyProject = true
+        OR (:submittedOnly = true AND project.submittedAt IS NOT NULL)
+        OR (:submittedOnly = false AND project.owner.id = :ownerId)
       )
       GROUP BY project.status
       """)
   List<ProjectStatusCount> countAccessiblePerStatus(
-      @Param("ownerId") Long ownerId, @Param("admin") boolean admin);
+      @Param("ownerId") Long ownerId,
+      @Param("everyProject") boolean everyProject,
+      @Param("submittedOnly") boolean submittedOnly);
 
   @Query(
       """

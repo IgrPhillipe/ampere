@@ -42,7 +42,7 @@ public class FindingService {
     projectService.findById(projectId, user);
 
     return findingRepository.findAllByProjectIdOrderByCreatedAtAscIdAsc(projectId).stream()
-        .filter(finding -> user.isAdmin() || !finding.isDraft())
+        .filter(finding -> user.canReview() || !finding.isDraft())
         .toList();
   }
 

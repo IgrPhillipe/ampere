@@ -80,6 +80,8 @@ public class DataSeeder implements CommandLineRunner {
 
   public static final String DRAFT_PROTOCOL = "2026-1001";
 
+  public static final String REVIEWER_EMAIL = "revisor@ampere.com";
+
   public DataSeeder(
       ProjectRepository projectRepository,
       FindingRepository findingRepository,
@@ -107,12 +109,13 @@ public class DataSeeder implements CommandLineRunner {
   @Transactional
   public void run(String... args) {
     List<User> inserted = seedUsers();
+    demoteLegacyReviewer();
     indexLegacyUsers();
     User owner = developmentUser(inserted, "user@ampere.com");
     assignOwnerToLegacyProjects(owner);
     startReviewCycleOfLegacySubmissions();
     List<Standard> standards = seedStandards();
-    seedDevelopmentData(standards, owner, developmentUser(inserted, "admin@ampere.com"));
+    seedDevelopmentData(standards, owner, developmentUser(inserted, REVIEWER_EMAIL));
     seedGroups();
     seedNormativeTables(standards);
     seedSubmittedCalculations();
@@ -146,14 +149,18 @@ public class DataSeeder implements CommandLineRunner {
     }
   }
 
-  /** Per e-mail, so an older database also gets the reviewer the second reading needs. */
+  /**
+   * Per e-mail, so an older database also gets the users added later: the second admin publishes
+   * the tables the first one registers.
+   */
   private List<User> seedUsers() {
     String hash = passwordEncoder.encode(DEVELOPMENT_PASSWORD);
     List<User> missing =
         List.of(
                 User.designer("Usuário Teste", "user@ampere.com", hash, "123456", "PE", null, null),
                 new User("Admin Teste", "admin@ampere.com", hash, UserRole.ADMIN),
-                new User("Revisor Teste", "revisor@ampere.com", hash, UserRole.ADMIN))
+                new User("Conferente Teste", NormativeTableSeed.VERIFIED_BY, hash, UserRole.ADMIN),
+                new User("Revisor Teste", REVIEWER_EMAIL, hash, UserRole.REVIEWER))
             .stream()
             .filter(user -> userRepository.findByEmail(user.getEmail()).isEmpty())
             .toList();
@@ -163,6 +170,18 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     return missing;
+  }
+
+  /** The reviewer was seeded as an admin before the analyst had a role of their own. */
+  private void demoteLegacyReviewer() {
+    userRepository
+        .findByEmail(REVIEWER_EMAIL)
+        .filter(reviewer -> reviewer.getRole() == UserRole.ADMIN)
+        .ifPresent(
+            reviewer -> {
+              reviewer.administer(reviewer.getName(), UserRole.REVIEWER, reviewer.isActive());
+              log.info("DataSeeder: {} is now an analyst.", REVIEWER_EMAIL);
+            });
   }
 
   private User developmentUser(List<User> inserted, String email) {

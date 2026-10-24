@@ -47,9 +47,9 @@ class ProjectServiceTest {
     ProjectRepository projectRepository = mock(ProjectRepository.class);
     FindingRepository findingRepository = mock(FindingRepository.class);
     when(projectRepository.searchAccessibleProjects(
-            isNull(), eq("\\%\\_\\\\"), eq(7L), eq(false), any(Pageable.class)))
+            isNull(), eq("\\%\\_\\\\"), eq(7L), eq(false), eq(false), any(Pageable.class)))
         .thenReturn(Page.empty());
-    when(projectRepository.countAccessiblePerStatus(7L, false)).thenReturn(List.of());
+    when(projectRepository.countAccessiblePerStatus(7L, false, false)).thenReturn(List.of());
     ProjectService service =
         new ProjectService(
             projectRepository,
@@ -65,7 +65,7 @@ class ProjectServiceTest {
     ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
     verify(projectRepository)
         .searchAccessibleProjects(
-            isNull(), eq("\\%\\_\\\\"), eq(7L), eq(false), pageableCaptor.capture());
+            isNull(), eq("\\%\\_\\\\"), eq(7L), eq(false), eq(false), pageableCaptor.capture());
     Pageable pageable = pageableCaptor.getValue();
     assertThat(pageable.getPageNumber()).isZero();
     assertThat(pageable.getPageSize()).isEqualTo(20);
@@ -77,7 +77,7 @@ class ProjectServiceTest {
   void ordersByTheOldestUpdateWhenAscending() {
     ProjectRepository projectRepository = mock(ProjectRepository.class);
     when(projectRepository.searchAccessibleProjects(
-            isNull(), eq(""), eq(7L), eq(false), any(Pageable.class)))
+            isNull(), eq(""), eq(7L), eq(false), eq(false), any(Pageable.class)))
         .thenReturn(Page.empty());
     ProjectService service =
         new ProjectService(
@@ -93,7 +93,8 @@ class ProjectServiceTest {
 
     ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
     verify(projectRepository)
-        .searchAccessibleProjects(isNull(), eq(""), eq(7L), eq(false), pageableCaptor.capture());
+        .searchAccessibleProjects(
+            isNull(), eq(""), eq(7L), eq(false), eq(false), pageableCaptor.capture());
     assertThat(pageableCaptor.getValue().getSort().stream().map(Object::toString))
         .containsExactly("updatedAt: ASC", "id: ASC");
   }

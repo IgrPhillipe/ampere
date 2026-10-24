@@ -17,6 +17,17 @@ class AuthenticatedUserTest {
   }
 
   @Test
+  void onlyTheAnalystAndTheAdminReview() {
+    AuthenticatedUser reviewer = AuthenticatedUser.of("7", "reviewer");
+
+    assertThat(reviewer).isEqualTo(new AuthenticatedUser(7L, UserRole.REVIEWER));
+    assertThat(reviewer.canReview()).isTrue();
+    assertThat(reviewer.isAdmin()).isFalse();
+    assertThat(AuthenticatedUser.of("7", "admin").canReview()).isTrue();
+    assertThat(AuthenticatedUser.of("7", "user").canReview()).isFalse();
+  }
+
+  @Test
   void answersUnauthorizedForATokenWithoutAValidIdentity() {
     assertThatThrownBy(() -> AuthenticatedUser.of("joao@ampere.com", "user"))
         .isInstanceOf(BusinessException.class)

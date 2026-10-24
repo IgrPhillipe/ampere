@@ -86,7 +86,7 @@ public class ProjectDocumentService {
 
   private Project editableOrFail(Long projectId, AuthenticatedUser user) {
     Project project = projectService.findWritableById(projectId, user);
-    if (!project.canBeSubmitted()) {
+    if (!project.canBeSubmitted() && !user.isAdmin()) {
       throw new BusinessException(SUBMITTED, HttpStatus.CONFLICT);
     }
 
