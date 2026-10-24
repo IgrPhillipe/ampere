@@ -20,43 +20,20 @@ import {
 	findingStatusLabels,
 } from "../../constants";
 
-interface MetaItemProps {
-	label: string;
-	person?: string;
-	at?: string | null;
-	value?: string;
-}
-
-/** Same reading as the normative tables metadata: who, then when, under a mono label. */
-const MetaItem = ({ label, person, at, value }: MetaItemProps) => (
-	<div className="flex min-w-0 flex-col gap-1.5">
-		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-			{label}
-		</dt>
-		<dd className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
-			{person ? (
-				<span className="truncate text-sm font-medium text-foreground">
-					{person}
-				</span>
-			) : null}
-			{value ? <span className="text-sm text-foreground">{value}</span> : null}
-			{at ? (
-				<time dateTime={at} className="font-mono text-xs text-muted-foreground">
-					{formatDate(at)}
-				</time>
-			) : null}
-		</dd>
-	</div>
-);
-
 interface MetaCellProps {
 	label: string;
 	children: ReactNode;
+	className?: string;
 }
 
 /** Same square as the project header metrics, so a finding reads like the project. */
-const MetaCell = ({ label, children }: MetaCellProps) => (
-	<div className="flex min-w-0 flex-col gap-1.5 bg-card px-6 py-3 last:odd:col-span-2 sm:last:odd:col-span-1">
+const MetaCell = ({ label, children, className }: MetaCellProps) => (
+	<div
+		className={cn(
+			"flex min-w-0 flex-col gap-1.5 bg-card py-3 last:odd:col-span-2 sm:last:odd:col-span-1",
+			className,
+		)}
+	>
 		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 			{label}
 		</dt>
@@ -72,7 +49,7 @@ interface FindingSummaryProps {
 	/** A draft has no submission yet. */
 	showVersion?: boolean;
 	descriptionId?: string;
-	/** `dialog` leaves the item to the dialog header and lays the metadata as squares. */
+	/** `dialog` leaves the item to the dialog header; `inline` shows it and boxes the squares. */
 	variant?: "dialog" | "inline";
 }
 
@@ -133,43 +110,31 @@ export const FindingSummary = ({
 				>
 					{finding.description}
 				</p>
-				{variant === "inline" && finding.standardItem ? (
-					<p className="text-xs text-muted-foreground">
-						Item da norma{" "}
-						<span className="font-mono text-foreground">
-							{finding.standardItem}
-						</span>
-					</p>
-				) : null}
 			</div>
 
-			{variant === "dialog" ? (
-				<dl
-					style={
-						{
-							"--meta-columns": `repeat(${cells.length}, minmax(0, 1fr))`,
-						} as CSSProperties
-					}
-					className="-mx-6 grid grid-cols-2 gap-px border-y border-border bg-border sm:grid-cols-(--meta-columns)"
-				>
-					{cells.map((cell) => (
-						<MetaCell key={cell.label} label={cell.label}>
-							{cell.value}
-						</MetaCell>
-					))}
-				</dl>
-			) : (
-				<dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
-					<MetaItem
-						label="Registro"
-						person={finding.authorName ?? "Analista não informado"}
-						at={finding.createdAt}
-					/>
-					{showVersion ? (
-						<MetaItem label="Envio" value={`${finding.version}º envio`} />
-					) : null}
-				</dl>
-			)}
+			<dl
+				style={
+					{
+						"--meta-columns": `repeat(${cells.length}, minmax(0, 1fr))`,
+					} as CSSProperties
+				}
+				className={cn(
+					"grid grid-cols-2 gap-px bg-border sm:grid-cols-(--meta-columns)",
+					variant === "dialog"
+						? "-mx-6 border-y border-border"
+						: "rounded-xs border border-border",
+				)}
+			>
+				{cells.map((cell) => (
+					<MetaCell
+						key={cell.label}
+						label={cell.label}
+						className={variant === "dialog" ? "px-6" : "px-4"}
+					>
+						{cell.value}
+					</MetaCell>
+				))}
+			</dl>
 		</>
 	);
 };
