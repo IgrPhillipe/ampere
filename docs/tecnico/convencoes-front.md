@@ -258,7 +258,7 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 | Feature | Rota | Página |
 | :--- | :--- | :--- |
 | `auth` | `/entrar` | Entrar |
-| `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id/<etapa>` | Meus Projetos e as etapas |
+| `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id`, `/projetos/$id/<etapa>` | Meus Projetos, o detalhe e as etapas |
 | `review-queue` | `/fila-de-analise` | Fila de Análise |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
 
@@ -291,6 +291,12 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
    dados do usuário anterior reaparecem no próximo login) e volta para `/login`.
 
 Para restringir por papel: `beforeLoad: requireRoles(["admin"])`.
+
+O que cada papel faz no detalhe do projeto sai de uma função só,
+`getProjectDetailActions` (`features/projects/constants/project-detail-actions.ts`).
+Projetista, analista e admin veem o mesmo cabeçalho e as mesmas abas
+(`ProjectDetailLayout`, `ProjectDetailHeader`, `ProjectDetailTabs`); só as ações
+mudam.
 
 > Os papéis atuais são placeholder (`"user" | "admin"`). Os papéis reais
 > dependem da Q1c de [`../produto/questoes-em-aberto.md`](../produto/questoes-em-aberto.md).
