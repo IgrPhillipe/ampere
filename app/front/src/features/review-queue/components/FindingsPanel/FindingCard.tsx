@@ -100,7 +100,9 @@ export const FindingCard = ({
 					<p className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 						Resposta do projetista
 					</p>
-					<p className="mt-1 text-sm text-foreground">{answer}</p>
+					<p className="mt-1 text-sm whitespace-pre-line text-foreground">
+						{answer}
+					</p>
 					{finding.respondedAt ? (
 						<p className="mt-1 text-xs text-muted-foreground">
 							Respondido em{" "}
