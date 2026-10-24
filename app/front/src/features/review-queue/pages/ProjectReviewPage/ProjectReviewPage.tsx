@@ -1,12 +1,16 @@
 import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import {
 	buildFindingReferenceOptions,
-	CalculationSteps,
-	ConsumerUnitGroupsTable,
+	ChangeSummaryNotice,
+	ProjectDeleteDialog,
+	ProjectDetailHeader,
+	ProjectDetailLayout,
+	ProjectDetailTabs,
+	ProjectManagementActions,
 	projectStatusLabels,
+	useProjectDetailActions,
 } from "@features/projects";
 import { getHttpStatus } from "@lib/api-error";
 import { useGetLatestCalculation } from "@services/calculation";
@@ -26,21 +30,18 @@ import {
 	useResolveFinding,
 	useUpdateFinding,
 } from "@services/project-review";
-import { useGetProject } from "@services/projects";
+import { useDeleteProject, useGetProject } from "@services/projects";
 import { useGetSubmission } from "@services/submission";
 import { useNavigate } from "@tanstack/react-router";
-import { Calculator, CircleAlert, History, Lock, Users } from "lucide-react";
+import { CircleAlert, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import {
-	AutomaticVerification,
 	checkToFindingValues,
 	DecisionDialog,
 	DecisionFooter,
 	FindingsPanel,
 	getDecisionAvailability,
-	ReviewDocuments,
-	ReviewHeader,
 	toFindingPayload,
 } from "../../components";
 import { useFindingEditor } from "../../hooks";
@@ -63,9 +64,11 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 		if (isUnderReview) assign(projectId);
 	}, [assign, isUnderReview, projectId]);
 
-	const isAssigned = assignment.isSuccess;
 	const isTaken = getHttpStatus(assignment.error) === 409;
-	const editable = isUnderReview && isAssigned;
+	const actions = useProjectDetailActions({
+		status: project?.status,
+		holdsReview: assignment.isSuccess,
+	});
 
 	const findingsQuery = useGetFindingList(projectId);
 	const calculationQuery = useGetLatestCalculation(projectId);
@@ -74,9 +77,9 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 	const submissionQuery = useGetSubmission(projectId);
 
 	const findings = findingsQuery.data?.data;
-	const calculation = calculationQuery.data?.data;
-	const neverCalculated = calculationQuery.data === null;
-	const groups = groupsQuery.data?.data ?? [];
+	const calculation =
+		calculationQuery.data === null ? null : calculationQuery.data?.data;
+	const groups = groupsQuery.data?.data;
 	const validation = validationQuery.data?.data;
 	const checklist = submissionQuery.data?.data;
 
@@ -85,13 +88,15 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 	const deleteMutation = useDeleteFinding();
 	const resolveMutation = useResolveFinding();
 	const decideMutation = useDecideProjectReview();
+	const deleteProjectMutation = useDeleteProject();
 
 	const findingEditor = useFindingEditor();
 	const { editor } = findingEditor;
 	const [decision, setDecision] = useState<ReviewDecision | null>(null);
+	const [confirmsDeletion, setConfirmsDeletion] = useState(false);
 
 	const referenceOptions = buildFindingReferenceOptions({
-		groups,
+		groups: groups ?? [],
 		steps: calculation?.steps ?? [],
 		checklistItems: checklist?.items ?? [],
 	});
@@ -105,11 +110,12 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 			}`
 		: undefined;
 
-	const demandKva = neverCalculated
-		? null
-		: calculation
-			? calculation.totals.finalKva
-			: undefined;
+	const demandKva =
+		calculation === null
+			? null
+			: calculation
+				? calculation.totals.finalKva
+				: undefined;
 
 	const saveFinding = (values: FindingFormValues) => {
 		const payload = toFindingPayload(values, referenceOptions);
@@ -155,6 +161,17 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 			},
 		);
 
+	const editProject = () =>
+		void navigate({ to: "/projetos/$id/dados", params: { id: projectId } });
+
+	const confirmDeletion = () =>
+		deleteProjectMutation.mutate(projectId, {
+			onSuccess: () => {
+				setConfirmsDeletion(false);
+				backToQueue();
+			},
+		});
+
 	const pendingId = deleteMutation.isPending
 		? deleteMutation.variables?.findingId
 		: resolveMutation.isPending
@@ -195,152 +212,62 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 	}
 
 	return (
-		<PageLayout
-			bleed
-			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
-		>
-			<div className="flex flex-1 flex-col bg-card">
-				<ReviewHeader
-					project={project}
-					isLoading={projectQuery.isPending || validationQuery.isPending}
-					units={units}
-					demandKva={demandKva}
-					reanalysis={reanalysis}
-				/>
-
-				{isTaken ? (
-					<p
-						role="status"
-						className="flex items-center gap-3 border-b border-border bg-surface-hover px-6 py-3 text-sm md:px-8"
-					>
-						<Lock aria-hidden="true" className="size-4 shrink-0" />
-						<span>
-							Em análise por {project?.reviewerName ?? "outro analista"}. Você
-							pode consultar o projeto, mas só o responsável registra
-							apontamentos e decide.
-						</span>
-					</p>
-				) : null}
-
-				{reanalysis && project?.changeSummary ? (
-					<section
-						aria-labelledby="change-summary-title"
-						className="border-b border-border bg-accent px-6 py-4 md:px-8"
-					>
-						<p
-							id="change-summary-title"
-							className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase"
-						>
-							Resumo das Alterações da Versão {project.reviewCycle}
-						</p>
-						<p className="mt-2 text-sm whitespace-pre-line text-foreground">
-							{project.changeSummary}
-						</p>
-					</section>
-				) : null}
-
-				<div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_400px]">
-					<Tabs defaultValue="memoria" className="px-6 py-8 md:px-8">
-						<TabsList className="w-full justify-start overflow-x-auto">
-							<TabsTrigger value="memoria" className="flex-none">
-								Memória de Cálculo
-							</TabsTrigger>
-							<TabsTrigger value="unidades" className="flex-none">
-								Unidades Consumidoras
-							</TabsTrigger>
-							<TabsTrigger value="documentos" className="flex-none">
-								Documentos
-							</TabsTrigger>
-							<TabsTrigger value="historico" className="flex-none">
-								Histórico
-							</TabsTrigger>
-						</TabsList>
-
-						<TabsContent value="memoria" className="flex flex-col gap-10 pt-4">
-							{neverCalculated ? (
-								<EmptyState
-									title="Este projeto não tem cálculo de demanda"
-									description="O projeto foi enviado sem passar pela memória de cálculo."
-									icon={Calculator}
-								/>
-							) : (
-								<>
-									<AutomaticVerification
-										checks={calculation?.checks}
-										isLoading={calculationQuery.isPending}
-										onCreateFinding={
-											editable
-												? (check) =>
-														findingEditor.start(checkToFindingValues(check))
-												: undefined
-										}
-									/>
-									<CalculationSteps
-										steps={calculation?.steps}
-										isLoading={calculationQuery.isPending}
-									/>
-								</>
-							)}
-						</TabsContent>
-
-						<TabsContent value="unidades" className="flex flex-col gap-4 pt-4">
-							{editable && groups.length > 0 ? (
-								<p className="text-sm text-muted-foreground">
-									Selecione o nome de um grupo para registrar um apontamento
-									vinculado a ele.
+		<>
+			<ProjectDetailLayout
+				header={
+					<ProjectDetailHeader
+						project={project}
+						isLoading={projectQuery.isPending || validationQuery.isPending}
+						units={units}
+						demandKva={demandKva}
+						reanalysis={reanalysis}
+					/>
+				}
+				notices={
+					isTaken || (reanalysis && project?.changeSummary) ? (
+						<>
+							{isTaken ? (
+								<p
+									role="status"
+									className="flex items-center gap-3 border-b border-border bg-surface-hover px-6 py-3 text-sm md:px-8"
+								>
+									<Lock aria-hidden="true" className="size-4 shrink-0" />
+									<span>
+										Em análise por {project?.reviewerName ?? "outro analista"}.
+										Você pode consultar o projeto, mas só o responsável registra
+										apontamentos e decide.
+									</span>
 								</p>
 							) : null}
-							<ConsumerUnitGroupsTable
-								groups={groups}
-								totalLoadKw={validation?.totalDeclaredLoadKw ?? 0}
-								isLoading={groupsQuery.isPending}
-								empty={
-									<EmptyState
-										title="Nenhum grupo cadastrado"
-										description="O projeto foi enviado sem unidades consumidoras."
-										icon={Users}
-									/>
-								}
-								onOpenGroup={(group) => {
-									if (!editable) return;
-									findingEditor.start({
-										stage: "CONSUMER_UNITS",
-										reference: group.id,
-									});
-								}}
-							/>
-						</TabsContent>
-
-						<TabsContent value="documentos" className="pt-4">
-							<ReviewDocuments
-								projectId={projectId}
-								documents={checklist?.documents}
-								isLoading={submissionQuery.isPending}
-								onCreateFinding={
-									editable
-										? (document) =>
-												findingEditor.start({
-													stage: "DOCUMENTS",
-													reference: document.type,
-												})
-										: undefined
-								}
-							/>
-						</TabsContent>
-
-						<TabsContent value="historico" className="pt-4">
-							<EmptyState
-								title="Histórico do protocolo"
-								description="A linha do tempo com as versões e as decisões deste protocolo será exibida aqui."
-								icon={History}
-							/>
-						</TabsContent>
-					</Tabs>
-
+							{reanalysis && project?.changeSummary ? (
+								<ChangeSummaryNotice
+									version={project.reviewCycle}
+									summary={project.changeSummary}
+								/>
+							) : null}
+						</>
+					) : null
+				}
+				footer={
+					<DecisionFooter
+						availability={availability}
+						canDecide={actions.decide && findings !== undefined}
+						closedMessage={closedMessage}
+						onBack={backToQueue}
+						onDecide={setDecision}
+					>
+						<ProjectManagementActions
+							actions={actions}
+							onEdit={editProject}
+							onDelete={() => setConfirmsDeletion(true)}
+						/>
+					</DecisionFooter>
+				}
+				aside={
 					<FindingsPanel
 						findings={findings}
 						isLoading={findingsQuery.isPending}
-						editable={editable}
+						editable={actions.createFindings}
 						underReview={isUnderReview}
 						editor={editor}
 						autoFocusForm={findingEditor.autoFocus}
@@ -352,18 +279,43 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 						onEdit={findingEditor.edit}
 						onDelete={removeFinding}
 						onResolve={resolveFinding}
-						className="border-t border-border lg:border-t-0 lg:border-l"
 					/>
-				</div>
-
-				<DecisionFooter
-					availability={availability}
-					editable={editable && findings !== undefined}
-					closedMessage={closedMessage}
-					onBack={backToQueue}
-					onDecide={setDecision}
+				}
+			>
+				<ProjectDetailTabs
+					projectId={projectId}
+					calculation={calculation}
+					groups={groups}
+					totalLoadKw={validation?.totalDeclaredLoadKw ?? 0}
+					documents={checklist?.documents}
+					groupHint={
+						actions.createFindings
+							? "Selecione o nome de um grupo para registrar um apontamento vinculado a ele."
+							: undefined
+					}
+					onOpenGroup={(group) => {
+						if (!actions.createFindings) return;
+						findingEditor.start({
+							stage: "CONSUMER_UNITS",
+							reference: group.id,
+						});
+					}}
+					onCheckFinding={
+						actions.createFindings
+							? (check) => findingEditor.start(checkToFindingValues(check))
+							: undefined
+					}
+					onDocumentFinding={
+						actions.createFindings
+							? (document) =>
+									findingEditor.start({
+										stage: "DOCUMENTS",
+										reference: document.type,
+									})
+							: undefined
+					}
 				/>
-			</div>
+			</ProjectDetailLayout>
 
 			<DecisionDialog
 				decision={decision}
@@ -374,6 +326,15 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 				}}
 				onConfirm={confirmDecision}
 			/>
-		</PageLayout>
+
+			<ProjectDeleteDialog
+				project={confirmsDeletion ? (project ?? null) : null}
+				isPending={deleteProjectMutation.isPending}
+				onOpenChange={(open) => {
+					if (!open) setConfirmsDeletion(false);
+				}}
+				onConfirm={confirmDeletion}
+			/>
+		</>
 	);
 };

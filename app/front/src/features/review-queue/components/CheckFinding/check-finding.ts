@@ -1,9 +1,7 @@
-import type { Calculation } from "@services/calculation";
+import type { CalculationCheck } from "@features/projects";
 
 import { checkFindingTargets } from "../../constants";
 import type { FindingFormValues } from "../../schemas";
-
-export type CalculationCheck = Calculation["checks"][number];
 
 const STANDARD_ITEM =
 	/DIS-NOR-\d+(?:\s+Anexo\s+[IVX]+)?,\s*item\s+\d+(?:\.\d+)*/g;

@@ -2,7 +2,7 @@ import { InlineActionButton } from "@components/InlineActionButton";
 import { Skeleton } from "@components/ui/skeleton";
 import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
-import type { CheckStatus } from "@services/calculation";
+import type { Calculation, CheckStatus } from "@services/calculation";
 import {
 	CircleCheck,
 	CircleMinus,
@@ -11,7 +11,7 @@ import {
 	TriangleAlert,
 } from "lucide-react";
 
-import type { CalculationCheck } from "./check-finding";
+export type CalculationCheck = Calculation["checks"][number];
 
 const checkStatusPresentation = {
 	WARNING: {
