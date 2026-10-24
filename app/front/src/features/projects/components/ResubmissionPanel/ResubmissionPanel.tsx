@@ -12,6 +12,11 @@ interface ResubmissionPanelProps {
 	onSubmit: (values: ResubmissionValues) => void;
 }
 
+const blockingMessage = (count: number) =>
+	`Responda ${count} ${
+		count === 1 ? "apontamento bloqueante" : "apontamentos bloqueantes"
+	} antes de reenviar.`;
+
 export const ResubmissionPanel = ({
 	unansweredBlocking,
 	canSubmit,
@@ -19,20 +24,28 @@ export const ResubmissionPanel = ({
 	onSubmit,
 }: ResubmissionPanelProps) => {
 	const form = useZodForm(resubmissionSchema, { changeSummary: "" });
-	const blocked = unansweredBlocking > 0;
+	const alert =
+		unansweredBlocking > 0
+			? blockingMessage(unansweredBlocking)
+			: canSubmit
+				? null
+				: "Conclua o cálculo e os documentos do memorial antes de reenviar.";
 
 	return (
 		<form
 			noValidate
-			className="border-t border-border bg-surface-hover px-6 py-6 md:px-8"
+			aria-labelledby="resubmission-title"
+			className="border-t border-border p-5"
 			onSubmit={form.handleSubmit(onSubmit)}
 		>
 			<div className="flex items-center gap-2">
 				<RotateCcw aria-hidden="true" className="size-4 text-primary" />
-				<h2 className="text-base font-semibold">Reenviar projeto</h2>
+				<h2 id="resubmission-title" className="text-base font-semibold">
+					Reenviar Projeto
+				</h2>
 			</div>
 
-			{blocked ? (
+			{alert ? (
 				<p
 					role="status"
 					className="mt-4 flex gap-2 border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive"
@@ -41,11 +54,7 @@ export const ResubmissionPanel = ({
 						aria-hidden="true"
 						className="mt-0.5 size-4 shrink-0"
 					/>
-					Responda {unansweredBlocking}{" "}
-					{unansweredBlocking === 1
-						? "apontamento bloqueante"
-						: "apontamentos bloqueantes"}{" "}
-					antes de reenviar.
+					{alert}
 				</p>
 			) : null}
 
@@ -63,7 +72,7 @@ export const ResubmissionPanel = ({
 			<Button
 				type="submit"
 				className="mt-5 w-full"
-				disabled={!canSubmit || blocked || isPending}
+				disabled={!canSubmit || isPending}
 			>
 				{isPending ? "Reenviando..." : "Reenviar Projeto"}
 			</Button>

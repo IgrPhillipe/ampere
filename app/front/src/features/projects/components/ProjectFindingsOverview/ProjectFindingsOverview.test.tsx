@@ -1,34 +1,79 @@
-import { makeFinding } from "@services/project-review/mocks/factories";
-import { fireEvent, render, screen } from "@testing-library/react";
+import type { Finding } from "@services/project-review";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import type { FindingReferenceOptions } from "../../constants";
 import { ProjectFindingsOverview } from "./ProjectFindingsOverview";
 
+const makeFinding = (overrides: Partial<Finding> = {}): Finding => ({
+	id: "1",
+	projectId: "4",
+	severity: "BLOCKING",
+	stage: "DOCUMENTS",
+	consumerUnitGroupId: null,
+	calculationStepCode: null,
+	documentType: "ART",
+	description: "A ART não traz a assinatura do responsável técnico.",
+	standardItem: null,
+	authorId: "2",
+	authorName: "Admin Teste",
+	createdAt: "2026-10-04T13:00:00Z",
+	version: 1,
+	status: "OPEN",
+	response: null,
+	respondedAt: null,
+	...overrides,
+});
+
+const referenceOptions: FindingReferenceOptions = {
+	PROJECT_DATA: {},
+	CONSUMER_UNITS: { "7": "Apartamento tipo B" },
+	CALCULATION: {},
+	DOCUMENTS: { ART: "ART" },
+};
+
+const rejected = {
+	status: "REJECTED",
+	reviewCycle: 1,
+	reviewOpinion: "Corrija os documentos indicados.",
+} as const;
+
+const renderOverview = (
+	findings: Finding[],
+	project: {
+		status: "REJECTED" | "UNDER_REVIEW";
+		reviewCycle: number;
+		reviewOpinion: string | null;
+	} = rejected,
+) => {
+	const onStartResponse = vi.fn();
+	render(
+		<ProjectFindingsOverview
+			findings={findings}
+			project={project}
+			referenceOptions={referenceOptions}
+			isResponding={false}
+			onOpenStage={vi.fn()}
+			onStartResponse={onStartResponse}
+			onSubmitResponse={vi.fn()}
+			onCancelResponse={vi.fn()}
+		/>,
+	);
+
+	return { onStartResponse };
+};
+
 describe("ProjectFindingsOverview", () => {
-	it("orders blocking findings before adjustments and starts a response", () => {
-		const onStartResponse = vi.fn();
+	it("orders blocking findings first and starts a response", () => {
 		const adjustment = makeFinding({
 			id: "1",
 			severity: "ADJUSTMENT",
+			stage: "PROJECT_DATA",
+			documentType: null,
 			description: "Ajustar endereço.",
 		});
-		const blocking = makeFinding({
-			id: "2",
-			severity: "BLOCKING",
-			description: "Substituir ART.",
-		});
-
-		render(
-			<ProjectFindingsOverview
-				findings={[adjustment, blocking]}
-				reviewOpinion="Corrija os documentos indicados."
-				isResponding={false}
-				onOpenStage={vi.fn()}
-				onStartResponse={onStartResponse}
-				onSubmitResponse={vi.fn()}
-				onCancelResponse={vi.fn()}
-			/>,
-		);
+		const blocking = makeFinding({ id: "2", description: "Substituir ART." });
+		const { onStartResponse } = renderOverview([adjustment, blocking]);
 
 		const descriptions = screen.getAllByText(/Ajustar endereço|Substituir ART/);
 		expect(descriptions[0]).toHaveTextContent("Substituir ART.");
@@ -38,25 +83,60 @@ describe("ProjectFindingsOverview", () => {
 		expect(onStartResponse).toHaveBeenCalledWith(blocking, "CONTESTED");
 	});
 
+	it("names the group a finding points to", () => {
+		renderOverview([
+			makeFinding({
+				stage: "CONSUMER_UNITS",
+				documentType: null,
+				consumerUnitGroupId: "7",
+			}),
+		]);
+
+		expect(
+			screen.getByText("Unidades Consumidoras: Apartamento tipo B"),
+		).toBeVisible();
+	});
+
 	it("shows the response already sent by the designer", () => {
-		render(
-			<ProjectFindingsOverview
-				findings={[
-					makeFinding({
-						status: "CONTESTED",
-						response: "O documento já está assinado na página 2.",
-					}),
-				]}
-				isResponding={false}
-				onOpenStage={vi.fn()}
-				onStartResponse={vi.fn()}
-				onSubmitResponse={vi.fn()}
-				onCancelResponse={vi.fn()}
-			/>,
-		);
+		renderOverview([
+			makeFinding({
+				status: "CONTESTED",
+				response: "O documento já está assinado na página 2.",
+			}),
+		]);
 
 		expect(
 			screen.getByText("O documento já está assinado na página 2."),
 		).toBeVisible();
+	});
+
+	it("keeps accepted findings in the history, without actions", () => {
+		renderOverview(
+			[
+				makeFinding({ id: "1", version: 1, status: "RESOLVED" }),
+				makeFinding({ id: "2", version: 1, status: "OPEN" }),
+			],
+			{ ...rejected, reviewCycle: 2 },
+		);
+
+		const history = screen.getByRole("region", { name: "Histórico" });
+		expect(
+			within(history).queryByRole("button", { name: "Corrigido" }),
+		).not.toBeInTheDocument();
+		expect(screen.getAllByRole("button", { name: "Corrigido" })).toHaveLength(
+			1,
+		);
+	});
+
+	it("offers no response while the project is under review", () => {
+		renderOverview([makeFinding()], {
+			status: "UNDER_REVIEW",
+			reviewCycle: 1,
+			reviewOpinion: null,
+		});
+
+		expect(
+			screen.queryByRole("button", { name: "Contestar" }),
+		).not.toBeInTheDocument();
 	});
 });

@@ -9,6 +9,7 @@ import {
 } from "../../schemas";
 
 interface FindingResponseFormProps {
+	id?: string;
 	status: FindingResponseValues["status"];
 	initialResponse?: string | null;
 	isPending: boolean;
@@ -17,6 +18,7 @@ interface FindingResponseFormProps {
 }
 
 export const FindingResponseForm = ({
+	id,
 	status,
 	initialResponse,
 	isPending,
@@ -35,6 +37,7 @@ export const FindingResponseForm = ({
 
 	return (
 		<form
+			id={id}
 			noValidate
 			aria-label={
 				status === "FIXED" ? "Confirmar correção" : "Contestar apontamento"
@@ -65,7 +68,7 @@ export const FindingResponseForm = ({
 					Cancelar
 				</Button>
 				<Button type="submit" disabled={isPending}>
-					{status === "FIXED" ? "Confirmar correção" : "Enviar contestação"}
+					{status === "FIXED" ? "Confirmar Correção" : "Enviar Contestação"}
 				</Button>
 			</div>
 		</form>

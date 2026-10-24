@@ -21,10 +21,9 @@ import {
 	MemorialPreview,
 	ProjectStamp,
 	ProjectStepper,
-	ResubmissionPanel,
 	SubmissionChecklistPanel,
 } from "../../components";
-import type { ResubmissionValues } from "../../schemas";
+import { stageFindingsOf } from "../../constants";
 
 interface MemorialPageProps {
 	projectId: string;
@@ -48,8 +47,11 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const findingsQuery = useGetFindingList(projectId, {
 		enabled: project?.status === "REJECTED",
 	});
-	const documentFindings =
-		findingsQuery.data?.data.filter(({ stage }) => stage === "DOCUMENTS") ?? [];
+	const documentFindings = stageFindingsOf(
+		findingsQuery.data?.data,
+		project,
+		"DOCUMENTS",
+	);
 	const validation = validationQuery.data?.data;
 	const checklist = submissionQuery.data?.data;
 	const editable =
@@ -84,11 +86,6 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 
 	const submit = () =>
 		submitMutation.mutate({ projectId }, { onSuccess: goToSubmission });
-	const resubmit = ({ changeSummary }: ResubmissionValues) =>
-		submitMutation.mutate(
-			{ projectId, changeSummary },
-			{ onSuccess: goToSubmission },
-		);
 
 	const retry = () => {
 		void projectQuery.refetch();
@@ -162,35 +159,25 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 							className="px-6 py-8 md:px-8"
 						/>
 
-						<div className="flex flex-col border-t border-border lg:border-t-0 lg:border-l">
-							<SubmissionChecklistPanel
-								checklist={checklist}
-								findings={documentFindings}
-								isLoading={submissionQuery.isPending}
-								editable={editable}
-								uploadingType={
-									uploadMutation.isPending
-										? uploadMutation.variables?.type
-										: undefined
-								}
-								removingId={
-									deleteMutation.isPending
-										? deleteMutation.variables?.documentId
-										: undefined
-								}
-								onUpload={upload}
-								onRemove={remove}
-							/>
-
-							{project?.status === "REJECTED" && checklist ? (
-								<ResubmissionPanel
-									unansweredBlocking={checklist.unansweredBlocking}
-									canSubmit={checklist.canSubmit}
-									isPending={submitMutation.isPending}
-									onSubmit={resubmit}
-								/>
-							) : null}
-						</div>
+						<SubmissionChecklistPanel
+							checklist={checklist}
+							findings={documentFindings}
+							isLoading={submissionQuery.isPending}
+							editable={editable}
+							uploadingType={
+								uploadMutation.isPending
+									? uploadMutation.variables?.type
+									: undefined
+							}
+							removingId={
+								deleteMutation.isPending
+									? deleteMutation.variables?.documentId
+									: undefined
+							}
+							onUpload={upload}
+							onRemove={remove}
+							className="border-t border-border lg:border-t-0 lg:border-l"
+						/>
 					</div>
 				)}
 
@@ -208,7 +195,6 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 					{project?.status === "REJECTED" ? (
 						<Button
 							type="button"
-							variant="outline"
 							onClick={() =>
 								void navigate({
 									to: "/projetos/$id/apontamentos",
@@ -216,7 +202,8 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 								})
 							}
 						>
-							Revisar Apontamentos
+							Revisar e Reenviar
+							<ArrowRight aria-hidden="true" />
 						</Button>
 					) : submitted ? (
 						<Button type="button" onClick={goToSubmission}>

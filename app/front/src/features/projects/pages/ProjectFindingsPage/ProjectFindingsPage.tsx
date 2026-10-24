@@ -2,15 +2,41 @@ import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
-import type { Finding } from "@services/project-review";
-import { useGetFindingList, useRespondFinding } from "@services/project-review";
+import {
+	calculationKeys,
+	useGetLatestCalculation,
+} from "@services/calculation";
+import {
+	useGetConsumerUnitGroupList,
+	useGetConsumerUnitGroupValidation,
+} from "@services/consumer-units";
+import {
+	type Finding,
+	projectReviewKeys,
+	useGetFindingList,
+	useRespondFinding,
+} from "@services/project-review";
 import { useGetProject } from "@services/projects";
+import { useGetSubmission, useSubmitProject } from "@services/submission";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, CircleAlert, ClipboardCheck } from "lucide-react";
 import { useState } from "react";
 
-import { ProjectFindingsOverview } from "../../components";
-import type { FindingResponseValues } from "../../schemas";
+import {
+	ProjectFindingsOverview,
+	ProjectStamp,
+	ResubmissionPanel,
+} from "../../components";
+import { buildFindingReferenceOptions, findingTarget } from "../../constants";
+import type { FindingResponseValues, ResubmissionValues } from "../../schemas";
+
+const stageRoutes = {
+	PROJECT_DATA: "/projetos/$id/dados",
+	CONSUMER_UNITS: "/projetos/$id/unidades",
+	CALCULATION: "/projetos/$id/calculo",
+	DOCUMENTS: "/projetos/$id/memorial",
+} as const;
 
 interface ProjectFindingsPageProps {
 	projectId: string;
@@ -20,28 +46,43 @@ export const ProjectFindingsPage = ({
 	projectId,
 }: ProjectFindingsPageProps) => {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const projectQuery = useGetProject(projectId);
 	const findingsQuery = useGetFindingList(projectId);
+	const groupsQuery = useGetConsumerUnitGroupList(projectId);
+	const validationQuery = useGetConsumerUnitGroupValidation(projectId);
+	const calculationQuery = useGetLatestCalculation(projectId);
+	const submissionQuery = useGetSubmission(projectId);
 	const respondMutation = useRespondFinding();
+	const submitMutation = useSubmitProject();
 	const [responseEditor, setResponseEditor] = useState<{
 		findingId: string;
 		status: FindingResponseValues["status"];
 	} | null>(null);
 	const project = projectQuery.data?.data;
 	const findings = findingsQuery.data?.data;
+	const checklist = submissionQuery.data?.data;
+	const validation = validationQuery.data?.data;
+	const units = validation
+		? `${validation.totalUnits} em ${validation.totalGroups} ${
+				validation.totalGroups === 1 ? "grupo" : "grupos"
+			}`
+		: undefined;
 	const hasError = projectQuery.isError || findingsQuery.isError;
 
-	const backToProjects = () => void navigate({ to: "/projetos" });
-	const openStage = (finding: Finding) => {
-		const to = {
-			PROJECT_DATA: "/projetos/$id/dados",
-			CONSUMER_UNITS: "/projetos/$id/unidades",
-			CALCULATION: "/projetos/$id/calculo",
-			DOCUMENTS: "/projetos/$id/memorial",
-		} as const;
+	const referenceOptions = buildFindingReferenceOptions({
+		groups: groupsQuery.data?.data ?? [],
+		steps: calculationQuery.data?.data.steps ?? [],
+		checklistItems: checklist?.items ?? [],
+	});
 
-		void navigate({ to: to[finding.stage], params: { id: projectId } });
-	};
+	const backToProjects = () => void navigate({ to: "/projetos" });
+	const openStage = (finding: Finding) =>
+		void navigate({
+			to: stageRoutes[finding.stage],
+			params: { id: projectId },
+			hash: findingTarget(finding),
+		});
 	const submitResponse = (values: FindingResponseValues) => {
 		if (!responseEditor) return;
 
@@ -55,18 +96,44 @@ export const ProjectFindingsPage = ({
 			{ onSuccess: () => setResponseEditor(null) },
 		);
 	};
+	const resubmit = ({ changeSummary }: ResubmissionValues) =>
+		submitMutation.mutate(
+			{ projectId, changeSummary },
+			{
+				onSuccess: async () => {
+					await Promise.all([
+						queryClient.invalidateQueries({
+							queryKey: projectReviewKeys.findings(projectId),
+						}),
+						queryClient.invalidateQueries({
+							queryKey: calculationKeys.all(),
+						}),
+					]);
+					void navigate({
+						to: "/projetos/$id/envio",
+						params: { id: projectId },
+					});
+				},
+			},
+		);
 
 	return (
 		<PageLayout
-			title={project?.name ?? "Apontamentos do projeto"}
+			title={project?.name ?? "Apontamentos do Projeto"}
 			description={
 				project
-					? `Protocolo ${project.protocol}. Revise os apontamentos antes de reenviar o projeto.`
-					: "Revise os apontamentos antes de reenviar o projeto."
+					? `Protocolo ${project.protocol}. Responda os apontamentos, corrija as etapas indicadas e reenvie o projeto.`
+					: "Responda os apontamentos, corrija as etapas indicadas e reenvie o projeto."
 			}
 			bleed
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
+			<ProjectStamp
+				project={project}
+				isLoading={projectQuery.isPending}
+				units={units}
+			/>
+
 			<section
 				aria-label="Correção dos apontamentos"
 				className="flex flex-1 flex-col gap-6 bg-card px-6 py-8 md:px-8"
@@ -96,7 +163,7 @@ export const ProjectFindingsPage = ({
 									void findingsQuery.refetch();
 								}}
 							>
-								Tentar novamente
+								Tentar Novamente
 							</Button>
 						}
 					/>
@@ -109,15 +176,26 @@ export const ProjectFindingsPage = ({
 				) : findings?.length === 0 ? (
 					<EmptyState
 						title="Nenhum apontamento encontrado"
-						description="Este projeto não possui correções registradas para o ciclo atual."
+						description="Este projeto não possui apontamentos publicados."
 						icon={ClipboardCheck}
 					/>
-				) : findings ? (
+				) : findings && project ? (
 					<ProjectFindingsOverview
 						findings={findings}
-						reviewOpinion={project?.reviewOpinion}
+						project={project}
+						referenceOptions={referenceOptions}
 						responseEditor={responseEditor ?? undefined}
 						isResponding={respondMutation.isPending}
+						resubmission={
+							project.status === "REJECTED" && checklist ? (
+								<ResubmissionPanel
+									unansweredBlocking={checklist.unansweredBlocking}
+									canSubmit={checklist.canSubmit}
+									isPending={submitMutation.isPending}
+									onSubmit={resubmit}
+								/>
+							) : null
+						}
 						onOpenStage={openStage}
 						onStartResponse={(finding, status) =>
 							setResponseEditor({ findingId: finding.id, status })

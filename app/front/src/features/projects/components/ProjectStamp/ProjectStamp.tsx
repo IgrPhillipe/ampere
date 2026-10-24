@@ -70,7 +70,7 @@ export const ProjectStamp = ({
 
 		{project && project.reviewCycle > 0 ? (
 			<StampCell isLoading={isLoading} label="Versão">
-				Versão {project.reviewCycle}
+				{project.reviewCycle}
 			</StampCell>
 		) : null}
 	</dl>
