@@ -50,7 +50,9 @@ public class DemandCalculationService {
   public Calculation calculate(Long projectId, AuthenticatedUser user) {
     Project project =
         projectService.editableOrFail(
-            projectId, "Só é possível calcular a demanda de um projeto em rascunho.", user);
+            projectId,
+            "Só é possível calcular a demanda de um projeto em rascunho ou reprovado.",
+            user);
     List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(projectId);
     if (groups.isEmpty()) {
       throw unprocessable("Cadastre ao menos um grupo de unidades antes de calcular a demanda.");

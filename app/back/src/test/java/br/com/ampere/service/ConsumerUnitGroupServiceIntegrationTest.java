@@ -138,7 +138,7 @@ class ConsumerUnitGroupServiceIntegrationTest {
 
     assertThatThrownBy(() -> service.create(submitted.getId(), charging(true), designer))
         .isInstanceOf(BusinessException.class)
-        .hasMessage("Só é possível alterar as unidades de um projeto em rascunho.");
+        .hasMessage("Só é possível alterar as unidades de um projeto em rascunho ou reprovado.");
   }
 
   @Test

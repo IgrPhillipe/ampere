@@ -267,7 +267,7 @@ class ProjectServiceIntegrationTest {
     assertThatThrownBy(
             () -> service.update(underReview.getId(), parameters(BuildingCategory.MIXED), designer))
         .isInstanceOf(BusinessException.class)
-        .hasMessage("Só é possível alterar um projeto em rascunho.");
+        .hasMessage("Só é possível alterar um projeto em rascunho ou reprovado.");
   }
 
   @Test

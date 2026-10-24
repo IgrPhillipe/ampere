@@ -16,8 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class ConsumerUnitGroupService {
 
   private static final String NOT_FOUND = "Grupo de unidades não encontrado.";
-  private static final String NOT_DRAFT =
-      "Só é possível alterar as unidades de um projeto em rascunho.";
+  private static final String NOT_EDITABLE =
+      "Só é possível alterar as unidades de um projeto em rascunho ou reprovado.";
 
   private final ConsumerUnitGroupRepository groupRepository;
   private final FindingRepository findingRepository;
@@ -47,7 +47,7 @@ public class ConsumerUnitGroupService {
   @Transactional
   public ConsumerUnitGroup create(
       Long projectId, GroupParameters parameters, AuthenticatedUser user) {
-    Project project = projectService.editableOrFail(projectId, NOT_DRAFT, user);
+    Project project = projectService.editableOrFail(projectId, NOT_EDITABLE, user);
 
     return groupRepository.save(parameters.kind().create(project, parameters.spec()));
   }
@@ -55,7 +55,7 @@ public class ConsumerUnitGroupService {
   @Transactional
   public ConsumerUnitGroup update(
       Long projectId, Long groupId, GroupParameters parameters, AuthenticatedUser user) {
-    projectService.editableOrFail(projectId, NOT_DRAFT, user);
+    projectService.editableOrFail(projectId, NOT_EDITABLE, user);
     ConsumerUnitGroup group = findOrFail(projectId, groupId);
     if (group.kind() != parameters.kind()) {
       throw new BusinessException(
@@ -69,7 +69,7 @@ public class ConsumerUnitGroupService {
 
   @Transactional
   public void delete(Long projectId, Long groupId, AuthenticatedUser user) {
-    projectService.editableOrFail(projectId, NOT_DRAFT, user);
+    projectService.editableOrFail(projectId, NOT_EDITABLE, user);
     ConsumerUnitGroup group = findOrFail(projectId, groupId);
 
     // A finding may point to the group: keep the finding, drop the reference.

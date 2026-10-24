@@ -132,7 +132,8 @@ public class ProjectService {
 
   @Transactional
   public Project update(Long id, ProjectParameters parameters, AuthenticatedUser user) {
-    Project project = editableOrFail(id, "Só é possível alterar um projeto em rascunho.", user);
+    Project project =
+        editableOrFail(id, "Só é possível alterar um projeto em rascunho ou reprovado.", user);
     BuildingType buildingType = parameters.toBuildingType();
 
     project.rename(parameters.name(), parameters.address(), parameters.municipality());
