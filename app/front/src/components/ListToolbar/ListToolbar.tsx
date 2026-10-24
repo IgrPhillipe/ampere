@@ -1,3 +1,4 @@
+import { Separator } from "@components/ui/separator";
 import { cn } from "@lib/utils";
 import type { ReactNode } from "react";
 
@@ -23,13 +24,19 @@ export const ListToolbar = ({
 	<div className={cn("flex flex-col bg-card", className)}>
 		{filters}
 		<div className="flex flex-col gap-4 border-b border-border px-gutter py-4 md:px-gutter-md">
-			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-				{search}
-				<div className="flex flex-wrap items-center gap-2 sm:justify-end">
+			{search}
+			{refinements || sort ? (
+				<div className="flex flex-wrap items-center gap-2">
 					{refinements}
+					{refinements && sort ? (
+						<Separator
+							orientation="vertical"
+							className="mx-1 self-center data-[orientation=vertical]:h-6"
+						/>
+					) : null}
 					{sort}
 				</div>
-			</div>
+			) : null}
 			{activeFilters}
 		</div>
 	</div>
