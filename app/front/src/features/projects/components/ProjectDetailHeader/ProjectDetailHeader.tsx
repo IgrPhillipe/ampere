@@ -1,6 +1,7 @@
 import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDateTime, formatKva } from "@features/shared";
+import { formatDate, formatKva } from "@features/shared";
+import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
 import type { ProjectDetail } from "@services/projects";
 import type { ReactNode } from "react";
@@ -17,7 +18,7 @@ interface HeaderCellProps {
 }
 
 const HeaderCell = ({ label, isLoading, children }: HeaderCellProps) => (
-	<div className="flex min-w-0 flex-col gap-1.5 bg-card px-6 py-4 last:col-span-2 md:px-8 lg:last:col-span-1">
+	<div className="flex min-w-0 flex-col gap-1.5 bg-card px-6 py-4 md:px-8">
 		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 			{label}
 		</dt>
@@ -26,6 +27,16 @@ const HeaderCell = ({ label, isLoading, children }: HeaderCellProps) => (
 				(isLoading ? <Skeleton className="h-5 w-32" /> : "Não informado")}
 		</dd>
 	</div>
+);
+
+/** Same pattern as the listings: the date in mono, the distance in small muted text. */
+const HeaderDate = ({ value }: { value: string }) => (
+	<span className="flex flex-col gap-0.5">
+		<time dateTime={value}>{formatDate(value)}</time>
+		<span className="font-sans text-xs text-muted-foreground">
+			{dayjs(value).fromNow()}
+		</span>
+	</span>
 );
 
 interface ProjectDetailHeaderProps {
@@ -79,7 +90,7 @@ export const ProjectDetailHeader = ({
 			) : null}
 		</div>
 
-		<dl className="grid grid-cols-2 gap-px border-t border-border bg-border lg:grid-cols-5">
+		<dl className="grid grid-cols-2 gap-px border-t border-border bg-border lg:grid-cols-6">
 			<HeaderCell isLoading={isLoading} label="Projetista">
 				{project?.ownerName ?? undefined}
 			</HeaderCell>
@@ -104,11 +115,13 @@ export const ProjectDetailHeader = ({
 					: undefined}
 			</HeaderCell>
 
+			<HeaderCell isLoading={isLoading} label="Criado em">
+				{project ? <HeaderDate value={project.createdAt} /> : undefined}
+			</HeaderCell>
+
 			<HeaderCell isLoading={isLoading} label="Recebido em">
 				{project?.submittedAt ? (
-					<time dateTime={project.submittedAt}>
-						{formatDateTime(project.submittedAt)}
-					</time>
+					<HeaderDate value={project.submittedAt} />
 				) : undefined}
 			</HeaderCell>
 		</dl>
