@@ -1,17 +1,9 @@
-import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
-import { formatDate } from "@features/shared";
 import type { Finding } from "@services/project-review";
 import { ArrowRight } from "lucide-react";
 
-import {
-	findingSeverityBadgeVariants,
-	findingSeverityLabels,
-	findingStageLabels,
-	findingStatusBadgeVariants,
-	findingStatusLabels,
-} from "../../constants";
 import type { FindingResponseValues } from "../../schemas";
+import { FindingAnswer, FindingSummary } from "../FindingDetails";
 import { FindingResponseForm } from "./FindingResponseForm";
 
 interface ProjectFindingCardProps {
@@ -45,53 +37,24 @@ export const ProjectFindingCard = ({
 
 	return (
 		<li className="flex flex-col gap-4 border-b border-border py-5 last:border-b-0">
-			<div className="flex flex-wrap items-center gap-2">
-				<Badge variant={findingSeverityBadgeVariants[finding.severity]}>
-					{findingSeverityLabels[finding.severity]}
-				</Badge>
-				<Badge variant={findingStatusBadgeVariants[finding.status]}>
-					{findingStatusLabels[finding.status]}
-				</Badge>
-			</div>
+			<FindingSummary
+				finding={finding}
+				reference={reference}
+				descriptionId={descriptionId}
+			/>
 
-			<div className="flex flex-col gap-1">
-				<p className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-					{findingStageLabels[finding.stage]}
-					{reference ? `: ${reference}` : null}
-				</p>
-				<p
-					id={descriptionId}
-					className="text-sm whitespace-pre-line text-foreground"
-				>
-					{finding.description}
-				</p>
-				{finding.standardItem ? (
-					<p className="font-mono text-xs text-muted-foreground">
-						{finding.standardItem}
-					</p>
-				) : null}
-			</div>
-
-			{finding.response || finding.status === "FIXED" ? (
-				<blockquote className="border-l-2 border-border pl-3">
-					<p className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-						Resposta registrada
-					</p>
-					<p className="mt-1 text-sm whitespace-pre-line text-foreground">
-						{finding.response || "Marcado como corrigido sem observação."}
-					</p>
-				</blockquote>
-			) : null}
+			<FindingAnswer
+				title="Resposta do Projetista"
+				text={finding.response}
+				fallback={
+					finding.status === "FIXED"
+						? "Marcado como corrigido sem observação."
+						: undefined
+				}
+				respondedAt={finding.respondedAt}
+			/>
 
 			<div className="flex flex-col gap-3">
-				<p className="text-xs text-muted-foreground">
-					{finding.authorName ?? "Analista não informado"}, em{" "}
-					<time dateTime={finding.createdAt}>
-						{formatDate(finding.createdAt)}
-					</time>
-					{`, ${finding.version}º envio`}
-				</p>
-
 				<div className="flex flex-wrap gap-2">
 					<Button
 						type="button"

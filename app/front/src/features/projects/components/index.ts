@@ -3,6 +3,7 @@ export * from "./CalculationSteps";
 export * from "./ChangeSummaryNotice";
 export * from "./ConsumerUnitGroupsTable";
 export * from "./FindingBadge";
+export * from "./FindingDetails";
 export * from "./GroupSheet";
 export * from "./LoadComposition";
 export * from "./MemorialPreview";
