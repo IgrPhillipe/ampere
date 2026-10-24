@@ -20,7 +20,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import br.com.ampere.config.EnumParameterConfig;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
+import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SortDirection;
@@ -35,9 +37,11 @@ import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.GlobalExceptionHandler;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.service.AuthenticatedUser;
+import br.com.ampere.service.ProjectListQuery;
 import br.com.ampere.service.ProjectListing;
 import br.com.ampere.service.ProjectService;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -83,6 +87,80 @@ class ProjectControllerTest {
   }
 
   @Test
+  void rejectsInvalidSortColumnOrDirection() throws Exception {
+    MockMvc mockMvc = mockMvc(mock(ProjectService.class));
+
+    mockMvc.perform(get("/projects").param("sort", "ASC")).andExpect(status().isBadRequest());
+    mockMvc
+        .perform(get("/projects").param("sort", "unsupported"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value(containsString("CREATED_AT")));
+    mockMvc
+        .perform(get("/projects").param("direction", "INVALID"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void bindsTheFiltersAndTheCamelCaseSortColumn() throws Exception {
+    ProjectService service = mock(ProjectService.class);
+    ProjectListQuery query =
+        new ProjectListQuery(
+            null,
+            null,
+            ProjectSort.CREATED_AT,
+            SortDirection.ASC,
+            "Recife",
+            LocalDate.of(2026, 10, 1),
+            LocalDate.of(2026, 10, 10),
+            OpenFindingsFilter.BLOCKING_OPEN);
+    when(service.list(1, 20, query, DESIGNER))
+        .thenReturn(new ProjectListing(List.of(), 0, Map.of(), Map.of(), Map.of()));
+
+    mockMvc(service)
+        .perform(
+            get("/projects")
+                .param("sort", "createdAt")
+                .param("direction", "asc")
+                .param("municipality", "Recife")
+                .param("createdFrom", "2026-10-01")
+                .param("createdTo", "2026-10-10")
+                .param("findings", "BLOCKING_OPEN"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.pagination.total").value(0));
+  }
+
+  @Test
+  void rejectsAnUnknownFindingsSituation() throws Exception {
+    mockMvc(mock(ProjectService.class))
+        .perform(get("/projects").param("findings", "BLOCKING"))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.detail").value(containsString("BLOCKING_OPEN, ANY_OPEN, NONE_OPEN")));
+  }
+
+  @Test
+  void rejectsADateOutsideTheIsoFormat() throws Exception {
+    mockMvc(mock(ProjectService.class))
+        .perform(get("/projects").param("createdFrom", "01/10/2026"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value(containsString("createdFrom")));
+  }
+
+  @Test
+  void exposesMunicipalitiesEndpoint() throws Exception {
+    ProjectService service = mock(ProjectService.class);
+    when(service.listMunicipalities(DESIGNER)).thenReturn(List.of("Olinda", "Recife"));
+
+    MockMvc mockMvc = mockMvc(service);
+    mockMvc
+        .perform(get("/projects/municipalities"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(2)))
+        .andExpect(jsonPath("$.data[0]").value("Olinda"))
+        .andExpect(jsonPath("$.data[1]").value("Recife"));
+  }
+
+  @Test
   void wrapsProjectListingAndPaginationInApiResponse() {
     Project project = mock(Project.class);
     when(project.getId()).thenReturn(42L);
@@ -104,7 +182,19 @@ class ProjectControllerTest {
             Map.of(42L, 3L),
             Map.of(42L, 55L),
             Map.of(42L, new BigDecimal("165.00")));
-    when(service.list(1, 20, ProjectStatus.REJECTED, "vila", SortDirection.ASC, DESIGNER))
+    when(service.list(
+            1,
+            20,
+            new ProjectListQuery(
+                ProjectStatus.REJECTED,
+                "vila",
+                ProjectSort.UPDATED_AT,
+                SortDirection.ASC,
+                null,
+                null,
+                null,
+                null),
+            DESIGNER))
         .thenReturn(listing);
     ProjectController controller = new ProjectController(service);
 
@@ -113,7 +203,12 @@ class ProjectControllerTest {
             new PageQuery(1, 20),
             ProjectStatus.REJECTED,
             "vila",
+            ProjectSort.UPDATED_AT,
             SortDirection.ASC,
+            null,
+            null,
+            null,
+            null,
             designerToken());
 
     assertThat(response.data()).hasSize(1);

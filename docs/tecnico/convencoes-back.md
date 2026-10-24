@@ -112,7 +112,7 @@ O caminho nomeia o recurso, no plural e em kebab-case; o método HTTP diz a aç�
 - Recurso de um projeto fica aninhado nele: `/projects/{id}/consumer-unit-groups`, `/projects/{id}/calculations`, `/projects/{id}/documents`.
 - Coleção que guarda todo o histórico é plural, e o mais recente é `/latest`: `GET /projects/{id}/calculations/latest`.
 - Sem papel no caminho: `/normative-tables` e `/review-queue` são restritos ao `admin` pelo `SecurityConfig`, não por um prefixo `/admin`.
-- Ordenação de lista com uma chave só usa `sort=ASC|DESC` (`SortDirection`); a chave é a da própria lista (prazo na fila, última atualização em projetos).
+- Ordenação de lista usa `sort=<coluna>` e `direction=ASC|DESC` (`SortDirection`). Cada lista tem o enum das suas colunas (`ProjectSort`, `ReviewQueueSort`), e o empate sai pelo `id`.
 
 ### Envelope
 
@@ -158,7 +158,7 @@ Não repita conversão e normalização em cada controller ou service. Peças co
 | :--- | :--- |
 | `PageQuery` | Valores padrão e Bean Validation de `page` e `pageSize` |
 | `SearchTerms` | `trim` e escape de `\`, `%` e `_` antes de consultas com `LIKE` |
-| `EnumParameterConfig` | Conversão case-insensitive de texto para qualquer enum da API |
+| `EnumParameterConfig` | Conversão de texto para qualquer enum da API, sem diferenciar caixa nem `_`: `createdAt` chega como `CREATED_AT` |
 | `messages.properties` | Mensagens localizadas para falhas de binding do Spring |
 
 Controllers recebem enums diretamente. Isso mantém a validação no limite HTTP e permite que o OpenAPI publique os valores aceitos:
@@ -530,6 +530,8 @@ public ApiResponse<List<ProjectResponse>> list(
 ```
 
 O front numera páginas a partir de **1** e o Spring Data a partir de **0**, daí o `page - 1`.
+
+Quando os filtros são opcionais e a coluna de ordenação varia, o repository monta o JPQL com só os filtros informados, como o `ProjectRepositoryImpl`. Valor do usuário entra só por parâmetro da query; na string vai apenas texto fixo e o nome de um enum. Ordenação por dado de outra tabela, como a demanda do último cálculo, é uma subquery no `ORDER BY`, para a paginação continuar no banco.
 
 ---
 

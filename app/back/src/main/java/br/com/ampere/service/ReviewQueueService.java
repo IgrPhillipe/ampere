@@ -3,10 +3,16 @@ package br.com.ampere.service;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ReviewQueueFilter;
+import br.com.ampere.domain.ReviewQueueSort;
 import br.com.ampere.domain.SortDirection;
+import br.com.ampere.domain.User;
+import br.com.ampere.domain.UserRole;
+import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.repository.ProjectRepositoryCustom.ReviewQueueSearch;
+import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.SearchTerms;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,7 +24,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,40 +35,44 @@ public class ReviewQueueService {
 
   public static final BigDecimal HIGH_DEMAND_THRESHOLD = new BigDecimal("50");
 
+  /** {@code reviewer} value for the projects no analyst picked up yet. */
+  public static final String UNASSIGNED = "none";
+
   private final ProjectRepository projectRepository;
   private final CalculationRepository calculationRepository;
   private final ConsumerUnitGroupRepository groupRepository;
+  private final UserRepository userRepository;
 
   public ReviewQueueService(
       ProjectRepository projectRepository,
       CalculationRepository calculationRepository,
-      ConsumerUnitGroupRepository groupRepository) {
+      ConsumerUnitGroupRepository groupRepository,
+      UserRepository userRepository) {
     this.projectRepository = projectRepository;
     this.calculationRepository = calculationRepository;
     this.groupRepository = groupRepository;
+    this.userRepository = userRepository;
   }
 
   @Transactional(readOnly = true)
-  public ReviewQueueListing list(
-      int page, int pageSize, String search, ReviewQueueFilter filter, SortDirection sort) {
-    Sort.Direction deadlineDirection = Sort.Direction.valueOf(sort.name());
-    PageRequest pageRequest =
-        PageRequest.of(
-            page - 1,
-            pageSize,
-            Sort.by(deadlineDirection, "submittedAt").and(Sort.by(Sort.Direction.ASC, "id")));
+  public ReviewQueueListing list(int page, int pageSize, ReviewQueueQuery query) {
+    String reviewer = query.reviewer() == null ? "" : query.reviewer().trim();
+    boolean unassigned = UNASSIGNED.equalsIgnoreCase(reviewer);
     LocalDate today = LocalDate.now(ZONE);
 
     Page<Project> projects =
         projectRepository.searchReviewQueue(
-            ProjectStatus.UNDER_REVIEW,
-            SearchTerms.normalize(search),
-            filter == ReviewQueueFilter.DUE_SOON,
-            dueSoonCutoff(today),
-            filter == ReviewQueueFilter.HIGH_DEMAND,
-            HIGH_DEMAND_THRESHOLD,
-            filter == ReviewQueueFilter.REANALYSIS,
-            pageRequest);
+            new ReviewQueueSearch(
+                SearchTerms.normalize(query.search()),
+                query.filter() == ReviewQueueFilter.DUE_SOON ? dueSoonCutoff(today) : null,
+                query.filter() == ReviewQueueFilter.HIGH_DEMAND ? HIGH_DEMAND_THRESHOLD : null,
+                query.filter() == ReviewQueueFilter.REANALYSIS,
+                query.municipality(),
+                reviewer.isEmpty() || unassigned ? null : analystId(reviewer),
+                unassigned,
+                query.sort(),
+                query.direction()),
+            PageRequest.of(page - 1, pageSize));
 
     List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
     Map<Long, List<String>> warnings = latestWarnings(projectIds);
@@ -87,6 +96,11 @@ public class ReviewQueueService {
             .toList();
 
     return new ReviewQueueListing(entries, projects.getTotalElements());
+  }
+
+  @Transactional(readOnly = true)
+  public List<User> reviewers() {
+    return userRepository.findAllByRoleOrderByNameAsc(UserRole.ADMIN);
   }
 
   @Transactional(readOnly = true)
@@ -119,15 +133,37 @@ public class ReviewQueueService {
       boolean dueSoon, boolean highDemand, boolean reanalysis, OffsetDateTime submittedBefore) {
     return projectRepository
         .searchReviewQueue(
-            ProjectStatus.UNDER_REVIEW,
-            "",
-            dueSoon,
-            submittedBefore,
-            highDemand,
-            HIGH_DEMAND_THRESHOLD,
-            reanalysis,
+            new ReviewQueueSearch(
+                "",
+                dueSoon ? submittedBefore : null,
+                highDemand ? HIGH_DEMAND_THRESHOLD : null,
+                reanalysis,
+                null,
+                null,
+                false,
+                ReviewQueueSort.DEADLINE,
+                SortDirection.ASC),
             PageRequest.of(0, 1))
         .getTotalElements();
+  }
+
+  private Long analystId(String reviewer) {
+    long id;
+    try {
+      id = Long.parseLong(reviewer);
+    } catch (NumberFormatException exception) {
+      throw new BusinessException("Identificador de analista inválido.");
+    }
+
+    User user =
+        userRepository
+            .findById(id)
+            .orElseThrow(() -> new BusinessException("Analista informado não encontrado."));
+    if (user.getRole() != UserRole.ADMIN) {
+      throw new BusinessException("O usuário informado não é um analista.");
+    }
+
+    return id;
   }
 
   private Map<Long, List<String>> latestWarnings(List<Long> projectIds) {

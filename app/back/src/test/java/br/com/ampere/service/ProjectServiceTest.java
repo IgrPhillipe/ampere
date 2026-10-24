@@ -3,8 +3,6 @@ package br.com.ampere.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -14,7 +12,9 @@ import static org.mockito.Mockito.when;
 import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
+import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SortDirection;
@@ -28,6 +28,9 @@ import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.repository.ProjectRepositoryCustom.ProjectSearch;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -43,59 +46,61 @@ class ProjectServiceTest {
   private static final AuthenticatedUser DESIGNER = new AuthenticatedUser(7L, UserRole.USER);
 
   @Test
-  void normalizesSearchAndUsesStablePaginationOrder() {
+  void convertsTheFiltersBeforeSearching() {
     ProjectRepository projectRepository = mock(ProjectRepository.class);
-    FindingRepository findingRepository = mock(FindingRepository.class);
-    when(projectRepository.searchAccessibleProjects(
-            isNull(), eq("\\%\\_\\\\"), eq(7L), eq(false), any(Pageable.class)))
-        .thenReturn(Page.empty());
-    when(projectRepository.countAccessiblePerStatus(7L, false)).thenReturn(List.of());
-    ProjectService service =
-        new ProjectService(
-            projectRepository,
-            findingRepository,
-            mock(ConsumerUnitGroupRepository.class),
-            mock(CalculationRepository.class),
-            mock(ProjectDocumentRepository.class),
-            mock(ProjectCreation.class),
-            mock(ApplicableStandards.class));
+    when(projectRepository.searchAccessibleProjects(any(), any())).thenReturn(Page.empty());
 
-    service.list(1, 20, null, " %_\\ ", SortDirection.DESC, DESIGNER);
+    service(projectRepository, mock(FindingRepository.class))
+        .list(
+            2,
+            20,
+            new ProjectListQuery(
+                ProjectStatus.DRAFT,
+                " %_\\ ",
+                ProjectSort.NAME,
+                SortDirection.ASC,
+                "Recife",
+                LocalDate.of(2026, 10, 1),
+                LocalDate.of(2026, 10, 10),
+                OpenFindingsFilter.ANY_OPEN),
+            DESIGNER);
 
+    ArgumentCaptor<ProjectSearch> searchCaptor = ArgumentCaptor.forClass(ProjectSearch.class);
     ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
     verify(projectRepository)
-        .searchAccessibleProjects(
-            isNull(), eq("\\%\\_\\\\"), eq(7L), eq(false), pageableCaptor.capture());
-    Pageable pageable = pageableCaptor.getValue();
-    assertThat(pageable.getPageNumber()).isZero();
-    assertThat(pageable.getPageSize()).isEqualTo(20);
-    assertThat(pageable.getSort().stream().map(Object::toString))
-        .containsExactly("updatedAt: DESC", "id: DESC");
+        .searchAccessibleProjects(searchCaptor.capture(), pageableCaptor.capture());
+    ProjectSearch search = searchCaptor.getValue();
+    assertThat(search.ownerId()).isEqualTo(7L);
+    assertThat(search.admin()).isFalse();
+    assertThat(search.search()).isEqualTo("\\%\\_\\\\");
+    assertThat(search.createdFrom()).isEqualTo(OffsetDateTime.parse("2026-10-01T00:00-03:00"));
+    assertThat(search.createdBefore()).isEqualTo(OffsetDateTime.parse("2026-10-11T00:00-03:00"));
+    assertThat(search.findings()).isEqualTo(OpenFindingsFilter.ANY_OPEN);
+    assertThat(pageableCaptor.getValue().getPageNumber()).isEqualTo(1);
+    assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(20);
   }
 
   @Test
-  void ordersByTheOldestUpdateWhenAscending() {
+  void refusesAPeriodThatStartsAfterItEnds() {
     ProjectRepository projectRepository = mock(ProjectRepository.class);
-    when(projectRepository.searchAccessibleProjects(
-            isNull(), eq(""), eq(7L), eq(false), any(Pageable.class)))
-        .thenReturn(Page.empty());
-    ProjectService service =
-        new ProjectService(
-            projectRepository,
-            mock(FindingRepository.class),
-            mock(ConsumerUnitGroupRepository.class),
-            mock(CalculationRepository.class),
-            mock(ProjectDocumentRepository.class),
-            mock(ProjectCreation.class),
-            mock(ApplicableStandards.class));
+    ProjectListQuery query =
+        new ProjectListQuery(
+            null,
+            null,
+            ProjectSort.UPDATED_AT,
+            SortDirection.DESC,
+            null,
+            LocalDate.of(2026, 10, 10),
+            LocalDate.of(2026, 10, 1),
+            null);
 
-    service.list(1, 20, null, null, SortDirection.ASC, DESIGNER);
-
-    ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-    verify(projectRepository)
-        .searchAccessibleProjects(isNull(), eq(""), eq(7L), eq(false), pageableCaptor.capture());
-    assertThat(pageableCaptor.getValue().getSort().stream().map(Object::toString))
-        .containsExactly("updatedAt: ASC", "id: ASC");
+    assertThatThrownBy(
+            () ->
+                service(projectRepository, mock(FindingRepository.class))
+                    .list(1, 20, query, DESIGNER))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("A data inicial deve ser anterior ou igual à data final.");
+    verify(projectRepository, times(0)).searchAccessibleProjects(any(), any());
   }
 
   @Test

@@ -1,5 +1,7 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.OpenFindingsFilter;
+import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.dto.ApiResponse;
@@ -10,6 +12,7 @@ import br.com.ampere.dto.ProjectRequest;
 import br.com.ampere.dto.ProjectResponse;
 import br.com.ampere.dto.ProjectStatusCounts;
 import br.com.ampere.service.AuthenticatedUser;
+import br.com.ampere.service.ProjectListQuery;
 import br.com.ampere.service.ProjectListing;
 import br.com.ampere.service.ProjectParameters;
 import br.com.ampere.service.ProjectService;
@@ -18,8 +21,10 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.util.List;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -53,7 +58,7 @@ public class ProjectController {
         description = "Página de projetos"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
-        description = "Paginação ou situação inválida")
+        description = "Parâmetros inválidos")
   })
   public ApiResponse<List<ProjectResponse>> list(
       @Valid @ParameterObject PageQuery pagination,
@@ -63,12 +68,34 @@ public class ProjectController {
       @Parameter(description = "Termo buscado no nome ou no protocolo")
           @RequestParam(required = false)
           String search,
-      @Parameter(description = "Ordenação pela última atualização")
+      @Parameter(description = "Coluna usada na ordenação (name, demand, createdAt, updatedAt)")
+          @RequestParam(defaultValue = "updatedAt")
+          ProjectSort sort,
+      @Parameter(description = "Direção da ordenação (ASC, DESC)")
           @RequestParam(defaultValue = "DESC")
-          SortDirection sort,
+          SortDirection direction,
+      @Parameter(description = "Município usado para filtrar os projetos")
+          @RequestParam(required = false)
+          String municipality,
+      @Parameter(description = "Data inicial de criação (inclusive), no formato YYYY-MM-DD")
+          @RequestParam(required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate createdFrom,
+      @Parameter(description = "Data final de criação (inclusive), no formato YYYY-MM-DD")
+          @RequestParam(required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate createdTo,
+      @Parameter(description = "Situação dos apontamentos em aberto")
+          @RequestParam(required = false)
+          OpenFindingsFilter findings,
       @AuthenticationPrincipal Jwt jwt) {
     ProjectListing listing =
-        service.list(pagination.page(), pagination.pageSize(), status, search, sort, userOf(jwt));
+        service.list(
+            pagination.page(),
+            pagination.pageSize(),
+            new ProjectListQuery(
+                status, search, sort, direction, municipality, createdFrom, createdTo, findings),
+            userOf(jwt));
     List<ProjectResponse> projects =
         listing.projects().stream()
             .map(
@@ -83,6 +110,19 @@ public class ProjectController {
     return ApiResponse.of(
         projects,
         new Pagination(listing.totalElements(), pagination.page(), pagination.pageSize()));
+  }
+
+  @GetMapping("/municipalities")
+  @Operation(
+      operationId = "listProjectMunicipalities",
+      summary = "Lista os municípios visíveis para o usuário")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Lista de municípios")
+  })
+  public ApiResponse<List<String>> municipalities(@AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(service.listMunicipalities(userOf(jwt)));
   }
 
   @GetMapping("/status-counts")
