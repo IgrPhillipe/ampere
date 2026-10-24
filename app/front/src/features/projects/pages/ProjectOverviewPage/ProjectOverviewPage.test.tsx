@@ -130,12 +130,9 @@ describe("ProjectOverviewPage", () => {
 		renderPage();
 
 		expect(screen.getByText("O que Acontece Agora")).toBeVisible();
-		fireEvent.click(screen.getByRole("button", { name: /A ART não traz/ }));
+		expect(screen.queryByText("Apontamentos")).not.toBeInTheDocument();
 		expect(
 			screen.queryByRole("button", { name: "Corrigido" }),
-		).not.toBeInTheDocument();
-		expect(
-			screen.queryByRole("button", { name: /Ir para a Seção/ }),
 		).not.toBeInTheDocument();
 	});
 

@@ -85,6 +85,31 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
+  void datesTheLegacySubmissionsWithTheirCreationAndLeavesTheRestAlone() {
+    Project legacy =
+        projectRepository.save(
+            project("Legado", "Rua A, 1", "Recife", "2026-9101", ProjectStatus.UNDER_REVIEW));
+    Project draft =
+        projectRepository.save(
+            project("Rascunho", "Rua B, 2", "Recife", "2026-9102", ProjectStatus.DRAFT));
+    Project dated =
+        projectRepository.save(
+            project("Enviado", "Rua C, 3", "Recife", "2026-9103", ProjectStatus.DRAFT));
+    OffsetDateTime submittedAt = OffsetDateTime.parse("2026-10-01T12:00:00Z");
+    dated.submit(submittedAt);
+    entityManager.flush();
+
+    assertThat(projectRepository.dateLegacySubmissions()).isEqualTo(1);
+    entityManager.clear();
+
+    Project reloaded = projectRepository.findById(legacy.getId()).orElseThrow();
+    assertThat(reloaded.getSubmittedAt()).isEqualTo(reloaded.getCreatedAt());
+    assertThat(projectRepository.findById(draft.getId()).orElseThrow().getSubmittedAt()).isNull();
+    assertThat(projectRepository.findById(dated.getId()).orElseThrow().getSubmittedAt())
+        .isEqualTo(submittedAt);
+  }
+
+  @Test
   void listsProjectsWithPaginationFiltersSearchAndPendingCounts() {
     Project rejectedProject =
         projectRepository.save(

@@ -1,5 +1,5 @@
 import type { Finding } from "@services/project-review";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { FindingReferenceOptions } from "../../constants";
@@ -112,47 +112,27 @@ describe("ProjectFindingsOverview", () => {
 		).toBeVisible();
 	});
 
-	it("shows the response already sent by the designer", () => {
-		renderOverview([
-			makeFinding({
-				status: "CONTESTED",
-				response: "O documento já está assinado na página 2.",
-			}),
-		]);
-		fireEvent.click(screen.getByRole("button", { name: /Ver Detalhes/ }));
-
-		expect(
-			screen.getByText("O documento já está assinado na página 2."),
-		).toBeVisible();
-	});
-
-	it("keeps accepted findings in the history, without actions", () => {
+	it("leaves out the findings already answered or accepted", () => {
 		renderOverview(
 			[
-				makeFinding({ id: "1", version: 1, status: "RESOLVED" }),
-				makeFinding({ id: "2", version: 1, status: "OPEN" }),
+				makeFinding({ id: "1", status: "RESOLVED", description: "Aceito." }),
+				makeFinding({
+					id: "2",
+					status: "CONTESTED",
+					description: "Contestado.",
+					response: "O documento já está assinado na página 2.",
+				}),
+				makeFinding({ id: "3", status: "OPEN", description: "Em aberto." }),
 			],
 			{ ...rejected, reviewCycle: 2 },
 		);
 
-		const history = screen.getByRole("region", { name: "Histórico" });
-		fireEvent.click(
-			within(history).getByRole("button", { name: /Ver Detalhes/ }),
-		);
+		expect(screen.getByText("Em aberto.")).toBeVisible();
+		expect(screen.queryByText("Aceito.")).not.toBeInTheDocument();
+		expect(screen.queryByText("Contestado.")).not.toBeInTheDocument();
 		expect(
-			screen.queryByRole("button", { name: "Corrigido" }),
+			screen.queryByRole("region", { name: "Histórico" }),
 		).not.toBeInTheDocument();
-		fireEvent.keyDown(document.activeElement ?? document.body, {
-			key: "Escape",
-		});
-
-		const current = screen.getByRole("region", { name: "Apontamentos" });
-		fireEvent.click(
-			within(current).getByRole("button", { name: /Ver Detalhes/ }),
-		);
-		expect(screen.getAllByRole("button", { name: "Corrigido" })).toHaveLength(
-			1,
-		);
 	});
 
 	it("offers no response while the project is under review", () => {

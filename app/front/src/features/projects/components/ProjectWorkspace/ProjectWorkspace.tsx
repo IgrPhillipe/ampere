@@ -43,7 +43,7 @@ const useCurrentSection = (projectId: string) => {
 
 interface ProjectWorkspaceProps {
 	projectId: string;
-	/** The analyst's view: their breadcrumb, notices and side panel replace the designer's. */
+	/** The analyst's view: their breadcrumb, notices and side panel replace the designer's, and the change summary shows. */
 	reviewing?: boolean;
 	breadcrumbRoot?: BreadcrumbItem;
 	actions?: ReactNode;
@@ -229,7 +229,7 @@ export const ProjectWorkspace = ({
 						</p>
 					) : null}
 					{notices}
-					{reanalysis && project.changeSummary ? (
+					{reviewing && reanalysis && project.changeSummary ? (
 						<ChangeSummaryNotice
 							version={project.reviewCycle}
 							summary={project.changeSummary}

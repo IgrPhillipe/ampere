@@ -290,13 +290,13 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 - [ ] `GET /api/projects/{id}` passa a trazer responsável técnico, apontamentos em aberto, versão e última movimentação
 - [ ] O projetista lê os eventos do próprio projeto pelo endpoint da `AT01-US08`. Depende dela
 
-### `AT02-US12: Detalhe do projeto e modo somente leitura [Frontend]` (#107)
+### `AT02-US12: Detalhe do projeto como único lugar de consulta [Frontend]` (#107)
 
-- [ ] "Ver Projeto" e "Corrigir" da listagem abrem o detalhe em `/projetos/$id`, sem painel lateral. `/projetos/$id/envio` redireciona para ele
-- [ ] Detalhe com o mesmo cabeçalho e as mesmas abas da análise (`/fila-de-analise/$id`): protocolo, situação, endereço, projetista, unidades, demanda, normas, criado em e enviado em; abas Memória de Cálculo, Unidades Consumidoras, Documentos e Histórico
-- [ ] Projetista vê a verificação automática e a decomposição do cálculo só para leitura; a coluna lateral traz os apontamentos para responder e o reenvio (US09)
-- [ ] Faixa "Projeto enviado em" com a data e o protocolo enquanto o projeto está em análise
-- [ ] Etapas de projeto enviado em modo somente leitura
+- [x] "Ver Projeto" e "Corrigir" da listagem abrem o detalhe em `/projetos/$id`, sem painel lateral. `/projetos/$id/envio` redireciona para ele
+- [x] Detalhe com o mesmo cabeçalho e as mesmas abas da análise (`/fila-de-analise/$id`): protocolo, situação, endereço, projetista, unidades, demanda, normas, criado em e enviado em; abas Memória de Cálculo, Unidades Consumidoras, Documentos, Memorial e Histórico
+- [x] Projetista vê a verificação automática e a decomposição do cálculo só para leitura; a coluna lateral traz os apontamentos para responder e o reenvio (US09)
+- [x] Faixa "Projeto enviado em" com a data e o protocolo enquanto o projeto está em análise
+- [ ] Etapas só para quem edita; os demais vão ao detalhe, na aba equivalente (#184)
 - [ ] A aba "Histórico" passa a ler os eventos da US08
 
 ## US18: Filtros e Ordenação das Listagens (#108)

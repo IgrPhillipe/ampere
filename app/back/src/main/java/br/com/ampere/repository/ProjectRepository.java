@@ -49,4 +49,16 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
           br.com.ampere.domain.ProjectStatus.AWAITING_SUBMISSION)
       """)
   int startReviewCycleOfLegacySubmissions();
+
+  @Modifying
+  @Query(
+      """
+      UPDATE Project project
+      SET project.submittedAt = project.createdAt
+      WHERE project.submittedAt IS NULL
+        AND project.status NOT IN (
+          br.com.ampere.domain.ProjectStatus.DRAFT,
+          br.com.ampere.domain.ProjectStatus.AWAITING_SUBMISSION)
+      """)
+  int dateLegacySubmissions();
 }

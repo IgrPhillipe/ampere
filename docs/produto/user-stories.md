@@ -562,7 +562,7 @@ O sistema não envia e-mail: a senha temporária é repassada pelo administrador
 `US12` `Prioridade: Alta` `Sprint 6`
 
 ### Descrição
-Tela de detalhe do projeto, aberta a partir da listagem, com o resumo, o conteúdo enviado e o histórico de tratamento, e consulta somente leitura das etapas de projetos já enviados.
+Tela de detalhe do projeto, aberta a partir da listagem, com o resumo, o conteúdo enviado e o histórico de tratamento. É o único lugar de consulta: as etapas servem só para editar.
 
 ### User Story
 > **Como** projetista externo,  
@@ -572,10 +572,10 @@ Tela de detalhe do projeto, aberta a partir da listagem, com o resumo, o conteú
 ### Conversação (Regras de Negócio e Interface)
 "Ver Projeto" e "Corrigir" em "Meus Projetos" abrem o detalhe em `/projetos/$id`. O detalhe tem o mesmo cabeçalho e as mesmas abas da tela de análise, para que projetista, analista e admin vejam o projeto do mesmo jeito; só as ações mudam por perfil:
 - Cabeçalho: protocolo, nome, situação, versão, endereço, projetista, unidades, demanda, normas, data de criação e data de envio
-- Abas: Memória de Cálculo (verificação automática e decomposição do cálculo, só leitura para o projetista), Unidades Consumidoras, Documentos e Histórico de tratamento em ordem cronológica inversa
+- Abas: Memória de Cálculo (verificação automática e decomposição do cálculo, só leitura para o projetista), Unidades Consumidoras, Documentos, Memorial e Histórico de tratamento em ordem cronológica inversa. A aba aberta fica na URL (`?aba=`)
 - Coluna lateral do projetista: parecer, apontamentos para responder e reenvio quando reprovado ([US09](#us09-correção-de-apontamentos-e-reenvio-com-versionamento)); próximos passos quando em análise
 
-Enquanto o projeto está em análise, o topo exibe a faixa "Projeto enviado em" com a data e o protocolo. Rascunho continua pela listagem com "Continuar". Nas etapas de projeto enviado, os campos e os botões de edição ficam ocultos.
+Enquanto o projeto está em análise, o topo exibe a faixa "Projeto enviado em" com a data e o protocolo. Rascunho continua pela listagem com "Continuar". As etapas só abrem para quem pode editar (rascunho ou reprovado, pelo dono ou pelo admin); para os outros, a URL da etapa leva ao detalhe, na aba equivalente: Unidades para unidades, Memória de Cálculo para cálculo e Memorial para o memorial.
 
 ### Confirmação (Critérios de Aceite - BDD)
 
@@ -587,14 +587,14 @@ Enquanto o projeto está em análise, o topo exibe a faixa "Projeto enviado em" 
 
 #### Cenário 2 (Negativo): Tentativa de Edição de Projeto Enviado
 - **Dado** que o projeto está "Em análise"
-- **Quando** o projetista abre a etapa "Unidades consumidoras"
-- **Então** a etapa é exibida em modo somente leitura, sem "Adicionar Grupo" nem edição dos grupos
-- **E** o topo indica a data do envio.
+- **Quando** o projetista abre o endereço da etapa "Unidades consumidoras"
+- **Então** o sistema leva ao detalhe do projeto, na aba "Unidades Consumidoras", sem "Adicionar Grupo" nem edição dos grupos
+- **E** o detalhe indica a data do envio.
 
 ### Checklist de Implementação
 - [ ] Abrir o detalhe em `/projetos/$id` a partir da listagem, com o mesmo cabeçalho e as mesmas abas da análise
 - [ ] Exibir as ações conforme o perfil e a situação do projeto
-- [ ] Exibir as etapas de projetos enviados em modo somente leitura
+- [ ] Levar ao detalhe, na aba equivalente, quem abre a etapa de um projeto que não pode editar
 
 ---
 

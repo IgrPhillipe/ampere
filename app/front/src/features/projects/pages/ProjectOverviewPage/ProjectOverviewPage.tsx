@@ -57,10 +57,8 @@ export const ProjectOverviewPage = ({
 		ownerId: project?.ownerId,
 	});
 
-	const submitted =
-		project !== undefined &&
-		project.status !== "DRAFT" &&
-		project.status !== "AWAITING_SUBMISSION";
+	// Findings only wait on the designer while the project is rejected.
+	const showFindings = !reviewing && project?.status === "REJECTED";
 	const referenceOptions = buildFindingReferenceOptions({
 		groups: groupsQuery.data?.data ?? [],
 		steps: calculation?.steps ?? [],
@@ -150,7 +148,7 @@ export const ProjectOverviewPage = ({
 					editing={permissions.canEdit}
 				/>
 
-				{!reviewing && submitted && workspace.findingsQuery.isError ? (
+				{showFindings && workspace.findingsQuery.isError ? (
 					<EmptyState
 						title="Não foi possível carregar os apontamentos"
 						description="Confira o aviso exibido e tente novamente."
@@ -165,7 +163,7 @@ export const ProjectOverviewPage = ({
 							</Button>
 						}
 					/>
-				) : !reviewing && submitted ? (
+				) : showFindings ? (
 					<ProjectFindingsOverview
 						findings={findings}
 						project={project}
