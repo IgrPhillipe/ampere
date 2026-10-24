@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 
 import { FindingBadge } from "./FindingBadge";
 
-const finding = (severity: Finding["severity"]) => ({ severity }) as Finding;
+const finding = (severity: Finding["severity"], description: string) =>
+	({ severity, description }) as Finding;
 
 describe("FindingBadge", () => {
 	it("renders nothing without findings", () => {
@@ -13,12 +14,20 @@ describe("FindingBadge", () => {
 		expect(container).toBeEmptyDOMElement();
 	});
 
-	it("keeps the count out of the status badge", () => {
+	it("explains the findings of the item to screen readers", () => {
 		render(
-			<FindingBadge findings={[finding("ADJUSTMENT"), finding("BLOCKING")]} />,
+			<FindingBadge
+				findings={[
+					finding("ADJUSTMENT", "Ajustar endereço."),
+					finding("BLOCKING", "Substituir ART."),
+				]}
+			/>,
 		);
 
-		expect(screen.getByText("Apontamento")).toBeVisible();
-		expect(screen.getByText("02")).toBeVisible();
+		expect(
+			screen.getByText(
+				"2 apontamentos neste item. Ajustar endereço. Substituir ART. Corrija aqui e responda na tela de apontamentos.",
+			),
+		).toBeInTheDocument();
 	});
 });

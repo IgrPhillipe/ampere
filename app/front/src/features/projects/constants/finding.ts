@@ -1,3 +1,4 @@
+import type { AttentionMessage } from "@components/AttentionIndicator";
 import type { BadgeProps } from "@components/ui/badge";
 import type {
 	Finding,
@@ -121,4 +122,18 @@ export const findingTarget = (finding: Finding) => {
 	if (finding.documentType) return `documento-${finding.documentType}`;
 
 	return undefined;
+};
+
+/** Tooltip of the marker an item shows while it has findings to answer. */
+export const getFindingAttention = (findings: Finding[]): AttentionMessage => {
+	const count = findings.length;
+
+	return {
+		severity: findings.some(({ severity }) => severity === "BLOCKING")
+			? "critical"
+			: "warning",
+		title: `${count} ${count === 1 ? "apontamento" : "apontamentos"} neste item`,
+		details: findings.map(({ description }) => description.replace(/\.$/, "")),
+		action: "Corrija aqui e responda na tela de apontamentos.",
+	};
 };

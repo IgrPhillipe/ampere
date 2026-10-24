@@ -1,9 +1,9 @@
-import { Badge } from "@components/ui/badge";
-import { padCount } from "@features/shared";
+import { AttentionIndicator } from "@components/AttentionIndicator";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
-import { MessageSquareWarning } from "lucide-react";
 import { useEffect, useRef } from "react";
+
+import { getFindingAttention } from "../../constants";
 
 interface FindingBadgeProps {
 	findings?: Finding[];
@@ -21,35 +21,19 @@ export const FindingBadge = ({
 	const count = findings.length;
 
 	useEffect(() => {
-		const badge = ref.current;
+		const marker = ref.current;
 		// The same group renders as a card and as a row: only the visible one scrolls.
-		if (!target || !badge?.offsetParent) return;
+		if (!target || !marker?.offsetParent) return;
 		if (window.location.hash === `#${target}`) {
-			badge.scrollIntoView({ block: "center" });
+			marker.scrollIntoView({ block: "center" });
 		}
 	}, [target, count]);
 
 	if (count === 0) return null;
 
-	// The badge is the status; the count stays a mono number beside it.
 	return (
-		<span ref={ref} className={cn("inline-flex items-center gap-2", className)}>
-			<Badge
-				variant={
-					findings.some(({ severity }) => severity === "BLOCKING")
-						? "destructive"
-						: "warning"
-				}
-			>
-				<MessageSquareWarning aria-hidden="true" />
-				Apontamento
-			</Badge>
-			{count > 1 ? (
-				<span className="font-mono text-xs text-muted-foreground">
-					{padCount(count)}
-					<span className="sr-only"> apontamentos</span>
-				</span>
-			) : null}
+		<span ref={ref} className={cn("inline-flex", className)}>
+			<AttentionIndicator message={getFindingAttention(findings)} />
 		</span>
 	);
 };
