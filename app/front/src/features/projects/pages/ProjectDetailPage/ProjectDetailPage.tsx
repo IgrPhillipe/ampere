@@ -34,6 +34,7 @@ import {
 	GroupSheet,
 	NextStepsPanel,
 	type OpenedGroup,
+	ProjectBreadcrumb,
 	ProjectDetailFooter,
 	ProjectDetailHeader,
 	ProjectDetailLayout,
@@ -239,6 +240,7 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 		<ProjectDetailLayout
 			header={
 				<ProjectDetailHeader
+					breadcrumb={<ProjectBreadcrumb current={project?.name} />}
 					project={project}
 					isLoading={projectQuery.isPending || validationQuery.isPending}
 					units={units}
@@ -280,10 +282,7 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 				) : null
 			}
 			footer={
-				<ProjectDetailFooter
-					backLabel="Voltar para Meus Projetos"
-					onBack={backToProjects}
-				>
+				<ProjectDetailFooter>
 					<Button
 						type="button"
 						variant="link"

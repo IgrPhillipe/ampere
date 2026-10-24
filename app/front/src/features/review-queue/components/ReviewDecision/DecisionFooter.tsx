@@ -10,7 +10,6 @@ interface DecisionFooterProps {
 	/** Whether the profile decides this review now. */
 	canDecide: boolean;
 	closedMessage?: string;
-	onBack: () => void;
 	onDecide: (decision: ReviewDecision) => void;
 	className?: string;
 }
@@ -19,7 +18,6 @@ export const DecisionFooter = ({
 	availability,
 	canDecide,
 	closedMessage,
-	onBack,
 	onDecide,
 	className,
 }: DecisionFooterProps) => {
@@ -35,8 +33,6 @@ export const DecisionFooter = ({
 
 	return (
 		<ProjectDetailFooter
-			backLabel="Voltar para a Fila de Análise"
-			onBack={onBack}
 			summary={
 				<p className="font-mono text-xs tracking-[0.08em] whitespace-nowrap text-muted-foreground uppercase">
 					{padCount(pendingCount)}{" "}

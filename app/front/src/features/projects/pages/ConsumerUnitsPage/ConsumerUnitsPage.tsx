@@ -13,7 +13,7 @@ import {
 import { useGetFindingList } from "@services/project-review";
 import { useGetProject } from "@services/projects";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, CircleAlert, Layers, Plus } from "lucide-react";
+import { ArrowRight, CircleAlert, Layers, Plus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useWatch } from "react-hook-form";
 
@@ -21,8 +21,10 @@ import {
 	ConsumerUnitGroupsTable,
 	GroupSheet,
 	type OpenedGroup,
+	ProjectBreadcrumb,
 	ProjectStamp,
 	ProjectStepper,
+	StepFooter,
 	ValidationPanel,
 } from "../../components";
 import { GROUP_USAGE_TYPES, stageFindingsOf } from "../../constants";
@@ -135,6 +137,12 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 				/>
 
 				<div className="px-6 pt-8 md:px-8">
+					<ProjectBreadcrumb
+						project={project}
+						current="Unidades Consumidoras"
+						className="mb-6"
+					/>
+
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
 						Etapa 02 de 05
 					</p>
@@ -244,24 +252,18 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 					</div>
 				)}
 
-				<div className="flex items-center justify-between gap-3 border-t border-border px-6 py-4 md:px-8">
-					<Button
-						type="button"
-						variant="outline"
-						size="icon"
-						aria-label="Voltar para Dados da Edificação"
-						onClick={() =>
+				<StepFooter
+					previous={{
+						label: "Dados da Edificação",
+						onClick: () =>
 							void navigate({
 								to: "/projetos/$id/dados",
 								params: { id: projectId },
-							})
-						}
-					>
-						<ArrowLeft aria-hidden="true" />
-					</Button>
-
+							}),
+					}}
+				>
 					{isAdding ? (
-						<div className="flex items-center gap-2">
+						<>
 							<Button type="button" variant="ghost" onClick={cancelAdding}>
 								Cancelar
 							</Button>
@@ -274,7 +276,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 								{createGroup.isPending ? "Salvando..." : "Salvar Grupo"}
 								<ArrowRight aria-hidden="true" />
 							</Button>
-						</div>
+						</>
 					) : (
 						<Button
 							type="button"
@@ -292,7 +294,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 							<ArrowRight aria-hidden="true" />
 						</Button>
 					)}
-				</div>
+				</StepFooter>
 			</form>
 
 			<GroupSheet

@@ -16,8 +16,10 @@ import { useEffect } from "react";
 import {
 	CalculationSteps,
 	LoadComposition,
+	ProjectBreadcrumb,
 	ProjectStamp,
 	ProjectStepper,
+	StepFooter,
 	TraceabilityPanel,
 } from "../../components";
 import { stageFindingsOf } from "../../constants";
@@ -101,6 +103,12 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 				/>
 
 				<div className="px-6 pt-8 md:px-8">
+					<ProjectBreadcrumb
+						project={project}
+						current="Cálculo de Demanda"
+						className="mb-6"
+					/>
+
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
 						Etapa 03 de 05
 					</p>
@@ -170,17 +178,9 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 					</div>
 				)}
 
-				<div className="flex items-center justify-between gap-3 border-t border-border px-6 py-4 md:px-8">
-					<Button
-						type="button"
-						variant="outline"
-						size="icon"
-						aria-label="Voltar para Unidades Consumidoras"
-						onClick={backToUnits}
-					>
-						<ArrowLeft aria-hidden="true" />
-					</Button>
-
+				<StepFooter
+					previous={{ label: "Unidades Consumidoras", onClick: backToUnits }}
+				>
 					<Button
 						type="button"
 						disabled={!result}
@@ -194,7 +194,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 						Gerar Memorial
 						<ArrowRight aria-hidden="true" />
 					</Button>
-				</div>
+				</StepFooter>
 			</div>
 		</PageLayout>
 	);

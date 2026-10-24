@@ -1,3 +1,4 @@
+import { Breadcrumb } from "@components/Breadcrumb";
 import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
@@ -209,6 +210,14 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 			<ProjectDetailLayout
 				header={
 					<ProjectDetailHeader
+						breadcrumb={
+							<Breadcrumb
+								items={[
+									{ label: "Fila de Análise", to: "/fila-de-analise" },
+									...(project ? [{ label: project.name }] : []),
+								]}
+							/>
+						}
 						project={project}
 						isLoading={projectQuery.isPending || validationQuery.isPending}
 						units={units}
@@ -258,7 +267,6 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 						availability={availability}
 						canDecide={actions.decide && findings !== undefined}
 						closedMessage={closedMessage}
-						onBack={backToQueue}
 						onDecide={setDecision}
 					/>
 				}

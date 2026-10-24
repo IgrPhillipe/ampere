@@ -20,8 +20,10 @@ import { ArrowLeft, ArrowRight, Calculator, CircleAlert } from "lucide-react";
 
 import {
 	MemorialPreview,
+	ProjectBreadcrumb,
 	ProjectStamp,
 	ProjectStepper,
+	StepFooter,
 	SubmissionChecklistPanel,
 } from "../../components";
 import { stageFindingsOf } from "../../constants";
@@ -112,6 +114,12 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 				/>
 
 				<div className="px-6 pt-8 md:px-8">
+					<ProjectBreadcrumb
+						project={project}
+						current="Memorial"
+						className="mb-6"
+					/>
+
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
 						Etapa 04 de 05
 					</p>
@@ -204,17 +212,9 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 					</div>
 				)}
 
-				<div className="flex items-center justify-between gap-3 border-t border-border px-6 py-4 md:px-8">
-					<Button
-						type="button"
-						variant="outline"
-						size="icon"
-						aria-label="Voltar para Cálculo de Demanda"
-						onClick={backToCalculation}
-					>
-						<ArrowLeft aria-hidden="true" />
-					</Button>
-
+				<StepFooter
+					previous={{ label: "Cálculo de Demanda", onClick: backToCalculation }}
+				>
 					{project?.status === "REJECTED" ? (
 						<Button
 							type="button"
@@ -243,7 +243,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 							<ArrowRight aria-hidden="true" />
 						</Button>
 					)}
-				</div>
+				</StepFooter>
 			</div>
 		</PageLayout>
 	);

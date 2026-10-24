@@ -57,6 +57,7 @@ const HeaderDate = ({ value }: { value: string }) => (
 
 interface ProjectDetailHeaderProps {
 	project?: ProjectDetail;
+	breadcrumb?: ReactNode;
 	isLoading?: boolean;
 	units?: string;
 	demandKva?: number | null;
@@ -68,6 +69,7 @@ interface ProjectDetailHeaderProps {
 
 export const ProjectDetailHeader = ({
 	project,
+	breadcrumb,
 	isLoading = false,
 	units,
 	demandKva,
@@ -77,6 +79,7 @@ export const ProjectDetailHeader = ({
 }: ProjectDetailHeaderProps) => (
 	<header className={cn("flex flex-col border-b border-border", className)}>
 		<div className="flex flex-col gap-3 px-6 pt-8 pb-6 md:px-8">
+			{breadcrumb ? <div className="mb-3">{breadcrumb}</div> : null}
 			{project ? (
 				<p className="font-mono text-xs tracking-wider text-muted-foreground uppercase">
 					Protocolo {project.protocol}
