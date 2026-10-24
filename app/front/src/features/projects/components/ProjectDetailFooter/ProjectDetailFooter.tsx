@@ -7,7 +7,6 @@ interface ProjectDetailFooterProps {
 	backLabel: string;
 	onBack: () => void;
 	summary?: ReactNode;
-	/** The actions the profile can take on the project. */
 	children?: ReactNode;
 	className?: string;
 }

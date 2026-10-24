@@ -5,10 +5,8 @@ import type { ReactNode } from "react";
 interface ProjectDetailLayoutProps {
 	header: ReactNode;
 	notices?: ReactNode;
-	/** The bar with the actions of the profile. */
 	footer: ReactNode;
 	aside: ReactNode;
-	/** The long content, usually the `ProjectDetailTabs`. */
 	children: ReactNode;
 	className?: string;
 }
