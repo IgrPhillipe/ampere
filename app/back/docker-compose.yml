@@ -42,6 +42,8 @@ services:
       # variavel ficava no shell e o `application.properties` caia no default,
       # justamente no caminho que o README manda usar.
       DDL_AUTO: ${DDL_AUTO:-update}
+      # Recreates the seeded demo projects with fresh dates when true.
+      SEED_RESET_SCENARIOS: ${SEED_RESET_SCENARIOS:-false}
 
     depends_on:
       db:

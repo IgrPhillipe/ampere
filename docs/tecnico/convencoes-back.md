@@ -252,7 +252,7 @@ docker compose down -v && docker compose up -d
 
 O `DataSeeder` repovoa tudo. O único dado perdido é o de seed; esse custo justifica o Flyway da pendência 16.
 
-O `DataSeeder` insere seis projetos e quatro apontamentos no primeiro boot, apenas quando a tabela está vazia. Sem Flyway não há migration para carregar dado inicial, e uma API que sobe com o banco vazio não mostra nada.
+O `DataSeeder` cria os usuários, as normas e as tabelas normativas, e o `DemoScenarioSeeder` cria os projetos de demonstração, cada um só se o seu protocolo estiver livre ([`dados-de-demonstracao.md`](../produto/dados-de-demonstracao.md)). Sem Flyway não há migration para carregar dado inicial, e uma API que sobe com o banco vazio não mostra nada.
 
 ---
 
