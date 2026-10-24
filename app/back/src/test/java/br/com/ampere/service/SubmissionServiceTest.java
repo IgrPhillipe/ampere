@@ -131,6 +131,31 @@ class SubmissionServiceTest {
     assertThat(resubmitted.getReviewer()).isSameAs(analyst);
   }
 
+  @Test
+  void refusesToResubmitAnApprovedProject() {
+    Project project = rejectedProject();
+    project.submit(OffsetDateTime.now(ZoneOffset.UTC).minusDays(1));
+    project.approve(OffsetDateTime.now(ZoneOffset.UTC));
+    ProjectService projectService = mock(ProjectService.class);
+    DemandCalculationService demandCalculationService = mock(DemandCalculationService.class);
+    when(projectService.findWritableById(1L, DESIGNER)).thenReturn(project);
+
+    SubmissionService service =
+        new SubmissionService(
+            projectService,
+            demandCalculationService,
+            mock(CalculationRepository.class),
+            mock(ProjectDocumentRepository.class),
+            mock(FindingRepository.class));
+
+    assertThatThrownBy(() -> service.submit(1L, "Nova versão.", DESIGNER))
+        .isInstanceOfSatisfying(
+            BusinessException.class,
+            error -> assertThat(error.getStatus()).isEqualTo(HttpStatus.CONFLICT));
+    verify(demandCalculationService, never()).calculate(1L, DESIGNER);
+    assertThat(project.getStatus()).isEqualTo(ProjectStatus.APPROVED);
+  }
+
   private static Project rejectedProject() {
     Project project =
         new Project(
