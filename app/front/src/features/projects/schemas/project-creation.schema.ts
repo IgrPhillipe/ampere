@@ -1,8 +1,10 @@
 import { numberFieldSchema, textFieldSchema } from "@features/shared";
 import {
 	CONCESSION_STATES,
-	coversAddress,
+	concessionMunicipalityOf,
+	concessionStateOfPostalCode,
 	OUTSIDE_CONCESSION_MESSAGE,
+	POSTAL_CODE_STATE_MESSAGE,
 } from "@services/locations";
 import {
 	buildingCategorySchema,
@@ -32,7 +34,12 @@ export const projectCreationSchema = z
 		postalCode: textFieldSchema
 			.transform((value) => value.replace(/\D/g, ""))
 			.pipe(
-				z.string().regex(/^\d{8}$/, { error: "O CEP deve ter 8 dígitos." }),
+				z
+					.string()
+					.regex(/^\d{8}$/, { error: "O CEP deve ter 8 dígitos." })
+					.refine((digits) => concessionStateOfPostalCode(digits), {
+						error: OUTSIDE_CONCESSION_MESSAGE,
+					}),
 			),
 
 		state: z.enum(CONCESSION_STATES, {
@@ -75,9 +82,25 @@ export const projectCreationSchema = z
 			error: "O padrão de entrada é obrigatório.",
 		}),
 	})
-	.refine(({ state, municipality }) => coversAddress(state, municipality), {
-		error: OUTSIDE_CONCESSION_MESSAGE,
-		path: ["municipality"],
+	// Same rules as `ConcessionArea` in the back: the CEP range must match the state.
+	.superRefine(({ postalCode, state, municipality }, context) => {
+		const postalCodeState = concessionStateOfPostalCode(postalCode);
+
+		if (postalCodeState && postalCodeState !== state) {
+			context.addIssue({
+				code: "custom",
+				message: POSTAL_CODE_STATE_MESSAGE,
+				path: ["postalCode"],
+			});
+		}
+
+		if (!concessionMunicipalityOf(state, municipality)) {
+			context.addIssue({
+				code: "custom",
+				message: OUTSIDE_CONCESSION_MESSAGE,
+				path: ["municipality"],
+			});
+		}
 	});
 
 export type ProjectCreationFormValues = z.infer<typeof projectCreationSchema>;

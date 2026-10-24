@@ -1,20 +1,7 @@
 import { externalHttp } from "@lib/http";
 
 import { LocationEndpoints as e } from "./endpoints";
-import {
-	type BrazilianState,
-	municipalityListSchema,
-	type PostalCodeAddress,
-	postalCodeAddressSchema,
-} from "./schemas";
-
-export const getStateMunicipalityList = async (state: BrazilianState) => {
-	const response = await externalHttp
-		.get(e.municipalities(state))
-		.json<unknown>();
-
-	return municipalityListSchema.parse(response).map(({ nome }) => nome);
-};
+import { type PostalCodeAddress, postalCodeAddressSchema } from "./schemas";
 
 /** `null` when ViaCEP does not know the CEP. */
 export const getPostalCodeAddress = async (

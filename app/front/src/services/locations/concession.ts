@@ -1,3 +1,4 @@
+import { CONCESSION_MUNICIPALITIES } from "./concession-municipalities";
 import type { BrazilianState } from "./schemas";
 
 export const CONCESSION_STATES = [
@@ -12,13 +13,16 @@ export const concessionStateNames: Record<ConcessionState, string> = {
 	PB: "Paraíba",
 };
 
-/** Pernambuco is served whole; Paraíba only in Pedras de Fogo. */
-export const LIMITED_MUNICIPALITIES: Partial<
-	Record<ConcessionState, readonly string[]>
-> = { PB: ["Pedras de Fogo"] };
-
 export const OUTSIDE_CONCESSION_MESSAGE =
 	"Fora da área atendida pela Neoenergia Pernambuco: Pernambuco ou Pedras de Fogo (PB).";
+
+export const POSTAL_CODE_STATE_MESSAGE = "O CEP não pertence à UF informada.";
+
+// Correios ranges: Pernambuco is 50000-000 to 56999-999; Pedras de Fogo is 58328-xxx.
+const POSTAL_CODE_RANGES: Record<ConcessionState, readonly [number, number]> = {
+	PE: [50_000_000, 56_999_999],
+	PB: [58_328_000, 58_328_999],
+};
 
 const fold = (value: string) =>
 	value
@@ -30,17 +34,33 @@ const fold = (value: string) =>
 export const isConcessionState = (state: string): state is ConcessionState =>
 	(CONCESSION_STATES as readonly string[]).includes(state);
 
-export const concessionMunicipalities = (
-	state: ConcessionState,
-	municipalities: readonly string[],
-) => {
-	const limited = LIMITED_MUNICIPALITIES[state]?.map(fold);
+/** The state whose range holds the CEP, or `undefined` outside the concession area. */
+export const concessionStateOfPostalCode = (digits: string) => {
+	if (!/^\d{8}$/.test(digits)) return undefined;
 
-	return limited
-		? municipalities.filter((name) => limited.includes(fold(name)))
-		: municipalities;
+	const value = Number(digits);
+
+	return CONCESSION_STATES.find((state) => {
+		const [from, to] = POSTAL_CODE_RANGES[state];
+		return value >= from && value <= to;
+	});
 };
 
-export const coversAddress = (state: string, municipality: string) =>
-	isConcessionState(state) &&
-	concessionMunicipalities(state, [municipality]).length === 1;
+/** Served municipality names of the given states, or of the whole area when none is given. */
+export const concessionMunicipalityNames = (
+	states: readonly ConcessionState[] = [],
+) =>
+	CONCESSION_MUNICIPALITIES.filter(
+		({ state }) => states.length === 0 || states.includes(state),
+	)
+		.map(({ name }) => name)
+		.sort((a, b) => a.localeCompare(b, "pt-BR"));
+
+/** The IBGE spelling of a served municipality, ignoring case and accents. */
+export const concessionMunicipalityOf = (state: string, municipality: string) =>
+	CONCESSION_MUNICIPALITIES.find(
+		(item) => item.state === state && fold(item.name) === fold(municipality),
+	)?.name;
+
+export const concessionMunicipalityByCode = (code: string) =>
+	CONCESSION_MUNICIPALITIES.find((item) => item.code === code);

@@ -3,12 +3,11 @@ import {
 	ControlledInput,
 	ControlledSelect,
 } from "@components/form";
+import { formatPostalCode } from "@features/shared";
 import {
+	concessionMunicipalityByCode,
+	concessionMunicipalityNames,
 	concessionStateNames,
-	coversAddress,
-	isConcessionState,
-	OUTSIDE_CONCESSION_MESSAGE,
-	useGetConcessionMunicipalityList,
 	useGetPostalCodeAddress,
 } from "@services/locations";
 import { useEffect } from "react";
@@ -20,14 +19,28 @@ interface ProjectAddressFieldsProps {
 	form: UseFormReturn<ProjectCreationFormValues>;
 }
 
+const lookupHint = ({
+	isFetching,
+	isError,
+	data,
+}: ReturnType<typeof useGetPostalCodeAddress>) => {
+	if (isFetching) return "Buscando o endereço do CEP...";
+	if (isError)
+		return "Não foi possível buscar o CEP. Escolha a UF e o município.";
+	if (data === null) return "CEP não encontrado. Escolha a UF e o município.";
+	return undefined;
+};
+
 export const ProjectAddressFields = ({ form }: ProjectAddressFieldsProps) => {
-	const { control, getFieldState, setError, setValue } = form;
+	const { control, getFieldState, setValue, trigger } = form;
 	const postalCode = useWatch({ control, name: "postalCode" }) ?? "";
 	const state = useWatch({ control, name: "state" }) ?? null;
 	const digits = postalCode.replace(/\D/g, "");
 
-	const municipalities = useGetConcessionMunicipalityList(state ? [state] : []);
 	const lookup = useGetPostalCodeAddress(digits);
+	const found = lookup.data
+		? concessionMunicipalityByCode(lookup.data.ibge)
+		: undefined;
 
 	// A loaded project already has its address; only a CEP the user typed fills the rest.
 	useEffect(() => {
@@ -35,31 +48,25 @@ export const ProjectAddressFields = ({ form }: ProjectAddressFieldsProps) => {
 			return;
 		}
 
-		if (lookup.data === null) {
-			setError("postalCode", {
-				message: "CEP não encontrado. Escolha a UF e o município.",
-			});
+		const options = { shouldDirty: true };
+
+		if (!found || !lookup.data) {
+			setValue("state", undefined as never, options);
+			setValue("municipality", "", options);
+			setValue("address", "", options);
+			void trigger("postalCode");
 			return;
 		}
 
-		const { cep, uf, localidade, logradouro, bairro } = lookup.data;
-
-		if (!isConcessionState(uf) || !coversAddress(uf, localidade)) {
-			setError("postalCode", { message: OUTSIDE_CONCESSION_MESSAGE });
-			return;
-		}
-
-		const options = { shouldDirty: true, shouldValidate: true };
-
-		setValue("postalCode", cep, options);
-		setValue("state", uf, options);
-		setValue("municipality", localidade, options);
-
+		const { logradouro, bairro } = lookup.data;
 		const street = [logradouro, bairro].filter(Boolean).join(", ");
 
+		setValue("state", found.state, options);
+		setValue("municipality", found.name, options);
 		// A CEP for a whole municipality has no street; keep what the user typed.
 		if (street) setValue("address", street, options);
-	}, [lookup.data, getFieldState, setError, setValue]);
+		void trigger(["postalCode", "state", "municipality", "address"]);
+	}, [lookup.data, found, getFieldState, setValue, trigger]);
 
 	return (
 		<>
@@ -71,9 +78,8 @@ export const ProjectAddressFields = ({ form }: ProjectAddressFieldsProps) => {
 				inputMode="numeric"
 				autoComplete="postal-code"
 				maxLength={9}
-				description={
-					lookup.isFetching ? "Buscando o endereço do CEP..." : undefined
-				}
+				format={formatPostalCode}
+				description={lookupHint(lookup)}
 				required
 				variant="underline"
 			/>
@@ -95,8 +101,8 @@ export const ProjectAddressFields = ({ form }: ProjectAddressFieldsProps) => {
 				placeholder={state ? "Selecione o município" : "Escolha a UF antes"}
 				searchPlaceholder="Buscar município"
 				emptyMessage="Nenhum município encontrado."
-				options={municipalities.municipalities}
-				disabled={!state || municipalities.isPending}
+				options={concessionMunicipalityNames(state ? [state] : [])}
+				disabled={!state}
 				required
 				variant="underline"
 			/>

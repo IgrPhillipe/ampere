@@ -4,8 +4,8 @@ import { SearchableFilterMenu } from "@components/SearchableFilterMenu";
 import {
 	CONCESSION_STATES,
 	type ConcessionState,
+	concessionMunicipalityNames,
 	concessionStateNames,
-	useGetConcessionMunicipalityList,
 } from "@services/locations";
 import {
 	UNASSIGNED_REVIEWER,
@@ -35,7 +35,6 @@ export const ReviewQueueFilterControls = ({
 	onMunicipalityChange,
 }: ReviewQueueFilterControlsProps) => {
 	const reviewersQuery = useGetReviewerList();
-	const municipalities = useGetConcessionMunicipalityList(state);
 
 	const reviewers = [
 		{ value: UNASSIGNED_REVIEWER, label: "Sem analista" },
@@ -67,10 +66,9 @@ export const ReviewQueueFilterControls = ({
 				allLabel="Todos"
 				searchPlaceholder="Buscar município"
 				emptyMessage="Nenhum município encontrado."
-				options={municipalities.municipalities}
+				options={concessionMunicipalityNames(state)}
 				value={municipality}
 				onValueChange={onMunicipalityChange}
-				disabled={municipalities.isPending}
 			/>
 		</>
 	);

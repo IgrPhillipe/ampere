@@ -1,7 +1,7 @@
 import { externalHttp } from "@lib/http";
 import { describe, expect, it, vi } from "vitest";
 
-import { getPostalCodeAddress, getStateMunicipalityList } from "./requests";
+import { getPostalCodeAddress } from "./requests";
 
 vi.mock("@lib/http", () => ({ externalHttp: { get: vi.fn() } }));
 
@@ -31,17 +31,5 @@ describe("locations requests", () => {
 		respond({ erro: "true" });
 
 		await expect(getPostalCodeAddress("00000000")).resolves.toBeNull();
-	});
-
-	it("keeps only the municipality names", async () => {
-		respond([
-			{ id: 2600054, nome: "Abreu e Lima" },
-			{ id: 2611606, nome: "Recife" },
-		]);
-
-		await expect(getStateMunicipalityList("PE")).resolves.toEqual([
-			"Abreu e Lima",
-			"Recife",
-		]);
 	});
 });

@@ -4,8 +4,8 @@ import { SearchableFilterMenu } from "@components/SearchableFilterMenu";
 import {
 	CONCESSION_STATES,
 	type ConcessionState,
+	concessionMunicipalityNames,
 	concessionStateNames,
-	useGetConcessionMunicipalityList,
 } from "@services/locations";
 import {
 	type ProjectFindingsFilter,
@@ -44,41 +44,36 @@ export const ProjectFilterControls = ({
 	onPeriodChange,
 	findings,
 	onFindingsChange,
-}: ProjectFilterControlsProps) => {
-	const municipalities = useGetConcessionMunicipalityList(state);
-
-	return (
-		<>
-			<MultiFilterMenu
-				label="UF"
-				allLabel="Todas"
-				options={stateOptions}
-				value={state}
-				onValueChange={onStateChange}
-			/>
-			<SearchableFilterMenu
-				label="Município"
-				allLabel="Todos"
-				searchPlaceholder="Buscar município"
-				emptyMessage="Nenhum município encontrado."
-				options={municipalities.municipalities}
-				value={municipality}
-				onValueChange={onMunicipalityChange}
-				disabled={municipalities.isPending}
-			/>
-			<DateRangeFilter
-				label="Criado em"
-				allLabel="Qualquer data"
-				value={period}
-				onValueChange={onPeriodChange}
-			/>
-			<MultiFilterMenu
-				label="Apontamentos"
-				allLabel="Todos"
-				options={findingsOptions}
-				value={findings}
-				onValueChange={onFindingsChange}
-			/>
-		</>
-	);
-};
+}: ProjectFilterControlsProps) => (
+	<>
+		<MultiFilterMenu
+			label="UF"
+			allLabel="Todas"
+			options={stateOptions}
+			value={state}
+			onValueChange={onStateChange}
+		/>
+		<SearchableFilterMenu
+			label="Município"
+			allLabel="Todos"
+			searchPlaceholder="Buscar município"
+			emptyMessage="Nenhum município encontrado."
+			options={concessionMunicipalityNames(state)}
+			value={municipality}
+			onValueChange={onMunicipalityChange}
+		/>
+		<DateRangeFilter
+			label="Criado em"
+			allLabel="Qualquer data"
+			value={period}
+			onValueChange={onPeriodChange}
+		/>
+		<MultiFilterMenu
+			label="Apontamentos"
+			allLabel="Todos"
+			options={findingsOptions}
+			value={findings}
+			onValueChange={onFindingsChange}
+		/>
+	</>
+);

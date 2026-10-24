@@ -32,13 +32,6 @@ export const brazilianStateSchema = z.enum([
 
 export type BrazilianState = z.infer<typeof brazilianStateSchema>;
 
-export const municipalitySchema = z.object({
-	id: z.number(),
-	nome: z.string(),
-});
-
-export const municipalityListSchema = z.array(municipalitySchema);
-
 /** ViaCEP answers 200 with `{ "erro": "true" }` for a CEP it does not know. */
 export const postalCodeAddressSchema = z.union([
 	z.object({ erro: z.union([z.literal(true), z.literal("true")]) }),
@@ -48,6 +41,7 @@ export const postalCodeAddressSchema = z.union([
 		bairro: z.string(),
 		localidade: z.string(),
 		uf: brazilianStateSchema,
+		ibge: z.string(),
 	}),
 ]);
 
