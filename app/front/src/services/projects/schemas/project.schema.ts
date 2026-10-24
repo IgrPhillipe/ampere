@@ -77,7 +77,6 @@ export const municipalityListResponseSchema = apiResponseSchema(
 	z.array(z.string()),
 );
 
-/** A designer offered in the admin's filter. */
 export const projectOwnerSchema = z.object({
 	id: z.string(),
 	name: z.string(),

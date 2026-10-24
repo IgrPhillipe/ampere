@@ -35,7 +35,6 @@ const sortableColumns = [
 
 interface ProjectsTableProps extends ProjectRowActions {
 	projects: Project[];
-	/** Adds the "Projetista" column and card line. */
 	showOwner?: boolean;
 	isLoading?: boolean;
 	sort?: ListSort<ProjectSort>;

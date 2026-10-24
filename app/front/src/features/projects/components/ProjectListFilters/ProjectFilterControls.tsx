@@ -15,7 +15,6 @@ const findingsOptions = projectFindingsFilterSchema.options.map((value) => ({
 }));
 
 interface ProjectFilterControlsProps {
-	/** Only the admin lists other designers' projects, so only they filter by one. */
 	showOwner?: boolean;
 	owner?: string | null;
 	onOwnerChange?: (owner: string | null) => void;

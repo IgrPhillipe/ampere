@@ -26,7 +26,6 @@ export type ProjectColumnId =
 	| "action";
 
 interface ProjectColumnOptions {
-	/** Only the admin lists other designers' projects. */
 	showOwner: boolean;
 }
 
