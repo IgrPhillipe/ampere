@@ -1,5 +1,6 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.SortDirection;
@@ -84,16 +85,16 @@ public class ProjectController {
           @RequestParam(required = false)
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate createdTo,
-      @Parameter(description = "Só os projetos com apontamento bloqueante em aberto")
-          @RequestParam(defaultValue = "false")
-          boolean hasBlocking,
+      @Parameter(description = "Situação dos apontamentos em aberto")
+          @RequestParam(required = false)
+          OpenFindingsFilter findings,
       @AuthenticationPrincipal Jwt jwt) {
     ProjectListing listing =
         service.list(
             pagination.page(),
             pagination.pageSize(),
             new ProjectListQuery(
-                status, search, sort, direction, municipality, createdFrom, createdTo, hasBlocking),
+                status, search, sort, direction, municipality, createdFrom, createdTo, findings),
             userOf(jwt));
     List<ProjectResponse> projects =
         listing.projects().stream()

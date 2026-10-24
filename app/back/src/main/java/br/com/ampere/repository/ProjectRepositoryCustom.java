@@ -1,5 +1,6 @@
 package br.com.ampere.repository;
 
+import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
@@ -26,7 +27,7 @@ public interface ProjectRepositoryCustom {
       String municipality,
       OffsetDateTime createdFrom,
       OffsetDateTime createdBefore,
-      boolean hasBlocking,
+      OpenFindingsFilter findings,
       ProjectSort sort,
       SortDirection direction) {}
 

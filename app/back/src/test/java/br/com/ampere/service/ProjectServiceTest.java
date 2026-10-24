@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
+import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
@@ -61,7 +62,7 @@ class ProjectServiceTest {
                 "Recife",
                 LocalDate.of(2026, 10, 1),
                 LocalDate.of(2026, 10, 10),
-                true),
+                OpenFindingsFilter.ANY_OPEN),
             DESIGNER);
 
     ArgumentCaptor<ProjectSearch> searchCaptor = ArgumentCaptor.forClass(ProjectSearch.class);
@@ -74,7 +75,7 @@ class ProjectServiceTest {
     assertThat(search.search()).isEqualTo("\\%\\_\\\\");
     assertThat(search.createdFrom()).isEqualTo(OffsetDateTime.parse("2026-10-01T00:00-03:00"));
     assertThat(search.createdBefore()).isEqualTo(OffsetDateTime.parse("2026-10-11T00:00-03:00"));
-    assertThat(search.hasBlocking()).isTrue();
+    assertThat(search.findings()).isEqualTo(OpenFindingsFilter.ANY_OPEN);
     assertThat(pageableCaptor.getValue().getPageNumber()).isEqualTo(1);
     assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(20);
   }
@@ -91,7 +92,7 @@ class ProjectServiceTest {
             null,
             LocalDate.of(2026, 10, 10),
             LocalDate.of(2026, 10, 1),
-            false);
+            null);
 
     assertThatThrownBy(
             () ->

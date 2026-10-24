@@ -90,7 +90,7 @@ public class ProjectService {
                 query.municipality(),
                 startOf(query.createdFrom()),
                 query.createdTo() == null ? null : startOf(query.createdTo().plusDays(1)),
-                query.hasBlocking(),
+                query.findings(),
                 query.sort(),
                 query.direction()),
             PageRequest.of(page - 1, pageSize));

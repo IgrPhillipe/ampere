@@ -12,8 +12,10 @@ import br.com.ampere.domain.DemandResult;
 import br.com.ampere.domain.DemandStep;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingResolution;
 import br.com.ampere.domain.FindingSeverity;
 import br.com.ampere.domain.FindingStage;
+import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
@@ -268,7 +270,7 @@ class ProjectServiceIntegrationTest {
     stamp(dayAfter, "createdAt", "2026-10-11T00:05-03:00");
 
     ProjectListing listing =
-        list(filtered(null, LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 10), false));
+        list(filtered(null, LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 10)));
 
     assertThat(listing.projects()).containsExactlyInAnyOrder(firstDay, lastDay);
   }
@@ -279,19 +281,30 @@ class ProjectServiceIntegrationTest {
     save("B", "Olinda", "2026-0020");
     save("C", "Recife Antigo", "2026-0030");
 
-    assertThat(list(filtered(" recife", null, null, false)).projects()).containsExactly(recife);
+    assertThat(list(filtered(" recife", null, null)).projects()).containsExactly(recife);
   }
 
   @Test
-  void filtersByOpenBlockingFindingsOnly() {
+  void filtersByTheFindingsStillOpen() {
     Project blocked = save("A", "Recife", "2026-0030");
     Project adjusted = save("B", "Recife", "2026-0040");
     Project drafted = save("C", "Recife", "2026-0050");
+    Project resolved = save("D", "Recife", "2026-0060");
+    Project clean = save("E", "Recife", "2026-0070");
     findingRepository.save(published(finding(blocked, FindingSeverity.BLOCKING)));
     findingRepository.save(published(finding(adjusted, FindingSeverity.ADJUSTMENT)));
     findingRepository.save(finding(drafted, FindingSeverity.BLOCKING));
+    Finding accepted = published(finding(resolved, FindingSeverity.BLOCKING));
+    accepted.resolve(FindingResolution.ACCEPT);
+    findingRepository.save(accepted);
 
-    assertThat(list(filtered(null, null, null, true)).projects()).containsExactly(blocked);
+    assertThat(list(filtered(OpenFindingsFilter.BLOCKING_OPEN)).projects())
+        .containsExactly(blocked);
+    assertThat(list(filtered(OpenFindingsFilter.ANY_OPEN)).projects())
+        .containsExactlyInAnyOrder(blocked, adjusted);
+    assertThat(list(filtered(OpenFindingsFilter.NONE_OPEN)).projects())
+        .containsExactlyInAnyOrder(drafted, resolved, clean);
+    assertThat(list(filtered((OpenFindingsFilter) null)).projects()).hasSize(5);
   }
 
   @Test
@@ -314,7 +327,7 @@ class ProjectServiceIntegrationTest {
                 "Recife",
                 null,
                 null,
-                true));
+                OpenFindingsFilter.BLOCKING_OPEN));
 
     assertThat(listing.projects()).containsExactly(alpha, zeta);
     assertThat(listing.totalElements()).isEqualTo(2);
@@ -445,7 +458,7 @@ class ProjectServiceIntegrationTest {
   private ProjectListing list(ProjectStatus status, String search) {
     return list(
         new ProjectListQuery(
-            status, search, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, false));
+            status, search, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, null));
   }
 
   private ProjectListing list(ProjectListQuery query) {
@@ -453,11 +466,11 @@ class ProjectServiceIntegrationTest {
   }
 
   private static ProjectListQuery sortedBy(ProjectSort sort, SortDirection direction) {
-    return new ProjectListQuery(null, null, sort, direction, null, null, null, false);
+    return new ProjectListQuery(null, null, sort, direction, null, null, null, null);
   }
 
   private static ProjectListQuery filtered(
-      String municipality, LocalDate createdFrom, LocalDate createdTo, boolean hasBlocking) {
+      String municipality, LocalDate createdFrom, LocalDate createdTo) {
     return new ProjectListQuery(
         null,
         null,
@@ -466,7 +479,12 @@ class ProjectServiceIntegrationTest {
         municipality,
         createdFrom,
         createdTo,
-        hasBlocking);
+        null);
+  }
+
+  private static ProjectListQuery filtered(OpenFindingsFilter findings) {
+    return new ProjectListQuery(
+        null, null, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, findings);
   }
 
   private Project save(String name, String municipality, String protocol) {

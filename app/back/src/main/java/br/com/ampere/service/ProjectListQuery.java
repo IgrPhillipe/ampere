@@ -1,5 +1,6 @@
 package br.com.ampere.service;
 
+import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.SortDirection;
@@ -14,4 +15,4 @@ public record ProjectListQuery(
     String municipality,
     LocalDate createdFrom,
     LocalDate createdTo,
-    boolean hasBlocking) {}
+    OpenFindingsFilter findings) {}

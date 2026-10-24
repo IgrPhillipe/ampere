@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import br.com.ampere.config.EnumParameterConfig;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
+import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
@@ -111,7 +112,7 @@ class ProjectControllerTest {
             "Recife",
             LocalDate.of(2026, 10, 1),
             LocalDate.of(2026, 10, 10),
-            true);
+            OpenFindingsFilter.BLOCKING_OPEN);
     when(service.list(1, 20, query, DESIGNER))
         .thenReturn(new ProjectListing(List.of(), 0, Map.of(), Map.of(), Map.of()));
 
@@ -123,9 +124,18 @@ class ProjectControllerTest {
                 .param("municipality", "Recife")
                 .param("createdFrom", "2026-10-01")
                 .param("createdTo", "2026-10-10")
-                .param("hasBlocking", "true"))
+                .param("findings", "BLOCKING_OPEN"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.pagination.total").value(0));
+  }
+
+  @Test
+  void rejectsAnUnknownFindingsSituation() throws Exception {
+    mockMvc(mock(ProjectService.class))
+        .perform(get("/projects").param("findings", "BLOCKING"))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.detail").value(containsString("BLOCKING_OPEN, ANY_OPEN, NONE_OPEN")));
   }
 
   @Test
@@ -183,7 +193,7 @@ class ProjectControllerTest {
                 null,
                 null,
                 null,
-                false),
+                null),
             DESIGNER))
         .thenReturn(listing);
     ProjectController controller = new ProjectController(service);
@@ -198,7 +208,7 @@ class ProjectControllerTest {
             null,
             null,
             null,
-            false,
+            null,
             designerToken());
 
     assertThat(response.data()).hasSize(1);

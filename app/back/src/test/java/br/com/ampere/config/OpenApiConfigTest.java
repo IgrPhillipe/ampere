@@ -3,6 +3,7 @@ package br.com.ampere.config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.ampere.controller.ProjectController;
+import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.SortDirection;
@@ -40,7 +41,7 @@ class OpenApiConfigTest {
                 String.class,
                 LocalDate.class,
                 LocalDate.class,
-                boolean.class,
+                OpenFindingsFilter.class,
                 Jwt.class)
             .getAnnotation(Operation.class);
 

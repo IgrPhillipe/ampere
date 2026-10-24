@@ -26,6 +26,8 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         WHERE c.id = %s AND item.status = br.com.ampere.domain.CheckStatus.WARNING)"""
           .formatted(LATEST_CALCULATION);
 
+  private static final String BLOCKING = "br.com.ampere.domain.FindingSeverity.BLOCKING";
+
   @PersistenceContext private EntityManager entityManager;
 
   @Override
@@ -56,15 +58,14 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
       where.append(" AND project.createdAt < :createdBefore");
       parameters.put("createdBefore", search.createdBefore());
     }
-    if (search.hasBlocking()) {
+    if (search.findings() != null) {
       where.append(
-          """
-           AND EXISTS (
-            SELECT finding.id FROM Finding finding
-            WHERE finding.project = project
-              AND finding.severity = br.com.ampere.domain.FindingSeverity.BLOCKING
-              AND finding.status = br.com.ampere.domain.FindingStatus.OPEN
-          )""");
+          switch (search.findings()) {
+            case BLOCKING_OPEN ->
+                " AND EXISTS " + openFindings(" AND finding.severity = " + BLOCKING);
+            case ANY_OPEN -> " AND EXISTS " + openFindings("");
+            case NONE_OPEN -> " AND NOT EXISTS " + openFindings("");
+          });
     }
 
     String direction = search.direction().name();
@@ -130,6 +131,13 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         parameters,
         column + ", project.id ASC",
         pageable);
+  }
+
+  private static String openFindings(String condition) {
+    return "(SELECT finding.id FROM Finding finding WHERE finding.project = project"
+        + " AND finding.status = br.com.ampere.domain.FindingStatus.OPEN"
+        + condition
+        + ")";
   }
 
   private static void filterByMunicipality(
