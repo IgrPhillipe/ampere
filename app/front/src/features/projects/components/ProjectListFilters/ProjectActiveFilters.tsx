@@ -38,6 +38,14 @@ export const ProjectActiveFilters = ({
 		});
 	}
 
+	if (filters.state) {
+		active.push({
+			id: "state",
+			label: `UF: ${filters.state}`,
+			onRemove: () => filters.setState(null),
+		});
+	}
+
 	if (municipality) {
 		active.push({
 			id: "municipality",

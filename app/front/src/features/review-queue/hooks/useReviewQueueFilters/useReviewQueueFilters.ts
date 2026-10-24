@@ -5,6 +5,7 @@ import {
 	sortDirectionSchema,
 	useDebouncedValue,
 } from "@features/shared";
+import { type BrazilianState, brazilianStateSchema } from "@services/locations";
 import {
 	type ListReviewQueueParams,
 	type ReviewQueueFilter,
@@ -54,9 +55,10 @@ export const useReviewQueueFilters = () => {
 		),
 		direction: parseAsStringLiteral(sortDirectionSchema.options),
 		reviewer: parseAsString,
+		state: parseAsStringLiteral(brazilianStateSchema.options),
 		municipality: parseAsString,
 	});
-	const { filter, search, page, municipality } = query;
+	const { filter, search, page, state, municipality } = query;
 	const reviewer = toReviewer(query.reviewer);
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -76,9 +78,10 @@ export const useReviewQueueFilters = () => {
 			sort: sort.column,
 			direction: sort.direction,
 			reviewer: reviewer ?? undefined,
+			state: state ?? undefined,
 			municipality: municipality ?? undefined,
 		}),
-		[page, filter, debouncedSearch, sort, reviewer, municipality],
+		[page, filter, debouncedSearch, sort, reviewer, state, municipality],
 	);
 
 	const setFilter = useCallback(
@@ -131,6 +134,13 @@ export const useReviewQueueFilters = () => {
 		[setQuery],
 	);
 
+	const setState = useCallback(
+		(value: BrazilianState | null) => {
+			void setQuery({ state: value, municipality: null, page: null });
+		},
+		[setQuery],
+	);
+
 	const setMunicipality = useCallback(
 		(value: string | null) => {
 			void setQuery({ municipality: value, page: null });
@@ -143,6 +153,7 @@ export const useReviewQueueFilters = () => {
 			filter: null,
 			search: null,
 			reviewer: null,
+			state: null,
 			municipality: null,
 			page: null,
 		});
@@ -154,12 +165,14 @@ export const useReviewQueueFilters = () => {
 		page,
 		sort,
 		reviewer,
+		state,
 		municipality,
 		params,
 		hasActiveFilters:
 			filter !== "ALL" ||
 			search.trim() !== "" ||
 			reviewer !== null ||
+			state !== null ||
 			municipality !== null,
 		setFilter,
 		setSearch,
@@ -167,6 +180,7 @@ export const useReviewQueueFilters = () => {
 		setSort,
 		sortBy,
 		setReviewer,
+		setState,
 		setMunicipality,
 		clearFilters,
 	};

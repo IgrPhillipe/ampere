@@ -7,6 +7,7 @@ import {
 	useDebouncedValue,
 } from "@features/shared";
 import dayjs from "@lib/dayjs";
+import { type BrazilianState, brazilianStateSchema } from "@services/locations";
 import {
 	type ListProjectsParams,
 	type ProjectFindingsFilter,
@@ -52,12 +53,13 @@ export const useProjectFilters = () => {
 			DEFAULT_SORT,
 		),
 		direction: parseAsStringLiteral(sortDirectionSchema.options),
+		state: parseAsStringLiteral(brazilianStateSchema.options),
 		municipality: parseAsString,
 		createdFrom: parseAsString,
 		createdTo: parseAsString,
 		findings: parseAsStringLiteral(projectFindingsFilterSchema.options),
 	});
-	const { status, search, page, municipality, findings } = query;
+	const { status, search, page, state, municipality, findings } = query;
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
 	const sort = useMemo<ListSort<ProjectSort>>(
@@ -83,12 +85,22 @@ export const useProjectFilters = () => {
 			search: debouncedSearch || undefined,
 			sort: sort.column,
 			direction: sort.direction,
+			state: state ?? undefined,
 			municipality: municipality ?? undefined,
 			createdFrom: period.from ?? undefined,
 			createdTo: period.to ?? undefined,
 			findings: findings ?? undefined,
 		}),
-		[page, status, debouncedSearch, sort, municipality, period, findings],
+		[
+			page,
+			status,
+			debouncedSearch,
+			sort,
+			state,
+			municipality,
+			period,
+			findings,
+		],
 	);
 
 	const setStatus = useCallback(
@@ -131,6 +143,13 @@ export const useProjectFilters = () => {
 		[sort, setSort],
 	);
 
+	const setState = useCallback(
+		(value: BrazilianState | null) => {
+			void setQuery({ state: value, municipality: null, page: null });
+		},
+		[setQuery],
+	);
+
 	const setMunicipality = useCallback(
 		(value: string | null) => {
 			void setQuery({ municipality: value, page: null });
@@ -160,6 +179,7 @@ export const useProjectFilters = () => {
 		void setQuery({
 			status: null,
 			search: null,
+			state: null,
 			municipality: null,
 			createdFrom: null,
 			createdTo: null,
@@ -173,6 +193,7 @@ export const useProjectFilters = () => {
 		search,
 		page,
 		sort,
+		state,
 		municipality,
 		period,
 		findings,
@@ -181,6 +202,7 @@ export const useProjectFilters = () => {
 		hasActiveFilters:
 			status !== null ||
 			search.trim() !== "" ||
+			state !== null ||
 			municipality !== null ||
 			period.from !== null ||
 			period.to !== null ||
@@ -190,6 +212,7 @@ export const useProjectFilters = () => {
 		setPage,
 		setSort,
 		sortBy,
+		setState,
 		setMunicipality,
 		setPeriod,
 		setFindings,

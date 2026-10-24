@@ -1,7 +1,7 @@
 import { ControlledInput, ControlledSelect } from "@components/form";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
-import { useZodForm } from "@features/shared";
+import { formatPostalCode, useZodForm } from "@features/shared";
 import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
 import {
 	type BuildingCategory,
@@ -18,7 +18,11 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useEffect } from "react";
 import { useFormState } from "react-hook-form";
 
-import { ProjectStamp, ProjectStepper } from "../../components";
+import {
+	ProjectAddressFields,
+	ProjectStamp,
+	ProjectStepper,
+} from "../../components";
 import {
 	type ProjectCreationFormValues,
 	projectCreationSchema,
@@ -55,7 +59,14 @@ const PROGRESS_SECTIONS: {
 }[] = [
 	{
 		title: "Identificação",
-		fields: ["name", "municipality", "address", "floors"],
+		fields: [
+			"name",
+			"postalCode",
+			"state",
+			"municipality",
+			"address",
+			"floors",
+		],
 	},
 	{
 		title: "Parâmetros Técnicos",
@@ -73,8 +84,10 @@ const isFilled = (value: unknown) =>
 
 const formValuesOf = (project: ProjectDetail): ProjectCreationFormValues => ({
 	name: project.name,
-	address: project.address,
+	postalCode: formatPostalCode(project.postalCode ?? ""),
+	state: project.state,
 	municipality: project.municipality,
+	address: project.address,
 	buildingType: project.buildingType,
 	floors: project.floors,
 	voltage: project.voltage,
@@ -104,8 +117,10 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 
 	const form = useZodForm(projectCreationSchema, {
 		name: "",
-		address: "",
+		postalCode: "",
+		state: undefined,
 		municipality: "",
+		address: "",
 		buildingType: undefined,
 		floors: undefined,
 		voltage: undefined,
@@ -212,23 +227,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 									variant="underline"
 								/>
 
-								<ControlledInput
-									control={form.control}
-									name="municipality"
-									label="Município"
-									placeholder="Digite o município"
-									required
-									variant="underline"
-								/>
-
-								<ControlledInput
-									control={form.control}
-									name="address"
-									label="Endereço"
-									placeholder="Digite o endereço"
-									required
-									variant="underline"
-								/>
+								<ProjectAddressFields form={form} />
 
 								<ControlledInput
 									control={form.control}

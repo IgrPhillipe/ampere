@@ -6,7 +6,9 @@ export const projectKeys = {
 	list: (params: ListProjectsParams = {}) =>
 		[...projectKeys.lists(), params] as const,
 	statusCounts: () => [...projectKeys.all(), "status-counts"] as const,
-	municipalities: () => [...projectKeys.all(), "municipalities"] as const,
+	states: () => [...projectKeys.all(), "states"] as const,
+	municipalities: (state?: string) =>
+		[...projectKeys.all(), "municipalities", state ?? "all"] as const,
 	details: () => [...projectKeys.all(), "detail"] as const,
 	detail: (id: string) => [...projectKeys.details(), id] as const,
 };

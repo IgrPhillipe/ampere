@@ -3,6 +3,7 @@ export * from "./ConsumerUnitGroupsTable";
 export * from "./GroupSheet";
 export * from "./LoadComposition";
 export * from "./MemorialPreview";
+export * from "./ProjectAddressFields";
 export * from "./ProjectDeleteDialog";
 export * from "./ProjectListFilters";
 export * from "./ProjectStamp";

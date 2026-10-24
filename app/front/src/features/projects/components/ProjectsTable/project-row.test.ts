@@ -8,6 +8,7 @@ const project: Project = {
 	name: "Condomínio Vila Nova",
 	address: "Rua A, 1",
 	municipality: "Recife",
+	state: "PE",
 	protocol: "2026-0475",
 	status: "DRAFT",
 	createdAt: "2026-10-01T12:00:00Z",

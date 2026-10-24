@@ -1,5 +1,6 @@
 import { toSearchParams } from "@features/shared";
 import { http } from "@lib/http";
+import type { BrazilianState } from "@services/locations";
 
 import { ProjectEndpoints as e } from "./endpoints";
 import {
@@ -7,6 +8,7 @@ import {
 	projectDetailResponseSchema,
 	projectListResponseSchema,
 	projectStatusCountsResponseSchema,
+	stateListResponseSchema,
 } from "./schemas";
 import type { CreateProjectPayload, ListProjectsParams } from "./types";
 
@@ -24,8 +26,16 @@ export const getProjectStatusCounts = async () => {
 	return projectStatusCountsResponseSchema.parse(response);
 };
 
-export const getMunicipalityList = async () => {
-	const response = await http.get(e.municipalities).json<unknown>();
+export const getProjectStateList = async () => {
+	const response = await http.get(e.states).json<unknown>();
+
+	return stateListResponseSchema.parse(response);
+};
+
+export const getMunicipalityList = async (state?: BrazilianState) => {
+	const response = await http
+		.get(e.municipalities, { searchParams: state ? { state } : undefined })
+		.json<unknown>();
 
 	return municipalityListResponseSchema.parse(response);
 };

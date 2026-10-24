@@ -1,4 +1,5 @@
 import { numberFieldSchema, textFieldSchema } from "@features/shared";
+import { brazilianStateSchema } from "@services/locations";
 import {
 	buildingCategorySchema,
 	connectionTypeSchema,
@@ -21,6 +22,14 @@ export const projectCreationSchema = z.object({
 
 	address: textFieldSchema.max(200, {
 		error: "O endereço deve ter no máximo 200 caracteres.",
+	}),
+
+	postalCode: textFieldSchema
+		.transform((value) => value.replace(/\D/g, ""))
+		.pipe(z.string().regex(/^\d{8}$/, { error: "O CEP deve ter 8 dígitos." })),
+
+	state: z.enum(brazilianStateSchema.options, {
+		error: "A UF é obrigatória.",
 	}),
 
 	municipality: textFieldSchema.max(100, {

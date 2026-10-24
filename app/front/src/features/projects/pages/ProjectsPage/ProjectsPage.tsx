@@ -169,6 +169,8 @@ export const ProjectsPage = () => {
 					}
 					refinements={
 						<ProjectFilterControls
+							state={filters.state}
+							onStateChange={filters.setState}
 							municipality={filters.municipality}
 							onMunicipalityChange={filters.setMunicipality}
 							period={filters.period}

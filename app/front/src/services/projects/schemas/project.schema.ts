@@ -1,4 +1,5 @@
 import { apiResponseSchema, paginatedResponseSchema } from "@features/shared";
+import { brazilianStateSchema } from "@services/locations";
 import { z } from "zod";
 
 export const projectStatusSchema = z.enum([
@@ -33,6 +34,7 @@ export const projectSchema = z.object({
 	name: z.string(),
 	address: z.string(),
 	municipality: z.string(),
+	state: brazilianStateSchema,
 	protocol: z.string(),
 	status: projectStatusSchema,
 	createdAt: z.iso.datetime({ offset: true }),
@@ -73,6 +75,10 @@ export type ProjectStatusCountsResponse = z.infer<
 
 export const municipalityListResponseSchema = apiResponseSchema(
 	z.array(z.string()),
+);
+
+export const stateListResponseSchema = apiResponseSchema(
+	z.array(brazilianStateSchema),
 );
 
 export type MunicipalityListResponse = z.infer<
@@ -132,6 +138,8 @@ export const projectDetailSchema = z.object({
 	name: z.string(),
 	address: z.string(),
 	municipality: z.string(),
+	state: brazilianStateSchema,
+	postalCode: z.string().nullable(),
 	protocol: z.string(),
 	status: projectStatusSchema,
 	createdAt: z.iso.datetime({ offset: true }),

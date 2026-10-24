@@ -4,7 +4,7 @@ import {
 	projectStatusBadgeVariants,
 	projectStatusLabels,
 } from "@features/projects";
-import { formatDateTime, formatKva } from "@features/shared";
+import { formatDateTime, formatKva, formatPlace } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ProjectDetail } from "@services/projects";
 import type { ReactNode } from "react";
@@ -66,7 +66,8 @@ export const ReviewHeader = ({
 					</Badge>
 					{reanalysis ? <Badge variant="tag">Reanálise</Badge> : null}
 					<span className="text-sm text-muted-foreground">
-						{project.address}, {project.municipality}
+						{project.address},{" "}
+						{formatPlace(project.municipality, project.state)}
 					</span>
 				</div>
 			) : null}
