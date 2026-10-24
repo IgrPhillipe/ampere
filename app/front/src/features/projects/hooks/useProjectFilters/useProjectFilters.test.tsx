@@ -71,6 +71,16 @@ describe("useProjectFilters", () => {
 		});
 	});
 
+	it("drops the municipality when the state changes", async () => {
+		const { result, lastUrl } = renderFilters(
+			"?state=PE&municipality=Recife&page=2",
+		);
+
+		act(() => result.current.setState("PB"));
+
+		await waitFor(() => expect(lastUrl()?.toString()).toBe("state=PB"));
+	});
+
 	it("stores the findings filter and ignores unknown values", async () => {
 		expect(renderFilters("?findings=OPEN").result.current.findings).toBeNull();
 
