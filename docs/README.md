@@ -27,11 +27,12 @@ docs/
 | Negócio    | [negocio/mapa-stakeholders.md](negocio/mapa-stakeholders.md) | Atores por proximidade com o problema e posição dentro ou fora da Neoenergia |
 | Produto    | [produto/ideacao.md](produto/ideacao.md) | Registro da Ideação Parte 1: brainstorming, riscos e proposta final |
 | Produto    | [produto/questoes-em-aberto.md](produto/questoes-em-aberto.md) | Registro único das questões de produto |
-| Produto    | [produto/user-stories.md](produto/user-stories.md) | 7 histórias de usuário em BDD, com critérios de confirmação e cenários. Entrega 01 de POO |
+| Produto    | [produto/user-stories.md](produto/user-stories.md) | 20 histórias de usuário em BDD, com critérios de confirmação e cenários |
 | Técnico    | [tecnico/README.md](tecnico/README.md) | Motor de cálculo e requisitos de POO |
 | Técnico    | [tecnico/fontes-normativas.md](tecnico/fontes-normativas.md) | DIS-NOR-053, metodologia de cálculo, revisões e processo de submissão |
 | Produto    | [produto/matriz-esforco-impacto.md](produto/matriz-esforco-impacto.md) | Priorização das histórias e ordem de construção do MVP |
 | Produto    | [produto/plano-entrega-03.md](produto/plano-entrega-03.md) | Plano da Entrega 03: sprints, histórias e issues |
+| Produto    | [produto/plano-entrega-04.md](produto/plano-entrega-04.md) | Plano da Entrega 04 e do Status Report 2: sprints, histórias e issues |
 | Técnico    | [tecnico/engine-calculo.md](tecnico/engine-calculo.md) | Entradas, saídas, validações e rastreabilidade do motor de cálculo |
 | Técnico    | [tecnico/design-system-front.md](tecnico/design-system-front.md) | Design system do front-end inspirado na identidade visual da Neoenergia |
 | Técnico    | [tecnico/convencoes-back.md](tecnico/convencoes-back.md) | Padrões de código, arquitetura e receitas do back-end (Java e Spring Boot) |
