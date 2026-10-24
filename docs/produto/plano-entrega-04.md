@@ -2,7 +2,7 @@
 
 > **Prazos:** Entrega 04 de POO na segunda-feira, 09/11/2026, com a apresentação final de 09 a 13/11. Status Report 2 de Projetos 3 no sábado, 05/12/2026.
 > **Regra:** o código de cada ciclo fecha uma semana antes da entrega. A última semana é só de preparação: README, POST-IT, print das issues, screencasts, validação com o monitor e com o cliente e ensaio. A correção de POO usa o conteúdo do GitHub logo após o prazo.
-> **Histórias:** US07, US08, US09, US12, US18 e US20 na Entrega 04. US10, US11, US13 a US17 e US19 no SR2.
+> **Histórias:** US07, US08, US09, US12, US18 e US20 na Entrega 04. US10, US11, US13 a US17, US19, US23 e US24 no SR2.
 > Histórias completas em [`user-stories.md`](user-stories.md). Critérios em [`../cronograma-poo.md`](../cronograma-poo.md) e [`../cronograma-projetos3.md`](../cronograma-projetos3.md).
 > Issues no [milestone Entrega 03](https://github.com/IgrPhillipe/ampere/milestone/2), no [milestone Entrega 04](https://github.com/IgrPhillipe/ampere/milestone/3) e no [milestone Status Report 2](https://github.com/IgrPhillipe/ampere/milestone/4), #88 a #154.
 
@@ -12,13 +12,15 @@
 | :--- | :--- | :--- | :--- | :--- |
 | Sprint 4 | 04/10 a 18/10 | Preparação da Entrega 03 e início do desenvolvimento | README, screencasts, monitor e retro da Entrega 03. US07, US20, restrição por dono e telas no Figma | Entrega 03 e Entrega 04 |
 | Sprint 5 | 19/10 a 25/10 | Desenvolvimento | US09 e US18 | Entrega 04 |
-| Sprint 6 | 26/10 a 01/11 | Desenvolvimento. **Code freeze em 01/11** | US08 e US12 | Entrega 04 |
-| Sprint 7 | 02/11 a 08/11 | Preparação da Entrega 04 | Monitor, cliente, POST-IT, print, screencasts, avaliação individual e ensaio da apresentação. Telas do SR2 no Figma | Entrega 04 |
-| Sprint 8 | 09/11 a 15/11 | Desenvolvimento | US10, US13, US14 e US16 | Status Report 2 |
-| Sprint 9 | 16/11 a 22/11 | Desenvolvimento. **Code freeze em 22/11** | US11, US15, US17 e US19 | Status Report 2 |
+| Sprint 6 | 26/10 a 01/11 | Desenvolvimento. **Code freeze em 01/11** | US08 e US12. Front da US10 e da US11, #178 e telas do SR2 no Figma | Entrega 04 e Status Report 2 |
+| Sprint 7 | 02/11 a 08/11 | Preparação da Entrega 04 e início do SR2 | Monitor, cliente, POST-IT, print, screencasts, avaliação individual e ensaio da apresentação. US16 e back da US13, US14, US19 e US23 | Entrega 04 e Status Report 2 |
+| Sprint 8 | 09/11 a 15/11 | Desenvolvimento | Front da US13, US14 e US23. Back da US15, US17 e US24 | Status Report 2 |
+| Sprint 9 | 16/11 a 22/11 | Desenvolvimento. **Code freeze em 22/11** | Front da US15, US17, US19 e US24. Ajustes da validação com o cliente | Status Report 2 |
 | Sprint 10 | 23/11 a 04/12 | Preparação do SR2 | Material e ensaio do SR2 e relatório de IA | Status Report 2 |
 
-**Ritmo:** duas histórias por semana nas Sprints 4 a 6. As Sprints 8 e 9 têm quatro por semana, porque o ciclo do SR2 tem só duas semanas de desenvolvimento antes do freeze. Na semana de preparação, entram só correções e os ajustes da validação com o cliente.
+**Ritmo:** sem aula em 31/10, as Sprints 6 e 7 recebem parte do SR2: 8 tarefas na Sprint 6, 6 na 7, 6 na 8 e 4 na 9, que guarda folga para os ajustes da validação com o cliente.
+
+**Sprint 7:** quem não está na preparação desenvolve o SR2 em PR. O merge na main vai até quarta, 04/11, antes da revisão com o monitor e dos screencasts. PR pronto depois disso espera até 10/11, depois da correção da Entrega 04.
 
 ## Calendário
 
@@ -50,7 +52,7 @@ O padrão é o mesmo das Entregas 02 e 03: uma issue por história, que funciona
 
 **Milestones:** Gestão da Entrega 03 no **Entrega 03**. Histórias e Gestão das Sprints 4 a 7 no **Entrega 04**, com vencimento em 09/11. Sprints 8 a 10 no **Status Report 2**, com vencimento em 05/12.
 
-**Labels:** `Sprint 4` a `Sprint 10` e `US07` a `US20`.
+**Labels:** `Sprint 4` a `Sprint 10`, `US07` a `US20`, `US23` e `US24`.
 
 **Tarefas de código abertas sem responsável.** Cada pessoa se atribui ao assumir a tarefa.
 
@@ -62,9 +64,10 @@ O padrão é o mesmo das Entregas 02 e 03: uma issue por história, que funciona
 - O `AT19-INFRA` precisa estar pronto antes do front da US09, na Sprint 5.
 - A US07 abre o ciclo: a US08, a US09 e os painéis (US16 e US17) leem os apontamentos e as decisões que ela grava.
 - Na Sprint 6, o back da US08 entra antes do back da US12, que lê os mesmos eventos.
-- O `AT26-INFRA` precisa estar pronto antes da Sprint 8.
+- O `AT26-INFRA` entrega o painel do projetista (US16) até 01/11 e as demais telas até 08/11.
+- A US23 entra antes da US24, que mostra a carga por analista e os municípios sem analista.
 
-**Total:** 61 issues abertas entre #88 e #154: 6 na Entrega 03, 27 na Entrega 04 e 28 no Status Report 2. As #142 a #147, da duplicação de projeto e dos documentos complementares, foram fechadas fora do escopo.
+**Total:** 61 issues abertas entre #88 e #154: 6 na Entrega 03, 27 na Entrega 04 e 28 no Status Report 2. As #142 a #147, da duplicação de projeto e dos documentos complementares, foram fechadas fora do escopo. A US23 (#191) e a US24 (#192), com as tarefas #193 a #196, entraram em 24/10 no Status Report 2.
 
 ---
 
@@ -171,9 +174,9 @@ A avaliação individual acontece junto com a avaliação da unidade, com pergun
 Resumo de até 8 minutos, de 09 a 13/11, com o time inteiro presente: problema, solução, fluxo de trabalho, ferramentas com links, lições aprendidas e demonstração. O ensaio acontece na Sprint 7.
 
 ### `AT26-INFRA: Desenhar no Figma as telas do SR2 [Gestão]` (#149)
-`Sprint 7`, `Gestão`, milestone Status Report 2
+`Sprint 6`, `Gestão`, milestone Status Report 2
 
-Cadastro e perfil (US10), usuários (US11), comparativo de versões (US13), painel do projetista (US16) e indicadores do analista (US17). As notificações já têm protótipo.
+Painel do projetista (US16) até 01/11. Distribuição da fila (US23), comparativo de versões (US13), painel do administrador (US24) e indicadores do analista (US17) até 08/11. Cadastro e perfil (US10) e usuários (US11) seguem os padrões do login e da listagem, sem protótipo. As notificações já têm protótipo.
 
 ## Status Report 2
 
@@ -324,16 +327,20 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 
 Cada história tem a issue épica, a tarefa de back e a tarefa de front, nessa ordem de numeração. As tarefas detalham o checklist da história em [`user-stories.md`](user-stories.md).
 
-| História | Sprint | Back-end | Front-end |
-| :--- | :--- | :--- | :--- |
-| US10: Cadastro e Perfil do Projetista (#118) | Sprint 8 | `AT01-US10`: `POST /api/auth/register`, CREA e empresa em `User`, `GET` e `PUT /api/users/me`, troca de senha, responsável técnico no memorial | `AT02-US10`: telas "Criar Conta" e "Meu Perfil", responsável técnico no carimbo |
-| US13: Versão Congelada do Envio (#124) | Sprint 8 | `AT01-US13`: entidade `ProjectVersion` com memorial, cálculo e documentos, `GET /api/projects/{id}/versions` e `GET .../versions/{n}/memorial`, comparativo | `AT02-US13`: versões e "Comparar Versões" na aba "Histórico" |
-| US14: Notificações no Sistema (#127) | Sprint 8 | `AT01-US14`: entidade `Notification`, geração nos eventos da US07, US09 e US15, `GET /api/notifications` e marcação de leitura | `AT02-US14`: contador no sino e painel de notificações dos dois perfis |
-| US16: Painel do Projetista (#133) | Sprint 8 | `AT01-US16`: `GET /api/dashboard/designer?period=` | `AT02-US16`: tela "Painel" como inicial do projetista |
-| US11: Gestão de Usuários (#121) | Sprint 9 | `AT01-US11`: CRUD em `/api/users`, situação ativa, senha temporária com troca obrigatória, bloqueio de conta inativa no filtro do JWT | `AT02-US11`: tela "Usuários" e troca obrigatória de senha no login |
-| US15: Prazos de Análise e Validade da Aprovação (#130) | Sprint 9 | `AT01-US15`: suspensão e retomada do prazo, status `EXPIRED` após 36 meses, job diário | `AT02-US15`: prazo, dias suspensos e validade na fila e no painel do projeto |
-| US17: Painel do Analista (#136) | Sprint 9 | `AT01-US17`: `GET /api/dashboard/review?period=` e `GET /api/review-queue/mine` | `AT02-US17`: telas "Indicadores" e "Meus Pareceres" |
-| US19: Exportação em Planilha (#139) | Sprint 9 | `AT01-US19`: `GET /api/projects/{id}/calculation.xlsx` e exportação `.csv` das listagens com os filtros | `AT02-US19`: botões "Exportar Planilha" e "Exportar CSV" |
+| História | Back-end | Front-end |
+| :--- | :--- | :--- |
+| US10: Cadastro e Perfil do Projetista (#118) | Entregue. `AT01-US10`: `POST /api/auth/register`, CREA e empresa em `User`, `GET` e `PUT /api/users/me`, troca de senha, responsável técnico no memorial | **Sprint 6.** `AT02-US10`: telas "Criar Conta" e "Meu Perfil", responsável técnico no carimbo |
+| US11: Gestão de Usuários (#121) | Entregue. `AT01-US11`: CRUD em `/api/users`, situação ativa, senha temporária com troca obrigatória, bloqueio de conta inativa no filtro do JWT | **Sprint 6.** `AT02-US11`: tela "Usuários" e troca obrigatória de senha no login |
+| US16: Painel do Projetista (#133) | **Sprint 7.** `AT01-US16`: `GET /api/dashboard/designer?period=` | **Sprint 7.** `AT02-US16`: tela "Painel" como inicial do projetista |
+| US13: Versão Congelada do Envio (#124) | **Sprint 7.** `AT01-US13`: entidade `ProjectVersion` com memorial, cálculo e documentos, `GET /api/projects/{id}/versions` e `GET .../versions/{n}/memorial`, comparativo | **Sprint 8.** `AT02-US13`: versões e "Comparar Versões" na seção "Histórico" |
+| US14: Notificações no Sistema (#127) | **Sprint 7.** `AT01-US14`: entidade `Notification`, geração nos eventos da US07, US09 e US15, `GET /api/notifications` e marcação de leitura | **Sprint 8.** `AT02-US14`: contador no sino e painel de notificações dos dois perfis |
+| US19: Exportação em Planilha (#139) | **Sprint 7.** `AT01-US19`: `GET /api/projects/{id}/calculation.xlsx` e exportação `.csv` das listagens com os filtros | **Sprint 9.** `AT02-US19`: botões "Exportar Planilha" e "Exportar CSV" |
+| US23: Distribuição da Fila de Análise (#191) | **Sprint 7.** `AT01-US23`: atribuição em lote, municípios por analista e distribuição no envio | **Sprint 8.** `AT02-US23`: seleção em lote na fila e tela "Distribuição" |
+| US15: Prazos de Análise e Validade da Aprovação (#130) | **Sprint 8.** `AT01-US15`: suspensão e retomada do prazo, status `EXPIRED` após 36 meses, job diário | **Sprint 9.** `AT02-US15`: prazo, dias suspensos e validade na fila e no painel do projeto |
+| US17: Painel do Analista (#136) | **Sprint 8.** `AT01-US17`: `GET /api/dashboard/review?period=` e `GET /api/review-queue/mine` | **Sprint 9.** `AT02-US17`: telas "Indicadores" e "Meus Pareceres" |
+| US24: Painel do Administrador (#192) | **Sprint 8.** `AT01-US24`: `GET /api/dashboard/admin` e filtros de situação em `GET /api/users` | **Sprint 9.** `AT02-US24`: tela "Painel" como inicial do administrador |
+
+A #178 (administrador escolhe o projetista na criação do projeto) entra na Sprint 6, no milestone Status Report 2.
 
 ---
 
@@ -343,5 +350,5 @@ Cada história tem a issue épica, a tarefa de back e a tarefa de front, nessa o
 | :--- | :-: | :-: | :-: | :-: | :-: |
 | Entrega 03 | 6 (AT12 a AT16 e AT29) | | | | 6 |
 | Entrega 04 | 9 (AT18 a AT24, AT30 e AT31) | 6 | 6 (com o AT17) | 6 | 27 |
-| Status Report 2 | 4 (AT25 a AT28) | 8 | 8 | 8 | 28 |
-| **Total** | **19** | **14** | **14** | **14** | **61** |
+| Status Report 2 | 4 (AT25 a AT28) | 10 | 10 | 10 | 34 |
+| **Total** | **19** | **16** | **16** | **16** | **67** |

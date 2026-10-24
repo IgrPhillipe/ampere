@@ -28,6 +28,8 @@
 19. [US18: Filtros e Ordenação das Listagens](#us18-filtros-e-ordenação-das-listagens)
 20. [US19: Exportação em Planilha](#us19-exportação-em-planilha)
 21. [US20: Exclusão de Projeto em Rascunho](#us20-exclusão-de-projeto-em-rascunho)
+22. [US23: Distribuição da Fila de Análise](#us23-distribuição-da-fila-de-análise)
+23. [US24: Painel do Administrador](#us24-painel-do-administrador)
 
 ---
 
@@ -44,17 +46,19 @@
 | **US07** | [Auditoria de Memória e Registro Pontual de Apontamentos](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos) | Analista da Concessionária | `Alta` | `Sprint 4` |
 | **US08** | [Linha do Tempo e Histórico do Protocolo](#us08-linha-do-tempo-e-histórico-do-protocolo) | Analista da Concessionária | `Média` | `Sprint 6` |
 | **US09** | [Correção de Apontamentos e Reenvio com Versionamento](#us09-correção-de-apontamentos-e-reenvio-com-versionamento) | Projetista Externo | `Alta` | `Sprint 5` |
-| **US10** | [Cadastro e Perfil do Projetista](#us10-cadastro-e-perfil-do-projetista) | Projetista Externo | `Média` | `Sprint 8` |
-| **US11** | [Gestão de Usuários](#us11-gestão-de-usuários) | Administrador da Neoenergia | `Média` | `Sprint 9` |
+| **US10** | [Cadastro e Perfil do Projetista](#us10-cadastro-e-perfil-do-projetista) | Projetista Externo | `Média` | `Sprint 6` |
+| **US11** | [Gestão de Usuários](#us11-gestão-de-usuários) | Administrador da Neoenergia | `Média` | `Sprint 6` |
 | **US12** | [Detalhe do Projeto e Histórico de Tratamento](#us12-detalhe-do-projeto-e-histórico-de-tratamento) | Projetista Externo | `Alta` | `Sprint 6` |
 | **US13** | [Versão Congelada do Envio](#us13-versão-congelada-do-envio) | Analista da Concessionária | `Média` | `Sprint 8` |
 | **US14** | [Notificações no Sistema](#us14-notificações-no-sistema) | Projetista e Analista | `Média` | `Sprint 8` |
 | **US15** | [Prazos de Análise e Validade da Aprovação](#us15-prazos-de-análise-e-validade-da-aprovação) | Analista da Concessionária | `Média` | `Sprint 9` |
-| **US16** | [Painel do Projetista](#us16-painel-do-projetista) | Projetista Externo | `Média` | `Sprint 8` |
+| **US16** | [Painel do Projetista](#us16-painel-do-projetista) | Projetista Externo | `Média` | `Sprint 7` |
 | **US17** | [Painel do Analista](#us17-painel-do-analista) | Analista da Concessionária | `Média` | `Sprint 9` |
 | **US18** | [Filtros e Ordenação das Listagens](#us18-filtros-e-ordenação-das-listagens) | Projetista e Analista | `Alta` | `Sprint 5` |
 | **US19** | [Exportação em Planilha](#us19-exportação-em-planilha) | Projetista e Analista | `Baixa` | `Sprint 9` |
 | **US20** | [Exclusão de Projeto em Rascunho](#us20-exclusão-de-projeto-em-rascunho) | Projetista Externo | `Média` | `Sprint 4` |
+| **US23** | [Distribuição da Fila de Análise](#us23-distribuição-da-fila-de-análise) | Administrador da Neoenergia | `Média` | `Sprint 8` |
+| **US24** | [Painel do Administrador](#us24-painel-do-administrador) | Administrador da Neoenergia | `Média` | `Sprint 9` |
 
 ---
 
@@ -473,7 +477,7 @@ Conta com atalhos que abrem a etapa exata onde ocorreu a divergência. O projeti
 
 ## US10: Cadastro e Perfil do Projetista
 
-`US10` `Prioridade: Média` `Sprint 8`
+`US10` `Prioridade: Média` `Sprint 6`
 
 ### Descrição
 Cadastro do projetista externo com os dados profissionais que identificam o responsável técnico no projeto, no carimbo e no memorial.
@@ -516,7 +520,7 @@ A página "Meu Perfil", no menu do usuário, permite editar os dados e trocar a 
 
 ## US11: Gestão de Usuários
 
-`US11` `Prioridade: Média` `Sprint 9`
+`US11` `Prioridade: Média` `Sprint 6`
 
 ### Descrição
 Área administrativa para criar analistas, desativar contas e redefinir senhas, sem depender de inserção manual no banco.
@@ -742,7 +746,7 @@ A fila ([US06](#us06-fila-de-análise-técnica-priorizada)) e o painel do projet
 
 ## US16: Painel do Projetista
 
-`US16` `Prioridade: Média` `Sprint 8`
+`US16` `Prioridade: Média` `Sprint 7`
 
 ### Descrição
 Painel inicial do projetista com o que exige ação e os indicadores de qualidade dos seus envios.
@@ -946,3 +950,84 @@ Projetos enviados, reprovados ou aprovados não podem ser excluídos: o protocol
 ### Checklist de Implementação
 - [ ] Excluir rascunho com confirmação na listagem e no painel do projeto
 - [ ] Pedir confirmação na exclusão de grupo de UCs
+
+---
+
+## US23: Distribuição da Fila de Análise
+
+`US23` `Prioridade: Média` `Sprint 8`
+
+### Descrição
+Distribuição dos projetos enviados entre os analistas: atribuição manual, em lote, e regra por município.
+
+### User Story
+> **Como** administrador da Neoenergia,  
+> **Quero** atribuir os projetos aos analistas, um a um, em lote ou por município,  
+> **Para que** a carga da análise fique equilibrada e cada região tenha um responsável.
+
+### Conversação (Regras de Negócio e Interface)
+Na fila de análise, o administrador seleciona um ou vários projetos e escolhe o analista em "Atribuir Analista". Vale para projeto sem analista e para reatribuição de projeto em análise. Na reatribuição, os apontamentos em rascunho passam para o novo analista; os publicados ficam com o autor original.
+
+A tela "Distribuição", visível só para o administrador, lista os analistas ativos e os municípios de cada um. Um município pertence a no máximo um analista.
+
+No envio, o projeto vai direto para o analista do município. Sem regra para o município, ou com o analista inativo, o projeto cai na fila geral e "Analisar" funciona como na [US07](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos). Na reanálise, o projeto volta para o analista que reprovou, se ele ainda estiver ativo.
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Distribuição Automática por Município
+- **Dado** que Caruaru está na lista de municípios da analista Ana
+- **Quando** o projetista envia um projeto de Caruaru
+- **Então** o projeto entra na fila já atribuído a Ana
+- **E** o histórico do protocolo registra a atribuição pelo sistema.
+
+#### Cenário 2 (Negativo): Reatribuição para Analista Inativo
+- **Dado** que o administrador selecionou dois projetos na fila
+- **Quando** tenta atribuí-los a um analista desativado
+- **Então** o sistema recusa com a mensagem *"Analista inativo."*
+- **E** os dois projetos mantêm o analista anterior.
+
+### Checklist de Implementação
+- [ ] Atribuir e reatribuir analista em lote na fila
+- [ ] Manter os municípios de cada analista
+- [ ] Distribuir o projeto pelo município no envio e devolver a reanálise a quem reprovou
+
+---
+
+## US24: Painel do Administrador
+
+`US24` `Prioridade: Média` `Sprint 9`
+
+### Descrição
+Painel inicial do administrador com o estado dos usuários, dos projetos ativos e da fila. É a entrada do suporte: acesso perdido, senha e conta desativada.
+
+### User Story
+> **Como** administrador da Neoenergia,  
+> **Quero** um painel com o estado dos usuários, dos projetos e da fila,  
+> **Para que** eu resolva problemas de acesso e acompanhe a operação sem depender das listagens principais.
+
+### Conversação (Regras de Negócio e Interface)
+O item "Painel" entra no menu do administrador e passa a ser a tela inicial após o login. O painel tem três blocos:
+- **Usuários:** ativos por papel, inativos, com troca de senha pendente e sem acesso há mais de 30 dias. Cada número abre a tela "Usuários" ([US11](#us11-gestão-de-usuários)) com o filtro aplicado, onde estão "Reativar" e "Redefinir Senha"
+- **Projetos ativos:** tabela própria com os projetos em rascunho, em análise e reprovados de todos os projetistas, com busca por protocolo ou nome e filtro por projetista
+- **Fila:** projetos sem analista, prazos vencendo em até 3 dias, projetos em análise por analista e municípios sem analista ([US23](#us23-distribuição-da-fila-de-análise))
+
+A produtividade da análise (tempos médios e taxas de reprovação) fica no painel do analista ([US17](#us17-painel-do-analista)).
+
+### Confirmação (Critérios de Aceite - BDD)
+
+#### Cenário 1 (Positivo): Usuário com Troca de Senha Pendente
+- **Dado** que o administrador está no "Painel"
+- **Quando** clica em "Troca de senha pendente"
+- **Então** a tela "Usuários" lista só os usuários que ainda não trocaram a senha temporária
+- **E** cada linha oferece "Redefinir Senha".
+
+#### Cenário 2 (Negativo): Acesso de Outro Papel
+- **Dado** que um projetista está autenticado
+- **Quando** abre o endereço do painel do administrador
+- **Então** o sistema leva à tela inicial do projetista
+- **E** a API responde 403 aos indicadores do administrador.
+
+### Checklist de Implementação
+- [ ] Calcular os contadores de usuários, projetos e fila
+- [ ] Abrir a tela "Usuários" com o filtro de cada contador
+- [ ] Listar os projetos ativos de todos os projetistas
