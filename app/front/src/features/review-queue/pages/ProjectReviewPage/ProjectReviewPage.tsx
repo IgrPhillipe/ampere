@@ -35,13 +35,13 @@ import { CircleAlert, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import {
-	checkToFindingValues,
 	DecisionDialog,
 	DecisionFooter,
 	FindingsPanel,
 	getDecisionAvailability,
 	toFindingPayload,
 } from "../../components";
+import { checkToFindingValues } from "../../constants";
 import { useFindingEditor } from "../../hooks";
 import type { FindingFormValues } from "../../schemas";
 

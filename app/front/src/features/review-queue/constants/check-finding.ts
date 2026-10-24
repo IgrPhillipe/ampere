@@ -1,7 +1,7 @@
 import type { CalculationCheck } from "@features/projects";
 
-import { checkFindingTargets } from "../../constants";
-import type { FindingFormValues } from "../../schemas";
+import type { FindingFormValues } from "../schemas";
+import { checkFindingTargets } from "./finding";
 
 const STANDARD_ITEM =
 	/DIS-NOR-\d+(?:\s+Anexo\s+[IVX]+)?,\s*item\s+\d+(?:\.\d+)*/g;
