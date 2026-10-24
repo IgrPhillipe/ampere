@@ -5,8 +5,20 @@ import type { AuthUser, LoginResponse } from "../schemas";
 export const MOCK_PASSWORD = "senha@123";
 
 export const MOCK_USERS: AuthUser[] = [
-	{ id: "1", name: "Usuario Teste", email: "user@ampere.com", role: "user" },
-	{ id: "2", name: "Admin Teste", email: "admin@ampere.com", role: "admin" },
+	{
+		id: "1",
+		name: "Usuario Teste",
+		email: "user@ampere.com",
+		role: "user",
+		mustChangePassword: false,
+	},
+	{
+		id: "2",
+		name: "Admin Teste",
+		email: "admin@ampere.com",
+		role: "admin",
+		mustChangePassword: false,
+	},
 ];
 
 export const makeLoginResponse = (
