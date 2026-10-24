@@ -1,6 +1,5 @@
 import { type ActiveFilter, ActiveFilters } from "@components/ActiveFilters";
 
-import { normativeStandardLabels } from "../../constants/normative-standard";
 import { normativeTableStatusLabels } from "../../constants/normative-table-status";
 import type { NormativeTableFilters } from "../../hooks";
 
@@ -11,7 +10,7 @@ interface NormativeTableActiveFiltersProps {
 export const NormativeTableActiveFilters = ({
 	filters,
 }: NormativeTableActiveFiltersProps) => {
-	const { search, status, standard } = filters;
+	const { search, status } = filters;
 	const active: ActiveFilter[] = [];
 
 	if (search.trim()) {
@@ -22,21 +21,11 @@ export const NormativeTableActiveFilters = ({
 		});
 	}
 
-	for (const value of status) {
+	if (status) {
 		active.push({
-			id: `status-${value}`,
-			label: `Situação: ${normativeTableStatusLabels[value]}`,
-			onRemove: () =>
-				filters.setStatus(status.filter((selected) => selected !== value)),
-		});
-	}
-
-	for (const value of standard) {
-		active.push({
-			id: `standard-${value}`,
-			label: `Norma: ${normativeStandardLabels[value]}`,
-			onRemove: () =>
-				filters.setStandard(standard.filter((selected) => selected !== value)),
+			id: "status",
+			label: `Situação: ${normativeTableStatusLabels[status]}`,
+			onRemove: () => filters.setStatus(null),
 		});
 	}
 

@@ -30,13 +30,10 @@ describe("useNormativeTableFilters", () => {
 	});
 
 	it("builds the API params from the URL", () => {
-		const { result } = renderFilters(
-			"?status=DRAFT,PUBLISHED&standard=DIS_NOR_030&sort=verifiedAt",
-		);
+		const { result } = renderFilters("?status=DRAFT&sort=verifiedAt");
 
 		expect(result.current.params).toEqual({
-			status: ["DRAFT", "PUBLISHED"],
-			standard: ["DIS_NOR_030"],
+			status: "DRAFT",
 			sort: "verifiedAt",
 			direction: "DESC",
 		});
@@ -45,7 +42,7 @@ describe("useNormativeTableFilters", () => {
 
 	it("keeps the default sort and its natural direction out of the URL", async () => {
 		const { result, onUrlUpdate, lastUrl } = renderFilters(
-			"?sort=title&direction=DESC",
+			"?sort=verifiedAt&direction=ASC",
 		);
 
 		act(() => result.current.setSort({ column: "code", direction: "ASC" }));
@@ -55,16 +52,26 @@ describe("useNormativeTableFilters", () => {
 		expect(lastUrl()?.has("direction")).toBe(false);
 	});
 
+	it("flips the sorted column from the header", async () => {
+		const { result, onUrlUpdate, lastUrl } =
+			renderFilters("?sort=registeredAt");
+
+		act(() => result.current.sortBy("registeredAt"));
+
+		await waitFor(() => expect(onUrlUpdate).toHaveBeenCalled());
+		expect(lastUrl()?.get("sort")).toBe("registeredAt");
+		expect(lastUrl()?.get("direction")).toBe("ASC");
+	});
+
 	it("clears the filters and keeps the sort", async () => {
-		const { result, onUrlUpdate, lastUrl } = renderFilters(
-			"?status=DRAFT&standard=DIS_NOR_053&sort=registeredAt",
+		const { result, lastUrl } = renderFilters(
+			"?status=DRAFT&search=quadro&sort=registeredAt",
 		);
 
 		act(() => result.current.clearFilters());
 
-		await waitFor(() => expect(onUrlUpdate).toHaveBeenCalled());
+		await waitFor(() => expect(lastUrl()?.has("search")).toBe(false));
 		expect(lastUrl()?.has("status")).toBe(false);
-		expect(lastUrl()?.has("standard")).toBe(false);
 		expect(lastUrl()?.get("sort")).toBe("registeredAt");
 	});
 });

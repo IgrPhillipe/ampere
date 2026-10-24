@@ -24,26 +24,25 @@ const renderChips = (searchParams: string) => {
 
 describe("NormativeTableActiveFilters", () => {
 	it("labels each active filter", () => {
-		renderChips("?search=quadro&status=DRAFT,SUPERSEDED&standard=DIS_NOR_053");
+		renderChips("?search=quadro&status=DRAFT");
 
 		expect(screen.getByText("Busca: quadro")).toBeInTheDocument();
 		expect(
 			screen.getByText("Situação: Aguardando Revisão"),
 		).toBeInTheDocument();
-		expect(screen.getByText("Situação: Substituída")).toBeInTheDocument();
-		expect(screen.getByText("Norma: DIS-NOR-053")).toBeInTheDocument();
 	});
 
-	it("removes one status and keeps the others", async () => {
-		const lastUrl = renderChips("?status=DRAFT,SUPERSEDED");
+	it("removes the status and keeps the search", async () => {
+		const lastUrl = renderChips("?search=quadro&status=SUPERSEDED");
 
 		fireEvent.click(
 			screen.getByRole("button", {
-				name: "Remover filtro Situação: Aguardando Revisão",
+				name: "Remover filtro Situação: Substituída",
 			}),
 		);
 
-		await waitFor(() => expect(lastUrl()?.get("status")).toBe("SUPERSEDED"));
+		await waitFor(() => expect(lastUrl()?.has("status")).toBe(false));
+		expect(lastUrl()?.get("search")).toBe("quadro");
 	});
 
 	it("renders nothing without filters", () => {

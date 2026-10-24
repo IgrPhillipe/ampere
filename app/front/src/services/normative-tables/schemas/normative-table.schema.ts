@@ -5,19 +5,8 @@ export const normativeStandardSchema = z.enum(["DIS-NOR-053", "DIS-NOR-030"]);
 
 export type NormativeStandard = z.infer<typeof normativeStandardSchema>;
 
-/** The same standards as the API enum names, for the `standard` filter. */
-export const normativeStandardFilterSchema = z.enum([
-	"DIS_NOR_053",
-	"DIS_NOR_030",
-]);
-
-export type NormativeStandardFilter = z.infer<
-	typeof normativeStandardFilterSchema
->;
-
 export const normativeTableSortSchema = z.enum([
 	"code",
-	"title",
 	"registeredAt",
 	"verifiedAt",
 ]);

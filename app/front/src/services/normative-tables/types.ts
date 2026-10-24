@@ -1,15 +1,10 @@
 import type { SortDirection } from "@features/shared";
 
-import type {
-	NormativeStandardFilter,
-	NormativeTableSort,
-	NormativeTableStatus,
-} from "./schemas";
+import type { NormativeTableSort, NormativeTableStatus } from "./schemas";
 
 export interface ListNormativeTablesParams {
 	search?: string;
-	status?: NormativeTableStatus[];
-	standard?: NormativeStandardFilter[];
+	status?: NormativeTableStatus;
 	sort?: NormativeTableSort;
 	direction?: SortDirection;
 }

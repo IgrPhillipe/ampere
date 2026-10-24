@@ -1,21 +1,19 @@
 import {
 	type ListSort,
+	nextSort,
 	type SortDirections,
 	sortDirectionSchema,
 	useDebouncedValue,
 } from "@features/shared";
 import {
 	type ListNormativeTablesParams,
-	type NormativeStandardFilter,
 	type NormativeTableSort,
 	type NormativeTableStatus,
-	normativeStandardFilterSchema,
 	normativeTableSortSchema,
 	normativeTableStatusSchema,
 } from "@services/normative-tables";
 import {
 	debounce,
-	parseAsArrayOf,
 	parseAsString,
 	parseAsStringLiteral,
 	useQueryStates,
@@ -29,7 +27,6 @@ const DEFAULT_SORT: NormativeTableSort = "code";
 export const NORMATIVE_TABLE_SORT_DIRECTIONS: SortDirections<NormativeTableSort> =
 	{
 		code: "ASC",
-		title: "ASC",
 		registeredAt: "DESC",
 		verifiedAt: "DESC",
 	};
@@ -41,18 +38,13 @@ export const useNormativeTableFilters = () => {
 		search: parseAsString
 			.withDefault("")
 			.withOptions({ limitUrlUpdates: debounce(SEARCH_DEBOUNCE_MS) }),
-		status: parseAsArrayOf(
-			parseAsStringLiteral(normativeTableStatusSchema.options),
-		).withDefault([]),
-		standard: parseAsArrayOf(
-			parseAsStringLiteral(normativeStandardFilterSchema.options),
-		).withDefault([]),
+		status: parseAsStringLiteral(normativeTableStatusSchema.options),
 		sort: parseAsStringLiteral(normativeTableSortSchema.options).withDefault(
 			DEFAULT_SORT,
 		),
 		direction: parseAsStringLiteral(sortDirectionSchema.options),
 	});
-	const { search, status, standard } = query;
+	const { search, status } = query;
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
 	const sort = useMemo<ListSort<NormativeTableSort>>(
@@ -66,12 +58,11 @@ export const useNormativeTableFilters = () => {
 	const params = useMemo<ListNormativeTablesParams>(
 		() => ({
 			search: debouncedSearch || undefined,
-			status: status.length ? status : undefined,
-			standard: standard.length ? standard : undefined,
+			status: status ?? undefined,
 			sort: sort.column,
 			direction: sort.direction,
 		}),
-		[debouncedSearch, status, standard, sort],
+		[debouncedSearch, status, sort],
 	);
 
 	const setSearch = useCallback(
@@ -82,15 +73,8 @@ export const useNormativeTableFilters = () => {
 	);
 
 	const setStatus = useCallback(
-		(value: NormativeTableStatus[]) => {
-			void setQuery({ status: value.length ? value : null });
-		},
-		[setQuery],
-	);
-
-	const setStandard = useCallback(
-		(value: NormativeStandardFilter[]) => {
-			void setQuery({ standard: value.length ? value : null });
+		(value: NormativeTableStatus | null) => {
+			void setQuery({ status: value });
 		},
 		[setQuery],
 	);
@@ -108,22 +92,27 @@ export const useNormativeTableFilters = () => {
 		[setQuery],
 	);
 
+	const sortBy = useCallback(
+		(column: NormativeTableSort) => {
+			setSort(nextSort(sort, column, NORMATIVE_TABLE_SORT_DIRECTIONS));
+		},
+		[sort, setSort],
+	);
+
 	const clearFilters = useCallback(() => {
-		void setQuery({ search: null, status: null, standard: null });
+		void setQuery({ search: null, status: null });
 	}, [setQuery]);
 
 	return {
 		search,
 		status,
-		standard,
 		sort,
 		params,
-		hasActiveFilters:
-			search.trim() !== "" || status.length > 0 || standard.length > 0,
+		hasActiveFilters: search.trim() !== "" || status !== null,
 		setSearch,
 		setStatus,
-		setStandard,
 		setSort,
+		sortBy,
 		clearFilters,
 	};
 };
