@@ -3,6 +3,7 @@ package br.com.ampere.config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.ampere.domain.FindingStatus;
+import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.User;
@@ -88,7 +89,7 @@ class DemoScenarioSeederIntegrationTest {
     long projects = projectRepository.count();
     seeder.onReady();
 
-    assertThat(projectRepository.count()).isEqualTo(projects).isEqualTo(16);
+    assertThat(projectRepository.count()).isEqualTo(projects).isEqualTo(19);
     assertThat(projectRepository.findAll())
         .extracting(project -> project.getStatus())
         .contains(
@@ -106,7 +107,15 @@ class DemoScenarioSeederIntegrationTest {
             FindingStatus.RESOLVED);
     assertThat(projectRepository.findByProtocol("2026-2009").orElseThrow().getReviewCycle())
         .isEqualTo(2);
+    assertThat(projectRepository.findByProtocol("2026-2017").orElseThrow().getReviewCycle())
+        .isEqualTo(3);
+    assertThat(normativeTableRepository.findAllByStatus(NormativeTableStatus.DRAFT)).hasSize(1);
+    assertThat(normativeTableRepository.findAllByStatus(NormativeTableStatus.SUPERSEDED))
+        .hasSize(1);
     assertThat(userRepository.findByEmail(DemoScenarioSeeder.SECOND_DESIGNER_EMAIL)).isPresent();
+    assertThat(userRepository.findByEmail(DemoScenarioSeeder.SECOND_ANALYST_EMAIL)).isPresent();
+    assertThat(userRepository.findByEmail(DemoScenarioSeeder.INACTIVE_DESIGNER_EMAIL))
+        .hasValueSatisfying(user -> assertThat(user.isActive()).isFalse());
     assertThat(userRepository.findByEmail("user@ampere.com").orElseThrow().getCrea())
         .isEqualTo("123456");
   }
