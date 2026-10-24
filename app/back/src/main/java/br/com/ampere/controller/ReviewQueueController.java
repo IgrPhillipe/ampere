@@ -48,7 +48,7 @@ public class ReviewQueueController {
         description = "Parâmetros inválidos"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "403",
-        description = "Apenas o papel ADMIN acessa a fila")
+        description = "Apenas analista e administrador acessam a fila")
   })
   public ApiResponse<List<ReviewQueueItemResponse>> list(
       @Valid @ParameterObject PageQuery pagination,
@@ -93,7 +93,7 @@ public class ReviewQueueController {
         description = "Lista de analistas"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "403",
-        description = "Apenas o papel ADMIN acessa a fila")
+        description = "Apenas analista e administrador acessam a fila")
   })
   public ApiResponse<List<ReviewerOptionResponse>> reviewers() {
     List<ReviewerOptionResponse> reviewers =
@@ -111,7 +111,7 @@ public class ReviewQueueController {
         description = "Indicadores da fila"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "403",
-        description = "Apenas o papel ADMIN acessa a fila")
+        description = "Apenas analista e administrador acessam a fila")
   })
   public ApiResponse<ReviewQueueIndicatorsResponse> indicators() {
     return ApiResponse.of(ReviewQueueIndicatorsResponse.from(service.indicators()));

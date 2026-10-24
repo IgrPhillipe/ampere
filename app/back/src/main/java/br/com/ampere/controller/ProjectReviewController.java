@@ -37,7 +37,7 @@ public class ProjectReviewController {
         description = "Análise atribuída"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "403",
-        description = "Apenas o papel ADMIN assume a análise"),
+        description = "Apenas analista e administrador assumem a análise"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Projeto não encontrado"),
