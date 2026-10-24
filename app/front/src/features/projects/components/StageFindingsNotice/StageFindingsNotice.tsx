@@ -78,7 +78,7 @@ export const StageFindingsNotice = ({
 								"flex flex-col gap-3 border-t border-border py-4 first:border-t-0 first:pt-0 last:pb-0",
 								target &&
 									hash === `#${target}` &&
-									"-mx-3 rounded-xs bg-accent px-3 first:pt-3 last:pb-3",
+									"-mx-3 rounded-xs px-3 first:pt-3 last:pb-3 motion-safe:animate-highlight",
 							)}
 						>
 							<FindingSummary
