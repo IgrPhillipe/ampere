@@ -1,5 +1,14 @@
 import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
+import {
+	describeFindingReference,
+	type FindingReferenceOptions,
+	findingSeverityBadgeVariants,
+	findingSeverityLabels,
+	findingStageLabels,
+	findingStatusBadgeVariants,
+	findingStatusLabels,
+} from "@features/projects";
 import { formatDate } from "@features/shared";
 import { cn } from "@lib/utils";
 import type {
@@ -8,16 +17,7 @@ import type {
 	FindingStatus,
 } from "@services/project-review";
 
-import {
-	findingSeverityBadgeVariants,
-	findingSeverityLabels,
-	findingStageLabels,
-	findingStatusBadgeVariants,
-	findingStatusLabels,
-} from "../../constants";
-import type { FindingReferenceOptions } from "../../types";
 import { isDraftFinding } from "../ReviewDecision/review-decision";
-import { describeFindingReference } from "./finding-form";
 
 const designerAnswers = {
 	DRAFT: null,

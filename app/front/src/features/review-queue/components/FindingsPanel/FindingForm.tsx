@@ -4,17 +4,18 @@ import {
 	ControlledTextarea,
 } from "@components/form";
 import { Button } from "@components/ui/button";
+import {
+	type FindingReferenceOptions,
+	findingReferenceLabels,
+	findingSeverityLabels,
+	findingStageLabels,
+} from "@features/projects";
 import { useZodForm } from "@features/shared";
 import { useEffect } from "react";
 import { useWatch } from "react-hook-form";
 
-import {
-	findingReferenceLabels,
-	findingSeverityLabels,
-	findingStageLabels,
-} from "../../constants";
 import { type FindingFormValues, findingFormSchema } from "../../schemas";
-import type { FindingEditor, FindingReferenceOptions } from "../../types";
+import type { FindingEditor } from "../../types";
 
 const EMPTY_VALUES: Partial<FindingFormValues> = {
 	reference: "",

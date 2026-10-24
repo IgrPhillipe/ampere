@@ -3,6 +3,7 @@ import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import {
+	buildFindingReferenceOptions,
 	CalculationSteps,
 	ConsumerUnitGroupsTable,
 	projectStatusLabels,
@@ -33,7 +34,6 @@ import { useEffect, useState } from "react";
 
 import {
 	AutomaticVerification,
-	buildFindingReferenceOptions,
 	checkToFindingValues,
 	DecisionDialog,
 	DecisionFooter,
@@ -231,7 +231,7 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 							id="change-summary-title"
 							className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase"
 						>
-							Resumo das alterações · Versão {project.reviewCycle}
+							Resumo das Alterações da Versão {project.reviewCycle}
 						</p>
 						<p className="mt-2 text-sm whitespace-pre-line text-foreground">
 							{project.changeSummary}
