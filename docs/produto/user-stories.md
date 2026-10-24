@@ -562,39 +562,44 @@ O sistema não envia e-mail: a senha temporária é repassada pelo administrador
 `US12` `Prioridade: Alta` `Sprint 6`
 
 ### Descrição
-Tela de detalhe do projeto, aberta a partir da listagem, com o resumo, o conteúdo enviado e o histórico de tratamento. É o único lugar de consulta: as etapas servem só para editar.
+Página única do projeto, aberta a partir da listagem ou da fila de análise, com o resumo, o conteúdo e o histórico de tratamento. Cada parte do projeto é uma seção da mesma página: quem pode editar edita ali, os demais consultam.
 
 ### User Story
 > **Como** projetista externo,  
 > **Quero** abrir qualquer projeto da minha listagem e ver o resumo e o histórico de tratamento,  
-> **Para que** eu entenda em que ponto o projeto está e o que aconteceu com ele sem precisar navegar pelas etapas.
+> **Para que** eu entenda em que ponto o projeto está e o que aconteceu com ele sem alternar entre telas.
 
 ### Conversação (Regras de Negócio e Interface)
-"Ver Projeto" e "Corrigir" em "Meus Projetos" abrem o detalhe em `/projetos/$id`. O detalhe tem o mesmo cabeçalho e as mesmas abas da tela de análise, para que projetista, analista e admin vejam o projeto do mesmo jeito; só as ações mudam por perfil:
-- Cabeçalho: protocolo, nome, situação, versão, endereço, projetista, unidades, demanda, normas, data de criação e data de envio
-- Abas: Memória de Cálculo (verificação automática e decomposição do cálculo, só leitura para o projetista), Unidades Consumidoras, Documentos, Memorial e Histórico de tratamento em ordem cronológica inversa. A aba aberta fica na URL (`?aba=`)
-- Coluna lateral do projetista: parecer, apontamentos para responder e reenvio quando reprovado ([US09](#us09-correção-de-apontamentos-e-reenvio-com-versionamento)); próximos passos quando em análise
+"Ver Projeto", "Continuar" e "Corrigir" em "Meus Projetos" e "Analisar" na fila abrem o projeto em `/projetos/$id`. Projetista, analista e admin veem a mesma página; só as ações mudam por perfil e situação:
+- Cabeçalho: protocolo, nome, situação, versão, endereço, projetista, unidades, demanda, normas, data de criação e data de envio, com a ação principal ao lado do nome: "Enviar para Análise" (dono, rascunho, habilitado com a checagem completa) ou "Reenviar Projeto" (dono, reprovado)
+- Seções: Visão Geral, Dados da Edificação (`/dados`), Unidades Consumidoras (`/unidades`), Cálculo de Demanda (`/calculo`), Documentos (`/documentos`, com o memorial) e Histórico (`/historico`). Cada seção indica se está concluída, desatualizada ou com apontamentos
+- Visão Geral: parecer, um cartão por seção com o que ela tem e o que falta, apontamentos para responder e reenvio quando reprovado ([US09](#us09-correção-de-apontamentos-e-reenvio-com-versionamento)), próximos passos quando em análise
+- Seções editáveis em rascunho ou reprovado, pelo dono ou pelo admin; nos demais casos, só leitura
+- O cálculo roda só quando o projetista pede ("Calcular Demanda" ou "Recalcular"). Se os dados mudarem depois do último cálculo, a seção avisa que ele está desatualizado
+- Apontamentos de uma seção aparecem no topo dela e são respondidos ali (Corrigido ou Contestar)
+- Analista: a mesma página, com a coluna de apontamentos e a decisão ao lado das seções. "Apontar Documento", "Virar Apontamento" e o grupo aberto preenchem o novo apontamento. `/fila-de-analise/$id` redireciona para `/projetos/$id`
 
-Enquanto o projeto está em análise, o topo exibe a faixa "Projeto enviado em" com a data e o protocolo. Rascunho continua pela listagem com "Continuar". As etapas só abrem para quem pode editar (rascunho ou reprovado, pelo dono ou pelo admin); para os outros, a URL da etapa leva ao detalhe, na aba equivalente: Unidades para unidades, Memória de Cálculo para cálculo e Memorial para o memorial.
+Enquanto o projeto está em análise, o topo exibe a data do envio e avisa que os dados ficam bloqueados até o parecer.
 
 ### Confirmação (Critérios de Aceite - BDD)
 
 #### Cenário 1 (Positivo): Consulta do Histórico de um Projeto Reprovado
 - **Dado** que o projetista está em "Meus Projetos"
 - **Quando** clica na linha do projeto "Condomínio Vila Nova", reprovado com 3 apontamentos
-- **Então** o detalhe exibe o cabeçalho com a situação "Reprovado" e a versão 1, e o histórico com o envio e a reprovação
-- **E** a coluna lateral mostra o parecer, os 3 apontamentos e o reenvio.
+- **Então** a página do projeto exibe o cabeçalho com a situação "Reprovado" e a versão 1
+- **E** a Visão Geral mostra o parecer, os 3 apontamentos e o reenvio.
 
 #### Cenário 2 (Negativo): Tentativa de Edição de Projeto Enviado
 - **Dado** que o projeto está "Em análise"
-- **Quando** o projetista abre o endereço da etapa "Unidades consumidoras"
-- **Então** o sistema leva ao detalhe do projeto, na aba "Unidades Consumidoras", sem "Adicionar Grupo" nem edição dos grupos
-- **E** o detalhe indica a data do envio.
+- **Quando** o projetista abre a seção "Unidades Consumidoras"
+- **Então** os grupos aparecem só para leitura, sem "Adicionar Grupo" nem edição
+- **E** o topo indica a data do envio.
 
 ### Checklist de Implementação
-- [ ] Abrir o detalhe em `/projetos/$id` a partir da listagem, com o mesmo cabeçalho e as mesmas abas da análise
+- [ ] Abrir o projeto em `/projetos/$id` a partir da listagem e da fila, com o cabeçalho e as seções
 - [ ] Exibir as ações conforme o perfil e a situação do projeto
-- [ ] Levar ao detalhe, na aba equivalente, quem abre a etapa de um projeto que não pode editar
+- [ ] Seções editáveis só para quem pode editar; só leitura para os demais
+- [ ] Coluna de apontamentos e decisão do analista na mesma página
 
 ---
 
