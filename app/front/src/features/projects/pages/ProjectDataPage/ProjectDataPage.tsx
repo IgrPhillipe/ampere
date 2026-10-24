@@ -177,7 +177,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 				<StageFindingsNotice
 					projectId={projectId}
 					findings={stageFindings}
-					className="mt-6"
+					className="my-6"
 				/>
 			)}
 

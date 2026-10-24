@@ -123,7 +123,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 				references={Object.fromEntries(
 					groups.map((group) => [group.id, group.name]),
 				)}
-				className="mt-6"
+				className="my-6"
 			/>
 
 			<form

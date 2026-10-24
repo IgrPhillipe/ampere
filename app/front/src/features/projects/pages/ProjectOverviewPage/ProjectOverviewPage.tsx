@@ -135,7 +135,7 @@ export const ProjectOverviewPage = ({
 				panel && "@5xl:grid-cols-[minmax(0,1fr)_400px]",
 			)}
 		>
-			<div className="flex min-w-0 flex-col gap-10 px-6 py-8 md:px-8">
+			<div className="@container flex min-w-0 flex-col gap-10 px-6 py-8 md:px-8">
 				{project ? <ReviewOpinion project={project} /> : null}
 
 				<ProjectSummary
