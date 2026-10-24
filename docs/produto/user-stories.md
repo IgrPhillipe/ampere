@@ -114,8 +114,10 @@ Formulário de parametrização técnica e identificação predial para seleçã
 
 ### Conversação (Regras de Negócio e Interface)
 O formulário recolhe dados de:
-- **Identificação:** nome, endereço, município
+- **Identificação:** nome, CEP, UF, município e endereço
 - **Parâmetros técnicos:** tipo de edificação, pavimentos, tensão, tipo de ligação e padrão de entrada
+
+O CEP é consultado no ViaCEP e preenche UF, município e logradouro com bairro; o projetista completa o número. O município vem da lista do IBGE gravada no sistema, com busca. Só entra endereço da área atendida pela Neoenergia Pernambuco: os 185 municípios de Pernambuco e Pedras de Fogo (PB). O CEP precisa estar na faixa da UF escolhida. Se o CEP não for encontrado ou o ViaCEP estiver fora do ar, o projetista escolhe UF e município na mão.
 
 O sistema bloqueia a seleção manual da norma e atribui automaticamente as normas aplicáveis a partir dos parâmetros informados. O método se divide entre duas normas da Neoenergia Pernambuco, revisadas de forma independente. O projeto registra as duas revisões aplicadas:
 
@@ -143,6 +145,7 @@ O sistema não importa planilhas: os dados são informados no próprio formulár
 ### Checklist de Implementação
 - [ ] Definir norma aplicável automaticamente a partir dos parâmetros técnicos
 - [ ] Bloquear o avanço caso existam campos obrigatórios não preenchidos
+- [ ] Preencher o endereço pelo CEP e recusar endereço fora da área atendida
 
 ---
 
@@ -842,13 +845,13 @@ Filtros combináveis e ordenação por coluna em "Meus Projetos" e na "Fila de A
 ### Conversação (Regras de Negócio e Interface)
 **Meus Projetos** passa a ter, além da situação e da busca por nome ou protocolo:
 - Ordenação por nome, demanda, data de criação e última atualização, crescente e decrescente, pelo cabeçalho da coluna
-- Filtros por município, período de criação e "Com apontamento bloqueante"
+- Filtros por UF, município, período de criação e situação dos apontamentos em aberto (bloqueante, qualquer ou nenhum)
 
 **Fila de Análise** passa a ter, além dos filtros "Vencendo prazo", "Acima de 50 kVA" e "Reanálise" e da ordenação por prazo:
 - Ordenação por data de recebimento, demanda e número de alertas
-- Filtros por analista responsável e por município
+- Filtros por analista responsável, UF e município
 
-Os filtros se combinam, ficam na URL e aparecem como etiquetas removíveis acima da tabela, com o botão "Limpar Filtros". A ordenação padrão continua sendo a última atualização em "Meus Projetos" e o prazo na fila.
+UF, município e apontamentos aceitam vários valores; as opções de município são todos os municípios atendidos, com busca. Os filtros se combinam, ficam na URL e aparecem como etiquetas removíveis acima da tabela, com o botão "Limpar Filtros". A ordenação padrão continua sendo a última atualização em "Meus Projetos" e o prazo na fila.
 
 ### Confirmação (Critérios de Aceite - BDD)
 
@@ -866,7 +869,7 @@ Os filtros se combinam, ficam na URL e aparecem como etiquetas removíveis acima
 
 ### Checklist de Implementação
 - [ ] Ordenar "Meus Projetos" por coluna nos dois sentidos
-- [ ] Filtrar "Meus Projetos" por município, período e apontamento bloqueante
+- [ ] Filtrar "Meus Projetos" por UF, município, período e apontamentos em aberto
 - [ ] Ordenar e filtrar a fila pelos critérios novos
 - [ ] Exibir os filtros ativos como etiquetas removíveis
 
