@@ -199,7 +199,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 							}
 							onUpload={upload}
 							onRemove={remove}
-							className="border-t border-border lg:border-t-0 lg:border-l"
+							className="order-first border-b border-border lg:order-none lg:border-b-0 lg:border-l"
 						/>
 					</div>
 				)}
