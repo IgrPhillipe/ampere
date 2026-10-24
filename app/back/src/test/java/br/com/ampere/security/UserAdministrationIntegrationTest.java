@@ -157,16 +157,76 @@ class UserAdministrationIntegrationTest {
   }
 
   @Test
+  void pagesTheListing() throws Exception {
+    mockMvc
+        .perform(
+            authorized(
+                get("/users").param("page", "2").param("pageSize", "1"),
+                token("admin@ampere.com", PASSWORD)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].email").value("joao@ampere.com"))
+        .andExpect(jsonPath("$.pagination.total").value(2))
+        .andExpect(jsonPath("$.pagination.page").value(2));
+  }
+
+  @Test
+  void searchesLikeWildcardsLiterally() throws Exception {
+    mockMvc
+        .perform(
+            authorized(get("/users").param("search", "%"), token("admin@ampere.com", PASSWORD)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(0)));
+  }
+
+  @Test
+  void refusesAnUnknownRoleFilter() throws Exception {
+    mockMvc
+        .perform(
+            authorized(get("/users").param("role", "gerente"), token("admin@ampere.com", PASSWORD)))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void createsAnAccountWithALongNameAndEmail() throws Exception {
+    String name = "N".repeat(120);
+    String email = "a".repeat(64) + "@" + "b".repeat(63) + "." + "c".repeat(63) + ".com";
+
+    mockMvc
+        .perform(
+            authorized(post("/users"), token("admin@ampere.com", PASSWORD))
+                .content(
+                    "{\"name\":\"" + name + "\",\"email\":\"" + email + "\",\"role\":\"user\"}"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.user.email").value(email));
+  }
+
+  @Test
   void keepsTheManagementFromTheDesigner() throws Exception {
     String designerToken = token("joao@ampere.com", PASSWORD);
 
+    mockMvc.perform(authorized(get("/users"), designerToken)).andExpect(status().isForbidden());
     mockMvc
-        .perform(authorized(get("/users"), designerToken))
+        .perform(
+            authorized(post("/users"), designerToken)
+                .content("{\"name\":\"Ana\",\"email\":\"ana@ampere.com\",\"role\":\"admin\"}"))
         .andExpect(status().isForbidden());
     mockMvc
         .perform(
-            authorized(post("/users/" + admin.getId() + "/password-reset"), designerToken))
+            authorized(put("/users/" + designer.getId()), designerToken)
+                .content("{\"name\":\"João\",\"role\":\"admin\",\"active\":true}"))
         .andExpect(status().isForbidden());
+    mockMvc
+        .perform(authorized(post("/users/" + admin.getId() + "/password-reset"), designerToken))
+        .andExpect(status().isForbidden());
+  }
+
+  /** The management lives under "/users", but the own profile stays open to every role. */
+  @Test
+  void keepsTheOwnProfileOpenToTheDesigner() throws Exception {
+    mockMvc
+        .perform(authorized(get("/users/me"), token("joao@ampere.com", PASSWORD)))
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -228,6 +288,40 @@ class UserAdministrationIntegrationTest {
   }
 
   @Test
+  void endsTheOpenSessionOfAPromotedDesigner() throws Exception {
+    String designerToken = token("joao@ampere.com", PASSWORD);
+
+    mockMvc
+        .perform(
+            authorized(put("/users/" + designer.getId()), token("admin@ampere.com", PASSWORD))
+                .content("{\"name\":\"João Projetista\",\"role\":\"admin\",\"active\":true}"))
+        .andExpect(status().isOk());
+
+    mockMvc
+        .perform(authorized(get("/projects"), designerToken))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void refusesTheTokenOfAnAccountThatNoLongerExists() throws Exception {
+    User removed =
+        userRepository.save(
+            new User(
+                "Removido",
+                "removido@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.USER));
+    String removedToken = token("removido@ampere.com", PASSWORD);
+
+    userRepository.delete(removed);
+    userRepository.flush();
+
+    mockMvc
+        .perform(authorized(get("/projects"), removedToken))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
   void letsAReactivatedAccountSignInAgain() throws Exception {
     deactivate(designer);
 
@@ -284,10 +378,15 @@ class UserAdministrationIntegrationTest {
 
   @Test
   void answersNotFoundForAnUnknownUser() throws Exception {
+    String adminToken = token("admin@ampere.com", PASSWORD);
+
+    mockMvc
+        .perform(authorized(post("/users/999999/password-reset"), adminToken))
+        .andExpect(status().isNotFound());
     mockMvc
         .perform(
-            authorized(
-                post("/users/999999/password-reset"), token("admin@ampere.com", PASSWORD)))
+            authorized(put("/users/999999"), adminToken)
+                .content("{\"name\":\"Ninguém\",\"role\":\"user\",\"active\":true}"))
         .andExpect(status().isNotFound());
   }
 
