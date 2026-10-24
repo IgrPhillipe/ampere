@@ -58,19 +58,21 @@ export const ReviewQueueActiveFilters = ({
 		});
 	}
 
-	if (filters.state) {
+	for (const state of filters.state) {
 		active.push({
-			id: "state",
-			label: `UF: ${filters.state}`,
-			onRemove: () => filters.setState(null),
+			id: `state-${state}`,
+			label: `UF: ${state}`,
+			onRemove: () =>
+				filters.setState(filters.state.filter((value) => value !== state)),
 		});
 	}
 
-	if (municipality) {
+	for (const name of municipality) {
 		active.push({
-			id: "municipality",
-			label: `Município: ${municipality}`,
-			onRemove: () => filters.setMunicipality(null),
+			id: `municipality-${name}`,
+			label: `Município: ${name}`,
+			onRemove: () =>
+				filters.setMunicipality(municipality.filter((value) => value !== name)),
 		});
 	}
 

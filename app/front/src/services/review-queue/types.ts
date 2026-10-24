@@ -12,6 +12,6 @@ export interface ListReviewQueueParams {
 	direction?: SortDirection;
 	/** An analyst id, or `UNASSIGNED_REVIEWER`. */
 	reviewer?: string;
-	state?: BrazilianState;
-	municipality?: string;
+	state?: BrazilianState[];
+	municipality?: string[];
 }

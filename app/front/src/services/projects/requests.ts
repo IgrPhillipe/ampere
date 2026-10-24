@@ -32,9 +32,9 @@ export const getProjectStateList = async () => {
 	return stateListResponseSchema.parse(response);
 };
 
-export const getMunicipalityList = async (state?: BrazilianState) => {
+export const getMunicipalityList = async (states: BrazilianState[] = []) => {
 	const response = await http
-		.get(e.municipalities, { searchParams: state ? { state } : undefined })
+		.get(e.municipalities, { searchParams: toSearchParams({ state: states }) })
 		.json<unknown>();
 
 	return municipalityListResponseSchema.parse(response);

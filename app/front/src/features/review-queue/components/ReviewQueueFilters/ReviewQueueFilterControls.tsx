@@ -1,4 +1,5 @@
 import { FilterMenu } from "@components/FilterMenu";
+import { MultiFilterMenu } from "@components/MultiFilterMenu";
 import { type BrazilianState, useGetStateList } from "@services/locations";
 import {
 	useGetMunicipalityList,
@@ -12,10 +13,10 @@ import {
 interface ReviewQueueFilterControlsProps {
 	reviewer: string | null;
 	onReviewerChange: (reviewer: string | null) => void;
-	state: BrazilianState | null;
-	onStateChange: (state: BrazilianState | null) => void;
-	municipality: string | null;
-	onMunicipalityChange: (municipality: string | null) => void;
+	state: BrazilianState[];
+	onStateChange: (state: BrazilianState[]) => void;
+	municipality: string[];
+	onMunicipalityChange: (municipality: string[]) => void;
 }
 
 export const ReviewQueueFilterControls = ({
@@ -29,7 +30,7 @@ export const ReviewQueueFilterControls = ({
 	const reviewersQuery = useGetReviewerList();
 	const statesQuery = useGetProjectStateList();
 	const stateNamesQuery = useGetStateList();
-	const municipalitiesQuery = useGetMunicipalityList(state ?? undefined);
+	const municipalitiesQuery = useGetMunicipalityList(state);
 	const states = (statesQuery.data?.data ?? []).map((value) => ({
 		value,
 		label:
@@ -58,7 +59,7 @@ export const ReviewQueueFilterControls = ({
 				onValueChange={onReviewerChange}
 				disabled={reviewersQuery.isPending}
 			/>
-			<FilterMenu
+			<MultiFilterMenu
 				label="UF"
 				allLabel="Todas"
 				options={states}
@@ -66,7 +67,7 @@ export const ReviewQueueFilterControls = ({
 				onValueChange={onStateChange}
 				disabled={statesQuery.isPending}
 			/>
-			<FilterMenu
+			<MultiFilterMenu
 				label="Município"
 				allLabel="Todos"
 				options={municipalities}

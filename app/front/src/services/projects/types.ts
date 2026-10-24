@@ -18,13 +18,13 @@ export interface ListProjectsParams {
 	search?: string;
 	sort?: ProjectSort;
 	direction?: SortDirection;
-	state?: BrazilianState;
-	municipality?: string;
+	state?: BrazilianState[];
+	municipality?: string[];
 	/** `YYYY-MM-DD`, inclusive. */
 	createdFrom?: string;
 	/** `YYYY-MM-DD`, inclusive. */
 	createdTo?: string;
-	findings?: ProjectFindingsFilter;
+	findings?: ProjectFindingsFilter[];
 }
 
 /** Corpo de `POST /projects`: os campos da US02. */

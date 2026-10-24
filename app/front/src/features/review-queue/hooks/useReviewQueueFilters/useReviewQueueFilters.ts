@@ -16,6 +16,7 @@ import {
 } from "@services/review-queue";
 import {
 	debounce,
+	parseAsArrayOf,
 	parseAsInteger,
 	parseAsString,
 	parseAsStringLiteral,
@@ -55,8 +56,10 @@ export const useReviewQueueFilters = () => {
 		),
 		direction: parseAsStringLiteral(sortDirectionSchema.options),
 		reviewer: parseAsString,
-		state: parseAsStringLiteral(brazilianStateSchema.options),
-		municipality: parseAsString,
+		state: parseAsArrayOf(
+			parseAsStringLiteral(brazilianStateSchema.options),
+		).withDefault([]),
+		municipality: parseAsArrayOf(parseAsString).withDefault([]),
 	});
 	const { filter, search, page, state, municipality } = query;
 	const reviewer = toReviewer(query.reviewer);
@@ -78,8 +81,8 @@ export const useReviewQueueFilters = () => {
 			sort: sort.column,
 			direction: sort.direction,
 			reviewer: reviewer ?? undefined,
-			state: state ?? undefined,
-			municipality: municipality ?? undefined,
+			state: state.length ? state : undefined,
+			municipality: municipality.length ? municipality : undefined,
 		}),
 		[page, filter, debouncedSearch, sort, reviewer, state, municipality],
 	);
@@ -135,15 +138,19 @@ export const useReviewQueueFilters = () => {
 	);
 
 	const setState = useCallback(
-		(value: BrazilianState | null) => {
-			void setQuery({ state: value, municipality: null, page: null });
+		(value: BrazilianState[]) => {
+			void setQuery({
+				state: value.length ? value : null,
+				municipality: null,
+				page: null,
+			});
 		},
 		[setQuery],
 	);
 
 	const setMunicipality = useCallback(
-		(value: string | null) => {
-			void setQuery({ municipality: value, page: null });
+		(value: string[]) => {
+			void setQuery({ municipality: value.length ? value : null, page: null });
 		},
 		[setQuery],
 	);
@@ -172,8 +179,8 @@ export const useReviewQueueFilters = () => {
 			filter !== "ALL" ||
 			search.trim() !== "" ||
 			reviewer !== null ||
-			state !== null ||
-			municipality !== null,
+			state.length > 0 ||
+			municipality.length > 0,
 		setFilter,
 		setSearch,
 		setPage,

@@ -19,6 +19,7 @@ import {
 } from "@services/projects";
 import {
 	debounce,
+	parseAsArrayOf,
 	parseAsInteger,
 	parseAsString,
 	parseAsStringLiteral,
@@ -53,11 +54,15 @@ export const useProjectFilters = () => {
 			DEFAULT_SORT,
 		),
 		direction: parseAsStringLiteral(sortDirectionSchema.options),
-		state: parseAsStringLiteral(brazilianStateSchema.options),
-		municipality: parseAsString,
+		state: parseAsArrayOf(
+			parseAsStringLiteral(brazilianStateSchema.options),
+		).withDefault([]),
+		municipality: parseAsArrayOf(parseAsString).withDefault([]),
 		createdFrom: parseAsString,
 		createdTo: parseAsString,
-		findings: parseAsStringLiteral(projectFindingsFilterSchema.options),
+		findings: parseAsArrayOf(
+			parseAsStringLiteral(projectFindingsFilterSchema.options),
+		).withDefault([]),
 	});
 	const { status, search, page, state, municipality, findings } = query;
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
@@ -85,11 +90,11 @@ export const useProjectFilters = () => {
 			search: debouncedSearch || undefined,
 			sort: sort.column,
 			direction: sort.direction,
-			state: state ?? undefined,
-			municipality: municipality ?? undefined,
+			state: state.length ? state : undefined,
+			municipality: municipality.length ? municipality : undefined,
 			createdFrom: period.from ?? undefined,
 			createdTo: period.to ?? undefined,
-			findings: findings ?? undefined,
+			findings: findings.length ? findings : undefined,
 		}),
 		[
 			page,
@@ -144,15 +149,19 @@ export const useProjectFilters = () => {
 	);
 
 	const setState = useCallback(
-		(value: BrazilianState | null) => {
-			void setQuery({ state: value, municipality: null, page: null });
+		(value: BrazilianState[]) => {
+			void setQuery({
+				state: value.length ? value : null,
+				municipality: null,
+				page: null,
+			});
 		},
 		[setQuery],
 	);
 
 	const setMunicipality = useCallback(
-		(value: string | null) => {
-			void setQuery({ municipality: value, page: null });
+		(value: string[]) => {
+			void setQuery({ municipality: value.length ? value : null, page: null });
 		},
 		[setQuery],
 	);
@@ -169,8 +178,8 @@ export const useProjectFilters = () => {
 	);
 
 	const setFindings = useCallback(
-		(value: ProjectFindingsFilter | null) => {
-			void setQuery({ findings: value, page: null });
+		(value: ProjectFindingsFilter[]) => {
+			void setQuery({ findings: value.length ? value : null, page: null });
 		},
 		[setQuery],
 	);
@@ -202,11 +211,11 @@ export const useProjectFilters = () => {
 		hasActiveFilters:
 			status !== null ||
 			search.trim() !== "" ||
-			state !== null ||
-			municipality !== null ||
+			state.length > 0 ||
+			municipality.length > 0 ||
 			period.from !== null ||
 			period.to !== null ||
-			findings !== null,
+			findings.length > 0,
 		setStatus,
 		setSearch,
 		setPage,

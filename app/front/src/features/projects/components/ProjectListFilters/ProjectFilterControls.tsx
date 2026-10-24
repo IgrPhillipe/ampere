@@ -1,5 +1,5 @@
 import { type DateRange, DateRangeFilter } from "@components/DateRangeFilter";
-import { FilterMenu } from "@components/FilterMenu";
+import { MultiFilterMenu } from "@components/MultiFilterMenu";
 import { type BrazilianState, useGetStateList } from "@services/locations";
 import {
 	type ProjectFindingsFilter,
@@ -16,14 +16,14 @@ const findingsOptions = projectFindingsFilterSchema.options.map((value) => ({
 }));
 
 interface ProjectFilterControlsProps {
-	state: BrazilianState | null;
-	onStateChange: (state: BrazilianState | null) => void;
-	municipality: string | null;
-	onMunicipalityChange: (municipality: string | null) => void;
+	state: BrazilianState[];
+	onStateChange: (state: BrazilianState[]) => void;
+	municipality: string[];
+	onMunicipalityChange: (municipality: string[]) => void;
 	period: DateRange;
 	onPeriodChange: (period: DateRange) => void;
-	findings: ProjectFindingsFilter | null;
-	onFindingsChange: (findings: ProjectFindingsFilter | null) => void;
+	findings: ProjectFindingsFilter[];
+	onFindingsChange: (findings: ProjectFindingsFilter[]) => void;
 }
 
 export const ProjectFilterControls = ({
@@ -38,7 +38,7 @@ export const ProjectFilterControls = ({
 }: ProjectFilterControlsProps) => {
 	const statesQuery = useGetProjectStateList();
 	const stateNamesQuery = useGetStateList();
-	const municipalitiesQuery = useGetMunicipalityList(state ?? undefined);
+	const municipalitiesQuery = useGetMunicipalityList(state);
 	const states = (statesQuery.data?.data ?? []).map((value) => ({
 		value,
 		label:
@@ -51,7 +51,7 @@ export const ProjectFilterControls = ({
 
 	return (
 		<>
-			<FilterMenu
+			<MultiFilterMenu
 				label="UF"
 				allLabel="Todas"
 				options={states}
@@ -59,7 +59,7 @@ export const ProjectFilterControls = ({
 				onValueChange={onStateChange}
 				disabled={statesQuery.isPending}
 			/>
-			<FilterMenu
+			<MultiFilterMenu
 				label="Município"
 				allLabel="Todos"
 				options={municipalities}
@@ -73,7 +73,7 @@ export const ProjectFilterControls = ({
 				value={period}
 				onValueChange={onPeriodChange}
 			/>
-			<FilterMenu
+			<MultiFilterMenu
 				label="Apontamentos"
 				allLabel="Todos"
 				options={findingsOptions}

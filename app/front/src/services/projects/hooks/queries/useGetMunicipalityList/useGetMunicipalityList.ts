@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { projectKeys } from "../../../query-keys";
 import { getMunicipalityList } from "../../../requests";
 
-export const useGetMunicipalityList = (state?: BrazilianState) =>
+export const useGetMunicipalityList = (states: BrazilianState[] = []) =>
 	useQuery({
-		queryKey: projectKeys.municipalities(state),
-		queryFn: () => getMunicipalityList(state),
+		queryKey: projectKeys.municipalities(states),
+		queryFn: () => getMunicipalityList(states),
 	});
