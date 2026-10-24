@@ -31,7 +31,7 @@ export const ListToolbar = ({
 					{refinements && sort ? (
 						<Separator
 							orientation="vertical"
-							className="mx-1 self-center data-[orientation=vertical]:h-6"
+							className="mx-1 hidden self-center data-[orientation=vertical]:h-6 sm:block"
 						/>
 					) : null}
 					{sort}
