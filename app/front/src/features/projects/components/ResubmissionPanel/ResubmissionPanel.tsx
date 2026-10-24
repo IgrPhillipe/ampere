@@ -1,6 +1,8 @@
+import { attentionSeverityClassNames } from "@components/AttentionIndicator";
 import { ControlledTextarea } from "@components/form";
 import { Button } from "@components/ui/button";
 import { useZodForm } from "@features/shared";
+import { cn } from "@lib/utils";
 import { RotateCcw, TriangleAlert } from "lucide-react";
 
 import { type ResubmissionValues, resubmissionSchema } from "../../schemas";
@@ -53,7 +55,10 @@ export const ResubmissionPanel = ({
 			{alert ? (
 				<p
 					role="status"
-					className="mt-4 flex gap-2 border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive"
+					className={cn(
+						"mt-4 flex gap-2 rounded-xs p-3 text-sm",
+						attentionSeverityClassNames.critical,
+					)}
 				>
 					<TriangleAlert
 						aria-hidden="true"
