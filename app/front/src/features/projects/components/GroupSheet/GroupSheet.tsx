@@ -1,4 +1,5 @@
 import { ConfirmDialog } from "@components/ConfirmDialog";
+import { Button } from "@components/ui/button";
 import {
 	Sheet,
 	SheetContent,
@@ -29,6 +30,8 @@ interface GroupSheetProps {
 	readOnly?: boolean;
 	opened: OpenedGroup | null;
 	onClose: () => void;
+	/** The analyst registers a finding tied to the open group. */
+	onCreateFinding?: (group: ConsumerUnitGroup) => void;
 }
 
 const renderGroupForm = (
@@ -50,6 +53,7 @@ export const GroupSheet = ({
 	readOnly = false,
 	opened,
 	onClose,
+	onCreateFinding,
 }: GroupSheetProps) => {
 	const updateGroup = useUpdateConsumerUnitGroup(projectId);
 	const deleteGroup = useDeleteConsumerUnitGroup(projectId);
@@ -95,6 +99,20 @@ export const GroupSheet = ({
 									{group.name}
 								</SheetTitle>
 								<SheetDescription>{group.summary}</SheetDescription>
+								{onCreateFinding ? (
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										className="mt-2 self-start"
+										onClick={() => {
+											closeSheet();
+											onCreateFinding(group);
+										}}
+									>
+										Registrar Apontamento
+									</Button>
+								) : null}
 							</SheetHeader>
 
 							{/* `key` resets the form when another group opens. */}

@@ -53,6 +53,8 @@ vi.mock("@services/consumer-units", async (importOriginal) => ({
 		loadedQuery({
 			data: { totalUnits: 12, totalGroups: 2, totalDeclaredLoadKw: 80 },
 		}),
+	useUpdateConsumerUnitGroup: () => idleMutation(),
+	useDeleteConsumerUnitGroup: () => idleMutation(),
 }));
 
 vi.mock("@services/submission", async (importOriginal) => ({

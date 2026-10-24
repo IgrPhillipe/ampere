@@ -31,7 +31,9 @@ import { useState } from "react";
 
 import {
 	ChangeSummaryNotice,
+	GroupSheet,
 	NextStepsPanel,
+	type OpenedGroup,
 	ProjectDetailFooter,
 	ProjectDetailHeader,
 	ProjectDetailLayout,
@@ -45,7 +47,7 @@ import {
 	findingTarget,
 	projectVersion,
 } from "../../constants";
-import { useProjectDetailActions } from "../../hooks";
+import { useProjectDetailActions, useProjectPermissions } from "../../hooks";
 import type { FindingResponseValues, ResubmissionValues } from "../../schemas";
 
 const stageRoutes = {
@@ -74,8 +76,10 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 		findingId: string;
 		status: FindingResponseValues["status"];
 	} | null>(null);
+	const [openedGroup, setOpenedGroup] = useState<OpenedGroup | null>(null);
 
 	const project = projectQuery.data?.data;
+	const { canEdit } = useProjectPermissions(project);
 	const findings = findingsQuery.data?.data;
 	const checklist = submissionQuery.data?.data;
 	const validation = validationQuery.data?.data;
@@ -129,12 +133,7 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 			params: { id: projectId },
 			hash: findingTarget(finding),
 		});
-	const openGroup = (group: ConsumerUnitGroup) =>
-		void navigate({
-			to: "/projetos/$id/unidades",
-			params: { id: projectId },
-			hash: `grupo-${group.id}`,
-		});
+	const openGroup = (group: ConsumerUnitGroup) => setOpenedGroup({ group });
 
 	const downloadMemorial = () => {
 		const memorial = memorialQuery.data;
@@ -380,6 +379,13 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 				documents={checklist?.documents}
 				markedFindings={markedFindings}
 				onOpenGroup={openGroup}
+			/>
+
+			<GroupSheet
+				projectId={projectId}
+				readOnly={!canEdit}
+				opened={openedGroup}
+				onClose={() => setOpenedGroup(null)}
 			/>
 		</ProjectDetailLayout>
 	);

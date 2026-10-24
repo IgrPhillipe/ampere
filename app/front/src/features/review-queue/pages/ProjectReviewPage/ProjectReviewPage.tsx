@@ -4,6 +4,8 @@ import { Button } from "@components/ui/button";
 import {
 	buildFindingReferenceOptions,
 	ChangeSummaryNotice,
+	GroupSheet,
+	type OpenedGroup,
 	ProjectDetailHeader,
 	ProjectDetailLayout,
 	ProjectDetailTabs,
@@ -95,6 +97,7 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 	const findingEditor = useFindingEditor();
 	const { editor } = findingEditor;
 	const [decision, setDecision] = useState<ReviewDecision | null>(null);
+	const [openedGroup, setOpenedGroup] = useState<OpenedGroup | null>(null);
 
 	const referenceOptions = buildFindingReferenceOptions({
 		groups: groups ?? [],
@@ -297,16 +300,10 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 					documents={checklist?.documents}
 					groupHint={
 						actions.createFindings
-							? "Selecione o nome de um grupo para registrar um apontamento vinculado a ele."
+							? "Selecione o nome de um grupo para ver os dados e registrar um apontamento vinculado a ele."
 							: undefined
 					}
-					onOpenGroup={(group) => {
-						if (!actions.createFindings) return;
-						findingEditor.start({
-							stage: "CONSUMER_UNITS",
-							reference: group.id,
-						});
-					}}
+					onOpenGroup={(group) => setOpenedGroup({ group })}
 					onCheckFinding={
 						actions.createFindings
 							? (check) => findingEditor.start(checkToFindingValues(check))
@@ -323,6 +320,22 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 					}
 				/>
 			</ProjectDetailLayout>
+
+			<GroupSheet
+				projectId={projectId}
+				readOnly
+				opened={openedGroup}
+				onClose={() => setOpenedGroup(null)}
+				onCreateFinding={
+					actions.createFindings
+						? (group) =>
+								findingEditor.start({
+									stage: "CONSUMER_UNITS",
+									reference: group.id,
+								})
+						: undefined
+				}
+			/>
 
 			<DecisionDialog
 				decision={decision}
