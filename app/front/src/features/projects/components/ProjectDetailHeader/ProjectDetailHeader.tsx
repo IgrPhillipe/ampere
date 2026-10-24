@@ -1,13 +1,12 @@
 import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
-import {
-	formatDate,
-	formatKva,
-	formatPlace,
-	formatPostalCode,
-} from "@features/shared";
+import { formatDate, formatKva, formatPostalCode } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
+import {
+	type ConcessionState,
+	concessionStateNames,
+} from "@services/locations";
 import type { ProjectDetail } from "@services/projects";
 import type { ReactNode } from "react";
 
@@ -21,10 +20,21 @@ interface HeaderCellProps {
 	label: string;
 	isLoading: boolean;
 	children?: ReactNode;
+	className?: string;
 }
 
-const HeaderCell = ({ label, isLoading, children }: HeaderCellProps) => (
-	<div className="flex min-w-0 flex-col gap-1.5 bg-card px-6 py-4 last:col-span-2 md:px-8 lg:last:col-span-1">
+const HeaderCell = ({
+	label,
+	isLoading,
+	children,
+	className,
+}: HeaderCellProps) => (
+	<div
+		className={cn(
+			"flex min-w-0 flex-col gap-1.5 bg-card px-6 py-4 last:col-span-2 md:px-8 lg:last:col-span-1",
+			className,
+		)}
+	>
 		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 			{label}
 		</dt>
@@ -89,16 +99,34 @@ export const ProjectDetailHeader = ({
 						{projectStatusLabels[project.status]}
 					</Badge>
 					{reanalysis ? <Badge variant="tag">Reanálise</Badge> : null}
-					<span className="text-sm text-muted-foreground">
-						{project.address},{" "}
-						{formatPlace(project.municipality, project.state)}
-						{project.postalCode
-							? `, CEP ${formatPostalCode(project.postalCode)}`
-							: null}
-					</span>
 				</div>
 			) : null}
 		</div>
+
+		<dl className="grid grid-cols-2 gap-px border-t border-border bg-border lg:grid-cols-4">
+			<HeaderCell isLoading={isLoading} label="CEP">
+				{project?.postalCode ? formatPostalCode(project.postalCode) : undefined}
+			</HeaderCell>
+
+			<HeaderCell isLoading={isLoading} label="UF">
+				{project
+					? (concessionStateNames[project.state as ConcessionState] ??
+						project.state)
+					: undefined}
+			</HeaderCell>
+
+			<HeaderCell isLoading={isLoading} label="Município">
+				{project?.municipality}
+			</HeaderCell>
+
+			<HeaderCell
+				isLoading={isLoading}
+				label="Endereço"
+				className="last:col-span-1"
+			>
+				{project?.address}
+			</HeaderCell>
+		</dl>
 
 		<dl className="grid grid-cols-2 gap-px border-t border-border bg-border lg:grid-cols-7">
 			<HeaderCell isLoading={isLoading} label="Projetista">
