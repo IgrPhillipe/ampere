@@ -30,7 +30,6 @@ import { Check, CircleAlert, Download, Send } from "lucide-react";
 import { useState } from "react";
 
 import {
-	ChangeSummaryNotice,
 	GroupSheet,
 	NextStepsPanel,
 	type OpenedGroup,
@@ -269,12 +268,6 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 									acompanhar a análise.
 								</span>
 							</p>
-						) : null}
-						{reanalysis && project.changeSummary ? (
-							<ChangeSummaryNotice
-								version={project.reviewCycle}
-								summary={project.changeSummary}
-							/>
 						) : null}
 					</>
 				) : null

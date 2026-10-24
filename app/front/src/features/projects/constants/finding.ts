@@ -91,14 +91,11 @@ export const describeFindingReference = (
 	return reference ? (options[finding.stage][reference] ?? reference) : null;
 };
 
-/** Same rule as the back: a published finding not yet accepted, on a rejected project. */
+/** Open on a rejected project: answered findings wait on the analyst, not on the designer. */
 export const awaitsDesignerResponse = (
 	finding: Finding,
 	project: Pick<ProjectDetail, "status">,
-) =>
-	project.status === "REJECTED" &&
-	finding.status !== "DRAFT" &&
-	finding.status !== "RESOLVED";
+) => project.status === "REJECTED" && finding.status === "OPEN";
 
 /** The findings a stage marks while the designer corrects the project. */
 export const stageFindingsOf = (

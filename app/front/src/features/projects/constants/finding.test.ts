@@ -15,7 +15,8 @@ const finding = {
 describe("awaitsDesignerResponse", () => {
 	it.each([
 		["REJECTED", "OPEN", true],
-		["REJECTED", "CONTESTED", true],
+		["REJECTED", "CONTESTED", false],
+		["REJECTED", "FIXED", false],
 		["REJECTED", "RESOLVED", false],
 		["REJECTED", "DRAFT", false],
 		["UNDER_REVIEW", "OPEN", false],

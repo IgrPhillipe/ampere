@@ -85,9 +85,6 @@ export const ProjectFindingsOverview = ({
 	const awaiting = (finding: Finding) =>
 		awaitsDesignerResponse(finding, project);
 	const current = (findings ?? []).filter(awaiting).sort(byPriority);
-	const history = (findings ?? [])
-		.filter((finding) => !awaiting(finding))
-		.sort(byPriority);
 	const opinion = hasOpinion(project.status)
 		? opinionStyles[project.status]
 		: undefined;
@@ -200,18 +197,6 @@ export const ProjectFindingsOverview = ({
 					</p>
 				)}
 			</section>
-
-			{history.length > 0 ? (
-				<section aria-labelledby="findings-history-title">
-					<h2
-						id="findings-history-title"
-						className="border-b border-border pb-3 text-base font-semibold"
-					>
-						Histórico
-					</h2>
-					<ul>{history.map(renderCard)}</ul>
-				</section>
-			) : null}
 
 			<FindingDialog
 				finding={opened}
