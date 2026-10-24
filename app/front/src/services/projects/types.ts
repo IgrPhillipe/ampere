@@ -23,6 +23,8 @@ export interface ListProjectsParams {
 	/** `YYYY-MM-DD`, inclusive. */
 	createdTo?: string;
 	findings?: ProjectFindingsFilter;
+	/** The designer's id; only the admin offers it. */
+	owner?: string;
 }
 
 /** Corpo de `POST /projects` — os oito campos da US02. */

@@ -13,6 +13,7 @@ export type ProjectStatus = z.infer<typeof projectStatusSchema>;
 
 export const projectSortSchema = z.enum([
 	"name",
+	"owner",
 	"demand",
 	"createdAt",
 	"updatedAt",
@@ -74,6 +75,18 @@ export type ProjectStatusCountsResponse = z.infer<
 
 export const municipalityListResponseSchema = apiResponseSchema(
 	z.array(z.string()),
+);
+
+/** A designer offered in the admin's filter. */
+export const projectOwnerSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+});
+
+export type ProjectOwner = z.infer<typeof projectOwnerSchema>;
+
+export const projectOwnerListResponseSchema = apiResponseSchema(
+	z.array(projectOwnerSchema),
 );
 
 export type MunicipalityListResponse = z.infer<

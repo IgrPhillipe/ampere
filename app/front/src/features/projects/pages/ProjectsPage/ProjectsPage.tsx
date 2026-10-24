@@ -38,6 +38,11 @@ const sortOptions: SortOption<ProjectSort>[] = [
 	{ value: "demand", label: "Demanda" },
 ];
 
+const adminSortOptions: SortOption<ProjectSort>[] = [
+	...sortOptions,
+	{ value: "owner", label: "Projetista" },
+];
+
 const emptyStatusCounts: ProjectStatusCounts = {
 	total: 0,
 	draft: 0,
@@ -50,6 +55,7 @@ const emptyStatusCounts: ProjectStatusCounts = {
 export const ProjectsPage = () => {
 	const navigate = useNavigate();
 	const role = useAuthStore((state) => state.user?.role);
+	const isAdmin = role === "admin";
 	const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 	const deleteProject = useDeleteProject();
 	const filters = useProjectFilters();
@@ -135,7 +141,7 @@ export const ProjectsPage = () => {
 		<PageLayout
 			title={getProjectsPageTitle(role)}
 			description={
-				role === "admin"
+				isAdmin
 					? "Todos os projetos dos projetistas, em qualquer situação."
 					: "Acompanhe o andamento dos projetos enviados à Neoenergia Pernambuco."
 			}
@@ -174,7 +180,7 @@ export const ProjectsPage = () => {
 					}
 					sort={
 						<SortMenu
-							options={sortOptions}
+							options={isAdmin ? adminSortOptions : sortOptions}
 							value={sort}
 							directions={PROJECT_SORT_DIRECTIONS}
 							onValueChange={setSort}
@@ -182,6 +188,9 @@ export const ProjectsPage = () => {
 					}
 					refinements={
 						<ProjectFilterControls
+							showOwner={isAdmin}
+							owner={filters.owner}
+							onOwnerChange={filters.setOwner}
 							municipality={filters.municipality}
 							onMunicipalityChange={filters.setMunicipality}
 							period={filters.period}
@@ -215,7 +224,7 @@ export const ProjectsPage = () => {
 					) : (
 						<ProjectsTable
 							projects={projects}
-							showOwner={role === "admin"}
+							showOwner={isAdmin}
 							isLoading={projectsQuery.isPending}
 							onViewFindings={handleViewFindings}
 							onResumeSubmission={handleResumeSubmission}

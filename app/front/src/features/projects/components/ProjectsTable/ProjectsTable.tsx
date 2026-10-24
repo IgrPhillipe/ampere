@@ -27,6 +27,7 @@ const projectColumnClassNames = {
 
 const sortableColumns = [
 	"name",
+	"owner",
 	"demand",
 	"createdAt",
 	"updatedAt",
