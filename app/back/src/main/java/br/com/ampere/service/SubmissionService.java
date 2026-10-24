@@ -48,11 +48,6 @@ public class SubmissionService {
   }
 
   @Transactional
-  public Project submit(Long projectId, AuthenticatedUser user) {
-    return submit(projectId, null, user);
-  }
-
-  @Transactional
   public Project submit(Long projectId, String changeSummary, AuthenticatedUser user) {
     Project project = projectService.findWritableById(projectId, user);
     if (!project.canBeSubmitted()) {
