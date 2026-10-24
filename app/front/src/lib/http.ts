@@ -51,3 +51,6 @@ export const http = ky.create({
 		],
 	},
 });
+
+/** Public third-party APIs (ViaCEP, IBGE): no prefix, no session token. */
+export const externalHttp = ky.create({ timeout: 10_000, retry: 1 });
