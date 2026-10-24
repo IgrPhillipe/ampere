@@ -45,10 +45,12 @@ const renderOverview = (
 		reviewCycle: number;
 		reviewOpinion: string | null;
 	} = rejected,
+	canAnswer = true,
 ) => {
 	const onStartResponse = vi.fn();
 	render(
 		<ProjectFindingsOverview
+			canAnswer={canAnswer}
 			findings={findings}
 			project={project}
 			referenceOptions={referenceOptions}
@@ -81,6 +83,19 @@ describe("ProjectFindingsOverview", () => {
 
 		fireEvent.click(screen.getAllByRole("button", { name: "Contestar" })[0]);
 		expect(onStartResponse).toHaveBeenCalledWith(blocking, "CONTESTED");
+	});
+
+	it("shows the findings without answers to whoever does not own the project", () => {
+		renderOverview(
+			[makeFinding({ description: "Substituir ART." })],
+			rejected,
+			false,
+		);
+
+		expect(screen.getByText("Substituir ART.")).toBeVisible();
+		expect(
+			screen.queryByRole("button", { name: "Contestar" }),
+		).not.toBeInTheDocument();
 	});
 
 	it("names the group a finding points to", () => {

@@ -110,7 +110,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 		"PROJECT_DATA",
 	);
 	const validation = validationQuery.data?.data;
-	const { canEdit } = useProjectPermissions(project?.status);
+	const { canEdit } = useProjectPermissions(project);
 	const isEditable = projectId === undefined || canEdit;
 	const isSaving = createProject.isPending || updateProject.isPending;
 

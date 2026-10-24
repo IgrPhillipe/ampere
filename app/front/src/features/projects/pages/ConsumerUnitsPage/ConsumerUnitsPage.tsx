@@ -75,7 +75,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 	const groups = groupsQuery.data?.data ?? [];
 	const validation = validationQuery.data?.data;
 	const canCalculate = validation?.canCalculate ?? false;
-	const { canEdit: isEditable } = useProjectPermissions(project?.status);
+	const { canEdit: isEditable } = useProjectPermissions(project);
 	const hasError =
 		projectQuery.isError || groupsQuery.isError || validationQuery.isError;
 

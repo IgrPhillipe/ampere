@@ -55,7 +55,8 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	);
 	const validation = validationQuery.data?.data;
 	const checklist = submissionQuery.data?.data;
-	const { canEditDocuments: editable } = useProjectPermissions(project?.status);
+	const { canEditDocuments: editable, isOwner } =
+		useProjectPermissions(project);
 	const submitted =
 		project !== undefined &&
 		project.status !== "DRAFT" &&
@@ -204,10 +205,10 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 								})
 							}
 						>
-							Revisar e Reenviar
+							{isOwner ? "Revisar e Reenviar" : "Ver Apontamentos"}
 							<ArrowRight aria-hidden="true" />
 						</Button>
-					) : submitted ? (
+					) : submitted || (project !== undefined && !isOwner) ? (
 						<Button type="button" onClick={goToSubmission}>
 							Ver Envio
 							<ArrowRight aria-hidden="true" />

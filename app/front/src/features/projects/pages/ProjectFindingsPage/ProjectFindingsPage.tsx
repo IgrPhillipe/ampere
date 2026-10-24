@@ -33,6 +33,7 @@ import {
 	findingTarget,
 	projectVersion,
 } from "../../constants";
+import { useProjectPermissions } from "../../hooks";
 import type { FindingResponseValues, ResubmissionValues } from "../../schemas";
 
 const stageRoutes = {
@@ -64,6 +65,7 @@ export const ProjectFindingsPage = ({
 		status: FindingResponseValues["status"];
 	} | null>(null);
 	const project = projectQuery.data?.data;
+	const { isOwner } = useProjectPermissions(project);
 	const findings = findingsQuery.data?.data;
 	const checklist = submissionQuery.data?.data;
 	const validation = validationQuery.data?.data;
@@ -196,8 +198,9 @@ export const ProjectFindingsPage = ({
 						referenceOptions={referenceOptions}
 						responseEditor={responseEditor ?? undefined}
 						isResponding={respondMutation.isPending}
+						canAnswer={isOwner}
 						resubmission={
-							submissionQuery.isPending ? (
+							!isOwner ? null : submissionQuery.isPending ? (
 								<div
 									role="status"
 									aria-label="Carregando o reenvio"

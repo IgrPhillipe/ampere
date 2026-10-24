@@ -22,12 +22,10 @@ export const ProjectRowActionButton = ({
 	buttonClassName,
 	...actions
 }: ProjectRowActionButtonProps) => {
-	const action = getProjectRowAction(project);
-	const { canDelete, canEditInAnyStatus } = useProjectPermissions(
-		project.status,
-	);
-	// A draft is already edited through "Continuar".
-	const canEditSubmitted = canEditInAnyStatus && project.status !== "DRAFT";
+	const { canEdit, canDelete, isOwner } = useProjectPermissions(project);
+	const action = getProjectRowAction(project, isOwner);
+	// The owner reaches the edit through "Continuar" or "Corrigir"; the admin needs the item.
+	const canEditSubmitted = canEdit && !isOwner && project.status !== "DRAFT";
 
 	return (
 		<div className="flex items-center justify-end gap-1">

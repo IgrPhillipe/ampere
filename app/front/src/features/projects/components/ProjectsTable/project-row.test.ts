@@ -9,6 +9,7 @@ const project: Project = {
 	address: "Rua A, 1",
 	municipality: "Recife",
 	protocol: "2026-0475",
+	ownerId: "1",
 	ownerName: "Usuário Teste",
 	status: "DRAFT",
 	createdAt: "2026-10-01T12:00:00Z",

@@ -1,55 +1,73 @@
+import type { ProjectStatus } from "@services/projects";
 import { describe, expect, it } from "vitest";
 
 import { getProjectPermissions } from "./useProjectPermissions";
 
+const owned = (status: ProjectStatus) => ({ status, ownerId: "1" });
+const others = (status: ProjectStatus) => ({ status, ownerId: "2" });
+
 describe("getProjectPermissions", () => {
 	it("lets the designer edit a draft or a rejection", () => {
-		expect(getProjectPermissions("user", "DRAFT").canEdit).toBe(true);
-		expect(getProjectPermissions("user", "REJECTED").canEdit).toBe(true);
-		expect(getProjectPermissions("user", "AWAITING_SUBMISSION").canEdit).toBe(
-			false,
-		);
-		expect(getProjectPermissions("user", "UNDER_REVIEW").canEdit).toBe(false);
-	});
-
-	it("lets the designer delete only a draft", () => {
-		expect(getProjectPermissions("user", "DRAFT").canDelete).toBe(true);
-		expect(getProjectPermissions("user", "REJECTED").canDelete).toBe(false);
-	});
-
-	it("keeps the documents open to the designer until the submission", () => {
-		expect(
-			getProjectPermissions("user", "AWAITING_SUBMISSION").canEditDocuments,
-		).toBe(true);
-		expect(getProjectPermissions("user", "REJECTED").canEditDocuments).toBe(
+		expect(getProjectPermissions("user", "1", owned("DRAFT")).canEdit).toBe(
 			true,
 		);
-		expect(getProjectPermissions("user", "APPROVED").canEditDocuments).toBe(
-			false,
+		expect(getProjectPermissions("user", "1", owned("REJECTED")).canEdit).toBe(
+			true,
 		);
+		expect(
+			getProjectPermissions("user", "1", owned("AWAITING_SUBMISSION")).canEdit,
+		).toBe(false);
+		expect(
+			getProjectPermissions("user", "1", owned("UNDER_REVIEW")).canEdit,
+		).toBe(false);
+	});
+
+	it("keeps the documents open until the submission", () => {
+		expect(
+			getProjectPermissions("user", "1", owned("AWAITING_SUBMISSION"))
+				.canEditDocuments,
+		).toBe(true);
+		expect(
+			getProjectPermissions("user", "1", owned("APPROVED")).canEditDocuments,
+		).toBe(false);
+	});
+
+	it("lets anyone delete only a draft", () => {
+		expect(getProjectPermissions("user", "1", owned("DRAFT")).canDelete).toBe(
+			true,
+		);
+		expect(
+			getProjectPermissions("admin", "9", others("REJECTED")).canDelete,
+		).toBe(false);
 	});
 
 	it.each([
-		"DRAFT",
-		"AWAITING_SUBMISSION",
 		"UNDER_REVIEW",
-		"REJECTED",
 		"APPROVED",
-	] as const)("lets the admin edit a project in %s", (status) => {
-		expect(getProjectPermissions("admin", status)).toEqual({
+	] as const)("freezes a project in %s for the admin too", (status) => {
+		expect(getProjectPermissions("admin", "9", others(status))).toEqual({
+			canEdit: false,
+			canEditDocuments: false,
+			canDelete: false,
+			isOwner: false,
+		});
+	});
+
+	it("lets the admin edit another designer's draft without owning it", () => {
+		expect(getProjectPermissions("admin", "9", others("DRAFT"))).toEqual({
 			canEdit: true,
 			canEditDocuments: true,
 			canDelete: true,
-			canEditInAnyStatus: true,
+			isOwner: false,
 		});
 	});
 
 	it("never lets the analyst edit", () => {
-		expect(getProjectPermissions("reviewer", "DRAFT")).toEqual({
+		expect(getProjectPermissions("reviewer", "1", owned("DRAFT"))).toEqual({
 			canEdit: false,
 			canEditDocuments: false,
 			canDelete: false,
-			canEditInAnyStatus: false,
+			isOwner: false,
 		});
 	});
 });

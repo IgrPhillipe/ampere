@@ -6,36 +6,42 @@ export interface ProjectPermissions {
 	canEdit: boolean;
 	/** The documents also stay open while the project waits for its submission. */
 	canEditDocuments: boolean;
-	/** Only a draft, unless the admin deletes it. */
 	canDelete: boolean;
-	/** "Editar Projeto" past the draft is the admin's alone. */
-	canEditInAnyStatus: boolean;
+	/** Answering findings and submitting speak for the designer who owns the project. */
+	isOwner: boolean;
 }
 
-/** Mirrors the back: the admin writes any project, the designer a draft or a rejection. */
+interface PermissionTarget {
+	status: ProjectStatus;
+	ownerId?: string | null;
+}
+
+/** Mirrors the back: the admin skips the owner rule, never the status rules. */
 export const getProjectPermissions = (
 	role: UserRole | undefined,
-	status: ProjectStatus | undefined,
+	userId: string | undefined,
+	project: PermissionTarget | undefined,
 ): ProjectPermissions => {
-	const isAdmin = role === "admin";
-	const isDesigner = role === "user";
+	const canWrite = role === "user" || role === "admin";
+	const status = project?.status;
 
 	return {
-		canEdit:
-			isAdmin || (isDesigner && (status === "DRAFT" || status === "REJECTED")),
+		canEdit: canWrite && (status === "DRAFT" || status === "REJECTED"),
 		canEditDocuments:
-			isAdmin ||
-			(isDesigner &&
-				(status === "DRAFT" ||
-					status === "AWAITING_SUBMISSION" ||
-					status === "REJECTED")),
-		canDelete: isAdmin || (isDesigner && status === "DRAFT"),
-		canEditInAnyStatus: isAdmin,
+			canWrite &&
+			(status === "DRAFT" ||
+				status === "AWAITING_SUBMISSION" ||
+				status === "REJECTED"),
+		canDelete: canWrite && status === "DRAFT",
+		isOwner: canWrite && userId !== undefined && project?.ownerId === userId,
 	};
 };
 
-export const useProjectPermissions = (status: ProjectStatus | undefined) => {
+export const useProjectPermissions = (
+	project: PermissionTarget | undefined,
+) => {
 	const role = useAuthStore((state) => state.user?.role);
+	const userId = useAuthStore((state) => state.user?.id);
 
-	return getProjectPermissions(role, status);
+	return getProjectPermissions(role, userId, project);
 };

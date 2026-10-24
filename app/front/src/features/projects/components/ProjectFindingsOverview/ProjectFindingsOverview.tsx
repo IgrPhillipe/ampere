@@ -27,6 +27,8 @@ interface ProjectFindingsOverviewProps {
 		status: FindingResponseValues["status"];
 	};
 	isResponding: boolean;
+	/** Only the designer who owns the project answers its findings. */
+	canAnswer: boolean;
 	resubmission?: ReactNode;
 	onOpenStage: (finding: Finding) => void;
 	onStartResponse: (
@@ -43,6 +45,7 @@ export const ProjectFindingsOverview = ({
 	referenceOptions,
 	responseEditor,
 	isResponding,
+	canAnswer,
 	resubmission,
 	onOpenStage,
 	onStartResponse,
@@ -61,7 +64,7 @@ export const ProjectFindingsOverview = ({
 			key={finding.id}
 			finding={finding}
 			reference={describeFindingReference(finding, referenceOptions)}
-			canRespond={awaitsDesignerResponse(finding, project)}
+			canRespond={canAnswer && awaitsDesignerResponse(finding, project)}
 			responseStatus={
 				responseEditor?.findingId === finding.id
 					? responseEditor.status
