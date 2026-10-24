@@ -1,18 +1,21 @@
 import { Button } from "@components/ui/button";
 import { cn } from "@lib/utils";
-import type { Finding } from "@services/project-review";
+import { type Finding, useRespondFinding } from "@services/project-review";
+import { useGetProject } from "@services/projects";
 import type { ProjectDocument } from "@services/submission";
-import { Link } from "@tanstack/react-router";
-import { ArrowRight, Eye, MessageSquareWarning } from "lucide-react";
+import { Eye, MessageSquareWarning } from "lucide-react";
 import { useState } from "react";
 
-import { findingTarget } from "../../constants";
+import { findingTarget, isReopened } from "../../constants";
+import { useProjectDetailActions } from "../../hooks";
+import type { FindingResponseValues } from "../../schemas";
 import { FindingAnswer, FindingSummary } from "../FindingDetails";
 import { DocumentDialog } from "../ProjectDocuments";
+import { FindingResponseForm } from "../ProjectFindingsOverview/FindingResponseForm";
 
 interface StageFindingsNoticeProps {
 	projectId: string;
-	/** Findings of this step still waiting on the designer. */
+	/** Findings of this section still waiting on the designer. */
 	findings: Finding[];
 	/** Names of the items the findings point to, by id or code. */
 	references?: Record<string, string>;
@@ -36,7 +39,10 @@ const referenceOf = (
 const documentOf = (finding: Finding, documents: ProjectDocument[]) =>
 	documents.find((document) => document.type === finding.documentType);
 
-/** What the analyst asked for in this step, read where the designer fixes it. */
+/**
+ * What the analyst asked for in this section, read and answered where the designer fixes it.
+ * Keep it out of the section's own form: the answer is a form too.
+ */
 export const StageFindingsNotice = ({
 	projectId,
 	findings,
@@ -45,8 +51,29 @@ export const StageFindingsNotice = ({
 	className,
 }: StageFindingsNoticeProps) => {
 	const [viewing, setViewing] = useState<ProjectDocument>();
+	const [responding, setResponding] = useState<{
+		findingId: string;
+		status: FindingResponseValues["status"];
+	} | null>(null);
+	const project = useGetProject(projectId).data?.data;
+	const { respondFindings: canRespond } = useProjectDetailActions({
+		status: project?.status,
+		ownerId: project?.ownerId,
+	});
+	const respondMutation = useRespondFinding();
 
 	if (findings.length === 0) return null;
+
+	const respond = (finding: Finding, values: FindingResponseValues) =>
+		respondMutation.mutate(
+			{
+				projectId,
+				findingId: finding.id,
+				status: values.status,
+				response: values.response || undefined,
+			},
+			{ onSuccess: () => setResponding(null) },
+		);
 
 	const hash = typeof window === "undefined" ? "" : window.location.hash;
 
@@ -65,14 +92,18 @@ export const StageFindingsNotice = ({
 				>
 					<MessageSquareWarning aria-hidden="true" className="size-4" />
 					{findings.length === 1
-						? "Apontamento Nesta Etapa"
-						: `${findings.length} Apontamentos Nesta Etapa`}
+						? "Apontamento Nesta Seção"
+						: `${findings.length} Apontamentos Nesta Seção`}
 				</h2>
 			</div>
 
 			<ul className="flex flex-col">
 				{findings.map((finding) => {
 					const target = findingTarget(finding);
+					const status =
+						responding?.findingId === finding.id
+							? responding.status
+							: undefined;
 
 					return (
 						<li
@@ -90,10 +121,24 @@ export const StageFindingsNotice = ({
 								variant="inline"
 							/>
 							<FindingAnswer
-								title="Resposta do Projetista"
+								title={
+									isReopened(finding)
+										? "Resposta Anterior do Projetista"
+										: "Resposta do Projetista"
+								}
 								text={finding.response}
+								fallback={
+									finding.status === "FIXED"
+										? "Marcado como corrigido sem observação."
+										: undefined
+								}
 								respondedAt={finding.respondedAt}
 							/>
+							{isReopened(finding) ? (
+								<p className="text-sm text-muted-foreground">
+									O analista reabriu o apontamento. Responda de novo.
+								</p>
+							) : null}
 							<div className="flex flex-wrap gap-2">
 								{documentOf(finding, documents) ? (
 									<Button
@@ -106,20 +151,49 @@ export const StageFindingsNotice = ({
 										Ver Documento
 									</Button>
 								) : null}
-								<Button
-									size="xs"
-									render={
-										<Link
-											to="/projetos/$id"
-											params={{ id: projectId }}
-											hash={`apontamento-${finding.id}`}
-										/>
-									}
-								>
-									Corrigir ou Contestar
-									<ArrowRight aria-hidden="true" />
-								</Button>
+								{canRespond ? (
+									<>
+										<Button
+											type="button"
+											variant="outline"
+											size="xs"
+											aria-expanded={status === "CONTESTED"}
+											onClick={() =>
+												setResponding({
+													findingId: finding.id,
+													status: "CONTESTED",
+												})
+											}
+										>
+											Contestar
+										</Button>
+										<Button
+											type="button"
+											size="xs"
+											aria-expanded={status === "FIXED"}
+											onClick={() =>
+												setResponding({
+													findingId: finding.id,
+													status: "FIXED",
+												})
+											}
+										>
+											Corrigido
+										</Button>
+									</>
+								) : null}
 							</div>
+
+							{canRespond && status ? (
+								<FindingResponseForm
+									key={status}
+									status={status}
+									initialResponse={finding.response}
+									isPending={respondMutation.isPending}
+									onSubmit={(values) => respond(finding, values)}
+									onCancel={() => setResponding(null)}
+								/>
+							) : null}
 						</li>
 					);
 				})}

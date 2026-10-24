@@ -67,7 +67,9 @@ public class DemandCalculationController {
   })
   public ApiResponse<CalculationResponse> latest(
       @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(CalculationResponse.from(service.latest(projectId, userOf(jwt))));
+    DemandCalculationService.Latest latest = service.latest(projectId, userOf(jwt));
+
+    return ApiResponse.of(CalculationResponse.from(latest.calculation(), latest.outdated()));
   }
 
   private static AuthenticatedUser userOf(Jwt jwt) {

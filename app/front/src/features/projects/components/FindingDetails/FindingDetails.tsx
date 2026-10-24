@@ -17,7 +17,7 @@ import {
 	findingSeverityLabels,
 	findingStageLabels,
 	findingStatusBadgeVariants,
-	findingStatusLabels,
+	findingStatusLabelOf,
 } from "../../constants";
 
 interface MetaCellProps {
@@ -93,7 +93,7 @@ export const FindingSummary = ({
 					{findingSeverityLabels[finding.severity]}
 				</Badge>
 				<Badge variant={findingStatusBadgeVariants[finding.status]}>
-					{findingStatusLabels[finding.status]}
+					{findingStatusLabelOf(finding)}
 				</Badge>
 			</div>
 
@@ -219,7 +219,7 @@ export const FindingRow = ({
 						{findingSeverityLabels[finding.severity]}
 					</Badge>
 					<Badge variant={findingStatusBadgeVariants[finding.status]}>
-						{findingStatusLabels[finding.status]}
+						{findingStatusLabelOf(finding)}
 					</Badge>
 				</span>
 				{showVersion ? (

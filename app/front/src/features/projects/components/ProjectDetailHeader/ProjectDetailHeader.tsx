@@ -78,6 +78,8 @@ interface ProjectDetailHeaderProps {
 	correcting?: boolean;
 	/** Page-specific figures shown after the project's own. */
 	metrics?: HeaderMetric[];
+	/** The main action of whoever is looking at the project, beside its name. */
+	actions?: ReactNode;
 	className?: string;
 }
 
@@ -92,6 +94,7 @@ export const ProjectDetailHeader = ({
 	reanalysis = false,
 	correcting = false,
 	metrics = [],
+	actions,
 	className,
 }: ProjectDetailHeaderProps) => (
 	<header className={cn("flex flex-col border-b border-border", className)}>
@@ -101,53 +104,61 @@ export const ProjectDetailHeader = ({
 			</div>
 		) : null}
 
-		<div className="flex flex-col gap-3 px-6 pt-8 pb-6 md:px-8">
-			{project ? (
-				<p className="font-mono text-xs tracking-wider text-muted-foreground uppercase">
-					Protocolo {project.protocol}
-				</p>
-			) : (
-				<Skeleton className="h-4 w-40" />
-			)}
+		<div className="flex flex-col gap-6 px-6 pt-8 pb-6 md:px-8 lg:flex-row lg:items-start lg:justify-between">
+			<div className="flex min-w-0 flex-col gap-3">
+				{project ? (
+					<p className="font-mono text-xs tracking-wider text-muted-foreground uppercase">
+						Protocolo {project.protocol}
+					</p>
+				) : (
+					<Skeleton className="h-4 w-40" />
+				)}
 
-			{project ? (
-				<div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-					<h1 className="font-heading text-3xl font-semibold tracking-tight">
-						{project.name}
-					</h1>
-					<div className="flex flex-wrap items-center gap-2">
-						<Badge variant={projectStatusBadgeVariants[project.status]}>
-							{projectStatusLabels[project.status]}
-						</Badge>
-						{reanalysis ? <Badge variant="tag">Reanálise</Badge> : null}
+				{project ? (
+					<div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+						<h1 className="font-heading text-3xl font-semibold tracking-tight">
+							{project.name}
+						</h1>
+						<div className="flex flex-wrap items-center gap-2">
+							<Badge variant={projectStatusBadgeVariants[project.status]}>
+								{projectStatusLabels[project.status]}
+							</Badge>
+							{reanalysis ? <Badge variant="tag">Reanálise</Badge> : null}
+						</div>
 					</div>
-				</div>
-			) : (
-				<Skeleton className="h-9 w-80 max-w-full" />
-			)}
+				) : (
+					<Skeleton className="h-9 w-80 max-w-full" />
+				)}
 
-			<dl
-				aria-label="Endereço da edificação"
-				className="mt-3 grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-[auto_auto_auto_minmax(0,1fr)]"
-			>
-				<AddressItem isLoading={isLoading} label="CEP">
-					{project?.postalCode
-						? formatPostalCode(project.postalCode)
-						: undefined}
-				</AddressItem>
-				<AddressItem isLoading={isLoading} label="UF">
-					{project
-						? (concessionStateNames[project.state as ConcessionState] ??
-							project.state)
-						: undefined}
-				</AddressItem>
-				<AddressItem isLoading={isLoading} label="Município">
-					{project?.municipality}
-				</AddressItem>
-				<AddressItem isLoading={isLoading} label="Endereço">
-					{project?.address}
-				</AddressItem>
-			</dl>
+				<dl
+					aria-label="Endereço da edificação"
+					className="mt-3 grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-[auto_auto_auto_minmax(0,1fr)]"
+				>
+					<AddressItem isLoading={isLoading} label="CEP">
+						{project?.postalCode
+							? formatPostalCode(project.postalCode)
+							: undefined}
+					</AddressItem>
+					<AddressItem isLoading={isLoading} label="UF">
+						{project
+							? (concessionStateNames[project.state as ConcessionState] ??
+								project.state)
+							: undefined}
+					</AddressItem>
+					<AddressItem isLoading={isLoading} label="Município">
+						{project?.municipality}
+					</AddressItem>
+					<AddressItem isLoading={isLoading} label="Endereço">
+						{project?.address}
+					</AddressItem>
+				</dl>
+			</div>
+
+			{actions ? (
+				<div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-start lg:justify-end">
+					{actions}
+				</div>
+			) : null}
 		</div>
 
 		<dl

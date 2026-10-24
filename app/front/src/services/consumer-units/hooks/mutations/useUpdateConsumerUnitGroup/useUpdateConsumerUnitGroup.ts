@@ -1,4 +1,5 @@
 import { getToastErrorMessage } from "@lib/api-error";
+import { calculationKeys } from "@services/calculation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -11,10 +12,15 @@ export const useUpdateConsumerUnitGroup = (projectId: string) => {
 	return useMutation({
 		mutationFn: updateConsumerUnitGroup,
 		onSuccess: async () => {
-			// `project()` also refreshes the step validation.
-			await queryClient.invalidateQueries({
-				queryKey: consumerUnitGroupKeys.project(projectId),
-			});
+			// `project()` also refreshes the step validation; the latest calculation may now be outdated.
+			await Promise.all([
+				queryClient.invalidateQueries({
+					queryKey: consumerUnitGroupKeys.project(projectId),
+				}),
+				queryClient.invalidateQueries({
+					queryKey: calculationKeys.latest(projectId),
+				}),
+			]);
 
 			toast.success("Grupo atualizado.");
 		},

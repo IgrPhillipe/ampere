@@ -10,7 +10,7 @@ export const findingFormSchema = z.object({
 	}),
 
 	stage: z.enum(findingStageSchema.options, {
-		error: "A etapa é obrigatória.",
+		error: "A seção é obrigatória.",
 	}),
 
 	reference: z.string(),

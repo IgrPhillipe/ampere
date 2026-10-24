@@ -85,6 +85,8 @@ export const calculationSchema = z.object({
 	),
 	checksCount: z.number().int(),
 	warningsCount: z.number().int(),
+	/** The project changed after this run, while it can still be edited. */
+	outdated: z.boolean().default(false),
 	appliedTables: z.array(
 		z.object({
 			identification: z.string(),

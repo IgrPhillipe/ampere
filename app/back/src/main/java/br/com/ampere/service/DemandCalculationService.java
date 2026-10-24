@@ -100,14 +100,21 @@ public class DemandCalculationService {
               ? left.decimalValue().compareTo(right.decimalValue())
               : left.equals(right) ? 0 : 1;
 
-  @Transactional(readOnly = true)
-  public Calculation latest(Long projectId, AuthenticatedUser user) {
-    projectService.findById(projectId, user);
+  public record Latest(Calculation calculation, boolean outdated) {}
 
-    return calculationRepository
-        .findFirstByProjectIdOrderByIdDesc(projectId)
-        .orElseThrow(
-            () -> new NotFoundException("Nenhum cálculo de demanda foi feito para este projeto."));
+  /** The last run, flagged when an editable project changed after it. */
+  @Transactional(readOnly = true)
+  public Latest latest(Long projectId, AuthenticatedUser user) {
+    Project project = projectService.findById(projectId, user);
+    Calculation calculation =
+        calculationRepository
+            .findFirstByProjectIdOrderByIdDesc(projectId)
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "Nenhum cálculo de demanda foi feito para este projeto."));
+
+    return new Latest(calculation, project.isEditable() && !isCurrent(calculation));
   }
 
   private String snapshot(Project project, List<ConsumerUnitGroup> groups) {
