@@ -2,271 +2,128 @@ package br.com.ampere.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import br.com.ampere.domain.BuildingCategory;
-import br.com.ampere.domain.Calculation;
+import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.ConnectionType;
-import br.com.ampere.domain.ConsumerUnitGroup;
-import br.com.ampere.domain.DeadlineStatus;
-import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EntranceStandard;
-import br.com.ampere.domain.Finding;
-import br.com.ampere.domain.GroupStatus;
 import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.Project;
-import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
-import br.com.ampere.repository.CalculationRepository;
-import br.com.ampere.repository.ConsumerUnitGroupRepository;
-import br.com.ampere.repository.FindingRepository;
-import br.com.ampere.repository.NormativeTableRepository;
-import br.com.ampere.repository.ProjectDocumentRepository;
-import br.com.ampere.repository.ProjectRepository;
-import br.com.ampere.repository.StandardRepository;
-import br.com.ampere.repository.UserRepository;
-import br.com.ampere.service.DemandCalculationService;
-import br.com.ampere.service.ReviewQueueService;
-import java.time.LocalDate;
-import java.util.EnumSet;
+import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.StreamSupport;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.boot.test.context.SpringBootTest;
 
-class DataSeederTest {
+@SpringBootTest
+class DataSeederTest extends SeedIntegrationTestBase {
 
-  @Test
-  void seedsAllStatusesAndFindingsWithoutDuplicatingProjects() throws Exception {
-    ProjectRepository projectRepository = mock(ProjectRepository.class);
-    FindingRepository findingRepository = mock(FindingRepository.class);
-    StandardRepository standardRepository = seededStandards();
-    when(projectRepository.count()).thenReturn(0L, 6L);
-    DataSeeder seeder = seeder(projectRepository, findingRepository, standardRepository);
-
-    seeder.run();
-    seeder.run();
-
-    ArgumentCaptor<Iterable<Project>> projectsCaptor = iterableCaptor();
-    verify(projectRepository, times(1)).saveAll(projectsCaptor.capture());
-    EnumSet<ProjectStatus> statuses = EnumSet.noneOf(ProjectStatus.class);
-    StreamSupport.stream(projectsCaptor.getValue().spliterator(), false)
-        .map(Project::getStatus)
-        .forEach(statuses::add);
-    assertThat(statuses).containsExactlyInAnyOrder(ProjectStatus.values());
-
-    ArgumentCaptor<Iterable<Finding>> findingsCaptor = iterableCaptor();
-    verify(findingRepository, times(1)).saveAll(findingsCaptor.capture());
-    assertThat(StreamSupport.stream(findingsCaptor.getValue().spliterator(), false))
-        .hasSize(4)
-        .allMatch(finding -> finding.getProject().getStatus() == ProjectStatus.REJECTED);
+  @BeforeEach
+  void startEmpty() {
+    wipe();
   }
 
   @Test
-  void leavesExistingProjectDataUntouched() throws Exception {
-    ProjectRepository projectRepository = mock(ProjectRepository.class);
-    FindingRepository findingRepository = mock(FindingRepository.class);
-    StandardRepository standardRepository = mock(StandardRepository.class);
-    when(projectRepository.count()).thenReturn(1L);
-    DataSeeder seeder = seeder(projectRepository, findingRepository, standardRepository);
+  void seedsTheDevelopmentUsersWithHashedPasswords() {
+    bootstrap();
 
-    seeder.run();
-
-    verify(projectRepository, never()).saveAll(any());
-    verify(findingRepository, never()).saveAll(any());
+    List<User> users = userRepository.findAll();
+    assertThat(users)
+        .extracting(User::getEmail, User::getRole, User::isActive)
+        .containsExactlyInAnyOrder(
+            tuple("user@ampere.com", UserRole.USER, true),
+            tuple("admin@ampere.com", UserRole.ADMIN, true),
+            tuple("conferente@ampere.com", UserRole.ADMIN, true),
+            tuple("revisor@ampere.com", UserRole.REVIEWER, true),
+            tuple("projetista@ampere.com", UserRole.USER, true),
+            tuple("analista@ampere.com", UserRole.REVIEWER, true),
+            tuple("inativo@ampere.com", UserRole.USER, false),
+            tuple("joao@ampere.com", UserRole.USER, true),
+            tuple("novo@ampere.com", UserRole.USER, true));
+    assertThat(users)
+        .allSatisfy(
+            user -> {
+              assertThat(user.getPasswordHash()).isNotEqualTo(DataSeeder.DEVELOPMENT_PASSWORD);
+              assertThat(
+                      passwordEncoder.matches(
+                          DataSeeder.DEVELOPMENT_PASSWORD, user.getPasswordHash()))
+                  .isTrue();
+              assertThat(user.getCreatedAt()).isBefore(OffsetDateTime.now().minusDays(1));
+            });
   }
 
   @Test
-  void seedsBothCurrentStandardsOnce() throws Exception {
-    ProjectRepository projectRepository = mock(ProjectRepository.class);
-    FindingRepository findingRepository = mock(FindingRepository.class);
-    StandardRepository standardRepository = mock(StandardRepository.class);
-    when(standardRepository.count()).thenReturn(0L, 2L);
-    DataSeeder seeder = seeder(projectRepository, findingRepository, standardRepository);
+  void createsADesignerFromParaibaAndOneWhoMustChangeThePassword() {
+    bootstrap();
 
-    seeder.run();
-    seeder.run();
+    User joao = userRepository.findByEmail("joao@ampere.com").orElseThrow();
+    assertThat(joao.getName()).isEqualTo("João Batista");
+    assertThat(joao.getCreaState()).isEqualTo("PB");
+    assertThat(joao.isMustChangePassword()).isFalse();
+    User diego = userRepository.findByEmail("novo@ampere.com").orElseThrow();
+    assertThat(diego.getName()).isEqualTo("Diego Novato");
+    assertThat(diego.isMustChangePassword()).isTrue();
+    assertThat(userRepository.findByEmail("projetista@ampere.com").orElseThrow().getName())
+        .isEqualTo("Carla Projetista");
+    assertThat(userRepository.findByEmail("analista@ampere.com").orElseThrow().getName())
+        .isEqualTo("Ana Analista");
+    assertThat(userRepository.findByEmail("user@ampere.com").orElseThrow().getCrea())
+        .isEqualTo("123456");
+  }
 
-    ArgumentCaptor<Iterable<Standard>> captor = iterableCaptor();
-    verify(standardRepository, times(1)).saveAll(captor.capture());
-    assertThat(StreamSupport.stream(captor.getValue().spliterator(), false))
+  @Test
+  void doesNotDuplicateUsersOnRestart() {
+    bootstrap();
+    bootstrap();
+
+    assertThat(userRepository.count()).isEqualTo(9);
+  }
+
+  @Test
+  void addsTheUsersMissingFromADatabaseSeededBefore() {
+    bootstrap();
+    userRepository.delete(userRepository.findByEmail("joao@ampere.com").orElseThrow());
+    userRepository.delete(userRepository.findByEmail("novo@ampere.com").orElseThrow());
+
+    bootstrap();
+
+    assertThat(userRepository.count()).isEqualTo(9);
+  }
+
+  @Test
+  void turnsTheReviewerSeededAsAnAdminIntoAnAnalyst() {
+    userRepository.save(
+        new User("Revisor Teste", DataSeeder.REVIEWER_EMAIL, "hash", UserRole.ADMIN));
+
+    bootstrap();
+
+    assertThat(userRepository.findByEmail(DataSeeder.REVIEWER_EMAIL).orElseThrow().getRole())
+        .isEqualTo(UserRole.REVIEWER);
+  }
+
+  @Test
+  void seedsBothCurrentStandardsOnce() {
+    bootstrap();
+    bootstrap();
+
+    assertThat(standardRepository.findAll())
         .extracting(Standard::getName, Standard::getRevision)
         .containsExactlyInAnyOrder(tuple("DIS-NOR-053", "REV 06"), tuple("DIS-NOR-030", "REV 07"));
   }
 
   @Test
-  void seedsStandardsEvenWhenProjectsAlreadyExist() throws Exception {
-    ProjectRepository projectRepository = mock(ProjectRepository.class);
-    FindingRepository findingRepository = mock(FindingRepository.class);
-    StandardRepository standardRepository = mock(StandardRepository.class);
-    when(projectRepository.count()).thenReturn(6L);
-    when(standardRepository.count()).thenReturn(0L);
-    DataSeeder seeder = seeder(projectRepository, findingRepository, standardRepository);
+  void seedsEveryTableTheCalculationReadsAlreadyPublishedAndOnlyOnce() {
+    bootstrap();
+    bootstrap();
 
-    seeder.run();
-
-    verify(standardRepository, times(1)).saveAll(any());
-    verify(projectRepository, never()).saveAll(any());
-  }
-
-  @Test
-  void seedsEveryBuildingTypeSubclass() throws Exception {
-    ProjectRepository projectRepository = mock(ProjectRepository.class);
-    FindingRepository findingRepository = mock(FindingRepository.class);
-    when(projectRepository.count()).thenReturn(0L);
-    DataSeeder seeder = seeder(projectRepository, findingRepository, seededStandards());
-
-    seeder.run();
-
-    ArgumentCaptor<Iterable<Project>> captor = iterableCaptor();
-    verify(projectRepository).saveAll(captor.capture());
-    assertThat(StreamSupport.stream(captor.getValue().spliterator(), false))
-        .extracting(project -> project.getBuildingType().category())
-        .contains(
-            BuildingCategory.RESIDENTIAL_MULTIFAMILY,
-            BuildingCategory.NON_RESIDENTIAL,
-            BuildingCategory.MIXED);
-  }
-
-  @Test
-  void seedsTheReviewQueueWithEveryDeadlineStatusAndTheReviewsOfToday() throws Exception {
-    ProjectRepository projectRepository = mock(ProjectRepository.class);
-    FindingRepository findingRepository = mock(FindingRepository.class);
-    when(projectRepository.count()).thenReturn(0L);
-    DataSeeder seeder = seeder(projectRepository, findingRepository, seededStandards());
-
-    seeder.run();
-
-    ArgumentCaptor<Iterable<Project>> captor = iterableCaptor();
-    verify(projectRepository).saveAll(captor.capture());
-    List<Project> projects = StreamSupport.stream(captor.getValue().spliterator(), false).toList();
-    LocalDate today = LocalDate.now(ReviewQueueService.ZONE);
-    assertThat(projects)
-        .filteredOn(project -> project.getStatus() == ProjectStatus.UNDER_REVIEW)
-        .extracting(project -> project.deadlineStatus(today, ReviewQueueService.ZONE))
-        .containsExactlyInAnyOrder(
-            DeadlineStatus.OVERDUE, DeadlineStatus.DUE_TODAY, DeadlineStatus.ON_TIME);
-    assertThat(projects)
-        .filteredOn(project -> project.getReviewedAt() != null)
-        .extracting(Project::getStatus)
-        .containsExactlyInAnyOrder(
-            ProjectStatus.APPROVED, ProjectStatus.REJECTED, ProjectStatus.REJECTED);
-  }
-
-  @Test
-  void appliesBothStandardsToEverySeededProject() throws Exception {
-    ProjectRepository projectRepository = mock(ProjectRepository.class);
-    FindingRepository findingRepository = mock(FindingRepository.class);
-    when(projectRepository.count()).thenReturn(0L);
-    DataSeeder seeder = seeder(projectRepository, findingRepository, seededStandards());
-
-    seeder.run();
-
-    ArgumentCaptor<Iterable<Project>> captor = iterableCaptor();
-    verify(projectRepository).saveAll(captor.capture());
-    assertThat(StreamSupport.stream(captor.getValue().spliterator(), false))
-        .allSatisfy(
-            project ->
-                assertThat(project.getStandards())
-                    .extracting(Standard::getName)
-                    .containsExactlyInAnyOrder("DIS-NOR-053", "DIS-NOR-030"));
-  }
-
-  private static StandardRepository seededStandards() {
-    StandardRepository standardRepository = mock(StandardRepository.class);
-    when(standardRepository.count()).thenReturn(2L);
-    when(standardRepository.findAll())
-        .thenReturn(
-            List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
-    return standardRepository;
-  }
-
-  private static DataSeeder seeder(
-      ProjectRepository projectRepository,
-      FindingRepository findingRepository,
-      StandardRepository standardRepository) {
-    return seeder(
-        projectRepository, findingRepository, standardRepository, mock(UserRepository.class));
-  }
-
-  private static DataSeeder seeder(
-      ProjectRepository projectRepository,
-      FindingRepository findingRepository,
-      StandardRepository standardRepository,
-      UserRepository userRepository) {
-    return new DataSeeder(
-        projectRepository,
-        findingRepository,
-        mock(ConsumerUnitGroupRepository.class),
-        standardRepository,
-        existingNormativeTables(),
-        userRepository,
-        mock(CalculationRepository.class),
-        mock(ProjectDocumentRepository.class),
-        mock(DemandCalculationService.class),
-        new BCryptPasswordEncoder());
-  }
-
-  private static DataSeeder seeder(
-      ProjectRepository projectRepository, ConsumerUnitGroupRepository groupRepository) {
-    return new DataSeeder(
-        projectRepository,
-        mock(FindingRepository.class),
-        groupRepository,
-        seededStandards(),
-        existingNormativeTables(),
-        mock(UserRepository.class),
-        mock(CalculationRepository.class),
-        mock(ProjectDocumentRepository.class),
-        mock(DemandCalculationService.class),
-        new BCryptPasswordEncoder());
-  }
-
-  private static DataSeeder seeder(NormativeTableRepository normativeTableRepository) {
-    return new DataSeeder(
-        projectRepositoryWithProjects(),
-        mock(FindingRepository.class),
-        mock(ConsumerUnitGroupRepository.class),
-        seededStandards(),
-        normativeTableRepository,
-        mock(UserRepository.class),
-        mock(CalculationRepository.class),
-        mock(ProjectDocumentRepository.class),
-        mock(DemandCalculationService.class),
-        new BCryptPasswordEncoder());
-  }
-
-  private static NormativeTableRepository existingNormativeTables() {
-    NormativeTableRepository repository = mock(NormativeTableRepository.class);
-    when(repository.count()).thenReturn((long) NormativeTableCode.values().length);
-    return repository;
-  }
-
-  @Test
-  void seedsEveryTableTheCalculationReadsAlreadyPublished() {
-    NormativeTableRepository repository = mock(NormativeTableRepository.class);
-    when(repository.count()).thenReturn(0L);
-
-    seeder(repository).run();
-
-    ArgumentCaptor<Iterable<NormativeTable>> captor = iterableCaptor();
-    verify(repository).saveAll(captor.capture());
-    List<NormativeTable> tables =
-        StreamSupport.stream(captor.getValue().spliterator(), false).toList();
+    List<NormativeTable> tables = normativeTableRepository.findListingBy();
     assertThat(tables)
         .extracting(NormativeTable::getCode)
         .containsExactlyInAnyOrder(NormativeTableCode.values());
@@ -277,289 +134,62 @@ class DataSeederTest {
               assertThat(table.problems()).isEmpty();
               assertThat(table.getStandard().getName())
                   .isEqualTo(table.getCode().standard().code());
+              assertThat(table.getVerifiedAt()).isAfter(table.getRegisteredAt());
+              assertThat(table.getRegisteredAt()).isBefore(OffsetDateTime.now().minusDays(30));
             });
   }
 
   @Test
-  void leavesNormativeTablesUntouchedOnRestart() {
-    NormativeTableRepository repository = existingNormativeTables();
+  void leavesTheProjectsToTheScenarioSeeder() {
+    bootstrap();
 
-    seeder(repository).run();
-
-    verify(repository, never()).saveAll(any());
+    assertThat(projectRepository.count()).isZero();
   }
 
   @Test
-  void seedsTheDevelopmentUsersWithHashedPasswords() {
-    UserRepository userRepository = mock(UserRepository.class);
-    DataSeeder seeder =
-        seeder(
-            projectRepositoryWithProjects(),
-            mock(FindingRepository.class),
-            seededStandards(),
-            userRepository);
+  void repairsTheLegacyProjectsOfADevelopmentDatabase() {
+    bootstrap();
+    User owner = userRepository.findByEmail(DataSeeder.USER_EMAIL).orElseThrow();
+    Project orphan = projectRepository.save(project("2026-9001", null, ProjectStatus.DRAFT));
+    Project undated = project("2026-9002", owner, ProjectStatus.UNDER_REVIEW);
+    projectRepository.save(undated);
 
-    seeder.run();
+    bootstrap();
 
-    ArgumentCaptor<Iterable<User>> usersCaptor = iterableCaptor();
-    verify(userRepository).saveAll(usersCaptor.capture());
-    List<User> users = StreamSupport.stream(usersCaptor.getValue().spliterator(), false).toList();
-
-    assertThat(users)
-        .extracting(User::getEmail, User::getRole)
-        .containsExactly(
-            tuple("user@ampere.com", UserRole.USER),
-            tuple("admin@ampere.com", UserRole.ADMIN),
-            tuple("conferente@ampere.com", UserRole.ADMIN),
-            tuple("revisor@ampere.com", UserRole.REVIEWER));
-    assertThat(users)
-        .allSatisfy(
-            user -> {
-              assertThat(user.getPasswordHash()).isNotEqualTo(DataSeeder.DEVELOPMENT_PASSWORD);
-              assertThat(
-                      new BCryptPasswordEncoder()
-                          .matches(DataSeeder.DEVELOPMENT_PASSWORD, user.getPasswordHash()))
-                  .isTrue();
-            });
+    Project fixedOrphan = projectRepository.findDetailById(orphan.getId()).orElseThrow();
+    assertThat(fixedOrphan.getOwner().getEmail()).isEqualTo(DataSeeder.USER_EMAIL);
+    Project dated = projectRepository.findByProtocol("2026-9002").orElseThrow();
+    assertThat(dated.getSubmittedAt()).isNotNull();
+    assertThat(dated.getReviewCycle()).isEqualTo(1);
   }
 
   @Test
-  void datesTheLegacySubmissionsOnEveryStart() {
-    ProjectRepository projectRepository = projectRepositoryWithProjects();
+  void leavesRealProjectsAloneUnderTheDemoProfileInProduction() {
+    bootstrap(production());
+    User owner = userRepository.findByEmail(DataSeeder.USER_EMAIL).orElseThrow();
+    Project orphan = projectRepository.save(project("2026-9001", null, ProjectStatus.DRAFT));
+    projectRepository.save(project("2026-9002", owner, ProjectStatus.UNDER_REVIEW));
 
-    seeder(
-            projectRepository,
-            mock(FindingRepository.class),
-            seededStandards(),
-            mock(UserRepository.class))
-        .run();
+    bootstrap(production());
 
-    verify(projectRepository).dateLegacySubmissions();
+    assertThat(projectRepository.findDetailById(orphan.getId()).orElseThrow().getOwner()).isNull();
+    Project untouched = projectRepository.findByProtocol("2026-9002").orElseThrow();
+    assertThat(untouched.getSubmittedAt()).isNull();
+    assertThat(untouched.getReviewCycle()).isZero();
   }
 
-  @Test
-  void assignsTheDefaultDesignerToLegacyProjectsWithoutAnOwner() {
-    ProjectRepository projectRepository = projectRepositoryWithProjects();
-    Project legacyProject = mock(Project.class);
-    when(projectRepository.findAllByOwnerIsNull()).thenReturn(List.of(legacyProject));
-
-    seeder(
-            projectRepository,
-            mock(FindingRepository.class),
-            seededStandards(),
-            mock(UserRepository.class))
-        .run();
-
-    verify(legacyProject).assignOwner(any(User.class));
-    ArgumentCaptor<Iterable<Project>> projectsCaptor = iterableCaptor();
-    verify(projectRepository).saveAll(projectsCaptor.capture());
-    assertThat(StreamSupport.stream(projectsCaptor.getValue().spliterator(), false))
-        .containsExactly(legacyProject);
-  }
-
-  @Test
-  void doesNotDuplicateUsersOnRestart() {
-    UserRepository userRepository = mock(UserRepository.class);
-    when(userRepository.findByEmail(any())).thenReturn(Optional.of(mock(User.class)));
-    DataSeeder seeder =
-        seeder(
-            projectRepositoryWithProjects(),
-            mock(FindingRepository.class),
-            seededStandards(),
-            userRepository);
-
-    seeder.run();
-
-    verify(userRepository, never()).saveAll(any());
-  }
-
-  @Test
-  void addsTheReviewerToADatabaseSeededBeforeIt() {
-    UserRepository userRepository = mock(UserRepository.class);
-    when(userRepository.findByEmail(any())).thenReturn(Optional.of(mock(User.class)));
-    when(userRepository.findByEmail("revisor@ampere.com")).thenReturn(Optional.empty());
-    DataSeeder seeder =
-        seeder(
-            projectRepositoryWithProjects(),
-            mock(FindingRepository.class),
-            seededStandards(),
-            userRepository);
-
-    seeder.run();
-
-    ArgumentCaptor<Iterable<User>> captor = iterableCaptor();
-    verify(userRepository).saveAll(captor.capture());
-    assertThat(StreamSupport.stream(captor.getValue().spliterator(), false))
-        .extracting(User::getEmail)
-        .containsExactly("revisor@ampere.com");
-  }
-
-  @Test
-  void turnsTheReviewerSeededAsAnAdminIntoAnAnalyst() {
-    UserRepository userRepository = mock(UserRepository.class);
-    when(userRepository.findByEmail(any())).thenReturn(Optional.of(mock(User.class)));
-    User legacyReviewer = new User("Revisor Teste", "revisor@ampere.com", "hash", UserRole.ADMIN);
-    when(userRepository.findByEmail("revisor@ampere.com")).thenReturn(Optional.of(legacyReviewer));
-
-    seeder(
-            projectRepositoryWithProjects(),
-            mock(FindingRepository.class),
-            seededStandards(),
-            userRepository)
-        .run();
-
-    assertThat(legacyReviewer.getRole()).isEqualTo(UserRole.REVIEWER);
-    assertThat(legacyReviewer.isActive()).isTrue();
-    verify(userRepository, never()).saveAll(any());
-  }
-
-  @Test
-  void seedsTheGroupsOfPrototypeH3InTheDraftProject() {
-    ProjectRepository projectRepository = projectRepositoryWithProjects();
-    Project draft = mock(Project.class);
-    when(draft.isDraft()).thenReturn(true);
-    when(projectRepository.findByProtocol(DataSeeder.DRAFT_PROTOCOL))
-        .thenReturn(Optional.of(draft));
-    ConsumerUnitGroupRepository groupRepository = mock(ConsumerUnitGroupRepository.class);
-    when(groupRepository.count()).thenReturn(0L);
-
-    seeder(projectRepository, groupRepository).run();
-
-    ArgumentCaptor<Iterable<ConsumerUnitGroup>> captor = iterableCaptor();
-    verify(groupRepository).saveAll(captor.capture());
-    assertThat(StreamSupport.stream(captor.getValue().spliterator(), false))
-        .extracting(ConsumerUnitGroup::getName, ConsumerUnitGroup::status)
-        .containsExactly(
-            tuple("Apartamento tipo A", GroupStatus.VALIDATED),
-            tuple("Apartamento tipo B", GroupStatus.VALIDATED),
-            tuple("Cobertura duplex", GroupStatus.VALIDATED),
-            tuple("Área comum", GroupStatus.REVIEW),
-            tuple("Recarga de veículo elétrico", GroupStatus.MISSING_DATA));
-  }
-
-  @Test
-  void doesNotDuplicateGroupsOnRestart() {
-    ConsumerUnitGroupRepository groupRepository = mock(ConsumerUnitGroupRepository.class);
-    when(groupRepository.count()).thenReturn(5L);
-
-    seeder(projectRepositoryWithProjects(), groupRepository).run();
-
-    verify(groupRepository, never()).saveAll(any());
-  }
-
-  @Test
-  void calculatesTheSubmittedProjectsSoTheQueueShowsDemandAndAlerts() {
-    ProjectRepository projectRepository = projectRepositoryWithProjects();
-    Project overdue =
-        new Project(
-            "Edifício Residencial Aurora",
-            "Rua da Aurora, 300",
-            "Recife",
-            "2026-1003",
-            ProjectStatus.UNDER_REVIEW,
-            new ResidentialMultifamily(
-                9, SupplyVoltage.V220_127, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
-            List.of());
-    when(projectRepository.findByProtocol("2026-1003")).thenReturn(Optional.of(overdue));
-    ConsumerUnitGroupRepository groupRepository = mock(ConsumerUnitGroupRepository.class);
-    when(groupRepository.count()).thenReturn(5L);
-    when(groupRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
-    CalculationRepository calculationRepository = mock(CalculationRepository.class);
-    DemandCalculationService demandCalculation = mock(DemandCalculationService.class);
-    Calculation calculation = mock(Calculation.class);
-    when(demandCalculation.compute(any(), any())).thenReturn(calculation);
-
-    new DataSeeder(
-            projectRepository,
-            mock(FindingRepository.class),
-            groupRepository,
-            seededStandards(),
-            existingNormativeTables(),
-            mock(UserRepository.class),
-            calculationRepository,
-            mock(ProjectDocumentRepository.class),
-            demandCalculation,
-            new BCryptPasswordEncoder())
-        .run();
-
-    ArgumentCaptor<Iterable<ConsumerUnitGroup>> captor = iterableCaptor();
-    verify(groupRepository).saveAll(captor.capture());
-    assertThat(captor.getValue()).hasSize(4).allMatch(group -> group.getProject() == overdue);
-    verify(calculationRepository).save(calculation);
-  }
-
-  @Test
-  void leavesTheCalculationsUntouchedOnRestart() {
-    ProjectRepository projectRepository = projectRepositoryWithProjects();
-    CalculationRepository calculationRepository = mock(CalculationRepository.class);
-    when(calculationRepository.count()).thenReturn(7L);
-    DemandCalculationService demandCalculation = mock(DemandCalculationService.class);
-
-    new DataSeeder(
-            projectRepository,
-            mock(FindingRepository.class),
-            mock(ConsumerUnitGroupRepository.class),
-            seededStandards(),
-            existingNormativeTables(),
-            mock(UserRepository.class),
-            calculationRepository,
-            mock(ProjectDocumentRepository.class),
-            demandCalculation,
-            new BCryptPasswordEncoder())
-        .run();
-
-    verify(demandCalculation, never()).compute(any(), any());
-  }
-
-  @Test
-  void attachesTheThreePdfsToEveryProjectPastTheDraft() {
-    ProjectRepository projectRepository = projectRepositoryWithProjects();
-    Project draft = project("2026-1001", ProjectStatus.DRAFT);
-    Project rejected = project("2026-1004", ProjectStatus.REJECTED);
-    when(projectRepository.findAll()).thenReturn(List.of(draft, rejected));
-    ProjectDocumentRepository documentRepository = mock(ProjectDocumentRepository.class);
-
-    new DataSeeder(
-            projectRepository,
-            mock(FindingRepository.class),
-            mock(ConsumerUnitGroupRepository.class),
-            seededStandards(),
-            existingNormativeTables(),
-            mock(UserRepository.class),
-            mock(CalculationRepository.class),
-            documentRepository,
-            mock(DemandCalculationService.class),
-            new BCryptPasswordEncoder())
-        .run();
-
-    ArgumentCaptor<Iterable<ProjectDocument>> captor = iterableCaptor();
-    verify(documentRepository).saveAll(captor.capture());
-    assertThat(captor.getValue())
-        .hasSize(DocumentType.values().length)
-        .allMatch(document -> document.getProject() == rejected)
-        .allMatch(document -> ProjectDocument.isPdf(document.getData()));
-  }
-
-  private static Project project(String protocol, ProjectStatus status) {
+  private static Project project(String protocol, User owner, ProjectStatus status) {
+    BuildingType building =
+        new ResidentialMultifamily(
+            4, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE);
     return new Project(
-        "Condomínio Vila Nova",
-        "Avenida Barreto de Menezes, 88",
-        "Jaboatão dos Guararapes",
+        "Projeto " + protocol,
+        "Rua Qualquer, 1",
+        "Recife",
         protocol,
         status,
-        new ResidentialMultifamily(
-            6, SupplyVoltage.V220_127, ConnectionType.TWO_PHASE, EntranceStandard.INDIVIDUAL),
-        List.of());
-  }
-
-  private static ProjectRepository projectRepositoryWithProjects() {
-    ProjectRepository projectRepository = mock(ProjectRepository.class);
-    when(projectRepository.count()).thenReturn(6L);
-    return projectRepository;
-  }
-
-  @SuppressWarnings({"rawtypes", "unchecked"})
-  private static <T> ArgumentCaptor<Iterable<T>> iterableCaptor() {
-    return (ArgumentCaptor) ArgumentCaptor.forClass(Iterable.class);
+        building,
+        List.of(),
+        owner);
   }
 }
