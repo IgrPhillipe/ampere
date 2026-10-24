@@ -9,6 +9,7 @@ import br.com.ampere.domain.ReviewQueueSort;
 import br.com.ampere.domain.SortDirection;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,28 +20,28 @@ public interface ProjectRepositoryCustom {
 
   Page<Project> searchReviewQueue(ReviewQueueSearch search, Pageable pageable);
 
-  /** A null or blank filter does not filter; {@code search} is already folded and escaped. */
+  /** A null or empty filter does not filter; {@code search} is already folded and escaped. */
   record ProjectSearch(
       Long ownerId,
       boolean admin,
       ProjectStatus status,
       String search,
-      BrazilianState state,
-      String municipality,
+      Set<BrazilianState> states,
+      Set<String> municipalities,
       OffsetDateTime createdFrom,
       OffsetDateTime createdBefore,
-      OpenFindingsFilter findings,
+      Set<OpenFindingsFilter> findings,
       ProjectSort sort,
       SortDirection direction) {}
 
-  /** A null or blank filter does not filter; {@code search} is already folded and escaped. */
+  /** A null or empty filter does not filter; {@code search} is already folded and escaped. */
   record ReviewQueueSearch(
       String search,
       OffsetDateTime submittedBefore,
       BigDecimal demandAbove,
       boolean reanalysis,
-      BrazilianState state,
-      String municipality,
+      Set<BrazilianState> states,
+      Set<String> municipalities,
       Long reviewerId,
       boolean unassigned,
       ReviewQueueSort sort,

@@ -34,6 +34,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
@@ -61,10 +62,10 @@ class ProjectServiceTest {
                 ProjectSort.NAME,
                 SortDirection.ASC,
                 null,
-                "Recife",
+                Set.of("Recife"),
                 LocalDate.of(2026, 10, 1),
                 LocalDate.of(2026, 10, 10),
-                OpenFindingsFilter.ANY_OPEN),
+                Set.of(OpenFindingsFilter.ANY_OPEN)),
             DESIGNER);
 
     ArgumentCaptor<ProjectSearch> searchCaptor = ArgumentCaptor.forClass(ProjectSearch.class);
@@ -77,7 +78,8 @@ class ProjectServiceTest {
     assertThat(search.search()).isEqualTo("\\%\\_\\\\");
     assertThat(search.createdFrom()).isEqualTo(OffsetDateTime.parse("2026-10-01T00:00-03:00"));
     assertThat(search.createdBefore()).isEqualTo(OffsetDateTime.parse("2026-10-11T00:00-03:00"));
-    assertThat(search.findings()).isEqualTo(OpenFindingsFilter.ANY_OPEN);
+    assertThat(search.findings()).containsExactly(OpenFindingsFilter.ANY_OPEN);
+    assertThat(search.municipalities()).containsExactly("Recife");
     assertThat(pageableCaptor.getValue().getPageNumber()).isEqualTo(1);
     assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(20);
   }

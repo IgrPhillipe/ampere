@@ -39,6 +39,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -298,7 +299,7 @@ class ProjectServiceIntegrationTest {
             null,
             ProjectSort.UPDATED_AT,
             SortDirection.DESC,
-            BrazilianState.PB,
+            Set.of(BrazilianState.PB),
             null,
             null,
             null,
@@ -306,7 +307,8 @@ class ProjectServiceIntegrationTest {
 
     assertThat(list(inParaiba).projects()).containsExactly(pedras);
     assertThat(service.listStates(designer)).containsExactly(BrazilianState.PB, BrazilianState.PE);
-    assertThat(service.listMunicipalities(BrazilianState.PE, designer)).containsExactly("Recife");
+    assertThat(service.listMunicipalities(Set.of(BrazilianState.PE), designer))
+        .containsExactly("Recife");
     assertThat(recife.getState()).isEqualTo(BrazilianState.PE);
   }
 
@@ -331,6 +333,40 @@ class ProjectServiceIntegrationTest {
     assertThat(list(filtered(OpenFindingsFilter.NONE_OPEN)).projects())
         .containsExactlyInAnyOrder(drafted, resolved, clean);
     assertThat(list(filtered((OpenFindingsFilter) null)).projects()).hasSize(5);
+    assertThat(
+            list(new ProjectListQuery(
+                    null,
+                    null,
+                    ProjectSort.UPDATED_AT,
+                    SortDirection.DESC,
+                    null,
+                    null,
+                    null,
+                    null,
+                    Set.of(OpenFindingsFilter.BLOCKING_OPEN, OpenFindingsFilter.NONE_OPEN)))
+                .projects())
+        .containsExactlyInAnyOrder(blocked, drafted, resolved, clean);
+  }
+
+  @Test
+  void filtersBySeveralMunicipalitiesAtOnce() {
+    Project recife = save("A", "Recife", "2026-0010");
+    Project olinda = save("B", "Olinda", "2026-0020");
+    save("C", "Paulista", "2026-0030");
+
+    ProjectListQuery query =
+        new ProjectListQuery(
+            null,
+            null,
+            ProjectSort.UPDATED_AT,
+            SortDirection.DESC,
+            null,
+            Set.of("recife", " Olinda "),
+            null,
+            null,
+            null);
+
+    assertThat(list(query).projects()).containsExactlyInAnyOrder(recife, olinda);
   }
 
   @Test
@@ -351,10 +387,10 @@ class ProjectServiceIntegrationTest {
                 ProjectSort.NAME,
                 SortDirection.ASC,
                 null,
-                "Recife",
+                Set.of("Recife"),
                 null,
                 null,
-                OpenFindingsFilter.BLOCKING_OPEN));
+                Set.of(OpenFindingsFilter.BLOCKING_OPEN)));
 
     assertThat(listing.projects()).containsExactly(alpha, zeta);
     assertThat(listing.totalElements()).isEqualTo(2);
@@ -544,7 +580,7 @@ class ProjectServiceIntegrationTest {
         ProjectSort.UPDATED_AT,
         SortDirection.DESC,
         null,
-        municipality,
+        municipality == null ? null : Set.of(municipality),
         createdFrom,
         createdTo,
         null);
@@ -552,7 +588,15 @@ class ProjectServiceIntegrationTest {
 
   private static ProjectListQuery filtered(OpenFindingsFilter findings) {
     return new ProjectListQuery(
-        null, null, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, null, findings);
+        null,
+        null,
+        ProjectSort.UPDATED_AT,
+        SortDirection.DESC,
+        null,
+        null,
+        null,
+        null,
+        findings == null ? null : Set.of(findings));
   }
 
   private Project save(String name, String municipality, String protocol) {

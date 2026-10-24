@@ -3,8 +3,6 @@ package br.com.ampere.config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.ampere.controller.ProjectController;
-import br.com.ampere.domain.BrazilianState;
-import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.SortDirection;
@@ -14,6 +12,7 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -39,11 +38,11 @@ class OpenApiConfigTest {
                 String.class,
                 ProjectSort.class,
                 SortDirection.class,
-                BrazilianState.class,
-                String.class,
+                List.class,
+                List.class,
                 LocalDate.class,
                 LocalDate.class,
-                OpenFindingsFilter.class,
+                List.class,
                 Jwt.class)
             .getAnnotation(Operation.class);
 

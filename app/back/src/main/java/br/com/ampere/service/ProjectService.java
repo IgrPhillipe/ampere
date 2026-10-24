@@ -20,9 +20,11 @@ import java.text.Collator;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -89,8 +91,8 @@ public class ProjectService {
                 user.isAdmin(),
                 query.status(),
                 SearchTerms.normalize(query.search()),
-                query.state(),
-                query.municipality(),
+                query.states(),
+                query.municipalities(),
                 startOf(query.createdFrom()),
                 query.createdTo() == null ? null : startOf(query.createdTo().plusDays(1)),
                 query.findings(),
@@ -114,12 +116,17 @@ public class ProjectService {
   }
 
   @Transactional(readOnly = true)
-  public List<String> listMunicipalities(BrazilianState state, AuthenticatedUser user) {
+  public List<String> listMunicipalities(Set<BrazilianState> states, AuthenticatedUser user) {
     // Spellings differing only in case collapse into the first in code point order.
     Collator collator = Collator.getInstance(Locale.of("pt", "BR"));
     collator.setStrength(Collator.SECONDARY);
     Map<String, String> unique = new TreeMap<>(collator);
-    projectRepository.findAccessibleMunicipalities(user.id(), user.isAdmin(), state).stream()
+    projectRepository
+        .findAccessibleMunicipalities(
+            user.id(),
+            user.isAdmin(),
+            states == null || states.isEmpty() ? EnumSet.allOf(BrazilianState.class) : states)
+        .stream()
         .map(String::trim)
         .forEach(municipality -> unique.merge(municipality, municipality, ProjectService::first));
 

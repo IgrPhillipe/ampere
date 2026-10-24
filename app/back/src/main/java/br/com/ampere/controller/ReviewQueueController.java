@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Set;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -69,16 +70,24 @@ public class ReviewQueueController {
       @Parameter(description = "Filtro por analista (id do usuário ou 'none' para sem analista)")
           @RequestParam(required = false)
           String reviewer,
-      @Parameter(description = "UF usada para filtrar os projetos") @RequestParam(required = false)
-          BrazilianState state,
-      @Parameter(description = "Município usado para filtrar os projetos")
-          @RequestParam(required = false)
-          String municipality) {
+      @Parameter(description = "UFs usadas para filtrar os projetos; repita o parâmetro")
+          @RequestParam(name = "state", required = false)
+          List<BrazilianState> states,
+      @Parameter(description = "Municípios usados para filtrar os projetos; repita o parâmetro")
+          @RequestParam(name = "municipality", required = false)
+          List<String> municipalities) {
     ReviewQueueListing listing =
         service.list(
             pagination.page(),
             pagination.pageSize(),
-            new ReviewQueueQuery(search, filter, sort, direction, reviewer, state, municipality));
+            new ReviewQueueQuery(
+                search,
+                filter,
+                sort,
+                direction,
+                reviewer,
+                states == null ? null : Set.copyOf(states),
+                municipalities == null ? null : Set.copyOf(municipalities)));
     List<ReviewQueueItemResponse> items =
         listing.entries().stream().map(ReviewQueueItemResponse::from).toList();
 

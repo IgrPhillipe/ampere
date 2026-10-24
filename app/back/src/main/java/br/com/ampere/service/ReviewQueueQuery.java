@@ -4,6 +4,7 @@ import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.ReviewQueueFilter;
 import br.com.ampere.domain.ReviewQueueSort;
 import br.com.ampere.domain.SortDirection;
+import java.util.Set;
 
 /** The filters and the sort of the review queue, already converted. */
 public record ReviewQueueQuery(
@@ -12,5 +13,12 @@ public record ReviewQueueQuery(
     ReviewQueueSort sort,
     SortDirection direction,
     String reviewer,
-    BrazilianState state,
-    String municipality) {}
+    Set<BrazilianState> states,
+    Set<String> municipalities) {
+
+  /** A missing list filters nothing, like an empty one. */
+  public ReviewQueueQuery {
+    states = states == null ? Set.of() : Set.copyOf(states);
+    municipalities = municipalities == null ? Set.of() : Set.copyOf(municipalities);
+  }
+}

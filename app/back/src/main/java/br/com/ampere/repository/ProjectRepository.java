@@ -4,6 +4,7 @@ import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -35,13 +36,13 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
           (:admin = true AND project.submittedAt IS NOT NULL)
           OR (:admin = false AND project.owner.id = :ownerId)
         )
-        AND (:state IS NULL OR project.state = :state)
+        AND project.state IN :states
       ORDER BY project.municipality ASC
       """)
   List<String> findAccessibleMunicipalities(
       @Param("ownerId") Long ownerId,
       @Param("admin") boolean admin,
-      @Param("state") BrazilianState state);
+      @Param("states") Collection<BrazilianState> states);
 
   long countByStatusAndSubmittedAtIsNotNull(ProjectStatus status);
 

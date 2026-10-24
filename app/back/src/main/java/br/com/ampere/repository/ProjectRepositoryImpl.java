@@ -6,7 +6,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -50,7 +53,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
       where.append(" AND project.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'");
       parameters.put("search", search.search());
     }
-    filterByPlace(search.state(), search.municipality(), where, parameters);
+    filterByPlace(search.states(), search.municipalities(), where, parameters);
     if (search.createdFrom() != null) {
       where.append(" AND project.createdAt >= :createdFrom");
       parameters.put("createdFrom", search.createdFrom());
@@ -59,14 +62,22 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
       where.append(" AND project.createdAt < :createdBefore");
       parameters.put("createdBefore", search.createdBefore());
     }
-    if (search.findings() != null) {
-      where.append(
-          switch (search.findings()) {
-            case BLOCKING_OPEN ->
-                " AND EXISTS " + openFindings(" AND finding.severity = " + BLOCKING);
-            case ANY_OPEN -> " AND EXISTS " + openFindings("");
-            case NONE_OPEN -> " AND NOT EXISTS " + openFindings("");
-          });
+    if (!search.findings().isEmpty()) {
+      where
+          .append(" AND (")
+          .append(
+              search.findings().stream()
+                  .sorted()
+                  .map(
+                      findings ->
+                          switch (findings) {
+                            case BLOCKING_OPEN ->
+                                "EXISTS " + openFindings(" AND finding.severity = " + BLOCKING);
+                            case ANY_OPEN -> "EXISTS " + openFindings("");
+                            case NONE_OPEN -> "NOT EXISTS " + openFindings("");
+                          })
+                  .collect(Collectors.joining(" OR ")))
+          .append(")");
     }
 
     String direction = search.direction().name();
@@ -109,7 +120,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
     if (search.reanalysis()) {
       where.append(" AND project.reviewCycle > 1");
     }
-    filterByPlace(search.state(), search.municipality(), where, parameters);
+    filterByPlace(search.states(), search.municipalities(), where, parameters);
     if (search.unassigned()) {
       where.append(" AND project.reviewer IS NULL");
     } else if (search.reviewerId() != null) {
@@ -142,17 +153,22 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
   }
 
   private static void filterByPlace(
-      BrazilianState state,
-      String municipality,
+      Set<BrazilianState> states,
+      Set<String> municipalities,
       StringBuilder where,
       Map<String, Object> parameters) {
-    if (state != null) {
-      where.append(" AND project.state = :state");
-      parameters.put("state", state);
+    if (!states.isEmpty()) {
+      where.append(" AND project.state IN :states");
+      parameters.put("states", states);
     }
-    if (municipality != null && !municipality.isBlank()) {
-      where.append(" AND LOWER(TRIM(project.municipality)) = LOWER(:municipality)");
-      parameters.put("municipality", municipality.trim());
+    Set<String> folded =
+        municipalities.stream()
+            .filter(municipality -> !municipality.isBlank())
+            .map(municipality -> municipality.trim().toLowerCase(Locale.ROOT))
+            .collect(Collectors.toSet());
+    if (!folded.isEmpty()) {
+      where.append(" AND LOWER(TRIM(project.municipality)) IN :municipalities");
+      parameters.put("municipalities", folded);
     }
   }
 

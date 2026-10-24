@@ -47,6 +47,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -111,10 +112,10 @@ class ProjectControllerTest {
             ProjectSort.CREATED_AT,
             SortDirection.ASC,
             null,
-            "Recife",
+            Set.of("Recife"),
             LocalDate.of(2026, 10, 1),
             LocalDate.of(2026, 10, 10),
-            OpenFindingsFilter.BLOCKING_OPEN);
+            Set.of(OpenFindingsFilter.BLOCKING_OPEN));
     when(service.list(1, 20, query, DESIGNER))
         .thenReturn(new ProjectListing(List.of(), 0, Map.of(), Map.of(), Map.of()));
 
@@ -127,6 +128,33 @@ class ProjectControllerTest {
                 .param("createdFrom", "2026-10-01")
                 .param("createdTo", "2026-10-10")
                 .param("findings", "BLOCKING_OPEN"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.pagination.total").value(0));
+  }
+
+  @Test
+  void bindsRepeatedFilterValues() throws Exception {
+    ProjectService service = mock(ProjectService.class);
+    ProjectListQuery query =
+        new ProjectListQuery(
+            null,
+            null,
+            ProjectSort.UPDATED_AT,
+            SortDirection.DESC,
+            Set.of(BrazilianState.PE, BrazilianState.PB),
+            Set.of("Recife", "Pedras de Fogo"),
+            null,
+            null,
+            Set.of(OpenFindingsFilter.BLOCKING_OPEN, OpenFindingsFilter.NONE_OPEN));
+    when(service.list(1, 20, query, DESIGNER))
+        .thenReturn(new ProjectListing(List.of(), 0, Map.of(), Map.of(), Map.of()));
+
+    mockMvc(service)
+        .perform(
+            get("/projects")
+                .param("state", "PE", "PB")
+                .param("municipality", "Recife", "Pedras de Fogo")
+                .param("findings", "BLOCKING_OPEN", "NONE_OPEN"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.pagination.total").value(0));
   }
@@ -173,7 +201,8 @@ class ProjectControllerTest {
   void exposesTheStatesAndTheMunicipalitiesOfAState() throws Exception {
     ProjectService service = mock(ProjectService.class);
     when(service.listStates(DESIGNER)).thenReturn(List.of(BrazilianState.PB, BrazilianState.PE));
-    when(service.listMunicipalities(BrazilianState.PE, DESIGNER)).thenReturn(List.of("Recife"));
+    when(service.listMunicipalities(Set.of(BrazilianState.PE), DESIGNER))
+        .thenReturn(List.of("Recife"));
 
     MockMvc mockMvc = mockMvc(service);
     mockMvc
@@ -190,7 +219,7 @@ class ProjectControllerTest {
   @Test
   void exposesMunicipalitiesEndpoint() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.listMunicipalities(null, DESIGNER)).thenReturn(List.of("Olinda", "Recife"));
+    when(service.listMunicipalities(Set.of(), DESIGNER)).thenReturn(List.of("Olinda", "Recife"));
 
     MockMvc mockMvc = mockMvc(service);
     mockMvc

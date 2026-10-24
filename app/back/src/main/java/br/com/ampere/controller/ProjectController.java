@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -75,11 +76,12 @@ public class ProjectController {
       @Parameter(description = "Direção da ordenação (ASC, DESC)")
           @RequestParam(defaultValue = "DESC")
           SortDirection direction,
-      @Parameter(description = "UF usada para filtrar os projetos") @RequestParam(required = false)
-          BrazilianState state,
-      @Parameter(description = "Município usado para filtrar os projetos")
-          @RequestParam(required = false)
-          String municipality,
+      @Parameter(description = "UFs usadas para filtrar os projetos; repita o parâmetro")
+          @RequestParam(name = "state", required = false)
+          List<BrazilianState> states,
+      @Parameter(description = "Municípios usados para filtrar os projetos; repita o parâmetro")
+          @RequestParam(name = "municipality", required = false)
+          List<String> municipalities,
       @Parameter(description = "Data inicial de criação (inclusive), no formato YYYY-MM-DD")
           @RequestParam(required = false)
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -88,9 +90,9 @@ public class ProjectController {
           @RequestParam(required = false)
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate createdTo,
-      @Parameter(description = "Situação dos apontamentos em aberto")
+      @Parameter(description = "Situações dos apontamentos em aberto; repita o parâmetro")
           @RequestParam(required = false)
-          OpenFindingsFilter findings,
+          List<OpenFindingsFilter> findings,
       @AuthenticationPrincipal Jwt jwt) {
     ProjectListing listing =
         service.list(
@@ -101,11 +103,11 @@ public class ProjectController {
                 search,
                 sort,
                 direction,
-                state,
-                municipality,
+                states == null ? null : Set.copyOf(states),
+                municipalities == null ? null : Set.copyOf(municipalities),
                 createdFrom,
                 createdTo,
-                findings),
+                findings == null ? null : Set.copyOf(findings)),
             userOf(jwt));
     List<ProjectResponse> projects =
         listing.projects().stream()
@@ -144,10 +146,12 @@ public class ProjectController {
         description = "Lista de municípios")
   })
   public ApiResponse<List<String>> municipalities(
-      @Parameter(description = "Só os municípios desta UF") @RequestParam(required = false)
-          BrazilianState state,
+      @Parameter(description = "Só os municípios destas UFs; repita o parâmetro")
+          @RequestParam(name = "state", required = false)
+          List<BrazilianState> states,
       @AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(service.listMunicipalities(state, userOf(jwt)));
+    return ApiResponse.of(
+        service.listMunicipalities(states == null ? Set.of() : Set.copyOf(states), userOf(jwt)));
   }
 
   @GetMapping("/status-counts")

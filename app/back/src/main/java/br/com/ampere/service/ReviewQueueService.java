@@ -21,6 +21,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -67,8 +68,8 @@ public class ReviewQueueService {
                 query.filter() == ReviewQueueFilter.DUE_SOON ? dueSoonCutoff(today) : null,
                 query.filter() == ReviewQueueFilter.HIGH_DEMAND ? HIGH_DEMAND_THRESHOLD : null,
                 query.filter() == ReviewQueueFilter.REANALYSIS,
-                query.state(),
-                query.municipality(),
+                query.states(),
+                query.municipalities(),
                 reviewer.isEmpty() || unassigned ? null : analystId(reviewer),
                 unassigned,
                 query.sort(),
@@ -139,8 +140,8 @@ public class ReviewQueueService {
                 dueSoon ? submittedBefore : null,
                 highDemand ? HIGH_DEMAND_THRESHOLD : null,
                 reanalysis,
-                null,
-                null,
+                Set.of(),
+                Set.of(),
                 null,
                 false,
                 ReviewQueueSort.DEADLINE,
