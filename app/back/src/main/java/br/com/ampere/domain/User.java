@@ -1,5 +1,6 @@
 package br.com.ampere.domain;
 
+import br.com.ampere.utils.SearchTerms;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -8,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -50,6 +52,20 @@ public class User {
   @Column(nullable = false, updatable = false)
   private OffsetDateTime createdAt;
 
+  /** An inactive account cannot sign in, and its open tokens stop working. */
+  @Column(nullable = false, columnDefinition = "boolean default true")
+  private boolean active = true;
+
+  /** Set by a temporary password: the next sign-in leads to the password change. */
+  @Column(nullable = false, columnDefinition = "boolean default false")
+  private boolean mustChangePassword;
+
+  private OffsetDateTime lastLoginAt;
+
+  /** Name and e-mail without accents, in lowercase, for the administrator's search. */
+  @Column(nullable = false, columnDefinition = "text default ''")
+  private String searchIndex;
+
   protected User() {}
 
   public User(String name, String email, String passwordHash, UserRole role) {
@@ -58,6 +74,15 @@ public class User {
     this.passwordHash = passwordHash;
     this.role = role;
     this.createdAt = OffsetDateTime.now(ZoneOffset.UTC);
+    indexForSearch();
+  }
+
+  /** An account the administrator creates: it signs in with a temporary password. */
+  public static User withTemporaryPassword(
+      String name, String email, String passwordHash, UserRole role) {
+    User user = new User(name.trim(), email, passwordHash, role);
+    user.mustChangePassword = true;
+    return user;
   }
 
   /** A designer signing up: the professional data identify the technical responsible. */
@@ -83,8 +108,26 @@ public class User {
     this.phone = blankToNull(phone);
   }
 
+  /** A password the user chose, which ends any pending mandatory change. */
   public void changePasswordHash(String passwordHash) {
     this.passwordHash = passwordHash;
+    this.mustChangePassword = false;
+  }
+
+  /** A password the administrator generated: the user must replace it on the next sign-in. */
+  public void resetPassword(String temporaryPasswordHash) {
+    this.passwordHash = temporaryPasswordHash;
+    this.mustChangePassword = true;
+  }
+
+  public void administer(String name, UserRole role, boolean active) {
+    this.name = name.trim();
+    this.role = role;
+    this.active = active;
+  }
+
+  public void recordSignIn() {
+    this.lastLoginAt = OffsetDateTime.now(ZoneOffset.UTC);
   }
 
   private static String blankToNull(String value) {
@@ -96,9 +139,20 @@ public class User {
     return trimmed == null ? null : trimmed.toUpperCase(Locale.ROOT);
   }
 
+  /** Also fills the index of accounts created before it existed. */
+  public void indexForSearch() {
+    searchIndex = SearchTerms.fold(name + " " + email);
+  }
+
   @PrePersist
   private void onPersist() {
     createdAt = OffsetDateTime.now(ZoneOffset.UTC);
+    indexForSearch();
+  }
+
+  @PreUpdate
+  private void onUpdate() {
+    indexForSearch();
   }
 
   /** The form the column stores and every lookup compares against. */
@@ -153,5 +207,17 @@ public class User {
 
   public OffsetDateTime getCreatedAt() {
     return createdAt;
+  }
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public boolean isMustChangePassword() {
+    return mustChangePassword;
+  }
+
+  public OffsetDateTime getLastLoginAt() {
+    return lastLoginAt;
   }
 }

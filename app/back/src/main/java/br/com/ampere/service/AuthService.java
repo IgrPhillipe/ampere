@@ -18,6 +18,8 @@ public class AuthService {
   /** One message for both unknown e-mail and wrong password. */
   private static final String INVALID_CREDENTIALS = "E-mail ou senha inválidos.";
 
+  public static final String ACCOUNT_DISABLED = "Conta desativada. Procure a Neoenergia.";
+
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
   private final TokenService tokenService;
@@ -29,13 +31,19 @@ public class AuthService {
     this.tokenService = tokenService;
   }
 
-  @Transactional(readOnly = true)
+  /** The deactivation is told only after the password matches, so it reveals nothing. */
+  @Transactional
   public LoginResponse login(LoginRequest request) {
     User user =
         userRepository
             .findByEmail(User.normalizeEmail(request.email()))
             .filter(found -> passwordEncoder.matches(request.password(), found.getPasswordHash()))
             .orElseThrow(() -> new BusinessException(INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED));
+    if (!user.isActive()) {
+      throw new BusinessException(ACCOUNT_DISABLED, HttpStatus.FORBIDDEN);
+    }
+
+    user.recordSignIn();
 
     return new LoginResponse(tokenService.issue(user), AuthUserResponse.from(user));
   }

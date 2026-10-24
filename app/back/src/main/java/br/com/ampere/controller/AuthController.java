@@ -73,7 +73,10 @@ public class AuthController {
         description = "Token e usuário"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "401",
-        description = "E-mail ou senha inválidos")
+        description = "E-mail ou senha inválidos"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "Conta desativada pelo administrador")
   })
   public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
     return ApiResponse.of(service.login(request));
