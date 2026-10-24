@@ -52,9 +52,17 @@ export const createProjectColumns = (
 			header: "Projeto",
 			// No `min-w`: the table is `table-fixed`, so the name wraps instead.
 			cell: ({ row }) => (
-				<span className="font-semibold whitespace-normal text-foreground">
-					{row.original.name}
-				</span>
+				<div className="flex flex-col gap-0.5 whitespace-normal">
+					<span className="font-semibold text-foreground">
+						{row.original.name}
+					</span>
+					{showOwner ? (
+						// Below `xl` the "Projetista" column is hidden, so the name carries it.
+						<span className="text-xs text-muted-foreground xl:hidden">
+							{row.original.ownerName ?? "Não informado"}
+						</span>
+					) : null}
+				</div>
 			),
 		}),
 		...(showOwner

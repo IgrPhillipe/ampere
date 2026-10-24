@@ -35,8 +35,8 @@ describe("ProjectsTable", () => {
 		expect(
 			screen.getByRole("columnheader", { name: "Projetista" }),
 		).toBeInTheDocument();
-		// Once in the table and once in the narrow-screen card.
-		expect(screen.getAllByText("Beto Projetista")).toHaveLength(2);
+		// Column, line under the name (below `xl`) and the narrow-screen card.
+		expect(screen.getAllByText("Beto Projetista")).toHaveLength(3);
 	});
 
 	it("leaves the designer column out by default", () => {
