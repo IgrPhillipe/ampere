@@ -242,6 +242,7 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 					units={units}
 					demandKva={demandKva}
 					reanalysis={reanalysis}
+					correcting={project?.status === "REJECTED"}
 				/>
 			}
 			notices={

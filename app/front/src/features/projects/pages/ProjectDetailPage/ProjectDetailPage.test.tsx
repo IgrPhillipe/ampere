@@ -129,6 +129,7 @@ describe("ProjectDetailPage", () => {
 		expect(
 			screen.getByRole("button", { name: "Reenviar Projeto" }),
 		).toBeVisible();
+		expect(screen.getByText("2, em correção")).toBeVisible();
 		expect(
 			screen.queryByRole("button", { name: "Aprovar Projeto" }),
 		).not.toBeInTheDocument();

@@ -46,6 +46,8 @@ interface ProjectDetailHeaderProps {
 	units?: string;
 	demandKva?: number | null;
 	reanalysis?: boolean;
+	/** The designer sees the version a rejected project is being corrected into. */
+	correcting?: boolean;
 	className?: string;
 }
 
@@ -55,6 +57,7 @@ export const ProjectDetailHeader = ({
 	units,
 	demandKva,
 	reanalysis = false,
+	correcting = false,
 	className,
 }: ProjectDetailHeaderProps) => (
 	<header className={cn("flex flex-col border-b border-border", className)}>
@@ -115,7 +118,7 @@ export const ProjectDetailHeader = ({
 
 			<HeaderCell isLoading={isLoading} label="Versão">
 				{project
-					? project.status === "REJECTED"
+					? correcting
 						? `${projectVersion(project)}, em correção`
 						: String(project.reviewCycle)
 					: undefined}
