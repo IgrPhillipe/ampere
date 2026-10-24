@@ -224,9 +224,15 @@ class UserAdministrationIntegrationTest {
   /** The management lives under "/users", but the own profile stays open to every role. */
   @Test
   void keepsTheOwnProfileOpenToTheDesigner() throws Exception {
+    String designerToken = token("joao@ampere.com", PASSWORD);
+
+    mockMvc.perform(authorized(get("/users/me"), designerToken)).andExpect(status().isOk());
     mockMvc
-        .perform(authorized(get("/users/me"), token("joao@ampere.com", PASSWORD)))
-        .andExpect(status().isOk());
+        .perform(
+            authorized(put("/users/me/password"), designerToken)
+                .content(
+                    "{\"currentPassword\":\"" + PASSWORD + "\",\"newPassword\":\"nova12345\"}"))
+        .andExpect(status().isNoContent());
   }
 
   @Test
