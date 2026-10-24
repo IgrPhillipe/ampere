@@ -11,6 +11,7 @@ import br.com.ampere.dto.ReviewQueueIndicatorsResponse;
 import br.com.ampere.dto.ReviewQueueItemResponse;
 import br.com.ampere.dto.UserOptionResponse;
 import br.com.ampere.service.AuthenticatedUser;
+import br.com.ampere.service.OwnerListing;
 import br.com.ampere.service.ReviewQueueListing;
 import br.com.ampere.service.ReviewQueueQuery;
 import br.com.ampere.service.ReviewQueueService;
@@ -72,6 +73,9 @@ public class ReviewQueueController {
       @Parameter(description = "Filtro por analista (id do usuário ou 'none' para sem analista)")
           @RequestParam(required = false)
           String reviewer,
+      @Parameter(description = "Projetista dono dos projetos, pelo identificador")
+          @RequestParam(required = false)
+          Long owner,
       @Parameter(description = "UFs usadas para filtrar os projetos; repita o parâmetro")
           @RequestParam(name = "state", required = false)
           List<BrazilianState> states,
@@ -83,7 +87,8 @@ public class ReviewQueueController {
         service.list(
             pagination.page(),
             pagination.pageSize(),
-            new ReviewQueueQuery(search, filter, sort, direction, reviewer, states, municipalities),
+            new ReviewQueueQuery(
+                search, filter, sort, direction, reviewer, owner, states, municipalities),
             userOf(jwt));
     List<ReviewQueueItemResponse> items =
         listing.entries().stream().map(ReviewQueueItemResponse::from).toList();
@@ -108,6 +113,35 @@ public class ReviewQueueController {
     List<UserOptionResponse> reviewers =
         service.reviewers(userOf(jwt)).stream().map(UserOptionResponse::from).toList();
     return ApiResponse.of(reviewers);
+  }
+
+  @GetMapping("/owners")
+  @Operation(
+      operationId = "listReviewQueueOwners",
+      summary = "Lista os projetistas com projeto na fila, com busca e paginação")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Página de projetistas em ordem de nome"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "Parâmetros inválidos"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "Apenas analista e administrador acessam a fila")
+  })
+  public ApiResponse<List<UserOptionResponse>> owners(
+      @Valid @ParameterObject PageQuery pagination,
+      @Parameter(description = "Termo buscado no nome do projetista")
+          @RequestParam(required = false)
+          String search,
+      @AuthenticationPrincipal Jwt jwt) {
+    OwnerListing listing =
+        service.owners(pagination.page(), pagination.pageSize(), search, userOf(jwt));
+
+    return ApiResponse.of(
+        listing.owners().stream().map(UserOptionResponse::from).toList(),
+        new Pagination(listing.totalElements(), pagination.page(), pagination.pageSize()));
   }
 
   @GetMapping("/indicators")

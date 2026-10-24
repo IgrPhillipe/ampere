@@ -438,6 +438,76 @@ class ReviewQueueIntegrationTest {
   }
 
   @Test
+  void filtersQueueByDesigner() throws Exception {
+    User other =
+        userRepository.save(
+            new User(
+                "Maria Projetista",
+                "maria@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.USER));
+    submitted("2026-7301", now.minusDays(4));
+    Project fromOther = project("2026-7302", ProjectStatus.DRAFT, other);
+    fromOther.submit(now.minusDays(2));
+    projectRepository.save(fromOther);
+
+    asAnalyst(get("/review-queue").param("owner", String.valueOf(other.getId())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-7302"));
+    asAnalyst(get("/review-queue").param("owner", String.valueOf(owner.getId())))
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-7301"));
+    asAnalyst(get("/review-queue").param("owner", "invalido")).andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void listsOnlyTheDesignersWithAProjectInTheQueue() throws Exception {
+    String hash = passwordEncoder.encode(PASSWORD);
+    User maria =
+        userRepository.save(new User("Maria Projetista", "maria@ampere.com", hash, UserRole.USER));
+    User draftOnly =
+        userRepository.save(new User("Carlos Rascunho", "carlos@ampere.com", hash, UserRole.USER));
+    submitted("2026-7401", now.minusDays(4));
+    Project fromMaria = project("2026-7402", ProjectStatus.DRAFT, maria);
+    fromMaria.submit(now.minusDays(2));
+    projectRepository.save(fromMaria);
+    projectRepository.save(project("2026-7403", ProjectStatus.DRAFT, draftOnly));
+    reviewed("2026-7404", false, now.minusDays(1));
+
+    asAnalyst(get("/review-queue/owners"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(2)))
+        .andExpect(jsonPath("$.data[0].name").value("João Projetista"))
+        .andExpect(jsonPath("$.data[0].id").value(String.valueOf(owner.getId())))
+        .andExpect(jsonPath("$.data[1].name").value("Maria Projetista"))
+        .andExpect(jsonPath("$.pagination.total").value(2));
+    asAnalyst(get("/review-queue/owners").param("search", "JOAO"))
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].name").value("João Projetista"))
+        .andExpect(jsonPath("$.pagination.total").value(1));
+    asAnalyst(get("/review-queue/owners").param("search", "carlos"))
+        .andExpect(jsonPath("$.data", hasSize(0)))
+        .andExpect(jsonPath("$.pagination.total").value(0));
+    asAnalyst(get("/review-queue/owners").param("page", "2").param("pageSize", "1"))
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].name").value("Maria Projetista"))
+        .andExpect(jsonPath("$.pagination.total").value(2))
+        .andExpect(jsonPath("$.pagination.page").value(2));
+
+    mockMvc
+        .perform(
+            get("/review-queue/owners")
+                .header("Authorization", "Bearer " + token("revisor@ampere.com")))
+        .andExpect(status().isOk());
+    mockMvc
+        .perform(
+            get("/review-queue/owners")
+                .header("Authorization", "Bearer " + token("user@ampere.com")))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
   void filtersByAnAnalystWithTheReviewerRole() throws Exception {
     asAnalyst(get("/review-queue").param("reviewer", String.valueOf(reviewer.getId())))
         .andExpect(status().isOk());
@@ -571,6 +641,10 @@ class ReviewQueueIntegrationTest {
   }
 
   private Project project(String protocol, ProjectStatus status) {
+    return project(protocol, status, owner);
+  }
+
+  private Project project(String protocol, ProjectStatus status, User designer) {
     return new Project(
         "Residencial " + protocol,
         "Rua A, 1",
@@ -580,7 +654,7 @@ class ReviewQueueIntegrationTest {
         new ResidentialMultifamily(
             12, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
         standards,
-        owner);
+        designer);
   }
 
   private void addPrototypeGroups(Project project) {
