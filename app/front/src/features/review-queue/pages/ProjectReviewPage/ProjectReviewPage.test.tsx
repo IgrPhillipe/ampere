@@ -64,6 +64,7 @@ vi.mock("@services/consumer-units", async (importOriginal) => ({
 vi.mock("@services/submission", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/submission")>()),
 	useGetSubmission: () => loadedQuery({ data: makeChecklist() }),
+	useGetMemorial: () => ({ isPending: true }),
 }));
 
 describe("ProjectReviewPage", () => {

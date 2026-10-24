@@ -6,6 +6,7 @@ import {
 	buildFindingReferenceOptions,
 	ChangeSummaryNotice,
 	GroupSheet,
+	MemorialPreview,
 	type OpenedGroup,
 	ProjectDetailHeader,
 	ProjectDetailLayout,
@@ -33,7 +34,7 @@ import {
 	useUpdateFinding,
 } from "@services/project-review";
 import { useGetProject } from "@services/projects";
-import { useGetSubmission } from "@services/submission";
+import { useGetMemorial, useGetSubmission } from "@services/submission";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleAlert, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -81,6 +82,7 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 	const groupsQuery = useGetConsumerUnitGroupList(projectId);
 	const validationQuery = useGetConsumerUnitGroupValidation(projectId);
 	const submissionQuery = useGetSubmission(projectId);
+	const memorialQuery = useGetMemorial(projectId);
 
 	const findings = findingsQuery.data?.data;
 	const calculation =
@@ -305,6 +307,14 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 			>
 				<ProjectDetailTabs
 					projectId={projectId}
+					memorial={
+						<MemorialPreview
+							project={project}
+							calculation={calculation ?? undefined}
+							memorial={memorialQuery.data}
+							isLoading={memorialQuery.isPending}
+						/>
+					}
 					calculation={calculation}
 					failed={{
 						calculation: calculationQuery.isError,

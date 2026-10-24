@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -77,7 +78,9 @@ vi.mock("@services/submission", async (importOriginal) => ({
 const renderPage = () =>
 	render(
 		<QueryClientProvider client={new QueryClient()}>
-			<ProjectDetailPage projectId="4" />
+			<NuqsTestingAdapter>
+				<ProjectDetailPage projectId="4" />
+			</NuqsTestingAdapter>
 		</QueryClientProvider>,
 	);
 

@@ -27,11 +27,13 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Check, CircleAlert, Download, Send } from "lucide-react";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useState } from "react";
 
 import {
 	ChangeSummaryNotice,
 	GroupSheet,
+	MemorialPreview,
 	NextStepsPanel,
 	type OpenedGroup,
 	ProjectBreadcrumb,
@@ -46,6 +48,7 @@ import {
 	awaitsDesignerResponse,
 	buildFindingReferenceOptions,
 	findingTarget,
+	PROJECT_DETAIL_TABS,
 	projectVersion,
 } from "../../constants";
 import { useProjectDetailActions, useProjectPermissions } from "../../hooks";
@@ -89,6 +92,10 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 	const submittedAt = project?.submittedAt;
 	const notSent =
 		project?.status === "DRAFT" || project?.status === "AWAITING_SUBMISSION";
+	const [tab, setTab] = useQueryState(
+		"aba",
+		parseAsStringLiteral(PROJECT_DETAIL_TABS).withDefault("memoria"),
+	);
 	const memorialQuery = useGetMemorial(projectId, {
 		enabled: project !== undefined && !notSent,
 	});
@@ -377,6 +384,16 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 				markedFindings={markedFindings}
 				groupHint="Selecione um grupo para ver os dados dele."
 				onOpenGroup={openGroup}
+				tab={tab}
+				onTabChange={(next) => void setTab(next)}
+				memorial={
+					<MemorialPreview
+						project={project}
+						calculation={calculation ?? undefined}
+						memorial={memorialQuery.data}
+						isLoading={memorialQuery.isPending}
+					/>
+				}
 			/>
 
 			<GroupSheet

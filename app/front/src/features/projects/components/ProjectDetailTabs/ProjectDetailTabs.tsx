@@ -7,7 +7,9 @@ import type { ConsumerUnitGroup } from "@services/consumer-units";
 import type { Finding } from "@services/project-review";
 import type { ProjectDocument } from "@services/submission";
 import { Calculator, CircleAlert, History, Users } from "lucide-react";
+import type { ReactNode } from "react";
 
+import type { ProjectDetailTab } from "../../constants";
 import {
 	AutomaticVerification,
 	type CalculationCheck,
@@ -52,6 +54,11 @@ interface ProjectDetailTabsProps {
 	onOpenGroup: (group: ConsumerUnitGroup) => void;
 	onCheckFinding?: (check: CalculationCheck) => void;
 	onDocumentFinding?: (document: ProjectDocument) => void;
+	/** The memorial preview; without it the tab is left out. */
+	memorial?: ReactNode;
+	/** Controlled tab, such as one kept in the URL; free when left out. */
+	tab?: ProjectDetailTab;
+	onTabChange?: (tab: ProjectDetailTab) => void;
 	className?: string;
 }
 
@@ -68,13 +75,24 @@ export const ProjectDetailTabs = ({
 	onOpenGroup,
 	onCheckFinding,
 	onDocumentFinding,
+	memorial,
+	tab,
+	onTabChange,
 	className,
 }: ProjectDetailTabsProps) => {
 	const findingsOf = (stage: Finding["stage"]) =>
 		markedFindings.filter((finding) => finding.stage === stage);
 
 	return (
-		<Tabs defaultValue="memoria" className={cn("px-6 py-8 md:px-8", className)}>
+		<Tabs
+			{...(tab === undefined
+				? { defaultValue: "memoria" }
+				: {
+						value: tab,
+						onValueChange: (value: ProjectDetailTab) => onTabChange?.(value),
+					})}
+			className={cn("px-6 py-8 md:px-8", className)}
+		>
 			<TabsList className="w-full justify-start overflow-x-auto">
 				<TabsTrigger value="memoria" className="flex-none">
 					Memória de Cálculo
@@ -85,6 +103,11 @@ export const ProjectDetailTabs = ({
 				<TabsTrigger value="documentos" className="flex-none">
 					Documentos
 				</TabsTrigger>
+				{memorial ? (
+					<TabsTrigger value="memorial" className="flex-none">
+						Memorial
+					</TabsTrigger>
+				) : null}
 				<TabsTrigger value="historico" className="flex-none">
 					Histórico
 				</TabsTrigger>
@@ -161,6 +184,12 @@ export const ProjectDetailTabs = ({
 					/>
 				)}
 			</TabsContent>
+
+			{memorial ? (
+				<TabsContent value="memorial" className="pt-4">
+					{memorial}
+				</TabsContent>
+			) : null}
 
 			<TabsContent value="historico" className="pt-4">
 				<EmptyState
