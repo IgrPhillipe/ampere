@@ -1,22 +1,21 @@
 import type { AttentionMessage } from "@components/AttentionIndicator";
 import type { Project } from "@services/projects";
 
-/** Reprovado com pendencia oferece "Ver Apontamentos". */
-export const isRejectedWithFindings = (project: Project) =>
-	project.status === "REJECTED" && project.pendingCount > 0;
-
 export const getProjectAttention = (
 	project: Project,
 ): AttentionMessage | null => {
-	if (isRejectedWithFindings(project)) {
+	if (project.status === "REJECTED") {
 		const count = project.pendingCount;
 
 		return {
 			severity: "critical",
 			title: "Projeto reprovado",
-			details: [
-				`${count} ${count === 1 ? "apontamento" : "apontamentos"} a corrigir`,
-			],
+			details:
+				count > 0
+					? [
+							`${count} ${count === 1 ? "apontamento" : "apontamentos"} a corrigir`,
+						]
+					: [],
 			action: "Corrija os apontamentos e reenvie para análise.",
 		};
 	}
@@ -50,7 +49,7 @@ interface ProjectRowAction {
 }
 
 export const getProjectRowAction = (project: Project): ProjectRowAction => {
-	if (isRejectedWithFindings(project)) {
+	if (project.status === "REJECTED") {
 		return {
 			label: "Corrigir",
 			required: true,

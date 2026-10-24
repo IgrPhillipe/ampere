@@ -22,6 +22,7 @@ describe("getProjectRowAction", () => {
 		["DRAFT", 0, "Continuar", true],
 		["AWAITING_SUBMISSION", 0, "Enviar", true],
 		["REJECTED", 2, "Corrigir", true],
+		["REJECTED", 0, "Corrigir", true],
 		["UNDER_REVIEW", 0, "Ver Projeto", false],
 		["APPROVED", 0, "Ver Projeto", false],
 	] as const)("%s offers %s", (status, pendingCount, label, required) => {
