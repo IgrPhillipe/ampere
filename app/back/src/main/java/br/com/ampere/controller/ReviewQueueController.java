@@ -1,5 +1,6 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.ReviewQueueFilter;
 import br.com.ampere.domain.ReviewQueueSort;
 import br.com.ampere.domain.SortDirection;
@@ -71,15 +72,18 @@ public class ReviewQueueController {
       @Parameter(description = "Filtro por analista (id do usuário ou 'none' para sem analista)")
           @RequestParam(required = false)
           String reviewer,
-      @Parameter(description = "Município usado para filtrar os projetos")
-          @RequestParam(required = false)
-          String municipality,
+      @Parameter(description = "UFs usadas para filtrar os projetos; repita o parâmetro")
+          @RequestParam(name = "state", required = false)
+          List<BrazilianState> states,
+      @Parameter(description = "Municípios usados para filtrar os projetos; repita o parâmetro")
+          @RequestParam(name = "municipality", required = false)
+          List<String> municipalities,
       @AuthenticationPrincipal Jwt jwt) {
     ReviewQueueListing listing =
         service.list(
             pagination.page(),
             pagination.pageSize(),
-            new ReviewQueueQuery(search, filter, sort, direction, reviewer, municipality),
+            new ReviewQueueQuery(search, filter, sort, direction, reviewer, states, municipalities),
             userOf(jwt));
     List<ReviewQueueItemResponse> items =
         listing.entries().stream().map(ReviewQueueItemResponse::from).toList();

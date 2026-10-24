@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.ampere.config.EnumParameterConfig;
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.OpenFindingsFilter;
@@ -46,6 +47,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -109,10 +111,11 @@ class ProjectControllerTest {
             null,
             ProjectSort.CREATED_AT,
             SortDirection.ASC,
-            "Recife",
+            null,
+            Set.of("Recife"),
             LocalDate.of(2026, 10, 1),
             LocalDate.of(2026, 10, 10),
-            OpenFindingsFilter.BLOCKING_OPEN,
+            Set.of(OpenFindingsFilter.BLOCKING_OPEN),
             null);
     when(service.list(1, 20, query, DESIGNER))
         .thenReturn(new ProjectListing(List.of(), 0, Map.of(), Map.of(), Map.of()));
@@ -128,6 +131,52 @@ class ProjectControllerTest {
                 .param("findings", "BLOCKING_OPEN"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.pagination.total").value(0));
+  }
+
+  @Test
+  void bindsRepeatedFilterValues() throws Exception {
+    ProjectService service = mock(ProjectService.class);
+    ProjectListQuery query =
+        new ProjectListQuery(
+            null,
+            null,
+            ProjectSort.UPDATED_AT,
+            SortDirection.DESC,
+            Set.of(BrazilianState.PE, BrazilianState.PB),
+            Set.of("Recife", "Pedras de Fogo"),
+            null,
+            null,
+            Set.of(OpenFindingsFilter.BLOCKING_OPEN, OpenFindingsFilter.NONE_OPEN),
+            null);
+    when(service.list(1, 20, query, DESIGNER))
+        .thenReturn(new ProjectListing(List.of(), 0, Map.of(), Map.of(), Map.of()));
+
+    mockMvc(service)
+        .perform(
+            get("/projects")
+                .param("state", "PE", "PB")
+                .param("municipality", "Recife", "Pedras de Fogo")
+                .param("findings", "BLOCKING_OPEN", "NONE_OPEN"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.pagination.total").value(0));
+  }
+
+  @Test
+  void rejectsAnEmptyValueInARepeatedFilter() throws Exception {
+    MockMvc mockMvc = mockMvc(mock(ProjectService.class));
+
+    mockMvc
+        .perform(get("/projects").param("findings", "BLOCKING_OPEN", ""))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("O filtro 'findings' tem um valor vazio."));
+    mockMvc
+        .perform(get("/projects").param("state", "PE", ""))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("O filtro 'state' tem um valor vazio."));
+    mockMvc
+        .perform(get("/projects").param("municipality", "Recife", " "))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("O filtro 'municipality' tem um valor vazio."));
   }
 
   @Test
@@ -148,17 +197,24 @@ class ProjectControllerTest {
   }
 
   @Test
-  void exposesMunicipalitiesEndpoint() throws Exception {
-    ProjectService service = mock(ProjectService.class);
-    when(service.listMunicipalities(DESIGNER)).thenReturn(List.of("Olinda", "Recife"));
+  void rejectsAPostalCodeWithoutEightDigits() throws Exception {
+    String body = validBody().replace("54500000", "54500-00");
 
-    MockMvc mockMvc = mockMvc(service);
-    mockMvc
-        .perform(get("/projects/municipalities"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data", hasSize(2)))
-        .andExpect(jsonPath("$.data[0]").value("Olinda"))
-        .andExpect(jsonPath("$.data[1]").value("Recife"));
+    mockMvc(mock(ProjectService.class))
+        .perform(post("/projects").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errors[0].field").value("postalCode"))
+        .andExpect(jsonPath("$.errors[0].defaultMessage").value("O CEP deve ter 8 dígitos."));
+  }
+
+  @Test
+  void rejectsAnUnknownState() throws Exception {
+    String body = validBody().replace("\"state\": \"PE\"", "\"state\": \"XX\"");
+
+    mockMvc(mock(ProjectService.class))
+        .perform(post("/projects").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail", containsString("state")));
   }
 
   @Test
@@ -195,6 +251,7 @@ class ProjectControllerTest {
                 null,
                 null,
                 null,
+                null,
                 null),
             DESIGNER))
         .thenReturn(listing);
@@ -207,6 +264,7 @@ class ProjectControllerTest {
             "vila",
             ProjectSort.UPDATED_AT,
             SortDirection.ASC,
+            null,
             null,
             null,
             null,
@@ -267,8 +325,10 @@ class ProjectControllerTest {
                 .value(
                     containsInAnyOrder(
                         "name",
-                        "address",
+                        "postalCode",
+                        "state",
                         "municipality",
+                        "address",
                         "buildingType",
                         "floors",
                         "voltage",
@@ -355,6 +415,8 @@ class ProjectControllerTest {
         {
           "name": "Residencial Monte Verde",
           "address": "Rodovia BR-101, km 8",
+          "postalCode": "54500000",
+          "state": "PE",
           "municipality": "Cabo de Santo Agostinho",
           "buildingType": "RESIDENTIAL_MULTIFAMILY",
           "floors": 12,

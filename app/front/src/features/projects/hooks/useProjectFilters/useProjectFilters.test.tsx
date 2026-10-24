@@ -55,7 +55,7 @@ describe("useProjectFilters", () => {
 
 	it("builds the API params from the URL", () => {
 		const { result } = renderFilters(
-			"?sort=name&municipality=Recife&createdTo=2026-08-31&findings=BLOCKING_OPEN&page=3",
+			"?sort=name&municipality=Recife&municipality=Olinda&createdTo=2026-08-31&findings=BLOCKING_OPEN&page=3",
 		);
 
 		expect(result.current.params).toEqual({
@@ -64,23 +64,55 @@ describe("useProjectFilters", () => {
 			search: undefined,
 			sort: "name",
 			direction: "ASC",
-			municipality: "Recife",
+			municipality: ["Recife", "Olinda"],
 			createdFrom: undefined,
 			createdTo: "2026-08-31",
-			findings: "BLOCKING_OPEN",
+			findings: ["BLOCKING_OPEN"],
 		});
 	});
 
-	it("stores the findings filter and ignores unknown values", async () => {
-		expect(renderFilters("?findings=OPEN").result.current.findings).toBeNull();
+	it("keeps only the municipalities of the states still chosen", async () => {
+		const { result, lastUrl } = renderFilters(
+			"?state=PE&state=PB&municipality=Recife&municipality=Pedras%20de%20Fogo&page=2",
+		);
+
+		act(() => result.current.setState(["PB"]));
+
+		await waitFor(() =>
+			expect(lastUrl()?.toString()).toBe(
+				"state=PB&municipality=Pedras+de+Fogo",
+			),
+		);
+	});
+
+	it("repeats the parameter for each state", async () => {
+		const { result, lastUrl } = renderFilters();
+
+		act(() => result.current.setState(["PE", "PB"]));
+
+		await waitFor(() =>
+			expect(lastUrl()?.getAll("state")).toEqual(["PE", "PB"]),
+		);
+	});
+
+	it("stores several findings and ignores unknown values", async () => {
+		expect(
+			renderFilters("?findings=OPEN&findings=NONE_OPEN").result.current
+				.findings,
+		).toEqual(["NONE_OPEN"]);
 
 		const { result, onUrlUpdate, lastUrl } = renderFilters();
 
-		act(() => result.current.setFindings("NONE_OPEN"));
+		act(() => result.current.setFindings(["NONE_OPEN", "BLOCKING_OPEN"]));
 
-		await waitFor(() => expect(lastUrl()?.get("findings")).toBe("NONE_OPEN"));
+		await waitFor(() =>
+			expect(lastUrl()?.getAll("findings")).toEqual([
+				"NONE_OPEN",
+				"BLOCKING_OPEN",
+			]),
+		);
 
-		act(() => result.current.setFindings(null));
+		act(() => result.current.setFindings([]));
 
 		await waitFor(() => expect(onUrlUpdate).toHaveBeenCalledTimes(2));
 		expect(lastUrl()?.has("findings")).toBe(false);

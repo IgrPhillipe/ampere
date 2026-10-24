@@ -10,6 +10,7 @@ const item: ReviewQueueItem = {
 	name: "Condomínio Vila Nova",
 	protocol: "2026-0475",
 	municipality: "Jaboatão dos Guararapes",
+	state: "PE",
 	submittedAt: "2026-09-08T12:00:00Z",
 	deadline: "2026-10-08",
 	deadlineStatus: "ON_TIME",
@@ -84,7 +85,7 @@ describe("ReviewQueueListing", () => {
 		render(<ReviewQueueListing items={[item]} onAnalyze={vi.fn()} />);
 
 		expect(
-			screen.getAllByText("Jaboatão dos Guararapes, João Projetista"),
+			screen.getAllByText("Jaboatão dos Guararapes/PE, João Projetista"),
 		).not.toHaveLength(0);
 	});
 });

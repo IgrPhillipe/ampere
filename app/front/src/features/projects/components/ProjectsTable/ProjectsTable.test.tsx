@@ -9,6 +9,7 @@ const project: Project = {
 	name: "Residencial Monte Verde",
 	address: "Rodovia BR-104, km 8",
 	municipality: "Caruaru",
+	state: "PE",
 	protocol: "2026-0441",
 	ownerId: "1",
 	ownerName: "Beto Projetista",

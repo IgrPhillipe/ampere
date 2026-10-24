@@ -8,6 +8,11 @@ import {
 } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import {
+	CONCESSION_STATES,
+	type ConcessionState,
+	concessionMunicipalityOf,
+} from "@services/locations";
+import {
 	type ListProjectsParams,
 	type ProjectFindingsFilter,
 	type ProjectSort,
@@ -19,6 +24,7 @@ import {
 import {
 	debounce,
 	parseAsInteger,
+	parseAsNativeArrayOf,
 	parseAsString,
 	parseAsStringLiteral,
 	useQueryStates,
@@ -53,13 +59,16 @@ export const useProjectFilters = () => {
 			DEFAULT_SORT,
 		),
 		direction: parseAsStringLiteral(sortDirectionSchema.options),
-		municipality: parseAsString,
+		state: parseAsNativeArrayOf(parseAsStringLiteral(CONCESSION_STATES)),
+		municipality: parseAsNativeArrayOf(parseAsString),
 		createdFrom: parseAsString,
 		createdTo: parseAsString,
-		findings: parseAsStringLiteral(projectFindingsFilterSchema.options),
+		findings: parseAsNativeArrayOf(
+			parseAsStringLiteral(projectFindingsFilterSchema.options),
+		),
 		owner: parseAsString,
 	});
-	const { status, search, page, municipality, findings, owner } = query;
+	const { status, search, page, state, municipality, findings, owner } = query;
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
 	const sort = useMemo<ListSort<ProjectSort>>(
@@ -85,10 +94,11 @@ export const useProjectFilters = () => {
 			search: debouncedSearch || undefined,
 			sort: sort.column,
 			direction: sort.direction,
-			municipality: municipality ?? undefined,
+			state: state.length ? state : undefined,
+			municipality: municipality.length ? municipality : undefined,
 			createdFrom: period.from ?? undefined,
 			createdTo: period.to ?? undefined,
-			findings: findings ?? undefined,
+			findings: findings.length ? findings : undefined,
 			owner: owner ?? undefined,
 		}),
 		[
@@ -96,6 +106,7 @@ export const useProjectFilters = () => {
 			status,
 			debouncedSearch,
 			sort,
+			state,
 			municipality,
 			period,
 			findings,
@@ -143,9 +154,29 @@ export const useProjectFilters = () => {
 		[sort, setSort],
 	);
 
+	// Municipalities of the states still chosen stay; the others go with their state.
+	const setState = useCallback(
+		(value: ConcessionState[]) => {
+			void setQuery((current) => {
+				const kept = value.length
+					? current.municipality.filter((name) =>
+							value.some((state) => concessionMunicipalityOf(state, name)),
+						)
+					: current.municipality;
+
+				return {
+					state: value.length ? value : null,
+					municipality: kept.length ? kept : null,
+					page: null,
+				};
+			});
+		},
+		[setQuery],
+	);
+
 	const setMunicipality = useCallback(
-		(value: string | null) => {
-			void setQuery({ municipality: value, page: null });
+		(value: string[]) => {
+			void setQuery({ municipality: value.length ? value : null, page: null });
 		},
 		[setQuery],
 	);
@@ -162,8 +193,8 @@ export const useProjectFilters = () => {
 	);
 
 	const setFindings = useCallback(
-		(value: ProjectFindingsFilter | null) => {
-			void setQuery({ findings: value, page: null });
+		(value: ProjectFindingsFilter[]) => {
+			void setQuery({ findings: value.length ? value : null, page: null });
 		},
 		[setQuery],
 	);
@@ -179,6 +210,7 @@ export const useProjectFilters = () => {
 		void setQuery({
 			status: null,
 			search: null,
+			state: null,
 			municipality: null,
 			createdFrom: null,
 			createdTo: null,
@@ -193,6 +225,7 @@ export const useProjectFilters = () => {
 		search,
 		page,
 		sort,
+		state,
 		municipality,
 		period,
 		findings,
@@ -202,16 +235,18 @@ export const useProjectFilters = () => {
 		hasActiveFilters:
 			status !== null ||
 			search.trim() !== "" ||
-			municipality !== null ||
+			state.length > 0 ||
+			municipality.length > 0 ||
 			period.from !== null ||
 			period.to !== null ||
-			findings !== null ||
+			findings.length > 0 ||
 			owner !== null,
 		setStatus,
 		setSearch,
 		setPage,
 		setSort,
 		sortBy,
+		setState,
 		setMunicipality,
 		setPeriod,
 		setFindings,

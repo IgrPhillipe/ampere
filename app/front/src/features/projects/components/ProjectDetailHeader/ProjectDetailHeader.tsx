@@ -1,6 +1,11 @@
 import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDate, formatKva } from "@features/shared";
+import {
+	formatDate,
+	formatKva,
+	formatPlace,
+	formatPostalCode,
+} from "@features/shared";
 import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
 import type { ProjectDetail } from "@services/projects";
@@ -85,7 +90,11 @@ export const ProjectDetailHeader = ({
 					</Badge>
 					{reanalysis ? <Badge variant="tag">Reanálise</Badge> : null}
 					<span className="text-sm text-muted-foreground">
-						{project.address}, {project.municipality}
+						{project.address},{" "}
+						{formatPlace(project.municipality, project.state)}
+						{project.postalCode
+							? `, CEP ${formatPostalCode(project.postalCode)}`
+							: null}
 					</span>
 				</div>
 			) : null}

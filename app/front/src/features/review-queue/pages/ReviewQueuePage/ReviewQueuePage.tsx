@@ -70,6 +70,8 @@ export const ReviewQueuePage = () => {
 						<ReviewQueueFilterControls
 							reviewer={filters.reviewer}
 							onReviewerChange={filters.setReviewer}
+							state={filters.state}
+							onStateChange={filters.setState}
 							municipality={filters.municipality}
 							onMunicipalityChange={filters.setMunicipality}
 						/>

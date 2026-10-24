@@ -6,6 +6,11 @@ import {
 	useDebouncedValue,
 } from "@features/shared";
 import {
+	CONCESSION_STATES,
+	type ConcessionState,
+	concessionMunicipalityOf,
+} from "@services/locations";
+import {
 	type ListReviewQueueParams,
 	type ReviewQueueFilter,
 	type ReviewQueueSort,
@@ -16,6 +21,7 @@ import {
 import {
 	debounce,
 	parseAsInteger,
+	parseAsNativeArrayOf,
 	parseAsString,
 	parseAsStringLiteral,
 	useQueryStates,
@@ -54,9 +60,10 @@ export const useReviewQueueFilters = () => {
 		),
 		direction: parseAsStringLiteral(sortDirectionSchema.options),
 		reviewer: parseAsString,
-		municipality: parseAsString,
+		state: parseAsNativeArrayOf(parseAsStringLiteral(CONCESSION_STATES)),
+		municipality: parseAsNativeArrayOf(parseAsString),
 	});
-	const { filter, search, page, municipality } = query;
+	const { filter, search, page, state, municipality } = query;
 	const reviewer = toReviewer(query.reviewer);
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -76,9 +83,10 @@ export const useReviewQueueFilters = () => {
 			sort: sort.column,
 			direction: sort.direction,
 			reviewer: reviewer ?? undefined,
-			municipality: municipality ?? undefined,
+			state: state.length ? state : undefined,
+			municipality: municipality.length ? municipality : undefined,
 		}),
-		[page, filter, debouncedSearch, sort, reviewer, municipality],
+		[page, filter, debouncedSearch, sort, reviewer, state, municipality],
 	);
 
 	const setFilter = useCallback(
@@ -131,9 +139,29 @@ export const useReviewQueueFilters = () => {
 		[setQuery],
 	);
 
+	// Municipalities of the states still chosen stay; the others go with their state.
+	const setState = useCallback(
+		(value: ConcessionState[]) => {
+			void setQuery((current) => {
+				const kept = value.length
+					? current.municipality.filter((name) =>
+							value.some((state) => concessionMunicipalityOf(state, name)),
+						)
+					: current.municipality;
+
+				return {
+					state: value.length ? value : null,
+					municipality: kept.length ? kept : null,
+					page: null,
+				};
+			});
+		},
+		[setQuery],
+	);
+
 	const setMunicipality = useCallback(
-		(value: string | null) => {
-			void setQuery({ municipality: value, page: null });
+		(value: string[]) => {
+			void setQuery({ municipality: value.length ? value : null, page: null });
 		},
 		[setQuery],
 	);
@@ -143,6 +171,7 @@ export const useReviewQueueFilters = () => {
 			filter: null,
 			search: null,
 			reviewer: null,
+			state: null,
 			municipality: null,
 			page: null,
 		});
@@ -154,19 +183,22 @@ export const useReviewQueueFilters = () => {
 		page,
 		sort,
 		reviewer,
+		state,
 		municipality,
 		params,
 		hasActiveFilters:
 			filter !== "ALL" ||
 			search.trim() !== "" ||
 			reviewer !== null ||
-			municipality !== null,
+			state.length > 0 ||
+			municipality.length > 0,
 		setFilter,
 		setSearch,
 		setPage,
 		setSort,
 		sortBy,
 		setReviewer,
+		setState,
 		setMunicipality,
 		clearFilters,
 	};

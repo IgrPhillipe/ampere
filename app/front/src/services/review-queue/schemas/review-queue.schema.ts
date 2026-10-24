@@ -1,4 +1,5 @@
 import { apiResponseSchema, paginatedResponseSchema } from "@features/shared";
+import { brazilianStateSchema } from "@services/locations";
 import { z } from "zod";
 
 export const reviewQueueFilterSchema = z.enum([
@@ -38,6 +39,7 @@ export const reviewQueueItemSchema = z.object({
 	name: z.string(),
 	protocol: z.string(),
 	municipality: z.string(),
+	state: brazilianStateSchema,
 	submittedAt: z.iso.datetime({ offset: true }),
 	deadline: z.iso.date(),
 	deadlineStatus: deadlineStatusSchema,

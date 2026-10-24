@@ -23,7 +23,7 @@ const columnClassNames = {
 	units: "hidden xl:table-cell xl:w-16 text-center",
 	demand: "w-28 text-center",
 	warnings: "w-24 text-center",
-	action: "w-32",
+	action: "w-36",
 } satisfies Partial<Record<ReviewQueueColumnId, string>>;
 
 const sortableColumns = [

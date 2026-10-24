@@ -15,14 +15,11 @@ import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectRepositoryCustom.ProjectSearch;
 import br.com.ampere.utils.SearchTerms;
 import java.math.BigDecimal;
-import java.text.Collator;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +85,8 @@ public class ProjectService {
                 user.projectVisibility(),
                 query.status(),
                 SearchTerms.normalize(query.search()),
-                query.municipality(),
+                query.states(),
+                query.municipalities(),
                 startOf(query.createdFrom()),
                 query.createdTo() == null ? null : startOf(query.createdTo().plusDays(1)),
                 query.findings(),
@@ -105,19 +103,6 @@ public class ProjectService {
         countPendingFindings(projectIds),
         countUnits(projectIds),
         latestDemands(projectIds));
-  }
-
-  @Transactional(readOnly = true)
-  public List<String> listMunicipalities(AuthenticatedUser user) {
-    // Spellings differing only in case collapse into the first in code point order.
-    Collator collator = Collator.getInstance(Locale.of("pt", "BR"));
-    collator.setStrength(Collator.SECONDARY);
-    Map<String, String> unique = new TreeMap<>(collator);
-    projectRepository.findAccessibleMunicipalities(user.id(), user.projectVisibility()).stream()
-        .map(String::trim)
-        .forEach(municipality -> unique.merge(municipality, municipality, ProjectService::first));
-
-    return List.copyOf(unique.values());
   }
 
   /** The designers of the projects the user reaches, for the admin's filter. */
@@ -166,9 +151,11 @@ public class ProjectService {
   public Project update(Long id, ProjectParameters parameters, AuthenticatedUser user) {
     Project project =
         editableOrFail(id, "Só é possível alterar um projeto em rascunho ou reprovado.", user);
+    String municipality = ProjectPlaces.municipalityOf(parameters);
     BuildingType buildingType = parameters.toBuildingType();
 
-    project.rename(parameters.name(), parameters.address(), parameters.municipality());
+    project.rename(parameters.name(), parameters.address(), municipality);
+    project.locate(parameters.postalCode(), parameters.state());
     project.changeBuildingType(buildingType);
     project.applyStandards(applicableStandards.of(buildingType));
 
@@ -262,10 +249,6 @@ public class ProjectService {
 
   private static OffsetDateTime startOf(LocalDate day) {
     return day == null ? null : day.atStartOfDay(ReviewQueueService.ZONE).toOffsetDateTime();
-  }
-
-  private static String first(String kept, String other) {
-    return kept.compareTo(other) <= 0 ? kept : other;
   }
 
   private Map<Long, BigDecimal> latestDemands(List<Long> projectIds) {

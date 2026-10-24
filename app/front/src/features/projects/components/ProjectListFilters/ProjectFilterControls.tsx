@@ -1,13 +1,25 @@
 import { type DateRange, DateRangeFilter } from "@components/DateRangeFilter";
 import { FilterMenu } from "@components/FilterMenu";
+import { MultiFilterMenu } from "@components/MultiFilterMenu";
+import { SearchableFilterMenu } from "@components/SearchableFilterMenu";
+import {
+	CONCESSION_STATES,
+	type ConcessionState,
+	concessionMunicipalityNames,
+	concessionStateNames,
+} from "@services/locations";
 import {
 	type ProjectFindingsFilter,
 	projectFindingsFilterSchema,
-	useGetMunicipalityList,
 	useGetProjectOwnerList,
 } from "@services/projects";
 
 import { projectFindingsFilterLabels } from "../../constants/project-findings";
+
+const stateOptions = CONCESSION_STATES.map((value) => ({
+	value,
+	label: concessionStateNames[value],
+}));
 
 const findingsOptions = projectFindingsFilterSchema.options.map((value) => ({
 	value,
@@ -18,18 +30,22 @@ interface ProjectFilterControlsProps {
 	showOwner?: boolean;
 	owner?: string | null;
 	onOwnerChange?: (owner: string | null) => void;
-	municipality: string | null;
-	onMunicipalityChange: (municipality: string | null) => void;
+	state: ConcessionState[];
+	onStateChange: (state: ConcessionState[]) => void;
+	municipality: string[];
+	onMunicipalityChange: (municipality: string[]) => void;
 	period: DateRange;
 	onPeriodChange: (period: DateRange) => void;
-	findings: ProjectFindingsFilter | null;
-	onFindingsChange: (findings: ProjectFindingsFilter | null) => void;
+	findings: ProjectFindingsFilter[];
+	onFindingsChange: (findings: ProjectFindingsFilter[]) => void;
 }
 
 export const ProjectFilterControls = ({
 	showOwner = false,
 	owner = null,
 	onOwnerChange,
+	state,
+	onStateChange,
 	municipality,
 	onMunicipalityChange,
 	period,
@@ -40,11 +56,6 @@ export const ProjectFilterControls = ({
 	const ownersQuery = useGetProjectOwnerList({ enabled: showOwner });
 	const owners = (ownersQuery.data?.data ?? []).map(({ id, name }) => ({
 		value: id,
-		label: name,
-	}));
-	const municipalitiesQuery = useGetMunicipalityList();
-	const municipalities = (municipalitiesQuery.data?.data ?? []).map((name) => ({
-		value: name,
 		label: name,
 	}));
 
@@ -60,13 +71,21 @@ export const ProjectFilterControls = ({
 					disabled={ownersQuery.isPending}
 				/>
 			) : null}
-			<FilterMenu
+			<MultiFilterMenu
+				label="UF"
+				allLabel="Todas"
+				options={stateOptions}
+				value={state}
+				onValueChange={onStateChange}
+			/>
+			<SearchableFilterMenu
 				label="Município"
 				allLabel="Todos"
-				options={municipalities}
+				searchPlaceholder="Buscar município"
+				emptyMessage="Nenhum município encontrado."
+				options={concessionMunicipalityNames(state)}
 				value={municipality}
 				onValueChange={onMunicipalityChange}
-				disabled={municipalitiesQuery.isPending}
 			/>
 			<DateRangeFilter
 				label="Criado em"
@@ -74,7 +93,7 @@ export const ProjectFilterControls = ({
 				value={period}
 				onValueChange={onPeriodChange}
 			/>
-			<FilterMenu
+			<MultiFilterMenu
 				label="Apontamentos"
 				allLabel="Todos"
 				options={findingsOptions}

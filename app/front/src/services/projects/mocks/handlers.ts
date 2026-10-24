@@ -1,3 +1,4 @@
+import { brazilianStateSchema } from "@services/locations";
 import { HttpResponse, http } from "msw";
 import { z } from "zod";
 
@@ -42,8 +43,10 @@ const problem = (detail: string, instance: string = e.list) =>
  */
 const createProjectSchema = z.object({
 	name: z.string().trim().min(1).max(120),
-	address: z.string().trim().min(1).max(200),
+	postalCode: z.string().regex(/^\d{8}$/),
+	state: brazilianStateSchema,
 	municipality: z.string().trim().min(1).max(100),
+	address: z.string().trim().min(1).max(200),
 	buildingType: buildingCategorySchema,
 	floors: z.number().int().min(1).max(200),
 	voltage: supplyVoltageSchema,

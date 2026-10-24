@@ -12,6 +12,8 @@ export const makeProjectDetail = (
 	name: "Residencial Boa Vista",
 	address: "Rua da Aurora, 100",
 	municipality: "Recife",
+	state: "PE",
+	postalCode: "50030230",
 	protocol: "2026-1004",
 	status: "UNDER_REVIEW",
 	createdAt: "2026-10-01T12:00:00Z",

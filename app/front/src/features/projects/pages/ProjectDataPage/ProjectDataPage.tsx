@@ -1,8 +1,9 @@
 import { ControlledInput, ControlledSelect } from "@components/form";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
-import { useZodForm } from "@features/shared";
+import { formatPostalCode, useZodForm } from "@features/shared";
 import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
+import { isConcessionState } from "@services/locations";
 import { useGetFindingList } from "@services/project-review";
 import {
 	type BuildingCategory,
@@ -19,7 +20,12 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useEffect } from "react";
 import { useFormState } from "react-hook-form";
 
-import { FindingBadge, ProjectStamp, ProjectStepper } from "../../components";
+import {
+	FindingBadge,
+	ProjectAddressFields,
+	ProjectStamp,
+	ProjectStepper,
+} from "../../components";
 import { stageFindingsOf } from "../../constants";
 import { useProjectPermissions } from "../../hooks";
 import {
@@ -58,7 +64,14 @@ const PROGRESS_SECTIONS: {
 }[] = [
 	{
 		title: "Identificação",
-		fields: ["name", "municipality", "address", "floors"],
+		fields: [
+			"name",
+			"postalCode",
+			"state",
+			"municipality",
+			"address",
+			"floors",
+		],
 	},
 	{
 		title: "Parâmetros Técnicos",
@@ -74,10 +87,14 @@ const progressCounterId = "projeto-preenchimento";
 const isFilled = (value: unknown) =>
 	value !== undefined && value !== null && value !== "" && !Number.isNaN(value);
 
-const formValuesOf = (project: ProjectDetail): ProjectCreationFormValues => ({
+const formValuesOf = (
+	project: ProjectDetail,
+): Partial<ProjectCreationFormValues> => ({
 	name: project.name,
-	address: project.address,
+	postalCode: formatPostalCode(project.postalCode ?? ""),
+	state: isConcessionState(project.state) ? project.state : undefined,
 	municipality: project.municipality,
+	address: project.address,
 	buildingType: project.buildingType,
 	floors: project.floors,
 	voltage: project.voltage,
@@ -116,8 +133,10 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 
 	const form = useZodForm(projectCreationSchema, {
 		name: "",
-		address: "",
+		postalCode: "",
+		state: undefined,
 		municipality: "",
+		address: "",
 		buildingType: undefined,
 		floors: undefined,
 		voltage: undefined,
@@ -202,7 +221,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 					</h1>
 				</div>
 
-				<ProjectStepper current={0} className="mt-6" />
+				<ProjectStepper current={0} projectId={projectId} className="mt-6" />
 
 				<div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_320px]">
 					<fieldset
@@ -227,23 +246,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 									variant="underline"
 								/>
 
-								<ControlledInput
-									control={form.control}
-									name="municipality"
-									label="Município"
-									placeholder="Digite o município"
-									required
-									variant="underline"
-								/>
-
-								<ControlledInput
-									control={form.control}
-									name="address"
-									label="Endereço"
-									placeholder="Digite o endereço"
-									required
-									variant="underline"
-								/>
+								<ProjectAddressFields form={form} />
 
 								<ControlledInput
 									control={form.control}
@@ -310,7 +313,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 						</section>
 					</fieldset>
 
-					<aside className="flex flex-col border-t border-border lg:border-t-0 lg:border-l">
+					<aside className="order-first flex flex-col border-b border-border lg:order-none lg:border-b-0 lg:border-l">
 						{/* The exact revision only exists after the POST (`ApplicableStandards`). */}
 						<div className="bg-primary px-6 pt-8 pb-6 text-primary-foreground">
 							<p className="border-b border-primary-foreground/85 pb-3 font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase">

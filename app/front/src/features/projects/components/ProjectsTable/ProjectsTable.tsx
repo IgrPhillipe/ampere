@@ -14,7 +14,7 @@ import type { ProjectRowActions } from "./project-row";
 /** `table-fixed`: these widths hold, and the name takes what is left. */
 const projectColumnClassNames = {
 	attention: "w-10 pr-0",
-	protocol: "w-32 text-center",
+	protocol: "w-28 text-center",
 	owner: "hidden xl:table-cell xl:w-36",
 	status: "w-48 text-center",
 	pending: "w-28 text-center",

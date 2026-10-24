@@ -1,4 +1,4 @@
-import { formatDate } from "@features/shared";
+import { DateCell } from "@components/DateCell";
 import type { ReviewQueueItem } from "@services/review-queue";
 
 import { formatDeadlineDistance } from "./review-queue-row";
@@ -8,15 +8,5 @@ interface DeadlineCellProps {
 }
 
 export const DeadlineCell = ({ item }: DeadlineCellProps) => (
-	<div className="flex flex-col items-center gap-0.5">
-		<time
-			dateTime={item.deadline}
-			className="font-mono text-xs text-foreground"
-		>
-			{formatDate(item.deadline)}
-		</time>
-		<span className="text-xs text-muted-foreground">
-			{formatDeadlineDistance(item)}
-		</span>
-	</div>
+	<DateCell value={item.deadline} caption={formatDeadlineDistance(item)} />
 );

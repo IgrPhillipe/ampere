@@ -3,6 +3,7 @@ package br.com.ampere.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.Calculation;
@@ -36,8 +37,8 @@ import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -285,6 +286,30 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
+  void filtersByState() {
+    Project recife = save("A", "Recife", "2026-0010");
+    Project pedras = save("B", "Pedras de Fogo", "2026-0020");
+    pedras.locate("58328000", BrazilianState.PB);
+    projectRepository.save(pedras);
+
+    ProjectListQuery inParaiba =
+        new ProjectListQuery(
+            null,
+            null,
+            ProjectSort.UPDATED_AT,
+            SortDirection.DESC,
+            Set.of(BrazilianState.PB),
+            null,
+            null,
+            null,
+            null,
+            null);
+
+    assertThat(list(inParaiba).projects()).containsExactly(pedras);
+    assertThat(recife.getState()).isEqualTo(BrazilianState.PE);
+  }
+
+  @Test
   void filtersByTheFindingsStillOpen() {
     Project blocked = save("A", "Recife", "2026-0030");
     Project adjusted = save("B", "Recife", "2026-0040");
@@ -305,6 +330,42 @@ class ProjectServiceIntegrationTest {
     assertThat(list(filtered(OpenFindingsFilter.NONE_OPEN)).projects())
         .containsExactlyInAnyOrder(drafted, resolved, clean);
     assertThat(list(filtered((OpenFindingsFilter) null)).projects()).hasSize(5);
+    assertThat(
+            list(new ProjectListQuery(
+                    null,
+                    null,
+                    ProjectSort.UPDATED_AT,
+                    SortDirection.DESC,
+                    null,
+                    null,
+                    null,
+                    null,
+                    Set.of(OpenFindingsFilter.BLOCKING_OPEN, OpenFindingsFilter.NONE_OPEN),
+                    null))
+                .projects())
+        .containsExactlyInAnyOrder(blocked, drafted, resolved, clean);
+  }
+
+  @Test
+  void filtersBySeveralMunicipalitiesAtOnce() {
+    Project recife = save("A", "Recife", "2026-0010");
+    Project olinda = save("B", "Olinda", "2026-0020");
+    save("C", "Paulista", "2026-0030");
+
+    ProjectListQuery query =
+        new ProjectListQuery(
+            null,
+            null,
+            ProjectSort.UPDATED_AT,
+            SortDirection.DESC,
+            null,
+            Set.of("recife", " Olinda "),
+            null,
+            null,
+            null,
+            null);
+
+    assertThat(list(query).projects()).containsExactlyInAnyOrder(recife, olinda);
   }
 
   @Test
@@ -324,41 +385,15 @@ class ProjectServiceIntegrationTest {
                 null,
                 ProjectSort.NAME,
                 SortDirection.ASC,
-                "Recife",
+                null,
+                Set.of("Recife"),
                 null,
                 null,
-                OpenFindingsFilter.BLOCKING_OPEN,
+                Set.of(OpenFindingsFilter.BLOCKING_OPEN),
                 null));
 
     assertThat(listing.projects()).containsExactly(alpha, zeta);
     assertThat(listing.totalElements()).isEqualTo(2);
-  }
-
-  @Test
-  void listsDistinctMunicipalitiesPerRole() {
-    save("A", "Recife", "2026-0010");
-    save("B", "Olinda", "2026-0020");
-    save("C", "recife ", "2026-0030");
-    save("E", "Jaboatão dos Guararapes", "2026-0050");
-
-    User analystUser =
-        userRepository.save(new User("Revisor", "revisor@ampere.com", "hash", UserRole.REVIEWER));
-    AuthenticatedUser analyst = new AuthenticatedUser(analystUser.getId(), UserRole.REVIEWER);
-    User adminUser =
-        userRepository.save(new User("Admin", "admin@ampere.com", "hash", UserRole.ADMIN));
-    AuthenticatedUser admin = new AuthenticatedUser(adminUser.getId(), UserRole.ADMIN);
-
-    assertThat(service.listMunicipalities(designer))
-        .containsExactly("Jaboatão dos Guararapes", "Olinda", "Recife");
-    assertThat(service.listMunicipalities(analyst)).isEmpty();
-
-    Project submitted = project("D", "Rua 4", "Caruaru", "2026-0040", ProjectStatus.UNDER_REVIEW);
-    submitted.submit(OffsetDateTime.now(ZoneOffset.UTC));
-    projectRepository.save(submitted);
-
-    assertThat(service.listMunicipalities(analyst)).containsExactly("Caruaru");
-    assertThat(service.listMunicipalities(admin))
-        .containsExactly("Caruaru", "Jaboatão dos Guararapes", "Olinda", "Recife");
   }
 
   @Test
@@ -385,6 +420,90 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
+  void refusesAProjectOutsideTheConcessionArea() {
+    ProjectParameters inJoaoPessoa =
+        new ProjectParameters(
+            "Residencial Tambaú",
+            "58039000",
+            BrazilianState.PB,
+            "João Pessoa",
+            "Avenida Almirante Tamandaré, 100",
+            BuildingCategory.RESIDENTIAL_MULTIFAMILY,
+            12,
+            SupplyVoltage.V380_220,
+            ConnectionType.THREE_PHASE,
+            EntranceStandard.COLLECTIVE);
+
+    assertThatThrownBy(() -> service.create(inJoaoPessoa, designer))
+        .isInstanceOf(BusinessException.class)
+        .hasMessageContaining("Pedras de Fogo (PB)");
+  }
+
+  @Test
+  void refusesAPostalCodeFromAnotherStateOrAnUnknownMunicipality() {
+    ProjectParameters paulistaCep =
+        new ProjectParameters(
+            "Residencial Aurora",
+            "01001000",
+            BrazilianState.PE,
+            "Recife",
+            "Rua da Aurora, 1",
+            BuildingCategory.RESIDENTIAL_MULTIFAMILY,
+            12,
+            SupplyVoltage.V380_220,
+            ConnectionType.THREE_PHASE,
+            EntranceStandard.COLLECTIVE);
+    ProjectParameters unknownCity =
+        new ProjectParameters(
+            "Residencial Aurora",
+            "50030230",
+            BrazilianState.PE,
+            "Cidade Inventada",
+            "Rua da Aurora, 1",
+            BuildingCategory.RESIDENTIAL_MULTIFAMILY,
+            12,
+            SupplyVoltage.V380_220,
+            ConnectionType.THREE_PHASE,
+            EntranceStandard.COLLECTIVE);
+
+    assertThatThrownBy(() -> service.create(paulistaCep, designer))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("O CEP não pertence à UF informada.");
+    assertThatThrownBy(() -> service.create(unknownCity, designer))
+        .isInstanceOf(BusinessException.class)
+        .hasMessageContaining("Pedras de Fogo (PB)");
+  }
+
+  @Test
+  void storesTheIbgeSpellingOfTheMunicipality() {
+    ProjectParameters typed =
+        new ProjectParameters(
+            "Residencial Aurora",
+            "54000000",
+            BrazilianState.PE,
+            " jaboatao dos guararapes ",
+            "Rua 1",
+            BuildingCategory.RESIDENTIAL_MULTIFAMILY,
+            12,
+            SupplyVoltage.V380_220,
+            ConnectionType.THREE_PHASE,
+            EntranceStandard.COLLECTIVE);
+
+    assertThat(service.create(typed, designer).getMunicipality())
+        .isEqualTo("Jaboatão dos Guararapes");
+  }
+
+  @Test
+  void storesThePostalCodeAndTheState() {
+    Project created =
+        service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer);
+
+    assertThat(created.getPostalCode()).isEqualTo("54500000");
+    assertThat(created.formattedPostalCode()).isEqualTo("54500-000");
+    assertThat(created.getState()).isEqualTo(BrazilianState.PE);
+  }
+
+  @Test
   void generatesSequentialProtocolsWithinTheYear() {
     String first = service.create(parameters(BuildingCategory.MIXED), designer).getProtocol();
     String second = service.create(parameters(BuildingCategory.MIXED), designer).getProtocol();
@@ -404,8 +523,10 @@ class ProjectServiceIntegrationTest {
             id,
             new ProjectParameters(
                 "Comercial Praça Sul",
-                "Rua do Sol, 302",
+                "54500000",
+                BrazilianState.PE,
                 "Olinda",
+                "Rua do Sol, 302",
                 BuildingCategory.NON_RESIDENTIAL,
                 3,
                 SupplyVoltage.V220_127,
@@ -493,6 +614,7 @@ class ProjectServiceIntegrationTest {
             null,
             null,
             null,
+            null,
             null));
   }
 
@@ -501,7 +623,7 @@ class ProjectServiceIntegrationTest {
   }
 
   private static ProjectListQuery sortedBy(ProjectSort sort, SortDirection direction) {
-    return new ProjectListQuery(null, null, sort, direction, null, null, null, null, null);
+    return new ProjectListQuery(null, null, sort, direction, null, null, null, null, null, null);
   }
 
   private static ProjectListQuery filtered(
@@ -511,7 +633,8 @@ class ProjectServiceIntegrationTest {
         null,
         ProjectSort.UPDATED_AT,
         SortDirection.DESC,
-        municipality,
+        null,
+        municipality == null ? null : Set.of(municipality),
         createdFrom,
         createdTo,
         null,
@@ -520,7 +643,16 @@ class ProjectServiceIntegrationTest {
 
   private static ProjectListQuery filtered(OpenFindingsFilter findings) {
     return new ProjectListQuery(
-        null, null, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, findings, null);
+        null,
+        null,
+        ProjectSort.UPDATED_AT,
+        SortDirection.DESC,
+        null,
+        null,
+        null,
+        null,
+        findings == null ? null : Set.of(findings),
+        null);
   }
 
   private Project save(String name, String municipality, String protocol) {
@@ -607,8 +739,10 @@ class ProjectServiceIntegrationTest {
   private static ProjectParameters parameters(BuildingCategory category) {
     return new ProjectParameters(
         "Residencial Monte Verde",
-        "Rodovia BR-101, km 8",
+        "54500000",
+        BrazilianState.PE,
         "Cabo de Santo Agostinho",
+        "Rodovia BR-101, km 8",
         category,
         12,
         SupplyVoltage.V380_220,

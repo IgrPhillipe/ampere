@@ -1,4 +1,4 @@
-import { formatDate, formatKva, padCount } from "@features/shared";
+import { formatDate, formatKva, formatPlace, padCount } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
 import type { Project } from "@services/projects";
@@ -42,7 +42,8 @@ export const ProjectCards = ({
 					</div>
 
 					<span className="text-xs text-muted-foreground">
-						{project.address}, {project.municipality}
+						{project.address},{" "}
+						{formatPlace(project.municipality, project.state)}
 					</span>
 
 					<span className="font-mono text-xs text-muted-foreground">

@@ -1,3 +1,4 @@
+import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { cn } from "@lib/utils";
 import { X } from "lucide-react";
@@ -25,31 +26,35 @@ export const ActiveFilters = ({
 		<div
 			role="group"
 			aria-label="Filtros ativos"
-			className={cn("flex flex-wrap items-center gap-2", className)}
+			className={cn(
+				"flex flex-wrap items-center gap-2 border-t border-dashed border-border pt-4",
+				className,
+			)}
 		>
+			<span className="mr-1 font-mono text-xs tracking-wider text-muted-foreground uppercase">
+				Filtros ativos
+			</span>
 			{filters.map((filter) => (
-				<span
-					key={filter.id}
-					className="inline-flex h-8 max-w-full items-center gap-1 rounded-full border border-border bg-muted pr-1 pl-3 text-xs text-foreground"
-				>
+				<Badge key={filter.id} variant="tag" className="max-w-full gap-1 pr-1">
 					<span className="truncate">{filter.label}</span>
 					<button
 						type="button"
 						onClick={filter.onRemove}
 						aria-label={`Remover filtro ${filter.label}`}
-						className="flex size-6 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+						className="flex size-5 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
 					>
-						<X className="size-3.5" aria-hidden="true" />
+						<X className="size-3" aria-hidden="true" />
 					</button>
-				</span>
+				</Badge>
 			))}
 			<Button
 				type="button"
-				variant="link"
+				variant="ghost"
 				size="xs"
 				onClick={onClear}
-				className="ml-1"
+				className="ml-auto"
 			>
+				<X aria-hidden="true" />
 				Limpar Filtros
 			</Button>
 		</div>

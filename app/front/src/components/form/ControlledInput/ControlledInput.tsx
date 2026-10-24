@@ -1,7 +1,7 @@
 import { type FieldVariant, FormField } from "@components/form/FormField";
 import { FieldControl } from "@components/ui/field";
 import { Input } from "@components/ui/input";
-import type { ComponentProps, ReactNode } from "react";
+import type { ChangeEvent, ComponentProps, ReactNode } from "react";
 import {
 	type Control,
 	Controller,
@@ -24,6 +24,8 @@ interface ControlledInputProps<T extends FieldValues>
 	required?: boolean;
 	/** Classe do campo inteiro (o `Field`), nao do `input`. */
 	fieldClassName?: string;
+	/** Rewrites what the user types, such as a mask. */
+	format?: (value: string) => string;
 }
 
 export const ControlledInput = <T extends FieldValues>({
@@ -35,6 +37,7 @@ export const ControlledInput = <T extends FieldValues>({
 	required = false,
 	className,
 	fieldClassName,
+	format,
 	...inputProps
 }: ControlledInputProps<T>) => (
 	<Controller
@@ -56,7 +59,11 @@ export const ControlledInput = <T extends FieldValues>({
 					name={field.name}
 					value={field.value ?? ""}
 					onValueChange={undefined}
-					onChange={field.onChange}
+					onChange={(event: ChangeEvent<HTMLInputElement>) =>
+						field.onChange(
+							format ? format(event.target.value) : event.target.value,
+						)
+					}
 					onBlur={field.onBlur}
 					ref={field.ref}
 				/>

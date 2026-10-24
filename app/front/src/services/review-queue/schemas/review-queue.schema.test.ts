@@ -14,6 +14,7 @@ describe("review queue API contract", () => {
 					name: "Condomínio Vila Nova",
 					protocol: "2026-0475",
 					municipality: "Jaboatão dos Guararapes",
+					state: "PE",
 					submittedAt: "2026-09-08T12:00:00Z",
 					deadline: "2026-10-08",
 					deadlineStatus: "DUE_TODAY",

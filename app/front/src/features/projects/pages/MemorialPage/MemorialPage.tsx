@@ -119,7 +119,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 					</h1>
 				</div>
 
-				<ProjectStepper current={3} className="mt-6" />
+				<ProjectStepper current={3} projectId={projectId} className="mt-6" />
 
 				{neverCalculated ? (
 					<div className="flex-1 px-6 py-8 md:px-8">

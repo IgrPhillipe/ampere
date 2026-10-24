@@ -1,5 +1,6 @@
 package br.com.ampere.repository;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectSort;
@@ -10,6 +11,7 @@ import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.User;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,35 +23,35 @@ public interface ProjectRepositoryCustom {
 
   Page<Project> searchReviewQueue(ReviewQueueSearch search, Pageable pageable);
 
-  List<String> findAccessibleMunicipalities(Long userId, ProjectVisibility visibility);
-
   List<User> findAccessibleOwners(Long userId, ProjectVisibility visibility);
 
   List<StatusCount> countAccessiblePerStatus(Long userId, ProjectVisibility visibility);
 
   record StatusCount(ProjectStatus status, long total) {}
 
-  /** A null or blank filter does not filter; {@code search} is already folded and escaped. */
+  /** An empty filter does not filter; {@code search} is already folded and escaped. */
   record ProjectSearch(
       Long userId,
       ProjectVisibility visibility,
       ProjectStatus status,
       String search,
-      String municipality,
+      Collection<BrazilianState> states,
+      Collection<String> municipalities,
       OffsetDateTime createdFrom,
       OffsetDateTime createdBefore,
-      OpenFindingsFilter findings,
+      Collection<OpenFindingsFilter> findings,
       Long owner,
       ProjectSort sort,
       SortDirection direction) {}
 
-  /** A null or blank filter does not filter; {@code search} is already folded and escaped. */
+  /** A null or empty filter does not filter; {@code search} is already folded and escaped. */
   record ReviewQueueSearch(
       String search,
       OffsetDateTime submittedBefore,
       BigDecimal demandAbove,
       boolean reanalysis,
-      String municipality,
+      Collection<BrazilianState> states,
+      Collection<String> municipalities,
       Long reviewerId,
       boolean unassigned,
       ReviewQueueSort sort,

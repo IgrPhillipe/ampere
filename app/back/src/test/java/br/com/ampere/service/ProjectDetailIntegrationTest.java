@@ -2,6 +2,7 @@ package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
@@ -63,8 +64,10 @@ class ProjectDetailIntegrationTest {
             .create(
                 new ProjectParameters(
                     "Residencial Monte Verde",
-                    "Rodovia BR-101, km 8",
+                    "54500000",
+                    BrazilianState.PE,
                     "Cabo de Santo Agostinho",
+                    "Rodovia BR-101, km 8",
                     BuildingCategory.RESIDENTIAL_MULTIFAMILY,
                     12,
                     SupplyVoltage.V380_220,

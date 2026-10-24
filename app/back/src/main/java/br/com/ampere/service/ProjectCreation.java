@@ -34,6 +34,7 @@ public class ProjectCreation {
         userRepository
             .findById(ownerId)
             .orElseThrow(() -> new NotFoundException("Usuário autenticado não encontrado."));
+    String municipality = ProjectPlaces.municipalityOf(parameters);
     BuildingType buildingType = parameters.toBuildingType();
     int year = LocalDate.now().getYear();
     String protocol =
@@ -45,11 +46,12 @@ public class ProjectCreation {
         Project.draft(
             parameters.name(),
             parameters.address(),
-            parameters.municipality(),
+            municipality,
             protocol,
             buildingType,
             applicableStandards.of(buildingType),
             owner);
+    project.locate(parameters.postalCode(), parameters.state());
 
     return projectRepository.saveAndFlush(project);
   }

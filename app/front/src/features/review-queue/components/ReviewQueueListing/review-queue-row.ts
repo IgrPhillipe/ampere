@@ -1,5 +1,5 @@
 import type { AttentionMessage } from "@components/AttentionIndicator";
-import { formatDate } from "@features/shared";
+import { formatDate, formatPlace } from "@features/shared";
 import type { ReviewQueueItem } from "@services/review-queue";
 
 const formatDays = (days: number) => `${days} ${days === 1 ? "dia" : "dias"}`;
@@ -25,8 +25,10 @@ export const isUrgent = ({ deadlineStatus }: ReviewQueueItem) =>
 
 export const formatQueueItemOrigin = ({
 	municipality,
+	state,
 	ownerName,
-}: ReviewQueueItem) => [municipality, ownerName].filter(Boolean).join(", ");
+}: ReviewQueueItem) =>
+	[formatPlace(municipality, state), ownerName].filter(Boolean).join(", ");
 
 /** What the analyst must know about the row, worst problem first. */
 export const getQueueItemAttention = (

@@ -184,6 +184,8 @@ export const ProjectsPage = () => {
 							showOwner={isAdmin}
 							owner={filters.owner}
 							onOwnerChange={filters.setOwner}
+							state={filters.state}
+							onStateChange={filters.setState}
 							municipality={filters.municipality}
 							onMunicipalityChange={filters.setMunicipality}
 							period={filters.period}

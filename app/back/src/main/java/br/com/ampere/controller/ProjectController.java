@@ -1,5 +1,6 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
@@ -76,9 +77,12 @@ public class ProjectController {
       @Parameter(description = "Direção da ordenação (ASC, DESC)")
           @RequestParam(defaultValue = "DESC")
           SortDirection direction,
-      @Parameter(description = "Município usado para filtrar os projetos")
-          @RequestParam(required = false)
-          String municipality,
+      @Parameter(description = "UFs usadas para filtrar os projetos; repita o parâmetro")
+          @RequestParam(name = "state", required = false)
+          List<BrazilianState> states,
+      @Parameter(description = "Municípios usados para filtrar os projetos; repita o parâmetro")
+          @RequestParam(name = "municipality", required = false)
+          List<String> municipalities,
       @Parameter(description = "Data inicial de criação (inclusive), no formato YYYY-MM-DD")
           @RequestParam(required = false)
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -87,9 +91,9 @@ public class ProjectController {
           @RequestParam(required = false)
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           LocalDate createdTo,
-      @Parameter(description = "Situação dos apontamentos em aberto")
+      @Parameter(description = "Situações dos apontamentos em aberto; repita o parâmetro")
           @RequestParam(required = false)
-          OpenFindingsFilter findings,
+          List<OpenFindingsFilter> findings,
       @Parameter(description = "Projetista dono dos projetos, pelo identificador")
           @RequestParam(required = false)
           Long owner,
@@ -103,7 +107,8 @@ public class ProjectController {
                 search,
                 sort,
                 direction,
-                municipality,
+                states,
+                municipalities,
                 createdFrom,
                 createdTo,
                 findings,
@@ -123,19 +128,6 @@ public class ProjectController {
     return ApiResponse.of(
         projects,
         new Pagination(listing.totalElements(), pagination.page(), pagination.pageSize()));
-  }
-
-  @GetMapping("/municipalities")
-  @Operation(
-      operationId = "listProjectMunicipalities",
-      summary = "Lista os municípios visíveis para o usuário")
-  @ApiResponses({
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-        responseCode = "200",
-        description = "Lista de municípios")
-  })
-  public ApiResponse<List<String>> municipalities(@AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(service.listMunicipalities(userOf(jwt)));
   }
 
   @GetMapping("/owners")
@@ -259,8 +251,10 @@ public class ProjectController {
   private static ProjectParameters parametersOf(ProjectRequest request) {
     return new ProjectParameters(
         request.name(),
-        request.address(),
+        request.postalCode(),
+        request.state(),
         request.municipality(),
+        request.address(),
         request.buildingType(),
         request.floors(),
         request.voltage(),

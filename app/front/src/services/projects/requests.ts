@@ -3,7 +3,6 @@ import { http } from "@lib/http";
 
 import { ProjectEndpoints as e } from "./endpoints";
 import {
-	municipalityListResponseSchema,
 	projectDetailResponseSchema,
 	projectListResponseSchema,
 	projectOwnerListResponseSchema,
@@ -23,12 +22,6 @@ export const getProjectStatusCounts = async () => {
 	const response = await http.get(e.statusCounts).json<unknown>();
 
 	return projectStatusCountsResponseSchema.parse(response);
-};
-
-export const getMunicipalityList = async () => {
-	const response = await http.get(e.municipalities).json<unknown>();
-
-	return municipalityListResponseSchema.parse(response);
 };
 
 export const getProjectOwnerList = async () => {

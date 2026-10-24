@@ -1,4 +1,5 @@
 import { apiResponseSchema, paginatedResponseSchema } from "@features/shared";
+import { brazilianStateSchema } from "@services/locations";
 import { z } from "zod";
 
 export const projectStatusSchema = z.enum([
@@ -34,6 +35,7 @@ export const projectSchema = z.object({
 	name: z.string(),
 	address: z.string(),
 	municipality: z.string(),
+	state: brazilianStateSchema,
 	protocol: z.string(),
 	ownerId: z.string().nullable(),
 	ownerName: z.string().nullable(),
@@ -74,10 +76,6 @@ export type ProjectStatusCountsResponse = z.infer<
 	typeof projectStatusCountsResponseSchema
 >;
 
-export const municipalityListResponseSchema = apiResponseSchema(
-	z.array(z.string()),
-);
-
 export const projectOwnerSchema = z.object({
 	id: z.string(),
 	name: z.string(),
@@ -88,10 +86,6 @@ export type ProjectOwner = z.infer<typeof projectOwnerSchema>;
 export const projectOwnerListResponseSchema = apiResponseSchema(
 	z.array(projectOwnerSchema),
 );
-
-export type MunicipalityListResponse = z.infer<
-	typeof municipalityListResponseSchema
->;
 
 /**
  * Parametros tecnicos da edificacao. Espelham os enums do back
@@ -146,6 +140,8 @@ export const projectDetailSchema = z.object({
 	name: z.string(),
 	address: z.string(),
 	municipality: z.string(),
+	state: brazilianStateSchema,
+	postalCode: z.string().nullable(),
 	protocol: z.string(),
 	status: projectStatusSchema,
 	createdAt: z.iso.datetime({ offset: true }),

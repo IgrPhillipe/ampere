@@ -1,14 +1,19 @@
 package br.com.ampere.repository;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectVisibility;
 import br.com.ampere.domain.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -45,7 +50,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
       where.append(" AND project.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'");
       parameters.put("search", search.search());
     }
-    filterByMunicipality(search.municipality(), where, parameters);
+    filterByPlace(search.states(), search.municipalities(), where, parameters);
     if (search.createdFrom() != null) {
       where.append(" AND project.createdAt >= :createdFrom");
       parameters.put("createdFrom", search.createdFrom());
@@ -54,14 +59,22 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
       where.append(" AND project.createdAt < :createdBefore");
       parameters.put("createdBefore", search.createdBefore());
     }
-    if (search.findings() != null) {
-      where.append(
-          switch (search.findings()) {
-            case BLOCKING_OPEN ->
-                " AND EXISTS " + openFindings(" AND finding.severity = " + BLOCKING);
-            case ANY_OPEN -> " AND EXISTS " + openFindings("");
-            case NONE_OPEN -> " AND NOT EXISTS " + openFindings("");
-          });
+    if (!search.findings().isEmpty()) {
+      where
+          .append(" AND (")
+          .append(
+              search.findings().stream()
+                  .sorted()
+                  .map(
+                      findings ->
+                          switch (findings) {
+                            case BLOCKING_OPEN ->
+                                "EXISTS " + openFindings(" AND finding.severity = " + BLOCKING);
+                            case ANY_OPEN -> "EXISTS " + openFindings("");
+                            case NONE_OPEN -> "NOT EXISTS " + openFindings("");
+                          })
+                  .collect(Collectors.joining(" OR ")))
+          .append(")");
     }
 
     if (search.owner() != null) {
@@ -111,7 +124,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
     if (search.reanalysis()) {
       where.append(" AND project.reviewCycle > 1");
     }
-    filterByMunicipality(search.municipality(), where, parameters);
+    filterByPlace(search.states(), search.municipalities(), where, parameters);
     if (search.unassigned()) {
       where.append(" AND project.reviewer IS NULL");
     } else if (search.reviewerId() != null) {
@@ -134,21 +147,6 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         parameters,
         column + ", project.id ASC",
         pageable);
-  }
-
-  @Override
-  public List<String> findAccessibleMunicipalities(Long userId, ProjectVisibility visibility) {
-    Map<String, Object> parameters = new HashMap<>();
-    StringBuilder where = visibleTo(userId, visibility, parameters);
-    TypedQuery<String> query =
-        entityManager.createQuery(
-            "SELECT DISTINCT project.municipality FROM Project project "
-                + where
-                + " ORDER BY project.municipality ASC",
-            String.class);
-    parameters.forEach(query::setParameter);
-
-    return query.getResultList();
   }
 
   @Override
@@ -202,11 +200,22 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         + ")";
   }
 
-  private static void filterByMunicipality(
-      String municipality, StringBuilder where, Map<String, Object> parameters) {
-    if (municipality != null && !municipality.isBlank()) {
-      where.append(" AND LOWER(TRIM(project.municipality)) = LOWER(:municipality)");
-      parameters.put("municipality", municipality.trim());
+  private static void filterByPlace(
+      Collection<BrazilianState> states,
+      Collection<String> municipalities,
+      StringBuilder where,
+      Map<String, Object> parameters) {
+    if (!states.isEmpty()) {
+      where.append(" AND project.state IN :states");
+      parameters.put("states", states);
+    }
+    Set<String> folded =
+        municipalities.stream()
+            .map(municipality -> municipality.trim().toLowerCase(Locale.ROOT))
+            .collect(Collectors.toSet());
+    if (!folded.isEmpty()) {
+      where.append(" AND LOWER(TRIM(project.municipality)) IN :municipalities");
+      parameters.put("municipalities", folded);
     }
   }
 
