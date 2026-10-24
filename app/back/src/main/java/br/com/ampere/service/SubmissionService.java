@@ -76,8 +76,11 @@ public class SubmissionService {
             "Informe o resumo das alterações para reenviar o projeto.",
             HttpStatus.UNPROCESSABLE_CONTENT);
       }
-      demandCalculationService.calculate(projectId, user);
       project.recordChangeSummary(changeSummary);
+    }
+    // The analyst reviews the calculation of the data as submitted, not as last calculated.
+    if (project.isEditable()) {
+      demandCalculationService.calculate(projectId, user);
     }
 
     project.submit(OffsetDateTime.now(ZoneOffset.UTC));

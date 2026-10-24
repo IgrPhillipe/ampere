@@ -48,7 +48,10 @@ public class SubmissionController {
         description = "PDF do memorial"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
-        description = "Projeto não encontrado ou ainda sem cálculo")
+        description = "Projeto não encontrado ou ainda sem cálculo"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "409",
+        description = "Dados alterados depois do último cálculo")
   })
   public ResponseEntity<byte[]> memorial(
       @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {

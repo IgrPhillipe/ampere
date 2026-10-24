@@ -82,6 +82,16 @@ public class DemandCalculationService {
     return new Calculation(project, result, snapshot(project, groups));
   }
 
+  /** Compared as JSON trees: the snapshot's key order is not stable across runs. */
+  public boolean isCurrent(Calculation calculation) {
+    Project project = calculation.getProject();
+    List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(project.getId());
+
+    return objectMapper
+        .readTree(calculation.getInputSnapshot())
+        .equals(objectMapper.readTree(snapshot(project, groups)));
+  }
+
   @Transactional(readOnly = true)
   public Calculation latest(Long projectId, AuthenticatedUser user) {
     projectService.findById(projectId, user);

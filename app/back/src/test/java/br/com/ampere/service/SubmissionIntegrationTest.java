@@ -291,6 +291,40 @@ class SubmissionIntegrationTest {
   }
 
   @Test
+  void theMemorialRefusesACalculationOlderThanTheData() throws Exception {
+    Project project = calculatedDraft();
+    groupRepository.save(residentialGroup(project, "Apartamento tipo B", 10));
+
+    perform(get(memorialOf(project)))
+        .andExpect(status().isConflict())
+        .andExpect(
+            jsonPath("$.detail")
+                .value(
+                    "Os dados do projeto mudaram depois do último cálculo. Recalcule a demanda"
+                        + " antes de gerar o memorial."));
+  }
+
+  @Test
+  void theSubmissionCalculatesTheDataAsSubmitted() throws Exception {
+    Project project = calculatedDraft();
+    groupRepository.save(residentialGroup(project, "Apartamento tipo B", 10));
+    for (DocumentType type : DocumentType.values()) {
+      upload(project, type, type.name() + ".pdf", PDF).andExpect(status().isCreated());
+    }
+
+    perform(post(submitOf(project))).andExpect(status().isOk());
+
+    assertThat(calculationRepository.count()).isEqualTo(2);
+    assertThat(
+            calculationRepository
+                .findFirstByProjectIdOrderByIdDesc(project.getId())
+                .orElseThrow()
+                .getInputSnapshot())
+        .contains("Apartamento tipo B");
+    perform(get(memorialOf(project))).andExpect(status().isOk());
+  }
+
+  @Test
   void blocksResubmissionWhileBlockingFindingsOrSummaryArePendingAndThenResubmitsAsReanalysis()
       throws Exception {
     User analyst =
@@ -498,23 +532,26 @@ class SubmissionIntegrationTest {
                     EntranceStandard.COLLECTIVE),
                 standards,
                 owner));
-    groupRepository.save(
-        GroupKind.RESIDENTIAL.create(
-            project,
-            new GroupSpec(
-                "Apartamento tipo A",
-                24,
-                new BigDecimal("68"),
-                2,
-                new BigDecimal("6.5"),
-                false,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null)));
+    groupRepository.save(residentialGroup(project, "Apartamento tipo A", 24));
     return project;
+  }
+
+  private static ConsumerUnitGroup residentialGroup(Project project, String name, int quantity) {
+    return GroupKind.RESIDENTIAL.create(
+        project,
+        new GroupSpec(
+            name,
+            quantity,
+            new BigDecimal("68"),
+            2,
+            new BigDecimal("6.5"),
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null));
   }
 
   private Project calculatedDraft() throws Exception {
