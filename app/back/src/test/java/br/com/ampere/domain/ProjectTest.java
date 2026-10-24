@@ -93,13 +93,16 @@ class ProjectTest {
     Project project = project(ProjectStatus.DRAFT);
 
     project.submit(OffsetDateTime.now(ZoneOffset.UTC).minusDays(10));
-    project.reject(OffsetDateTime.now(ZoneOffset.UTC).minusDays(2));
+    project.reject(OffsetDateTime.now(ZoneOffset.UTC).minusDays(2), "Corrigir a ART.");
+    project.recordChangeSummary("  Substituí a ART assinada.  ");
     project.submit(OffsetDateTime.now(ZoneOffset.UTC));
 
     assertThat(project.getReviewCycle()).isEqualTo(2);
     assertThat(project.isReanalysis()).isTrue();
     assertThat(project.getStatus()).isEqualTo(ProjectStatus.UNDER_REVIEW);
     assertThat(project.getReviewedAt()).isNull();
+    assertThat(project.getReviewOpinion()).isNull();
+    assertThat(project.getChangeSummary()).isEqualTo("Substituí a ART assinada.");
   }
 
   @Test
@@ -109,6 +112,12 @@ class ProjectTest {
     assertThat(project(ProjectStatus.UNDER_REVIEW).isDraft()).isFalse();
     assertThat(project(ProjectStatus.REJECTED).isDraft()).isFalse();
     assertThat(project(ProjectStatus.APPROVED).isDraft()).isFalse();
+
+    assertThat(project(ProjectStatus.DRAFT).isEditable()).isTrue();
+    assertThat(project(ProjectStatus.REJECTED).isEditable()).isTrue();
+    assertThat(project(ProjectStatus.AWAITING_SUBMISSION).isEditable()).isFalse();
+    assertThat(project(ProjectStatus.UNDER_REVIEW).isEditable()).isFalse();
+    assertThat(project(ProjectStatus.APPROVED).isEditable()).isFalse();
   }
 
   @Test

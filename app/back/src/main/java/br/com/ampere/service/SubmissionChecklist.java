@@ -5,8 +5,12 @@ import br.com.ampere.domain.ProjectDocument;
 import java.util.Arrays;
 import java.util.List;
 
-/** What a project still needs before it can be submitted: a calculation and every document. */
-public record SubmissionChecklist(boolean calculated, List<ProjectDocument> documents) {
+/** What blocks a submission: no calculation, a missing document or an open blocking finding. */
+public record SubmissionChecklist(
+    boolean calculated,
+    List<ProjectDocument> documents,
+    long unansweredBlocking,
+    boolean requiresChangeSummary) {
 
   public SubmissionChecklist {
     documents = List.copyOf(documents);
@@ -21,6 +25,6 @@ public record SubmissionChecklist(boolean calculated, List<ProjectDocument> docu
   }
 
   public boolean canSubmit() {
-    return calculated && missingDocuments().isEmpty();
+    return calculated && missingDocuments().isEmpty() && unansweredBlocking == 0;
   }
 }

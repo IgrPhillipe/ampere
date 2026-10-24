@@ -428,7 +428,28 @@ class ProjectServiceIntegrationTest {
     assertThatThrownBy(
             () -> service.update(underReview.getId(), parameters(BuildingCategory.MIXED), designer))
         .isInstanceOf(BusinessException.class)
-        .hasMessage("Só é possível alterar um projeto em rascunho.");
+        .hasMessage("Só é possível alterar um projeto em rascunho ou reprovado.");
+  }
+
+  @Test
+  void updatesARejectedProjectKeepingItsRejectedStatusAndRefusesToDeleteIt() {
+    Project rejected =
+        projectRepository.save(
+            project(
+                "Condomínio Vila Nova",
+                "Avenida Barreto de Menezes, 88",
+                "Jaboatão dos Guararapes",
+                "2026-5239",
+                ProjectStatus.REJECTED));
+
+    Project updated =
+        service.update(rejected.getId(), parameters(BuildingCategory.MIXED), designer);
+
+    assertThat(updated.getStatus()).isEqualTo(ProjectStatus.REJECTED);
+    assertThat(updated.getBuildingType().category()).isEqualTo(BuildingCategory.MIXED);
+    assertThatThrownBy(() -> service.delete(rejected.getId(), designer))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("Só é possível excluir um projeto em rascunho.");
   }
 
   @Test

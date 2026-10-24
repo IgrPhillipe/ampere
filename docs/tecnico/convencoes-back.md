@@ -294,7 +294,7 @@ Os papéis atuais (`user` / `admin`) são placeholder e dependem da **Q1c** em [
 - **Projeto de outro dono responde 404**, igual a um id inexistente. Um 403 confirmaria que o projeto existe.
 - **Rascunho também responde 404 ao analista**: ele só vê o que foi enviado para análise.
 - **Listagem, busca e contadores filtram no banco** (`searchAccessibleProjects`, `countAccessiblePerStatus`), não na memória.
-- A regra vale para tudo que fica aninhado no projeto: grupos, cálculo, documentos, memorial e envio. Os services desses recursos passam por `ProjectService.findById` (leitura), `findWritableById` ou `draftOrFail` (escrita), e não leem o projeto direto do repository.
+- A regra vale para tudo que fica aninhado no projeto: grupos, cálculo, documentos, memorial e envio. Os services desses recursos passam por `ProjectService.findById` (leitura), `findWritableById`, `draftOrFail` ou `editableOrFail` (escrita; o último aceita rascunho e reprovado), e não leem o projeto direto do repository.
 
 **O service não lê o contexto de segurança.** O controller recebe `@AuthenticationPrincipal Jwt` e converte o token em `AuthenticatedUser` (id e papel), que o service recebe como último parâmetro. Token sem id ou papel válido responde 401.
 

@@ -174,6 +174,24 @@ O papel `admin` representa o analista. Um projeto `UNDER_REVIEW` é assumido por
 
 Projeto de outro dono ou inexistente responde 404; papel ou analista errado, 403; atribuição ou estado em conflito, 409; regra da decisão, 422.
 
+### Correção e Reenvio
+
+O projeto `REJECTED` volta a ser editável pelo dono: dados, grupos, cálculo e documentos. Editar não muda a situação; o projeto segue `REJECTED` até o reenvio. Excluir continua só em `DRAFT`.
+
+| Método e caminho | Quem usa | Regra principal |
+| :--- | :--- | :--- |
+| `PUT /api/projects/{id}/findings/{findingId}/response` | Dono | Marca o apontamento como `FIXED` ou `CONTESTED` |
+| `GET /api/projects/{id}/submission` | Dono ou analista | Checklist com `unansweredBlocking` e `requiresChangeSummary` |
+| `POST /api/projects/{id}/submission` | Dono | Envia ou reenvia; no reenvio, exige `{"changeSummary": "..."}` |
+
+- `/response` recebe `{"status": "FIXED" | "CONTESTED", "response": "..."}`, com até 2.000 caracteres. A justificativa é obrigatória em `CONTESTED`.
+- Responde-se a qualquer apontamento publicado e não aceito, inclusive o reaberto de ciclo anterior. A última resposta vale.
+- `unansweredBlocking` conta os apontamentos `BLOCKING` em `OPEN`; com algum, `canSubmit` é `false` e o reenvio responde 422.
+- O reenvio recalcula a demanda, grava o `changeSummary`, incrementa o `reviewCycle`, limpa o parecer e mantém o analista. O projeto entra na fila como reanálise.
+- O detalhe do projeto expõe `reviewCycle` (a versão), `reviewOpinion` e `changeSummary`.
+
+Projeto fora de `REJECTED` responde 409 no `/response`; apontamento em rascunho ou aceito, também 409.
+
 ---
 
 ## Variáveis de Ambiente
