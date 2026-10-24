@@ -143,21 +143,17 @@ public class Finding {
     return status == FindingStatus.DRAFT || status == FindingStatus.OPEN;
   }
 
-  public boolean awaitsResponseIn(int reviewCycle) {
-    return version == reviewCycle
-        && status != FindingStatus.DRAFT
-        && status != FindingStatus.RESOLVED;
+  /** Published and not yet accepted: the designer may answer it, again if reopened. */
+  public boolean awaitsResponse() {
+    return status != FindingStatus.DRAFT && status != FindingStatus.RESOLVED;
   }
 
-  public void respond(FindingStatus status, String response, OffsetDateTime respondedAt) {
-    if (status != FindingStatus.FIXED && status != FindingStatus.CONTESTED) {
-      throw new IllegalArgumentException("status must be FIXED or CONTESTED");
-    }
+  public void respond(FindingAnswer answer, String response, OffsetDateTime respondedAt) {
     String normalized = blankToNull(response);
-    if (status == FindingStatus.CONTESTED && normalized == null) {
+    if (Objects.requireNonNull(answer, "answer") == FindingAnswer.CONTESTED && normalized == null) {
       throw new IllegalArgumentException("response is required when CONTESTED");
     }
-    this.status = status;
+    this.status = answer == FindingAnswer.FIXED ? FindingStatus.FIXED : FindingStatus.CONTESTED;
     this.response = normalized;
     this.respondedAt = Objects.requireNonNull(respondedAt, "respondedAt");
   }

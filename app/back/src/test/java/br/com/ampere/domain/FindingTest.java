@@ -90,21 +90,20 @@ class FindingTest {
             null,
             new User("Analista", "admin@ampere.com", "hash", UserRole.ADMIN),
             1);
-    assertThat(finding.awaitsResponseIn(1)).isFalse();
+    assertThat(finding.awaitsResponse()).isFalse();
     finding.publish();
-    assertThat(finding.awaitsResponseIn(1)).isTrue();
-    assertThat(finding.awaitsResponseIn(2)).isFalse();
+    assertThat(finding.awaitsResponse()).isTrue();
 
     OffsetDateTime firstTime = OffsetDateTime.of(2026, 10, 16, 14, 20, 0, 0, ZoneOffset.UTC);
-    assertThatThrownBy(() -> finding.respond(FindingStatus.CONTESTED, "   ", firstTime))
+    assertThatThrownBy(() -> finding.respond(FindingAnswer.CONTESTED, "   ", firstTime))
         .isInstanceOf(IllegalArgumentException.class);
 
     finding.respond(
-        FindingStatus.CONTESTED, "  A ART já traz a assinatura na página 2.  ", firstTime);
+        FindingAnswer.CONTESTED, "  A ART já traz a assinatura na página 2.  ", firstTime);
     assertThat(finding.getStatus()).isEqualTo(FindingStatus.CONTESTED);
     assertThat(finding.getResponse()).isEqualTo("A ART já traz a assinatura na página 2.");
     assertThat(finding.getRespondedAt()).isEqualTo(firstTime);
-    assertThat(finding.awaitsResponseIn(1)).isTrue();
+    assertThat(finding.awaitsResponse()).isTrue();
 
     finding.resolve(FindingResolution.REOPEN);
     assertThat(finding.getStatus()).isEqualTo(FindingStatus.OPEN);
@@ -112,10 +111,13 @@ class FindingTest {
     assertThat(finding.getRespondedAt()).isEqualTo(firstTime);
 
     OffsetDateTime secondTime = firstTime.plusHours(1);
-    finding.respond(FindingStatus.FIXED, null, secondTime);
+    finding.respond(FindingAnswer.FIXED, null, secondTime);
     assertThat(finding.getStatus()).isEqualTo(FindingStatus.FIXED);
     assertThat(finding.getResponse()).isNull();
     assertThat(finding.getRespondedAt()).isEqualTo(secondTime);
+
+    finding.resolve(FindingResolution.ACCEPT);
+    assertThat(finding.awaitsResponse()).isFalse();
   }
 
   private static Project project(String protocol) {

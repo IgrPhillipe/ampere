@@ -362,9 +362,27 @@ class ProjectReviewWorkflowIntegrationTest {
         .andExpect(jsonPath("$.data.respondedAt").isNotEmpty());
     decide(project, analyst, "REJECT", "Ainda pendente no ciclo 2.").andExpect(status().isOk());
 
+    checklist(project, owner).andExpect(jsonPath("$.data.unansweredBlocking").value(1));
+    respond(project, findingId, owner, "{\"status\":\"FIXED\"}")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.status").value("FIXED"));
+    checklist(project, owner).andExpect(jsonPath("$.data.unansweredBlocking").value(0));
+
+    project.submit(OffsetDateTime.now(ZoneOffset.UTC));
+    projectRepository.flush();
+    resolve(project, findingId, analyst, "ACCEPT").andExpect(status().isOk());
+    createFinding(project, analyst, FINDING_BODY).andExpect(status().isCreated());
+    decide(project, analyst, "REJECT", "Novo apontamento no ciclo 3.").andExpect(status().isOk());
+
     respond(project, findingId, owner, "{\"status\":\"FIXED\"}")
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.detail").value("Este apontamento não aguarda resposta."));
+  }
+
+  private ResultActions checklist(Project target, User actor) throws Exception {
+    return mockMvc.perform(
+        get("/projects/{id}/submission", target.getId())
+            .header(HttpHeaders.AUTHORIZATION, bearer(actor)));
   }
 
   private ResultActions respond(Project target, Long findingId, User actor, String body)

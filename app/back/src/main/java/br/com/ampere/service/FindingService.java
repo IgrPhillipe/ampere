@@ -2,8 +2,8 @@ package br.com.ampere.service;
 
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingAnswer;
 import br.com.ampere.domain.FindingResolution;
-import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
@@ -110,27 +110,23 @@ public class FindingService {
   public Finding respond(
       Long projectId,
       Long findingId,
-      FindingStatus status,
+      FindingAnswer answer,
       String response,
       AuthenticatedUser user) {
+    if (answer == FindingAnswer.CONTESTED && (response == null || response.isBlank())) {
+      throw new BusinessException("A justificativa é obrigatória para contestar o apontamento.");
+    }
     Project project = projectService.findWritableById(projectId, user);
     if (!project.isRejected()) {
       throw new BusinessException(
           "Só é possível responder apontamentos de um projeto reprovado.", HttpStatus.CONFLICT);
     }
     Finding finding = findOrFail(projectId, findingId);
-    if (!finding.awaitsResponseIn(project.getReviewCycle())) {
+    if (!finding.awaitsResponse()) {
       throw new BusinessException("Este apontamento não aguarda resposta.", HttpStatus.CONFLICT);
     }
-    if (status != FindingStatus.FIXED && status != FindingStatus.CONTESTED) {
-      throw new BusinessException(
-          "O campo 'status' tem um valor inválido. Valores aceitos: FIXED, CONTESTED.");
-    }
-    if (status == FindingStatus.CONTESTED && (response == null || response.isBlank())) {
-      throw new BusinessException("A justificativa é obrigatória para contestar o apontamento.");
-    }
 
-    finding.respond(status, response, OffsetDateTime.now(ZoneOffset.UTC));
+    finding.respond(answer, response, OffsetDateTime.now(ZoneOffset.UTC));
 
     return finding;
   }
