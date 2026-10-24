@@ -5,6 +5,8 @@ import { redirect } from "@tanstack/react-router";
 /** Who reaches each area: the same split the back enforces. */
 export const ROLE_ACCESS = {
 	projects: ["user", "admin"],
+	/** The project page itself: the analyst reads and reviews it there. */
+	projectWorkspace: ["user", "reviewer", "admin"],
 	reviewQueue: ["reviewer", "admin"],
 	normativeTables: ["reviewer", "admin"],
 } as const satisfies Record<string, readonly UserRole[]>;

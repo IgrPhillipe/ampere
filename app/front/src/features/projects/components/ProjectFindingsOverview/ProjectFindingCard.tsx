@@ -12,7 +12,7 @@ interface ProjectFindingCardProps {
 	canRespond: boolean;
 	responseStatus?: FindingResponseValues["status"];
 	isResponding: boolean;
-	/** Left out when the project cannot be edited: its steps are closed. */
+	/** Left out when the project cannot be edited: its sections only show it. */
 	onOpenStage?: (finding: Finding) => void;
 	onStartResponse: (
 		finding: Finding,
@@ -65,7 +65,7 @@ export const ProjectFindingCard = ({
 							aria-describedby={descriptionId}
 							onClick={() => onOpenStage(finding)}
 						>
-							Ir para a Etapa
+							Ir para a Seção
 							<ArrowRight aria-hidden="true" />
 						</Button>
 					) : null}

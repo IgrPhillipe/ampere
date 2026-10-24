@@ -2,19 +2,16 @@ import { ControlledInput, ControlledSelect } from "@components/form";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { formatPostalCode, useZodForm } from "@features/shared";
-import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
+import { calculationKeys } from "@services/calculation";
 import { isConcessionState } from "@services/locations";
 import { useGetFindingList } from "@services/project-review";
 import {
-	type BuildingCategory,
-	type ConnectionType,
-	type EntranceStandard,
 	type ProjectDetail,
-	type SupplyVoltage,
 	useCreateProject,
 	useGetProject,
 	useUpdateProject,
 } from "@services/projects";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Check } from "lucide-react";
 import { useEffect } from "react";
@@ -24,42 +21,21 @@ import {
 	FindingBadge,
 	ProjectAddressFields,
 	ProjectBreadcrumb,
-	ProjectStamp,
-	ProjectStepper,
 	StageFindingsNotice,
 	StepFooter,
 } from "../../components";
-import { stageFindingsOf } from "../../constants";
-import { useProjectPermissions, useStepAccess } from "../../hooks";
+import {
+	buildingTypeLabels,
+	connectionTypeLabels,
+	entranceStandardLabels,
+	stageFindingsOf,
+	voltageLabels,
+} from "../../constants";
+import { useProjectPermissions } from "../../hooks";
 import {
 	type ProjectCreationFormValues,
 	projectCreationSchema,
 } from "../../schemas";
-
-// Os mapas sao `Record<Enum, string>` de proposito: um valor fora do contrato
-// ou um caso novo do back sem rotulo aqui quebram o type-check, em vez de
-// aparecerem como opcao vazia na tela.
-const buildingTypeItems: Record<BuildingCategory, string> = {
-	RESIDENTIAL_MULTIFAMILY: "Residencial multifamiliar",
-	NON_RESIDENTIAL: "Não residencial",
-	MIXED: "Misto",
-};
-
-const voltageItems: Record<SupplyVoltage, string> = {
-	V220_127: "220/127 V",
-	V380_220: "380/220 V",
-};
-
-const connectionTypeItems: Record<ConnectionType, string> = {
-	SINGLE_PHASE: "Monofásico",
-	TWO_PHASE: "Bifásico",
-	THREE_PHASE: "Trifásico",
-};
-
-const entranceStandardItems: Record<EntranceStandard, string> = {
-	COLLECTIVE: "Coletivo",
-	INDIVIDUAL: "Individual",
-};
 
 const PROGRESS_SECTIONS: {
 	title: string;
@@ -112,16 +88,13 @@ interface ProjectDataPageProps {
 
 export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const createProject = useCreateProject();
 	const updateProject = useUpdateProject();
 	const projectQuery = useGetProject(projectId ?? "", {
 		enabled: projectId !== undefined,
 	});
-	const validationQuery = useGetConsumerUnitGroupValidation(projectId ?? "", {
-		enabled: projectId !== undefined,
-	});
 	const project = projectQuery.data?.data;
-	useStepAccess(projectId, project, "dados");
 	const findingsQuery = useGetFindingList(projectId ?? "", {
 		enabled: project?.status === "REJECTED",
 	});
@@ -130,7 +103,6 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 		project,
 		"PROJECT_DATA",
 	);
-	const validation = validationQuery.data?.data;
 	const { canEdit } = useProjectPermissions(project);
 	const isEditable = projectId === undefined || canEdit;
 	const isSaving = createProject.isPending || updateProject.isPending;
@@ -185,66 +157,36 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 
 		updateProject.mutate(
 			{ id: projectId, payload: submitted },
-			{ onSuccess: () => goToUnits(projectId) },
+			{
+				onSuccess: () => {
+					// The latest calculation may now be outdated.
+					void queryClient.invalidateQueries({
+						queryKey: calculationKeys.latest(projectId),
+					});
+					goToUnits(projectId);
+				},
+			},
 		);
 	};
 
 	const [mainStandard, ...otherStandards] = project?.standards ?? [];
 
-	return (
-		<PageLayout
-			bleed
-			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
-		>
+	const content = (
+		<>
+			{projectId === undefined ? null : (
+				<StageFindingsNotice
+					projectId={projectId}
+					findings={stageFindings}
+					className="mt-6"
+				/>
+			)}
+
 			<form
 				noValidate
 				onSubmit={form.handleSubmit(onSubmit)}
-				className="flex flex-1 flex-col bg-card"
+				className="flex flex-1 flex-col"
 			>
-				<div className="border-b border-border px-6 py-4 md:px-8">
-					<ProjectBreadcrumb
-						project={project}
-						current={
-							projectId === undefined ? "Novo Projeto" : "Dados da Edificação"
-						}
-					/>
-				</div>
-
-				{projectId === undefined ? null : (
-					<ProjectStamp
-						project={project}
-						isLoading={projectQuery.isPending || validationQuery.isPending}
-						units={
-							validation
-								? `${validation.totalUnits} em ${validation.totalGroups} ${
-										validation.totalGroups === 1 ? "grupo" : "grupos"
-									}`
-								: undefined
-						}
-					/>
-				)}
-
-				<div className="px-6 pt-8 md:px-8">
-					<p className="text-xs tracking-wider text-muted-foreground uppercase">
-						Etapa 01 de 05
-					</p>
-
-					<h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">
-						{projectId === undefined ? "Novo Projeto" : "Dados da Edificação"}
-					</h1>
-				</div>
-
-				<ProjectStepper current={0} projectId={projectId} className="mt-6" />
-
-				{projectId === undefined ? null : (
-					<StageFindingsNotice
-						projectId={projectId}
-						findings={stageFindings}
-						className="mt-6"
-					/>
-				)}
-
-				<div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_320px]">
+				<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_320px]">
 					<fieldset
 						disabled={!isEditable || projectQuery.isLoading}
 						className="min-w-0 space-y-10 px-6 py-8 md:px-8"
@@ -296,7 +238,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 									name="buildingType"
 									label="Tipo de edificação"
 									placeholder="Selecione o tipo de edificação"
-									items={buildingTypeItems}
+									items={buildingTypeLabels}
 									required
 									variant="underline"
 								/>
@@ -306,7 +248,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 									name="voltage"
 									label="Tensão de fornecimento"
 									placeholder="Selecione a tensão"
-									items={voltageItems}
+									items={voltageLabels}
 									required
 									variant="underline"
 								/>
@@ -316,7 +258,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 									name="connectionType"
 									label="Tipo de ligação"
 									placeholder="Selecione o tipo de ligação"
-									items={connectionTypeItems}
+									items={connectionTypeLabels}
 									required
 									variant="underline"
 								/>
@@ -326,7 +268,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 									name="entranceStandard"
 									label="Padrão de entrada"
 									placeholder="Selecione o padrão de entrada"
-									items={entranceStandardItems}
+									items={entranceStandardLabels}
 									required
 									variant="underline"
 								/>
@@ -334,7 +276,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 						</section>
 					</fieldset>
 
-					<aside className="order-first flex flex-col border-b border-border lg:order-none lg:border-b-0 lg:border-l">
+					<aside className="order-first flex flex-col border-b border-border @5xl:order-none @5xl:border-b-0 @5xl:border-l">
 						{/* The exact revision only exists after the POST (`ApplicableStandards`). */}
 						<div className="bg-primary px-6 pt-8 pb-6 text-primary-foreground">
 							<p className="border-b border-primary-foreground/85 pb-3 font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase">
@@ -362,69 +304,100 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 							</p>
 						</div>
 
-						<div className="px-6 py-8">
-							<h2 className="border-b border-foreground pb-3 text-base font-semibold text-foreground">
-								Preenchimento
-							</h2>
+						{isEditable ? (
+							<div className="px-6 py-8">
+								<h2 className="border-b border-foreground pb-3 text-base font-semibold text-foreground">
+									Preenchimento
+								</h2>
 
-							<p className="mt-4 flex items-center gap-2 text-3xl font-semibold text-foreground">
-								{pad(totalFilled)}/{pad(totalRequired)}
-								{isComplete ? (
-									<Check aria-hidden="true" className="size-5 text-primary" />
-								) : null}
-							</p>
+								<p className="mt-4 flex items-center gap-2 text-3xl font-semibold text-foreground">
+									{pad(totalFilled)}/{pad(totalRequired)}
+									{isComplete ? (
+										<Check aria-hidden="true" className="size-5 text-primary" />
+									) : null}
+								</p>
 
-							<p
-								id={progressCounterId}
-								className="mt-1 text-xs tracking-wider text-muted-foreground uppercase"
-							>
-								Campos obrigatórios preenchidos
-							</p>
+								<p
+									id={progressCounterId}
+									className="mt-1 text-xs tracking-wider text-muted-foreground uppercase"
+								>
+									Campos obrigatórios preenchidos
+								</p>
 
-							<ul className="mt-5 space-y-4">
-								{progress.map(({ title, filled, required }) => (
-									<li key={title}>
-										<div className="flex items-center justify-between text-xs text-foreground">
-											<span>{title}</span>
+								<ul className="mt-5 space-y-4">
+									{progress.map(({ title, filled, required }) => (
+										<li key={title}>
+											<div className="flex items-center justify-between text-xs text-foreground">
+												<span>{title}</span>
 
-											<span className="text-muted-foreground">
-												{pad(filled)}/{pad(required)}
-											</span>
-										</div>
+												<span className="text-muted-foreground">
+													{pad(filled)}/{pad(required)}
+												</span>
+											</div>
 
-										<div className="mt-1.5 flex gap-1" aria-hidden="true">
-											{Array.from({ length: required }, (_, index) => (
-												<span
-													key={index}
-													className={`h-1 flex-1 ${
-														index < filled ? "bg-primary" : "bg-border"
-													}`}
-												/>
-											))}
-										</div>
-									</li>
-								))}
-							</ul>
-						</div>
+											<div className="mt-1.5 flex gap-1" aria-hidden="true">
+												{Array.from({ length: required }, (_, index) => (
+													<span
+														key={index}
+														className={`h-1 flex-1 ${
+															index < filled ? "bg-primary" : "bg-border"
+														}`}
+													/>
+												))}
+											</div>
+										</li>
+									))}
+								</ul>
+							</div>
+						) : null}
 					</aside>
 				</div>
 
-				<StepFooter>
-					{/* Preso ao contador do painel, e nao ao `formState`: aqui a
+				{isEditable ? (
+					<StepFooter>
+						{/* Preso ao contador do painel, e nao ao `formState`: aqui a
 					    pergunta e "faltou preencher?", nao "o que foi preenchido e
 					    valido?". Validade continua sendo do submit, que marca os
 					    campos. O `aria-describedby` existe porque botao desabilitado
 					    nao explica sozinho por que esta assim. */}
-					<Button
-						type="submit"
-						disabled={!isComplete || isSaving}
-						aria-describedby={isComplete ? undefined : progressCounterId}
-					>
-						{isSaving ? "Salvando..." : "Avançar para Unidades"}
-						<ArrowRight aria-hidden="true" />
-					</Button>
-				</StepFooter>
+						<Button
+							type="submit"
+							disabled={!isComplete || isSaving}
+							aria-describedby={isComplete ? undefined : progressCounterId}
+						>
+							{isSaving ? "Salvando..." : "Avançar para Unidades"}
+							<ArrowRight aria-hidden="true" />
+						</Button>
+					</StepFooter>
+				) : null}
 			</form>
+		</>
+	);
+
+	if (projectId !== undefined) return content;
+
+	return (
+		<PageLayout
+			bleed
+			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
+		>
+			<div className="@container flex flex-1 flex-col bg-card">
+				<div className="border-b border-border px-6 py-4 md:px-8">
+					<ProjectBreadcrumb current="Novo Projeto" />
+				</div>
+
+				<div className="border-b border-border px-6 pt-8 pb-6 md:px-8">
+					<h1 className="font-heading text-3xl font-semibold tracking-tight">
+						Novo Projeto
+					</h1>
+					<p className="mt-2 text-sm text-muted-foreground">
+						Depois de salvar os dados da edificação, o projeto ganha um
+						protocolo e você segue para as unidades consumidoras.
+					</p>
+				</div>
+
+				{content}
+			</div>
 		</PageLayout>
 	);
 };

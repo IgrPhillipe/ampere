@@ -42,7 +42,7 @@ export const ReviewQueuePage = () => {
 	const navigate = useNavigate();
 
 	const analyze = (item: ReviewQueueItem) =>
-		void navigate({ to: "/fila-de-analise/$id", params: { id: item.id } });
+		void navigate({ to: "/projetos/$id", params: { id: item.id } });
 
 	const pagination = queueQuery.data?.pagination;
 	const hasError = queueQuery.isError || indicatorsQuery.isError;
