@@ -3,6 +3,7 @@ import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
 import type { ProjectDetail } from "@services/projects";
+import { CircleCheck, CircleX } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import {
@@ -21,15 +22,29 @@ const byPriority = (left: Finding, right: Finding) =>
 	right.version - left.version ||
 	left.id.localeCompare(right.id, "pt-BR", { numeric: true });
 
-const opinionTitles: Partial<Record<ProjectDetail["status"], string>> = {
-	REJECTED: "Parecer da Reprovação",
-	APPROVED: "Parecer da Aprovação",
-};
+const opinionStyles = {
+	REJECTED: {
+		title: "Parecer da Reprovação",
+		icon: CircleX,
+		className: "border-l-destructive bg-destructive/5",
+		iconClassName: "text-destructive",
+	},
+	APPROVED: {
+		title: "Parecer da Aprovação",
+		icon: CircleCheck,
+		className: "border-l-success bg-success/10",
+		iconClassName: "text-success",
+	},
+} as const;
+
+const hasOpinion = (
+	status: ProjectDetail["status"],
+): status is keyof typeof opinionStyles => status in opinionStyles;
 
 interface ProjectFindingsOverviewProps {
 	/** `undefined` while loading. */
 	findings?: Finding[];
-	project: Pick<ProjectDetail, "status" | "reviewOpinion">;
+	project: Pick<ProjectDetail, "status" | "reviewOpinion" | "reviewerName">;
 	referenceOptions: FindingReferenceOptions;
 	/** Whether the profile answers findings; each one still has to await an answer. */
 	canRespond: boolean;
@@ -70,7 +85,9 @@ export const ProjectFindingsOverview = ({
 	const history = (findings ?? [])
 		.filter((finding) => !awaiting(finding))
 		.sort(byPriority);
-	const opinionTitle = opinionTitles[project.status];
+	const opinion = hasOpinion(project.status)
+		? opinionStyles[project.status]
+		: undefined;
 	const [openedId, setOpenedId] = useState<string | null>(null);
 	const opened = findings?.find((finding) => finding.id === openedId);
 	const referenceOf = (finding: Finding) =>
@@ -92,22 +109,43 @@ export const ProjectFindingsOverview = ({
 
 	return (
 		<div className={cn("flex flex-col gap-8 px-6 py-8 md:px-8", className)}>
-			{opinionTitle || summary ? (
-				<div className="flex flex-col border border-border bg-background">
-					{opinionTitle ? (
-						<section aria-labelledby="review-opinion-title" className="p-5">
-							<h2
-								id="review-opinion-title"
-								className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase"
-							>
-								{opinionTitle}
-							</h2>
-							<p className="mt-4 text-sm whitespace-pre-line text-foreground">
-								{project.reviewOpinion ||
-									"O analista não registrou um parecer geral."}
-							</p>
-						</section>
+			{opinion ? (
+				<section
+					aria-labelledby="review-opinion-title"
+					className={cn(
+						"flex flex-col gap-3 rounded-xs border border-l-4 border-border px-5 py-5",
+						opinion.className,
+					)}
+				>
+					<h2
+						id="review-opinion-title"
+						className="flex items-center gap-2 text-lg font-semibold text-foreground"
+					>
+						<opinion.icon
+							aria-hidden="true"
+							className={cn("size-5 shrink-0", opinion.iconClassName)}
+						/>
+						{opinion.title}
+					</h2>
+					<p className="text-base leading-relaxed whitespace-pre-line text-foreground">
+						{project.reviewOpinion ||
+							"O analista não registrou um parecer geral."}
+					</p>
+					{project.reviewerName ? (
+						<p className="flex items-baseline gap-2">
+							<span className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+								Analista
+							</span>
+							<span className="text-sm font-medium text-foreground">
+								{project.reviewerName}
+							</span>
+						</p>
 					) : null}
+				</section>
+			) : null}
+
+			{summary ? (
+				<div className="flex flex-col border border-border bg-background">
 					{summary}
 				</div>
 			) : null}
