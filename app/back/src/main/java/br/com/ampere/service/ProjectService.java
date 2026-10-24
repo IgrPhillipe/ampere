@@ -2,6 +2,7 @@ package br.com.ampere.service;
 
 import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.BuildingType;
+import br.com.ampere.domain.ConcessionArea;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
@@ -165,6 +166,9 @@ public class ProjectService {
   @Transactional
   public Project update(Long id, ProjectParameters parameters, AuthenticatedUser user) {
     Project project = draftOrFail(id, "Só é possível alterar um projeto em rascunho.", user);
+    if (!ConcessionArea.covers(parameters.state(), parameters.municipality())) {
+      throw new BusinessException(ConcessionArea.OUTSIDE_MESSAGE);
+    }
     BuildingType buildingType = parameters.toBuildingType();
 
     project.rename(parameters.name(), parameters.address(), parameters.municipality());

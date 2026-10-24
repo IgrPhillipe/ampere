@@ -406,6 +406,26 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
+  void refusesAProjectOutsideTheConcessionArea() {
+    ProjectParameters inJoaoPessoa =
+        new ProjectParameters(
+            "Residencial Tambaú",
+            "58039000",
+            BrazilianState.PB,
+            "João Pessoa",
+            "Avenida Almirante Tamandaré, 100",
+            BuildingCategory.RESIDENTIAL_MULTIFAMILY,
+            12,
+            SupplyVoltage.V380_220,
+            ConnectionType.THREE_PHASE,
+            EntranceStandard.COLLECTIVE);
+
+    assertThatThrownBy(() -> service.create(inJoaoPessoa, designer))
+        .isInstanceOf(BusinessException.class)
+        .hasMessageContaining("Pedras de Fogo (PB)");
+  }
+
+  @Test
   void storesThePostalCodeAndTheState() {
     Project created =
         service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer);
