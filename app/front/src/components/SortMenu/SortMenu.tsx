@@ -1,4 +1,4 @@
-import { Button } from "@components/ui/button";
+import { ListMenuButton, ListMenuButtonText } from "@components/ListMenuButton";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -15,7 +15,6 @@ import {
 	type SortDirections,
 	sortDirectionSchema,
 } from "@features/shared";
-import { cn } from "@lib/utils";
 import { ArrowDown, ArrowUp } from "lucide-react";
 
 export interface SortOption<TColumn extends string> {
@@ -53,25 +52,23 @@ export const SortMenu = <TColumn extends string>({
 		<DropdownMenu>
 			<DropdownMenuTrigger
 				render={
-					<Button
-						type="button"
-						size="xs"
-						variant="neutral"
+					<ListMenuButton
 						aria-label={`Ordenar por ${label.toLowerCase()}, ${directionLabels[value.direction].toLowerCase()}`}
-						className={cn(
-							"shrink-0 gap-2 self-start font-mono font-normal tracking-wider uppercase sm:self-auto",
-							className,
-						)}
+						className={className}
 					/>
 				}
 			>
-				<span className="text-muted-foreground">Ordenar por</span>
-				<span className="font-semibold">{label}</span>
-				{descending ? (
-					<ArrowDown aria-hidden="true" />
-				) : (
-					<ArrowUp aria-hidden="true" />
-				)}
+				<ListMenuButtonText
+					label="Ordenar por"
+					value={label}
+					icon={
+						descending ? (
+							<ArrowDown aria-hidden="true" />
+						) : (
+							<ArrowUp aria-hidden="true" />
+						)
+					}
+				/>
 			</DropdownMenuTrigger>
 
 			<DropdownMenuContent align="end" className="min-w-48">

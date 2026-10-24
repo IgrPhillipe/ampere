@@ -9,14 +9,15 @@ import {
 import dayjs from "@lib/dayjs";
 import {
 	type ListProjectsParams,
+	type ProjectFindingsFilter,
 	type ProjectSort,
 	type ProjectStatus,
+	projectFindingsFilterSchema,
 	projectSortSchema,
 	projectStatusSchema,
 } from "@services/projects";
 import {
 	debounce,
-	parseAsBoolean,
 	parseAsInteger,
 	parseAsString,
 	parseAsStringLiteral,
@@ -54,9 +55,9 @@ export const useProjectFilters = () => {
 		municipality: parseAsString,
 		createdFrom: parseAsString,
 		createdTo: parseAsString,
-		hasBlocking: parseAsBoolean.withDefault(false),
+		findings: parseAsStringLiteral(projectFindingsFilterSchema.options),
 	});
-	const { status, search, page, municipality, hasBlocking } = query;
+	const { status, search, page, municipality, findings } = query;
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
 	const sort = useMemo<ListSort<ProjectSort>>(
@@ -85,9 +86,9 @@ export const useProjectFilters = () => {
 			municipality: municipality ?? undefined,
 			createdFrom: period.from ?? undefined,
 			createdTo: period.to ?? undefined,
-			hasBlocking: hasBlocking || undefined,
+			findings: findings ?? undefined,
 		}),
-		[page, status, debouncedSearch, sort, municipality, period, hasBlocking],
+		[page, status, debouncedSearch, sort, municipality, period, findings],
 	);
 
 	const setStatus = useCallback(
@@ -148,9 +149,9 @@ export const useProjectFilters = () => {
 		[setQuery],
 	);
 
-	const setHasBlocking = useCallback(
-		(value: boolean) => {
-			void setQuery({ hasBlocking: value || null, page: null });
+	const setFindings = useCallback(
+		(value: ProjectFindingsFilter | null) => {
+			void setQuery({ findings: value, page: null });
 		},
 		[setQuery],
 	);
@@ -162,7 +163,7 @@ export const useProjectFilters = () => {
 			municipality: null,
 			createdFrom: null,
 			createdTo: null,
-			hasBlocking: null,
+			findings: null,
 			page: null,
 		});
 	}, [setQuery]);
@@ -174,7 +175,7 @@ export const useProjectFilters = () => {
 		sort,
 		municipality,
 		period,
-		hasBlocking,
+		findings,
 		params,
 		// An empty list under an active filter asks for "Limpar Filtros"; without one, it does not.
 		hasActiveFilters:
@@ -183,7 +184,7 @@ export const useProjectFilters = () => {
 			municipality !== null ||
 			period.from !== null ||
 			period.to !== null ||
-			hasBlocking,
+			findings !== null,
 		setStatus,
 		setSearch,
 		setPage,
@@ -191,7 +192,7 @@ export const useProjectFilters = () => {
 		sortBy,
 		setMunicipality,
 		setPeriod,
-		setHasBlocking,
+		setFindings,
 		clearFilters,
 	};
 };

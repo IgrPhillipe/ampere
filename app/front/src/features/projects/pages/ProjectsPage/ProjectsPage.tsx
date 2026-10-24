@@ -173,8 +173,8 @@ export const ProjectsPage = () => {
 							onMunicipalityChange={filters.setMunicipality}
 							period={filters.period}
 							onPeriodChange={filters.setPeriod}
-							hasBlocking={filters.hasBlocking}
-							onHasBlockingChange={filters.setHasBlocking}
+							findings={filters.findings}
+							onFindingsChange={filters.setFindings}
 						/>
 					}
 					activeFilters={<ProjectActiveFilters filters={filters} />}

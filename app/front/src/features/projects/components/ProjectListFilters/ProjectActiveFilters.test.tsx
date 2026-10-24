@@ -23,14 +23,16 @@ const renderChips = (searchParams: string) => {
 describe("ProjectActiveFilters", () => {
 	it("labels each active filter", () => {
 		renderChips(
-			"?municipality=Recife&createdFrom=2026-08-01&createdTo=2026-08-31&hasBlocking=true",
+			"?municipality=Recife&createdFrom=2026-08-01&createdTo=2026-08-31&findings=BLOCKING_OPEN",
 		);
 
 		expect(screen.getByText("Município: Recife")).toBeInTheDocument();
 		expect(
 			screen.getByText("Criado de 01/08/2026 a 31/08/2026"),
 		).toBeInTheDocument();
-		expect(screen.getByText("Com apontamento bloqueante")).toBeInTheDocument();
+		expect(
+			screen.getByText("Apontamentos: bloqueante em aberto"),
+		).toBeInTheDocument();
 	});
 
 	it("labels an open-ended period", () => {

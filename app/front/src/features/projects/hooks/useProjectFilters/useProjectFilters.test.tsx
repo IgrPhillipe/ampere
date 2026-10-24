@@ -55,7 +55,7 @@ describe("useProjectFilters", () => {
 
 	it("builds the API params from the URL", () => {
 		const { result } = renderFilters(
-			"?sort=name&municipality=Recife&createdTo=2026-08-31&hasBlocking=true&page=3",
+			"?sort=name&municipality=Recife&createdTo=2026-08-31&findings=BLOCKING_OPEN&page=3",
 		);
 
 		expect(result.current.params).toEqual({
@@ -67,21 +67,23 @@ describe("useProjectFilters", () => {
 			municipality: "Recife",
 			createdFrom: undefined,
 			createdTo: "2026-08-31",
-			hasBlocking: true,
+			findings: "BLOCKING_OPEN",
 		});
 	});
 
-	it("stores the blocking filter only when it is on", async () => {
+	it("stores the findings filter and ignores unknown values", async () => {
+		expect(renderFilters("?findings=OPEN").result.current.findings).toBeNull();
+
 		const { result, onUrlUpdate, lastUrl } = renderFilters();
 
-		act(() => result.current.setHasBlocking(true));
+		act(() => result.current.setFindings("NONE_OPEN"));
 
-		await waitFor(() => expect(lastUrl()?.get("hasBlocking")).toBe("true"));
+		await waitFor(() => expect(lastUrl()?.get("findings")).toBe("NONE_OPEN"));
 
-		act(() => result.current.setHasBlocking(false));
+		act(() => result.current.setFindings(null));
 
 		await waitFor(() => expect(onUrlUpdate).toHaveBeenCalledTimes(2));
-		expect(lastUrl()?.has("hasBlocking")).toBe(false);
+		expect(lastUrl()?.has("findings")).toBe(false);
 	});
 
 	it("sorts by name ascending first, then flips", async () => {
@@ -101,7 +103,7 @@ describe("useProjectFilters", () => {
 
 	it("clears every filter and keeps the sort", async () => {
 		const { result, lastUrl } = renderFilters(
-			"?status=REJECTED&search=Aurora&municipality=Recife%2FPE&createdFrom=2026-08-01&hasBlocking=true&sort=name",
+			"?status=REJECTED&search=Aurora&municipality=Recife%2FPE&createdFrom=2026-08-01&findings=ANY_OPEN&sort=name",
 		);
 
 		expect(result.current.hasActiveFilters).toBe(true);

@@ -1,4 +1,4 @@
-import { FilterSelect } from "@components/FilterSelect";
+import { FilterMenu } from "@components/FilterMenu";
 import { useGetMunicipalityList } from "@services/projects";
 import {
 	UNASSIGNED_REVIEWER,
@@ -35,17 +35,17 @@ export const ReviewQueueFilterControls = ({
 
 	return (
 		<>
-			<FilterSelect
+			<FilterMenu
 				label="Analista"
-				allLabel="Todos os analistas"
+				allLabel="Todos"
 				options={reviewers}
 				value={reviewer}
 				onValueChange={onReviewerChange}
 				disabled={reviewersQuery.isPending}
 			/>
-			<FilterSelect
+			<FilterMenu
 				label="Município"
-				allLabel="Todos os municípios"
+				allLabel="Todos"
 				options={municipalities}
 				value={municipality}
 				onValueChange={onMunicipalityChange}

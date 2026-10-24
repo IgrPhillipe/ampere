@@ -4,6 +4,7 @@ import type {
 	BuildingCategory,
 	ConnectionType,
 	EntranceStandard,
+	ProjectFindingsFilter,
 	ProjectSort,
 	ProjectStatus,
 	SupplyVoltage,
@@ -21,8 +22,7 @@ export interface ListProjectsParams {
 	createdFrom?: string;
 	/** `YYYY-MM-DD`, inclusive. */
 	createdTo?: string;
-	/** Only `true` filters: the API treats `false` as no filter. */
-	hasBlocking?: true;
+	findings?: ProjectFindingsFilter;
 }
 
 /** Corpo de `POST /projects` — os oito campos da US02. */

@@ -20,6 +20,14 @@ export const projectSortSchema = z.enum([
 
 export type ProjectSort = z.infer<typeof projectSortSchema>;
 
+export const projectFindingsFilterSchema = z.enum([
+	"BLOCKING_OPEN",
+	"ANY_OPEN",
+	"NONE_OPEN",
+]);
+
+export type ProjectFindingsFilter = z.infer<typeof projectFindingsFilterSchema>;
+
 export const projectSchema = z.object({
 	id: z.string(),
 	name: z.string(),

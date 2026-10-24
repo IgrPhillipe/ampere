@@ -2,6 +2,7 @@ import { type ActiveFilter, ActiveFilters } from "@components/ActiveFilters";
 import type { DateRange } from "@components/DateRangeFilter";
 import { formatDate } from "@features/shared";
 
+import { projectFindingsFilterLabels } from "../../constants/project-findings";
 import { projectStatusLabels } from "../../constants/project-status";
 import type { ProjectFilters } from "../../hooks";
 
@@ -18,7 +19,7 @@ const periodLabel = ({ from, to }: DateRange) => {
 export const ProjectActiveFilters = ({
 	filters,
 }: ProjectActiveFiltersProps) => {
-	const { status, search, municipality, period, hasBlocking } = filters;
+	const { status, search, municipality, period, findings } = filters;
 	const active: ActiveFilter[] = [];
 
 	if (status) {
@@ -53,11 +54,11 @@ export const ProjectActiveFilters = ({
 		});
 	}
 
-	if (hasBlocking) {
+	if (findings) {
 		active.push({
-			id: "hasBlocking",
-			label: "Com apontamento bloqueante",
-			onRemove: () => filters.setHasBlocking(false),
+			id: "findings",
+			label: `Apontamentos: ${projectFindingsFilterLabels[findings].toLowerCase()}`,
+			onRemove: () => filters.setFindings(null),
 		});
 	}
 
