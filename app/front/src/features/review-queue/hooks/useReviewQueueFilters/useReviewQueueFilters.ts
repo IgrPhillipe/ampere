@@ -5,7 +5,11 @@ import {
 	sortDirectionSchema,
 	useDebouncedValue,
 } from "@features/shared";
-import { CONCESSION_STATES, type ConcessionState } from "@services/locations";
+import {
+	CONCESSION_STATES,
+	type ConcessionState,
+	concessionMunicipalityOf,
+} from "@services/locations";
 import {
 	type ListReviewQueueParams,
 	type ReviewQueueFilter,
@@ -16,8 +20,8 @@ import {
 } from "@services/review-queue";
 import {
 	debounce,
-	parseAsArrayOf,
 	parseAsInteger,
+	parseAsNativeArrayOf,
 	parseAsString,
 	parseAsStringLiteral,
 	useQueryStates,
@@ -56,10 +60,8 @@ export const useReviewQueueFilters = () => {
 		),
 		direction: parseAsStringLiteral(sortDirectionSchema.options),
 		reviewer: parseAsString,
-		state: parseAsArrayOf(parseAsStringLiteral(CONCESSION_STATES)).withDefault(
-			[],
-		),
-		municipality: parseAsArrayOf(parseAsString).withDefault([]),
+		state: parseAsNativeArrayOf(parseAsStringLiteral(CONCESSION_STATES)),
+		municipality: parseAsNativeArrayOf(parseAsString),
 	});
 	const { filter, search, page, state, municipality } = query;
 	const reviewer = toReviewer(query.reviewer);
@@ -137,12 +139,21 @@ export const useReviewQueueFilters = () => {
 		[setQuery],
 	);
 
+	// Municipalities of the states still chosen stay; the others go with their state.
 	const setState = useCallback(
 		(value: ConcessionState[]) => {
-			void setQuery({
-				state: value.length ? value : null,
-				municipality: null,
-				page: null,
+			void setQuery((current) => {
+				const kept = value.length
+					? current.municipality.filter((name) =>
+							value.some((state) => concessionMunicipalityOf(state, name)),
+						)
+					: current.municipality;
+
+				return {
+					state: value.length ? value : null,
+					municipality: kept.length ? kept : null,
+					page: null,
+				};
 			});
 		},
 		[setQuery],

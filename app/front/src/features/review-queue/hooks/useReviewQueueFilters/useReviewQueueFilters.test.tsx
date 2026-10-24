@@ -44,7 +44,7 @@ describe("useReviewQueueFilters", () => {
 
 	it("reads a sort column, its direction and the new filters from the URL", () => {
 		const { result } = renderFilters(
-			"?sort=demand&direction=ASC&reviewer=none&municipality=Recife,Olinda&state=PE",
+			"?sort=demand&direction=ASC&reviewer=none&municipality=Recife&municipality=Olinda&state=PE",
 		);
 
 		expect(result.current.sort).toEqual({ column: "demand", direction: "ASC" });

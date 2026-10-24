@@ -23,7 +23,7 @@ const renderChips = (searchParams: string) => {
 describe("ProjectActiveFilters", () => {
 	it("labels each active filter", () => {
 		renderChips(
-			"?municipality=Recife,Olinda&createdFrom=2026-08-01&createdTo=2026-08-31&findings=BLOCKING_OPEN",
+			"?municipality=Recife&municipality=Olinda&createdFrom=2026-08-01&createdTo=2026-08-31&findings=BLOCKING_OPEN",
 		);
 
 		expect(screen.getByText("Município: Recife")).toBeInTheDocument();

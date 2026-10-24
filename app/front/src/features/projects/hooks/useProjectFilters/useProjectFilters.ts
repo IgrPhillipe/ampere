@@ -7,7 +7,11 @@ import {
 	useDebouncedValue,
 } from "@features/shared";
 import dayjs from "@lib/dayjs";
-import { CONCESSION_STATES, type ConcessionState } from "@services/locations";
+import {
+	CONCESSION_STATES,
+	type ConcessionState,
+	concessionMunicipalityOf,
+} from "@services/locations";
 import {
 	type ListProjectsParams,
 	type ProjectFindingsFilter,
@@ -19,8 +23,8 @@ import {
 } from "@services/projects";
 import {
 	debounce,
-	parseAsArrayOf,
 	parseAsInteger,
+	parseAsNativeArrayOf,
 	parseAsString,
 	parseAsStringLiteral,
 	useQueryStates,
@@ -54,15 +58,13 @@ export const useProjectFilters = () => {
 			DEFAULT_SORT,
 		),
 		direction: parseAsStringLiteral(sortDirectionSchema.options),
-		state: parseAsArrayOf(parseAsStringLiteral(CONCESSION_STATES)).withDefault(
-			[],
-		),
-		municipality: parseAsArrayOf(parseAsString).withDefault([]),
+		state: parseAsNativeArrayOf(parseAsStringLiteral(CONCESSION_STATES)),
+		municipality: parseAsNativeArrayOf(parseAsString),
 		createdFrom: parseAsString,
 		createdTo: parseAsString,
-		findings: parseAsArrayOf(
+		findings: parseAsNativeArrayOf(
 			parseAsStringLiteral(projectFindingsFilterSchema.options),
-		).withDefault([]),
+		),
 	});
 	const { status, search, page, state, municipality, findings } = query;
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
@@ -148,12 +150,21 @@ export const useProjectFilters = () => {
 		[sort, setSort],
 	);
 
+	// Municipalities of the states still chosen stay; the others go with their state.
 	const setState = useCallback(
 		(value: ConcessionState[]) => {
-			void setQuery({
-				state: value.length ? value : null,
-				municipality: null,
-				page: null,
+			void setQuery((current) => {
+				const kept = value.length
+					? current.municipality.filter((name) =>
+							value.some((state) => concessionMunicipalityOf(state, name)),
+						)
+					: current.municipality;
+
+				return {
+					state: value.length ? value : null,
+					municipality: kept.length ? kept : null,
+					page: null,
+				};
 			});
 		},
 		[setQuery],
