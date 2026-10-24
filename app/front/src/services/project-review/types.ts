@@ -4,6 +4,7 @@ import type {
 	FindingResolution,
 	FindingSeverity,
 	FindingStage,
+	FindingStatus,
 	ReviewDecision,
 } from "./schemas";
 
@@ -33,6 +34,11 @@ export interface DeleteFindingParams {
 
 export interface ResolveFindingParams extends DeleteFindingParams {
 	resolution: FindingResolution;
+}
+
+export interface RespondFindingParams extends DeleteFindingParams {
+	status: Extract<FindingStatus, "FIXED" | "CONTESTED">;
+	response?: string;
 }
 
 export interface DecideProjectReviewParams {

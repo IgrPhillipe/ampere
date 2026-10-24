@@ -1,7 +1,10 @@
+import {
+	buildFindingReferenceOptions,
+	type FindingReferenceOptions,
+} from "@features/projects";
 import { describe, expect, it } from "vitest";
 
-import type { FindingReferenceOptions } from "../../types";
-import { buildFindingReferenceOptions, toFindingPayload } from "./finding-form";
+import { toFindingPayload } from "./finding-form";
 
 const options: FindingReferenceOptions = {
 	PROJECT_DATA: {},

@@ -23,9 +23,9 @@ export const ProjectRowActionButton = ({
 	...actions
 }: ProjectRowActionButtonProps) => {
 	const action = getProjectRowAction(project);
-	const { canEdit } = useProjectPermissions(project.status);
-	// A draft is already edited through "Continuar".
-	const canEditSubmitted = canEdit && project.status !== "DRAFT";
+	const { canDelete } = useProjectPermissions(project.status);
+	// Only the admin deletes past the draft; a draft is already edited through "Continuar".
+	const canEditSubmitted = canDelete && project.status !== "DRAFT";
 
 	return (
 		<div className="flex items-center justify-end gap-1">
@@ -36,7 +36,7 @@ export const ProjectRowActionButton = ({
 				onClick={() => action.run(actions, project)}
 			/>
 
-			{canEdit ? (
+			{canDelete ? (
 				<DropdownMenu>
 					<DropdownMenuTrigger
 						render={

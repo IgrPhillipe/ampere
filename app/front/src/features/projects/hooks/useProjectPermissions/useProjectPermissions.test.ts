@@ -3,12 +3,18 @@ import { describe, expect, it } from "vitest";
 import { getProjectPermissions } from "./useProjectPermissions";
 
 describe("getProjectPermissions", () => {
-	it("lets the designer edit only a draft", () => {
+	it("lets the designer edit a draft or a rejection", () => {
 		expect(getProjectPermissions("user", "DRAFT").canEdit).toBe(true);
+		expect(getProjectPermissions("user", "REJECTED").canEdit).toBe(true);
 		expect(getProjectPermissions("user", "AWAITING_SUBMISSION").canEdit).toBe(
 			false,
 		);
 		expect(getProjectPermissions("user", "UNDER_REVIEW").canEdit).toBe(false);
+	});
+
+	it("lets the designer delete only a draft", () => {
+		expect(getProjectPermissions("user", "DRAFT").canDelete).toBe(true);
+		expect(getProjectPermissions("user", "REJECTED").canDelete).toBe(false);
 	});
 
 	it("keeps the documents open to the designer until the submission", () => {
@@ -16,6 +22,9 @@ describe("getProjectPermissions", () => {
 			getProjectPermissions("user", "AWAITING_SUBMISSION").canEditDocuments,
 		).toBe(true);
 		expect(getProjectPermissions("user", "REJECTED").canEditDocuments).toBe(
+			true,
+		);
+		expect(getProjectPermissions("user", "APPROVED").canEditDocuments).toBe(
 			false,
 		);
 	});
@@ -30,6 +39,7 @@ describe("getProjectPermissions", () => {
 		expect(getProjectPermissions("admin", status)).toEqual({
 			canEdit: true,
 			canEditDocuments: true,
+			canDelete: true,
 		});
 	});
 
@@ -37,6 +47,7 @@ describe("getProjectPermissions", () => {
 		expect(getProjectPermissions("reviewer", "DRAFT")).toEqual({
 			canEdit: false,
 			canEditDocuments: false,
+			canDelete: false,
 		});
 	});
 });

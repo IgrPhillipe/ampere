@@ -72,7 +72,7 @@ export const ReviewHeader = ({
 			) : null}
 		</div>
 
-		<dl className="grid gap-px border-t border-border bg-border sm:grid-cols-2 lg:grid-cols-5">
+		<dl className="grid gap-px border-t border-border bg-border sm:grid-cols-2 lg:grid-cols-6">
 			<HeaderCell isLoading={isLoading} label="Projetista">
 				{project?.ownerName ?? undefined}
 			</HeaderCell>
@@ -95,6 +95,10 @@ export const ReviewHeader = ({
 							.map(({ name, revision }) => `${name} ${revision}`)
 							.join(" e ")
 					: undefined}
+			</HeaderCell>
+
+			<HeaderCell isLoading={isLoading} label="Versão">
+				{project ? String(project.reviewCycle) : undefined}
 			</HeaderCell>
 
 			<HeaderCell isLoading={isLoading} label="Recebido em">

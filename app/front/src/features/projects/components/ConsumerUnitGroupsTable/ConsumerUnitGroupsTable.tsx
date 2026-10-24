@@ -3,6 +3,7 @@ import { SkeletonTable } from "@components/SkeletonTable";
 import { formatDecimal } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ConsumerUnitGroup } from "@services/consumer-units";
+import type { Finding } from "@services/project-review";
 import { type ReactNode, useMemo } from "react";
 import type { Control } from "react-hook-form";
 
@@ -24,6 +25,7 @@ interface ConsumerUnitGroupsTableProps extends GroupRowActions {
 	groups: ConsumerUnitGroup[];
 	totalLoadKw: number;
 	isLoading?: boolean;
+	findings?: Finding[];
 	empty: ReactNode;
 	newGroupControl?: Control<NewGroupFormValues>;
 	newGroupUsageType?: GroupUsageType;
@@ -34,6 +36,7 @@ export const ConsumerUnitGroupsTable = ({
 	groups,
 	totalLoadKw,
 	isLoading = false,
+	findings = [],
 	empty,
 	onOpenGroup,
 	newGroupControl,
@@ -41,8 +44,8 @@ export const ConsumerUnitGroupsTable = ({
 	className,
 }: ConsumerUnitGroupsTableProps) => {
 	const columns = useMemo(
-		() => createGroupColumns({ onOpenGroup, totalLoadKw }),
-		[onOpenGroup, totalLoadKw],
+		() => createGroupColumns({ onOpenGroup, totalLoadKw, findings }),
+		[findings, onOpenGroup, totalLoadKw],
 	);
 
 	if (isLoading) return <SkeletonTable columns={5} />;
@@ -53,6 +56,7 @@ export const ConsumerUnitGroupsTable = ({
 		<div className={cn("flex flex-col", className)}>
 			<ConsumerUnitGroupCards
 				groups={groups}
+				findings={findings}
 				totalLoadKw={totalLoadKw}
 				onOpenGroup={onOpenGroup}
 				newGroupControl={newGroupControl}

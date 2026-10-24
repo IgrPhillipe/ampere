@@ -33,6 +33,8 @@ export const submissionChecklistSchema = z.object({
 	items: z.array(checklistItemSchema),
 	documents: z.array(projectDocumentSchema),
 	canSubmit: z.boolean(),
+	unansweredBlocking: z.number().int().nonnegative(),
+	requiresChangeSummary: z.boolean(),
 });
 
 export type SubmissionChecklist = z.infer<typeof submissionChecklistSchema>;
