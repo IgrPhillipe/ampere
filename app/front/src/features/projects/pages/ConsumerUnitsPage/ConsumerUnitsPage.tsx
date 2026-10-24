@@ -134,7 +134,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 					</h1>
 				</div>
 
-				<ProjectStepper current={1} className="mt-6" />
+				<ProjectStepper current={1} projectId={projectId} className="mt-6" />
 
 				{hasError ? (
 					<div className="flex-1 px-6 py-8 md:px-8">

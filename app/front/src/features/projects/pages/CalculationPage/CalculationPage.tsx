@@ -98,7 +98,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 					</h1>
 				</div>
 
-				<ProjectStepper current={2} className="mt-6" />
+				<ProjectStepper current={2} projectId={projectId} className="mt-6" />
 
 				{isBlocked ? (
 					<div className="flex-1 px-6 py-8 md:px-8">

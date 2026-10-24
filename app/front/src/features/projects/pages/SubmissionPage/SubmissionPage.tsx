@@ -116,7 +116,7 @@ export const SubmissionPage = ({ projectId }: SubmissionPageProps) => {
 					</h1>
 				</div>
 
-				<ProjectStepper current={4} className="mt-6" />
+				<ProjectStepper current={4} projectId={projectId} className="mt-6" />
 
 				{projectQuery.isError ? (
 					<div className="flex-1 px-6 py-8 md:px-8">

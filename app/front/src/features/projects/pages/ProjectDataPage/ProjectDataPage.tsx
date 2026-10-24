@@ -208,7 +208,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 					</h1>
 				</div>
 
-				<ProjectStepper current={0} className="mt-6" />
+				<ProjectStepper current={0} projectId={projectId} className="mt-6" />
 
 				<div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_320px]">
 					<fieldset
