@@ -150,6 +150,7 @@ export const projectDetailSchema = z.object({
 	ownerId: z.string().nullish(),
 	ownerName: z.string().nullish(),
 	reviewerName: z.string().nullish(),
+	reviewedAt: z.iso.datetime({ offset: true }).nullish(),
 	reviewCycle: z.number().int().nonnegative(),
 	reviewOpinion: z.string().nullable(),
 	changeSummary: z.string().nullable(),

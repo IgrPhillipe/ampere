@@ -1,5 +1,5 @@
 import { Skeleton } from "@components/ui/skeleton";
-import { padCount } from "@features/shared";
+import { formatDate, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
 import type { ProjectDetail } from "@services/projects";
@@ -44,7 +44,10 @@ const hasOpinion = (
 interface ProjectFindingsOverviewProps {
 	/** `undefined` while loading. */
 	findings?: Finding[];
-	project: Pick<ProjectDetail, "status" | "reviewOpinion" | "reviewerName">;
+	project: Pick<
+		ProjectDetail,
+		"status" | "reviewOpinion" | "reviewerName" | "reviewedAt"
+	>;
 	referenceOptions: FindingReferenceOptions;
 	/** Whether the profile answers findings; each one still has to await an answer. */
 	canRespond: boolean;
@@ -116,7 +119,7 @@ export const ProjectFindingsOverview = ({
 				<section
 					aria-labelledby="review-opinion-title"
 					className={cn(
-						"flex flex-col gap-3 rounded-xs border border-l-4 border-border px-5 py-5",
+						"flex flex-col gap-3 overflow-hidden rounded-xs border border-l-4 border-border px-5 py-5",
 						opinion.className,
 					)}
 				>
@@ -134,16 +137,30 @@ export const ProjectFindingsOverview = ({
 						{project.reviewOpinion ||
 							"O analista não registrou um parecer geral."}
 					</p>
-					{project.reviewerName ? (
-						<p className="flex items-baseline gap-2">
-							<span className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+					<dl className="-mx-5 -mb-5 mt-2 grid grid-cols-2 gap-px border-t border-border bg-border">
+						<div className="flex min-w-0 flex-col gap-1.5 bg-card px-5 py-3">
+							<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 								Analista
-							</span>
-							<span className="text-sm font-medium text-foreground">
-								{project.reviewerName}
-							</span>
-						</p>
-					) : null}
+							</dt>
+							<dd className="text-sm font-medium break-words text-foreground">
+								{project.reviewerName ?? "Não informado"}
+							</dd>
+						</div>
+						<div className="flex min-w-0 flex-col gap-1.5 bg-card px-5 py-3">
+							<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+								Decidido em
+							</dt>
+							<dd className="font-mono text-sm text-foreground">
+								{project.reviewedAt ? (
+									<time dateTime={project.reviewedAt}>
+										{formatDate(project.reviewedAt)}
+									</time>
+								) : (
+									"Não informado"
+								)}
+							</dd>
+						</div>
+					</dl>
 				</section>
 			) : null}
 
