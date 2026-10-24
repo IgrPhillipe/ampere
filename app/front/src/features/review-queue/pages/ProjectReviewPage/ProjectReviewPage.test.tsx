@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
 	idleMutation,
@@ -12,18 +12,24 @@ import {
 
 import { ProjectReviewPage } from "./ProjectReviewPage";
 
-const state = vi.hoisted(() => ({ holdsReview: true }));
+const state = vi.hoisted(() => ({
+	holdsReview: true,
+	ownerId: "2",
+	assign: vi.fn(),
+}));
 
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn() }));
 
 vi.mock("@services/projects", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/projects")>()),
-	useGetProject: () => loadedQuery({ data: makeProjectDetail() }),
+	useGetProject: () =>
+		loadedQuery({ data: makeProjectDetail({ ownerId: state.ownerId }) }),
 }));
 
 vi.mock("@services/project-review", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/project-review")>()),
-	useAssignProjectReview: () => idleMutation({ isSuccess: state.holdsReview }),
+	useAssignProjectReview: () =>
+		idleMutation({ isSuccess: state.holdsReview, mutate: state.assign }),
 	useGetFindingList: () =>
 		loadedQuery({ data: [makeFinding({ status: "DRAFT", version: 1 })] }),
 	useCreateFinding: () => idleMutation(),
@@ -55,6 +61,12 @@ vi.mock("@services/submission", async (importOriginal) => ({
 }));
 
 describe("ProjectReviewPage", () => {
+	beforeEach(() => {
+		state.holdsReview = true;
+		state.ownerId = "2";
+		state.assign.mockClear();
+	});
+
 	it("lets the analyst holding the review record findings and decide", () => {
 		signInAs("admin");
 		state.holdsReview = true;
@@ -94,5 +106,31 @@ describe("ProjectReviewPage", () => {
 		expect(
 			screen.queryByRole("button", { name: "Aprovar Projeto" }),
 		).not.toBeInTheDocument();
+	});
+
+	it("tells the admin their own project is reviewed by someone else", () => {
+		signInAs("admin");
+		state.ownerId = "1";
+		state.holdsReview = false;
+		render(<ProjectReviewPage projectId="4" />);
+
+		expect(
+			screen.getByText(
+				"Este projeto é seu. Você pode consultá-lo, mas a análise fica com outro analista.",
+			),
+		).toBeVisible();
+		expect(state.assign).not.toHaveBeenCalled();
+		expect(screen.queryByText("Novo Apontamento")).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: "Aprovar Projeto" }),
+		).not.toBeInTheDocument();
+	});
+
+	it("takes the review of a project the admin does not own", () => {
+		signInAs("admin");
+		render(<ProjectReviewPage projectId="4" />);
+
+		expect(state.assign).toHaveBeenCalledWith("4");
+		expect(screen.queryByText(/Este projeto é seu/)).not.toBeInTheDocument();
 	});
 });
