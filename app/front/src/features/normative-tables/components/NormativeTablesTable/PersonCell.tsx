@@ -1,4 +1,4 @@
-import { formatDateTime } from "@features/shared";
+import { formatDate } from "@features/shared";
 
 interface PersonCellProps {
 	person: string;
@@ -10,7 +10,7 @@ export const PersonCell = ({ person, at }: PersonCellProps) => (
 		<span className="text-sm text-foreground">{person}</span>
 		{at ? (
 			<span className="font-mono text-xs text-muted-foreground">
-				{formatDateTime(at)}
+				{formatDate(at)}
 			</span>
 		) : null}
 	</div>

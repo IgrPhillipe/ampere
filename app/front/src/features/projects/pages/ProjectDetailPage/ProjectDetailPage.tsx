@@ -2,7 +2,7 @@ import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDateTime } from "@features/shared";
+import { formatDate } from "@features/shared";
 import {
 	calculationKeys,
 	useGetLatestCalculation,
@@ -263,10 +263,8 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 								/>
 								<span>
 									Projeto enviado em{" "}
-									<time dateTime={submittedAt}>
-										{formatDateTime(submittedAt)}
-									</time>
-									. Guarde o protocolo{" "}
+									<time dateTime={submittedAt}>{formatDate(submittedAt)}</time>.
+									Guarde o protocolo{" "}
 									<span className="font-mono">{project.protocol}</span> para
 									acompanhar a análise.
 								</span>

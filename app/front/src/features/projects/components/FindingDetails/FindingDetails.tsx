@@ -7,7 +7,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@components/ui/dialog";
-import { formatDateTime } from "@features/shared";
+import { formatDate } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
 import type { CSSProperties, ReactNode } from "react";
@@ -42,7 +42,7 @@ const MetaItem = ({ label, person, at, value }: MetaItemProps) => (
 			{value ? <span className="text-sm text-foreground">{value}</span> : null}
 			{at ? (
 				<time dateTime={at} className="font-mono text-xs text-muted-foreground">
-					{formatDateTime(at)}
+					{formatDate(at)}
 				</time>
 			) : null}
 		</dd>
@@ -97,7 +97,7 @@ export const FindingSummary = ({
 			label: "Registrado em",
 			value: (
 				<time dateTime={finding.createdAt}>
-					{formatDateTime(finding.createdAt)}
+					{formatDate(finding.createdAt)}
 				</time>
 			),
 		},
@@ -209,7 +209,7 @@ export const FindingAnswer = ({
 						dateTime={respondedAt}
 						className="font-mono text-xs text-muted-foreground"
 					>
-						{formatDateTime(respondedAt)}
+						{formatDate(respondedAt)}
 					</time>
 				) : null}
 			</div>

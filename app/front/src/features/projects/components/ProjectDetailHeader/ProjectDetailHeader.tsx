@@ -1,6 +1,6 @@
 import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDateTime, formatKva, formatPostalCode } from "@features/shared";
+import { formatDate, formatKva, formatPostalCode } from "@features/shared";
 import { cn } from "@lib/utils";
 import {
 	type ConcessionState,
@@ -35,7 +35,7 @@ const HeaderCell = ({ label, isLoading, children }: HeaderCellProps) => (
 
 /** Same pattern as the listings: the date in mono, the distance in small muted text. */
 const HeaderDate = ({ value }: { value: string }) => (
-	<time dateTime={value}>{formatDateTime(value)}</time>
+	<time dateTime={value}>{formatDate(value)}</time>
 );
 
 export interface HeaderMetric {
