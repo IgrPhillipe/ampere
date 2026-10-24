@@ -59,12 +59,6 @@ export const createProjectColumns = (
 						{row.original.address},{" "}
 						{formatPlace(row.original.municipality, row.original.state)}
 					</span>
-					{showOwner ? (
-						// Below `xl` the "Projetista" column is hidden, so the name carries it.
-						<span className="text-xs text-muted-foreground xl:hidden">
-							{row.original.ownerName ?? "Não informado"}
-						</span>
-					) : null}
 				</div>
 			),
 		}),
