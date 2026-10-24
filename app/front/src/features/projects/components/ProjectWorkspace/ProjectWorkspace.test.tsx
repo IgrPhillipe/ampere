@@ -90,12 +90,33 @@ describe("ProjectWorkspace", () => {
 			"Dados da Edificação",
 			"Unidades Consumidoras",
 			"Cálculo de Demanda",
+			"Memorial",
 			"Documentos",
 			"Histórico",
 		]) {
-			expect(screen.getByRole("link", { name: section })).toBeVisible();
+			expect(
+				screen.getByRole("link", { name: new RegExp(`^${section}`) }),
+			).toBeVisible();
 		}
 		expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+	});
+
+	it("marks every section of a sent project as done", () => {
+		signInAs("user");
+		state.project = makeProjectDetail({ status: "APPROVED" });
+		renderWorkspace();
+
+		for (const section of [
+			"Dados da Edificação",
+			"Unidades Consumidoras",
+			"Cálculo de Demanda",
+			"Memorial",
+			"Documentos",
+		]) {
+			expect(
+				screen.getByRole("link", { name: `${section}(concluído)` }),
+			).toBeVisible();
+		}
 	});
 
 	it("tells the designer the data stays locked while under review", () => {

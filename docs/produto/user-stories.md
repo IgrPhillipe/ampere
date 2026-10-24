@@ -572,11 +572,11 @@ Página única do projeto, aberta a partir da listagem ou da fila de análise, c
 ### Conversação (Regras de Negócio e Interface)
 "Ver Projeto", "Continuar" e "Corrigir" em "Meus Projetos" e "Analisar" na fila abrem o projeto em `/projetos/$id`. Projetista, analista e admin veem a mesma página; só as ações mudam por perfil e situação:
 - Cabeçalho: protocolo, nome, situação, versão, endereço, projetista, unidades, demanda, normas, data de criação e data de envio, com a ação principal ao lado do nome: "Enviar para Análise" (dono, rascunho, habilitado com a checagem completa) ou "Reenviar Projeto" (dono, reprovado)
-- Seções: Visão Geral, Dados da Edificação (`/dados`), Unidades Consumidoras (`/unidades`), Cálculo de Demanda (`/calculo`), Documentos (`/documentos`, com o memorial) e Histórico (`/historico`). Cada seção indica se está concluída, desatualizada ou com apontamentos
+- Seções: Visão Geral, Dados da Edificação (`/dados`), Unidades Consumidoras (`/unidades`), Cálculo de Demanda (`/calculo`), Memorial (`/memorial`), Documentos (`/documentos`) e Histórico (`/historico`). Cada seção indica se está concluída, desatualizada ou com apontamentos; num projeto enviado, todas aparecem concluídas
 - Visão Geral: parecer, um cartão por seção com o que ela tem e o que falta, apontamentos para responder e reenvio quando reprovado ([US09](#us09-correção-de-apontamentos-e-reenvio-com-versionamento)), próximos passos quando em análise
 - Seções editáveis em rascunho ou reprovado, pelo dono ou pelo admin; nos demais casos, só leitura
 - O cálculo roda só quando o projetista pede ("Calcular Demanda" ou "Recalcular"). Se os dados mudarem depois do último cálculo, a seção avisa que ele está desatualizado
-- Apontamentos de uma seção aparecem no topo dela e são respondidos ali (Corrigido ou Contestar)
+- Apontamentos de uma seção aparecem no topo dela e são respondidos ali (Corrigido ou Contestar). Um apontamento reaberto pelo analista aparece como "Reaberto", com a resposta anterior
 - Analista: a mesma página, com a coluna de apontamentos e a decisão ao lado das seções. "Apontar Documento", "Virar Apontamento" e o grupo aberto preenchem o novo apontamento. `/fila-de-analise/$id` redireciona para `/projetos/$id`
 
 Enquanto o projeto está em análise, o topo exibe a data do envio e avisa que os dados ficam bloqueados até o parecer.

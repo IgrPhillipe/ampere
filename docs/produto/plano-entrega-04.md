@@ -294,7 +294,7 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 
 - [x] "Ver Projeto", "Continuar" e "Corrigir" da listagem abrem `/projetos/$id`. `/projetos/$id/envio` redireciona para ele
 - [x] Cabeçalho com protocolo, situação, endereço, projetista, unidades, demanda, normas, criado em e enviado em, e a ação principal do perfil ("Enviar para Análise" ou "Reenviar Projeto")
-- [x] Seções na mesma página: Visão Geral, Dados da Edificação, Unidades Consumidoras, Cálculo de Demanda, Documentos e Histórico, editáveis só para quem pode editar (#184)
+- [x] Seções na mesma página: Visão Geral, Dados da Edificação, Unidades Consumidoras, Cálculo de Demanda, Memorial, Documentos e Histórico, editáveis só para quem pode editar (#184)
 - [x] Visão Geral com parecer, resumo por seção, apontamentos para responder e reenvio (US09)
 - [x] Cálculo sob demanda, com aviso de cálculo desatualizado (#184)
 - [x] Apontamentos respondidos no topo da seção indicada (#184)

@@ -5,6 +5,7 @@ export type ProjectSectionKey =
 	| "data"
 	| "units"
 	| "calculation"
+	| "memorial"
 	| "documents"
 	| "history";
 
@@ -21,6 +22,7 @@ export const PROJECT_SECTIONS = [
 		label: "Cálculo de Demanda",
 		to: "/projetos/$id/calculo",
 	},
+	{ key: "memorial", label: "Memorial", to: "/projetos/$id/memorial" },
 	{ key: "documents", label: "Documentos", to: "/projetos/$id/documentos" },
 	{ key: "history", label: "Histórico", to: "/projetos/$id/historico" },
 ] as const satisfies readonly {

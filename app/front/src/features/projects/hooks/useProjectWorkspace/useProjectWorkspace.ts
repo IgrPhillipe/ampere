@@ -68,20 +68,28 @@ export const useProjectWorkspace = (projectId: string) => {
 				.every((item) => item.completed)
 		: false;
 	const editing = permissions.canEdit;
+	// Everything was complete when the project was sent.
+	const sent =
+		project?.status === "UNDER_REVIEW" || project?.status === "APPROVED";
+	const calculated = Boolean(calculation) && !outdated;
 
 	const sections: SectionStates = {
-		data: { done: editing, attention: attention.data },
+		data: { done: sent || editing, attention: attention.data },
 		units: {
-			done: editing && validation?.canCalculate === true,
+			done: sent || (editing && validation?.canCalculate === true),
 			attention: attention.units,
 		},
 		calculation: {
-			done: editing && Boolean(calculation) && !outdated,
+			done: sent || (editing && calculated),
 			outdated: editing && outdated,
 			attention: attention.calculation,
 		},
+		memorial: {
+			done: sent || (editing && calculated),
+			outdated: editing && outdated,
+		},
 		documents: {
-			done: editing && documentsDone,
+			done: sent || (editing && documentsDone),
 			attention: attention.documents,
 		},
 	};

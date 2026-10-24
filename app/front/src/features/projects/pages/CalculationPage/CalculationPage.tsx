@@ -102,7 +102,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 				references={Object.fromEntries(
 					(result?.steps ?? []).map((step) => [step.code, step.title]),
 				)}
-				className="mt-6"
+				className="my-6"
 			/>
 
 			{isBlocked ? (
@@ -197,12 +197,12 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 						disabled={!result || outdated}
 						onClick={() =>
 							void navigate({
-								to: "/projetos/$id/documentos",
+								to: "/projetos/$id/memorial",
 								params: { id: projectId },
 							})
 						}
 					>
-						Ir para Documentos
+						Ir para o Memorial
 						<ArrowRight aria-hidden="true" />
 					</Button>
 				</StepFooter>

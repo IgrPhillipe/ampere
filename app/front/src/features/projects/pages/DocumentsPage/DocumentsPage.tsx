@@ -1,22 +1,17 @@
 import { EmptyState } from "@components/EmptyState";
 import { Button } from "@components/ui/button";
-import { getHttpStatus } from "@lib/api-error";
-import { useGetLatestCalculation } from "@services/calculation";
 import { useGetFindingList } from "@services/project-review";
 import { useGetProject } from "@services/projects";
 import {
 	type DocumentType,
 	type ProjectDocument,
 	useDeleteDocument,
-	useGetMemorial,
 	useGetSubmission,
 	useUploadDocument,
 } from "@services/submission";
-import { useNavigate } from "@tanstack/react-router";
-import { Calculator, CircleAlert } from "lucide-react";
+import { CircleAlert } from "lucide-react";
 
 import {
-	MemorialPreview,
 	ProjectDocuments,
 	StageFindingsNotice,
 	SubmissionChecklistPanel,
@@ -30,14 +25,8 @@ interface DocumentsPageProps {
 }
 
 export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
-	const navigate = useNavigate();
 	const projectQuery = useGetProject(projectId);
-	const calculationQuery = useGetLatestCalculation(projectId);
 	const submissionQuery = useGetSubmission(projectId);
-	const calculation = calculationQuery.data?.data;
-	const memorialQuery = useGetMemorial(projectId, {
-		enabled: calculation !== undefined,
-	});
 	const uploadMutation = useUploadDocument();
 	const deleteMutation = useDeleteDocument();
 	const registrar = useFindingRegistrar();
@@ -53,16 +42,6 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 	);
 	const checklist = submissionQuery.data?.data;
 	const { canEditDocuments: editable } = useProjectPermissions(project);
-	const neverCalculated = calculationQuery.data === null;
-	const outdated = getHttpStatus(memorialQuery.error) === 409;
-	const hasError =
-		projectQuery.isError ||
-		calculationQuery.isError ||
-		submissionQuery.isError ||
-		(memorialQuery.isError && !outdated);
-
-	const goToCalculation = () =>
-		void navigate({ to: "/projetos/$id/calculo", params: { id: projectId } });
 
 	const upload = (type: DocumentType, file: File) =>
 		uploadMutation.mutate({ projectId, type, file });
@@ -70,55 +49,7 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 	const remove = (document: ProjectDocument) =>
 		deleteMutation.mutate({ projectId, documentId: document.id });
 
-	const retry = () => {
-		void projectQuery.refetch();
-		void calculationQuery.refetch();
-		void submissionQuery.refetch();
-		void memorialQuery.refetch();
-	};
-
-	const memorial = neverCalculated ? (
-		<EmptyState
-			title={
-				editable
-					? "Calcule a demanda antes de gerar o memorial"
-					: "Este projeto não tem memorial"
-			}
-			description={
-				editable
-					? "O memorial é montado a partir do último cálculo de demanda do projeto."
-					: "O projeto foi enviado sem passar pela memória de cálculo."
-			}
-			icon={Calculator}
-			action={
-				editable ? (
-					<Button type="button" variant="outline" onClick={goToCalculation}>
-						Ir para o Cálculo
-					</Button>
-				) : undefined
-			}
-		/>
-	) : outdated ? (
-		<EmptyState
-			title="Recalcule a demanda antes de gerar o memorial"
-			description="Os dados do projeto mudaram depois do último cálculo."
-			icon={Calculator}
-			action={
-				<Button type="button" variant="outline" onClick={goToCalculation}>
-					Ir para o Cálculo
-				</Button>
-			}
-		/>
-	) : (
-		<MemorialPreview
-			project={project}
-			calculation={calculation}
-			memorial={memorialQuery.data}
-			isLoading={memorialQuery.isPending}
-		/>
-	);
-
-	if (hasError) {
+	if (projectQuery.isError || submissionQuery.isError) {
 		return (
 			<div className="flex-1 px-6 py-8 md:px-8">
 				<EmptyState
@@ -126,7 +57,14 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 					description="Confira o aviso exibido e tente novamente."
 					icon={CircleAlert}
 					action={
-						<Button type="button" variant="outline" onClick={retry}>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => {
+								void projectQuery.refetch();
+								void submissionQuery.refetch();
+							}}
+						>
 							Tentar Novamente
 						</Button>
 					}
@@ -134,6 +72,27 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 			</div>
 		);
 	}
+
+	const attached = (
+		<section aria-labelledby="anexos-titulo" className="flex flex-col gap-4">
+			<h2
+				id="anexos-titulo"
+				className="border-b-2 border-foreground pb-3 text-lg font-semibold text-foreground"
+			>
+				Documentos Anexados
+			</h2>
+			<ProjectDocuments
+				projectId={projectId}
+				documents={checklist?.documents}
+				onCreateFinding={registrar.onDocument}
+				emptyDescription={
+					editable
+						? "Anexe a ART, o diagrama unifilar e a planta de situação na checagem ao lado."
+						: undefined
+				}
+			/>
+		</section>
+	);
 
 	return (
 		<div className="flex flex-1 flex-col">
@@ -144,12 +103,12 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 				references={Object.fromEntries(
 					(checklist?.items ?? []).map((item) => [item.key, item.label]),
 				)}
-				className="mt-6"
+				className="my-6"
 			/>
 
 			{editable ? (
 				<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_400px]">
-					<div className="px-6 py-8 md:px-8">{memorial}</div>
+					<div className="min-w-0 px-6 py-8 md:px-8">{attached}</div>
 
 					<SubmissionChecklistPanel
 						projectId={projectId}
@@ -173,26 +132,7 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 					/>
 				</div>
 			) : (
-				<div className="flex flex-1 flex-col gap-10 px-6 py-8 md:px-8">
-					<section
-						aria-labelledby="anexos-titulo"
-						className="flex flex-col gap-4"
-					>
-						<h2
-							id="anexos-titulo"
-							className="border-b-2 border-foreground pb-3 text-lg font-semibold text-foreground"
-						>
-							Documentos Anexados
-						</h2>
-						<ProjectDocuments
-							projectId={projectId}
-							documents={checklist?.documents}
-							onCreateFinding={registrar.onDocument}
-						/>
-					</section>
-
-					{memorial}
-				</div>
+				<div className="flex-1 px-6 py-8 md:px-8">{attached}</div>
 			)}
 		</div>
 	);
