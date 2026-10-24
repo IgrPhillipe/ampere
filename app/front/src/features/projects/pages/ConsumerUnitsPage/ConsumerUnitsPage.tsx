@@ -24,6 +24,7 @@ import {
 	ProjectBreadcrumb,
 	ProjectStamp,
 	ProjectStepper,
+	StageFindingsNotice,
 	StepFooter,
 	ValidationPanel,
 } from "../../components";
@@ -154,6 +155,15 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 				</div>
 
 				<ProjectStepper current={1} projectId={projectId} className="mt-6" />
+
+				<StageFindingsNotice
+					projectId={projectId}
+					findings={stageFindings}
+					references={Object.fromEntries(
+						groups.map((group) => [group.id, group.name]),
+					)}
+					className="mt-6"
+				/>
 
 				{hasError ? (
 					<div className="flex-1 px-6 py-8 md:px-8">

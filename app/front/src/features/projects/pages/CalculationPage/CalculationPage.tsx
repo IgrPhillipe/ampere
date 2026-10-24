@@ -19,6 +19,7 @@ import {
 	ProjectBreadcrumb,
 	ProjectStamp,
 	ProjectStepper,
+	StageFindingsNotice,
 	StepFooter,
 	TraceabilityPanel,
 } from "../../components";
@@ -117,6 +118,15 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 				</div>
 
 				<ProjectStepper current={2} projectId={projectId} className="mt-6" />
+
+				<StageFindingsNotice
+					projectId={projectId}
+					findings={stageFindings}
+					references={Object.fromEntries(
+						(result?.steps ?? []).map((step) => [step.code, step.title]),
+					)}
+					className="mt-6"
+				/>
 
 				{isBlocked ? (
 					<div className="flex-1 px-6 py-8 md:px-8">

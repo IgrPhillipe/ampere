@@ -23,6 +23,7 @@ export * from "./ProjectStatusFilters";
 export * from "./ProjectStepper";
 export * from "./ProjectsTable";
 export * from "./ResubmissionPanel";
+export * from "./StageFindingsNotice";
 export * from "./StepFooter";
 export * from "./SubmissionChecklistPanel";
 export * from "./TraceabilityPanel";

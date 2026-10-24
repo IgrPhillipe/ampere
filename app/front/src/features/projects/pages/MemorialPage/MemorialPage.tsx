@@ -23,6 +23,7 @@ import {
 	ProjectBreadcrumb,
 	ProjectStamp,
 	ProjectStepper,
+	StageFindingsNotice,
 	StepFooter,
 	SubmissionChecklistPanel,
 } from "../../components";
@@ -128,6 +129,15 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 				</div>
 
 				<ProjectStepper current={3} projectId={projectId} className="mt-6" />
+
+				<StageFindingsNotice
+					projectId={projectId}
+					findings={documentFindings}
+					references={Object.fromEntries(
+						(checklist?.items ?? []).map((item) => [item.key, item.label]),
+					)}
+					className="mt-6"
+				/>
 
 				{neverCalculated ? (
 					<div className="flex-1 px-6 py-8 md:px-8">

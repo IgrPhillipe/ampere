@@ -26,6 +26,7 @@ import {
 	ProjectBreadcrumb,
 	ProjectStamp,
 	ProjectStepper,
+	StageFindingsNotice,
 	StepFooter,
 } from "../../components";
 import { stageFindingsOf } from "../../constants";
@@ -233,6 +234,14 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 				</div>
 
 				<ProjectStepper current={0} projectId={projectId} className="mt-6" />
+
+				{projectId === undefined ? null : (
+					<StageFindingsNotice
+						projectId={projectId}
+						findings={stageFindings}
+						className="mt-6"
+					/>
+				)}
 
 				<div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_320px]">
 					<fieldset
