@@ -54,14 +54,14 @@ API em `http://localhost:8080/api`, documentação em `http://localhost:8080/api
 | `docker compose up -d db` | apenas o banco |
 | `./mvnw spring-boot:run` | roda a aplicação localmente |
 | `./mvnw spotless:apply` | formata o código; obrigatório antes do PR |
-| `./mvnw clean verify` | compila, checa a formatação e roda os testes; exige o PostgreSQL no ar |
+| `./mvnw clean verify` | compila, checa a formatação e roda os testes; exige o PostgreSQL no ar com o banco `ampere_test` |
 | `docker compose down -v` | derruba tudo e **apaga o volume do banco** |
 
 ---
 
 ## Autenticação
 
-`/api/projects` exige token. A cada inicialização, o `DataSeeder` cria os quatro usuários de desenvolvimento que ainda não existem (a checagem é por e-mail):
+`/api/projects` exige token. A cada inicialização fora dos profiles `prod` e `test`, o `DataSeeder` cria os quatro usuários de desenvolvimento que ainda não existem (a checagem é por e-mail):
 
 | E-mail | Senha | Papel |
 | :--- | :--- | :--- |
@@ -124,9 +124,12 @@ Restrita ao papel `admin` pelo `SecurityConfig`, sem prefixo de papel no caminho
 | :--- | :--- | :--- |
 | `search` | vazio | protocolo, projetista ou município, sem diferenciar maiúsculas ou acentos |
 | `filter` | `ALL` | `DUE_SOON` (vence hoje ou atrasado), `HIGH_DEMAND` (último cálculo acima de 50 kVA), `REANALYSIS` (dois ou mais envios) |
-| `sort` | `ASC` | `ASC` (prazo mais próximo primeiro) ou `DESC`; o empate é desfeito pelo ID crescente |
+| `sort` | `deadline` | `deadline` ou `submittedAt` (data de envio, que define o prazo), `demand` (último cálculo) ou `warnings` (alertas do último cálculo) |
+| `direction` | `ASC` | `ASC` ou `DESC`; o empate é desfeito pelo ID crescente |
+| `reviewer` | vazio | ID do analista, ou `none` para os projetos sem analista |
+| `state`, `municipality` | vazio | UFs e municípios; repita o parâmetro para mais de um |
 
-Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/indicators` devolve os contadores globais, que não dependem desses parâmetros.
+Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/indicators` devolve os contadores globais, que não dependem desses parâmetros. `GET /api/review-queue/reviewers` lista os analistas do filtro `reviewer`.
 
 ---
 
@@ -230,9 +233,9 @@ src/main/java/br/com/ampere/
 └── config/       → configuração e bootstrap
 ```
 
-A fatia `projects` cobre as quatro camadas: domínio, persistência, serviço e controller.
+Cada fatia (projetos, grupos, cálculo, envio, análise e tabelas normativas) cobre as quatro camadas: domínio, persistência, serviço e controller.
 
-São **cinco** classes de domínio persistidas, acima do mínimo de três da disciplina: `Project`, `BuildingType` (abstrata, com `ResidentialMultifamily`, `NonResidential` e `Mixed`), `Standard`, `Finding` e `User`. Cada subclasse sobrescreve `BuildingType.demandRules()`, que define a norma aplicável de cada projeto.
+São **nove** classes de domínio persistidas, acima do mínimo de três da disciplina: `Project`, `BuildingType` (abstrata, com `ResidentialMultifamily`, `NonResidential` e `Mixed`), `ConsumerUnitGroup` (abstrata, com `ResidentialGroup`, `LoadGroup` e `EvChargingGroup`), `Calculation`, `NormativeTable`, `ProjectDocument`, `Standard`, `Finding` e `User`. Cada subclasse de `BuildingType` sobrescreve `demandRules()`, que define a norma aplicável de cada projeto.
 
 ---
 
