@@ -161,6 +161,19 @@ describe("ProjectDetailPage", () => {
 		).not.toBeInTheDocument();
 	});
 
+	it("confirms the submission with the protocol", () => {
+		signInAs("user");
+		state.project = makeProjectDetail();
+		renderPage();
+
+		expect(screen.getByRole("status")).toHaveTextContent(
+			"Projeto enviado em 02/10/2026",
+		);
+		expect(screen.getByRole("status")).toHaveTextContent(
+			"Guarde o protocolo 2026-1004",
+		);
+	});
+
 	it("offers a retry when the findings fail to load", () => {
 		signInAs("user");
 		state.project = makeProjectDetail({ status: "REJECTED" });

@@ -2,6 +2,7 @@ import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
+import { formatDateTime } from "@features/shared";
 import {
 	calculationKeys,
 	useGetLatestCalculation,
@@ -25,7 +26,7 @@ import {
 } from "@services/submission";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { CircleAlert, Download, Send } from "lucide-react";
+import { Check, CircleAlert, Download, Send } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -243,11 +244,35 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 				/>
 			}
 			notices={
-				reanalysis && project?.changeSummary ? (
-					<ChangeSummaryNotice
-						version={project.reviewCycle}
-						summary={project.changeSummary}
-					/>
+				project?.status === "UNDER_REVIEW" ? (
+					<>
+						{submittedAt ? (
+							<p
+								role="status"
+								className="flex items-center gap-3 border-b border-border px-6 py-3 text-sm md:px-8"
+							>
+								<Check
+									aria-hidden="true"
+									className="size-4 shrink-0 text-primary"
+								/>
+								<span>
+									Projeto enviado em{" "}
+									<time dateTime={submittedAt}>
+										{formatDateTime(submittedAt)}
+									</time>
+									. Guarde o protocolo{" "}
+									<span className="font-mono">{project.protocol}</span> para
+									acompanhar a análise.
+								</span>
+							</p>
+						) : null}
+						{reanalysis && project.changeSummary ? (
+							<ChangeSummaryNotice
+								version={project.reviewCycle}
+								summary={project.changeSummary}
+							/>
+						) : null}
+					</>
 				) : null
 			}
 			footer={
