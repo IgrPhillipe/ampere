@@ -1,11 +1,14 @@
 import { Button } from "@components/ui/button";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
+import type { ProjectDocument } from "@services/submission";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, MessageSquareWarning } from "lucide-react";
+import { ArrowRight, Eye, MessageSquareWarning } from "lucide-react";
+import { useState } from "react";
 
 import { findingTarget } from "../../constants";
 import { FindingAnswer, FindingSummary } from "../FindingDetails";
+import { DocumentDialog } from "../ProjectDocuments";
 
 interface StageFindingsNoticeProps {
 	projectId: string;
@@ -13,6 +16,8 @@ interface StageFindingsNoticeProps {
 	findings: Finding[];
 	/** Names of the items the findings point to, by id or code. */
 	references?: Record<string, string>;
+	/** Attached files, so a finding on a document opens it. */
+	documents?: ProjectDocument[];
 	className?: string;
 }
 
@@ -28,13 +33,19 @@ const referenceOf = (
 	return key ? (references[key] ?? key) : null;
 };
 
+const documentOf = (finding: Finding, documents: ProjectDocument[]) =>
+	documents.find((document) => document.type === finding.documentType);
+
 /** What the analyst asked for in this step, read where the designer fixes it. */
 export const StageFindingsNotice = ({
 	projectId,
 	findings,
 	references,
+	documents = [],
 	className,
 }: StageFindingsNoticeProps) => {
+	const [viewing, setViewing] = useState<ProjectDocument>();
+
 	if (findings.length === 0) return null;
 
 	const hash = typeof window === "undefined" ? "" : window.location.hash;
@@ -57,14 +68,6 @@ export const StageFindingsNotice = ({
 						? "Apontamento Nesta Etapa"
 						: `${findings.length} Apontamentos Nesta Etapa`}
 				</h2>
-				<Button
-					variant="outline"
-					size="xs"
-					render={<Link to="/projetos/$id" params={{ id: projectId }} />}
-				>
-					Responder no Projeto
-					<ArrowRight aria-hidden="true" />
-				</Button>
 			</div>
 
 			<ul className="flex flex-col">
@@ -91,10 +94,42 @@ export const StageFindingsNotice = ({
 								text={finding.response}
 								respondedAt={finding.respondedAt}
 							/>
+							<div className="flex flex-wrap gap-2">
+								{documentOf(finding, documents) ? (
+									<Button
+										type="button"
+										variant="outline"
+										size="xs"
+										onClick={() => setViewing(documentOf(finding, documents))}
+									>
+										<Eye aria-hidden="true" />
+										Ver Documento
+									</Button>
+								) : null}
+								<Button
+									size="xs"
+									render={
+										<Link
+											to="/projetos/$id"
+											params={{ id: projectId }}
+											hash={`apontamento-${finding.id}`}
+										/>
+									}
+								>
+									Corrigir ou Contestar
+									<ArrowRight aria-hidden="true" />
+								</Button>
+							</div>
 						</li>
 					);
 				})}
 			</ul>
+
+			<DocumentDialog
+				projectId={projectId}
+				document={viewing}
+				onClose={() => setViewing(undefined)}
+			/>
 		</section>
 	);
 };

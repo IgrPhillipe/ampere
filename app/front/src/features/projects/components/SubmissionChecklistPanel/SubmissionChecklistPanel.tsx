@@ -9,15 +9,17 @@ import type {
 	ProjectDocument,
 	SubmissionChecklist,
 } from "@services/submission";
-import { Check, Paperclip, TriangleAlert, X } from "lucide-react";
-import { type ChangeEvent, useRef } from "react";
+import { Check, Eye, Paperclip, TriangleAlert, X } from "lucide-react";
+import { type ChangeEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { FindingBadge } from "../FindingBadge";
+import { DocumentDialog } from "../ProjectDocuments";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 interface SubmissionChecklistPanelProps {
+	projectId: string;
 	checklist?: SubmissionChecklist;
 	isLoading?: boolean;
 	findings?: Finding[];
@@ -46,6 +48,7 @@ interface ItemProps {
 	findings: Finding[];
 	onUpload: (type: DocumentType, file: File) => void;
 	onRemove: (document: ProjectDocument) => void;
+	onView: (document: ProjectDocument) => void;
 }
 
 const Item = ({
@@ -57,6 +60,7 @@ const Item = ({
 	findings,
 	onUpload,
 	onRemove,
+	onView,
 }: ItemProps) => {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const type = item.key === "CALCULATION" ? undefined : item.key;
@@ -121,8 +125,33 @@ const Item = ({
 				)}
 			</div>
 
+			{document && !editable ? (
+				<Button
+					type="button"
+					variant="ghost"
+					size="xs"
+					aria-label={`Ver ${item.label}`}
+					onClick={() => onView(document)}
+				>
+					<Eye aria-hidden="true" />
+					Ver
+				</Button>
+			) : null}
+
 			{type && editable ? (
 				<div className="flex shrink-0 items-center gap-1">
+					{document ? (
+						<Button
+							type="button"
+							variant="ghost"
+							size="xs"
+							aria-label={`Ver ${item.label}`}
+							onClick={() => onView(document)}
+						>
+							<Eye aria-hidden="true" />
+							Ver
+						</Button>
+					) : null}
 					<input
 						ref={inputRef}
 						type="file"
@@ -162,6 +191,7 @@ const Item = ({
 };
 
 export const SubmissionChecklistPanel = ({
+	projectId,
 	checklist,
 	isLoading = false,
 	findings = [],
@@ -172,6 +202,7 @@ export const SubmissionChecklistPanel = ({
 	onRemove,
 	className,
 }: SubmissionChecklistPanelProps) => {
+	const [viewing, setViewing] = useState<ProjectDocument>();
 	const done = checklist?.items.filter((item) => item.completed).length ?? 0;
 	const total = checklist?.items.length ?? 0;
 
@@ -239,6 +270,7 @@ export const SubmissionChecklistPanel = ({
 									)}
 									onUpload={onUpload}
 									onRemove={onRemove}
+									onView={setViewing}
 								/>
 							);
 						})}
@@ -255,6 +287,12 @@ export const SubmissionChecklistPanel = ({
 					unifilar e planta de situação.
 				</p>
 			</div>
+
+			<DocumentDialog
+				projectId={projectId}
+				document={viewing}
+				onClose={() => setViewing(undefined)}
+			/>
 		</aside>
 	);
 };

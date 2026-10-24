@@ -133,6 +133,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 				<StageFindingsNotice
 					projectId={projectId}
 					findings={documentFindings}
+					documents={checklist?.documents}
 					references={Object.fromEntries(
 						(checklist?.items ?? []).map((item) => [item.key, item.label]),
 					)}
@@ -199,6 +200,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 						/>
 
 						<SubmissionChecklistPanel
+							projectId={projectId}
 							checklist={checklist}
 							findings={documentFindings}
 							isLoading={submissionQuery.isPending}

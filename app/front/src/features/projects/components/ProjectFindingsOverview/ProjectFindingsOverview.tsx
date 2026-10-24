@@ -88,7 +88,10 @@ export const ProjectFindingsOverview = ({
 	const opinion = hasOpinion(project.status)
 		? opinionStyles[project.status]
 		: undefined;
-	const [openedId, setOpenedId] = useState<string | null>(null);
+	// A step links here with the finding in the hash, to answer it at once.
+	const [openedId, setOpenedId] = useState<string | null>(
+		() => window.location.hash.match(/^#apontamento-(\d+)$/)?.[1] ?? null,
+	);
 	const opened = findings?.find((finding) => finding.id === openedId);
 	const referenceOf = (finding: Finding) =>
 		describeFindingReference(finding, referenceOptions);
