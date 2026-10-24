@@ -84,7 +84,10 @@ export const ControlledSelect = <T extends FieldValues>({
 								className={className}
 								aria-required={required || undefined}
 							>
-								<SelectValue placeholder={placeholder} />
+								<SelectValue
+									placeholder={placeholder}
+									className="min-w-0 truncate"
+								/>
 							</SelectTrigger>
 						}
 						name={field.name}
