@@ -12,6 +12,7 @@ import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.AuthService;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -382,11 +383,34 @@ class UserAdministrationIntegrationTest {
 
   @Test
   void keepsTheAdministratorFromDroppingTheirOwnRole() throws Exception {
+    String adminToken = token("admin@ampere.com", PASSWORD);
+    for (String role : List.of("user", "reviewer")) {
+      mockMvc
+          .perform(
+              authorized(put("/users/" + admin.getId()), adminToken)
+                  .content("{\"name\":\"Admin Teste\",\"role\":\"" + role + "\",\"active\":true}"))
+          .andExpect(status().isBadRequest())
+          .andExpect(
+              jsonPath("$.detail")
+                  .value("Você não pode remover o próprio papel de administrador."));
+    }
+  }
+
+  @Test
+  void movesADesignerToTheAnalystRoleAndFiltersByIt() throws Exception {
+    String adminToken = token("admin@ampere.com", PASSWORD);
+
     mockMvc
         .perform(
-            authorized(put("/users/" + admin.getId()), token("admin@ampere.com", PASSWORD))
-                .content("{\"name\":\"Admin Teste\",\"role\":\"user\",\"active\":true}"))
-        .andExpect(status().isBadRequest());
+            authorized(put("/users/" + designer.getId()), adminToken)
+                .content("{\"name\":\"João Projetista\",\"role\":\"reviewer\",\"active\":true}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.role").value("reviewer"));
+    mockMvc
+        .perform(authorized(get("/users").param("role", "reviewer"), adminToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].email").value("joao@ampere.com"));
   }
 
   @Test
