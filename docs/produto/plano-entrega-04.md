@@ -12,7 +12,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | Sprint 4 | 04/10 a 18/10 | Preparação da Entrega 03 e início do desenvolvimento | README, screencasts, monitor e retro da Entrega 03. US07, US20, restrição por dono e telas no Figma | Entrega 03 e Entrega 04 |
 | Sprint 5 | 19/10 a 25/10 | Desenvolvimento | US09 e US18 | Entrega 04 |
-| Sprint 6 | 26/10 a 01/11 | Desenvolvimento. **Code freeze em 01/11** | US08 e US12. Front da US10 e da US11, #178 e telas do SR2 no Figma | Entrega 04 e Status Report 2 |
+| Sprint 6 | 26/10 a 01/11 | Desenvolvimento. **Code freeze em 01/11** | US08 e US12. Front da US10 e da US11, `AT04-US11` e telas do SR2 no Figma | Entrega 04 e Status Report 2 |
 | Sprint 7 | 02/11 a 08/11 | Preparação da Entrega 04 e início do SR2 | Monitor, cliente, POST-IT, print, screencasts, avaliação individual e ensaio da apresentação. US16 e back da US13, US14, US19 e US23 | Entrega 04 e Status Report 2 |
 | Sprint 8 | 09/11 a 15/11 | Desenvolvimento | Front da US13, US14 e US23. Back da US15, US17 e US24 | Status Report 2 |
 | Sprint 9 | 16/11 a 22/11 | Desenvolvimento. **Code freeze em 22/11** | Front da US15, US17, US19 e US24. Ajustes da validação com o cliente | Status Report 2 |
@@ -330,7 +330,7 @@ Cada história tem a issue épica, a tarefa de back e a tarefa de front, nessa o
 | História | Back-end | Front-end |
 | :--- | :--- | :--- |
 | US10: Cadastro e Perfil do Projetista (#118) | Entregue. `AT01-US10`: `POST /api/auth/register`, CREA e empresa em `User`, `GET` e `PUT /api/users/me`, troca de senha, responsável técnico no memorial | **Sprint 6.** `AT02-US10`: telas "Criar Conta" e "Meu Perfil", responsável técnico no carimbo |
-| US11: Gestão de Usuários (#121) | Entregue. `AT01-US11`: CRUD em `/api/users`, situação ativa, senha temporária com troca obrigatória, bloqueio de conta inativa no filtro do JWT | **Sprint 6.** `AT02-US11`: tela "Usuários" e troca obrigatória de senha no login |
+| US11: Gestão de Usuários (#121) | Entregue. `AT01-US11`: CRUD em `/api/users`, situação ativa, senha temporária com troca obrigatória, bloqueio de conta inativa no filtro do JWT | **Sprint 6.** `AT02-US11`: tela "Usuários" e troca obrigatória de senha no login. `AT04-US11` (#178): projetista do projeto criado pelo administrador |
 | US16: Painel do Projetista (#133) | **Sprint 7.** `AT01-US16`: `GET /api/dashboard/designer?period=` | **Sprint 7.** `AT02-US16`: tela "Painel" como inicial do projetista |
 | US13: Versão Congelada do Envio (#124) | **Sprint 7.** `AT01-US13`: entidade `ProjectVersion` com memorial, cálculo e documentos, `GET /api/projects/{id}/versions` e `GET .../versions/{n}/memorial`, comparativo | **Sprint 8.** `AT02-US13`: versões e "Comparar Versões" na seção "Histórico" |
 | US14: Notificações no Sistema (#127) | **Sprint 7.** `AT01-US14`: entidade `Notification`, geração nos eventos da US07, US09 e US15, `GET /api/notifications` e marcação de leitura | **Sprint 8.** `AT02-US14`: contador no sino e painel de notificações dos dois perfis |
@@ -339,8 +339,6 @@ Cada história tem a issue épica, a tarefa de back e a tarefa de front, nessa o
 | US15: Prazos de Análise e Validade da Aprovação (#130) | **Sprint 8.** `AT01-US15`: suspensão e retomada do prazo, status `EXPIRED` após 36 meses, job diário | **Sprint 9.** `AT02-US15`: prazo, dias suspensos e validade na fila e no painel do projeto |
 | US17: Painel do Analista (#136) | **Sprint 8.** `AT01-US17`: `GET /api/dashboard/review?period=` e `GET /api/review-queue/mine` | **Sprint 9.** `AT02-US17`: telas "Indicadores" e "Meus Pareceres" |
 | US24: Painel do Administrador (#192) | **Sprint 8.** `AT01-US24`: `GET /api/dashboard/admin` e filtros de situação em `GET /api/users` | **Sprint 9.** `AT02-US24`: tela "Painel" como inicial do administrador |
-
-A #178 (administrador escolhe o projetista na criação do projeto) entra na Sprint 6, no milestone Status Report 2.
 
 ---
 
