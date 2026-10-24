@@ -49,7 +49,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-/** US06: the analyst's queue, ordered by deadline, with the warnings of the latest calculation. */
+/** US06/US18: the analyst's queue, ordered and filtered. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -83,6 +83,8 @@ class ReviewQueueIntegrationTest {
 
   private User owner;
 
+  private User admin;
+
   @BeforeEach
   void seed() {
     calculationRepository.deleteAll();
@@ -102,7 +104,7 @@ class ReviewQueueIntegrationTest {
     String hash = passwordEncoder.encode(PASSWORD);
     owner =
         userRepository.save(new User("João Projetista", "user@ampere.com", hash, UserRole.USER));
-    userRepository.save(new User("Admin", "admin@ampere.com", hash, UserRole.ADMIN));
+    admin = userRepository.save(new User("Admin Teste", "admin@ampere.com", hash, UserRole.ADMIN));
     now = OffsetDateTime.now(ZoneOffset.UTC);
   }
 
@@ -149,7 +151,7 @@ class ReviewQueueIntegrationTest {
     submitted("2026-4002", now.minusDays(40));
     submitted("2026-4003", now.minusDays(30));
 
-    asAnalyst(get("/review-queue").param("sort", "desc"))
+    asAnalyst(get("/review-queue").param("direction", "DESC"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(3)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4001"))
@@ -163,11 +165,11 @@ class ReviewQueueIntegrationTest {
     submitted("2026-4302", sharedSubmission);
     submitted("2026-4301", sharedSubmission);
 
-    asAnalyst(get("/review-queue").param("sort", "ASC"))
+    asAnalyst(get("/review-queue").param("direction", "ASC"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4302"))
         .andExpect(jsonPath("$.data[1].protocol").value("2026-4301"));
-    asAnalyst(get("/review-queue").param("sort", "DESC"))
+    asAnalyst(get("/review-queue").param("direction", "DESC"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4302"))
         .andExpect(jsonPath("$.data[1].protocol").value("2026-4301"));
@@ -183,7 +185,7 @@ class ReviewQueueIntegrationTest {
             get("/review-queue")
                 .param("search", "joao")
                 .param("filter", "DUE_SOON")
-                .param("sort", "DESC")
+                .param("direction", "DESC")
                 .param("pageSize", "1")
                 .param("page", "2"))
         .andExpect(status().isOk())
@@ -292,8 +294,148 @@ class ReviewQueueIntegrationTest {
   void rejectsAnUnknownQueueSort() throws Exception {
     asAnalyst(get("/review-queue").param("sort", "oldest_first"))
         .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("DEADLINE")))
+        .andExpect(
+            jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("SUBMITTED_AT")));
+  }
+
+  @Test
+  void rejectsLegacyDirectionInSortParameter() throws Exception {
+    asAnalyst(get("/review-queue").param("sort", "ASC")).andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void rejectsAnUnknownQueueDirection() throws Exception {
+    asAnalyst(get("/review-queue").param("direction", "oldest_first"))
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("ASC")))
         .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("DESC")));
+  }
+
+  @Test
+  void listsReviewersSortedForAdminAndRefusesForNonAdmin() throws Exception {
+    String hash = passwordEncoder.encode(PASSWORD);
+    userRepository.save(new User("Revisor Beta", "beta@ampere.com", hash, UserRole.ADMIN));
+
+    asAnalyst(get("/review-queue/reviewers"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(2)))
+        .andExpect(jsonPath("$.data[0].name").value("Admin Teste"))
+        .andExpect(jsonPath("$.data[0].id").value(String.valueOf(admin.getId())))
+        .andExpect(jsonPath("$.data[1].name").value("Revisor Beta"));
+
+    mockMvc
+        .perform(
+            get("/review-queue/reviewers")
+                .header("Authorization", "Bearer " + token("user@ampere.com")))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void ordersByTheLatestDemandWarningsAndSubmission() throws Exception {
+    Project small = projectRepository.save(project("2026-6001", ProjectStatus.DRAFT));
+    groupRepository.save(apartments(small, "Apartamento único", 2, "40"));
+    calculate(small);
+    small.submit(now.minusDays(5));
+    Project large = projectRepository.save(project("2026-6002", ProjectStatus.DRAFT));
+    addPrototypeGroups(large);
+    calculate(large);
+    large.submit(now.minusDays(4));
+
+    asAnalyst(get("/review-queue"))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-6001"))
+        .andExpect(jsonPath("$.data[1].protocol").value("2026-6002"));
+    asAnalyst(get("/review-queue").param("sort", "demand").param("direction", "DESC"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-6002"))
+        .andExpect(jsonPath("$.data[1].protocol").value("2026-6001"));
+    asAnalyst(get("/review-queue").param("sort", "warnings").param("direction", "DESC"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].warnings").value(1))
+        .andExpect(jsonPath("$.data[1].warnings").value(0));
+    asAnalyst(get("/review-queue").param("sort", "submittedAt").param("direction", "DESC"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-6002"))
+        .andExpect(jsonPath("$.data[1].protocol").value("2026-6001"));
+  }
+
+  @Test
+  void filtersQueueByMunicipalityAndReviewer() throws Exception {
+    Project p1 = project("2026-7001", ProjectStatus.DRAFT);
+    p1.rename("Projeto Recife", "Rua 1", "Recife");
+    p1.submit(now.minusDays(5));
+    p1.assignReviewer(admin);
+    projectRepository.save(p1);
+
+    Project p2 = project("2026-7002", ProjectStatus.DRAFT);
+    p2.rename("Projeto Olinda", "Rua 2", "Olinda");
+    p2.submit(now.minusDays(3));
+    projectRepository.save(p2);
+
+    asAnalyst(get("/review-queue").param("municipality", "recife"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-7001"));
+
+    asAnalyst(get("/review-queue").param("reviewer", String.valueOf(admin.getId())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-7001"));
+
+    asAnalyst(get("/review-queue").param("reviewer", "none"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-7002"));
+  }
+
+  @Test
+  void rejectsInvalidReviewer() throws Exception {
+    asAnalyst(get("/review-queue").param("reviewer", "invalido"))
+        .andExpect(status().isBadRequest());
+
+    asAnalyst(get("/review-queue").param("reviewer", "999999")).andExpect(status().isBadRequest());
+
+    asAnalyst(get("/review-queue").param("reviewer", String.valueOf(owner.getId())))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void combinesMunicipalityReanalysisAndDemandSort() throws Exception {
+    Project r1 = projectRepository.save(project("2026-8001", ProjectStatus.DRAFT));
+    r1.rename("Reanálise Maior Demanda", "Rua A", "Recife");
+    addPrototypeGroups(r1);
+    calculate(r1);
+    r1.submit(now.minusDays(40));
+    r1.reject(now.minusDays(10));
+    r1.submit(now.minusDays(5));
+    projectRepository.save(r1);
+
+    Project r2 = projectRepository.save(project("2026-8002", ProjectStatus.DRAFT));
+    r2.rename("Reanálise Menor Demanda", "Rua B", "Recife");
+    groupRepository.save(apartments(r2, "Apartamento único", 2, "40"));
+    calculate(r2);
+    r2.submit(now.minusDays(30));
+    r2.reject(now.minusDays(5));
+    r2.submit(now.minusDays(2));
+    projectRepository.save(r2);
+
+    Project olinda = project("2026-8003", ProjectStatus.DRAFT);
+    olinda.rename("Outro Município", "Rua C", "Olinda");
+    olinda.submit(now.minusDays(20));
+    olinda.reject(now.minusDays(4));
+    olinda.submit(now.minusDays(1));
+    projectRepository.save(olinda);
+
+    asAnalyst(
+            get("/review-queue")
+                .param("municipality", "Recife")
+                .param("filter", "REANALYSIS")
+                .param("sort", "demand")
+                .param("direction", "DESC"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(2)))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-8001"))
+        .andExpect(jsonPath("$.data[1].protocol").value("2026-8002"));
   }
 
   @Test

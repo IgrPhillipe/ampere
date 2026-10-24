@@ -39,4 +39,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
       @Param("role") UserRole role, @Param("search") String search, Pageable pageable);
 
   List<User> findAllBySearchIndex(String searchIndex);
+
+  List<User> findAllByRoleOrderByNameAsc(UserRole role);
 }
