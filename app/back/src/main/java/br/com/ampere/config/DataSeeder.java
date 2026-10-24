@@ -114,6 +114,7 @@ public class DataSeeder implements CommandLineRunner {
     User owner = developmentUser(inserted, "user@ampere.com");
     assignOwnerToLegacyProjects(owner);
     startReviewCycleOfLegacySubmissions();
+    dateLegacySubmissions();
     List<Standard> standards = seedStandards();
     seedDevelopmentData(standards, owner, developmentUser(inserted, REVIEWER_EMAIL));
     seedGroups();
@@ -146,6 +147,14 @@ public class DataSeeder implements CommandLineRunner {
     int updated = projectRepository.startReviewCycleOfLegacySubmissions();
     if (updated > 0) {
       log.info("DataSeeder: review cycle started for {} legacy projects.", updated);
+    }
+  }
+
+  /** Submitted before the date was recorded: the creation date stands in, so the queue has one. */
+  private void dateLegacySubmissions() {
+    int updated = projectRepository.dateLegacySubmissions();
+    if (updated > 0) {
+      log.info("DataSeeder: submission date filled for {} legacy projects.", updated);
     }
   }
 

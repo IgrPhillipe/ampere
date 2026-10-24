@@ -324,6 +324,20 @@ class DataSeederTest {
   }
 
   @Test
+  void datesTheLegacySubmissionsOnEveryStart() {
+    ProjectRepository projectRepository = projectRepositoryWithProjects();
+
+    seeder(
+            projectRepository,
+            mock(FindingRepository.class),
+            seededStandards(),
+            mock(UserRepository.class))
+        .run();
+
+    verify(projectRepository).dateLegacySubmissions();
+  }
+
+  @Test
   void assignsTheDefaultDesignerToLegacyProjectsWithoutAnOwner() {
     ProjectRepository projectRepository = projectRepositoryWithProjects();
     Project legacyProject = mock(Project.class);
