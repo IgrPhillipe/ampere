@@ -24,7 +24,7 @@ import {
 	TraceabilityPanel,
 } from "../../components";
 import { stageFindingsOf } from "../../constants";
-import { useProjectPermissions } from "../../hooks";
+import { useProjectPermissions, useStepAccess } from "../../hooks";
 
 interface CalculationPageProps {
 	projectId: string;
@@ -36,6 +36,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 	const projectQuery = useGetProject(projectId);
 	const validationQuery = useGetConsumerUnitGroupValidation(projectId);
 	const project = projectQuery.data?.data;
+	useStepAccess(projectId, project, "calculo");
 	const findingsQuery = useGetFindingList(projectId, {
 		enabled: project?.status === "REJECTED",
 	});

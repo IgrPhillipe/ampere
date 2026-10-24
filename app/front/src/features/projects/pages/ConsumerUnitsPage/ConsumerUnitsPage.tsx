@@ -29,7 +29,7 @@ import {
 	ValidationPanel,
 } from "../../components";
 import { GROUP_USAGE_TYPES, stageFindingsOf } from "../../constants";
-import { useProjectPermissions } from "../../hooks";
+import { useProjectPermissions, useStepAccess } from "../../hooks";
 import { type NewGroupFormValues, newGroupSchema } from "../../schemas";
 
 const pendingCounterId = "unidades-pendencias";
@@ -67,6 +67,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 	// `form.watch` is memoized by the React Compiler.
 	const usageType = useWatch({ control: form.control, name: "usageType" });
 	const project = projectQuery.data?.data;
+	useStepAccess(projectId, project, "unidades");
 	const findingsQuery = useGetFindingList(projectId, {
 		enabled: project?.status === "REJECTED",
 	});

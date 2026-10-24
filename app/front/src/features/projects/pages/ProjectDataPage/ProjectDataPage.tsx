@@ -30,7 +30,7 @@ import {
 	StepFooter,
 } from "../../components";
 import { stageFindingsOf } from "../../constants";
-import { useProjectPermissions } from "../../hooks";
+import { useProjectPermissions, useStepAccess } from "../../hooks";
 import {
 	type ProjectCreationFormValues,
 	projectCreationSchema,
@@ -121,6 +121,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 		enabled: projectId !== undefined,
 	});
 	const project = projectQuery.data?.data;
+	useStepAccess(projectId, project, "dados");
 	const findingsQuery = useGetFindingList(projectId ?? "", {
 		enabled: project?.status === "REJECTED",
 	});

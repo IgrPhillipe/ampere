@@ -11,7 +11,7 @@ export interface ProjectPermissions {
 	isOwner: boolean;
 }
 
-interface PermissionTarget {
+export interface PermissionTarget {
 	status: ProjectStatus;
 	ownerId?: string | null;
 }
