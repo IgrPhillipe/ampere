@@ -41,6 +41,7 @@ import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.parser.PdfTextExtractor;
+import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
@@ -72,6 +73,8 @@ class SubmissionIntegrationTest {
   private static final byte[] PDF = "%PDF-1.7\n%conteúdo".getBytes(StandardCharsets.UTF_8);
 
   @Autowired private MockMvc mockMvc;
+
+  @Autowired private EntityManager entityManager;
 
   @Autowired private ObjectMapper objectMapper;
 
@@ -288,6 +291,15 @@ class SubmissionIntegrationTest {
 
     assertThat(new PdfTextExtractor(new PdfReader(body)).getTextFromPage(1))
         .containsSubsequence("Responsável técnico", "Usuário Teste", "CREA", "123456/PE");
+  }
+
+  @Test
+  void theMemorialAcceptsTheDataReadBackWithTheDatabaseScale() throws Exception {
+    Project project = calculatedDraft();
+    entityManager.flush();
+    entityManager.clear();
+
+    perform(get(memorialOf(project))).andExpect(status().isOk());
   }
 
   @Test
