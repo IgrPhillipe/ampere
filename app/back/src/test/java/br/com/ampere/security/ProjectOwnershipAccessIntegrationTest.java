@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -302,6 +304,34 @@ class ProjectOwnershipAccessIntegrationTest {
         .perform(get("/projects/owners").header("Authorization", bearer("ana@ampere.com")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data[*].name").value(contains("Ana Projetista")));
+    // Both designers have a submitted project, so the analyst reaches both.
+    mockMvc
+        .perform(get("/projects/owners").header("Authorization", bearer("revisor@ampere.com")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[*].name").value(contains("Ana Projetista", "Beto Projetista")));
+  }
+
+  @Test
+  void analystCannotAnswerFindingsOrUploadDocuments() throws Exception {
+    String analyst = bearer("revisor@ampere.com");
+    String base = "/projects/" + firstSubmitted.getId();
+
+    mockMvc
+        .perform(
+            put(base + "/findings/1/response")
+                .header("Authorization", analyst)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\":\"FIXED\"}"))
+        .andExpect(status().isForbidden());
+    mockMvc
+        .perform(
+            multipart(base + "/documents")
+                .file(
+                    new MockMultipartFile(
+                        "file", "art.pdf", "application/pdf", "%PDF-1.4".getBytes()))
+                .param("type", "ART")
+                .header("Authorization", analyst))
+        .andExpect(status().isForbidden());
   }
 
   @Test
