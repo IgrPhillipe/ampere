@@ -1,5 +1,6 @@
 package br.com.ampere.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -32,6 +33,8 @@ import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -207,9 +210,8 @@ class DemandCalculationIntegrationTest {
   void recalculatesDemandForARejectedProjectKeepingItsStatus() throws Exception {
     publishTables();
     Project project = draftWithPrototypeGroups(true);
-    project.submit(java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC).minusDays(5));
-    project.reject(
-        java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC), "Rever fator de demanda.");
+    project.submit(OffsetDateTime.now(ZoneOffset.UTC).minusDays(5));
+    project.reject(OffsetDateTime.now(ZoneOffset.UTC), "Rever fator de demanda.");
     projectRepository.flush();
 
     mockMvc
@@ -217,8 +219,7 @@ class DemandCalculationIntegrationTest {
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.data.totals.finalKva").value(165.00));
 
-    org.assertj.core.api.Assertions.assertThat(
-            projectRepository.findById(project.getId()).orElseThrow().getStatus())
+    assertThat(projectRepository.findById(project.getId()).orElseThrow().getStatus())
         .isEqualTo(ProjectStatus.REJECTED);
   }
 

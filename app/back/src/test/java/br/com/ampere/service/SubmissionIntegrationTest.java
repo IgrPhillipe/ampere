@@ -43,6 +43,8 @@ import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.parser.PdfTextExtractor;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -313,9 +315,7 @@ class SubmissionIntegrationTest {
         .andExpect(jsonPath("$.data.changeSummary").doesNotExist());
 
     project.assignReviewer(analyst);
-    project.reject(
-        java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC),
-        "Corrija a ART e a área do apartamento.");
+    project.reject(OffsetDateTime.now(ZoneOffset.UTC), "Corrija a ART e a área do apartamento.");
     projectRepository.flush();
 
     Finding firstBlocking =
