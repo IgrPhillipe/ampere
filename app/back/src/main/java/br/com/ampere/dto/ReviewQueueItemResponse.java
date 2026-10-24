@@ -1,5 +1,6 @@
 package br.com.ampere.dto;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.service.ReviewQueueEntry;
@@ -15,6 +16,7 @@ public record ReviewQueueItemResponse(
     String name,
     String protocol,
     String municipality,
+    BrazilianState state,
     OffsetDateTime submittedAt,
     LocalDate deadline,
     DeadlineStatus deadlineStatus,
@@ -36,6 +38,7 @@ public record ReviewQueueItemResponse(
         project.getName(),
         project.getProtocol(),
         project.getMunicipality(),
+        project.getState(),
         project.getSubmittedAt(),
         entry.deadline(),
         entry.deadlineStatus(),

@@ -46,6 +46,14 @@ public class Project {
   @Column(nullable = false)
   private String municipality;
 
+  // Projects created before the address came from the CEP are all in the Pernambuco concession.
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, columnDefinition = "varchar(2) default 'PE'")
+  private BrazilianState state = BrazilianState.PE;
+
+  @Column(length = 8)
+  private String postalCode;
+
   @Column(nullable = false, unique = true)
   private String protocol;
 
@@ -193,6 +201,11 @@ public class Project {
     this.municipality = municipality;
   }
 
+  public void locate(String postalCode, BrazilianState state) {
+    this.postalCode = postalCode;
+    this.state = Objects.requireNonNull(state, "state");
+  }
+
   public void changeBuildingType(BuildingType buildingType) {
     this.buildingType = Objects.requireNonNull(buildingType, "buildingType");
   }
@@ -302,6 +315,18 @@ public class Project {
 
   public String getMunicipality() {
     return municipality;
+  }
+
+  public BrazilianState getState() {
+    return state;
+  }
+
+  public String getPostalCode() {
+    return postalCode;
+  }
+
+  public String formattedPostalCode() {
+    return postalCode == null ? null : postalCode.substring(0, 5) + "-" + postalCode.substring(5);
   }
 
   public String getProtocol() {

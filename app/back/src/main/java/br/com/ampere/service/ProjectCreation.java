@@ -50,6 +50,7 @@ public class ProjectCreation {
             buildingType,
             applicableStandards.of(buildingType),
             owner);
+    project.locate(parameters.postalCode(), parameters.state());
 
     return projectRepository.saveAndFlush(project);
   }

@@ -1,5 +1,6 @@
 package br.com.ampere.service;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.ReviewQueueFilter;
 import br.com.ampere.domain.ReviewQueueSort;
 import br.com.ampere.domain.SortDirection;
@@ -11,4 +12,5 @@ public record ReviewQueueQuery(
     ReviewQueueSort sort,
     SortDirection direction,
     String reviewer,
+    BrazilianState state,
     String municipality) {}

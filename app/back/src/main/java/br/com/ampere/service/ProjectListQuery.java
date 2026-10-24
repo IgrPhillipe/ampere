@@ -1,5 +1,6 @@
 package br.com.ampere.service;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
@@ -12,6 +13,7 @@ public record ProjectListQuery(
     String search,
     ProjectSort sort,
     SortDirection direction,
+    BrazilianState state,
     String municipality,
     LocalDate createdFrom,
     LocalDate createdTo,

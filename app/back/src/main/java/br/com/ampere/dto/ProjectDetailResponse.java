@@ -1,5 +1,6 @@
 package br.com.ampere.dto;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.ConnectionType;
@@ -20,6 +21,8 @@ public record ProjectDetailResponse(
     String name,
     String address,
     String municipality,
+    BrazilianState state,
+    String postalCode,
     String protocol,
     ProjectStatus status,
     OffsetDateTime createdAt,
@@ -50,6 +53,8 @@ public record ProjectDetailResponse(
         project.getName(),
         project.getAddress(),
         project.getMunicipality(),
+        project.getState(),
+        project.getPostalCode(),
         project.getProtocol(),
         project.getStatus(),
         project.getCreatedAt(),

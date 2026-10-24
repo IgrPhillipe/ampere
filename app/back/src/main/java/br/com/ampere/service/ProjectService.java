@@ -1,5 +1,6 @@
 package br.com.ampere.service;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
@@ -87,6 +88,7 @@ public class ProjectService {
                 user.isAdmin(),
                 query.status(),
                 SearchTerms.normalize(query.search()),
+                query.state(),
                 query.municipality(),
                 startOf(query.createdFrom()),
                 query.createdTo() == null ? null : startOf(query.createdTo().plusDays(1)),
@@ -106,12 +108,17 @@ public class ProjectService {
   }
 
   @Transactional(readOnly = true)
-  public List<String> listMunicipalities(AuthenticatedUser user) {
+  public List<BrazilianState> listStates(AuthenticatedUser user) {
+    return projectRepository.findAccessibleStates(user.id(), user.isAdmin());
+  }
+
+  @Transactional(readOnly = true)
+  public List<String> listMunicipalities(BrazilianState state, AuthenticatedUser user) {
     // Spellings differing only in case collapse into the first in code point order.
     Collator collator = Collator.getInstance(Locale.of("pt", "BR"));
     collator.setStrength(Collator.SECONDARY);
     Map<String, String> unique = new TreeMap<>(collator);
-    projectRepository.findAccessibleMunicipalities(user.id(), user.isAdmin()).stream()
+    projectRepository.findAccessibleMunicipalities(user.id(), user.isAdmin(), state).stream()
         .map(String::trim)
         .forEach(municipality -> unique.merge(municipality, municipality, ProjectService::first));
 
@@ -161,6 +168,7 @@ public class ProjectService {
     BuildingType buildingType = parameters.toBuildingType();
 
     project.rename(parameters.name(), parameters.address(), parameters.municipality());
+    project.locate(parameters.postalCode(), parameters.state());
     project.changeBuildingType(buildingType);
     project.applyStandards(applicableStandards.of(buildingType));
 

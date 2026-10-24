@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.ampere.config.EnumParameterConfig;
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.OpenFindingsFilter;
@@ -109,6 +110,7 @@ class ProjectControllerTest {
             null,
             ProjectSort.CREATED_AT,
             SortDirection.ASC,
+            null,
             "Recife",
             LocalDate.of(2026, 10, 1),
             LocalDate.of(2026, 10, 10),
@@ -147,9 +149,48 @@ class ProjectControllerTest {
   }
 
   @Test
+  void rejectsAPostalCodeWithoutEightDigits() throws Exception {
+    String body = validBody().replace("54500000", "54500-00");
+
+    mockMvc(mock(ProjectService.class))
+        .perform(post("/projects").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errors[0].field").value("postalCode"))
+        .andExpect(jsonPath("$.errors[0].defaultMessage").value("O CEP deve ter 8 dígitos."));
+  }
+
+  @Test
+  void rejectsAnUnknownState() throws Exception {
+    String body = validBody().replace("\"state\": \"PE\"", "\"state\": \"XX\"");
+
+    mockMvc(mock(ProjectService.class))
+        .perform(post("/projects").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail", containsString("state")));
+  }
+
+  @Test
+  void exposesTheStatesAndTheMunicipalitiesOfAState() throws Exception {
+    ProjectService service = mock(ProjectService.class);
+    when(service.listStates(DESIGNER)).thenReturn(List.of(BrazilianState.PB, BrazilianState.PE));
+    when(service.listMunicipalities(BrazilianState.PE, DESIGNER)).thenReturn(List.of("Recife"));
+
+    MockMvc mockMvc = mockMvc(service);
+    mockMvc
+        .perform(get("/projects/states"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0]").value("PB"))
+        .andExpect(jsonPath("$.data[1]").value("PE"));
+    mockMvc
+        .perform(get("/projects/municipalities").param("state", "pe"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0]").value("Recife"));
+  }
+
+  @Test
   void exposesMunicipalitiesEndpoint() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.listMunicipalities(DESIGNER)).thenReturn(List.of("Olinda", "Recife"));
+    when(service.listMunicipalities(null, DESIGNER)).thenReturn(List.of("Olinda", "Recife"));
 
     MockMvc mockMvc = mockMvc(service);
     mockMvc
@@ -193,6 +234,7 @@ class ProjectControllerTest {
                 null,
                 null,
                 null,
+                null,
                 null),
             DESIGNER))
         .thenReturn(listing);
@@ -205,6 +247,7 @@ class ProjectControllerTest {
             "vila",
             ProjectSort.UPDATED_AT,
             SortDirection.ASC,
+            null,
             null,
             null,
             null,
@@ -264,8 +307,10 @@ class ProjectControllerTest {
                 .value(
                     containsInAnyOrder(
                         "name",
-                        "address",
+                        "postalCode",
+                        "state",
                         "municipality",
+                        "address",
                         "buildingType",
                         "floors",
                         "voltage",
@@ -350,6 +395,8 @@ class ProjectControllerTest {
         {
           "name": "Residencial Monte Verde",
           "address": "Rodovia BR-101, km 8",
+          "postalCode": "54500000",
+          "state": "PE",
           "municipality": "Cabo de Santo Agostinho",
           "buildingType": "RESIDENTIAL_MULTIFAMILY",
           "floors": 12,

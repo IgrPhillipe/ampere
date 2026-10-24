@@ -1,5 +1,6 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.ReviewQueueFilter;
 import br.com.ampere.domain.ReviewQueueSort;
 import br.com.ampere.domain.SortDirection;
@@ -68,6 +69,8 @@ public class ReviewQueueController {
       @Parameter(description = "Filtro por analista (id do usuário ou 'none' para sem analista)")
           @RequestParam(required = false)
           String reviewer,
+      @Parameter(description = "UF usada para filtrar os projetos") @RequestParam(required = false)
+          BrazilianState state,
       @Parameter(description = "Município usado para filtrar os projetos")
           @RequestParam(required = false)
           String municipality) {
@@ -75,7 +78,7 @@ public class ReviewQueueController {
         service.list(
             pagination.page(),
             pagination.pageSize(),
-            new ReviewQueueQuery(search, filter, sort, direction, reviewer, municipality));
+            new ReviewQueueQuery(search, filter, sort, direction, reviewer, state, municipality));
     List<ReviewQueueItemResponse> items =
         listing.entries().stream().map(ReviewQueueItemResponse::from).toList();
 

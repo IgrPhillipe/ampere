@@ -194,6 +194,7 @@ class RegistrationIntegrationTest {
                     .content(
                         """
                         {"name":"Residencial Ana","address":"Rua A, 1","municipality":"Recife",
+                         "postalCode":"50030230","state":"PE",
                          "buildingType":"RESIDENTIAL_MULTIFAMILY","floors":4,"voltage":"V380_220",
                          "connectionType":"THREE_PHASE","entranceStandard":"COLLECTIVE"}
                         """))

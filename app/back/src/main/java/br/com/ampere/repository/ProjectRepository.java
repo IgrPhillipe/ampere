@@ -1,5 +1,6 @@
 package br.com.ampere.repository;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import java.time.OffsetDateTime;
@@ -15,16 +16,32 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
 
   @Query(
       """
+      SELECT DISTINCT project.state
+      FROM Project project
+      WHERE (
+          (:admin = true AND project.submittedAt IS NOT NULL)
+          OR (:admin = false AND project.owner.id = :ownerId)
+        )
+      ORDER BY project.state ASC
+      """)
+  List<BrazilianState> findAccessibleStates(
+      @Param("ownerId") Long ownerId, @Param("admin") boolean admin);
+
+  @Query(
+      """
       SELECT DISTINCT project.municipality
       FROM Project project
       WHERE (
           (:admin = true AND project.submittedAt IS NOT NULL)
           OR (:admin = false AND project.owner.id = :ownerId)
         )
+        AND (:state IS NULL OR project.state = :state)
       ORDER BY project.municipality ASC
       """)
   List<String> findAccessibleMunicipalities(
-      @Param("ownerId") Long ownerId, @Param("admin") boolean admin);
+      @Param("ownerId") Long ownerId,
+      @Param("admin") boolean admin,
+      @Param("state") BrazilianState state);
 
   long countByStatusAndSubmittedAtIsNotNull(ProjectStatus status);
 
@@ -59,6 +76,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
   Optional<Project> findByProtocol(String protocol);
 
   List<Project> findAllByOwnerIsNull();
+
+  List<Project> findAllByMunicipalityContaining(String fragment);
 
   @Modifying
   @Query(

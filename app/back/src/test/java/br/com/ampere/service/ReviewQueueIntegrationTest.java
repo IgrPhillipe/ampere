@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.ampere.config.NormativeTableSeed;
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.EvStationType;
@@ -360,6 +361,25 @@ class ReviewQueueIntegrationTest {
   }
 
   @Test
+  void filtersQueueByStateAndExposesIt() throws Exception {
+    Project recife = project("2026-7101", ProjectStatus.DRAFT);
+    recife.submit(now.minusDays(5));
+    projectRepository.save(recife);
+
+    Project pedras = project("2026-7102", ProjectStatus.DRAFT);
+    pedras.rename("Projeto Pedras de Fogo", "Rua 3", "Pedras de Fogo");
+    pedras.locate("58328000", BrazilianState.PB);
+    pedras.submit(now.minusDays(3));
+    projectRepository.save(pedras);
+
+    asAnalyst(get("/review-queue").param("state", "PB"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].protocol").value("2026-7102"))
+        .andExpect(jsonPath("$.data[0].state").value("PB"));
+  }
+
+  @Test
   void filtersQueueByMunicipalityAndReviewer() throws Exception {
     Project p1 = project("2026-7001", ProjectStatus.DRAFT);
     p1.rename("Projeto Recife", "Rua 1", "Recife");
@@ -449,6 +469,8 @@ class ReviewQueueIntegrationTest {
                     """
                     {
                       "name": "Projeto autenticado",
+                      "postalCode": "50030230",
+                      "state": "PE",
                       "address": "Rua A, 1",
                       "municipality": "Recife",
                       "buildingType": "RESIDENTIAL_MULTIFAMILY",

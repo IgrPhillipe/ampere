@@ -9,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
@@ -59,6 +60,7 @@ class ProjectServiceTest {
                 " %_\\ ",
                 ProjectSort.NAME,
                 SortDirection.ASC,
+                null,
                 "Recife",
                 LocalDate.of(2026, 10, 1),
                 LocalDate.of(2026, 10, 10),
@@ -89,6 +91,7 @@ class ProjectServiceTest {
             null,
             ProjectSort.UPDATED_AT,
             SortDirection.DESC,
+            null,
             null,
             LocalDate.of(2026, 10, 10),
             LocalDate.of(2026, 10, 1),
@@ -239,8 +242,10 @@ class ProjectServiceTest {
   private static ProjectParameters parameters() {
     return new ProjectParameters(
         "Residencial Monte Verde",
-        "Rodovia BR-101, km 8",
+        "54500000",
+        BrazilianState.PE,
         "Cabo de Santo Agostinho",
+        "Rodovia BR-101, km 8",
         BuildingCategory.RESIDENTIAL_MULTIFAMILY,
         12,
         SupplyVoltage.V380_220,

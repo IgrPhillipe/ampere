@@ -1,5 +1,6 @@
 package br.com.ampere.repository;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectSort;
@@ -24,6 +25,7 @@ public interface ProjectRepositoryCustom {
       boolean admin,
       ProjectStatus status,
       String search,
+      BrazilianState state,
       String municipality,
       OffsetDateTime createdFrom,
       OffsetDateTime createdBefore,
@@ -37,6 +39,7 @@ public interface ProjectRepositoryCustom {
       OffsetDateTime submittedBefore,
       BigDecimal demandAbove,
       boolean reanalysis,
+      BrazilianState state,
       String municipality,
       Long reviewerId,
       boolean unassigned,

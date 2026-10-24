@@ -3,6 +3,7 @@ package br.com.ampere.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.Calculation;
@@ -285,6 +286,31 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
+  void filtersByStateAndListsTheStatesAndTheirMunicipalities() {
+    Project recife = save("A", "Recife", "2026-0010");
+    Project pedras = save("B", "Pedras de Fogo", "2026-0020");
+    pedras.locate("58328000", BrazilianState.PB);
+    projectRepository.save(pedras);
+
+    ProjectListQuery inParaiba =
+        new ProjectListQuery(
+            null,
+            null,
+            ProjectSort.UPDATED_AT,
+            SortDirection.DESC,
+            BrazilianState.PB,
+            null,
+            null,
+            null,
+            null);
+
+    assertThat(list(inParaiba).projects()).containsExactly(pedras);
+    assertThat(service.listStates(designer)).containsExactly(BrazilianState.PB, BrazilianState.PE);
+    assertThat(service.listMunicipalities(BrazilianState.PE, designer)).containsExactly("Recife");
+    assertThat(recife.getState()).isEqualTo(BrazilianState.PE);
+  }
+
+  @Test
   void filtersByTheFindingsStillOpen() {
     Project blocked = save("A", "Recife", "2026-0030");
     Project adjusted = save("B", "Recife", "2026-0040");
@@ -324,6 +350,7 @@ class ProjectServiceIntegrationTest {
                 null,
                 ProjectSort.NAME,
                 SortDirection.ASC,
+                null,
                 "Recife",
                 null,
                 null,
@@ -344,15 +371,15 @@ class ProjectServiceIntegrationTest {
         userRepository.save(new User("Admin", "admin@ampere.com", "hash", UserRole.ADMIN));
     AuthenticatedUser analyst = new AuthenticatedUser(analystUser.getId(), UserRole.ADMIN);
 
-    assertThat(service.listMunicipalities(designer))
+    assertThat(service.listMunicipalities(null, designer))
         .containsExactly("Jaboatão dos Guararapes", "Olinda", "Recife");
-    assertThat(service.listMunicipalities(analyst)).isEmpty();
+    assertThat(service.listMunicipalities(null, analyst)).isEmpty();
 
     Project submitted = project("D", "Rua 4", "Caruaru", "2026-0040", ProjectStatus.UNDER_REVIEW);
     submitted.submit(OffsetDateTime.now(ZoneOffset.UTC));
     projectRepository.save(submitted);
 
-    assertThat(service.listMunicipalities(analyst)).containsExactly("Caruaru");
+    assertThat(service.listMunicipalities(null, analyst)).containsExactly("Caruaru");
   }
 
   @Test
@@ -379,6 +406,16 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
+  void storesThePostalCodeAndTheState() {
+    Project created =
+        service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer);
+
+    assertThat(created.getPostalCode()).isEqualTo("54500000");
+    assertThat(created.formattedPostalCode()).isEqualTo("54500-000");
+    assertThat(created.getState()).isEqualTo(BrazilianState.PE);
+  }
+
+  @Test
   void generatesSequentialProtocolsWithinTheYear() {
     String first = service.create(parameters(BuildingCategory.MIXED), designer).getProtocol();
     String second = service.create(parameters(BuildingCategory.MIXED), designer).getProtocol();
@@ -398,8 +435,10 @@ class ProjectServiceIntegrationTest {
             id,
             new ProjectParameters(
                 "Comercial Praça Sul",
-                "Rua do Sol, 302",
+                "54500000",
+                BrazilianState.PE,
                 "Olinda",
+                "Rua do Sol, 302",
                 BuildingCategory.NON_RESIDENTIAL,
                 3,
                 SupplyVoltage.V220_127,
@@ -458,7 +497,15 @@ class ProjectServiceIntegrationTest {
   private ProjectListing list(ProjectStatus status, String search) {
     return list(
         new ProjectListQuery(
-            status, search, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, null));
+            status,
+            search,
+            ProjectSort.UPDATED_AT,
+            SortDirection.DESC,
+            null,
+            null,
+            null,
+            null,
+            null));
   }
 
   private ProjectListing list(ProjectListQuery query) {
@@ -466,7 +513,7 @@ class ProjectServiceIntegrationTest {
   }
 
   private static ProjectListQuery sortedBy(ProjectSort sort, SortDirection direction) {
-    return new ProjectListQuery(null, null, sort, direction, null, null, null, null);
+    return new ProjectListQuery(null, null, sort, direction, null, null, null, null, null);
   }
 
   private static ProjectListQuery filtered(
@@ -476,6 +523,7 @@ class ProjectServiceIntegrationTest {
         null,
         ProjectSort.UPDATED_AT,
         SortDirection.DESC,
+        null,
         municipality,
         createdFrom,
         createdTo,
@@ -484,7 +532,7 @@ class ProjectServiceIntegrationTest {
 
   private static ProjectListQuery filtered(OpenFindingsFilter findings) {
     return new ProjectListQuery(
-        null, null, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, findings);
+        null, null, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, null, findings);
   }
 
   private Project save(String name, String municipality, String protocol) {
@@ -571,8 +619,10 @@ class ProjectServiceIntegrationTest {
   private static ProjectParameters parameters(BuildingCategory category) {
     return new ProjectParameters(
         "Residencial Monte Verde",
-        "Rodovia BR-101, km 8",
+        "54500000",
+        BrazilianState.PE,
         "Cabo de Santo Agostinho",
+        "Rodovia BR-101, km 8",
         category,
         12,
         SupplyVoltage.V380_220,

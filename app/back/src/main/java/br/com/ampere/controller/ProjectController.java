@@ -1,5 +1,6 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
@@ -74,6 +75,8 @@ public class ProjectController {
       @Parameter(description = "Direção da ordenação (ASC, DESC)")
           @RequestParam(defaultValue = "DESC")
           SortDirection direction,
+      @Parameter(description = "UF usada para filtrar os projetos") @RequestParam(required = false)
+          BrazilianState state,
       @Parameter(description = "Município usado para filtrar os projetos")
           @RequestParam(required = false)
           String municipality,
@@ -94,7 +97,15 @@ public class ProjectController {
             pagination.page(),
             pagination.pageSize(),
             new ProjectListQuery(
-                status, search, sort, direction, municipality, createdFrom, createdTo, findings),
+                status,
+                search,
+                sort,
+                direction,
+                state,
+                municipality,
+                createdFrom,
+                createdTo,
+                findings),
             userOf(jwt));
     List<ProjectResponse> projects =
         listing.projects().stream()
@@ -112,6 +123,17 @@ public class ProjectController {
         new Pagination(listing.totalElements(), pagination.page(), pagination.pageSize()));
   }
 
+  @GetMapping("/states")
+  @Operation(operationId = "listProjectStates", summary = "Lista as UFs visíveis para o usuário")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Lista de UFs")
+  })
+  public ApiResponse<List<BrazilianState>> states(@AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(service.listStates(userOf(jwt)));
+  }
+
   @GetMapping("/municipalities")
   @Operation(
       operationId = "listProjectMunicipalities",
@@ -121,8 +143,11 @@ public class ProjectController {
         responseCode = "200",
         description = "Lista de municípios")
   })
-  public ApiResponse<List<String>> municipalities(@AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(service.listMunicipalities(userOf(jwt)));
+  public ApiResponse<List<String>> municipalities(
+      @Parameter(description = "Só os municípios desta UF") @RequestParam(required = false)
+          BrazilianState state,
+      @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(service.listMunicipalities(state, userOf(jwt)));
   }
 
   @GetMapping("/status-counts")
@@ -232,8 +257,10 @@ public class ProjectController {
   private static ProjectParameters parametersOf(ProjectRequest request) {
     return new ProjectParameters(
         request.name(),
-        request.address(),
+        request.postalCode(),
+        request.state(),
         request.municipality(),
+        request.address(),
         request.buildingType(),
         request.floors(),
         request.voltage(),

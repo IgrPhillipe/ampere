@@ -102,6 +102,8 @@ class MessageLocalizationTest {
         {
           "name": "Residencial Monte Verde",
           "address": "Rodovia BR-101, km 8",
+          "postalCode": "54500000",
+          "state": "PE",
           "municipality": "Cabo de Santo Agostinho",
           "buildingType": "%s",
           "floors": 12,

@@ -244,7 +244,10 @@ public class MemorialPdfService {
       addField(fields, "CREA", owner.creaWithState());
     }
     addField(fields, "Endereço", project.getAddress());
-    addField(fields, "Município", project.getMunicipality());
+    addField(fields, "Município", project.getMunicipality() + "/" + project.getState());
+    if (project.getPostalCode() != null) {
+      addField(fields, "CEP", project.formattedPostalCode());
+    }
     addField(fields, "Tipo de edificação", calculation.getBuildingType().label());
     addField(fields, "Tensão de fornecimento", calculation.getSupplyVoltage().label());
     addField(fields, "Tipo de ligação", calculation.getConnectionType().label());

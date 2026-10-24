@@ -1,5 +1,6 @@
 package br.com.ampere.repository;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.Project;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -49,7 +50,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
       where.append(" AND project.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'");
       parameters.put("search", search.search());
     }
-    filterByMunicipality(search.municipality(), where, parameters);
+    filterByPlace(search.state(), search.municipality(), where, parameters);
     if (search.createdFrom() != null) {
       where.append(" AND project.createdAt >= :createdFrom");
       parameters.put("createdFrom", search.createdFrom());
@@ -108,7 +109,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
     if (search.reanalysis()) {
       where.append(" AND project.reviewCycle > 1");
     }
-    filterByMunicipality(search.municipality(), where, parameters);
+    filterByPlace(search.state(), search.municipality(), where, parameters);
     if (search.unassigned()) {
       where.append(" AND project.reviewer IS NULL");
     } else if (search.reviewerId() != null) {
@@ -140,8 +141,15 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         + ")";
   }
 
-  private static void filterByMunicipality(
-      String municipality, StringBuilder where, Map<String, Object> parameters) {
+  private static void filterByPlace(
+      BrazilianState state,
+      String municipality,
+      StringBuilder where,
+      Map<String, Object> parameters) {
+    if (state != null) {
+      where.append(" AND project.state = :state");
+      parameters.put("state", state);
+    }
     if (municipality != null && !municipality.isBlank()) {
       where.append(" AND LOWER(TRIM(project.municipality)) = LOWER(:municipality)");
       parameters.put("municipality", municipality.trim());
