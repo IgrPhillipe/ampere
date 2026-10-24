@@ -22,6 +22,7 @@ import {
 	ProjectStepper,
 	SubmissionChecklistPanel,
 } from "../../components";
+import { useProjectPermissions } from "../../hooks";
 
 interface MemorialPageProps {
 	projectId: string;
@@ -44,9 +45,11 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const project = projectQuery.data?.data;
 	const validation = validationQuery.data?.data;
 	const checklist = submissionQuery.data?.data;
-	const editable =
-		project?.status === "DRAFT" || project?.status === "AWAITING_SUBMISSION";
-	const submitted = project !== undefined && !editable;
+	const { canEditDocuments: editable } = useProjectPermissions(project?.status);
+	const submitted =
+		project !== undefined &&
+		project.status !== "DRAFT" &&
+		project.status !== "AWAITING_SUBMISSION";
 	const neverCalculated = calculationQuery.data === null;
 	const hasError =
 		projectQuery.isError ||

@@ -2,10 +2,18 @@ import type { UserRole } from "@features/shared";
 import { useAuthStore, waitForAuthHydration } from "@features/shared";
 import { redirect } from "@tanstack/react-router";
 
+/** Who reaches each area: the same split the back enforces. */
+export const ROLE_ACCESS = {
+	projects: ["user", "admin"],
+	reviewQueue: ["reviewer", "admin"],
+	normativeTables: ["admin"],
+} as const satisfies Record<string, readonly UserRole[]>;
+
 /** Where to send each role when it lands on a route it cannot see. */
 const ROLE_FALLBACK: Record<UserRole, string> = {
-	admin: "/fila-de-analise",
 	user: "/projetos",
+	reviewer: "/fila-de-analise",
+	admin: "/projetos",
 };
 
 export const getRoleHomePath = (role: UserRole) => ROLE_FALLBACK[role];
@@ -32,7 +40,7 @@ export const redirectToRoleHome = () => async () => {
 
 /** Use in the `beforeLoad` of a route restricted to specific roles. */
 export const requireRoles =
-	(roles: UserRole[], fallback?: string) => async () => {
+	(roles: readonly UserRole[], fallback?: string) => async () => {
 		await waitForAuthHydration();
 
 		const { user } = useAuthStore.getState();

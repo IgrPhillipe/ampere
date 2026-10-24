@@ -33,7 +33,7 @@ describe("ProjectDeleteDialog", () => {
 		expect(screen.getByText(project.protocol)).toBeInTheDocument();
 		expect(
 			screen.getByText(
-				/grupos de unidades consumidoras, cálculos e documentos/i,
+				/grupos de unidades consumidoras, cálculos, documentos e apontamentos/i,
 			),
 		).toBeInTheDocument();
 	});

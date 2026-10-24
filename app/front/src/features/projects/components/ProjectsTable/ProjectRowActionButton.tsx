@@ -7,8 +7,9 @@ import {
 	DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu";
 import type { Project } from "@services/projects";
-import { EllipsisVertical, Trash2 } from "lucide-react";
+import { EllipsisVertical, Pencil, Trash2 } from "lucide-react";
 
+import { useProjectPermissions } from "../../hooks";
 import { getProjectRowAction, type ProjectRowActions } from "./project-row";
 
 interface ProjectRowActionButtonProps extends ProjectRowActions {
@@ -22,6 +23,9 @@ export const ProjectRowActionButton = ({
 	...actions
 }: ProjectRowActionButtonProps) => {
 	const action = getProjectRowAction(project);
+	const { canEdit } = useProjectPermissions(project.status);
+	// A draft is already edited through "Continuar".
+	const canEditSubmitted = canEdit && project.status !== "DRAFT";
 
 	return (
 		<div className="flex items-center justify-end gap-1">
@@ -32,7 +36,7 @@ export const ProjectRowActionButton = ({
 				onClick={() => action.run(actions, project)}
 			/>
 
-			{project.status === "DRAFT" ? (
+			{canEdit ? (
 				<DropdownMenu>
 					<DropdownMenuTrigger
 						render={
@@ -48,6 +52,12 @@ export const ProjectRowActionButton = ({
 					</DropdownMenuTrigger>
 
 					<DropdownMenuContent align="end">
+						{canEditSubmitted ? (
+							<DropdownMenuItem onClick={() => actions.onEditProject(project)}>
+								<Pencil aria-hidden="true" />
+								Editar Projeto
+							</DropdownMenuItem>
+						) : null}
 						<DropdownMenuItem
 							variant="destructive"
 							onClick={() => actions.onDeleteProject(project)}

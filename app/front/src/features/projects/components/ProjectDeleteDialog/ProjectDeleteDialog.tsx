@@ -24,8 +24,9 @@ export const ProjectDeleteDialog = ({
 				<strong className="font-mono text-foreground">
 					{project?.protocol}
 				</strong>
-				. Os grupos de unidades consumidoras, cálculos e documentos desse
-				projeto também serão removidos. Esta ação não pode ser desfeita.
+				. Os grupos de unidades consumidoras, cálculos, documentos e
+				apontamentos desse projeto também serão removidos. Esta ação não pode
+				ser desfeita.
 			</>
 		}
 		confirmLabel="Excluir Projeto"

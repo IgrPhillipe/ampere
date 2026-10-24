@@ -38,6 +38,7 @@ export const ProjectsTable = ({
 	onResumeSubmission,
 	onContinueDraft,
 	onViewProject,
+	onEditProject,
 	onDeleteProject,
 	onClearFilters,
 	className,
@@ -48,6 +49,7 @@ export const ProjectsTable = ({
 			onResumeSubmission,
 			onContinueDraft,
 			onViewProject,
+			onEditProject,
 			onDeleteProject,
 		}),
 		[
@@ -55,6 +57,7 @@ export const ProjectsTable = ({
 			onResumeSubmission,
 			onContinueDraft,
 			onViewProject,
+			onEditProject,
 			onDeleteProject,
 		],
 	);

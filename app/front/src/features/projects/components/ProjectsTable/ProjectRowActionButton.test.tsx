@@ -1,6 +1,7 @@
+import { type UserRole, useAuthStore } from "@features/shared";
 import type { Project } from "@services/projects";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProjectRowActionButton } from "./ProjectRowActionButton";
 import type { ProjectRowActions } from "./project-row";
@@ -24,10 +25,23 @@ const actions = (): ProjectRowActions => ({
 	onResumeSubmission: vi.fn(),
 	onContinueDraft: vi.fn(),
 	onViewProject: vi.fn(),
+	onEditProject: vi.fn(),
 	onDeleteProject: vi.fn(),
 });
 
+const signInAs = (role: UserRole) =>
+	useAuthStore.getState().login({
+		id: "1",
+		name: "Teste",
+		email: "teste@ampere.com",
+		role,
+		mustChangePassword: false,
+		token: "token",
+	});
+
 describe("ProjectRowActionButton", () => {
+	beforeEach(() => signInAs("user"));
+
 	it("offers deletion for a draft", () => {
 		const callbacks = actions();
 		render(<ProjectRowActionButton project={project} {...callbacks} />);
@@ -56,5 +70,36 @@ describe("ProjectRowActionButton", () => {
 		expect(
 			screen.queryByRole("button", { name: /ações do projeto/i }),
 		).not.toBeInTheDocument();
+	});
+
+	it("does not offer editing a draft, which Continuar already does", () => {
+		render(<ProjectRowActionButton project={project} {...actions()} />);
+
+		fireEvent.click(
+			screen.getByRole("button", { name: `Ações do projeto ${project.name}` }),
+		);
+
+		expect(
+			screen.queryByRole("menuitem", { name: "Editar Projeto" }),
+		).not.toBeInTheDocument();
+	});
+
+	it("offers the admin editing and deletion of a submitted project", () => {
+		signInAs("admin");
+		const callbacks = actions();
+		const submitted: Project = { ...project, status: "UNDER_REVIEW" };
+		render(<ProjectRowActionButton project={submitted} {...callbacks} />);
+
+		fireEvent.click(
+			screen.getByRole("button", { name: `Ações do projeto ${project.name}` }),
+		);
+		fireEvent.click(screen.getByRole("menuitem", { name: "Editar Projeto" }));
+		expect(callbacks.onEditProject).toHaveBeenCalledWith(submitted);
+
+		fireEvent.click(
+			screen.getByRole("button", { name: `Ações do projeto ${project.name}` }),
+		);
+		fireEvent.click(screen.getByRole("menuitem", { name: "Excluir Projeto" }));
+		expect(callbacks.onDeleteProject).toHaveBeenCalledWith(submitted);
 	});
 });

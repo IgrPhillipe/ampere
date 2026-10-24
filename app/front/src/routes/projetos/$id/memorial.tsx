@@ -1,6 +1,6 @@
 import { MemorialPage } from "@features/projects";
 import { pageTitle } from "@lib/page-title";
-import { requireRoles } from "@lib/route-guard";
+import { ROLE_ACCESS, requireRoles } from "@lib/route-guard";
 import { createFileRoute } from "@tanstack/react-router";
 
 const MemorialRoute = () => {
@@ -10,7 +10,7 @@ const MemorialRoute = () => {
 };
 
 export const Route = createFileRoute("/projetos/$id/memorial")({
-	beforeLoad: requireRoles(["user"]),
+	beforeLoad: requireRoles(ROLE_ACCESS.projects),
 	head: () => ({ meta: [{ title: pageTitle("Memorial") }] }),
 	component: MemorialRoute,
 });

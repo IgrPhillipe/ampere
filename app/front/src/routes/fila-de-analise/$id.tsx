@@ -1,6 +1,6 @@
 import { ProjectReviewPage } from "@features/review-queue";
 import { pageTitle } from "@lib/page-title";
-import { requireRoles } from "@lib/route-guard";
+import { ROLE_ACCESS, requireRoles } from "@lib/route-guard";
 import { createFileRoute } from "@tanstack/react-router";
 
 const ProjectReviewRoute = () => {
@@ -10,7 +10,7 @@ const ProjectReviewRoute = () => {
 };
 
 export const Route = createFileRoute("/fila-de-analise/$id")({
-	beforeLoad: requireRoles(["admin"]),
+	beforeLoad: requireRoles(ROLE_ACCESS.reviewQueue),
 	head: () => ({ meta: [{ title: pageTitle("Análise do Projeto") }] }),
 	component: ProjectReviewRoute,
 });

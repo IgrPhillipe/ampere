@@ -19,6 +19,7 @@ import { useEffect } from "react";
 import { useFormState } from "react-hook-form";
 
 import { ProjectStamp, ProjectStepper } from "../../components";
+import { useProjectPermissions } from "../../hooks";
 import {
 	type ProjectCreationFormValues,
 	projectCreationSchema,
@@ -99,7 +100,8 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 	});
 	const project = projectQuery.data?.data;
 	const validation = validationQuery.data?.data;
-	const isEditable = projectId === undefined || project?.status === "DRAFT";
+	const { canEdit } = useProjectPermissions(project?.status);
+	const isEditable = projectId === undefined || canEdit;
 	const isSaving = createProject.isPending || updateProject.isPending;
 
 	const form = useZodForm(projectCreationSchema, {

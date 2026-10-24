@@ -19,6 +19,13 @@ export const MOCK_USERS: AuthUser[] = [
 		role: "admin",
 		mustChangePassword: false,
 	},
+	{
+		id: "3",
+		name: "Revisor Teste",
+		email: "revisor@ampere.com",
+		role: "reviewer",
+		mustChangePassword: false,
+	},
 ];
 
 export const makeLoginResponse = (
