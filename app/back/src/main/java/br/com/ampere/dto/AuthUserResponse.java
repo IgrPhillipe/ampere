@@ -4,10 +4,15 @@ import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 
 /** The signed-in person, as the front's {@code authUserSchema} declares them. */
-public record AuthUserResponse(String id, String name, String email, UserRole role) {
+public record AuthUserResponse(
+    String id, String name, String email, UserRole role, boolean mustChangePassword) {
 
   public static AuthUserResponse from(User user) {
     return new AuthUserResponse(
-        String.valueOf(user.getId()), user.getName(), user.getEmail(), user.getRole());
+        String.valueOf(user.getId()),
+        user.getName(),
+        user.getEmail(),
+        user.getRole(),
+        user.isMustChangePassword());
   }
 }

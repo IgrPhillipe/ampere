@@ -22,6 +22,7 @@ describe("http", () => {
 			name: "Usuário Teste",
 			email: "user@ampere.com",
 			role: "user",
+			mustChangePassword: false,
 			token: "token-salvo",
 		});
 	});

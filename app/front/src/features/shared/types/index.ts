@@ -5,6 +5,7 @@ export interface CurrentUser {
 	name: string;
 	email: string;
 	role: UserRole;
+	mustChangePassword: boolean;
 	avatarUrl?: string;
 	/** JWT used by the `beforeRequest` of `@lib/http`. */
 	token: string;
