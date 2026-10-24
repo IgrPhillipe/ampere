@@ -21,7 +21,7 @@ interface ProjectAddressFieldsProps {
 }
 
 export const ProjectAddressFields = ({ form }: ProjectAddressFieldsProps) => {
-	const { control, getFieldState, getValues, setError, setValue } = form;
+	const { control, getFieldState, setError, setValue } = form;
 	const postalCode = useWatch({ control, name: "postalCode" }) ?? "";
 	const state = useWatch({ control, name: "state" }) ?? null;
 	const digits = postalCode.replace(/\D/g, "");
@@ -68,14 +68,11 @@ export const ProjectAddressFields = ({ form }: ProjectAddressFieldsProps) => {
 		setValue("state", uf, options);
 		setValue("municipality", localidade, options);
 
-		if (!getValues("address").trim()) {
-			setValue(
-				"address",
-				[logradouro, bairro].filter(Boolean).join(", "),
-				options,
-			);
-		}
-	}, [lookup.data, getFieldState, getValues, setError, setValue]);
+		const street = [logradouro, bairro].filter(Boolean).join(", ");
+
+		// A CEP for a whole municipality has no street; keep what the user typed.
+		if (street) setValue("address", street, options);
+	}, [lookup.data, getFieldState, setError, setValue]);
 
 	return (
 		<>
@@ -121,6 +118,7 @@ export const ProjectAddressFields = ({ form }: ProjectAddressFieldsProps) => {
 				name="address"
 				label="Endereço"
 				placeholder="Rua, número e bairro"
+				description="Preenchido pelo CEP; acrescente o número."
 				autoComplete="street-address"
 				required
 				variant="underline"
