@@ -29,7 +29,9 @@ public class UserAdministrationService {
   }
 
   @Transactional(readOnly = true)
-  public UserListing list(int page, int pageSize, String search, UserRole role) {
+  public UserListing list(
+      int page, int pageSize, String search, UserRole role, AuthenticatedUser administrator) {
+    administrator.requireAdmin();
     PageRequest pageRequest =
         PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.ASC, "name").and(Sort.by("id")));
     Page<User> users = userRepository.search(role, SearchTerms.normalize(search), pageRequest);
@@ -38,7 +40,9 @@ public class UserAdministrationService {
   }
 
   @Transactional
-  public TemporaryAccess create(String email, UserParameters parameters) {
+  public TemporaryAccess create(
+      String email, UserParameters parameters, AuthenticatedUser administrator) {
+    administrator.requireAdmin();
     if (userRepository.findByEmail(email).isPresent()) {
       throw new BusinessException(UserService.EMAIL_TAKEN, HttpStatus.CONFLICT);
     }
@@ -60,6 +64,7 @@ public class UserAdministrationService {
   @Transactional
   public User update(
       Long id, UserParameters parameters, boolean active, AuthenticatedUser administrator) {
+    administrator.requireAdmin();
     User user = find(id);
     if (user.getId().equals(administrator.id())) {
       if (!active) {
@@ -77,7 +82,8 @@ public class UserAdministrationService {
   }
 
   @Transactional
-  public TemporaryAccess resetPassword(Long id) {
+  public TemporaryAccess resetPassword(Long id, AuthenticatedUser administrator) {
+    administrator.requireAdmin();
     User user = find(id);
     String temporaryPassword = TemporaryPasswords.generate();
     user.resetPassword(passwordEncoder.encode(temporaryPassword));

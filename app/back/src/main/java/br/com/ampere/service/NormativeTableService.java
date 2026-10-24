@@ -31,7 +31,8 @@ public class NormativeTableService {
 
   /** In catalogue order (Quadro 33 before Tabela 1 before Tabela 19), newest revision first. */
   @Transactional(readOnly = true)
-  public List<NormativeTable> list() {
+  public List<NormativeTable> list(AuthenticatedUser user) {
+    user.requireAdmin();
     return tableRepository.findAllByOrderByCodeAscIdDesc().stream()
         .sorted(
             Comparator.comparing(NormativeTable::getCode)
@@ -40,12 +41,16 @@ public class NormativeTableService {
   }
 
   @Transactional(readOnly = true)
-  public NormativeTable findById(Long id) {
+  public NormativeTable findById(Long id, AuthenticatedUser user) {
+    user.requireAdmin();
+
     return tableRepository.findDetailById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND));
   }
 
   @Transactional
-  public NormativeTable create(NormativeTableParameters parameters, String registeredBy) {
+  public NormativeTable create(
+      NormativeTableParameters parameters, String registeredBy, AuthenticatedUser user) {
+    user.requireAdmin();
     NormativeTable table =
         new NormativeTable(
             standardOf(parameters),
@@ -61,8 +66,9 @@ public class NormativeTableService {
   }
 
   @Transactional
-  public NormativeTable update(Long id, NormativeTableParameters parameters) {
-    NormativeTable table = draftOrFail(id, NOT_DRAFT);
+  public NormativeTable update(
+      Long id, NormativeTableParameters parameters, AuthenticatedUser user) {
+    NormativeTable table = draftOrFail(id, NOT_DRAFT, user);
     if (table.getCode() != parameters.code()) {
       throw new BusinessException(
           "A tabela de uma revisão não muda. Cadastre outra tabela.", HttpStatus.CONFLICT);
@@ -77,8 +83,8 @@ public class NormativeTableService {
 
   /** The verifier must not be who typed it; the previous published revision is superseded. */
   @Transactional
-  public NormativeTable publish(Long id, String verifiedBy) {
-    NormativeTable table = draftOrFail(id, "Esta tabela já foi publicada.");
+  public NormativeTable publish(Long id, String verifiedBy, AuthenticatedUser user) {
+    NormativeTable table = draftOrFail(id, "Esta tabela já foi publicada.", user);
     if (!table.isVerifiableBy(verifiedBy)) {
       throw new BusinessException(
           "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por outro administrador.",
@@ -95,12 +101,13 @@ public class NormativeTableService {
   }
 
   @Transactional
-  public void delete(Long id) {
-    tableRepository.delete(draftOrFail(id, "Só é possível excluir uma tabela aguardando revisão."));
+  public void delete(Long id, AuthenticatedUser user) {
+    tableRepository.delete(
+        draftOrFail(id, "Só é possível excluir uma tabela aguardando revisão.", user));
   }
 
-  private NormativeTable draftOrFail(Long id, String message) {
-    NormativeTable table = findById(id);
+  private NormativeTable draftOrFail(Long id, String message, AuthenticatedUser user) {
+    NormativeTable table = findById(id, user);
     if (!table.isDraft()) {
       throw new BusinessException(message, HttpStatus.CONFLICT);
     }

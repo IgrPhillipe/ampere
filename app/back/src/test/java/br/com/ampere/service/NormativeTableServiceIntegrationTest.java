@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import br.com.ampere.config.NormativeTableSeed;
 import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.Standard;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
@@ -22,6 +23,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 /** No transaction here on purpose: the controller maps the rows after the service returns. */
 @SpringBootTest
 class NormativeTableServiceIntegrationTest {
+
+  private static final AuthenticatedUser ADMIN = new AuthenticatedUser(1L, UserRole.ADMIN);
 
   @Autowired private NormativeTableService service;
 
@@ -54,8 +57,8 @@ class NormativeTableServiceIntegrationTest {
         NormativeTableSeed.all(
             standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
 
-    List<NormativeTable> tables = service.list();
-    NormativeTable detail = service.findById(tables.get(0).getId());
+    List<NormativeTable> tables = service.list(ADMIN);
+    NormativeTable detail = service.findById(tables.get(0).getId(), ADMIN);
 
     assertThat(tables).allSatisfy(table -> assertThat(table.getRows()).isNotEmpty());
     assertThat(tables.get(0).getStandard().getRevision()).isNotBlank();

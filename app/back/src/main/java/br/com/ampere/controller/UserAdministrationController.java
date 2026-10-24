@@ -62,8 +62,10 @@ public class UserAdministrationController {
           String search,
       @Parameter(description = "Papel dos usuários listados; ausente lista todos")
           @RequestParam(required = false)
-          UserRole role) {
-    UserListing listing = service.list(pagination.page(), pagination.pageSize(), search, role);
+          UserRole role,
+      @AuthenticationPrincipal Jwt jwt) {
+    UserListing listing =
+        service.list(pagination.page(), pagination.pageSize(), search, role, userOf(jwt));
     List<ManagedUserResponse> items =
         listing.users().stream().map(ManagedUserResponse::from).toList();
 
@@ -89,9 +91,10 @@ public class UserAdministrationController {
         description = "Já existe uma conta com este e-mail")
   })
   public ApiResponse<TemporaryAccessResponse> create(
-      @Valid @RequestBody CreateUserRequest request) {
+      @Valid @RequestBody CreateUserRequest request, @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        TemporaryAccessResponse.from(service.create(request.email(), parametersOf(request))));
+        TemporaryAccessResponse.from(
+            service.create(request.email(), parametersOf(request), userOf(jwt))));
   }
 
   @PutMapping("/{id}")
@@ -137,8 +140,9 @@ public class UserAdministrationController {
         responseCode = "404",
         description = "Usuário não encontrado")
   })
-  public ApiResponse<TemporaryAccessResponse> resetPassword(@PathVariable Long id) {
-    return ApiResponse.of(TemporaryAccessResponse.from(service.resetPassword(id)));
+  public ApiResponse<TemporaryAccessResponse> resetPassword(
+      @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(TemporaryAccessResponse.from(service.resetPassword(id, userOf(jwt))));
   }
 
   private static AuthenticatedUser userOf(Jwt jwt) {

@@ -9,6 +9,7 @@ import br.com.ampere.dto.Pagination;
 import br.com.ampere.dto.ReviewQueueIndicatorsResponse;
 import br.com.ampere.dto.ReviewQueueItemResponse;
 import br.com.ampere.dto.UserOptionResponse;
+import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.ReviewQueueListing;
 import br.com.ampere.service.ReviewQueueQuery;
 import br.com.ampere.service.ReviewQueueService;
@@ -19,6 +20,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -70,12 +73,14 @@ public class ReviewQueueController {
           String reviewer,
       @Parameter(description = "Município usado para filtrar os projetos")
           @RequestParam(required = false)
-          String municipality) {
+          String municipality,
+      @AuthenticationPrincipal Jwt jwt) {
     ReviewQueueListing listing =
         service.list(
             pagination.page(),
             pagination.pageSize(),
-            new ReviewQueueQuery(search, filter, sort, direction, reviewer, municipality));
+            new ReviewQueueQuery(search, filter, sort, direction, reviewer, municipality),
+            userOf(jwt));
     List<ReviewQueueItemResponse> items =
         listing.entries().stream().map(ReviewQueueItemResponse::from).toList();
 
@@ -95,9 +100,9 @@ public class ReviewQueueController {
         responseCode = "403",
         description = "Apenas analista e administrador acessam a fila")
   })
-  public ApiResponse<List<UserOptionResponse>> reviewers() {
+  public ApiResponse<List<UserOptionResponse>> reviewers(@AuthenticationPrincipal Jwt jwt) {
     List<UserOptionResponse> reviewers =
-        service.reviewers().stream().map(UserOptionResponse::from).toList();
+        service.reviewers(userOf(jwt)).stream().map(UserOptionResponse::from).toList();
     return ApiResponse.of(reviewers);
   }
 
@@ -113,7 +118,11 @@ public class ReviewQueueController {
         responseCode = "403",
         description = "Apenas analista e administrador acessam a fila")
   })
-  public ApiResponse<ReviewQueueIndicatorsResponse> indicators() {
-    return ApiResponse.of(ReviewQueueIndicatorsResponse.from(service.indicators()));
+  public ApiResponse<ReviewQueueIndicatorsResponse> indicators(@AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(ReviewQueueIndicatorsResponse.from(service.indicators(userOf(jwt))));
+  }
+
+  private static AuthenticatedUser userOf(Jwt jwt) {
+    return AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role"));
   }
 }

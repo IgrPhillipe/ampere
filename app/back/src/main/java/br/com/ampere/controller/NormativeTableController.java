@@ -5,6 +5,7 @@ import br.com.ampere.dto.NormativeTableCodeResponse;
 import br.com.ampere.dto.NormativeTableRequest;
 import br.com.ampere.dto.NormativeTableResponse;
 import br.com.ampere.dto.NormativeTableRowRequest;
+import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.NormativeTableParameters;
 import br.com.ampere.service.NormativeTableService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,8 +59,9 @@ public class NormativeTableController {
         responseCode = "200",
         description = "Tabelas cadastradas, sem as linhas")
   })
-  public ApiResponse<List<NormativeTableResponse>> list() {
-    return ApiResponse.of(service.list().stream().map(NormativeTableResponse::summary).toList());
+  public ApiResponse<List<NormativeTableResponse>> list(@AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(
+        service.list(userOf(jwt)).stream().map(NormativeTableResponse::summary).toList());
   }
 
   @GetMapping("/{id}")
@@ -72,8 +74,9 @@ public class NormativeTableController {
         responseCode = "404",
         description = "Tabela não encontrada")
   })
-  public ApiResponse<NormativeTableResponse> detail(@PathVariable Long id) {
-    return ApiResponse.of(NormativeTableResponse.from(service.findById(id)));
+  public ApiResponse<NormativeTableResponse> detail(
+      @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(NormativeTableResponse.from(service.findById(id, userOf(jwt))));
   }
 
   @PostMapping
@@ -90,7 +93,8 @@ public class NormativeTableController {
   public ApiResponse<NormativeTableResponse> create(
       @Valid @RequestBody NormativeTableRequest request, @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        NormativeTableResponse.from(service.create(parametersOf(request), emailOf(jwt))));
+        NormativeTableResponse.from(
+            service.create(parametersOf(request), emailOf(jwt), userOf(jwt))));
   }
 
   @PutMapping("/{id}")
@@ -110,8 +114,11 @@ public class NormativeTableController {
         description = "A tabela já foi publicada")
   })
   public ApiResponse<NormativeTableResponse> update(
-      @PathVariable Long id, @Valid @RequestBody NormativeTableRequest request) {
-    return ApiResponse.of(NormativeTableResponse.from(service.update(id, parametersOf(request))));
+      @PathVariable Long id,
+      @Valid @RequestBody NormativeTableRequest request,
+      @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(
+        NormativeTableResponse.from(service.update(id, parametersOf(request), userOf(jwt))));
   }
 
   @PostMapping("/{id}/publication")
@@ -131,7 +138,8 @@ public class NormativeTableController {
   })
   public ApiResponse<NormativeTableResponse> publish(
       @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(NormativeTableResponse.from(service.publish(id, emailOf(jwt))));
+    return ApiResponse.of(
+        NormativeTableResponse.from(service.publish(id, emailOf(jwt), userOf(jwt))));
   }
 
   @DeleteMapping("/{id}")
@@ -148,8 +156,8 @@ public class NormativeTableController {
         responseCode = "409",
         description = "A tabela já foi publicada")
   })
-  public void delete(@PathVariable Long id) {
-    service.delete(id);
+  public void delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+    service.delete(id, userOf(jwt));
   }
 
   private static NormativeTableParameters parametersOf(NormativeTableRequest request) {
@@ -163,5 +171,9 @@ public class NormativeTableController {
 
   private static String emailOf(Jwt jwt) {
     return jwt.getClaimAsString("email");
+  }
+
+  private static AuthenticatedUser userOf(Jwt jwt) {
+    return AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role"));
   }
 }

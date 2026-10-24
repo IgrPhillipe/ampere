@@ -35,6 +35,7 @@ public class ProjectReviewService {
   /** Assigning again to the same analyst changes nothing. */
   @Transactional
   public Project assign(Long projectId, AuthenticatedUser user) {
+    user.requireReviewer();
     Project project = projectService.findById(projectId, user);
     if (!project.isUnderReview()) {
       throw new BusinessException(NOT_UNDER_REVIEW, HttpStatus.CONFLICT);
@@ -80,6 +81,7 @@ public class ProjectReviewService {
 
   /** The project under review, as long as the caller is the analyst who took it. */
   Project assignedProject(Long projectId, AuthenticatedUser user) {
+    user.requireReviewer();
     Project project = projectService.findById(projectId, user);
     if (!project.isAssignedTo(user.id())) {
       throw new BusinessException(

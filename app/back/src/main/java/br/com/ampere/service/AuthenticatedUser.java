@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 /** The token's user, already converted. The service does not know about the JWT. */
 public record AuthenticatedUser(Long id, UserRole role) {
 
+  static final String FORBIDDEN = "Você não tem permissão para acessar este recurso.";
+
   public static AuthenticatedUser of(String subject, String role) {
     try {
       return new AuthenticatedUser(Long.valueOf(subject), UserRole.of(role));
@@ -26,6 +28,19 @@ public record AuthenticatedUser(Long id, UserRole role) {
 
   public boolean canReview() {
     return role.canReview();
+  }
+
+  // Repeats the SecurityConfig, so a misplaced matcher does not open the rule.
+  public void requireReviewer() {
+    if (!canReview()) {
+      throw new BusinessException(FORBIDDEN, HttpStatus.FORBIDDEN);
+    }
+  }
+
+  public void requireAdmin() {
+    if (!isAdmin()) {
+      throw new BusinessException(FORBIDDEN, HttpStatus.FORBIDDEN);
+    }
   }
 
   public ProjectVisibility projectVisibility() {

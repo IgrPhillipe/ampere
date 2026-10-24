@@ -56,7 +56,9 @@ public class ReviewQueueService {
   }
 
   @Transactional(readOnly = true)
-  public ReviewQueueListing list(int page, int pageSize, ReviewQueueQuery query) {
+  public ReviewQueueListing list(
+      int page, int pageSize, ReviewQueueQuery query, AuthenticatedUser user) {
+    user.requireReviewer();
     String reviewer = query.reviewer() == null ? "" : query.reviewer().trim();
     boolean unassigned = UNASSIGNED.equalsIgnoreCase(reviewer);
     LocalDate today = LocalDate.now(ZONE);
@@ -99,15 +101,17 @@ public class ReviewQueueService {
     return new ReviewQueueListing(entries, projects.getTotalElements());
   }
 
-  @Transactional(readOnly = true)
   /** Whoever can take a project from the queue: active analysts and admins. */
-  public List<User> reviewers() {
+  @Transactional(readOnly = true)
+  public List<User> reviewers(AuthenticatedUser user) {
+    user.requireReviewer();
     return userRepository.findAllByRoleInAndActiveTrueOrderByNameAsc(
         Arrays.stream(UserRole.values()).filter(UserRole::canReview).toList());
   }
 
   @Transactional(readOnly = true)
-  public ReviewQueueIndicators indicators() {
+  public ReviewQueueIndicators indicators(AuthenticatedUser user) {
+    user.requireReviewer();
     LocalDate today = LocalDate.now(ZONE);
     OffsetDateTime startOfToday = today.atStartOfDay(ZONE).toOffsetDateTime();
     OffsetDateTime startOfMonth = today.withDayOfMonth(1).atStartOfDay(ZONE).toOffsetDateTime();
