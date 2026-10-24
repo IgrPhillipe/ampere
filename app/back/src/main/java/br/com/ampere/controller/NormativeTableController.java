@@ -3,7 +3,6 @@ package br.com.ampere.controller;
 import br.com.ampere.domain.NormativeTableSort;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.SortDirection;
-import br.com.ampere.domain.StandardName;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.NormativeTableCodeResponse;
 import br.com.ampere.dto.NormativeTableRequest;
@@ -18,7 +17,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -78,22 +76,13 @@ public class NormativeTableController {
       @Parameter(description = "Situações usadas para filtrar as tabelas; repita o parâmetro")
           @RequestParam(name = "status", required = false)
           List<NormativeTableStatus> statuses,
-      @Parameter(description = "Normas de origem usadas para filtrar; repita o parâmetro")
-          @RequestParam(name = "standard", required = false)
-          List<StandardName> standards,
-      @Parameter(description = "Coluna usada na ordenação (code, title, registeredAt, verifiedAt)")
+      @Parameter(description = "Coluna usada na ordenação (code, registeredAt, verifiedAt)")
           @RequestParam(defaultValue = "code")
           NormativeTableSort sort,
       @Parameter(description = "Direção da ordenação (ASC, DESC)")
           @RequestParam(defaultValue = "ASC")
           SortDirection direction) {
-    NormativeTableQuery query =
-        new NormativeTableQuery(
-            search,
-            statuses == null ? null : Set.copyOf(statuses),
-            standards == null ? null : Set.copyOf(standards),
-            sort,
-            direction);
+    NormativeTableQuery query = new NormativeTableQuery(search, statuses, sort, direction);
 
     return ApiResponse.of(
         service.list(query).stream().map(NormativeTableResponse::summary).toList());

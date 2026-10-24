@@ -11,12 +11,12 @@ import br.com.ampere.domain.NormativeTableSort;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.Standard;
-import br.com.ampere.domain.StandardName;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.StandardRepository;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -27,8 +27,6 @@ class NormativeTableServiceTest {
   private static final OffsetDateTime DAY =
       OffsetDateTime.of(2026, 10, 1, 9, 0, 0, 0, ZoneOffset.UTC);
 
-  // Tabela 19 (030) published on day 6, Quadro 35 (053) published on day 3 and replaced on day 5,
-  // Tabela 6 (030) still a draft.
   private static final List<NormativeTable> TABLES =
       List.of(
           table(1L, NormativeTableCode.T19_THREE_PHASE_MOTORS, 1, 6),
@@ -48,16 +46,20 @@ class NormativeTableServiceTest {
   }
 
   @Test
-  void filtersByStatusAndStandard() {
+  void filtersByStatusIgnoringBlankValues() {
+    assertThat(
+            ids(
+                new NormativeTableQuery(
+                    null, Arrays.asList(NormativeTableStatus.DRAFT, null), null, null)))
+        .containsExactly(4L);
     assertThat(
             ids(
                 new NormativeTableQuery(
                     null,
-                    Set.of(NormativeTableStatus.PUBLISHED, NormativeTableStatus.DRAFT),
-                    Set.of(StandardName.DIS_NOR_030),
+                    Set.of(NormativeTableStatus.PUBLISHED, NormativeTableStatus.SUPERSEDED),
                     null,
                     null)))
-        .containsExactly(4L, 1L);
+        .containsExactly(3L, 2L, 1L);
   }
 
   @Test
@@ -70,9 +72,7 @@ class NormativeTableServiceTest {
   }
 
   @Test
-  void sortsByTitleAndRegistrationInBothDirections() {
-    assertThat(ids(sort(NormativeTableSort.TITLE, SortDirection.ASC)))
-        .containsExactly(1L, 3L, 2L, 4L);
+  void sortsByRegistrationInBothDirections() {
     assertThat(ids(sort(NormativeTableSort.REGISTERED_AT, SortDirection.ASC)))
         .containsExactly(1L, 2L, 3L, 4L);
     assertThat(ids(sort(NormativeTableSort.REGISTERED_AT, SortDirection.DESC)))
@@ -92,11 +92,11 @@ class NormativeTableServiceTest {
   }
 
   private static NormativeTableQuery search(String term) {
-    return new NormativeTableQuery(term, null, null, null, null);
+    return new NormativeTableQuery(term, null, null, null);
   }
 
   private static NormativeTableQuery sort(NormativeTableSort sort, SortDirection direction) {
-    return new NormativeTableQuery(null, null, null, sort, direction);
+    return new NormativeTableQuery(null, null, sort, direction);
   }
 
   private static NormativeTableService service() {

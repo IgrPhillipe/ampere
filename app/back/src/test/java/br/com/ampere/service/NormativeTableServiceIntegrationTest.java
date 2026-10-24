@@ -67,7 +67,7 @@ class NormativeTableServiceIntegrationTest {
   }
 
   @Test
-  void filtersTheStoredTablesByStandard() {
+  void filtersTheStoredTablesByStatus() {
     List<Standard> standards =
         standardRepository.saveAll(
             List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
@@ -78,16 +78,13 @@ class NormativeTableServiceIntegrationTest {
     List<NormativeTable> tables =
         service.list(
             new NormativeTableQuery(
-                null,
-                Set.of(NormativeTableStatus.PUBLISHED),
-                Set.of(StandardName.DIS_NOR_053),
-                null,
-                null));
+                "dis-nor-030", Set.of(NormativeTableStatus.PUBLISHED), null, null));
 
     assertThat(tables)
         .isNotEmpty()
         .allSatisfy(
-            table -> assertThat(table.getCode().standard()).isEqualTo(StandardName.DIS_NOR_053));
-    assertThat(tables.get(0).getCode()).isEqualTo(NormativeTableCode.Q33_EV_STATIONS);
+            table -> assertThat(table.getCode().standard()).isEqualTo(StandardName.DIS_NOR_030));
+    assertThat(tables.get(0).getCode())
+        .isEqualTo(NormativeTableCode.T6_RESIDENTIAL_LIGHTING_OUTLETS);
   }
 }

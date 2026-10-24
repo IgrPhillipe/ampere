@@ -33,21 +33,13 @@ public class NormativeTableService {
     this.standardRepository = standardRepository;
   }
 
-  /**
-   * Filtered and sorted in memory: the title and the catalogue order (Quadro 33 before Tabela 1
-   * before Tabela 19) live in {@link br.com.ampere.domain.NormativeTableCode}, not in a column, and
-   * the whole list is a few revisions of nineteen tables. Ties go to the newest revision.
-   */
+  /** In memory: the title and the catalogue order live in the enum, and the list is small. */
   @Transactional(readOnly = true)
   public List<NormativeTable> list(NormativeTableQuery query) {
     String search = SearchTerms.fold(query.search());
 
     return tableRepository.findListingBy().stream()
         .filter(table -> query.statuses().isEmpty() || query.statuses().contains(table.getStatus()))
-        .filter(
-            table ->
-                query.standards().isEmpty()
-                    || query.standards().contains(table.getCode().standard()))
         .filter(table -> search.isEmpty() || matches(table, search))
         .sorted(
             comparatorOf(query.sort(), query.direction())
@@ -148,7 +140,6 @@ public class NormativeTableService {
     Comparator<NormativeTable> column =
         switch (sort) {
           case CODE -> Comparator.comparing(NormativeTable::getCode);
-          case TITLE -> Comparator.comparing(table -> SearchTerms.fold(table.getCode().title()));
           case REGISTERED_AT -> Comparator.comparing(NormativeTable::getRegisteredAt);
           case VERIFIED_AT ->
               Comparator.comparing(

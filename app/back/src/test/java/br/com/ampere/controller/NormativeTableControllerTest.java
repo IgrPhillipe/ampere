@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -14,7 +15,6 @@ import br.com.ampere.config.EnumParameterConfig;
 import br.com.ampere.domain.NormativeTableSort;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.SortDirection;
-import br.com.ampere.domain.StandardName;
 import br.com.ampere.error.GlobalExceptionHandler;
 import br.com.ampere.service.NormativeTableQuery;
 import br.com.ampere.service.NormativeTableService;
@@ -48,7 +48,6 @@ class NormativeTableControllerTest {
             get("/normative-tables")
                 .param("search", "quadro")
                 .param("status", "DRAFT", "PUBLISHED")
-                .param("standard", "DIS_NOR_030")
                 .param("sort", "verifiedAt")
                 .param("direction", "DESC"))
         .andExpect(status().isOk());
@@ -58,9 +57,31 @@ class NormativeTableControllerTest {
             new NormativeTableQuery(
                 "quadro",
                 Set.of(NormativeTableStatus.DRAFT, NormativeTableStatus.PUBLISHED),
-                Set.of(StandardName.DIS_NOR_030),
                 NormativeTableSort.VERIFIED_AT,
                 SortDirection.DESC));
+  }
+
+  @Test
+  void dropsABlankStatus() throws Exception {
+    NormativeTableService service = service();
+
+    mockMvc(service)
+        .perform(get("/normative-tables").param("status", "DRAFT,"))
+        .andExpect(status().isOk());
+    mockMvc(service)
+        .perform(get("/normative-tables").param("status", "DRAFT", ""))
+        .andExpect(status().isOk());
+
+    verify(service, times(2))
+        .list(new NormativeTableQuery(null, Set.of(NormativeTableStatus.DRAFT), null, null));
+  }
+
+  @Test
+  void returnsTheAcceptedStatuses() throws Exception {
+    mockMvc(service())
+        .perform(get("/normative-tables").param("status", "ARCHIVED"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail", containsString("SUPERSEDED")));
   }
 
   @Test
