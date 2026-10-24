@@ -107,6 +107,10 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
 			<div className="flex flex-1 flex-col bg-card">
+				<div className="border-b border-border px-6 py-4 md:px-8">
+					<ProjectBreadcrumb project={project} current="Memorial" />
+				</div>
+
 				<ProjectStamp
 					project={project}
 					isLoading={projectQuery.isPending || validationQuery.isPending}
@@ -114,12 +118,6 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 				/>
 
 				<div className="px-6 pt-8 md:px-8">
-					<ProjectBreadcrumb
-						project={project}
-						current="Memorial"
-						className="mb-6"
-					/>
-
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
 						Etapa 04 de 05
 					</p>

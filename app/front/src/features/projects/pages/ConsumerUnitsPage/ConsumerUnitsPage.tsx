@@ -130,6 +130,13 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 				onSubmit={form.handleSubmit(saveNewGroup)}
 				className="flex flex-1 flex-col bg-card"
 			>
+				<div className="border-b border-border px-6 py-4 md:px-8">
+					<ProjectBreadcrumb
+						project={project}
+						current="Unidades Consumidoras"
+					/>
+				</div>
+
 				<ProjectStamp
 					project={project}
 					isLoading={projectQuery.isPending || validationQuery.isPending}
@@ -137,12 +144,6 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 				/>
 
 				<div className="px-6 pt-8 md:px-8">
-					<ProjectBreadcrumb
-						project={project}
-						current="Unidades Consumidoras"
-						className="mb-6"
-					/>
-
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
 						Etapa 02 de 05
 					</p>

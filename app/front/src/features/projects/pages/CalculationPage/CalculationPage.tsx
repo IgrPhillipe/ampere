@@ -96,6 +96,10 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
 			<div className="flex flex-1 flex-col bg-card">
+				<div className="border-b border-border px-6 py-4 md:px-8">
+					<ProjectBreadcrumb project={project} current="Cálculo de Demanda" />
+				</div>
+
 				<ProjectStamp
 					project={project}
 					isLoading={projectQuery.isPending || validationQuery.isPending}
@@ -103,12 +107,6 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 				/>
 
 				<div className="px-6 pt-8 md:px-8">
-					<ProjectBreadcrumb
-						project={project}
-						current="Cálculo de Demanda"
-						className="mb-6"
-					/>
-
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
 						Etapa 03 de 05
 					</p>

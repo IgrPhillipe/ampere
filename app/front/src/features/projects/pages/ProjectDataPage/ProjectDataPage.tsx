@@ -199,6 +199,15 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 				onSubmit={form.handleSubmit(onSubmit)}
 				className="flex flex-1 flex-col bg-card"
 			>
+				<div className="border-b border-border px-6 py-4 md:px-8">
+					<ProjectBreadcrumb
+						project={project}
+						current={
+							projectId === undefined ? "Novo Projeto" : "Dados da Edificação"
+						}
+					/>
+				</div>
+
 				{projectId === undefined ? null : (
 					<ProjectStamp
 						project={project}
@@ -214,14 +223,6 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 				)}
 
 				<div className="px-6 pt-8 md:px-8">
-					<ProjectBreadcrumb
-						project={project}
-						current={
-							projectId === undefined ? "Novo Projeto" : "Dados da Edificação"
-						}
-						className="mb-6"
-					/>
-
 					<p className="text-xs tracking-wider text-muted-foreground uppercase">
 						Etapa 01 de 05
 					</p>
