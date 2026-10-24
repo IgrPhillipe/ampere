@@ -5,6 +5,7 @@ import { PageLayout } from "@components/layout";
 import { SearchInput } from "@components/SearchInput";
 import { SortMenu, type SortOption } from "@components/SortMenu";
 import { Button } from "@components/ui/button";
+import { useAuthStore } from "@features/shared";
 import {
 	type NormativeTable,
 	type NormativeTableSort,
@@ -37,6 +38,7 @@ const statusOptions = normativeTableStatusSchema.options.map((value) => ({
 }));
 
 export const NormativeTablesPage = () => {
+	const canManage = useAuthStore((state) => state.user?.role === "admin");
 	const filters = useNormativeTableFilters();
 	const tablesQuery = useGetNormativeTableList(filters.params);
 	const [isSheetOpen, setSheetOpen] = useState(false);
@@ -59,10 +61,12 @@ export const NormativeTablesPage = () => {
 			description="Parâmetros das normas aplicados pelo cálculo de demanda, versionados por revisão."
 			bleed
 			actions={
-				<Button type="button" size="sm" onClick={openNewTable}>
-					<Plus aria-hidden="true" />
-					Nova Tabela
-				</Button>
+				canManage ? (
+					<Button type="button" size="sm" onClick={openNewTable}>
+						<Plus aria-hidden="true" />
+						Nova Tabela
+					</Button>
+				) : undefined
 			}
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>

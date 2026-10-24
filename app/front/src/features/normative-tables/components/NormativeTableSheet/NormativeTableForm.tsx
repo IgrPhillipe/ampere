@@ -69,6 +69,8 @@ export const NormativeTableForm = ({
 	const [pendingCreation, setPendingCreation] =
 		useState<NormativeTablePayload | null>(null);
 	const email = useAuthStore((state) => state.user?.email);
+	// The analyst reads the tables; typing and publishing stay with the admin.
+	const canManage = useAuthStore((state) => state.user?.role === "admin");
 
 	const form = useZodForm(
 		normativeTableFormSchema,
@@ -79,7 +81,8 @@ export const NormativeTableForm = ({
 	const definition = codes.find((entry) => entry.code === code);
 
 	const isNew = table === undefined;
-	const readOnly = table !== undefined && table.status !== "DRAFT";
+	const readOnly =
+		!canManage || (table !== undefined && table.status !== "DRAFT");
 	const codeItems = Object.fromEntries(
 		codes.map((entry) => [
 			entry.code,

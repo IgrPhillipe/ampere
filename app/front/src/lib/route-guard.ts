@@ -6,7 +6,7 @@ import { redirect } from "@tanstack/react-router";
 export const ROLE_ACCESS = {
 	projects: ["user", "admin"],
 	reviewQueue: ["reviewer", "admin"],
-	normativeTables: ["admin"],
+	normativeTables: ["reviewer", "admin"],
 } as const satisfies Record<string, readonly UserRole[]>;
 
 /** Where to send each role when it lands on a route it cannot see. */

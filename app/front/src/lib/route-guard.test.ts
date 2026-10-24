@@ -21,8 +21,11 @@ describe("role navigation", () => {
 		expect(labelsOf("user")).toEqual(["Meus Projetos"]);
 	});
 
-	it("gives the analyst only the review queue", () => {
-		expect(labelsOf("reviewer")).toEqual(["Fila de Análise"]);
+	it("gives the analyst the review queue and the normative tables", () => {
+		expect(labelsOf("reviewer")).toEqual([
+			"Fila de Análise",
+			"Tabelas Normativas",
+		]);
 	});
 
 	it("gives the admin every area", () => {
@@ -33,9 +36,9 @@ describe("role navigation", () => {
 		]);
 	});
 
-	it("keeps the analyst out of the projects and the normative tables", () => {
+	it("keeps the analyst out of the projects and the designer out of the tables", () => {
 		expect(ROLE_ACCESS.projects).not.toContain("reviewer");
-		expect(ROLE_ACCESS.normativeTables).toEqual(["admin"]);
+		expect(ROLE_ACCESS.normativeTables).not.toContain("user");
 		expect(ROLE_ACCESS.reviewQueue).not.toContain("user");
 	});
 });

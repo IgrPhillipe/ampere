@@ -66,6 +66,10 @@ public class SecurityConfig {
                     // Before "/users/**": the own profile belongs to every role.
                     .requestMatchers("/users/me", "/users/me/**")
                     .authenticated()
+                    // The analyst reads the tables the calculation applies; only the admin writes
+                    // them.
+                    .requestMatchers(HttpMethod.GET, "/normative-tables", "/normative-tables/**")
+                    .hasAnyRole(REVIEWING_ROLES)
                     .requestMatchers(
                         "/normative-tables", "/normative-tables/**", "/users", "/users/**")
                     .hasRole(ADMIN)
