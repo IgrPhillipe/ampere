@@ -125,35 +125,6 @@ public class ProjectController {
         new Pagination(listing.totalElements(), pagination.page(), pagination.pageSize()));
   }
 
-  @GetMapping("/states")
-  @Operation(operationId = "listProjectStates", summary = "Lista as UFs visíveis para o usuário")
-  @ApiResponses({
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-        responseCode = "200",
-        description = "Lista de UFs")
-  })
-  public ApiResponse<List<BrazilianState>> states(@AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(service.listStates(userOf(jwt)));
-  }
-
-  @GetMapping("/municipalities")
-  @Operation(
-      operationId = "listProjectMunicipalities",
-      summary = "Lista os municípios visíveis para o usuário")
-  @ApiResponses({
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-        responseCode = "200",
-        description = "Lista de municípios")
-  })
-  public ApiResponse<List<String>> municipalities(
-      @Parameter(description = "Só os municípios destas UFs; repita o parâmetro")
-          @RequestParam(name = "state", required = false)
-          List<BrazilianState> states,
-      @AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(
-        service.listMunicipalities(states == null ? Set.of() : Set.copyOf(states), userOf(jwt)));
-  }
-
   @GetMapping("/status-counts")
   @Operation(
       operationId = "countProjectsPerStatus",

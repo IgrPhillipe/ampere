@@ -1,6 +1,5 @@
 package br.com.ampere.service;
 
-import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.ConcessionArea;
 import br.com.ampere.domain.FindingStatus;
@@ -16,16 +15,11 @@ import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectRepositoryCustom.ProjectSearch;
 import br.com.ampere.utils.SearchTerms;
 import java.math.BigDecimal;
-import java.text.Collator;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.EnumMap;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,29 +102,6 @@ public class ProjectService {
         countPendingFindings(projectIds),
         countUnits(projectIds),
         latestDemands(projectIds));
-  }
-
-  @Transactional(readOnly = true)
-  public List<BrazilianState> listStates(AuthenticatedUser user) {
-    return projectRepository.findAccessibleStates(user.id(), user.isAdmin());
-  }
-
-  @Transactional(readOnly = true)
-  public List<String> listMunicipalities(Set<BrazilianState> states, AuthenticatedUser user) {
-    // Spellings differing only in case collapse into the first in code point order.
-    Collator collator = Collator.getInstance(Locale.of("pt", "BR"));
-    collator.setStrength(Collator.SECONDARY);
-    Map<String, String> unique = new TreeMap<>(collator);
-    projectRepository
-        .findAccessibleMunicipalities(
-            user.id(),
-            user.isAdmin(),
-            states == null || states.isEmpty() ? EnumSet.allOf(BrazilianState.class) : states)
-        .stream()
-        .map(String::trim)
-        .forEach(municipality -> unique.merge(municipality, municipality, ProjectService::first));
-
-    return List.copyOf(unique.values());
   }
 
   @Transactional(readOnly = true)

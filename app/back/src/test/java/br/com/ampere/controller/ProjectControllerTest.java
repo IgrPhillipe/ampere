@@ -198,39 +198,6 @@ class ProjectControllerTest {
   }
 
   @Test
-  void exposesTheStatesAndTheMunicipalitiesOfAState() throws Exception {
-    ProjectService service = mock(ProjectService.class);
-    when(service.listStates(DESIGNER)).thenReturn(List.of(BrazilianState.PB, BrazilianState.PE));
-    when(service.listMunicipalities(Set.of(BrazilianState.PE), DESIGNER))
-        .thenReturn(List.of("Recife"));
-
-    MockMvc mockMvc = mockMvc(service);
-    mockMvc
-        .perform(get("/projects/states"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data[0]").value("PB"))
-        .andExpect(jsonPath("$.data[1]").value("PE"));
-    mockMvc
-        .perform(get("/projects/municipalities").param("state", "pe"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data[0]").value("Recife"));
-  }
-
-  @Test
-  void exposesMunicipalitiesEndpoint() throws Exception {
-    ProjectService service = mock(ProjectService.class);
-    when(service.listMunicipalities(Set.of(), DESIGNER)).thenReturn(List.of("Olinda", "Recife"));
-
-    MockMvc mockMvc = mockMvc(service);
-    mockMvc
-        .perform(get("/projects/municipalities"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data", hasSize(2)))
-        .andExpect(jsonPath("$.data[0]").value("Olinda"))
-        .andExpect(jsonPath("$.data[1]").value("Recife"));
-  }
-
-  @Test
   void wrapsProjectListingAndPaginationInApiResponse() {
     Project project = mock(Project.class);
     when(project.getId()).thenReturn(42L);

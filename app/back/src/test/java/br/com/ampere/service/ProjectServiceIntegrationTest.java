@@ -37,7 +37,6 @@ import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -287,7 +286,7 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
-  void filtersByStateAndListsTheStatesAndTheirMunicipalities() {
+  void filtersByState() {
     Project recife = save("A", "Recife", "2026-0010");
     Project pedras = save("B", "Pedras de Fogo", "2026-0020");
     pedras.locate("58328000", BrazilianState.PB);
@@ -306,9 +305,6 @@ class ProjectServiceIntegrationTest {
             null);
 
     assertThat(list(inParaiba).projects()).containsExactly(pedras);
-    assertThat(service.listStates(designer)).containsExactly(BrazilianState.PB, BrazilianState.PE);
-    assertThat(service.listMunicipalities(Set.of(BrazilianState.PE), designer))
-        .containsExactly("Recife");
     assertThat(recife.getState()).isEqualTo(BrazilianState.PE);
   }
 
@@ -394,28 +390,6 @@ class ProjectServiceIntegrationTest {
 
     assertThat(listing.projects()).containsExactly(alpha, zeta);
     assertThat(listing.totalElements()).isEqualTo(2);
-  }
-
-  @Test
-  void listsDistinctMunicipalitiesForDesignerAndAnalyst() {
-    save("A", "Recife", "2026-0010");
-    save("B", "Olinda", "2026-0020");
-    save("C", "recife ", "2026-0030");
-    save("E", "Jaboatão dos Guararapes", "2026-0050");
-
-    User analystUser =
-        userRepository.save(new User("Admin", "admin@ampere.com", "hash", UserRole.ADMIN));
-    AuthenticatedUser analyst = new AuthenticatedUser(analystUser.getId(), UserRole.ADMIN);
-
-    assertThat(service.listMunicipalities(null, designer))
-        .containsExactly("Jaboatão dos Guararapes", "Olinda", "Recife");
-    assertThat(service.listMunicipalities(null, analyst)).isEmpty();
-
-    Project submitted = project("D", "Rua 4", "Caruaru", "2026-0040", ProjectStatus.UNDER_REVIEW);
-    submitted.submit(OffsetDateTime.now(ZoneOffset.UTC));
-    projectRepository.save(submitted);
-
-    assertThat(service.listMunicipalities(null, analyst)).containsExactly("Caruaru");
   }
 
   @Test
