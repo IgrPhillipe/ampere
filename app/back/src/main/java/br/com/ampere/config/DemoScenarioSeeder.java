@@ -20,6 +20,9 @@ import br.com.ampere.domain.LoadItem;
 import br.com.ampere.domain.LoadUsage;
 import br.com.ampere.domain.Mixed;
 import br.com.ampere.domain.NonResidential;
+import br.com.ampere.domain.NormativeTable;
+import br.com.ampere.domain.NormativeTableRow;
+import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
@@ -29,6 +32,7 @@ import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
@@ -71,6 +75,8 @@ public class DemoScenarioSeeder {
   private static final Logger log = LoggerFactory.getLogger(DemoScenarioSeeder.class);
 
   static final String SECOND_DESIGNER_EMAIL = "projetista@ampere.com";
+  static final String SECOND_ANALYST_EMAIL = "analista@ampere.com";
+  static final String INACTIVE_DESIGNER_EMAIL = "inativo@ampere.com";
 
   private static final Map<String, String> POSTAL_CODES =
       Map.of(
@@ -156,6 +162,8 @@ public class DemoScenarioSeeder {
             .collect(Collectors.toMap(Standard::getName, Function.identity()));
     now = OffsetDateTime.now(ZoneOffset.UTC);
     User other = secondDesigner();
+    User secondAnalyst = secondAnalyst();
+    inactiveDesigner();
 
     int before = (int) projectRepository.count();
     seedDrafts(designer.get());
@@ -163,6 +171,8 @@ public class DemoScenarioSeeder {
     seedRejected(designer.get(), analyst.get(), other);
     seedReanalysis(designer.get(), analyst.get());
     seedApproved(designer.get(), analyst.get());
+    seedLongHistory(designer.get(), analyst.get(), secondAnalyst);
+    seedTableRevisions();
     int added = (int) projectRepository.count() - before;
     if (added > 0) {
       log.info("DemoScenarioSeeder: {} scenario projects inserted.", added);
@@ -715,6 +725,234 @@ public class DemoScenarioSeeder {
               findings.getFirst().resolve(FindingResolution.ACCEPT);
               project.approve(now.minusDays(20), "Correção aceita. Projeto aprovado.");
             });
+  }
+
+  private User secondAnalyst() {
+    return userRepository
+        .findByEmail(SECOND_ANALYST_EMAIL)
+        .orElseGet(
+            () ->
+                userRepository.save(
+                    new User(
+                        "Ana Analista",
+                        SECOND_ANALYST_EMAIL,
+                        passwordEncoder.encode(DataSeeder.DEVELOPMENT_PASSWORD),
+                        UserRole.REVIEWER)));
+  }
+
+  /** Shows a deactivated account in the user management. */
+  private void inactiveDesigner() {
+    if (userRepository.findByEmail(INACTIVE_DESIGNER_EMAIL).isPresent()) {
+      return;
+    }
+    User designer =
+        User.designer(
+            "Bruno Inativo",
+            INACTIVE_DESIGNER_EMAIL,
+            passwordEncoder.encode(DataSeeder.DEVELOPMENT_PASSWORD),
+            "777888",
+            "PE",
+            null,
+            null);
+    designer.administer(designer.getName(), UserRole.USER, false);
+    userRepository.save(designer);
+  }
+
+  private void seedLongHistory(User designer, User analyst, User secondAnalyst) {
+    absent("2026-2017")
+        .ifPresent(
+            protocol -> {
+              Project project =
+                  submitted(
+                      protocol,
+                      "Edifício Recife Antigo",
+                      "Rua do Bom Jesus, 180",
+                      "Recife",
+                      "50030170",
+                      new Mixed(
+                          7,
+                          SupplyVoltage.V380_220,
+                          ConnectionType.THREE_PHASE,
+                          EntranceStandard.COLLECTIVE),
+                      designer,
+                      project1 ->
+                          List.of(
+                              apartments(project1, "Apartamento tipo", 12, "68", 2, "6.20"),
+                              commercial(project1, "Lojas do térreo", 3)));
+              project.submit(now.minusDays(50));
+              project.assignReviewer(analyst);
+              List<Finding> first =
+                  publish(
+                      finding(
+                          project,
+                          FindingSeverity.BLOCKING,
+                          FindingStage.DOCUMENTS,
+                          null,
+                          null,
+                          DocumentType.SINGLE_LINE_DIAGRAM,
+                          "O diagrama unifilar não indica a seção dos condutores.",
+                          null,
+                          analyst));
+              project.reject(now.minusDays(42), "Indique a seção dos condutores no diagrama.");
+              first
+                  .getFirst()
+                  .respond(
+                      FindingAnswer.FIXED,
+                      "Seções indicadas na revisão B do diagrama.",
+                      now.minusDays(38));
+              project.recordChangeSummary("Diagrama unifilar com a seção dos condutores.");
+              project.submit(now.minusDays(36));
+              first.getFirst().resolve(FindingResolution.ACCEPT);
+              List<Finding> second =
+                  publish(
+                      finding(
+                          project,
+                          FindingSeverity.BLOCKING,
+                          FindingStage.CONSUMER_UNITS,
+                          groupRepository.findAllByProjectIdOrderById(project.getId()).getLast(),
+                          null,
+                          null,
+                          "A carga das lojas do térreo não inclui o ar-condicionado.",
+                          null,
+                          analyst));
+              project.reject(now.minusDays(28), "Inclua o ar-condicionado nas lojas.");
+              second
+                  .getFirst()
+                  .respond(
+                      FindingAnswer.FIXED,
+                      "Ar-condicionado de 3 kW por loja incluído no grupo.",
+                      now.minusDays(20));
+              project.recordChangeSummary("Carga de ar-condicionado incluída nas lojas.");
+              project.submit(now.minusDays(18));
+            });
+
+    absent("2026-2018")
+        .ifPresent(
+            protocol -> {
+              Project project =
+                  submitted(
+                      protocol,
+                      "Residencial Casa Amarela",
+                      "Estrada do Arraial, 2100",
+                      "Recife",
+                      "52051380",
+                      residential(9, SupplyVoltage.V380_220),
+                      designer,
+                      project1 ->
+                          List.of(
+                              apartments(project1, "Apartamento tipo", 16, "70", 2, "6.40"),
+                              commonArea(project1)));
+              project.submit(now.minusDays(30));
+              project.assignReviewer(secondAnalyst);
+              List<Finding> findings =
+                  publish(
+                      finding(
+                          project,
+                          FindingSeverity.ADJUSTMENT,
+                          FindingStage.PROJECT_DATA,
+                          null,
+                          null,
+                          null,
+                          "O número de pavimentos não confere com o corte AA.",
+                          null,
+                          secondAnalyst));
+              project.reject(now.minusDays(24), "Confira o número de pavimentos.");
+              findings
+                  .getFirst()
+                  .respond(
+                      FindingAnswer.CONTESTED,
+                      "O corte AA inclui o pavimento técnico, que não tem unidades consumidoras.",
+                      now.minusDays(20));
+              project.submit(now.minusDays(15));
+              findings.getFirst().resolve(FindingResolution.ACCEPT);
+              project.approve(
+                  now.minusDays(7), "Contestação aceita: o pavimento técnico não entra na conta.");
+            });
+
+    absent("2026-2019")
+        .ifPresent(
+            protocol -> {
+              Project project =
+                  submitted(
+                      protocol,
+                      "Edifício Parnamirim",
+                      "Rua Joaquim Nabuco, 300",
+                      "Recife",
+                      "52011000",
+                      residential(14, SupplyVoltage.V380_220),
+                      designer,
+                      project1 ->
+                          List.of(
+                              apartments(project1, "Apartamento tipo", 26, "90", 3, "7.80"),
+                              commonArea(project1)));
+              project.submit(now.minusDays(40));
+              project.assignReviewer(analyst);
+              List<Finding> first =
+                  publish(
+                      finding(
+                          project,
+                          FindingSeverity.BLOCKING,
+                          FindingStage.DOCUMENTS,
+                          null,
+                          null,
+                          DocumentType.ART,
+                          "A ART não cobre a execução da entrada de serviço.",
+                          null,
+                          analyst));
+              project.reject(now.minusDays(34), "Envie a ART da entrada de serviço.");
+              first.getFirst().respond(FindingAnswer.FIXED, "Nova ART anexada.", now.minusDays(30));
+              project.submit(now.minusDays(28));
+              // Reopened in the second review, next to a new finding: version 2 rejected.
+              first.getFirst().resolve(FindingResolution.REOPEN);
+              publish(
+                  finding(
+                      project,
+                      FindingSeverity.ADJUSTMENT,
+                      FindingStage.CONSUMER_UNITS,
+                      firstGroup(project),
+                      null,
+                      null,
+                      "A carga por apartamento está acima da média dos projetos da região.",
+                      null,
+                      analyst));
+              project.reject(now.minusDays(3), "A nova ART ainda não cita a entrada de serviço.");
+            });
+  }
+
+  /** One table with an older revision replaced and a new one waiting for the verifier. */
+  private void seedTableRevisions() {
+    if (!normativeTableRepository.findAllByStatus(NormativeTableStatus.DRAFT).isEmpty()
+        || !normativeTableRepository.findAllByStatus(NormativeTableStatus.SUPERSEDED).isEmpty()) {
+      return;
+    }
+    NormativeTable current =
+        normativeTableRepository.findAllByStatus(NormativeTableStatus.PUBLISHED).getFirst();
+    NormativeTable previous = copyOf(current);
+    previous.publish(NormativeTableSeed.VERIFIED_BY);
+    previous.supersede();
+    normativeTableRepository.saveAll(List.of(previous, copyOf(current)));
+  }
+
+  private static NormativeTable copyOf(NormativeTable table) {
+    return new NormativeTable(
+        table.getStandard(),
+        table.getCode(),
+        table.getIdentification(),
+        table.getItem(),
+        table.getPage(),
+        table.getRows().stream()
+            .map(
+                row ->
+                    new NormativeTableRow(
+                        row.getRowKey(),
+                        row.getLowerBound(),
+                        row.getUpperBound(),
+                        row.getPrimaryValue(),
+                        row.getSecondaryValue(),
+                        row.getTertiaryValue(),
+                        row.getLabel()))
+            .toList(),
+        NormativeTableSeed.REGISTERED_BY);
   }
 
   private Optional<String> absent(String protocol) {
