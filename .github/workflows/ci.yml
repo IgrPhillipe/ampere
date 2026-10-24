@@ -81,6 +81,10 @@ jobs:
         working-directory: app/front
         run: pnpm validate:ci
 
+      - name: Test
+        working-directory: app/front
+        run: pnpm test
+
       # Deploys come from the Vercel Git integration, not from here. This keeps
       # a broken bundle failing on our own check instead of only on theirs.
       - name: Build
