@@ -149,10 +149,7 @@ public class DataSeeder implements CommandLineRunner {
     }
   }
 
-  /**
-   * Per e-mail, so an older database also gets the users added later: the second admin publishes
-   * the tables the first one registers.
-   */
+  /** Per e-mail, so an older database also gets the users added later. */
   private List<User> seedUsers() {
     String hash = passwordEncoder.encode(DEVELOPMENT_PASSWORD);
     List<User> missing =

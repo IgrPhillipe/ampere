@@ -106,10 +106,7 @@ public class SecurityConfig {
     };
   }
 
-  /**
-   * The "role" claim written by {@link TokenService} becomes ROLE_USER, ROLE_REVIEWER or
-   * ROLE_ADMIN.
-   */
+  /** The "role" claim written by {@link TokenService} becomes the ROLE_ authority. */
   @Bean
   public JwtAuthenticationConverter jwtAuthenticationConverter() {
     JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
