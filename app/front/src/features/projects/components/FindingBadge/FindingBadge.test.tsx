@@ -26,7 +26,7 @@ describe("FindingBadge", () => {
 
 		expect(
 			screen.getByText(
-				"2 apontamentos neste item. Ajustar endereço. Substituir ART. Corrija aqui e responda no detalhe do projeto.",
+				"2 apontamentos neste item. Ajustar endereço. Substituir ART. Corrija aqui e responda no aviso do topo da seção.",
 			),
 		).toBeInTheDocument();
 	});

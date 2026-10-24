@@ -1,9 +1,8 @@
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDate, padCount } from "@features/shared";
+import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
 import type { ProjectDetail } from "@services/projects";
-import { CircleCheck, CircleX } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import {
@@ -22,32 +21,10 @@ const byPriority = (left: Finding, right: Finding) =>
 	right.version - left.version ||
 	left.id.localeCompare(right.id, "pt-BR", { numeric: true });
 
-const opinionStyles = {
-	REJECTED: {
-		title: "Parecer da Reprovação",
-		icon: CircleX,
-		className: "border-l-destructive bg-destructive/5",
-		iconClassName: "text-destructive",
-	},
-	APPROVED: {
-		title: "Parecer da Aprovação",
-		icon: CircleCheck,
-		className: "border-l-success bg-success/10",
-		iconClassName: "text-success",
-	},
-} as const;
-
-const hasOpinion = (
-	status: ProjectDetail["status"],
-): status is keyof typeof opinionStyles => status in opinionStyles;
-
 interface ProjectFindingsOverviewProps {
 	/** `undefined` while loading. */
 	findings?: Finding[];
-	project: Pick<
-		ProjectDetail,
-		"status" | "reviewOpinion" | "reviewerName" | "reviewedAt"
-	>;
+	project: Pick<ProjectDetail, "status">;
 	referenceOptions: FindingReferenceOptions;
 	/** Whether the profile answers findings; each one still has to await an answer. */
 	canRespond: boolean;
@@ -58,7 +35,7 @@ interface ProjectFindingsOverviewProps {
 	isResponding: boolean;
 	/** Shown above the findings: the resubmission form or the next steps. */
 	summary?: ReactNode;
-	onOpenStage: (finding: Finding) => void;
+	onOpenStage?: (finding: Finding) => void;
 	onStartResponse: (
 		finding: Finding,
 		status: FindingResponseValues["status"],
@@ -85,10 +62,7 @@ export const ProjectFindingsOverview = ({
 	const awaiting = (finding: Finding) =>
 		awaitsDesignerResponse(finding, project);
 	const current = (findings ?? []).filter(awaiting).sort(byPriority);
-	const opinion = hasOpinion(project.status)
-		? opinionStyles[project.status]
-		: undefined;
-	// A step links here with the finding in the hash, to answer it at once.
+	// A section links here with the finding in the hash, to answer it at once.
 	const [openedId, setOpenedId] = useState<string | null>(
 		() => window.location.hash.match(/^#apontamento-(\d+)$/)?.[1] ?? null,
 	);
@@ -112,55 +86,6 @@ export const ProjectFindingsOverview = ({
 
 	return (
 		<div className={cn("flex flex-col gap-8 px-6 py-8 md:px-8", className)}>
-			{opinion ? (
-				<section
-					aria-labelledby="review-opinion-title"
-					className={cn(
-						"flex flex-col gap-3 overflow-hidden rounded-xs border border-l-4 border-border px-5 py-5",
-						opinion.className,
-					)}
-				>
-					<h2
-						id="review-opinion-title"
-						className="flex items-center gap-2 text-lg font-semibold text-foreground"
-					>
-						<opinion.icon
-							aria-hidden="true"
-							className={cn("size-5 shrink-0", opinion.iconClassName)}
-						/>
-						{opinion.title}
-					</h2>
-					<p className="text-base leading-relaxed whitespace-pre-line text-foreground">
-						{project.reviewOpinion ||
-							"O analista não registrou um parecer geral."}
-					</p>
-					<dl className="-mx-5 -mb-5 mt-2 grid grid-cols-2 gap-px border-t border-border bg-border">
-						<div className="flex min-w-0 flex-col gap-1.5 bg-card px-5 py-3">
-							<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-								Analista
-							</dt>
-							<dd className="text-sm font-medium break-words text-foreground">
-								{project.reviewerName ?? "Não informado"}
-							</dd>
-						</div>
-						<div className="flex min-w-0 flex-col gap-1.5 bg-card px-5 py-3">
-							<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-								Decidido em
-							</dt>
-							<dd className="font-mono text-sm text-foreground">
-								{project.reviewedAt ? (
-									<time dateTime={project.reviewedAt}>
-										{formatDate(project.reviewedAt)}
-									</time>
-								) : (
-									"Não informado"
-								)}
-							</dd>
-						</div>
-					</dl>
-				</section>
-			) : null}
-
 			{summary ? (
 				<div className="flex flex-col border border-border bg-background">
 					{summary}
@@ -214,10 +139,14 @@ export const ProjectFindingsOverview = ({
 								: undefined
 						}
 						isResponding={isResponding}
-						onOpenStage={(finding) => {
-							setOpenedId(null);
-							onOpenStage(finding);
-						}}
+						onOpenStage={
+							onOpenStage
+								? (finding) => {
+										setOpenedId(null);
+										onOpenStage(finding);
+									}
+								: undefined
+						}
 						onStartResponse={onStartResponse}
 						onSubmitResponse={onSubmitResponse}
 						onCancelResponse={onCancelResponse}

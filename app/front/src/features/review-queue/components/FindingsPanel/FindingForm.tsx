@@ -73,7 +73,7 @@ export const FindingForm = ({
 				<ControlledSelect
 					control={form.control}
 					name="stage"
-					label="Etapa"
+					label="Seção"
 					items={findingStageLabels}
 					required
 				/>
@@ -85,7 +85,7 @@ export const FindingForm = ({
 					name="reference"
 					label={referenceLabel}
 					items={references}
-					placeholder={hasReferences ? "Etapa inteira" : "Nada a vincular"}
+					placeholder={hasReferences ? "Seção inteira" : "Nada a vincular"}
 					disabled={!hasReferences}
 				/>
 			) : null}

@@ -90,13 +90,13 @@ export const ProjectsPage = () => {
 	const handleResumeSubmission = useCallback(
 		(project: Project) =>
 			void navigate({
-				to: "/projetos/$id/memorial",
+				to: "/projetos/$id/documentos",
 				params: { id: project.id },
 			}),
 		[navigate],
 	);
 
-	// Resumes at the step the draft stopped: units, then calculation, then memorial.
+	// Resumes at the step the draft stopped: units, then calculation, then documents.
 	const handleContinueDraft = useCallback(
 		(project: Project) => {
 			const to =
@@ -104,7 +104,7 @@ export const ProjectsPage = () => {
 					? "/projetos/$id/unidades"
 					: project.demandKva === null
 						? "/projetos/$id/calculo"
-						: "/projetos/$id/memorial";
+						: "/projetos/$id/documentos";
 
 			void navigate({ to, params: { id: project.id } });
 		},

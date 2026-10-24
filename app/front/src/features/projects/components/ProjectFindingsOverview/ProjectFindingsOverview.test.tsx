@@ -79,7 +79,6 @@ describe("ProjectFindingsOverview", () => {
 
 		const descriptions = screen.getAllByText(/Ajustar endereço|Substituir ART/);
 		expect(descriptions[0]).toHaveTextContent("Substituir ART.");
-		expect(screen.getByText("Corrija os documentos indicados.")).toBeVisible();
 
 		fireEvent.click(screen.getByRole("button", { name: /Substituir ART/ }));
 		fireEvent.click(screen.getByRole("button", { name: "Contestar" }));

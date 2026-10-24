@@ -56,7 +56,7 @@ export const FindingResponseForm = ({
 				}
 				placeholder={
 					status === "FIXED"
-						? "Ex.: Substituí a ART na etapa de documentos."
+						? "Ex.: Substituí a ART na seção de documentos."
 						: "Informe a justificativa da contestação."
 				}
 				maxLength={2000}

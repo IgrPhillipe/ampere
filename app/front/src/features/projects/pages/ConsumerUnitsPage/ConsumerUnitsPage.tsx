@@ -1,7 +1,7 @@
 import { EmptyState } from "@components/EmptyState";
-import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { useZodForm } from "@features/shared";
+import { useRunCalculation } from "@services/calculation";
 import {
 	type ConsumerUnitGroup,
 	type ConsumerUnitGroupPayload,
@@ -21,11 +21,9 @@ import {
 	ConsumerUnitGroupsTable,
 	GroupSheet,
 	type OpenedGroup,
-	ProjectBreadcrumb,
-	ProjectStamp,
-	ProjectStepper,
 	StageFindingsNotice,
 	StepFooter,
+	useFindingRegistrar,
 	ValidationPanel,
 } from "../../components";
 import { GROUP_USAGE_TYPES, stageFindingsOf } from "../../constants";
@@ -53,6 +51,8 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 	const groupsQuery = useGetConsumerUnitGroupList(projectId);
 	const validationQuery = useGetConsumerUnitGroupValidation(projectId);
 	const createGroup = useCreateConsumerUnitGroup(projectId);
+	const run = useRunCalculation();
+	const registrar = useFindingRegistrar();
 
 	const [isAdding, setIsAdding] = useState(false);
 	const [opened, setOpened] = useState<OpenedGroup | null>(null);
@@ -115,56 +115,22 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 		);
 	};
 
-	const units = validation
-		? `${validation.totalUnits} em ${validation.totalGroups} ${
-				validation.totalGroups === 1 ? "grupo" : "grupos"
-			}`
-		: undefined;
-
 	return (
-		<PageLayout
-			bleed
-			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
-		>
+		<>
+			<StageFindingsNotice
+				projectId={projectId}
+				findings={stageFindings}
+				references={Object.fromEntries(
+					groups.map((group) => [group.id, group.name]),
+				)}
+				className="my-6"
+			/>
+
 			<form
 				noValidate
 				onSubmit={form.handleSubmit(saveNewGroup)}
-				className="flex flex-1 flex-col bg-card"
+				className="flex flex-1 flex-col"
 			>
-				<div className="border-b border-border px-6 py-4 md:px-8">
-					<ProjectBreadcrumb
-						project={project}
-						current="Unidades Consumidoras"
-					/>
-				</div>
-
-				<ProjectStamp
-					project={project}
-					isLoading={projectQuery.isPending || validationQuery.isPending}
-					units={units}
-				/>
-
-				<div className="px-6 pt-8 md:px-8">
-					<p className="text-xs tracking-wider text-muted-foreground uppercase">
-						Etapa 02 de 05
-					</p>
-
-					<h1 className="mt-2 font-heading text-3xl font-semibold tracking-tight">
-						Unidades Consumidoras
-					</h1>
-				</div>
-
-				<ProjectStepper current={1} projectId={projectId} className="mt-6" />
-
-				<StageFindingsNotice
-					projectId={projectId}
-					findings={stageFindings}
-					references={Object.fromEntries(
-						groups.map((group) => [group.id, group.name]),
-					)}
-					className="mt-6"
-				/>
-
 				{hasError ? (
 					<div className="flex-1 px-6 py-8 md:px-8">
 						<EmptyState
@@ -187,7 +153,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 						/>
 					</div>
 				) : (
-					<div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_380px]">
+					<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_380px]">
 						<section
 							aria-labelledby="grupos-titulo"
 							className="px-6 py-8 md:px-8"
@@ -213,6 +179,13 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 									</Button>
 								) : null}
 							</div>
+
+							{registrar.onGroup && groups.length > 0 ? (
+								<p className="mt-4 text-sm text-muted-foreground">
+									Selecione um grupo para ver os dados e registrar um
+									apontamento vinculado a ele.
+								</p>
+							) : null}
 
 							<ConsumerUnitGroupsTable
 								groups={groups}
@@ -255,7 +228,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 							validation={validation}
 							isLoading={validationQuery.isPending || groupsQuery.isPending}
 							counterId={pendingCounterId}
-							className="order-first lg:order-none"
+							className="order-first @5xl:order-none"
 							onOpenIssue={(group, issue) =>
 								setOpened({ group, focusField: issue.field })
 							}
@@ -263,49 +236,54 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 					</div>
 				)}
 
-				<StepFooter
-					previous={{
-						label: "Dados da Edificação",
-						onClick: () =>
-							void navigate({
-								to: "/projetos/$id/dados",
-								params: { id: projectId },
-							}),
-					}}
-				>
-					{isAdding ? (
-						<>
-							<Button type="button" variant="ghost" onClick={cancelAdding}>
-								Cancelar
-							</Button>
+				{isEditable ? (
+					<StepFooter
+						previous={{
+							label: "Dados da Edificação",
+							onClick: () =>
+								void navigate({
+									to: "/projetos/$id/dados",
+									params: { id: projectId },
+								}),
+						}}
+					>
+						{isAdding ? (
+							<>
+								<Button type="button" variant="ghost" onClick={cancelAdding}>
+									Cancelar
+								</Button>
 
+								<Button
+									type="submit"
+									variant="outline"
+									disabled={createGroup.isPending}
+								>
+									{createGroup.isPending ? "Salvando..." : "Salvar Grupo"}
+									<ArrowRight aria-hidden="true" />
+								</Button>
+							</>
+						) : (
 							<Button
-								type="submit"
+								type="button"
 								variant="outline"
-								disabled={createGroup.isPending}
+								disabled={!canCalculate || run.isPending}
+								aria-describedby={canCalculate ? undefined : pendingCounterId}
+								onClick={() =>
+									run.mutate(projectId, {
+										onSuccess: () =>
+											void navigate({
+												to: "/projetos/$id/calculo",
+												params: { id: projectId },
+											}),
+									})
+								}
 							>
-								{createGroup.isPending ? "Salvando..." : "Salvar Grupo"}
+								{run.isPending ? "Calculando..." : "Calcular Demanda"}
 								<ArrowRight aria-hidden="true" />
 							</Button>
-						</>
-					) : (
-						<Button
-							type="button"
-							variant="outline"
-							disabled={!canCalculate}
-							aria-describedby={canCalculate ? undefined : pendingCounterId}
-							onClick={() =>
-								void navigate({
-									to: "/projetos/$id/calculo",
-									params: { id: projectId },
-								})
-							}
-						>
-							Calcular Demanda
-							<ArrowRight aria-hidden="true" />
-						</Button>
-					)}
-				</StepFooter>
+						)}
+					</StepFooter>
+				) : null}
 			</form>
 
 			<GroupSheet
@@ -313,7 +291,8 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 				readOnly={!isEditable}
 				opened={opened}
 				onClose={() => setOpened(null)}
+				onCreateFinding={registrar.onGroup}
 			/>
-		</PageLayout>
+		</>
 	);
 };

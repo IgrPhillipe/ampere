@@ -42,7 +42,7 @@ export const ReviewQueuePage = () => {
 	const navigate = useNavigate();
 
 	const analyze = (item: ReviewQueueItem) =>
-		void navigate({ to: "/fila-de-analise/$id", params: { id: item.id } });
+		void navigate({ to: "/projetos/$id", params: { id: item.id } });
 
 	// A kept previous page may belong to another designer, so it names no one.
 	const ownerName = useSelectedOwnerName(
