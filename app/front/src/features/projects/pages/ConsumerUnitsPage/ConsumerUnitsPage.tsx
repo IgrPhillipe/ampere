@@ -2,6 +2,7 @@ import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { useZodForm } from "@features/shared";
+import { useRunCalculation } from "@services/calculation";
 import {
 	type ConsumerUnitGroup,
 	type ConsumerUnitGroupPayload,
@@ -53,6 +54,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 	const groupsQuery = useGetConsumerUnitGroupList(projectId);
 	const validationQuery = useGetConsumerUnitGroupValidation(projectId);
 	const createGroup = useCreateConsumerUnitGroup(projectId);
+	const run = useRunCalculation();
 
 	const [isAdding, setIsAdding] = useState(false);
 	const [opened, setOpened] = useState<OpenedGroup | null>(null);
@@ -293,16 +295,19 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 						<Button
 							type="button"
 							variant="outline"
-							disabled={!canCalculate}
+							disabled={!canCalculate || run.isPending}
 							aria-describedby={canCalculate ? undefined : pendingCounterId}
 							onClick={() =>
-								void navigate({
-									to: "/projetos/$id/calculo",
-									params: { id: projectId },
+								run.mutate(projectId, {
+									onSuccess: () =>
+										void navigate({
+											to: "/projetos/$id/calculo",
+											params: { id: projectId },
+										}),
 								})
 							}
 						>
-							Calcular Demanda
+							{run.isPending ? "Calculando..." : "Calcular Demanda"}
 							<ArrowRight aria-hidden="true" />
 						</Button>
 					)}

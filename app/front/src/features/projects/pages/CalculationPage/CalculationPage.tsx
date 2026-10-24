@@ -2,16 +2,20 @@ import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import {
-	useCalculateDemand,
 	useGetLatestCalculation,
+	useRunCalculation,
 } from "@services/calculation";
 import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
 import { useGetFindingList } from "@services/project-review";
-import { projectKeys, useGetProject } from "@services/projects";
-import { useQueryClient } from "@tanstack/react-query";
+import { useGetProject } from "@services/projects";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Calculator, CircleAlert } from "lucide-react";
-import { useEffect } from "react";
+import {
+	ArrowLeft,
+	ArrowRight,
+	Calculator,
+	CircleAlert,
+	RefreshCw,
+} from "lucide-react";
 
 import {
 	CalculationSteps,
@@ -32,9 +36,10 @@ interface CalculationPageProps {
 
 export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const projectQuery = useGetProject(projectId);
 	const validationQuery = useGetConsumerUnitGroupValidation(projectId);
+	const latestQuery = useGetLatestCalculation(projectId);
+	const run = useRunCalculation();
 	const project = projectQuery.data?.data;
 	useStepAccess(projectId, project, "calculo");
 	const findingsQuery = useGetFindingList(projectId, {
@@ -46,32 +51,19 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 		"CALCULATION",
 	);
 	const validation = validationQuery.data?.data;
-	// Opening the step recalculates, so only who can edit the project triggers it.
 	const { canEdit: isEditable } = useProjectPermissions(project);
 	const canCalculate = validation?.canCalculate ?? false;
-	const latestQuery = useGetLatestCalculation(projectId, {
-		enabled: project !== undefined && !isEditable,
-	});
-	const runQuery = useCalculateDemand(projectId, {
-		enabled: isEditable && canCalculate,
-	});
 
-	// The listing shows the demand of the latest calculation.
-	const calculatedAt = runQuery.dataUpdatedAt;
-	useEffect(() => {
-		if (calculatedAt === 0) return;
-		void queryClient.invalidateQueries({ queryKey: projectKeys.all() });
-	}, [calculatedAt, queryClient]);
-
-	const result = isEditable ? runQuery.data?.data : latestQuery.data?.data;
-	const isBlocked = isEditable && validation !== undefined && !canCalculate;
+	const result = latestQuery.data?.data;
 	const neverCalculated = latestQuery.data === null;
+	const outdated = isEditable && result?.outdated === true;
+	const isBlocked =
+		isEditable && validation !== undefined && !canCalculate && !result;
 	const hasError =
-		projectQuery.isError ||
-		validationQuery.isError ||
-		runQuery.isError ||
-		latestQuery.isError;
-	const isLoading = !result && !hasError && !isBlocked && !neverCalculated;
+		projectQuery.isError || validationQuery.isError || latestQuery.isError;
+	const isLoading = latestQuery.isPending && !hasError;
+
+	const calculate = () => run.mutate(projectId);
 
 	const units = validation
 		? `${validation.totalUnits} em ${validation.totalGroups} ${
@@ -85,11 +77,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 	const retry = () => {
 		void projectQuery.refetch();
 		void validationQuery.refetch();
-		if (isEditable) {
-			void runQuery.refetch();
-		} else {
-			void latestQuery.refetch();
-		}
+		void latestQuery.refetch();
 	};
 
 	return (
@@ -120,6 +108,28 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 
 				<ProjectStepper current={2} projectId={projectId} className="mt-6" />
 
+				{outdated ? (
+					<div
+						role="status"
+						className="mx-6 mt-6 flex flex-col gap-3 rounded-xs border border-border border-l-4 border-l-brand-sunset px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:mx-8"
+					>
+						<p className="text-sm">
+							Os dados do projeto mudaram depois deste cálculo. Recalcule para
+							atualizar a memória e o memorial.
+						</p>
+						<Button
+							type="button"
+							size="sm"
+							className="shrink-0"
+							disabled={!canCalculate || run.isPending}
+							onClick={calculate}
+						>
+							<RefreshCw aria-hidden="true" />
+							{run.isPending ? "Recalculando..." : "Recalcular"}
+						</Button>
+					</div>
+				) : null}
+
 				<StageFindingsNotice
 					projectId={projectId}
 					findings={stageFindings}
@@ -143,24 +153,44 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 							}
 						/>
 					</div>
-				) : neverCalculated ? (
-					<div className="flex-1 px-6 py-8 md:px-8">
-						<EmptyState
-							title="Este projeto não tem cálculo de demanda"
-							description="O projeto foi enviado sem passar pela memória de cálculo."
-							icon={Calculator}
-						/>
-					</div>
 				) : hasError ? (
 					<div className="flex-1 px-6 py-8 md:px-8">
 						<EmptyState
-							title="Não foi possível calcular a demanda"
+							title="Não foi possível carregar o cálculo"
 							description="Confira o aviso exibido e tente novamente."
 							icon={CircleAlert}
 							action={
 								<Button type="button" variant="outline" onClick={retry}>
 									Tentar Novamente
 								</Button>
+							}
+						/>
+					</div>
+				) : neverCalculated ? (
+					<div className="flex-1 px-6 py-8 md:px-8">
+						<EmptyState
+							title={
+								isEditable
+									? "Calcule a demanda do projeto"
+									: "Este projeto não tem cálculo de demanda"
+							}
+							description={
+								isEditable
+									? "O cálculo usa os dados da edificação e as unidades cadastradas. Refaça sempre que mudar esses dados."
+									: "O projeto foi enviado sem passar pela memória de cálculo."
+							}
+							icon={Calculator}
+							action={
+								isEditable ? (
+									<Button
+										type="button"
+										disabled={!canCalculate || run.isPending}
+										onClick={calculate}
+									>
+										<Calculator aria-hidden="true" />
+										{run.isPending ? "Calculando..." : "Calcular Demanda"}
+									</Button>
+								) : undefined
 							}
 						/>
 					</div>
@@ -192,7 +222,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 				>
 					<Button
 						type="button"
-						disabled={!result}
+						disabled={!result || outdated}
 						onClick={() =>
 							void navigate({
 								to: "/projetos/$id/memorial",
