@@ -1,15 +1,11 @@
 import { Skeleton } from "@components/ui/skeleton";
 import type { FindingReferenceOptions } from "@features/projects";
-import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
 
 import type { FindingFormValues } from "../../schemas";
 import type { FindingEditor } from "../../types";
-import {
-	isDraftFinding,
-	isPendingFinding,
-} from "../ReviewDecision/review-decision";
+import { isDraftFinding } from "../ReviewDecision/review-decision";
 import { FindingCard, type FindingCardActions } from "./FindingCard";
 import { FindingForm } from "./FindingForm";
 
@@ -46,7 +42,6 @@ export const FindingsPanel = ({
 	const current = findings?.filter(isDraftFinding) ?? [];
 	const previous =
 		findings?.filter((finding) => !isDraftFinding(finding)) ?? [];
-	const pending = findings?.filter(isPendingFinding).length ?? 0;
 	const editingId = editor.mode === "edit" ? editor.findingId : undefined;
 
 	const renderList = (items: Finding[]) => (
@@ -70,24 +65,21 @@ export const FindingsPanel = ({
 			aria-labelledby="apontamentos-titulo"
 			className={cn("flex flex-col gap-8 px-6 py-8 md:px-8", className)}
 		>
-			<div className="flex items-baseline justify-between gap-4 border-b-2 border-foreground pb-3">
-				<h2
-					id="apontamentos-titulo"
-					className="text-lg font-semibold text-foreground"
-				>
-					Apontamentos
-				</h2>
-				<span className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-					{padCount(pending)} {pending === 1 ? "pendente" : "pendentes"}
-				</span>
-			</div>
+			<h2
+				id="apontamentos-titulo"
+				className="border-b-2 border-foreground pb-3 text-lg font-semibold text-foreground"
+			>
+				Apontamentos
+			</h2>
 
 			{editable ? (
+				// A new key replays the highlight each time another section fills the form.
 				<section
+					key={autoFocusForm ? editor.key : "idle"}
 					aria-labelledby="formulario-apontamento-titulo"
 					className={cn(
-						"-mx-3 rounded-xs px-3 py-3 transition-colors duration-300",
-						autoFocusForm && "bg-accent",
+						"-mx-3 rounded-xs px-3 py-3",
+						autoFocusForm && "motion-safe:animate-highlight",
 					)}
 				>
 					<h3

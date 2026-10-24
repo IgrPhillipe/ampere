@@ -13,7 +13,7 @@ import {
 	projectStatusLabels,
 	useProjectDetailActions,
 } from "@features/projects";
-import { useAuthStore } from "@features/shared";
+import { padCount, useAuthStore } from "@features/shared";
 import { getHttpStatus } from "@lib/api-error";
 import { useGetLatestCalculation } from "@services/calculation";
 import {
@@ -174,7 +174,7 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 
 	const closedMessage =
 		project && !isUnderReview
-			? `Análise concluída: projeto ${projectStatusLabels[project.status]}.`
+			? `Análise Concluída: Projeto ${projectStatusLabels[project.status]}`
 			: undefined;
 
 	if (projectQuery.isError) {
@@ -223,6 +223,20 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 						units={units}
 						demandKva={demandKva}
 						reanalysis={reanalysis}
+						metrics={[
+							{
+								label: "Pendências",
+								value: findings
+									? padCount(availability.pendingCount)
+									: undefined,
+							},
+							{
+								label: "Bloqueantes",
+								value: findings
+									? padCount(availability.blockingCount)
+									: undefined,
+							},
+						]}
 					/>
 				}
 				notices={

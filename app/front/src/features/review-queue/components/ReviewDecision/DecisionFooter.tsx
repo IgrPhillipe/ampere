@@ -1,6 +1,5 @@
 import { Button } from "@components/ui/button";
 import { ProjectDetailFooter } from "@features/projects";
-import { padCount } from "@features/shared";
 import type { ReviewDecision } from "@services/project-review";
 
 import type { DecisionAvailability } from "./review-decision";
@@ -21,28 +20,10 @@ export const DecisionFooter = ({
 	onDecide,
 	className,
 }: DecisionFooterProps) => {
-	const {
-		pendingCount,
-		blockingCount,
-		approveBlockedReason,
-		rejectBlockedReason,
-	} = availability;
-	const reasons = [approveBlockedReason, rejectBlockedReason].filter(
-		(reason): reason is string => reason !== null,
-	);
+	const { approveBlockedReason, rejectBlockedReason } = availability;
 
 	return (
-		<ProjectDetailFooter
-			summary={
-				<p className="font-mono text-xs tracking-[0.08em] whitespace-nowrap text-muted-foreground uppercase">
-					{padCount(pendingCount)}{" "}
-					{pendingCount === 1 ? "pendência" : "pendências"},{" "}
-					{padCount(blockingCount)}{" "}
-					{blockingCount === 1 ? "bloqueante" : "bloqueantes"}
-				</p>
-			}
-			className={className}
-		>
+		<ProjectDetailFooter className={className}>
 			<div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
 				{closedMessage ? (
 					<p className="text-sm text-muted-foreground">{closedMessage}</p>
@@ -54,7 +35,7 @@ export const DecisionFooter = ({
 								variant="outline"
 								disabled={rejectBlockedReason !== null}
 								aria-describedby={
-									rejectBlockedReason ? "decisao-motivo" : undefined
+									rejectBlockedReason ? "decisao-motivo-reprovar" : undefined
 								}
 								onClick={() => onDecide("REJECT")}
 							>
@@ -65,7 +46,7 @@ export const DecisionFooter = ({
 								type="button"
 								disabled={approveBlockedReason !== null}
 								aria-describedby={
-									approveBlockedReason ? "decisao-motivo" : undefined
+									approveBlockedReason ? "decisao-motivo-aprovar" : undefined
 								}
 								onClick={() => onDecide("APPROVE")}
 							>
@@ -73,12 +54,17 @@ export const DecisionFooter = ({
 							</Button>
 						</div>
 
-						{reasons.length > 0 ? (
+						{approveBlockedReason ? (
 							<p
-								id="decisao-motivo"
+								id="decisao-motivo-aprovar"
 								className="text-xs text-muted-foreground md:text-right"
 							>
-								{reasons.join(" ")}
+								{approveBlockedReason}
+							</p>
+						) : null}
+						{rejectBlockedReason ? (
+							<p id="decisao-motivo-reprovar" className="sr-only">
+								{rejectBlockedReason}
 							</p>
 						) : null}
 					</div>
