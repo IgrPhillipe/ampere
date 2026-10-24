@@ -1,7 +1,7 @@
 import { EmptyState } from "@components/EmptyState";
 import { InlineActionButton } from "@components/InlineActionButton";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDate, formatDecimal } from "@features/shared";
+import { formatDateTime, formatDecimal } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ProjectDocument } from "@services/submission";
 import { FileText } from "lucide-react";
@@ -89,7 +89,7 @@ export const ProjectDocuments = ({
 								<span className="font-mono text-xs text-muted-foreground">
 									{formatFileSize(document.fileSize)}, em{" "}
 									<time dateTime={document.uploadedAt}>
-										{formatDate(document.uploadedAt)}
+										{formatDateTime(document.uploadedAt)}
 									</time>
 								</span>
 							</button>

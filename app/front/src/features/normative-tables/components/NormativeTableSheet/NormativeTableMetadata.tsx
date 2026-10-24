@@ -1,4 +1,4 @@
-import { formatDate } from "@features/shared";
+import { formatDateTime } from "@features/shared";
 import type { NormativeTable } from "@services/normative-tables";
 
 interface MetadataCellProps {
@@ -18,7 +18,7 @@ const MetadataCell = ({ label, person, at }: MetadataCellProps) => (
 					{person}
 				</span>
 				<time dateTime={at} className="font-mono text-xs text-muted-foreground">
-					{formatDate(at)}
+					{formatDateTime(at)}
 				</time>
 			</dd>
 		) : (

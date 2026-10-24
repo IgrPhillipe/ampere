@@ -1,6 +1,6 @@
 import { ExpandableText } from "@components/ExpandableText";
 import { Badge } from "@components/ui/badge";
-import { formatDate } from "@features/shared";
+import { formatDateTime } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
 
@@ -34,7 +34,7 @@ const MetaItem = ({ label, person, at, value }: MetaItemProps) => (
 			{value ? <span className="text-sm text-foreground">{value}</span> : null}
 			{at ? (
 				<time dateTime={at} className="font-mono text-xs text-muted-foreground">
-					{formatDate(at)}
+					{formatDateTime(at)}
 				</time>
 			) : null}
 		</dd>
@@ -135,7 +135,7 @@ export const FindingAnswer = ({
 						dateTime={respondedAt}
 						className="font-mono text-xs text-muted-foreground"
 					>
-						{formatDate(respondedAt)}
+						{formatDateTime(respondedAt)}
 					</time>
 				) : null}
 			</div>
