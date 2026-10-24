@@ -298,7 +298,7 @@ A publicação de tabela normativa exige um segundo `admin`, diferente de quem c
 
 | Papel | Lê | Escreve |
 | :--- | :--- | :--- |
-| `user` (projetista) | só os próprios projetos | só os próprios, em rascunho (documentos até o envio) |
+| `user` (projetista) | só os próprios projetos | só os próprios, em rascunho ou reprovado (documentos também aguardando envio); exclusão só em rascunho |
 | `reviewer` (analista) | todos os projetos já enviados | nada: 403 |
 | `admin` | todos os projetos, de qualquer dono e situação | todos, em qualquer situação |
 
@@ -306,6 +306,9 @@ A publicação de tabela normativa exige um segundo `admin`, diferente de quem c
 - **Rascunho também responde 404 ao analista**: ele só vê o que foi enviado para análise.
 - **O `admin` passa pelas guardas de situação** (`draftOrFail`, `editableOrFail` e documentos), não pelas regras de transição: enviar um projeto já enviado continua 409, e aprovar ou reprovar segue as regras da análise.
 - **Projeto criado pelo `admin` é do próprio `admin`.** O corpo de `POST /projects` não tem dono.
+- **Ninguém analisa o próprio projeto.** Assumir a análise de um projeto seu responde 403, mesmo para o `admin`.
+- **Os services repetem a regra de papel do `SecurityConfig`** (`AuthenticatedUser.requireReviewer()` e `requireAdmin()`), para que um matcher fora do lugar não abra a rota.
+- **Troca de papel com trabalho em andamento responde 409**: projetista com projeto não aprovado, ou analista com análise em andamento que perderia a análise.
 - **Listagem, busca, municípios e contadores filtram no banco** (`searchAccessibleProjects`, `findAccessibleMunicipalities`, `countAccessiblePerStatus`), não na memória. O alcance de cada papel é o `ProjectVisibility` (`OWN`, `SUBMITTED`, `ALL`), lido de `AuthenticatedUser.projectVisibility()`.
 - A regra vale para tudo que fica aninhado no projeto: grupos, cálculo, documentos, memorial e envio. Os services desses recursos passam por `ProjectService.findById` (leitura), `findWritableById`, `draftOrFail` ou `editableOrFail` (escrita; o último aceita rascunho e reprovado), e não leem o projeto direto do repository.
 
