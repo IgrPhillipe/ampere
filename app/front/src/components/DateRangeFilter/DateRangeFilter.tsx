@@ -101,7 +101,8 @@ export const DateRangeFilter = ({
 				<Calendar
 					mode="range"
 					numberOfMonths={2}
-					defaultMonth={draft.from}
+					defaultMonth={draft.from ?? dayjs().subtract(1, "month").toDate()}
+					disabled={{ after: new Date() }}
 					selected={draft.from ? { from: draft.from, to: draft.to } : undefined}
 					onSelect={(_range, day) => pick(day)}
 					classNames={{

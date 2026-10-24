@@ -43,9 +43,10 @@ export const ProjectAddressFields = ({ form }: ProjectAddressFieldsProps) => {
 			return;
 		}
 
-		const { uf, localidade, logradouro, bairro } = lookup.data;
+		const { cep, uf, localidade, logradouro, bairro } = lookup.data;
 		const options = { shouldDirty: true, shouldValidate: true };
 
+		setValue("postalCode", cep, options);
 		setValue("state", uf, options);
 		setValue("municipality", localidade, options);
 
