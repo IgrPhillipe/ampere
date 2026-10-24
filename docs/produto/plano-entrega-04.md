@@ -141,7 +141,7 @@ Entregável de Projetos 3 do sábado, 24/10.
 Vídeo no YouTube, com áudio ou legenda. Roteiro:
 1. Como analista, abrir a fila, clicar em "Analisar", abrir um anexo e transformar um alerta em apontamento bloqueante (US07).
 2. Reprovar com apontamentos.
-3. Como projetista, abrir o projeto pela listagem e ver o histórico (US12), abrir "Ver Apontamentos", corrigir a etapa indicada e reenviar a versão 2 (US09).
+3. Como projetista, abrir o projeto pela listagem com "Corrigir", ver o detalhe e o histórico (US12), responder os apontamentos, corrigir a etapa indicada e reenviar a versão 2 pelo próprio detalhe (US09).
 4. Como analista, filtrar a fila por "Reanálise" (US18), aceitar a correção, aprovar e mostrar o histórico do protocolo (US08).
 5. Excluir um rascunho (US20).
 
@@ -245,12 +245,12 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 
 ### `AT02-US09: Tela "Apontamentos e reenvio" [Frontend]` (#99)
 
-- [ ] Rota `/projetos/$id/apontamentos`. "Ver Apontamentos" da listagem deixa de mostrar o toast
-- [ ] Lista dos apontamentos por gravidade, com o atalho para a etapa e o item
+- [ ] "Corrigir" da listagem abre o detalhe do projeto em `/projetos/$id` (US12). `/projetos/$id/apontamentos` redireciona para ele
+- [ ] Coluna de apontamentos do detalhe, por gravidade, com o atalho para a etapa e o item
 - [ ] Selo de apontamento no grupo, na parcela ou no documento indicado dentro das etapas
 - [ ] Ações "Corrigido" e "Contestar", com o campo de resposta
-- [ ] Resumo das alterações e "Reenviar Projeto", desabilitado com bloqueante sem resposta
-- [ ] Versão do projeto no carimbo
+- [ ] Resumo das alterações e "Reenviar Projeto" na mesma coluna, desabilitado com bloqueante sem resposta
+- [ ] Versão do projeto no cabeçalho do detalhe
 
 ## US20: Exclusão de Projeto em Rascunho (#100)
 `Sprint 4`, `US20`.
@@ -290,12 +290,14 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 - [ ] `GET /api/projects/{id}` passa a trazer responsável técnico, apontamentos em aberto, versão e última movimentação
 - [ ] O projetista lê os eventos do próprio projeto pelo endpoint da `AT01-US08`. Depende dela
 
-### `AT02-US12: Painel lateral do projeto e modo somente leitura [Frontend]` (#107)
+### `AT02-US12: Detalhe do projeto e modo somente leitura [Frontend]` (#107)
 
-- [ ] Clique na linha de "Meus Projetos" abre o painel lateral com resumo e histórico
-- [ ] Rodapé por situação: "Continuar Preenchimento", "Abrir Projeto" e "Ver Apontamentos"
-- [ ] Etapas de projeto enviado em modo somente leitura, com a faixa "Projeto enviado em"
-- [ ] A etapa "Envio" deixa de exibir a linha do tempo fixa e passa a ler os eventos
+- [ ] "Ver Projeto" e "Corrigir" da listagem abrem o detalhe em `/projetos/$id`, sem painel lateral. `/projetos/$id/envio` redireciona para ele
+- [ ] Detalhe com o mesmo cabeçalho e as mesmas abas da análise (`/fila-de-analise/$id`): protocolo, situação, endereço, projetista, unidades, demanda, normas, criado em e enviado em; abas Memória de Cálculo, Unidades Consumidoras, Documentos e Histórico
+- [ ] Projetista vê a verificação automática e a decomposição do cálculo só para leitura; a coluna lateral traz os apontamentos para responder e o reenvio (US09)
+- [ ] Faixa "Projeto enviado em" com a data e o protocolo enquanto o projeto está em análise
+- [ ] Etapas de projeto enviado em modo somente leitura
+- [ ] A aba "Histórico" passa a ler os eventos da US08
 
 ## US18: Filtros e Ordenação das Listagens (#108)
 `Sprint 5`, `US18`.
