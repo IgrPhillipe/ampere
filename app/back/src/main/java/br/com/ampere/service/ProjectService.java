@@ -4,6 +4,7 @@ import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.User;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
@@ -91,6 +92,7 @@ public class ProjectService {
                 startOf(query.createdFrom()),
                 query.createdTo() == null ? null : startOf(query.createdTo().plusDays(1)),
                 query.findings(),
+                query.owner(),
                 query.sort(),
                 query.direction()),
             PageRequest.of(page - 1, pageSize));
@@ -116,6 +118,12 @@ public class ProjectService {
         .forEach(municipality -> unique.merge(municipality, municipality, ProjectService::first));
 
     return List.copyOf(unique.values());
+  }
+
+  /** The designers of the projects the user reaches, for the admin's filter. */
+  @Transactional(readOnly = true)
+  public List<User> listOwners(AuthenticatedUser user) {
+    return projectRepository.findAccessibleOwners(user.id(), user.projectVisibility());
   }
 
   @Transactional(readOnly = true)

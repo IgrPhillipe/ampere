@@ -11,6 +11,7 @@ import br.com.ampere.dto.ProjectDetailResponse;
 import br.com.ampere.dto.ProjectRequest;
 import br.com.ampere.dto.ProjectResponse;
 import br.com.ampere.dto.ProjectStatusCounts;
+import br.com.ampere.dto.UserOptionResponse;
 import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.ProjectListQuery;
 import br.com.ampere.service.ProjectListing;
@@ -68,7 +69,8 @@ public class ProjectController {
       @Parameter(description = "Termo buscado no nome ou no protocolo")
           @RequestParam(required = false)
           String search,
-      @Parameter(description = "Coluna usada na ordenação (name, demand, createdAt, updatedAt)")
+      @Parameter(
+              description = "Coluna usada na ordenação (name, owner, demand, createdAt, updatedAt)")
           @RequestParam(defaultValue = "updatedAt")
           ProjectSort sort,
       @Parameter(description = "Direção da ordenação (ASC, DESC)")
@@ -88,13 +90,24 @@ public class ProjectController {
       @Parameter(description = "Situação dos apontamentos em aberto")
           @RequestParam(required = false)
           OpenFindingsFilter findings,
+      @Parameter(description = "Projetista dono dos projetos, pelo identificador")
+          @RequestParam(required = false)
+          Long owner,
       @AuthenticationPrincipal Jwt jwt) {
     ProjectListing listing =
         service.list(
             pagination.page(),
             pagination.pageSize(),
             new ProjectListQuery(
-                status, search, sort, direction, municipality, createdFrom, createdTo, findings),
+                status,
+                search,
+                sort,
+                direction,
+                municipality,
+                createdFrom,
+                createdTo,
+                findings,
+                owner),
             userOf(jwt));
     List<ProjectResponse> projects =
         listing.projects().stream()
@@ -123,6 +136,20 @@ public class ProjectController {
   })
   public ApiResponse<List<String>> municipalities(@AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(service.listMunicipalities(userOf(jwt)));
+  }
+
+  @GetMapping("/owners")
+  @Operation(
+      operationId = "listProjectOwners",
+      summary = "Lista os projetistas dos projetos visíveis para o usuário")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Projetistas em ordem de nome")
+  })
+  public ApiResponse<List<UserOptionResponse>> owners(@AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(
+        service.listOwners(userOf(jwt)).stream().map(UserOptionResponse::from).toList());
   }
 
   @GetMapping("/status-counts")

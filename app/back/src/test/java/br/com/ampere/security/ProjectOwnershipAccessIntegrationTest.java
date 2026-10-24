@@ -1,5 +1,6 @@
 package br.com.ampere.security;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -267,6 +268,40 @@ class ProjectOwnershipAccessIntegrationTest {
     mockMvc
         .perform(get("/projects/{id}", secondDraft.getId()).header("Authorization", admin))
         .andExpect(status().isOk());
+  }
+
+  @Test
+  void adminFiltersAndSortsByTheDesigner() throws Exception {
+    String admin = bearer("admin@ampere.com");
+    String beto = String.valueOf(secondDraft.getOwner().getId());
+
+    mockMvc
+        .perform(get("/projects").param("owner", beto).header("Authorization", admin))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.pagination.total").value(2))
+        .andExpect(
+            jsonPath("$.data[*].protocol").value(containsInAnyOrder("2026-3001", "2026-3002")));
+    mockMvc
+        .perform(
+            get("/projects")
+                .param("sort", "owner")
+                .param("direction", "DESC")
+                .header("Authorization", admin))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].ownerName").value("Beto Projetista"))
+        .andExpect(jsonPath("$.data[3].ownerName").value("Ana Projetista"));
+  }
+
+  @Test
+  void listsTheDesignersEachRoleReaches() throws Exception {
+    mockMvc
+        .perform(get("/projects/owners").header("Authorization", bearer("admin@ampere.com")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[*].name").value(contains("Ana Projetista", "Beto Projetista")));
+    mockMvc
+        .perform(get("/projects/owners").header("Authorization", bearer("ana@ampere.com")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[*].name").value(contains("Ana Projetista")));
   }
 
   @Test

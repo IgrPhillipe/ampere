@@ -15,4 +15,5 @@ public record ProjectListQuery(
     String municipality,
     LocalDate createdFrom,
     LocalDate createdTo,
-    OpenFindingsFilter findings) {}
+    OpenFindingsFilter findings,
+    Long owner) {}

@@ -29,6 +29,7 @@ public interface ProjectRepositoryCustom {
       OffsetDateTime createdFrom,
       OffsetDateTime createdBefore,
       OpenFindingsFilter findings,
+      Long designerId,
       ProjectSort sort,
       SortDirection direction) {}
 

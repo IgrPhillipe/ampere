@@ -42,6 +42,7 @@ class OpenApiConfigTest {
                 LocalDate.class,
                 LocalDate.class,
                 OpenFindingsFilter.class,
+                Long.class,
                 Jwt.class)
             .getAnnotation(Operation.class);
 

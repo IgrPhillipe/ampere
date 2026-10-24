@@ -112,7 +112,8 @@ class ProjectControllerTest {
             "Recife",
             LocalDate.of(2026, 10, 1),
             LocalDate.of(2026, 10, 10),
-            OpenFindingsFilter.BLOCKING_OPEN);
+            OpenFindingsFilter.BLOCKING_OPEN,
+            null);
     when(service.list(1, 20, query, DESIGNER))
         .thenReturn(new ProjectListing(List.of(), 0, Map.of(), Map.of(), Map.of()));
 
@@ -193,6 +194,7 @@ class ProjectControllerTest {
                 null,
                 null,
                 null,
+                null,
                 null),
             DESIGNER))
         .thenReturn(listing);
@@ -205,6 +207,7 @@ class ProjectControllerTest {
             "vila",
             ProjectSort.UPDATED_AT,
             SortDirection.ASC,
+            null,
             null,
             null,
             null,

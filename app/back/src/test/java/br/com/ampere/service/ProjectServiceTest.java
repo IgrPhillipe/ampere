@@ -63,7 +63,8 @@ class ProjectServiceTest {
                 "Recife",
                 LocalDate.of(2026, 10, 1),
                 LocalDate.of(2026, 10, 10),
-                OpenFindingsFilter.ANY_OPEN),
+                OpenFindingsFilter.ANY_OPEN,
+                null),
             DESIGNER);
 
     ArgumentCaptor<ProjectSearch> searchCaptor = ArgumentCaptor.forClass(ProjectSearch.class);
@@ -93,6 +94,7 @@ class ProjectServiceTest {
             null,
             LocalDate.of(2026, 10, 10),
             LocalDate.of(2026, 10, 1),
+            null,
             null);
 
     assertThatThrownBy(

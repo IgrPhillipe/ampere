@@ -8,7 +8,7 @@ import br.com.ampere.dto.PageQuery;
 import br.com.ampere.dto.Pagination;
 import br.com.ampere.dto.ReviewQueueIndicatorsResponse;
 import br.com.ampere.dto.ReviewQueueItemResponse;
-import br.com.ampere.dto.ReviewerOptionResponse;
+import br.com.ampere.dto.UserOptionResponse;
 import br.com.ampere.service.ReviewQueueListing;
 import br.com.ampere.service.ReviewQueueQuery;
 import br.com.ampere.service.ReviewQueueService;
@@ -95,9 +95,9 @@ public class ReviewQueueController {
         responseCode = "403",
         description = "Apenas analista e administrador acessam a fila")
   })
-  public ApiResponse<List<ReviewerOptionResponse>> reviewers() {
-    List<ReviewerOptionResponse> reviewers =
-        service.reviewers().stream().map(ReviewerOptionResponse::from).toList();
+  public ApiResponse<List<UserOptionResponse>> reviewers() {
+    List<UserOptionResponse> reviewers =
+        service.reviewers().stream().map(UserOptionResponse::from).toList();
     return ApiResponse.of(reviewers);
   }
 

@@ -3,6 +3,7 @@ package br.com.ampere.repository;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ProjectVisibility;
+import br.com.ampere.domain.User;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +33,28 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
 
   default List<String> findAccessibleMunicipalities(Long ownerId, ProjectVisibility visibility) {
     return findAccessibleMunicipalities(
+        ownerId, visibility == ProjectVisibility.ALL, visibility == ProjectVisibility.SUBMITTED);
+  }
+
+  @Query(
+      """
+      SELECT DISTINCT owner
+      FROM Project project
+      JOIN project.owner owner
+      WHERE (
+          :everyProject = true
+          OR (:submittedOnly = true AND project.submittedAt IS NOT NULL)
+          OR (:everyProject = false AND :submittedOnly = false AND owner.id = :ownerId)
+        )
+      ORDER BY owner.name ASC
+      """)
+  List<User> findAccessibleOwners(
+      @Param("ownerId") Long ownerId,
+      @Param("everyProject") boolean everyProject,
+      @Param("submittedOnly") boolean submittedOnly);
+
+  default List<User> findAccessibleOwners(Long ownerId, ProjectVisibility visibility) {
+    return findAccessibleOwners(
         ownerId, visibility == ProjectVisibility.ALL, visibility == ProjectVisibility.SUBMITTED);
   }
 

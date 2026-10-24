@@ -327,7 +327,8 @@ class ProjectServiceIntegrationTest {
                 "Recife",
                 null,
                 null,
-                OpenFindingsFilter.BLOCKING_OPEN));
+                OpenFindingsFilter.BLOCKING_OPEN,
+                null));
 
     assertThat(listing.projects()).containsExactly(alpha, zeta);
     assertThat(listing.totalElements()).isEqualTo(2);
@@ -484,7 +485,15 @@ class ProjectServiceIntegrationTest {
   private ProjectListing list(ProjectStatus status, String search) {
     return list(
         new ProjectListQuery(
-            status, search, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, null));
+            status,
+            search,
+            ProjectSort.UPDATED_AT,
+            SortDirection.DESC,
+            null,
+            null,
+            null,
+            null,
+            null));
   }
 
   private ProjectListing list(ProjectListQuery query) {
@@ -492,7 +501,7 @@ class ProjectServiceIntegrationTest {
   }
 
   private static ProjectListQuery sortedBy(ProjectSort sort, SortDirection direction) {
-    return new ProjectListQuery(null, null, sort, direction, null, null, null, null);
+    return new ProjectListQuery(null, null, sort, direction, null, null, null, null, null);
   }
 
   private static ProjectListQuery filtered(
@@ -505,12 +514,13 @@ class ProjectServiceIntegrationTest {
         municipality,
         createdFrom,
         createdTo,
+        null,
         null);
   }
 
   private static ProjectListQuery filtered(OpenFindingsFilter findings) {
     return new ProjectListQuery(
-        null, null, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, findings);
+        null, null, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, findings, null);
   }
 
   private Project save(String name, String municipality, String protocol) {

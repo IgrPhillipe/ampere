@@ -70,10 +70,16 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
           });
     }
 
+    if (search.designerId() != null) {
+      where.append(" AND project.owner.id = :designerId");
+      parameters.put("designerId", search.designerId());
+    }
+
     String direction = search.direction().name();
     String column =
         switch (search.sort()) {
           case NAME -> "LOWER(project.name) " + direction;
+          case OWNER -> "LOWER(owner.name) " + direction;
           case DEMAND -> LATEST_DEMAND + " " + direction + " NULLS LAST";
           case CREATED_AT -> "project.createdAt " + direction;
           case UPDATED_AT -> "project.updatedAt " + direction;
@@ -81,7 +87,7 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
     // The owner comes with the page: the admin's listing shows who designed each project.
     return page(
-        "SELECT project FROM Project project LEFT JOIN FETCH project.owner",
+        "SELECT project FROM Project project LEFT JOIN FETCH project.owner owner",
         where,
         parameters,
         column + ", project.id " + direction,
