@@ -2,6 +2,8 @@ package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -46,7 +48,7 @@ class SubmissionServiceTest {
     ProjectDocumentRepository documentRepository = mock(ProjectDocumentRepository.class);
     FindingRepository findingRepository = mock(FindingRepository.class);
 
-    when(projectService.findWritableById(1L, DESIGNER)).thenReturn(project);
+    when(projectService.findOwnedById(eq(1L), anyString(), eq(DESIGNER))).thenReturn(project);
     when(projectService.findById(1L, DESIGNER)).thenReturn(project);
     when(calculationRepository.findFirstByProjectIdOrderByIdDesc(1L))
         .thenReturn(Optional.of(mock()));
@@ -92,7 +94,7 @@ class SubmissionServiceTest {
     ProjectDocumentRepository documentRepository = mock(ProjectDocumentRepository.class);
     FindingRepository findingRepository = mock(FindingRepository.class);
 
-    when(projectService.findWritableById(1L, DESIGNER)).thenReturn(project);
+    when(projectService.findOwnedById(eq(1L), anyString(), eq(DESIGNER))).thenReturn(project);
     when(calculationRepository.findFirstByProjectIdOrderByIdDesc(1L))
         .thenReturn(Optional.of(mock()));
     when(documentRepository.findAllByProjectIdOrderByType(1L)).thenReturn(allDocuments(project));
@@ -138,7 +140,7 @@ class SubmissionServiceTest {
     project.approve(OffsetDateTime.now(ZoneOffset.UTC));
     ProjectService projectService = mock(ProjectService.class);
     DemandCalculationService demandCalculationService = mock(DemandCalculationService.class);
-    when(projectService.findWritableById(1L, DESIGNER)).thenReturn(project);
+    when(projectService.findOwnedById(eq(1L), anyString(), eq(DESIGNER))).thenReturn(project);
 
     SubmissionService service =
         new SubmissionService(

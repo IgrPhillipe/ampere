@@ -116,7 +116,9 @@ public class FindingService {
     if (answer == FindingAnswer.CONTESTED && (response == null || response.isBlank())) {
       throw new BusinessException("A justificativa é obrigatória para contestar o apontamento.");
     }
-    Project project = projectService.findWritableById(projectId, user);
+    Project project =
+        projectService.findOwnedById(
+            projectId, "Só o projetista dono do projeto responde os apontamentos.", user);
     if (!project.isRejected()) {
       throw new BusinessException(
           "Só é possível responder apontamentos de um projeto reprovado.", HttpStatus.CONFLICT);

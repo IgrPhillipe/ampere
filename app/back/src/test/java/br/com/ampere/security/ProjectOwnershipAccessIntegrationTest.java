@@ -386,6 +386,28 @@ class ProjectOwnershipAccessIntegrationTest {
   }
 
   @Test
+  void onlyTheOwnerSubmitsAndAnswersFindings() throws Exception {
+    String admin = bearer("admin@ampere.com");
+
+    mockMvc
+        .perform(
+            post("/projects/{id}/submission", secondDraft.getId()).header("Authorization", admin))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.detail").value("Só o projetista dono do projeto o envia para análise."));
+    mockMvc
+        .perform(
+            put("/projects/{id}/findings/1/response", secondSubmitted.getId())
+                .header("Authorization", admin)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\":\"FIXED\"}"))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Só o projetista dono do projeto responde os apontamentos."));
+  }
+
+  @Test
   void adminCreatesAProject() throws Exception {
     mockMvc
         .perform(

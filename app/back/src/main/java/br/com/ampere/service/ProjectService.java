@@ -204,6 +204,16 @@ public class ProjectService {
     return project;
   }
 
+  /** Answering findings and submitting speak for the designer, so not even the admin does it. */
+  Project findOwnedById(Long id, String message, AuthenticatedUser user) {
+    Project project = findWritableById(id, user);
+    if (!project.isOwnedBy(user.id())) {
+      throw new BusinessException(message, HttpStatus.FORBIDDEN);
+    }
+
+    return project;
+  }
+
   Project findWritableById(Long id, AuthenticatedUser user) {
     writerOrFail(user);
 
