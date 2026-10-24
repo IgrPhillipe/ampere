@@ -23,7 +23,7 @@ const columnClassNames = {
 	units: "w-16 text-center",
 	demand: "w-28 text-center",
 	warnings: "w-24 text-center",
-	action: "w-40",
+	action: "w-36",
 } satisfies Partial<Record<ReviewQueueColumnId, string>>;
 
 const sortableColumns = [
@@ -76,7 +76,7 @@ export const ReviewQueueListing = ({
 	}
 
 	return (
-		// Narrower than its columns, the table scrolls sideways with the action pinned.
+		// Narrower than its columns, the table scrolls sideways.
 		<DataTable<ReviewQueueItem, ReviewQueueColumnId, ReviewQueueSort>
 			columns={columns}
 			data={items}
@@ -84,7 +84,6 @@ export const ReviewQueueListing = ({
 			sortableColumns={sortableColumns}
 			sort={sort}
 			onSortChange={onSortChange}
-			pinnedColumn="action"
 		/>
 	);
 };
