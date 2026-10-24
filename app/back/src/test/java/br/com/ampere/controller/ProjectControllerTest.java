@@ -160,6 +160,24 @@ class ProjectControllerTest {
   }
 
   @Test
+  void rejectsAnEmptyValueInARepeatedFilter() throws Exception {
+    MockMvc mockMvc = mockMvc(mock(ProjectService.class));
+
+    mockMvc
+        .perform(get("/projects").param("findings", "BLOCKING_OPEN", ""))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("O filtro 'findings' tem um valor vazio."));
+    mockMvc
+        .perform(get("/projects").param("state", "PE", ""))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("O filtro 'state' tem um valor vazio."));
+    mockMvc
+        .perform(get("/projects").param("municipality", "Recife", " "))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("O filtro 'municipality' tem um valor vazio."));
+  }
+
+  @Test
   void rejectsAnUnknownFindingsSituation() throws Exception {
     mockMvc(mock(ProjectService.class))
         .perform(get("/projects").param("findings", "BLOCKING"))

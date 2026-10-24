@@ -5,6 +5,7 @@ import br.com.ampere.domain.Project;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -153,8 +154,8 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
   }
 
   private static void filterByPlace(
-      Set<BrazilianState> states,
-      Set<String> municipalities,
+      Collection<BrazilianState> states,
+      Collection<String> municipalities,
       StringBuilder where,
       Map<String, Object> parameters) {
     if (!states.isEmpty()) {

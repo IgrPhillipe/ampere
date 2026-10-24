@@ -9,7 +9,7 @@ import br.com.ampere.domain.ReviewQueueSort;
 import br.com.ampere.domain.SortDirection;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.Set;
+import java.util.Collection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -26,11 +26,11 @@ public interface ProjectRepositoryCustom {
       boolean admin,
       ProjectStatus status,
       String search,
-      Set<BrazilianState> states,
-      Set<String> municipalities,
+      Collection<BrazilianState> states,
+      Collection<String> municipalities,
       OffsetDateTime createdFrom,
       OffsetDateTime createdBefore,
-      Set<OpenFindingsFilter> findings,
+      Collection<OpenFindingsFilter> findings,
       ProjectSort sort,
       SortDirection direction) {}
 
@@ -40,8 +40,8 @@ public interface ProjectRepositoryCustom {
       OffsetDateTime submittedBefore,
       BigDecimal demandAbove,
       boolean reanalysis,
-      Set<BrazilianState> states,
-      Set<String> municipalities,
+      Collection<BrazilianState> states,
+      Collection<String> municipalities,
       Long reviewerId,
       boolean unassigned,
       ReviewQueueSort sort,

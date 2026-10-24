@@ -24,7 +24,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -103,11 +102,11 @@ public class ProjectController {
                 search,
                 sort,
                 direction,
-                states == null ? null : Set.copyOf(states),
-                municipalities == null ? null : Set.copyOf(municipalities),
+                states,
+                municipalities,
                 createdFrom,
                 createdTo,
-                findings == null ? null : Set.copyOf(findings)),
+                findings),
             userOf(jwt));
     List<ProjectResponse> projects =
         listing.projects().stream()

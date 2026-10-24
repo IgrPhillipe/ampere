@@ -6,7 +6,7 @@ import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.SortDirection;
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.Collection;
 
 /** The filters and the sort of the project listing, already converted. */
 public record ProjectListQuery(
@@ -14,16 +14,15 @@ public record ProjectListQuery(
     String search,
     ProjectSort sort,
     SortDirection direction,
-    Set<BrazilianState> states,
-    Set<String> municipalities,
+    Collection<BrazilianState> states,
+    Collection<String> municipalities,
     LocalDate createdFrom,
     LocalDate createdTo,
-    Set<OpenFindingsFilter> findings) {
+    Collection<OpenFindingsFilter> findings) {
 
-  /** A missing list filters nothing, like an empty one. */
   public ProjectListQuery {
-    states = states == null ? Set.of() : Set.copyOf(states);
-    municipalities = municipalities == null ? Set.of() : Set.copyOf(municipalities);
-    findings = findings == null ? Set.of() : Set.copyOf(findings);
+    states = FilterValues.setOf(states, "state");
+    municipalities = FilterValues.setOf(municipalities, "municipality");
+    findings = FilterValues.setOf(findings, "findings");
   }
 }

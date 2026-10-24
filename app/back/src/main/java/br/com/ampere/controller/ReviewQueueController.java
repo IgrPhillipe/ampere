@@ -19,7 +19,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Set;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -81,13 +80,7 @@ public class ReviewQueueController {
             pagination.page(),
             pagination.pageSize(),
             new ReviewQueueQuery(
-                search,
-                filter,
-                sort,
-                direction,
-                reviewer,
-                states == null ? null : Set.copyOf(states),
-                municipalities == null ? null : Set.copyOf(municipalities)));
+                search, filter, sort, direction, reviewer, states, municipalities));
     List<ReviewQueueItemResponse> items =
         listing.entries().stream().map(ReviewQueueItemResponse::from).toList();
 

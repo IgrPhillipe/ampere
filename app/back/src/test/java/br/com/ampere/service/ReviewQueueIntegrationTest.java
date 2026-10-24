@@ -372,6 +372,12 @@ class ReviewQueueIntegrationTest {
     pedras.submit(now.minusDays(3));
     projectRepository.save(pedras);
 
+    asAnalyst(get("/review-queue").param("state", "PB", ""))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("O filtro 'state' tem um valor vazio."));
+    asAnalyst(get("/review-queue").param("municipality", "Recife", " "))
+        .andExpect(status().isBadRequest());
+
     asAnalyst(get("/review-queue").param("state", "PB"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(1)))
