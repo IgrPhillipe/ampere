@@ -19,7 +19,6 @@ vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn() }));
 vi.mock("@services/projects", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/projects")>()),
 	useGetProject: () => loadedQuery({ data: makeProjectDetail() }),
-	useDeleteProject: () => idleMutation(),
 }));
 
 vi.mock("@services/project-review", async (importOriginal) => ({
@@ -94,19 +93,6 @@ describe("ProjectReviewPage", () => {
 		expect(screen.queryByText("Novo Apontamento")).not.toBeInTheDocument();
 		expect(
 			screen.queryByRole("button", { name: "Aprovar Projeto" }),
-		).not.toBeInTheDocument();
-	});
-
-	it("leaves edit and delete to the full access profile", () => {
-		signInAs("admin");
-		state.holdsReview = true;
-		render(<ProjectReviewPage projectId="4" />);
-
-		expect(
-			screen.queryByRole("button", { name: "Editar Projeto" }),
-		).not.toBeInTheDocument();
-		expect(
-			screen.queryByRole("button", { name: "Excluir Projeto" }),
 		).not.toBeInTheDocument();
 	});
 });

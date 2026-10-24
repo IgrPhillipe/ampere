@@ -5,28 +5,19 @@ export type ProjectDetailAction =
 	| "respondFindings"
 	| "resubmit"
 	| "createFindings"
-	| "decide"
-	| "edit"
-	| "delete";
+	| "decide";
 
-/** The profiles of the detail screen, split the way the back will split the roles. */
-export type ProjectProfile = "designer" | "reviewer" | "admin";
-
-const REVIEWER_ACTIONS: readonly ProjectDetailAction[] = [
-	"createFindings",
-	"decide",
-];
+export type ProjectProfile = "designer" | "reviewer";
 
 export const PROJECT_PROFILE_ACTIONS: Record<
 	ProjectProfile,
 	readonly ProjectDetailAction[]
 > = {
 	designer: ["respondFindings", "resubmit"],
-	reviewer: REVIEWER_ACTIONS,
-	admin: [...REVIEWER_ACTIONS, "edit", "delete"],
+	reviewer: ["createFindings", "decide"],
 };
 
-/** The session "admin" is today's analyst; it moves to "admin" when the back grants it full access. */
+/** The session "admin" is today's analyst. */
 const PROFILE_BY_ROLE: Record<UserRole, ProjectProfile> = {
 	user: "designer",
 	admin: "reviewer",
@@ -43,7 +34,6 @@ interface ProjectDetailContext {
 	holdsReview?: boolean;
 }
 
-/** The single place that decides what each profile does on the project detail. */
 export const getProjectDetailActions = ({
 	profile,
 	status,
@@ -57,7 +47,5 @@ export const getProjectDetailActions = ({
 		resubmit: granted.has("resubmit") && status === "REJECTED",
 		createFindings: granted.has("createFindings") && reviewing,
 		decide: granted.has("decide") && reviewing,
-		edit: granted.has("edit") && status !== undefined,
-		delete: granted.has("delete") && status !== undefined,
 	};
 };

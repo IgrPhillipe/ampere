@@ -2,7 +2,6 @@ import { Button } from "@components/ui/button";
 import { ProjectDetailFooter } from "@features/projects";
 import { padCount } from "@features/shared";
 import type { ReviewDecision } from "@services/project-review";
-import type { ReactNode } from "react";
 
 import type { DecisionAvailability } from "./review-decision";
 
@@ -11,8 +10,6 @@ interface DecisionFooterProps {
 	/** Whether the profile decides this review now. */
 	canDecide: boolean;
 	closedMessage?: string;
-	/** Actions beyond the decision, such as editing or deleting the project. */
-	children?: ReactNode;
 	onBack: () => void;
 	onDecide: (decision: ReviewDecision) => void;
 	className?: string;
@@ -22,7 +19,6 @@ export const DecisionFooter = ({
 	availability,
 	canDecide,
 	closedMessage,
-	children,
 	onBack,
 	onDecide,
 	className,
@@ -91,8 +87,6 @@ export const DecisionFooter = ({
 						) : null}
 					</div>
 				) : null}
-
-				{children}
 			</div>
 		</ProjectDetailFooter>
 	);

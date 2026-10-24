@@ -51,23 +51,6 @@ describe("getProjectDetailActions", () => {
 		).toEqual([]);
 	});
 
-	it("gives the admin the reviewer actions plus edit and delete", () => {
-		expect(
-			enabled(
-				getProjectDetailActions({
-					profile: "admin",
-					status: "UNDER_REVIEW",
-					holdsReview: true,
-				}),
-			),
-		).toEqual(["createFindings", "decide", "edit", "delete"]);
-		expect(
-			enabled(
-				getProjectDetailActions({ profile: "admin", status: "REJECTED" }),
-			),
-		).toEqual(["edit", "delete"]);
-	});
-
 	it("offers nothing without a session or a loaded project", () => {
 		expect(
 			enabled(
@@ -75,13 +58,15 @@ describe("getProjectDetailActions", () => {
 			),
 		).toEqual([]);
 		expect(
-			enabled(getProjectDetailActions({ profile: "admin", status: undefined })),
+			enabled(
+				getProjectDetailActions({ profile: "reviewer", status: undefined }),
+			),
 		).toEqual([]);
 	});
 });
 
 describe("getProjectProfile", () => {
-	it("keeps the session admin as the reviewer until it gets full access", () => {
+	it("maps the session admin to the reviewer", () => {
 		expect(getProjectProfile("user")).toBe("designer");
 		expect(getProjectProfile("admin")).toBe("reviewer");
 	});

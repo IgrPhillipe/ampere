@@ -4,11 +4,9 @@ import { Button } from "@components/ui/button";
 import {
 	buildFindingReferenceOptions,
 	ChangeSummaryNotice,
-	ProjectDeleteDialog,
 	ProjectDetailHeader,
 	ProjectDetailLayout,
 	ProjectDetailTabs,
-	ProjectManagementActions,
 	projectStatusLabels,
 	useProjectDetailActions,
 } from "@features/projects";
@@ -30,7 +28,7 @@ import {
 	useResolveFinding,
 	useUpdateFinding,
 } from "@services/project-review";
-import { useDeleteProject, useGetProject } from "@services/projects";
+import { useGetProject } from "@services/projects";
 import { useGetSubmission } from "@services/submission";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleAlert, Lock } from "lucide-react";
@@ -88,12 +86,10 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 	const deleteMutation = useDeleteFinding();
 	const resolveMutation = useResolveFinding();
 	const decideMutation = useDecideProjectReview();
-	const deleteProjectMutation = useDeleteProject();
 
 	const findingEditor = useFindingEditor();
 	const { editor } = findingEditor;
 	const [decision, setDecision] = useState<ReviewDecision | null>(null);
-	const [confirmsDeletion, setConfirmsDeletion] = useState(false);
 
 	const referenceOptions = buildFindingReferenceOptions({
 		groups: groups ?? [],
@@ -160,17 +156,6 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 				},
 			},
 		);
-
-	const editProject = () =>
-		void navigate({ to: "/projetos/$id/dados", params: { id: projectId } });
-
-	const confirmDeletion = () =>
-		deleteProjectMutation.mutate(projectId, {
-			onSuccess: () => {
-				setConfirmsDeletion(false);
-				backToQueue();
-			},
-		});
 
 	const pendingId = deleteMutation.isPending
 		? deleteMutation.variables?.findingId
@@ -255,13 +240,7 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 						closedMessage={closedMessage}
 						onBack={backToQueue}
 						onDecide={setDecision}
-					>
-						<ProjectManagementActions
-							actions={actions}
-							onEdit={editProject}
-							onDelete={() => setConfirmsDeletion(true)}
-						/>
-					</DecisionFooter>
+					/>
 				}
 				aside={
 					<FindingsPanel
@@ -325,15 +304,6 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 					if (!open) setDecision(null);
 				}}
 				onConfirm={confirmDecision}
-			/>
-
-			<ProjectDeleteDialog
-				project={confirmsDeletion ? (project ?? null) : null}
-				isPending={deleteProjectMutation.isPending}
-				onOpenChange={(open) => {
-					if (!open) setConfirmsDeletion(false);
-				}}
-				onConfirm={confirmDeletion}
 			/>
 		</>
 	);
