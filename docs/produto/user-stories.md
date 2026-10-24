@@ -429,8 +429,7 @@ Interface de correção pontual das pendências apontadas pela concessionária c
 > **Para que** eu não precise refazer o processo do zero.
 
 ### Conversação (Regras de Negócio e Interface)
-Ao clicar em "Ver apontamentos" na tela inicial, o projetista abre o painel da nova versão (ex.: Versão 2).  
-A tela lista os apontamentos classificados como:
+Ao clicar em "Corrigir" na tela inicial, o projetista abre o detalhe do projeto ([US12](#us12-detalhe-do-projeto-e-histórico-de-tratamento)). A coluna de apontamentos do detalhe mostra o parecer, o reenvio da nova versão (ex.: Versão 2) e os apontamentos classificados como:
 - **Bloqueante**
 - **Ajuste**
 
@@ -560,7 +559,7 @@ O sistema não envia e-mail: a senha temporária é repassada pelo administrador
 `US12` `Prioridade: Alta` `Sprint 6`
 
 ### Descrição
-Painel lateral com o resumo do projeto e o histórico de tratamento, aberto a partir da listagem, e consulta somente leitura das etapas de projetos já enviados.
+Tela de detalhe do projeto, aberta a partir da listagem, com o resumo, o conteúdo enviado e o histórico de tratamento, e consulta somente leitura das etapas de projetos já enviados.
 
 ### User Story
 > **Como** projetista externo,  
@@ -568,25 +567,20 @@ Painel lateral com o resumo do projeto e o histórico de tratamento, aberto a pa
 > **Para que** eu entenda em que ponto o projeto está e o que aconteceu com ele sem precisar navegar pelas etapas.
 
 ### Conversação (Regras de Negócio e Interface)
-Clicar em uma linha de "Meus Projetos" abre o painel lateral (protótipo H1b) com:
-- Protocolo, nome, endereço e situação com o número de apontamentos em aberto
-- Unidades, demanda calculada, data de criação, última movimentação e responsável técnico
-- Histórico de tratamento em ordem cronológica inversa: criação, envios com a versão, reprovações com o número de apontamentos e aprovação, com data, autor e papel
+"Ver Projeto" e "Corrigir" em "Meus Projetos" abrem o detalhe em `/projetos/$id`. O detalhe tem o mesmo cabeçalho e as mesmas abas da tela de análise, para que projetista, analista e admin vejam o projeto do mesmo jeito; só as ações mudam por perfil:
+- Cabeçalho: protocolo, nome, situação, versão, endereço, projetista, unidades, demanda, normas, data de criação e data de envio
+- Abas: Memória de Cálculo (verificação automática e decomposição do cálculo, só leitura para o projetista), Unidades Consumidoras, Documentos e Histórico de tratamento em ordem cronológica inversa
+- Coluna lateral do projetista: parecer, apontamentos para responder e reenvio quando reprovado ([US09](#us09-correção-de-apontamentos-e-reenvio-com-versionamento)); próximos passos quando em análise
 
-O rodapé muda conforme a situação:
-- **Rascunho:** "Continuar Preenchimento", que abre a primeira etapa incompleta
-- **Em análise e Aprovado:** "Abrir Projeto", que abre as etapas em modo somente leitura
-- **Reprovado:** "Abrir Projeto" e "Ver Apontamentos" ([US09](#us09-correção-de-apontamentos-e-reenvio-com-versionamento))
-
-No modo somente leitura, os campos e os botões de edição ficam ocultos e o topo exibe a faixa "Projeto enviado em" com a data.
+Enquanto o projeto está em análise, o topo exibe a faixa "Projeto enviado em" com a data e o protocolo. Rascunho continua pela listagem com "Continuar". Nas etapas de projeto enviado, os campos e os botões de edição ficam ocultos.
 
 ### Confirmação (Critérios de Aceite - BDD)
 
 #### Cenário 1 (Positivo): Consulta do Histórico de um Projeto Reprovado
 - **Dado** que o projetista está em "Meus Projetos"
 - **Quando** clica na linha do projeto "Condomínio Vila Nova", reprovado com 3 apontamentos
-- **Então** o painel lateral exibe o resumo e o histórico com o envio da versão 1 e a reprovação
-- **E** o rodapé oferece "Abrir Projeto" e "Ver Apontamentos".
+- **Então** o detalhe exibe o cabeçalho com a situação "Reprovado" e a versão 1, e o histórico com o envio e a reprovação
+- **E** a coluna lateral mostra o parecer, os 3 apontamentos e o reenvio.
 
 #### Cenário 2 (Negativo): Tentativa de Edição de Projeto Enviado
 - **Dado** que o projeto está "Em análise"
@@ -595,8 +589,8 @@ No modo somente leitura, os campos e os botões de edição ficam ocultos e o to
 - **E** o topo indica a data do envio.
 
 ### Checklist de Implementação
-- [ ] Abrir o painel lateral com resumo e histórico ao clicar na linha da listagem
-- [ ] Exibir as ações do rodapé conforme a situação do projeto
+- [ ] Abrir o detalhe em `/projetos/$id` a partir da listagem, com o mesmo cabeçalho e as mesmas abas da análise
+- [ ] Exibir as ações conforme o perfil e a situação do projeto
 - [ ] Exibir as etapas de projetos enviados em modo somente leitura
 
 ---

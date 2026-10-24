@@ -34,7 +34,6 @@ export const getProjectAttention = (
 
 /** An object, not positional callbacks: they share a signature, so a swap would compile. */
 export interface ProjectRowActions {
-	onViewFindings: (project: Project) => void;
 	onResumeSubmission: (project: Project) => void;
 	onContinueDraft: (project: Project) => void;
 	onViewProject: (project: Project) => void;
@@ -66,7 +65,7 @@ export const getProjectRowAction = (
 		return {
 			label: "Corrigir",
 			required: true,
-			run: (actions) => actions.onViewFindings(project),
+			run: (actions) => actions.onViewProject(project),
 		};
 	}
 

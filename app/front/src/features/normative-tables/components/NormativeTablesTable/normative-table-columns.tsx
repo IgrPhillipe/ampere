@@ -9,13 +9,13 @@ import { PersonCell } from "./PersonCell";
 const columnHelper = createDataTableColumnHelper<NormativeTable>();
 
 export type NormativeTableColumnId =
-	| "identification"
+	| "code"
 	| "standard"
 	| "item"
 	| "rowCount"
 	| "status"
-	| "registeredBy"
-	| "verifiedBy"
+	| "registeredAt"
+	| "verifiedAt"
 	| "action";
 
 export const createNormativeTableColumns = (
@@ -24,6 +24,7 @@ export const createNormativeTableColumns = (
 ) =>
 	columnHelper.columns([
 		columnHelper.accessor("identification", {
+			id: "code",
 			header: "Tabela",
 			cell: ({ row }) => (
 				<div className="flex flex-col gap-1 whitespace-normal">
@@ -67,6 +68,7 @@ export const createNormativeTableColumns = (
 			),
 		}),
 		columnHelper.accessor("registeredBy", {
+			id: "registeredAt",
 			header: "Cadastro",
 			cell: ({ row }) => (
 				<PersonCell
@@ -76,6 +78,7 @@ export const createNormativeTableColumns = (
 			),
 		}),
 		columnHelper.accessor("verifiedBy", {
+			id: "verifiedAt",
 			header: "Revisão",
 			cell: ({ row }) =>
 				row.original.verifiedBy ? (

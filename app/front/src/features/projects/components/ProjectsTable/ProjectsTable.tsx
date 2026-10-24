@@ -48,7 +48,6 @@ export const ProjectsTable = ({
 	projects,
 	showOwner = false,
 	isLoading = false,
-	onViewFindings,
 	onResumeSubmission,
 	onContinueDraft,
 	onViewProject,
@@ -61,7 +60,6 @@ export const ProjectsTable = ({
 }: ProjectsTableProps) => {
 	const actions = useMemo(
 		() => ({
-			onViewFindings,
 			onResumeSubmission,
 			onContinueDraft,
 			onViewProject,
@@ -69,7 +67,6 @@ export const ProjectsTable = ({
 			onDeleteProject,
 		}),
 		[
-			onViewFindings,
 			onResumeSubmission,
 			onContinueDraft,
 			onViewProject,

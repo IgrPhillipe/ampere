@@ -5,6 +5,14 @@ export const normativeStandardSchema = z.enum(["DIS-NOR-053", "DIS-NOR-030"]);
 
 export type NormativeStandard = z.infer<typeof normativeStandardSchema>;
 
+export const normativeTableSortSchema = z.enum([
+	"code",
+	"registeredAt",
+	"verifiedAt",
+]);
+
+export type NormativeTableSort = z.infer<typeof normativeTableSortSchema>;
+
 export const normativeTableStatusSchema = z.enum([
 	"DRAFT",
 	"PUBLISHED",

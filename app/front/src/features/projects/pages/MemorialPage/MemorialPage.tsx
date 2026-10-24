@@ -78,8 +78,8 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const backToCalculation = () =>
 		void navigate({ to: "/projetos/$id/calculo", params: { id: projectId } });
 
-	const goToSubmission = () =>
-		void navigate({ to: "/projetos/$id/envio", params: { id: projectId } });
+	const goToDetail = () =>
+		void navigate({ to: "/projetos/$id", params: { id: projectId } });
 
 	const upload = (type: DocumentType, file: File) =>
 		uploadMutation.mutate({ projectId, type, file });
@@ -88,7 +88,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 		deleteMutation.mutate({ projectId, documentId: document.id });
 
 	const submit = () =>
-		submitMutation.mutate({ projectId }, { onSuccess: goToSubmission });
+		submitMutation.mutate({ projectId }, { onSuccess: goToDetail });
 
 	const retry = () => {
 		void projectQuery.refetch();
@@ -200,17 +200,17 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 							type="button"
 							onClick={() =>
 								void navigate({
-									to: "/projetos/$id/apontamentos",
+									to: "/projetos/$id",
 									params: { id: projectId },
 								})
 							}
 						>
-							{isOwner ? "Revisar e Reenviar" : "Ver Apontamentos"}
+							{isOwner ? "Revisar e Reenviar" : "Ver Projeto"}
 							<ArrowRight aria-hidden="true" />
 						</Button>
 					) : submitted || (project !== undefined && !isOwner) ? (
-						<Button type="button" onClick={goToSubmission}>
-							Ver Envio
+						<Button type="button" onClick={goToDetail}>
+							Ver Projeto
 							<ArrowRight aria-hidden="true" />
 						</Button>
 					) : (

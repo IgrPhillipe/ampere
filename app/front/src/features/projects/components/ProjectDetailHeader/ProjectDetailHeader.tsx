@@ -1,13 +1,16 @@
 import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
-import {
-	projectStatusBadgeVariants,
-	projectStatusLabels,
-} from "@features/projects";
-import { formatDateTime, formatKva } from "@features/shared";
+import { formatDate, formatKva } from "@features/shared";
+import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
 import type { ProjectDetail } from "@services/projects";
 import type { ReactNode } from "react";
+
+import {
+	projectStatusBadgeVariants,
+	projectStatusLabels,
+	projectVersion,
+} from "../../constants";
 
 interface HeaderCellProps {
 	label: string;
@@ -16,40 +19,56 @@ interface HeaderCellProps {
 }
 
 const HeaderCell = ({ label, isLoading, children }: HeaderCellProps) => (
-	<div className="flex flex-col gap-1.5 bg-card px-6 py-4 sm:last:col-span-2 md:px-8 lg:last:col-span-1">
+	<div className="flex min-w-0 flex-col gap-1.5 bg-card px-6 py-4 last:col-span-2 md:px-8 lg:last:col-span-1">
 		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 			{label}
 		</dt>
-		<dd className="font-mono text-sm text-foreground">
+		<dd className="font-mono text-sm break-words text-foreground">
 			{children ??
 				(isLoading ? <Skeleton className="h-5 w-32" /> : "Não informado")}
 		</dd>
 	</div>
 );
 
-interface ReviewHeaderProps {
+/** Same pattern as the listings: the date in mono, the distance in small muted text. */
+const HeaderDate = ({ value }: { value: string }) => (
+	<span className="flex flex-col gap-0.5">
+		<time dateTime={value}>{formatDate(value)}</time>
+		<span className="font-sans text-xs text-muted-foreground">
+			{dayjs(value).fromNow()}
+		</span>
+	</span>
+);
+
+interface ProjectDetailHeaderProps {
 	project?: ProjectDetail;
 	isLoading?: boolean;
 	units?: string;
 	demandKva?: number | null;
 	reanalysis?: boolean;
+	/** The designer sees the version a rejected project is being corrected into. */
+	correcting?: boolean;
 	className?: string;
 }
 
-export const ReviewHeader = ({
+export const ProjectDetailHeader = ({
 	project,
 	isLoading = false,
 	units,
 	demandKva,
 	reanalysis = false,
+	correcting = false,
 	className,
-}: ReviewHeaderProps) => (
+}: ProjectDetailHeaderProps) => (
 	<header className={cn("flex flex-col border-b border-border", className)}>
 		<div className="flex flex-col gap-3 px-6 pt-8 pb-6 md:px-8">
-			<p className="font-mono text-xs tracking-wider text-muted-foreground uppercase">
-				Análise do Projeto
-				{project ? `, protocolo ${project.protocol}` : null}
-			</p>
+			{project ? (
+				<p className="font-mono text-xs tracking-wider text-muted-foreground uppercase">
+					Protocolo {project.protocol}
+				</p>
+			) : (
+				<Skeleton className="h-4 w-40" />
+			)}
 
 			{project ? (
 				<h1 className="font-heading text-3xl font-semibold tracking-tight">
@@ -72,7 +91,7 @@ export const ReviewHeader = ({
 			) : null}
 		</div>
 
-		<dl className="grid gap-px border-t border-border bg-border sm:grid-cols-2 lg:grid-cols-6">
+		<dl className="grid grid-cols-2 gap-px border-t border-border bg-border lg:grid-cols-7">
 			<HeaderCell isLoading={isLoading} label="Projetista">
 				{project?.ownerName ?? undefined}
 			</HeaderCell>
@@ -98,14 +117,20 @@ export const ReviewHeader = ({
 			</HeaderCell>
 
 			<HeaderCell isLoading={isLoading} label="Versão">
-				{project ? String(project.reviewCycle) : undefined}
+				{project
+					? correcting
+						? `${projectVersion(project)}, em correção`
+						: String(project.reviewCycle)
+					: undefined}
 			</HeaderCell>
 
-			<HeaderCell isLoading={isLoading} label="Recebido em">
+			<HeaderCell isLoading={isLoading} label="Criado em">
+				{project ? <HeaderDate value={project.createdAt} /> : undefined}
+			</HeaderCell>
+
+			<HeaderCell isLoading={isLoading} label="Enviado em">
 				{project?.submittedAt ? (
-					<time dateTime={project.submittedAt}>
-						{formatDateTime(project.submittedAt)}
-					</time>
+					<HeaderDate value={project.submittedAt} />
 				) : undefined}
 			</HeaderCell>
 		</dl>

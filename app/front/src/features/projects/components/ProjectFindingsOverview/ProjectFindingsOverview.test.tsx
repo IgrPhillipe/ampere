@@ -45,15 +45,15 @@ const renderOverview = (
 		reviewCycle: number;
 		reviewOpinion: string | null;
 	} = rejected,
-	canAnswer = true,
+	canRespond = true,
 ) => {
 	const onStartResponse = vi.fn();
 	render(
 		<ProjectFindingsOverview
-			canAnswer={canAnswer}
 			findings={findings}
 			project={project}
 			referenceOptions={referenceOptions}
+			canRespond={canRespond}
 			isResponding={false}
 			onOpenStage={vi.fn()}
 			onStartResponse={onStartResponse}
@@ -85,7 +85,7 @@ describe("ProjectFindingsOverview", () => {
 		expect(onStartResponse).toHaveBeenCalledWith(blocking, "CONTESTED");
 	});
 
-	it("shows the findings without answers to whoever does not own the project", () => {
+	it("shows the findings without answers to a profile that does not respond", () => {
 		renderOverview(
 			[makeFinding({ description: "Substituir ART." })],
 			rejected,

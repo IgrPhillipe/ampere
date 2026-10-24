@@ -258,7 +258,7 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 | Feature | Rota | Página |
 | :--- | :--- | :--- |
 | `auth` | `/entrar` | Entrar |
-| `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id/<etapa>` | Meus Projetos (Projetos, para o admin) e as etapas |
+| `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id`, `/projetos/$id/<etapa>` | Meus Projetos (Projetos, para o admin), o detalhe e as etapas |
 | `review-queue` | `/fila-de-analise` | Fila de Análise |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
 
@@ -303,9 +303,15 @@ O `ROLE_ACCESS` de `lib/route-guard.ts` é a fonte única de quem chega a cada
 | Fila de Análise | não | sim | sim |
 | Tabelas Normativas | não | não | sim |
 
-O que cada papel pode editar num projeto vem de `useProjectPermissions`, que
-repete a regra do back: o projetista edita rascunho, o admin edita em qualquer
-situação.
+O que cada papel faz no detalhe do projeto sai de uma função só,
+`getProjectDetailActions` (`features/projects/constants/project-detail-actions.ts`).
+Projetista, analista e admin veem o mesmo cabeçalho e as mesmas abas
+(`ProjectDetailLayout`, `ProjectDetailHeader`, `ProjectDetailTabs`); só as ações
+mudam. O admin age como analista, e como projetista nos projetos que são dele.
+
+O que cada papel pode editar nas etapas vem de `useProjectPermissions`, que
+repete a regra do back: rascunho ou reprovado para quem escreve, admin incluído;
+responder apontamento e enviar só para o dono.
 
 ---
 
