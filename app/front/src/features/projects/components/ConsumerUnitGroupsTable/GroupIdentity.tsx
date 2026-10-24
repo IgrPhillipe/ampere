@@ -17,8 +17,12 @@ export const GroupIdentity = ({
 	<div className={cn("flex flex-col gap-1 whitespace-normal", className)}>
 		<button
 			type="button"
-			onClick={onOpen}
-			className="self-start text-left text-base font-medium text-foreground underline decoration-muted-foreground/50 underline-offset-4 hover:decoration-current focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+			onClick={(event) => {
+				// The row opens the group too; one open per click is enough.
+				event.stopPropagation();
+				onOpen();
+			}}
+			className="self-start text-left text-base font-medium text-foreground underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
 		>
 			{group.name}
 		</button>

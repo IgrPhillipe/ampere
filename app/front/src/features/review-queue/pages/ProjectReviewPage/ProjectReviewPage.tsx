@@ -300,8 +300,8 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 					documents={checklist?.documents}
 					groupHint={
 						actions.createFindings
-							? "Selecione o nome de um grupo para ver os dados e registrar um apontamento vinculado a ele."
-							: "Selecione o nome de um grupo para ver os dados dele."
+							? "Selecione um grupo para ver os dados e registrar um apontamento vinculado a ele."
+							: "Selecione um grupo para ver os dados dele."
 					}
 					onOpenGroup={(group) => setOpenedGroup({ group })}
 					onCheckFinding={
