@@ -27,6 +27,7 @@ docs/
 | Negócio    | [negocio/mapa-stakeholders.md](negocio/mapa-stakeholders.md) | Atores por proximidade com o problema e posição dentro ou fora da Neoenergia |
 | Produto    | [produto/ideacao.md](produto/ideacao.md) | Registro da Ideação Parte 1: brainstorming, riscos e proposta final |
 | Produto    | [produto/questoes-em-aberto.md](produto/questoes-em-aberto.md) | Registro único das questões de produto |
+| Produto    | [produto/dados-de-demonstracao.md](produto/dados-de-demonstracao.md) | Logins e projetos do seed de demonstração, com o que cada um mostra e como reiniciar |
 | Produto    | [produto/user-stories.md](produto/user-stories.md) | 20 histórias de usuário em BDD, com critérios de confirmação e cenários |
 | Técnico    | [tecnico/README.md](tecnico/README.md) | Motor de cálculo e requisitos de POO |
 | Técnico    | [tecnico/fontes-normativas.md](tecnico/fontes-normativas.md) | DIS-NOR-053, metodologia de cálculo, revisões e processo de submissão |
