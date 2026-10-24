@@ -6,14 +6,7 @@ import {
 	municipalityListSchema,
 	type PostalCodeAddress,
 	postalCodeAddressSchema,
-	stateListSchema,
 } from "./schemas";
-
-export const getStateList = async () => {
-	const response = await externalHttp.get(e.states).json<unknown>();
-
-	return stateListSchema.parse(response);
-};
 
 export const getStateMunicipalityList = async (state: BrazilianState) => {
 	const response = await externalHttp

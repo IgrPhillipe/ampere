@@ -5,7 +5,7 @@ import {
 	sortDirectionSchema,
 	useDebouncedValue,
 } from "@features/shared";
-import { type BrazilianState, brazilianStateSchema } from "@services/locations";
+import { CONCESSION_STATES, type ConcessionState } from "@services/locations";
 import {
 	type ListReviewQueueParams,
 	type ReviewQueueFilter,
@@ -56,9 +56,9 @@ export const useReviewQueueFilters = () => {
 		),
 		direction: parseAsStringLiteral(sortDirectionSchema.options),
 		reviewer: parseAsString,
-		state: parseAsArrayOf(
-			parseAsStringLiteral(brazilianStateSchema.options),
-		).withDefault([]),
+		state: parseAsArrayOf(parseAsStringLiteral(CONCESSION_STATES)).withDefault(
+			[],
+		),
 		municipality: parseAsArrayOf(parseAsString).withDefault([]),
 	});
 	const { filter, search, page, state, municipality } = query;
@@ -138,7 +138,7 @@ export const useReviewQueueFilters = () => {
 	);
 
 	const setState = useCallback(
-		(value: BrazilianState[]) => {
+		(value: ConcessionState[]) => {
 			void setQuery({
 				state: value.length ? value : null,
 				municipality: null,

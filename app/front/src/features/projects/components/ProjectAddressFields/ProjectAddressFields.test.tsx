@@ -1,7 +1,6 @@
 import { useZodForm } from "@features/shared";
 import {
 	getPostalCodeAddress,
-	getStateList,
 	getStateMunicipalityList,
 } from "@services/locations/requests";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -13,7 +12,6 @@ import { projectCreationSchema } from "../../schemas";
 import { ProjectAddressFields } from "./ProjectAddressFields";
 
 vi.mock("@services/locations/requests", () => ({
-	getStateList: vi.fn(),
 	getStateMunicipalityList: vi.fn(),
 	getPostalCodeAddress: vi.fn(),
 }));
@@ -50,9 +48,6 @@ const renderForm = () =>
 
 describe("ProjectAddressFields", () => {
 	beforeEach(() => {
-		vi.mocked(getStateList).mockResolvedValue([
-			{ sigla: "PE", nome: "Pernambuco" },
-		]);
 		vi.mocked(getStateMunicipalityList).mockResolvedValue(["Recife"]);
 	});
 

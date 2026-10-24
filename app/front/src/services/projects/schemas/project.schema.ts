@@ -73,18 +73,6 @@ export type ProjectStatusCountsResponse = z.infer<
 	typeof projectStatusCountsResponseSchema
 >;
 
-export const municipalityListResponseSchema = apiResponseSchema(
-	z.array(z.string()),
-);
-
-export const stateListResponseSchema = apiResponseSchema(
-	z.array(brazilianStateSchema),
-);
-
-export type MunicipalityListResponse = z.infer<
-	typeof municipalityListResponseSchema
->;
-
 /**
  * Parametros tecnicos da edificacao. Espelham os enums do back
  * (`BuildingCategory`, `SupplyVoltage`, `ConnectionType`, `EntranceStandard`):

@@ -1,14 +1,23 @@
 import { type DateRange, DateRangeFilter } from "@components/DateRangeFilter";
 import { MultiFilterMenu } from "@components/MultiFilterMenu";
-import { type BrazilianState, useGetStateList } from "@services/locations";
+import { SearchableFilterMenu } from "@components/SearchableFilterMenu";
+import {
+	CONCESSION_STATES,
+	type ConcessionState,
+	concessionStateNames,
+	useGetConcessionMunicipalityList,
+} from "@services/locations";
 import {
 	type ProjectFindingsFilter,
 	projectFindingsFilterSchema,
-	useGetMunicipalityList,
-	useGetProjectStateList,
 } from "@services/projects";
 
 import { projectFindingsFilterLabels } from "../../constants/project-findings";
+
+const stateOptions = CONCESSION_STATES.map((value) => ({
+	value,
+	label: concessionStateNames[value],
+}));
 
 const findingsOptions = projectFindingsFilterSchema.options.map((value) => ({
 	value,
@@ -16,8 +25,8 @@ const findingsOptions = projectFindingsFilterSchema.options.map((value) => ({
 }));
 
 interface ProjectFilterControlsProps {
-	state: BrazilianState[];
-	onStateChange: (state: BrazilianState[]) => void;
+	state: ConcessionState[];
+	onStateChange: (state: ConcessionState[]) => void;
 	municipality: string[];
 	onMunicipalityChange: (municipality: string[]) => void;
 	period: DateRange;
@@ -36,36 +45,26 @@ export const ProjectFilterControls = ({
 	findings,
 	onFindingsChange,
 }: ProjectFilterControlsProps) => {
-	const statesQuery = useGetProjectStateList();
-	const stateNamesQuery = useGetStateList();
-	const municipalitiesQuery = useGetMunicipalityList(state);
-	const states = (statesQuery.data?.data ?? []).map((value) => ({
-		value,
-		label:
-			stateNamesQuery.data?.find(({ sigla }) => sigla === value)?.nome ?? value,
-	}));
-	const municipalities = (municipalitiesQuery.data?.data ?? []).map((name) => ({
-		value: name,
-		label: name,
-	}));
+	const municipalities = useGetConcessionMunicipalityList(state);
 
 	return (
 		<>
 			<MultiFilterMenu
 				label="UF"
 				allLabel="Todas"
-				options={states}
+				options={stateOptions}
 				value={state}
 				onValueChange={onStateChange}
-				disabled={statesQuery.isPending}
 			/>
-			<MultiFilterMenu
+			<SearchableFilterMenu
 				label="Município"
 				allLabel="Todos"
-				options={municipalities}
+				searchPlaceholder="Buscar município"
+				emptyMessage="Nenhum município encontrado."
+				options={municipalities.municipalities}
 				value={municipality}
 				onValueChange={onMunicipalityChange}
-				disabled={municipalitiesQuery.isPending}
+				disabled={municipalities.isPending}
 			/>
 			<DateRangeFilter
 				label="Criado em"

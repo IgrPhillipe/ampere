@@ -1,17 +1,16 @@
 import { numberFieldSchema, textFieldSchema } from "@features/shared";
 import {
+	CONCESSION_STATES,
+	coversAddress,
+	OUTSIDE_CONCESSION_MESSAGE,
+} from "@services/locations";
+import {
 	buildingCategorySchema,
 	connectionTypeSchema,
 	entranceStandardSchema,
 	supplyVoltageSchema,
 } from "@services/projects";
 import { z } from "zod";
-
-import {
-	CONCESSION_STATES,
-	coversAddress,
-	OUTSIDE_CONCESSION_MESSAGE,
-} from "../constants/concession-area";
 
 /**
  * Os oito campos da etapa 01. Espelha o `ProjectRequest` do back, limites

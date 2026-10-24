@@ -3,6 +3,7 @@ import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { formatPostalCode, useZodForm } from "@features/shared";
 import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
+import { isConcessionState } from "@services/locations";
 import {
 	type BuildingCategory,
 	type ConnectionType,
@@ -23,7 +24,6 @@ import {
 	ProjectStamp,
 	ProjectStepper,
 } from "../../components";
-import { isConcessionState } from "../../constants/concession-area";
 import {
 	type ProjectCreationFormValues,
 	projectCreationSchema,

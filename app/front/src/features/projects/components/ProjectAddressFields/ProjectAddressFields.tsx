@@ -1,19 +1,19 @@
-import { ControlledInput, ControlledSelect } from "@components/form";
 import {
+	ControlledCombobox,
+	ControlledInput,
+	ControlledSelect,
+} from "@components/form";
+import {
+	concessionStateNames,
+	coversAddress,
+	isConcessionState,
+	OUTSIDE_CONCESSION_MESSAGE,
+	useGetConcessionMunicipalityList,
 	useGetPostalCodeAddress,
-	useGetStateList,
-	useGetStateMunicipalityList,
 } from "@services/locations";
 import { useEffect } from "react";
 import { type UseFormReturn, useWatch } from "react-hook-form";
 
-import {
-	CONCESSION_STATES,
-	concessionMunicipalities,
-	coversAddress,
-	isConcessionState,
-	OUTSIDE_CONCESSION_MESSAGE,
-} from "../../constants/concession-area";
 import type { ProjectCreationFormValues } from "../../schemas";
 
 interface ProjectAddressFieldsProps {
@@ -26,21 +26,8 @@ export const ProjectAddressFields = ({ form }: ProjectAddressFieldsProps) => {
 	const state = useWatch({ control, name: "state" }) ?? null;
 	const digits = postalCode.replace(/\D/g, "");
 
-	const statesQuery = useGetStateList();
-	const municipalitiesQuery = useGetStateMunicipalityList(state);
+	const municipalities = useGetConcessionMunicipalityList(state ? [state] : []);
 	const lookup = useGetPostalCodeAddress(digits);
-
-	const stateItems = Object.fromEntries(
-		(statesQuery.data ?? [])
-			.filter(({ sigla }) => CONCESSION_STATES.some((code) => code === sigla))
-			.map(({ sigla, nome }) => [sigla, nome]),
-	);
-	const municipalityItems = Object.fromEntries(
-		(state
-			? concessionMunicipalities(state, municipalitiesQuery.data ?? [])
-			: []
-		).map((name) => [name, name]),
-	);
 
 	// A loaded project already has its address; only a CEP the user typed fills the rest.
 	useEffect(() => {
@@ -96,19 +83,20 @@ export const ProjectAddressFields = ({ form }: ProjectAddressFieldsProps) => {
 				name="state"
 				label="UF"
 				placeholder="Selecione a UF"
-				items={stateItems}
-				disabled={statesQuery.isPending}
+				items={concessionStateNames}
 				required
 				variant="underline"
 			/>
 
-			<ControlledSelect
+			<ControlledCombobox
 				control={control}
 				name="municipality"
 				label="Município"
 				placeholder={state ? "Selecione o município" : "Escolha a UF antes"}
-				items={municipalityItems}
-				disabled={!state || municipalitiesQuery.isPending}
+				searchPlaceholder="Buscar município"
+				emptyMessage="Nenhum município encontrado."
+				options={municipalities.municipalities}
+				disabled={!state || municipalities.isPending}
 				required
 				variant="underline"
 			/>

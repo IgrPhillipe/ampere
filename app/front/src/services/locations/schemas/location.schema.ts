@@ -32,15 +32,6 @@ export const brazilianStateSchema = z.enum([
 
 export type BrazilianState = z.infer<typeof brazilianStateSchema>;
 
-export const stateSchema = z.object({
-	sigla: brazilianStateSchema,
-	nome: z.string(),
-});
-
-export type State = z.infer<typeof stateSchema>;
-
-export const stateListSchema = z.array(stateSchema);
-
 export const municipalitySchema = z.object({
 	id: z.number(),
 	nome: z.string(),

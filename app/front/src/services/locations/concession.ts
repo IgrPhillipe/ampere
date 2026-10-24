@@ -1,4 +1,4 @@
-import type { BrazilianState } from "@services/locations";
+import type { BrazilianState } from "./schemas";
 
 export const CONCESSION_STATES = [
 	"PE",
@@ -7,8 +7,13 @@ export const CONCESSION_STATES = [
 
 export type ConcessionState = (typeof CONCESSION_STATES)[number];
 
+export const concessionStateNames: Record<ConcessionState, string> = {
+	PE: "Pernambuco",
+	PB: "Paraíba",
+};
+
 /** Pernambuco is served whole; Paraíba only in Pedras de Fogo. */
-const LIMITED_MUNICIPALITIES: Partial<
+export const LIMITED_MUNICIPALITIES: Partial<
 	Record<ConcessionState, readonly string[]>
 > = { PB: ["Pedras de Fogo"] };
 

@@ -7,7 +7,7 @@ import {
 	useDebouncedValue,
 } from "@features/shared";
 import dayjs from "@lib/dayjs";
-import { type BrazilianState, brazilianStateSchema } from "@services/locations";
+import { CONCESSION_STATES, type ConcessionState } from "@services/locations";
 import {
 	type ListProjectsParams,
 	type ProjectFindingsFilter,
@@ -54,9 +54,9 @@ export const useProjectFilters = () => {
 			DEFAULT_SORT,
 		),
 		direction: parseAsStringLiteral(sortDirectionSchema.options),
-		state: parseAsArrayOf(
-			parseAsStringLiteral(brazilianStateSchema.options),
-		).withDefault([]),
+		state: parseAsArrayOf(parseAsStringLiteral(CONCESSION_STATES)).withDefault(
+			[],
+		),
 		municipality: parseAsArrayOf(parseAsString).withDefault([]),
 		createdFrom: parseAsString,
 		createdTo: parseAsString,
@@ -149,7 +149,7 @@ export const useProjectFilters = () => {
 	);
 
 	const setState = useCallback(
-		(value: BrazilianState[]) => {
+		(value: ConcessionState[]) => {
 			void setQuery({
 				state: value.length ? value : null,
 				municipality: null,

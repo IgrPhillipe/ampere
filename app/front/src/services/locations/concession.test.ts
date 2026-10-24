@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { concessionMunicipalities, coversAddress } from "./concession-area";
+import { concessionMunicipalities, coversAddress } from "./concession";
 
 describe("concession area", () => {
 	it("covers Pernambuco whole and Paraíba only in Pedras de Fogo", () => {

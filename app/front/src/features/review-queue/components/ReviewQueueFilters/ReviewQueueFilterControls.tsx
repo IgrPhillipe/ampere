@@ -1,20 +1,27 @@
 import { FilterMenu } from "@components/FilterMenu";
 import { MultiFilterMenu } from "@components/MultiFilterMenu";
-import { type BrazilianState, useGetStateList } from "@services/locations";
+import { SearchableFilterMenu } from "@components/SearchableFilterMenu";
 import {
-	useGetMunicipalityList,
-	useGetProjectStateList,
-} from "@services/projects";
+	CONCESSION_STATES,
+	type ConcessionState,
+	concessionStateNames,
+	useGetConcessionMunicipalityList,
+} from "@services/locations";
 import {
 	UNASSIGNED_REVIEWER,
 	useGetReviewerList,
 } from "@services/review-queue";
 
+const stateOptions = CONCESSION_STATES.map((value) => ({
+	value,
+	label: concessionStateNames[value],
+}));
+
 interface ReviewQueueFilterControlsProps {
 	reviewer: string | null;
 	onReviewerChange: (reviewer: string | null) => void;
-	state: BrazilianState[];
-	onStateChange: (state: BrazilianState[]) => void;
+	state: ConcessionState[];
+	onStateChange: (state: ConcessionState[]) => void;
 	municipality: string[];
 	onMunicipalityChange: (municipality: string[]) => void;
 }
@@ -28,14 +35,7 @@ export const ReviewQueueFilterControls = ({
 	onMunicipalityChange,
 }: ReviewQueueFilterControlsProps) => {
 	const reviewersQuery = useGetReviewerList();
-	const statesQuery = useGetProjectStateList();
-	const stateNamesQuery = useGetStateList();
-	const municipalitiesQuery = useGetMunicipalityList(state);
-	const states = (statesQuery.data?.data ?? []).map((value) => ({
-		value,
-		label:
-			stateNamesQuery.data?.find(({ sigla }) => sigla === value)?.nome ?? value,
-	}));
+	const municipalities = useGetConcessionMunicipalityList(state);
 
 	const reviewers = [
 		{ value: UNASSIGNED_REVIEWER, label: "Sem analista" },
@@ -44,10 +44,6 @@ export const ReviewQueueFilterControls = ({
 			label: name,
 		})),
 	];
-	const municipalities = (municipalitiesQuery.data?.data ?? []).map((name) => ({
-		value: name,
-		label: name,
-	}));
 
 	return (
 		<>
@@ -62,18 +58,19 @@ export const ReviewQueueFilterControls = ({
 			<MultiFilterMenu
 				label="UF"
 				allLabel="Todas"
-				options={states}
+				options={stateOptions}
 				value={state}
 				onValueChange={onStateChange}
-				disabled={statesQuery.isPending}
 			/>
-			<MultiFilterMenu
+			<SearchableFilterMenu
 				label="Município"
 				allLabel="Todos"
-				options={municipalities}
+				searchPlaceholder="Buscar município"
+				emptyMessage="Nenhum município encontrado."
+				options={municipalities.municipalities}
 				value={municipality}
 				onValueChange={onMunicipalityChange}
-				disabled={municipalitiesQuery.isPending}
+				disabled={municipalities.isPending}
 			/>
 		</>
 	);

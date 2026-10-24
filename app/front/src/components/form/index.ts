@@ -1,3 +1,4 @@
+export * from "./ControlledCombobox";
 export * from "./ControlledInput";
 export * from "./ControlledSelect";
 export * from "./ControlledTextarea";
