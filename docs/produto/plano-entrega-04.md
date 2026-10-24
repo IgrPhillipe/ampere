@@ -302,15 +302,16 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 
 ### `AT01-US18: Back-end dos filtros e da ordenação [Backend]` (#109)
 
-- [ ] `GET /api/projects` com `sort` (`name`, `demand`, `createdAt`, `updatedAt`), `direction`, `municipality`, `createdFrom`, `createdTo` e `findings`
-- [ ] `GET /api/review-queue` com `sort` (`deadline`, `submittedAt`, `demand`, `warnings`), `reviewer` e `municipality`
-- [ ] `GET /api/projects/municipalities` para as opções do filtro
+- [ ] `GET /api/projects` com `sort` (`name`, `demand`, `createdAt`, `updatedAt`), `direction`, `createdFrom`, `createdTo` e os filtros de vários valores `state`, `municipality` e `findings` (parâmetro repetido)
+- [ ] `GET /api/review-queue` com `sort` (`deadline`, `submittedAt`, `demand`, `warnings`), `reviewer`, `state` e `municipality`
+- [ ] Projeto com CEP e UF; só entra endereço da área atendida: Pernambuco ou Pedras de Fogo (PB)
 - [ ] Ordenação estável pelo id no empate, como no #86
 
 ### `AT02-US18: Filtros e ordenação nas listagens [Frontend]` (#110)
 
 - [ ] Ordenação pelo cabeçalho das colunas em "Meus Projetos" e na fila
-- [ ] Filtros novos guardados na URL com `nuqs`
+- [ ] Filtros novos guardados na URL com `nuqs`; UF, município e apontamentos com seleção múltipla
+- [ ] Opções de município vindas do IBGE, com busca; CEP preenchido pelo ViaCEP no cadastro
 - [ ] Etiquetas removíveis dos filtros ativos e o botão "Limpar Filtros"
 
 ---
