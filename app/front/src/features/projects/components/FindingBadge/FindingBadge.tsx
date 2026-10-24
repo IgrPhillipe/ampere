@@ -1,4 +1,6 @@
 import { Badge } from "@components/ui/badge";
+import { padCount } from "@features/shared";
+import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
 import { MessageSquareWarning } from "lucide-react";
 import { useEffect, useRef } from "react";
@@ -29,18 +31,25 @@ export const FindingBadge = ({
 
 	if (count === 0) return null;
 
+	// The badge is the status; the count stays a mono number beside it.
 	return (
-		<Badge
-			ref={ref}
-			variant={
-				findings.some(({ severity }) => severity === "BLOCKING")
-					? "destructive"
-					: "warning"
-			}
-			className={className}
-		>
-			<MessageSquareWarning aria-hidden="true" />
-			{count} {count === 1 ? "Apontamento" : "Apontamentos"}
-		</Badge>
+		<span ref={ref} className={cn("inline-flex items-center gap-2", className)}>
+			<Badge
+				variant={
+					findings.some(({ severity }) => severity === "BLOCKING")
+						? "destructive"
+						: "warning"
+				}
+			>
+				<MessageSquareWarning aria-hidden="true" />
+				Apontamento
+			</Badge>
+			{count > 1 ? (
+				<span className="font-mono text-xs text-muted-foreground">
+					{padCount(count)}
+					<span className="sr-only"> apontamentos</span>
+				</span>
+			) : null}
+		</span>
 	);
 };
