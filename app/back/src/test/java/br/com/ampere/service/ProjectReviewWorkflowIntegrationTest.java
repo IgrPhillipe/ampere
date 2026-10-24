@@ -207,6 +207,15 @@ class ProjectReviewWorkflowIntegrationTest {
         .andExpect(jsonPath("$.data.status").value("APPROVED"));
   }
 
+  @Test
+  void nobodyReviewsTheirOwnProject() throws Exception {
+    Project own = submittedProject("2026-7004", otherAnalyst);
+
+    assign(own, otherAnalyst)
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.detail").value("Você não pode analisar um projeto seu."));
+  }
+
   /** {@code otherAnalyst} is an admin: the admin reviews like the analyst does. */
   @Test
   void theAdminAssignsWritesFindingsAndDecides() throws Exception {

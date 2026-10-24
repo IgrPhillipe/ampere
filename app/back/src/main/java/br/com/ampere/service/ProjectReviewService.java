@@ -37,6 +37,9 @@ public class ProjectReviewService {
   public Project assign(Long projectId, AuthenticatedUser user) {
     user.requireReviewer();
     Project project = projectService.findById(projectId, user);
+    if (project.isOwnedBy(user.id())) {
+      throw new BusinessException("Você não pode analisar um projeto seu.", HttpStatus.FORBIDDEN);
+    }
     if (!project.isUnderReview()) {
       throw new BusinessException(NOT_UNDER_REVIEW, HttpStatus.CONFLICT);
     }
