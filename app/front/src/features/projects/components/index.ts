@@ -6,6 +6,7 @@ export * from "./FindingBadge";
 export * from "./GroupSheet";
 export * from "./LoadComposition";
 export * from "./MemorialPreview";
+export * from "./NextStepsPanel";
 export * from "./ProjectDeleteDialog";
 export * from "./ProjectDetailFooter";
 export * from "./ProjectDetailHeader";

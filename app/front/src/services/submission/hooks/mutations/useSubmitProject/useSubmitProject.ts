@@ -19,6 +19,8 @@ export const useSubmitProject = () => {
 					queryKey: submissionKeys.checklist(projectId),
 				}),
 			]);
+
+			toast.success("Projeto enviado para análise.");
 		},
 		onError: (error) =>
 			toast.error(

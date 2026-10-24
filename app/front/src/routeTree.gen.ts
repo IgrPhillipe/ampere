@@ -16,12 +16,11 @@ import { Route as ProjetosIndexRouteImport } from './routes/projetos/index'
 import { Route as FilaDeAnaliseIndexRouteImport } from './routes/fila-de-analise/index'
 import { Route as ProjetosNovoRouteImport } from './routes/projetos/novo'
 import { Route as FilaDeAnaliseIdRouteImport } from './routes/fila-de-analise/$id'
+import { Route as ProjetosIdIndexRouteImport } from './routes/projetos/$id/index'
 import { Route as ProjetosIdUnidadesRouteImport } from './routes/projetos/$id/unidades'
 import { Route as ProjetosIdMemorialRouteImport } from './routes/projetos/$id/memorial'
-import { Route as ProjetosIdEnvioRouteImport } from './routes/projetos/$id/envio'
 import { Route as ProjetosIdDadosRouteImport } from './routes/projetos/$id/dados'
 import { Route as ProjetosIdCalculoRouteImport } from './routes/projetos/$id/calculo'
-import { Route as ProjetosIdApontamentosRouteImport } from './routes/projetos/$id/apontamentos'
 
 const TabelasNormativasRoute = TabelasNormativasRouteImport.update({
   id: '/tabelas-normativas',
@@ -58,6 +57,11 @@ const FilaDeAnaliseIdRoute = FilaDeAnaliseIdRouteImport.update({
   path: '/fila-de-analise/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjetosIdIndexRoute = ProjetosIdIndexRouteImport.update({
+  id: '/projetos/$id/',
+  path: '/projetos/$id/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProjetosIdUnidadesRoute = ProjetosIdUnidadesRouteImport.update({
   id: '/projetos/$id/unidades',
   path: '/projetos/$id/unidades',
@@ -66,11 +70,6 @@ const ProjetosIdUnidadesRoute = ProjetosIdUnidadesRouteImport.update({
 const ProjetosIdMemorialRoute = ProjetosIdMemorialRouteImport.update({
   id: '/projetos/$id/memorial',
   path: '/projetos/$id/memorial',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProjetosIdEnvioRoute = ProjetosIdEnvioRouteImport.update({
-  id: '/projetos/$id/envio',
-  path: '/projetos/$id/envio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjetosIdDadosRoute = ProjetosIdDadosRouteImport.update({
@@ -83,11 +82,6 @@ const ProjetosIdCalculoRoute = ProjetosIdCalculoRouteImport.update({
   path: '/projetos/$id/calculo',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjetosIdApontamentosRoute = ProjetosIdApontamentosRouteImport.update({
-  id: '/projetos/$id/apontamentos',
-  path: '/projetos/$id/apontamentos',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -97,12 +91,11 @@ export interface FileRoutesByFullPath {
   '/projetos/novo': typeof ProjetosNovoRoute
   '/fila-de-analise/': typeof FilaDeAnaliseIndexRoute
   '/projetos/': typeof ProjetosIndexRoute
-  '/projetos/$id/apontamentos': typeof ProjetosIdApontamentosRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
-  '/projetos/$id/envio': typeof ProjetosIdEnvioRoute
   '/projetos/$id/memorial': typeof ProjetosIdMemorialRoute
   '/projetos/$id/unidades': typeof ProjetosIdUnidadesRoute
+  '/projetos/$id/': typeof ProjetosIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -112,12 +105,11 @@ export interface FileRoutesByTo {
   '/projetos/novo': typeof ProjetosNovoRoute
   '/fila-de-analise': typeof FilaDeAnaliseIndexRoute
   '/projetos': typeof ProjetosIndexRoute
-  '/projetos/$id/apontamentos': typeof ProjetosIdApontamentosRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
-  '/projetos/$id/envio': typeof ProjetosIdEnvioRoute
   '/projetos/$id/memorial': typeof ProjetosIdMemorialRoute
   '/projetos/$id/unidades': typeof ProjetosIdUnidadesRoute
+  '/projetos/$id': typeof ProjetosIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -128,12 +120,11 @@ export interface FileRoutesById {
   '/projetos/novo': typeof ProjetosNovoRoute
   '/fila-de-analise/': typeof FilaDeAnaliseIndexRoute
   '/projetos/': typeof ProjetosIndexRoute
-  '/projetos/$id/apontamentos': typeof ProjetosIdApontamentosRoute
   '/projetos/$id/calculo': typeof ProjetosIdCalculoRoute
   '/projetos/$id/dados': typeof ProjetosIdDadosRoute
-  '/projetos/$id/envio': typeof ProjetosIdEnvioRoute
   '/projetos/$id/memorial': typeof ProjetosIdMemorialRoute
   '/projetos/$id/unidades': typeof ProjetosIdUnidadesRoute
+  '/projetos/$id/': typeof ProjetosIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -145,12 +136,11 @@ export interface FileRouteTypes {
     | '/projetos/novo'
     | '/fila-de-analise/'
     | '/projetos/'
-    | '/projetos/$id/apontamentos'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
-    | '/projetos/$id/envio'
     | '/projetos/$id/memorial'
     | '/projetos/$id/unidades'
+    | '/projetos/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -160,12 +150,11 @@ export interface FileRouteTypes {
     | '/projetos/novo'
     | '/fila-de-analise'
     | '/projetos'
-    | '/projetos/$id/apontamentos'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
-    | '/projetos/$id/envio'
     | '/projetos/$id/memorial'
     | '/projetos/$id/unidades'
+    | '/projetos/$id'
   id:
     | '__root__'
     | '/'
@@ -175,12 +164,11 @@ export interface FileRouteTypes {
     | '/projetos/novo'
     | '/fila-de-analise/'
     | '/projetos/'
-    | '/projetos/$id/apontamentos'
     | '/projetos/$id/calculo'
     | '/projetos/$id/dados'
-    | '/projetos/$id/envio'
     | '/projetos/$id/memorial'
     | '/projetos/$id/unidades'
+    | '/projetos/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -191,12 +179,11 @@ export interface RootRouteChildren {
   ProjetosNovoRoute: typeof ProjetosNovoRoute
   FilaDeAnaliseIndexRoute: typeof FilaDeAnaliseIndexRoute
   ProjetosIndexRoute: typeof ProjetosIndexRoute
-  ProjetosIdApontamentosRoute: typeof ProjetosIdApontamentosRoute
   ProjetosIdCalculoRoute: typeof ProjetosIdCalculoRoute
   ProjetosIdDadosRoute: typeof ProjetosIdDadosRoute
-  ProjetosIdEnvioRoute: typeof ProjetosIdEnvioRoute
   ProjetosIdMemorialRoute: typeof ProjetosIdMemorialRoute
   ProjetosIdUnidadesRoute: typeof ProjetosIdUnidadesRoute
+  ProjetosIdIndexRoute: typeof ProjetosIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -250,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FilaDeAnaliseIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projetos/$id/': {
+      id: '/projetos/$id/'
+      path: '/projetos/$id'
+      fullPath: '/projetos/$id/'
+      preLoaderRoute: typeof ProjetosIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/projetos/$id/unidades': {
       id: '/projetos/$id/unidades'
       path: '/projetos/$id/unidades'
@@ -262,13 +256,6 @@ declare module '@tanstack/react-router' {
       path: '/projetos/$id/memorial'
       fullPath: '/projetos/$id/memorial'
       preLoaderRoute: typeof ProjetosIdMemorialRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/projetos/$id/envio': {
-      id: '/projetos/$id/envio'
-      path: '/projetos/$id/envio'
-      fullPath: '/projetos/$id/envio'
-      preLoaderRoute: typeof ProjetosIdEnvioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projetos/$id/dados': {
@@ -285,13 +272,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjetosIdCalculoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projetos/$id/apontamentos': {
-      id: '/projetos/$id/apontamentos'
-      path: '/projetos/$id/apontamentos'
-      fullPath: '/projetos/$id/apontamentos'
-      preLoaderRoute: typeof ProjetosIdApontamentosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -303,12 +283,11 @@ const rootRouteChildren: RootRouteChildren = {
   ProjetosNovoRoute: ProjetosNovoRoute,
   FilaDeAnaliseIndexRoute: FilaDeAnaliseIndexRoute,
   ProjetosIndexRoute: ProjetosIndexRoute,
-  ProjetosIdApontamentosRoute: ProjetosIdApontamentosRoute,
   ProjetosIdCalculoRoute: ProjetosIdCalculoRoute,
   ProjetosIdDadosRoute: ProjetosIdDadosRoute,
-  ProjetosIdEnvioRoute: ProjetosIdEnvioRoute,
   ProjetosIdMemorialRoute: ProjetosIdMemorialRoute,
   ProjetosIdUnidadesRoute: ProjetosIdUnidadesRoute,
+  ProjetosIdIndexRoute: ProjetosIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

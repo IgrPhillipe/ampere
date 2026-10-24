@@ -69,7 +69,7 @@ export const ProjectsPage = () => {
 	const handleViewFindings = useCallback(
 		(project: Project) =>
 			void navigate({
-				to: "/projetos/$id/apontamentos",
+				to: "/projetos/$id",
 				params: { id: project.id },
 			}),
 		[navigate],
@@ -101,7 +101,7 @@ export const ProjectsPage = () => {
 
 	const handleViewProject = useCallback(
 		(project: Project) =>
-			void navigate({ to: "/projetos/$id/envio", params: { id: project.id } }),
+			void navigate({ to: "/projetos/$id", params: { id: project.id } }),
 		[navigate],
 	);
 
