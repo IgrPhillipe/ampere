@@ -1,6 +1,5 @@
 package br.com.ampere.config;
 
-import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
@@ -48,7 +47,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -113,7 +111,6 @@ public class DataSeeder implements CommandLineRunner {
     User owner = developmentUser(inserted, "user@ampere.com");
     assignOwnerToLegacyProjects(owner);
     startReviewCycleOfLegacySubmissions();
-    splitLegacyMunicipalities();
     List<Standard> standards = seedStandards();
     seedDevelopmentData(standards, owner, developmentUser(inserted, "admin@ampere.com"));
     seedGroups();
@@ -146,29 +143,6 @@ public class DataSeeder implements CommandLineRunner {
     int updated = projectRepository.startReviewCycleOfLegacySubmissions();
     if (updated > 0) {
       log.info("DataSeeder: review cycle started for {} legacy projects.", updated);
-    }
-  }
-
-  private static final String UF_CODES =
-      Arrays.stream(BrazilianState.values()).map(Enum::name).collect(Collectors.joining("|"));
-
-  /** Before the UF had its own column, some projects were typed as "Recife/PE". */
-  private void splitLegacyMunicipalities() {
-    List<Project> legacy =
-        projectRepository.findAllByMunicipalityContaining("/").stream()
-            .filter(project -> project.getMunicipality().matches(".+/(?i)(" + UF_CODES + ")"))
-            .toList();
-    legacy.forEach(
-        project -> {
-          String[] parts = project.getMunicipality().split("/");
-          project.rename(project.getName(), project.getAddress(), parts[0].trim());
-          project.locate(
-              project.getPostalCode(),
-              BrazilianState.valueOf(parts[1].trim().toUpperCase(Locale.ROOT)));
-        });
-    if (!legacy.isEmpty()) {
-      projectRepository.saveAll(legacy);
-      log.info("DataSeeder: municipality and UF split for {} legacy projects.", legacy.size());
     }
   }
 

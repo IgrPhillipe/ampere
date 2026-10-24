@@ -47,8 +47,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
 
   List<Project> findAllByOwnerIsNull();
 
-  List<Project> findAllByMunicipalityContaining(String fragment);
-
   @Modifying
   @Query(
       """
