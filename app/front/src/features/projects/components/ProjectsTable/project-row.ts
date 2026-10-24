@@ -13,10 +13,10 @@ export const getProjectAttention = (
 			details:
 				count > 0
 					? [
-							`${count} ${count === 1 ? "apontamento" : "apontamentos"} a corrigir`,
+							`${count} ${count === 1 ? "apontamento pendente" : "apontamentos pendentes"}`,
 						]
 					: [],
-			action: "Corrija os apontamentos e reenvie para análise.",
+			action: "Revise os apontamentos e reenvie para análise.",
 		};
 	}
 

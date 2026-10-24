@@ -1,7 +1,7 @@
 import type { Project } from "@services/projects";
 import { describe, expect, it } from "vitest";
 
-import { getProjectRowAction } from "./project-row";
+import { getProjectAttention, getProjectRowAction } from "./project-row";
 
 const project: Project = {
 	id: "1",
@@ -29,5 +29,32 @@ describe("getProjectRowAction", () => {
 		expect(
 			getProjectRowAction({ ...project, status, pendingCount }),
 		).toMatchObject({ label, required });
+	});
+});
+
+describe("getProjectAttention", () => {
+	// pendingCount counts OPEN and CONTESTED findings; FIXED ones drop out.
+	it.each([
+		["every finding fixed", 0, []],
+		["one contested finding", 1, ["1 apontamento pendente"]],
+		["open findings", 3, ["3 apontamentos pendentes"]],
+	] as const)("keeps the rejection alert with %s", (_, pendingCount, details) => {
+		expect(
+			getProjectAttention({ ...project, status: "REJECTED", pendingCount }),
+		).toEqual({
+			severity: "critical",
+			title: "Projeto reprovado",
+			details,
+			action: "Revise os apontamentos e reenvie para análise.",
+		});
+	});
+
+	it.each([
+		"UNDER_REVIEW",
+		"APPROVED",
+	] as const)("has no alert for %s", (status) => {
+		expect(
+			getProjectAttention({ ...project, status, pendingCount: 2 }),
+		).toBeNull();
 	});
 });
