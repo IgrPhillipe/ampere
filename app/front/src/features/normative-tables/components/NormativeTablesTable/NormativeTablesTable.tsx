@@ -1,6 +1,7 @@
 import { DataTable } from "@components/DataTable";
 import { EmptyState } from "@components/EmptyState";
 import { SkeletonTable } from "@components/SkeletonTable";
+import { Button } from "@components/ui/button";
 import { useAuthStore } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { NormativeTable } from "@services/normative-tables";
@@ -26,6 +27,8 @@ interface NormativeTablesTableProps {
 	tables: NormativeTable[];
 	isLoading?: boolean;
 	onOpen: (table: NormativeTable) => void;
+	/** Present while a search or filter narrows the list. */
+	onClearFilters?: () => void;
 	className?: string;
 }
 
@@ -33,6 +36,7 @@ export const NormativeTablesTable = ({
 	tables,
 	isLoading = false,
 	onOpen,
+	onClearFilters,
 	className,
 }: NormativeTablesTableProps) => {
 	const email = useAuthStore((state) => state.user?.email);
@@ -42,6 +46,20 @@ export const NormativeTablesTable = ({
 	);
 
 	if (isLoading) return <SkeletonTable columns={8} />;
+
+	if (tables.length === 0 && onClearFilters) {
+		return (
+			<EmptyState
+				title="Nenhuma tabela encontrada para os critérios informados"
+				description="Revise a busca e os filtros, ou limpe os filtros para ver todas as tabelas."
+				action={
+					<Button type="button" variant="outline" onClick={onClearFilters}>
+						Limpar Filtros
+					</Button>
+				}
+			/>
+		);
+	}
 
 	if (tables.length === 0) {
 		return (
