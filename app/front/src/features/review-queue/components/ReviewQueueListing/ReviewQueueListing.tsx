@@ -6,7 +6,6 @@ import type { ListSort } from "@features/shared";
 import type { ReviewQueueItem, ReviewQueueSort } from "@services/review-queue";
 import { useMemo } from "react";
 
-import { ReviewQueueCards } from "./ReviewQueueCards";
 import {
 	createReviewQueueColumns,
 	type ReviewQueueColumnId,
@@ -16,14 +15,15 @@ import {
 const columnClassNames = {
 	attention: "w-10 pr-0",
 	protocol: "w-28 text-center",
+	name: "w-72",
 	status: "w-32 text-center",
 	deadline: "w-36 text-center",
-	submittedAt: "hidden 2xl:table-cell 2xl:w-32 text-center",
-	cycle: "hidden xl:table-cell xl:w-28 text-center",
-	units: "hidden xl:table-cell xl:w-16 text-center",
+	submittedAt: "w-36 text-center",
+	cycle: "w-28 text-center",
+	units: "w-16 text-center",
 	demand: "w-28 text-center",
 	warnings: "w-24 text-center",
-	action: "w-36",
+	action: "w-40",
 } satisfies Partial<Record<ReviewQueueColumnId, string>>;
 
 const sortableColumns = [
@@ -76,21 +76,15 @@ export const ReviewQueueListing = ({
 	}
 
 	return (
-		<>
-			<ReviewQueueCards
-				items={items}
-				onAnalyze={onAnalyze}
-				className="lg:hidden"
-			/>
-			<DataTable<ReviewQueueItem, ReviewQueueColumnId, ReviewQueueSort>
-				columns={columns}
-				data={items}
-				columnClassNames={columnClassNames}
-				sortableColumns={sortableColumns}
-				sort={sort}
-				onSortChange={onSortChange}
-				className="hidden lg:block"
-			/>
-		</>
+		// Narrower than its columns, the table scrolls sideways with the action pinned.
+		<DataTable<ReviewQueueItem, ReviewQueueColumnId, ReviewQueueSort>
+			columns={columns}
+			data={items}
+			columnClassNames={columnClassNames}
+			sortableColumns={sortableColumns}
+			sort={sort}
+			onSortChange={onSortChange}
+			pinnedColumn="action"
+		/>
 	);
 };

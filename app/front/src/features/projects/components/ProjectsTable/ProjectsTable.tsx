@@ -13,6 +13,7 @@ import type { ProjectRowActions } from "./project-row";
 const projectColumnClassNames = {
 	attention: "w-10 pr-0",
 	protocol: "w-28 text-center",
+	name: "w-72",
 	owner: "w-36",
 	status: "w-48 text-center",
 	pending: "w-28 text-center",
@@ -20,7 +21,7 @@ const projectColumnClassNames = {
 	demand: "w-28 text-center",
 	createdAt: "w-32 text-center",
 	updatedAt: "w-32 text-center",
-	action: "w-36",
+	action: "w-40",
 } satisfies Partial<Record<ProjectColumnId, string>>;
 
 const sortableColumns = [
@@ -99,7 +100,7 @@ export const ProjectsTable = ({
 	}
 
 	return (
-		// Below the desktop width the table keeps its columns and scrolls sideways.
+		// Narrower than its columns, the table scrolls sideways with the action pinned.
 		<DataTable<Project, ProjectColumnId, ProjectSort>
 			columns={columns}
 			data={projects}
@@ -107,7 +108,7 @@ export const ProjectsTable = ({
 			sortableColumns={sortableColumns}
 			sort={sort}
 			onSortChange={onSortChange}
-			tableClassName="min-w-[88rem]"
+			pinnedColumn="action"
 			className={className}
 		/>
 	);

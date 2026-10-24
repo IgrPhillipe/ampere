@@ -44,6 +44,8 @@ interface DataTableProps<
 	onSortChange?: (column: TSortColumn) => void;
 	/** Classes of the `table`, such as a minimum width that scrolls on narrow screens. */
 	tableClassName?: string;
+	/** Column kept on the right edge while the table scrolls sideways, such as the action. */
+	pinnedColumn?: TColumnId;
 	className?: string;
 }
 
@@ -88,8 +90,17 @@ export const DataTable = <
 	sort,
 	onSortChange,
 	tableClassName,
+	pinnedColumn,
 	className,
 }: DataTableProps<TData, TColumnId, TSortColumn>) => {
+	const pinned = (columnId: TColumnId, cell: boolean) =>
+		columnId === pinnedColumn &&
+		cn(
+			// On a phone a pinned column would hide most of the row: everything scrolls.
+			"pl-4 md:sticky md:right-0 md:z-10 md:bg-card md:shadow-[inset_1px_0_0_var(--color-border)]",
+			cell && "md:[tr:hover>&]:bg-surface-hover",
+		);
+
 	const table = useTable({ features: dataTableFeatures, columns, data });
 
 	if (isLoading) return <SkeletonTable columns={columns.length} />;
@@ -122,7 +133,10 @@ export const DataTable = <
 									<TableHead
 										key={header.id}
 										aria-sort={sortable ? ariaSort(direction) : undefined}
-										className={columnClassNames?.[columnId]}
+										className={cn(
+											columnClassNames?.[columnId],
+											pinned(columnId, false),
+										)}
 									>
 										{header.isPlaceholder ? null : sortable ? (
 											<button
@@ -156,7 +170,10 @@ export const DataTable = <
 							{row.getAllCells().map((cell) => (
 								<TableCell
 									key={cell.id}
-									className={columnClassNames?.[cell.column.id as TColumnId]}
+									className={cn(
+										columnClassNames?.[cell.column.id as TColumnId],
+										pinned(cell.column.id as TColumnId, true),
+									)}
 								>
 									<table.FlexRender cell={cell} />
 								</TableCell>
