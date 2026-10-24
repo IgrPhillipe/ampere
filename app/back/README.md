@@ -61,7 +61,7 @@ API em `http://localhost:8080/api`, documentação em `http://localhost:8080/api
 
 ## Autenticação
 
-`/api/projects` exige token. A cada inicialização fora dos profiles `prod` e `test`, o `DataSeeder` cria os quatro usuários de desenvolvimento que ainda não existem (a checagem é por e-mail):
+`/api/projects` exige token. A cada inicialização fora dos profiles `prod` e `test`, ou com o profile `demo`, o `DataSeeder` cria os quatro usuários de desenvolvimento que ainda não existem (a checagem é por e-mail):
 
 | E-mail | Senha | Papel |
 | :--- | :--- | :--- |
@@ -69,6 +69,8 @@ API em `http://localhost:8080/api`, documentação em `http://localhost:8080/api
 | `admin@ampere.com` | `senha@123` | `admin` |
 | `conferente@ampere.com` | `senha@123` | `admin` |
 | `revisor@ampere.com` | `senha@123` | `reviewer` |
+
+O `DemoScenarioSeeder` completa o banco com projetos em cada etapa da análise, uma segunda analista (`analista@ampere.com`) e um projetista inativo (`inativo@ampere.com`), com a mesma senha. Em produção, `SPRING_PROFILES_ACTIVE=prod,demo` liga os dois seeds e mantém o `JWT_SECRET` obrigatório.
 
 O conferente existe para a dupla leitura das tabelas normativas: quem cadastra uma tabela não a publica. O revisor é o analista; num banco antigo, em que ele era `admin`, o `DataSeeder` o passa para `reviewer`.
 
