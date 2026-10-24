@@ -137,3 +137,9 @@ export const getFindingAttention = (findings: Finding[]): AttentionMessage => {
 		action: "Corrija aqui e responda na tela de apontamentos.",
 	};
 };
+
+/** A rejected project is being corrected into the version its resubmission creates. */
+export const projectVersion = (
+	project: Pick<ProjectDetail, "status" | "reviewCycle">,
+) =>
+	project.status === "REJECTED" ? project.reviewCycle + 1 : project.reviewCycle;
