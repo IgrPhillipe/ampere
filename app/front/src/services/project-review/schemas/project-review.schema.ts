@@ -49,6 +49,8 @@ export const findingSchema = z.object({
 	createdAt: z.iso.datetime({ offset: true }),
 	version: z.number().int().positive(),
 	status: findingStatusSchema,
+	response: z.string().nullable(),
+	respondedAt: z.iso.datetime({ offset: true }).nullable(),
 });
 
 export type Finding = z.infer<typeof findingSchema>;

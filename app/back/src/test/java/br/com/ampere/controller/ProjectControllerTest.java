@@ -353,7 +353,7 @@ class ProjectControllerTest {
     when(service.update(eq(1L), any(), eq(DESIGNER)))
         .thenThrow(
             new BusinessException(
-                "Só é possível alterar um projeto em rascunho.", HttpStatus.CONFLICT));
+                "Só é possível alterar um projeto em rascunho ou reprovado.", HttpStatus.CONFLICT));
     doThrow(
             new BusinessException(
                 "Só é possível excluir um projeto em rascunho.", HttpStatus.CONFLICT))
@@ -364,7 +364,9 @@ class ProjectControllerTest {
     mockMvc
         .perform(put("/projects/1").contentType(MediaType.APPLICATION_JSON).content(validBody()))
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.detail").value("Só é possível alterar um projeto em rascunho."));
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Só é possível alterar um projeto em rascunho ou reprovado."));
     mockMvc
         .perform(delete("/projects/1"))
         .andExpect(status().isConflict())

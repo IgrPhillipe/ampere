@@ -6,6 +6,8 @@ export const ProjectReviewEndpoints = {
 		`projects/${projectId}/findings/${findingId}`,
 	resolution: (projectId: string, findingId: string) =>
 		`projects/${projectId}/findings/${findingId}/resolution`,
+	response: (projectId: string, findingId: string) =>
+		`projects/${projectId}/findings/${findingId}/response`,
 	documentFile: (projectId: string, documentId: string) =>
 		`projects/${projectId}/documents/${documentId}/file`,
 } as const;

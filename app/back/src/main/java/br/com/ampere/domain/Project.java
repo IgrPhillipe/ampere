@@ -102,6 +102,9 @@ public class Project {
   @Column(length = 2000)
   private String reviewOpinion;
 
+  @Column(length = 2000)
+  private String changeSummary;
+
   @Column(nullable = false)
   private String searchIndex;
 
@@ -223,6 +226,11 @@ public class Project {
     this.reviewCycle++;
   }
 
+  public void recordChangeSummary(String changeSummary) {
+    this.changeSummary =
+        changeSummary == null || changeSummary.isBlank() ? null : changeSummary.trim();
+  }
+
   public void approve(OffsetDateTime reviewedAt) {
     approve(reviewedAt, null);
   }
@@ -273,6 +281,14 @@ public class Project {
 
   public boolean isDraft() {
     return status == ProjectStatus.DRAFT;
+  }
+
+  public boolean isRejected() {
+    return status == ProjectStatus.REJECTED;
+  }
+
+  public boolean isEditable() {
+    return status == ProjectStatus.DRAFT || status == ProjectStatus.REJECTED;
   }
 
   public boolean isUnderReview() {
@@ -363,6 +379,10 @@ public class Project {
 
   public String getReviewOpinion() {
     return reviewOpinion;
+  }
+
+  public String getChangeSummary() {
+    return changeSummary;
   }
 
   public User getOwner() {

@@ -159,7 +159,7 @@ class ProjectServiceTest {
                 service(projectRepository, mock(FindingRepository.class))
                     .update(1L, parameters(), DESIGNER))
         .isInstanceOf(BusinessException.class)
-        .hasMessage("Só é possível alterar um projeto em rascunho.");
+        .hasMessage("Só é possível alterar um projeto em rascunho ou reprovado.");
   }
 
   @Test

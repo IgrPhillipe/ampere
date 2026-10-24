@@ -1,7 +1,6 @@
 import {
 	Tooltip,
 	TooltipContent,
-	type TooltipMessage,
 	TooltipMessageContent,
 	TooltipTrigger,
 	tooltipMessageText,
@@ -9,15 +8,10 @@ import {
 import { cn } from "@lib/utils";
 import { CircleAlert } from "lucide-react";
 
-/** `critical` blocks the flow (rejected, overdue); `warning` can still wait a little. */
-export interface AttentionMessage extends TooltipMessage {
-	severity: "critical" | "warning";
-}
-
-const severityClassNames = {
-	critical: "bg-destructive/10 text-destructive",
-	warning: "bg-brand-sunset/20 text-warning-foreground",
-} as const satisfies Record<AttentionMessage["severity"], string>;
+import {
+	type AttentionMessage,
+	attentionSeverityClassNames,
+} from "./attention-severity";
 
 interface AttentionIndicatorProps {
 	message: AttentionMessage;
@@ -34,7 +28,7 @@ export const AttentionIndicator = ({
 			tabIndex={0}
 			className={cn(
 				"inline-flex size-6 items-center justify-center rounded-full focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-				severityClassNames[message.severity],
+				attentionSeverityClassNames[message.severity],
 				className,
 			)}
 		>

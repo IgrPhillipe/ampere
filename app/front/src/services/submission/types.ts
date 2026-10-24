@@ -11,6 +11,11 @@ export interface DeleteDocumentParams {
 	documentId: string;
 }
 
+export interface SubmitProjectParams {
+	projectId: string;
+	changeSummary?: string;
+}
+
 export interface Memorial {
 	filename: string;
 	blob: Blob;

@@ -11,6 +11,7 @@ export const authUserSchema = z.object({
 	name: z.string(),
 	email: z.email(),
 	role: userRoleSchema,
+	mustChangePassword: z.boolean(),
 	avatarUrl: z.string().optional(),
 });
 

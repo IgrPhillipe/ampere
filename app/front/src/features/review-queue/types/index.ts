@@ -1,5 +1,3 @@
-import type { FindingStage } from "@services/project-review";
-
 import type { FindingFormValues } from "../schemas";
 
 export type FindingEditor =
@@ -10,8 +8,3 @@ export type FindingEditor =
 			findingId: string;
 			values: FindingFormValues;
 	  };
-
-export type FindingReferenceOptions = Record<
-	FindingStage,
-	Record<string, string>
->;

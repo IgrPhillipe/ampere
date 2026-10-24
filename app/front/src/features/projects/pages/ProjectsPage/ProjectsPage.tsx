@@ -16,7 +16,6 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, CircleAlert } from "lucide-react";
 import { useCallback, useState } from "react";
-import { toast } from "sonner";
 
 import {
 	ProjectActiveFilters,
@@ -74,11 +73,14 @@ export const ProjectsPage = () => {
 	const pagination = projectsQuery.data?.pagination;
 	const hasError = projectsQuery.isError || statusCountsQuery.isError;
 
-	const handleViewFindings = useCallback((project: Project) => {
-		toast.info(
-			`Os apontamentos de "${project.name}" serão exibidos na etapa de detalhes do projeto.`,
-		);
-	}, []);
+	const handleViewFindings = useCallback(
+		(project: Project) =>
+			void navigate({
+				to: "/projetos/$id/apontamentos",
+				params: { id: project.id },
+			}),
+		[navigate],
+	);
 
 	const handleResumeSubmission = useCallback(
 		(project: Project) =>

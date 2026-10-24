@@ -3,6 +3,7 @@ import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { useGetLatestCalculation } from "@services/calculation";
 import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
+import { useGetFindingList } from "@services/project-review";
 import { useGetProject } from "@services/projects";
 import {
 	type DocumentType,
@@ -22,6 +23,7 @@ import {
 	ProjectStepper,
 	SubmissionChecklistPanel,
 } from "../../components";
+import { stageFindingsOf } from "../../constants";
 
 interface MemorialPageProps {
 	projectId: string;
@@ -42,10 +44,20 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const submitMutation = useSubmitProject();
 
 	const project = projectQuery.data?.data;
+	const findingsQuery = useGetFindingList(projectId, {
+		enabled: project?.status === "REJECTED",
+	});
+	const documentFindings = stageFindingsOf(
+		findingsQuery.data?.data,
+		project,
+		"DOCUMENTS",
+	);
 	const validation = validationQuery.data?.data;
 	const checklist = submissionQuery.data?.data;
 	const editable =
-		project?.status === "DRAFT" || project?.status === "AWAITING_SUBMISSION";
+		project?.status === "DRAFT" ||
+		project?.status === "AWAITING_SUBMISSION" ||
+		project?.status === "REJECTED";
 	const submitted = project !== undefined && !editable;
 	const neverCalculated = calculationQuery.data === null;
 	const hasError =
@@ -73,7 +85,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 		deleteMutation.mutate({ projectId, documentId: document.id });
 
 	const submit = () =>
-		submitMutation.mutate(projectId, { onSuccess: goToSubmission });
+		submitMutation.mutate({ projectId }, { onSuccess: goToSubmission });
 
 	const retry = () => {
 		void projectQuery.refetch();
@@ -149,6 +161,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 
 						<SubmissionChecklistPanel
 							checklist={checklist}
+							findings={documentFindings}
 							isLoading={submissionQuery.isPending}
 							editable={editable}
 							uploadingType={
@@ -179,7 +192,20 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 						<ArrowLeft aria-hidden="true" />
 					</Button>
 
-					{submitted ? (
+					{project?.status === "REJECTED" ? (
+						<Button
+							type="button"
+							onClick={() =>
+								void navigate({
+									to: "/projetos/$id/apontamentos",
+									params: { id: projectId },
+								})
+							}
+						>
+							Revisar e Reenviar
+							<ArrowRight aria-hidden="true" />
+						</Button>
+					) : submitted ? (
 						<Button type="button" onClick={goToSubmission}>
 							Ver Envio
 							<ArrowRight aria-hidden="true" />
