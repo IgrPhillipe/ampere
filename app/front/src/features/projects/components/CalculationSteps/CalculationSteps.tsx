@@ -82,7 +82,8 @@ const StepRow = ({
 		<li
 			className={cn(
 				"grid grid-cols-[3.25rem_minmax(0,1fr)] gap-y-1 border-b border-border py-3 sm:grid-cols-[3.25rem_minmax(0,1fr)_8.75rem]",
-				isTotal && "rounded-xs border-b-0 bg-accent px-3.5",
+				// The negative margin keeps the total's columns aligned with the steps above.
+				isTotal && "-mx-3 mt-3 rounded-xs border-b-0 bg-accent px-3",
 			)}
 		>
 			<span className="flex h-6 items-center gap-2.5">
