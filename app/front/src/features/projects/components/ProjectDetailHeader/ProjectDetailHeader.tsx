@@ -1,7 +1,6 @@
 import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDate, formatKva, formatPostalCode } from "@features/shared";
-import dayjs from "@lib/dayjs";
+import { formatDateTime, formatKva, formatPostalCode } from "@features/shared";
 import { cn } from "@lib/utils";
 import {
 	type ConcessionState,
@@ -23,7 +22,7 @@ interface HeaderCellProps {
 }
 
 const HeaderCell = ({ label, isLoading, children }: HeaderCellProps) => (
-	<div className="flex min-w-0 flex-col gap-1.5 bg-card px-6 py-4 last:col-span-2 md:px-8 lg:last:col-span-1">
+	<div className="flex min-w-0 flex-col gap-1.5 bg-card px-6 py-4 last:odd:col-span-2 md:px-8 lg:last:odd:col-span-1">
 		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 			{label}
 		</dt>
@@ -36,12 +35,7 @@ const HeaderCell = ({ label, isLoading, children }: HeaderCellProps) => (
 
 /** Same pattern as the listings: the date in mono, the distance in small muted text. */
 const HeaderDate = ({ value }: { value: string }) => (
-	<span className="flex flex-col gap-0.5">
-		<time dateTime={value}>{formatDate(value)}</time>
-		<span className="font-sans text-xs text-muted-foreground">
-			{dayjs(value).fromNow()}
-		</span>
-	</span>
+	<time dateTime={value}>{formatDateTime(value)}</time>
 );
 
 export interface HeaderMetric {
@@ -191,7 +185,7 @@ export const ProjectDetailHeader = ({
 			<HeaderCell isLoading={isLoading} label="Versão">
 				{project
 					? correcting
-						? `${projectVersion(project)}, em correção`
+						? String(projectVersion(project))
 						: String(project.reviewCycle)
 					: undefined}
 			</HeaderCell>
