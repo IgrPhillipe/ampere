@@ -104,7 +104,8 @@ public class UserAdministrationController {
         description = "Usuário atualizado"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
-        description = "Dados inválidos, ou o administrador desativando a própria conta"),
+        description =
+            "Dados inválidos, ou o administrador desativando a própria conta ou tirando o próprio papel"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "403",
         description = "Apenas o papel ADMIN gerencia usuários"),
