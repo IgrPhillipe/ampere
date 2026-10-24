@@ -58,7 +58,7 @@ interface ProjectFindingsOverviewProps {
 	isResponding: boolean;
 	/** Shown above the findings: the resubmission form or the next steps. */
 	summary?: ReactNode;
-	onOpenStage: (finding: Finding) => void;
+	onOpenStage?: (finding: Finding) => void;
 	onStartResponse: (
 		finding: Finding,
 		status: FindingResponseValues["status"],
@@ -229,10 +229,14 @@ export const ProjectFindingsOverview = ({
 								: undefined
 						}
 						isResponding={isResponding}
-						onOpenStage={(finding) => {
-							setOpenedId(null);
-							onOpenStage(finding);
-						}}
+						onOpenStage={
+							onOpenStage
+								? (finding) => {
+										setOpenedId(null);
+										onOpenStage(finding);
+									}
+								: undefined
+						}
 						onStartResponse={onStartResponse}
 						onSubmitResponse={onSubmitResponse}
 						onCancelResponse={onCancelResponse}

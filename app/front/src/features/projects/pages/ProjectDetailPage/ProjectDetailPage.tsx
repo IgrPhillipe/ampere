@@ -351,7 +351,7 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 								<NextStepsPanel submittedAt={submittedAt} />
 							) : null
 						}
-						onOpenStage={openStage}
+						onOpenStage={canEdit ? openStage : undefined}
 						onStartResponse={(finding, status) =>
 							setResponseEditor({ findingId: finding.id, status })
 						}

@@ -144,6 +144,9 @@ describe("ProjectDetailPage", () => {
 		fireEvent.click(screen.getByRole("button", { name: /A ART não traz/ }));
 		expect(screen.getByRole("button", { name: "Corrigido" })).toBeVisible();
 		expect(screen.getByRole("button", { name: "Contestar" })).toBeVisible();
+		expect(
+			screen.getByRole("button", { name: /Ir para a Etapa/ }),
+		).toBeVisible();
 	});
 
 	it("keeps the designer read only while the project is under review", () => {
@@ -157,6 +160,12 @@ describe("ProjectDetailPage", () => {
 		).not.toBeInTheDocument();
 		expect(
 			screen.queryByRole("button", { name: "Reenviar Projeto" }),
+		).not.toBeInTheDocument();
+
+		// The steps are closed while the project is under review.
+		fireEvent.click(screen.getByRole("button", { name: /A ART não traz/ }));
+		expect(
+			screen.queryByRole("button", { name: /Ir para a Etapa/ }),
 		).not.toBeInTheDocument();
 	});
 

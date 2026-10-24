@@ -12,7 +12,8 @@ interface ProjectFindingCardProps {
 	canRespond: boolean;
 	responseStatus?: FindingResponseValues["status"];
 	isResponding: boolean;
-	onOpenStage: (finding: Finding) => void;
+	/** Left out when the project cannot be edited: its steps are closed. */
+	onOpenStage?: (finding: Finding) => void;
 	onStartResponse: (
 		finding: Finding,
 		status: FindingResponseValues["status"],
@@ -56,16 +57,18 @@ export const ProjectFindingCard = ({
 
 			<div className="flex flex-col gap-3">
 				<div className="flex flex-wrap gap-2">
-					<Button
-						type="button"
-						variant="outline"
-						size="xs"
-						aria-describedby={descriptionId}
-						onClick={() => onOpenStage(finding)}
-					>
-						Ir para a Etapa
-						<ArrowRight aria-hidden="true" />
-					</Button>
+					{onOpenStage ? (
+						<Button
+							type="button"
+							variant="outline"
+							size="xs"
+							aria-describedby={descriptionId}
+							onClick={() => onOpenStage(finding)}
+						>
+							Ir para a Etapa
+							<ArrowRight aria-hidden="true" />
+						</Button>
+					) : null}
 					{canRespond ? (
 						<>
 							<Button
