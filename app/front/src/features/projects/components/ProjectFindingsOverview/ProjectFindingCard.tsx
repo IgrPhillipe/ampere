@@ -2,6 +2,7 @@ import { Button } from "@components/ui/button";
 import type { Finding } from "@services/project-review";
 import { ArrowRight } from "lucide-react";
 
+import { isReopened } from "../../constants";
 import type { FindingResponseValues } from "../../schemas";
 import { FindingAnswer, FindingSummary } from "../FindingDetails";
 import { FindingResponseForm } from "./FindingResponseForm";
@@ -45,7 +46,11 @@ export const ProjectFindingCard = ({
 			/>
 
 			<FindingAnswer
-				title="Resposta do Projetista"
+				title={
+					isReopened(finding)
+						? "Resposta Anterior do Projetista"
+						: "Resposta do Projetista"
+				}
 				text={finding.response}
 				fallback={
 					finding.status === "FIXED"
@@ -55,6 +60,11 @@ export const ProjectFindingCard = ({
 				respondedAt={finding.respondedAt}
 			/>
 
+			{isReopened(finding) ? (
+				<p className="text-sm text-muted-foreground">
+					O analista reabriu o apontamento. Responda de novo.
+				</p>
+			) : null}
 			<div className="flex flex-col gap-3">
 				<div className="flex flex-wrap gap-2">
 					{onOpenStage ? (

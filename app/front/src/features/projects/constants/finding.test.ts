@@ -1,7 +1,11 @@
 import type { Finding } from "@services/project-review";
 import { describe, expect, it } from "vitest";
 
-import { awaitsDesignerResponse, findingTarget } from "./finding";
+import {
+	awaitsDesignerResponse,
+	findingStatusLabelOf,
+	findingTarget,
+} from "./finding";
 
 const finding = {
 	stage: "DOCUMENTS",
@@ -47,5 +51,25 @@ describe("findingTarget", () => {
 			}),
 		).toBe("grupo-7");
 		expect(findingTarget({ ...finding, documentType: null })).toBeUndefined();
+	});
+});
+
+describe("findingStatusLabelOf", () => {
+	it("calls a finding reopened after the designer's answer", () => {
+		expect(
+			findingStatusLabelOf({
+				status: "OPEN",
+				respondedAt: "2026-09-24T12:00:00Z",
+			}),
+		).toBe("Reaberto");
+		expect(findingStatusLabelOf({ status: "OPEN", respondedAt: null })).toBe(
+			"Aberto",
+		);
+		expect(
+			findingStatusLabelOf({
+				status: "FIXED",
+				respondedAt: "2026-09-24T12:00:00Z",
+			}),
+		).toBe("Corrigido");
 	});
 });

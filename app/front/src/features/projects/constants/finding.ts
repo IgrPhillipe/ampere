@@ -40,6 +40,14 @@ export const findingStatusLabels = {
 	RESOLVED: "Resolvido",
 } as const satisfies Record<FindingStatus, string>;
 
+/** The analyst reopened it after the designer's answer: it waits on a new one. */
+export const isReopened = (finding: Pick<Finding, "status" | "respondedAt">) =>
+	finding.status === "OPEN" && Boolean(finding.respondedAt);
+
+export const findingStatusLabelOf = (
+	finding: Pick<Finding, "status" | "respondedAt">,
+) => (isReopened(finding) ? "Reaberto" : findingStatusLabels[finding.status]);
+
 export const findingStatusBadgeVariants = {
 	DRAFT: "neutral",
 	OPEN: "warning",

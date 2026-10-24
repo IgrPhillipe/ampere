@@ -6,7 +6,7 @@ import type { ProjectDocument } from "@services/submission";
 import { Eye, MessageSquareWarning } from "lucide-react";
 import { useState } from "react";
 
-import { findingTarget } from "../../constants";
+import { findingTarget, isReopened } from "../../constants";
 import { useProjectDetailActions } from "../../hooks";
 import type { FindingResponseValues } from "../../schemas";
 import { FindingAnswer, FindingSummary } from "../FindingDetails";
@@ -121,7 +121,11 @@ export const StageFindingsNotice = ({
 								variant="inline"
 							/>
 							<FindingAnswer
-								title="Resposta do Projetista"
+								title={
+									isReopened(finding)
+										? "Resposta Anterior do Projetista"
+										: "Resposta do Projetista"
+								}
 								text={finding.response}
 								fallback={
 									finding.status === "FIXED"
@@ -130,6 +134,11 @@ export const StageFindingsNotice = ({
 								}
 								respondedAt={finding.respondedAt}
 							/>
+							{isReopened(finding) ? (
+								<p className="text-sm text-muted-foreground">
+									O analista reabriu o apontamento. Responda de novo.
+								</p>
+							) : null}
 							<div className="flex flex-wrap gap-2">
 								{documentOf(finding, documents) ? (
 									<Button
