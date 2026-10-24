@@ -1,7 +1,12 @@
-import { formatDate, formatKva, formatPlace, padCount } from "@features/shared";
-import dayjs from "@lib/dayjs";
+import {
+	formatDateTime,
+	formatKva,
+	formatPlace,
+	padCount,
+} from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Project } from "@services/projects";
+import type { ReactNode } from "react";
 
 import { ProjectActionIndicator } from "./ProjectActionIndicator";
 import { ProjectRowActionButton } from "./ProjectRowActionButton";
@@ -14,13 +19,21 @@ interface ProjectCardsProps extends ProjectRowActions {
 	className?: string;
 }
 
-/**
- * A mesma listagem em largura estreita.
- *
- * Quatro colunas nao cabem num celular: ou a tabela rola de lado e nada e
- * legivel sem arrastar, ou as colunas se espremem. Aqui cada projeto vira um
- * bloco, na mesma ordem de leitura da tabela.
- */
+interface FigureProps {
+	label: string;
+	children: ReactNode;
+}
+
+const Figure = ({ label, children }: FigureProps) => (
+	<div className="flex min-w-0 flex-col gap-1">
+		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+			{label}
+		</dt>
+		<dd className="font-mono text-sm text-foreground">{children}</dd>
+	</div>
+);
+
+/** The listing on a narrow screen: one block per project, with the table's columns as labels. */
 export const ProjectCards = ({
 	projects,
 	showOwner = false,
@@ -31,7 +44,7 @@ export const ProjectCards = ({
 		{projects.map((project) => (
 			<li
 				key={project.id}
-				className="flex flex-col gap-3 border-b border-border px-6 py-4 last:border-b-0"
+				className="flex flex-col gap-4 border-b border-border px-6 py-4 last:border-b-0"
 			>
 				<div className="flex flex-col gap-1">
 					<div className="flex items-start justify-between gap-3">
@@ -53,65 +66,44 @@ export const ProjectCards = ({
 
 				<ProjectStatusBadge project={project} />
 
-				<dl className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
-					{project.pendingCount > 0 ? (
-						<div className="flex gap-1.5">
-							<dt>Pendências</dt>
-							<dd className="font-mono font-semibold text-foreground">
+				<div className="flex items-end justify-between gap-4">
+					<dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-3">
+						{showOwner ? (
+							<Figure label="Projetista">
+								<span className="font-sans">
+									{project.ownerName ?? "Não informado"}
+								</span>
+							</Figure>
+						) : null}
+
+						{project.pendingCount > 0 ? (
+							<Figure label="Pendências">
 								{padCount(project.pendingCount)}
-							</dd>
-						</div>
-					) : null}
+							</Figure>
+						) : null}
 
-					{showOwner ? (
-						<div className="flex gap-1.5">
-							<dt>Projetista</dt>
-							<dd>{project.ownerName ?? "Não informado"}</dd>
-						</div>
-					) : null}
+						<Figure label="UCs">{project.consumerUnitsCount}</Figure>
 
-					<div className="flex gap-1.5">
-						<dt>UCs</dt>
-						<dd className="font-mono">{project.consumerUnitsCount}</dd>
-					</div>
-
-					<div className="flex gap-1.5">
-						<dt>Demanda</dt>
-						<dd className="font-mono">
+						<Figure label="Demanda">
 							{project.demandKva === null
 								? "Sem cálculo"
 								: formatKva(project.demandKva, 1)}
-						</dd>
-					</div>
+						</Figure>
 
-					<div className="flex gap-1.5">
-						<dt>Criado em</dt>
-						<dd>
-							<time dateTime={project.createdAt} className="font-mono">
-								{formatDate(project.createdAt)}
+						<Figure label="Criado em">
+							<time dateTime={project.createdAt}>
+								{formatDateTime(project.createdAt)}
 							</time>
-						</dd>
-					</div>
+						</Figure>
 
-					<div className="flex gap-1.5">
-						<dt>Atualizado</dt>
-						<dd>
-							<time
-								dateTime={project.updatedAt}
-								title={dayjs(project.updatedAt).format("DD/MM/YYYY HH:mm")}
-							>
-								{dayjs(project.updatedAt).fromNow()}
+						<Figure label="Atualizado">
+							<time dateTime={project.updatedAt}>
+								{formatDateTime(project.updatedAt)}
 							</time>
-						</dd>
-					</div>
-				</dl>
+						</Figure>
+					</dl>
 
-				<div className="flex justify-end">
-					<ProjectRowActionButton
-						project={project}
-						{...actions}
-						buttonClassName="w-32"
-					/>
+					<ProjectRowActionButton project={project} {...actions} />
 				</div>
 			</li>
 		))}
