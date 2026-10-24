@@ -131,7 +131,7 @@ public class ProjectService {
     Map<ProjectStatus, Long> counts = new EnumMap<>(ProjectStatus.class);
     projectRepository
         .countAccessiblePerStatus(user.id(), user.projectVisibility())
-        .forEach(count -> counts.put(count.getStatus(), count.getTotal()));
+        .forEach(count -> counts.put(count.status(), count.total()));
 
     return Map.copyOf(counts);
   }

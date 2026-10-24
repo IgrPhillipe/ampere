@@ -1,10 +1,13 @@
 package br.com.ampere.repository;
 
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectVisibility;
+import br.com.ampere.domain.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -32,17 +35,8 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
   @Override
   public Page<Project> searchAccessibleProjects(ProjectSearch search, Pageable pageable) {
-    StringBuilder where = new StringBuilder();
     Map<String, Object> parameters = new HashMap<>();
-
-    switch (search.visibility()) {
-      case ALL -> where.append("WHERE 1 = 1");
-      case SUBMITTED -> where.append("WHERE project.submittedAt IS NOT NULL");
-      case OWN -> {
-        where.append("WHERE project.owner.id = :ownerId");
-        parameters.put("ownerId", search.ownerId());
-      }
-    }
+    StringBuilder where = visibleTo(search.userId(), search.visibility(), parameters);
     if (search.status() != null) {
       where.append(" AND project.status = :status");
       parameters.put("status", search.status());
@@ -70,9 +64,9 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
           });
     }
 
-    if (search.designerId() != null) {
-      where.append(" AND project.owner.id = :designerId");
-      parameters.put("designerId", search.designerId());
+    if (search.owner() != null) {
+      where.append(" AND project.owner.id = :owner");
+      parameters.put("owner", search.owner());
     }
 
     String direction = search.direction().name();
@@ -140,6 +134,65 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         parameters,
         column + ", project.id ASC",
         pageable);
+  }
+
+  @Override
+  public List<String> findAccessibleMunicipalities(Long userId, ProjectVisibility visibility) {
+    Map<String, Object> parameters = new HashMap<>();
+    StringBuilder where = visibleTo(userId, visibility, parameters);
+    TypedQuery<String> query =
+        entityManager.createQuery(
+            "SELECT DISTINCT project.municipality FROM Project project "
+                + where
+                + " ORDER BY project.municipality ASC",
+            String.class);
+    parameters.forEach(query::setParameter);
+
+    return query.getResultList();
+  }
+
+  @Override
+  public List<User> findAccessibleOwners(Long userId, ProjectVisibility visibility) {
+    Map<String, Object> parameters = new HashMap<>();
+    StringBuilder where = visibleTo(userId, visibility, parameters);
+    TypedQuery<User> query =
+        entityManager.createQuery(
+            "SELECT DISTINCT owner FROM Project project JOIN project.owner owner "
+                + where
+                + " ORDER BY owner.name ASC",
+            User.class);
+    parameters.forEach(query::setParameter);
+
+    return query.getResultList();
+  }
+
+  @Override
+  public List<StatusCount> countAccessiblePerStatus(Long userId, ProjectVisibility visibility) {
+    Map<String, Object> parameters = new HashMap<>();
+    StringBuilder where = visibleTo(userId, visibility, parameters);
+    TypedQuery<StatusCount> query =
+        entityManager.createQuery(
+            "SELECT new br.com.ampere.repository.ProjectRepositoryCustom$StatusCount("
+                + "project.status, COUNT(project)) FROM Project project "
+                + where
+                + " GROUP BY project.status",
+            StatusCount.class);
+    parameters.forEach(query::setParameter);
+
+    return query.getResultList();
+  }
+
+  /** The projects the role reaches: its own, the submitted ones, or all of them. */
+  private static StringBuilder visibleTo(
+      Long userId, ProjectVisibility visibility, Map<String, Object> parameters) {
+    return switch (visibility) {
+      case ALL -> new StringBuilder("WHERE 1 = 1");
+      case SUBMITTED -> new StringBuilder("WHERE project.submittedAt IS NOT NULL");
+      case OWN -> {
+        parameters.put("userId", userId);
+        yield new StringBuilder("WHERE project.owner.id = :userId");
+      }
+    };
   }
 
   private static String openFindings(String condition) {

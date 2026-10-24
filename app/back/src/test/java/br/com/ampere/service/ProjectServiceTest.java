@@ -72,7 +72,7 @@ class ProjectServiceTest {
     verify(projectRepository)
         .searchAccessibleProjects(searchCaptor.capture(), pageableCaptor.capture());
     ProjectSearch search = searchCaptor.getValue();
-    assertThat(search.ownerId()).isEqualTo(7L);
+    assertThat(search.userId()).isEqualTo(7L);
     assertThat(search.visibility()).isEqualTo(ProjectVisibility.OWN);
     assertThat(search.search()).isEqualTo("\\%\\_\\\\");
     assertThat(search.createdFrom()).isEqualTo(OffsetDateTime.parse("2026-10-01T00:00-03:00"));
