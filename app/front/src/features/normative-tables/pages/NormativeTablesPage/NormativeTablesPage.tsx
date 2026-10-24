@@ -1,4 +1,5 @@
 import { EmptyState } from "@components/EmptyState";
+import { FilterMenu } from "@components/FilterMenu";
 import { ListToolbar } from "@components/ListToolbar";
 import { PageLayout } from "@components/layout";
 import { SearchInput } from "@components/SearchInput";
@@ -7,6 +8,7 @@ import { Button } from "@components/ui/button";
 import {
 	type NormativeTable,
 	type NormativeTableSort,
+	normativeTableStatusSchema,
 	useGetNormativeTableList,
 } from "@services/normative-tables";
 import { CircleAlert, Plus } from "lucide-react";
@@ -14,10 +16,10 @@ import { useCallback, useState } from "react";
 
 import {
 	NormativeTableActiveFilters,
-	NormativeTableFilterControls,
 	NormativeTableSheet,
 	NormativeTablesTable,
 } from "../../components";
+import { normativeTableStatusLabels } from "../../constants";
 import {
 	NORMATIVE_TABLE_SORT_DIRECTIONS,
 	useNormativeTableFilters,
@@ -25,10 +27,14 @@ import {
 
 const sortOptions: SortOption<NormativeTableSort>[] = [
 	{ value: "code", label: "Tabela" },
-	{ value: "title", label: "Nome" },
 	{ value: "registeredAt", label: "Cadastro" },
-	{ value: "verifiedAt", label: "Publicação" },
+	{ value: "verifiedAt", label: "Revisão" },
 ];
+
+const statusOptions = normativeTableStatusSchema.options.map((value) => ({
+	value,
+	label: normativeTableStatusLabels[value],
+}));
 
 export const NormativeTablesPage = () => {
 	const filters = useNormativeTableFilters();
@@ -70,7 +76,7 @@ export const NormativeTablesPage = () => {
 						<SearchInput
 							value={filters.search}
 							onValueChange={filters.setSearch}
-							placeholder="Buscar por tabela, nome ou item"
+							placeholder="Buscar por tabela, nome, item ou norma"
 							label="Buscar tabelas"
 						/>
 					}
@@ -83,11 +89,12 @@ export const NormativeTablesPage = () => {
 						/>
 					}
 					refinements={
-						<NormativeTableFilterControls
-							status={filters.status}
-							onStatusChange={filters.setStatus}
-							standard={filters.standard}
-							onStandardChange={filters.setStandard}
+						<FilterMenu
+							label="Situação"
+							allLabel="Todas"
+							options={statusOptions}
+							value={filters.status}
+							onValueChange={filters.setStatus}
 						/>
 					}
 					activeFilters={<NormativeTableActiveFilters filters={filters} />}
@@ -114,6 +121,8 @@ export const NormativeTablesPage = () => {
 							tables={tablesQuery.data?.data ?? []}
 							isLoading={tablesQuery.isPending}
 							onOpen={openTable}
+							sort={filters.sort}
+							onSortChange={filters.sortBy}
 							onClearFilters={
 								filters.hasActiveFilters ? filters.clearFilters : undefined
 							}
