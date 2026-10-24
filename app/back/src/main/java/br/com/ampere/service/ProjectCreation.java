@@ -1,10 +1,8 @@
 package br.com.ampere.service;
 
 import br.com.ampere.domain.BuildingType;
-import br.com.ampere.domain.ConcessionArea;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.User;
-import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.UserRepository;
@@ -36,9 +34,7 @@ public class ProjectCreation {
         userRepository
             .findById(ownerId)
             .orElseThrow(() -> new NotFoundException("Usuário autenticado não encontrado."));
-    if (!ConcessionArea.covers(parameters.state(), parameters.municipality())) {
-      throw new BusinessException(ConcessionArea.OUTSIDE_MESSAGE);
-    }
+    String municipality = ProjectPlaces.municipalityOf(parameters);
     BuildingType buildingType = parameters.toBuildingType();
     int year = LocalDate.now().getYear();
     String protocol =
@@ -50,7 +46,7 @@ public class ProjectCreation {
         Project.draft(
             parameters.name(),
             parameters.address(),
-            parameters.municipality(),
+            municipality,
             protocol,
             buildingType,
             applicableStandards.of(buildingType),

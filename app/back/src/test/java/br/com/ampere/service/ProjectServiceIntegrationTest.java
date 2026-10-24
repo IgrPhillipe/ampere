@@ -436,6 +436,60 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
+  void refusesAPostalCodeFromAnotherStateOrAnUnknownMunicipality() {
+    ProjectParameters paulistaCep =
+        new ProjectParameters(
+            "Residencial Aurora",
+            "01001000",
+            BrazilianState.PE,
+            "Recife",
+            "Rua da Aurora, 1",
+            BuildingCategory.RESIDENTIAL_MULTIFAMILY,
+            12,
+            SupplyVoltage.V380_220,
+            ConnectionType.THREE_PHASE,
+            EntranceStandard.COLLECTIVE);
+    ProjectParameters unknownCity =
+        new ProjectParameters(
+            "Residencial Aurora",
+            "50030230",
+            BrazilianState.PE,
+            "Cidade Inventada",
+            "Rua da Aurora, 1",
+            BuildingCategory.RESIDENTIAL_MULTIFAMILY,
+            12,
+            SupplyVoltage.V380_220,
+            ConnectionType.THREE_PHASE,
+            EntranceStandard.COLLECTIVE);
+
+    assertThatThrownBy(() -> service.create(paulistaCep, designer))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("O CEP não pertence à UF informada.");
+    assertThatThrownBy(() -> service.create(unknownCity, designer))
+        .isInstanceOf(BusinessException.class)
+        .hasMessageContaining("Pedras de Fogo (PB)");
+  }
+
+  @Test
+  void storesTheIbgeSpellingOfTheMunicipality() {
+    ProjectParameters typed =
+        new ProjectParameters(
+            "Residencial Aurora",
+            "54000000",
+            BrazilianState.PE,
+            " jaboatao dos guararapes ",
+            "Rua 1",
+            BuildingCategory.RESIDENTIAL_MULTIFAMILY,
+            12,
+            SupplyVoltage.V380_220,
+            ConnectionType.THREE_PHASE,
+            EntranceStandard.COLLECTIVE);
+
+    assertThat(service.create(typed, designer).getMunicipality())
+        .isEqualTo("Jaboatão dos Guararapes");
+  }
+
+  @Test
   void storesThePostalCodeAndTheState() {
     Project created =
         service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer);

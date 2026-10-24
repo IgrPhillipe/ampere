@@ -1,7 +1,6 @@
 package br.com.ampere.service;
 
 import br.com.ampere.domain.BuildingType;
-import br.com.ampere.domain.ConcessionArea;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
@@ -145,12 +144,10 @@ public class ProjectService {
   public Project update(Long id, ProjectParameters parameters, AuthenticatedUser user) {
     Project project =
         editableOrFail(id, "Só é possível alterar um projeto em rascunho ou reprovado.", user);
-    if (!ConcessionArea.covers(parameters.state(), parameters.municipality())) {
-      throw new BusinessException(ConcessionArea.OUTSIDE_MESSAGE);
-    }
+    String municipality = ProjectPlaces.municipalityOf(parameters);
     BuildingType buildingType = parameters.toBuildingType();
 
-    project.rename(parameters.name(), parameters.address(), parameters.municipality());
+    project.rename(parameters.name(), parameters.address(), municipality);
     project.locate(parameters.postalCode(), parameters.state());
     project.changeBuildingType(buildingType);
     project.applyStandards(applicableStandards.of(buildingType));
@@ -227,10 +224,6 @@ public class ProjectService {
 
   private static OffsetDateTime startOf(LocalDate day) {
     return day == null ? null : day.atStartOfDay(ReviewQueueService.ZONE).toOffsetDateTime();
-  }
-
-  private static String first(String kept, String other) {
-    return kept.compareTo(other) <= 0 ? kept : other;
   }
 
   private Map<Long, BigDecimal> latestDemands(List<Long> projectIds) {
