@@ -26,8 +26,6 @@ interface ProjectDetailTabsProps {
 	documents?: ProjectDocument[];
 	/** Findings marked on the items they point to. */
 	markedFindings?: Finding[];
-	/** The automatic verification is a review tool, shown to analysts only. */
-	showVerification?: boolean;
 	groupHint?: string;
 	onOpenGroup: (group: ConsumerUnitGroup) => void;
 	onCheckFinding?: (check: CalculationCheck) => void;
@@ -42,7 +40,6 @@ export const ProjectDetailTabs = ({
 	totalLoadKw,
 	documents,
 	markedFindings = [],
-	showVerification = false,
 	groupHint,
 	onOpenGroup,
 	onCheckFinding,
@@ -78,13 +75,11 @@ export const ProjectDetailTabs = ({
 					/>
 				) : (
 					<>
-						{showVerification ? (
-							<AutomaticVerification
-								checks={calculation?.checks}
-								isLoading={calculation === undefined}
-								onCreateFinding={onCheckFinding}
-							/>
-						) : null}
+						<AutomaticVerification
+							checks={calculation?.checks}
+							isLoading={calculation === undefined}
+							onCreateFinding={onCheckFinding}
+						/>
 						<CalculationSteps
 							steps={calculation?.steps}
 							isLoading={calculation === undefined}

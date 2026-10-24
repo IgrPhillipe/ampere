@@ -35,7 +35,19 @@ vi.mock("@services/project-review", async (importOriginal) => ({
 vi.mock("@services/calculation", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/calculation")>()),
 	useGetLatestCalculation: () =>
-		loadedQuery({ data: { checks: [], steps: [], totals: { finalKva: 76 } } }),
+		loadedQuery({
+			data: {
+				checks: [
+					{
+						code: "EV_NETWORK_STUDY",
+						status: "WARNING",
+						message: "Recarga acima de 20 kW exige estudo da rede.",
+					},
+				],
+				steps: [],
+				totals: { finalKva: 76 },
+			},
+		}),
 }));
 
 vi.mock("@services/consumer-units", async (importOriginal) => ({
@@ -85,13 +97,17 @@ describe("ProjectDetailPage", () => {
 		}
 	});
 
-	it("leaves the automatic verification to the analysts", () => {
+	it("shows the automatic verification to the designer, read only", () => {
 		signInAs("user");
 		state.project = makeProjectDetail();
 		renderPage();
 
+		expect(screen.getByText("Verificação Automática")).toBeVisible();
 		expect(
-			screen.queryByText("Verificação Automática"),
+			screen.getByText("Recarga acima de 20 kW exige estudo da rede."),
+		).toBeVisible();
+		expect(
+			screen.queryByRole("button", { name: "Virar Apontamento" }),
 		).not.toBeInTheDocument();
 	});
 
