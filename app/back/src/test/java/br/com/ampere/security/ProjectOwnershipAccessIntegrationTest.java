@@ -255,7 +255,9 @@ class ProjectOwnershipAccessIntegrationTest {
     mockMvc
         .perform(get("/projects").header("Authorization", admin))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.pagination.total").value(4));
+        .andExpect(jsonPath("$.pagination.total").value(4))
+        .andExpect(
+            jsonPath("$.data[?(@.protocol == '2026-3001')].ownerName").value("Beto Projetista"));
     mockMvc
         .perform(get("/projects/status-counts").header("Authorization", admin))
         .andExpect(status().isOk())

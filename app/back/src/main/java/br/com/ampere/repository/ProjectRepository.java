@@ -16,6 +16,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
+  /** The owner is fetched with the page: the admin's listing shows who designed each project. */
+  @EntityGraph(attributePaths = "owner")
   @Query(
       """
       SELECT project
