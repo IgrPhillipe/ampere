@@ -12,6 +12,35 @@ import {
 	findingStatusLabels,
 } from "../../constants";
 
+interface MetaItemProps {
+	label: string;
+	person?: string;
+	at?: string | null;
+	value?: string;
+}
+
+/** Same reading as the normative tables metadata: who, then when, under a mono label. */
+const MetaItem = ({ label, person, at, value }: MetaItemProps) => (
+	<div className="flex min-w-0 flex-col gap-1.5">
+		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+			{label}
+		</dt>
+		<dd className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
+			{person ? (
+				<span className="truncate text-sm font-medium text-foreground">
+					{person}
+				</span>
+			) : null}
+			{value ? <span className="text-sm text-foreground">{value}</span> : null}
+			{at ? (
+				<time dateTime={at} className="font-mono text-xs text-muted-foreground">
+					{formatDate(at)}
+				</time>
+			) : null}
+		</dd>
+	</div>
+);
+
 interface FindingSummaryProps {
 	finding: Finding;
 	reference: string | null;
@@ -20,7 +49,7 @@ interface FindingSummaryProps {
 	descriptionId?: string;
 }
 
-/** Badges and submission on one line, then what to fix, then who asked and when. */
+/** Badges, then what to fix, then who asked, when and in which submission. */
 export const FindingSummary = ({
 	finding,
 	reference,
@@ -28,20 +57,13 @@ export const FindingSummary = ({
 	descriptionId,
 }: FindingSummaryProps) => (
 	<>
-		<div className="flex items-start justify-between gap-3">
-			<div className="flex flex-wrap items-center gap-2">
-				<Badge variant={findingSeverityBadgeVariants[finding.severity]}>
-					{findingSeverityLabels[finding.severity]}
-				</Badge>
-				<Badge variant={findingStatusBadgeVariants[finding.status]}>
-					{findingStatusLabels[finding.status]}
-				</Badge>
-			</div>
-			{showVersion ? (
-				<span className="shrink-0 pt-1 font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-					{finding.version}º envio
-				</span>
-			) : null}
+		<div className="flex flex-wrap items-center gap-2">
+			<Badge variant={findingSeverityBadgeVariants[finding.severity]}>
+				{findingSeverityLabels[finding.severity]}
+			</Badge>
+			<Badge variant={findingStatusBadgeVariants[finding.status]}>
+				{findingStatusLabels[finding.status]}
+			</Badge>
 		</div>
 
 		<div className="flex flex-col gap-1.5">
@@ -65,21 +87,15 @@ export const FindingSummary = ({
 			) : null}
 		</div>
 
-		<dl className="flex flex-wrap gap-x-6 gap-y-1 text-xs">
-			<div className="flex gap-1.5">
-				<dt className="text-muted-foreground">Analista</dt>
-				<dd className="text-foreground">
-					{finding.authorName ?? "Não informado"}
-				</dd>
-			</div>
-			<div className="flex gap-1.5">
-				<dt className="text-muted-foreground">Registrado em</dt>
-				<dd className="text-foreground">
-					<time dateTime={finding.createdAt}>
-						{formatDate(finding.createdAt)}
-					</time>
-				</dd>
-			</div>
+		<dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+			<MetaItem
+				label="Registro"
+				person={finding.authorName ?? "Analista não informado"}
+				at={finding.createdAt}
+			/>
+			{showVersion ? (
+				<MetaItem label="Envio" value={`${finding.version}º envio`} />
+			) : null}
 		</dl>
 	</>
 );
@@ -111,14 +127,16 @@ export const FindingAnswer = ({
 			)}
 		>
 			<div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-				<h4 className="font-sans text-xs font-semibold text-foreground">
+				<h4 className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 					{title}
 				</h4>
 				{respondedAt ? (
-					<span className="text-xs text-muted-foreground">
-						Respondido em{" "}
-						<time dateTime={respondedAt}>{formatDate(respondedAt)}</time>
-					</span>
+					<time
+						dateTime={respondedAt}
+						className="font-mono text-xs text-muted-foreground"
+					>
+						{formatDate(respondedAt)}
+					</time>
 				) : null}
 			</div>
 			{text ? (
