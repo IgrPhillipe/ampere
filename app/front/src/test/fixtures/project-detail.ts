@@ -87,6 +87,7 @@ export const signInAs = (role: UserRole) => {
 		email: "pessoa@ampere.com",
 		role,
 		token: "token",
+		mustChangePassword: false,
 	};
 
 	useAuthStore.setState({ user, isAuthenticated: true });

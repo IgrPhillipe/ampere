@@ -77,7 +77,7 @@ curl -s -X POST http://localhost:8080/api/auth/login \
   -d '{"email":"user@ampere.com","password":"senha@123"}'
 ```
 
-As tabelas normativas (`/api/normative-tables/**`) e a fila (`/api/review-queue/**`) exigem o papel `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`. O papel `admin` representa o analista na fila técnica.
+As tabelas normativas (`/api/normative-tables/**`), a fila (`/api/review-queue/**`) e a gestão de usuários (`/api/users/**`, exceto `/api/users/me`) exigem o papel `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`. O papel `admin` representa o analista na fila técnica.
 
 ### Cadastro e Perfil
 
@@ -94,6 +94,24 @@ As tabelas normativas (`/api/normative-tables/**`) e a fila (`/api/review-queue/
 - O nome e o CREA do dono saem em `technicalResponsible` no detalhe do projeto e no memorial em PDF.
 
 Cada projeto pertence a quem o criou. O projetista vê só os próprios projetos; o analista lê os enviados para análise e não altera nenhum. Os projetos do seed pertencem a `user@ampere.com`. Detalhes em [`convencoes-back.md`](../../docs/tecnico/convencoes-back.md#dono-do-projeto).
+
+### Gestão de Usuários
+
+Restrita ao papel `admin` pelo `SecurityConfig`, sem prefixo de papel no caminho. `/api/users/me` continua aberto a todos os papéis.
+
+| Método e caminho | O que faz |
+| :--- | :--- |
+| `GET /api/users` | Lista em ordem de nome, paginada; `search` busca no nome e no e-mail sem acentos, `role` filtra por `user` ou `admin` |
+| `POST /api/users` | Cria a conta com nome, e-mail e papel; devolve a senha temporária |
+| `PUT /api/users/{id}` | Substitui nome, papel e situação (`active`), os três obrigatórios; é por aqui que se desativa e reativa. O e-mail não muda |
+| `POST /api/users/{id}/password-reset` | Gera uma nova senha temporária |
+
+- A senha temporária só sai em `data.temporaryPassword`, na resposta da criação e da redefinição. Não há e-mail: o administrador a repassa.
+- Com senha temporária, `mustChangePassword` vem `true` no login e em `/api/auth/me`, até a troca em `PUT /api/users/me/password`. O back não bloqueia as outras rotas enquanto isso: levar à troca é papel do front.
+- Conta inativa recebe 403 no login, com *"Conta desativada. Procure a Neoenergia."*, mas só se a senha estiver certa. O token já emitido passa a responder 401 com a mesma mensagem: o filtro do JWT relê a situação e o papel da conta a cada requisição. Papel alterado e conta inexistente também derrubam o token, com a mensagem de sessão expirada.
+- A redefinição de senha não derruba o token já aberto. Para cortar o acesso na hora, desative a conta.
+- O administrador não desativa a própria conta nem remove o próprio papel `admin` (400).
+- Erros: 400 para dados ou filtro inválidos, 404 para usuário inexistente, 409 para e-mail já cadastrado.
 
 ---
 
@@ -155,6 +173,24 @@ O papel `admin` representa o analista. Um projeto `UNDER_REVIEW` é assumido por
 - `/resolution` recebe `{"resolution": "ACCEPT"}` para `RESOLVED` ou `{"resolution": "REOPEN"}` para `OPEN`, só para apontamentos de ciclos anteriores.
 
 Projeto de outro dono ou inexistente responde 404; papel ou analista errado, 403; atribuição ou estado em conflito, 409; regra da decisão, 422.
+
+### Correção e Reenvio
+
+O projeto `REJECTED` volta a ser editável pelo dono: dados, grupos, cálculo e documentos. Editar não muda a situação; o projeto segue `REJECTED` até o reenvio. Excluir continua só em `DRAFT`.
+
+| Método e caminho | Quem usa | Regra principal |
+| :--- | :--- | :--- |
+| `PUT /api/projects/{id}/findings/{findingId}/response` | Dono | Marca o apontamento como `FIXED` ou `CONTESTED` |
+| `GET /api/projects/{id}/submission` | Dono ou analista | Checklist com `unansweredBlocking` e `requiresChangeSummary` |
+| `POST /api/projects/{id}/submission` | Dono | Envia ou reenvia; no reenvio, exige `{"changeSummary": "..."}` |
+
+- `/response` recebe `{"status": "FIXED" | "CONTESTED", "response": "..."}`, com até 2.000 caracteres. A justificativa é obrigatória em `CONTESTED`.
+- Responde-se a qualquer apontamento publicado e não aceito, inclusive o reaberto de ciclo anterior. A última resposta vale.
+- `unansweredBlocking` conta os apontamentos `BLOCKING` em `OPEN`; com algum, `canSubmit` é `false` e o reenvio responde 422.
+- O reenvio recalcula a demanda, grava o `changeSummary`, incrementa o `reviewCycle`, limpa o parecer e mantém o analista. O projeto entra na fila como reanálise.
+- O detalhe do projeto expõe `reviewCycle` (a versão), `reviewOpinion` e `changeSummary`.
+
+Projeto fora de `REJECTED` responde 409 no `/response`; apontamento em rascunho ou aceito, também 409.
 
 ---
 

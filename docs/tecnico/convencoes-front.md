@@ -266,7 +266,10 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
   inicial (`getRoleHomePath`). O título da página, o item do menu e o `pageTitle`
   da aba usam o mesmo nome.
 - Parâmetros de query repetem os da API (`page`, `search`, `status`, `filter`,
-  `sort=ASC|DESC`), para a URL e a requisição dizerem a mesma coisa.
+  `sort=<coluna>` com `direction=ASC|DESC`, `municipality`...), para a URL e a
+  requisição dizerem a mesma coisa. Valor igual ao padrão sai da URL: a
+  ordenação padrão da listagem não escreve `sort`, e a direção natural da
+  coluna não escreve `direction`.
 - Roteamento por arquivo em `src/routes/`, cada arquivo exportando `Route`.
 - `src/routeTree.gen.ts` é **gerado** pelo plugin do Vite e **commitado**, para
   que `pnpm type-check` funcione sem rodar o dev server antes. Nunca edite à
@@ -351,8 +354,9 @@ ative no `.env`:
 VITE_ENABLE_MSW=true
 ```
 
-Handlers ficam em `services/<entidade>/mocks/handlers.ts` e são agregados em
-`src/mocks/handlers/index.ts`; sem esse registro, o handler não tem efeito.
+Só `auth` e `projects` têm handlers, em `services/<entidade>/mocks/handlers.ts`,
+agregados em `src/mocks/handlers/index.ts`. Service novo e endpoint novo não
+ganham mock: falam direto com a API e são conferidos com o back rodando.
 
 O worker só sobe com `AppConfig.ENABLE_MSW` **e** `import.meta.env.DEV`. A falha
 ao registrar é **não-fatal**: navegador sem service worker registra um aviso e as
@@ -457,7 +461,6 @@ services/projects/
 ├── types.ts
 ├── index.ts
 ├── schemas/{project.schema.ts, index.ts}
-├── mocks/{handlers.ts, factories.ts}
 └── hooks/
     ├── index.ts
     ├── queries/<useGetProjects>/{useGetProjects.ts, index.ts}
@@ -548,17 +551,8 @@ export const useCreateProject = () => {
 };
 ```
 
-8. **Mock** enquanto o back-end não existe. Fica em `mocks/handlers.ts`, com o
-   array registrado em `src/mocks/handlers/index.ts`; sem o registro, o handler
-   não tem efeito:
-
-```ts
-const url = (path: string) => `/api/${path}`;
-
-export const projectHandlers = [
-	http.get(url(ProjectsEndpoints.list), () => HttpResponse.json(makeProjectList())),
-];
-```
+8. **Sem mock.** O service fala com a API real; confira a tela com o back
+   rodando (`cd app/back && docker compose up -d`).
 
 ---
 
@@ -684,6 +678,8 @@ porte usando a tabela de equivalências em `app/front/.migration/2026-09-base-ui
 | Tokens e regras visuais | [`design-system-front.md`](design-system-front.md) |
 | Busca com atraso | `@features/shared` (`useDebouncedValue`) |
 | Campo de busca / paginação | `@components/SearchInput`, `@components/Pagination` |
+| Filtros e ordenação de listagem | `@components/FilterSelect`, `@components/DateRangeFilter`, `@components/SortMenu`, `@components/ActiveFilters` |
+| Ordenação pelo cabeçalho | `@components/DataTable` (`sortableColumns`, `sort`, `onSortChange`) |
 | Envelope de resposta | `@features/shared` (`apiResponseSchema`, `paginatedResponseSchema`) |
 | Variável de ambiente | `@config` (`AppConfig`) |
 

@@ -4,6 +4,8 @@ import { cn } from "@lib/utils";
 import type { ProjectDetail } from "@services/projects";
 import type { ReactNode } from "react";
 
+import { projectVersion } from "../../constants";
+
 interface ProjectStampProps {
 	project?: ProjectDetail;
 	isLoading?: boolean;
@@ -70,7 +72,9 @@ export const ProjectStamp = ({
 
 		{project && project.reviewCycle > 0 ? (
 			<StampCell isLoading={isLoading} label="Versão">
-				{project.reviewCycle}
+				{project.status === "REJECTED"
+					? `${projectVersion(project)}, em correção`
+					: project.reviewCycle}
 			</StampCell>
 		) : null}
 	</dl>

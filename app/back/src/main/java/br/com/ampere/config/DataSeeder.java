@@ -107,6 +107,7 @@ public class DataSeeder implements CommandLineRunner {
   @Transactional
   public void run(String... args) {
     List<User> inserted = seedUsers();
+    indexLegacyUsers();
     User owner = developmentUser(inserted, "user@ampere.com");
     assignOwnerToLegacyProjects(owner);
     startReviewCycleOfLegacySubmissions();
@@ -116,6 +117,15 @@ public class DataSeeder implements CommandLineRunner {
     seedNormativeTables(standards);
     seedSubmittedCalculations();
     seedSubmittedDocuments();
+  }
+
+  /** Users created before the administrator's search existed get their search index. */
+  private void indexLegacyUsers() {
+    List<User> unindexed = userRepository.findAllBySearchIndex("");
+    if (!unindexed.isEmpty()) {
+      unindexed.forEach(User::indexForSearch);
+      log.info("DataSeeder: search index filled for {} legacy users.", unindexed.size());
+    }
   }
 
   /** Projects seeded before ownership existed go to the development designer. */

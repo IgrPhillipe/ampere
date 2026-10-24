@@ -6,7 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record SubmissionChecklistResponse(
-    List<ChecklistItem> items, List<DocumentResponse> documents, boolean canSubmit) {
+    List<ChecklistItem> items,
+    List<DocumentResponse> documents,
+    boolean canSubmit,
+    long unansweredBlocking,
+    boolean requiresChangeSummary) {
 
   public static final String CALCULATION_KEY = "CALCULATION";
 
@@ -24,6 +28,8 @@ public record SubmissionChecklistResponse(
     return new SubmissionChecklistResponse(
         List.copyOf(items),
         checklist.documents().stream().map(DocumentResponse::from).toList(),
-        checklist.canSubmit());
+        checklist.canSubmit(),
+        checklist.unansweredBlocking(),
+        checklist.requiresChangeSummary());
   }
 }

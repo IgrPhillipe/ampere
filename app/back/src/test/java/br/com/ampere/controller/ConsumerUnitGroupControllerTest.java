@@ -204,7 +204,7 @@ class ConsumerUnitGroupControllerTest {
                 HttpStatus.CONFLICT));
     doThrow(
             new BusinessException(
-                "Só é possível alterar as unidades de um projeto em rascunho.",
+                "Só é possível alterar as unidades de um projeto em rascunho ou reprovado.",
                 HttpStatus.CONFLICT))
         .when(service)
         .delete(1L, 8L, DESIGNER);

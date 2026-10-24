@@ -1,3 +1,4 @@
+import type { AttentionMessage } from "@components/AttentionIndicator";
 import type { BadgeProps } from "@components/ui/badge";
 import type {
 	Finding,
@@ -122,3 +123,23 @@ export const findingTarget = (finding: Finding) => {
 
 	return undefined;
 };
+
+/** Tooltip of the marker an item shows while it has findings to answer. */
+export const getFindingAttention = (findings: Finding[]): AttentionMessage => {
+	const count = findings.length;
+
+	return {
+		severity: findings.some(({ severity }) => severity === "BLOCKING")
+			? "critical"
+			: "warning",
+		title: `${count} ${count === 1 ? "apontamento" : "apontamentos"} neste item`,
+		details: findings.map(({ description }) => description.replace(/\.$/, "")),
+		action: "Corrija aqui e responda no detalhe do projeto.",
+	};
+};
+
+/** A rejected project is being corrected into the version its resubmission creates. */
+export const projectVersion = (
+	project: Pick<ProjectDetail, "status" | "reviewCycle">,
+) =>
+	project.status === "REJECTED" ? project.reviewCycle + 1 : project.reviewCycle;

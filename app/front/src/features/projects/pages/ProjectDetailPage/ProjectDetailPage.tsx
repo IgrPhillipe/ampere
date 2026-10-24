@@ -43,6 +43,7 @@ import {
 	awaitsDesignerResponse,
 	buildFindingReferenceOptions,
 	findingTarget,
+	projectVersion,
 } from "../../constants";
 import { useProjectDetailActions } from "../../hooks";
 import type { FindingResponseValues, ResubmissionValues } from "../../schemas";
@@ -321,9 +322,19 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 						responseEditor={responseEditor ?? undefined}
 						isResponding={respondMutation.isPending}
 						summary={
-							actions.resubmit && checklist ? (
+							actions.resubmit && submissionQuery.isPending ? (
+								<div
+									role="status"
+									aria-label="Carregando o reenvio"
+									className="space-y-3 border-t border-border p-5"
+								>
+									<Skeleton className="h-5 w-40" />
+									<Skeleton className="h-24 w-full" />
+									<Skeleton className="h-9 w-full" />
+								</div>
+							) : actions.resubmit && checklist?.requiresChangeSummary ? (
 								<ResubmissionPanel
-									nextVersion={project.reviewCycle + 1}
+									nextVersion={projectVersion(project)}
 									unansweredBlocking={checklist.unansweredBlocking}
 									canSubmit={checklist.canSubmit}
 									isPending={submitMutation.isPending}

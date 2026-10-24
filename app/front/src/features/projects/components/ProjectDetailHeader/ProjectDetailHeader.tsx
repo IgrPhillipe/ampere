@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import {
 	projectStatusBadgeVariants,
 	projectStatusLabels,
+	projectVersion,
 } from "../../constants";
 
 interface HeaderCellProps {
@@ -18,7 +19,7 @@ interface HeaderCellProps {
 }
 
 const HeaderCell = ({ label, isLoading, children }: HeaderCellProps) => (
-	<div className="flex min-w-0 flex-col gap-1.5 bg-card px-6 py-4 md:px-8">
+	<div className="flex min-w-0 flex-col gap-1.5 bg-card px-6 py-4 last:col-span-2 md:px-8 lg:last:col-span-1">
 		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 			{label}
 		</dt>
@@ -80,9 +81,6 @@ export const ProjectDetailHeader = ({
 						{projectStatusLabels[project.status]}
 					</Badge>
 					{reanalysis ? <Badge variant="tag">Reanálise</Badge> : null}
-					{project.reviewCycle > 0 ? (
-						<Badge variant="neutral">Versão {project.reviewCycle}</Badge>
-					) : null}
 					<span className="text-sm text-muted-foreground">
 						{project.address}, {project.municipality}
 					</span>
@@ -90,7 +88,7 @@ export const ProjectDetailHeader = ({
 			) : null}
 		</div>
 
-		<dl className="grid grid-cols-2 gap-px border-t border-border bg-border lg:grid-cols-6">
+		<dl className="grid grid-cols-2 gap-px border-t border-border bg-border lg:grid-cols-7">
 			<HeaderCell isLoading={isLoading} label="Projetista">
 				{project?.ownerName ?? undefined}
 			</HeaderCell>
@@ -112,6 +110,14 @@ export const ProjectDetailHeader = ({
 					? project.standards
 							.map(({ name, revision }) => `${name} ${revision}`)
 							.join(" e ")
+					: undefined}
+			</HeaderCell>
+
+			<HeaderCell isLoading={isLoading} label="Versão">
+				{project
+					? project.status === "REJECTED"
+						? `${projectVersion(project)}, em correção`
+						: String(project.reviewCycle)
 					: undefined}
 			</HeaderCell>
 

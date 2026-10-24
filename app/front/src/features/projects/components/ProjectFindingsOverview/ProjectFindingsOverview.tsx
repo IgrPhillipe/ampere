@@ -93,7 +93,7 @@ export const ProjectFindingsOverview = ({
 	return (
 		<div className={cn("flex flex-col gap-8 px-6 py-8 md:px-8", className)}>
 			{opinionTitle || summary ? (
-				<div className="flex flex-col border border-border">
+				<div className="flex flex-col border border-border bg-background">
 					{opinionTitle ? (
 						<section aria-labelledby="review-opinion-title" className="p-5">
 							<h2

@@ -14,6 +14,7 @@ export * from "./ProjectDetailLayout";
 export * from "./ProjectDetailTabs";
 export * from "./ProjectDocuments";
 export * from "./ProjectFindingsOverview";
+export * from "./ProjectListFilters";
 export * from "./ProjectStamp";
 export * from "./ProjectStatusFilters";
 export * from "./ProjectStepper";

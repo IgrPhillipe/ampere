@@ -304,7 +304,7 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 
 ### `AT01-US18: Back-end dos filtros e da ordenação [Backend]` (#109)
 
-- [ ] `GET /api/projects` com `sort` (`name`, `demand`, `createdAt`, `updatedAt`), `direction`, `municipality`, `createdFrom`, `createdTo` e `hasBlocking`
+- [ ] `GET /api/projects` com `sort` (`name`, `demand`, `createdAt`, `updatedAt`), `direction`, `municipality`, `createdFrom`, `createdTo` e `findings`
 - [ ] `GET /api/review-queue` com `sort` (`deadline`, `submittedAt`, `demand`, `warnings`), `reviewer` e `municipality`
 - [ ] `GET /api/projects/municipalities` para as opções do filtro
 - [ ] Ordenação estável pelo id no empate, como no #86
@@ -327,7 +327,7 @@ Cada história tem a issue épica, a tarefa de back e a tarefa de front, nessa o
 | US13: Versão Congelada do Envio (#124) | Sprint 8 | `AT01-US13`: entidade `ProjectVersion` com memorial, cálculo e documentos, `GET /api/projects/{id}/versions` e `GET .../versions/{n}/memorial`, comparativo | `AT02-US13`: versões e "Comparar Versões" na aba "Histórico" |
 | US14: Notificações no Sistema (#127) | Sprint 8 | `AT01-US14`: entidade `Notification`, geração nos eventos da US07, US09 e US15, `GET /api/notifications` e marcação de leitura | `AT02-US14`: contador no sino e painel de notificações dos dois perfis |
 | US16: Painel do Projetista (#133) | Sprint 8 | `AT01-US16`: `GET /api/dashboard/designer?period=` | `AT02-US16`: tela "Painel" como inicial do projetista |
-| US11: Gestão de Usuários (#121) | Sprint 9 | `AT01-US11`: CRUD em `/api/admin/users`, situação ativa, senha temporária com troca obrigatória, bloqueio de conta inativa no filtro do JWT | `AT02-US11`: tela "Usuários" e troca obrigatória de senha no login |
+| US11: Gestão de Usuários (#121) | Sprint 9 | `AT01-US11`: CRUD em `/api/users`, situação ativa, senha temporária com troca obrigatória, bloqueio de conta inativa no filtro do JWT | `AT02-US11`: tela "Usuários" e troca obrigatória de senha no login |
 | US15: Prazos de Análise e Validade da Aprovação (#130) | Sprint 9 | `AT01-US15`: suspensão e retomada do prazo, status `EXPIRED` após 36 meses, job diário | `AT02-US15`: prazo, dias suspensos e validade na fila e no painel do projeto |
 | US17: Painel do Analista (#136) | Sprint 9 | `AT01-US17`: `GET /api/dashboard/review?period=` e `GET /api/review-queue/mine` | `AT02-US17`: telas "Indicadores" e "Meus Pareceres" |
 | US19: Exportação em Planilha (#139) | Sprint 9 | `AT01-US19`: `GET /api/projects/{id}/calculation.xlsx` e exportação `.csv` das listagens com os filtros | `AT02-US19`: botões "Exportar Planilha" e "Exportar CSV" |

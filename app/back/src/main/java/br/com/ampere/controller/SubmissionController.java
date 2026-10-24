@@ -3,12 +3,14 @@ package br.com.ampere.controller;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.ProjectDetailResponse;
 import br.com.ampere.dto.SubmissionChecklistResponse;
+import br.com.ampere.dto.SubmissionRequest;
 import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.MemorialPdfService;
 import br.com.ampere.service.SubmissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -18,6 +20,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -84,6 +87,9 @@ public class SubmissionController {
         responseCode = "200",
         description = "Projeto enviado, com o status UNDER_REVIEW"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "Resumo das alterações acima do limite"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "403",
         description = "O perfil analista não altera projetos"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -94,12 +100,18 @@ public class SubmissionController {
         description = "Projeto já enviado para análise"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "422",
-        description = "Falta o cálculo ou algum documento obrigatório")
+        description =
+            "Falta o cálculo, algum documento obrigatório, resposta a apontamento bloqueante, ou o"
+                + " resumo das alterações")
   })
   public ApiResponse<ProjectDetailResponse> submit(
-      @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
+      @PathVariable Long projectId,
+      @Valid @RequestBody(required = false) SubmissionRequest request,
+      @AuthenticationPrincipal Jwt jwt) {
+    String changeSummary = request == null ? null : request.changeSummary();
     return ApiResponse.of(
-        ProjectDetailResponse.from(submissionService.submit(projectId, userOf(jwt))));
+        ProjectDetailResponse.from(
+            submissionService.submit(projectId, changeSummary, userOf(jwt))));
   }
 
   private static AuthenticatedUser userOf(Jwt jwt) {

@@ -4,7 +4,6 @@ import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
-import br.com.ampere.domain.SortDirection;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
@@ -12,18 +11,23 @@ import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.repository.ProjectRepositoryCustom.ProjectSearch;
 import br.com.ampere.utils.SearchTerms;
 import java.math.BigDecimal;
+import java.text.Collator;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,19 +73,27 @@ public class ProjectService {
 
   @Transactional(readOnly = true)
   public ProjectListing list(
-      int page,
-      int pageSize,
-      ProjectStatus status,
-      String search,
-      SortDirection sort,
-      AuthenticatedUser user) {
-    Sort.Direction direction = Sort.Direction.valueOf(sort.name());
-    PageRequest pageRequest =
-        PageRequest.of(
-            page - 1, pageSize, Sort.by(direction, "updatedAt").and(Sort.by(direction, "id")));
+      int page, int pageSize, ProjectListQuery query, AuthenticatedUser user) {
+    if (query.createdFrom() != null
+        && query.createdTo() != null
+        && query.createdFrom().isAfter(query.createdTo())) {
+      throw new BusinessException("A data inicial deve ser anterior ou igual à data final.");
+    }
+
     Page<Project> projects =
         projectRepository.searchAccessibleProjects(
-            status, SearchTerms.normalize(search), user.id(), user.isAdmin(), pageRequest);
+            new ProjectSearch(
+                user.id(),
+                user.isAdmin(),
+                query.status(),
+                SearchTerms.normalize(query.search()),
+                query.municipality(),
+                startOf(query.createdFrom()),
+                query.createdTo() == null ? null : startOf(query.createdTo().plusDays(1)),
+                query.findings(),
+                query.sort(),
+                query.direction()),
+            PageRequest.of(page - 1, pageSize));
 
     List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
 
@@ -91,6 +103,19 @@ public class ProjectService {
         countPendingFindings(projectIds),
         countUnits(projectIds),
         latestDemands(projectIds));
+  }
+
+  @Transactional(readOnly = true)
+  public List<String> listMunicipalities(AuthenticatedUser user) {
+    // Spellings differing only in case collapse into the first in code point order.
+    Collator collator = Collator.getInstance(Locale.of("pt", "BR"));
+    collator.setStrength(Collator.SECONDARY);
+    Map<String, String> unique = new TreeMap<>(collator);
+    projectRepository.findAccessibleMunicipalities(user.id(), user.isAdmin()).stream()
+        .map(String::trim)
+        .forEach(municipality -> unique.merge(municipality, municipality, ProjectService::first));
+
+    return List.copyOf(unique.values());
   }
 
   @Transactional(readOnly = true)
@@ -132,7 +157,8 @@ public class ProjectService {
 
   @Transactional
   public Project update(Long id, ProjectParameters parameters, AuthenticatedUser user) {
-    Project project = draftOrFail(id, "Só é possível alterar um projeto em rascunho.", user);
+    Project project =
+        editableOrFail(id, "Só é possível alterar um projeto em rascunho ou reprovado.", user);
     BuildingType buildingType = parameters.toBuildingType();
 
     project.rename(parameters.name(), parameters.address(), parameters.municipality());
@@ -151,6 +177,15 @@ public class ProjectService {
     groupRepository.deleteAllByProjectId(id);
     documentRepository.deleteAllByProjectId(id);
     projectRepository.delete(project);
+  }
+
+  Project editableOrFail(Long id, String message, AuthenticatedUser user) {
+    Project project = findWritableById(id, user);
+    if (!project.isEditable()) {
+      throw new BusinessException(message, HttpStatus.CONFLICT);
+    }
+
+    return project;
   }
 
   Project draftOrFail(Long id, String message, AuthenticatedUser user) {
@@ -198,6 +233,14 @@ public class ProjectService {
             Collectors.toUnmodifiableMap(
                 ConsumerUnitGroupRepository.UnitCount::getProjectId,
                 ConsumerUnitGroupRepository.UnitCount::getTotal));
+  }
+
+  private static OffsetDateTime startOf(LocalDate day) {
+    return day == null ? null : day.atStartOfDay(ReviewQueueService.ZONE).toOffsetDateTime();
+  }
+
+  private static String first(String kept, String other) {
+    return kept.compareTo(other) <= 0 ? kept : other;
   }
 
   private Map<Long, BigDecimal> latestDemands(List<Long> projectIds) {
