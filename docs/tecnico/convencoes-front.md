@@ -258,7 +258,7 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 | Feature | Rota | Página |
 | :--- | :--- | :--- |
 | `auth` | `/entrar` | Entrar |
-| `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id/<etapa>` | Meus Projetos e as etapas |
+| `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id/<etapa>` | Meus Projetos (Projetos, para o admin) e as etapas |
 | `review-queue` | `/fila-de-analise` | Fila de Análise |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
 
@@ -290,10 +290,19 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 5. `useLogout` limpa o store, **limpa o cache do TanStack Query** (sem isso, os
    dados do usuário anterior reaparecem no próximo login) e volta para `/login`.
 
-Para restringir por papel: `beforeLoad: requireRoles(["admin"])`.
+Para restringir por papel: `beforeLoad: requireRoles(ROLE_ACCESS.normativeTables)`.
+O `ROLE_ACCESS` de `lib/route-guard.ts` é a fonte única de quem chega a cada
+área, e o menu (`nav-items`) usa os mesmos grupos:
 
-> Os papéis atuais são placeholder (`"user" | "admin"`). Os papéis reais
-> dependem da Q1c de [`../produto/questoes-em-aberto.md`](../produto/questoes-em-aberto.md).
+| Área | `user` | `reviewer` | `admin` |
+| :--- | :--- | :--- | :--- |
+| Projetos | os próprios | não | todos |
+| Fila de Análise | não | sim | sim |
+| Tabelas Normativas | não | não | sim |
+
+O que cada papel pode editar num projeto vem de `useProjectPermissions`, que
+repete a regra do back: o projetista edita rascunho, o admin edita em qualquer
+situação.
 
 ---
 
@@ -598,7 +607,7 @@ export const Route = createFileRoute("/projetos/$id")({
 
 ```ts
 export const Route = createFileRoute("/tabelas-normativas")({
-	beforeLoad: requireRoles(["admin"]),
+	beforeLoad: requireRoles(ROLE_ACCESS.normativeTables),
 	component: AdminPage,
 });
 ```
