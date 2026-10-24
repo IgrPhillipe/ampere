@@ -28,7 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-/** The normative tables are ADMIN only, typed by one administrator and verified by another. */
+/** The analyst reads the normative tables; one administrator types them and another verifies. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -99,13 +99,16 @@ class AdminAccessIntegrationTest {
   }
 
   @Test
-  void anAnalystCannotSeePublishOrDeleteTheNormativeTables() throws Exception {
+  void anAnalystReadsButCannotPublishOrDeleteTheNormativeTables() throws Exception {
     String id = create(bearer("admin@ampere.com"));
     String reviewer = bearer("revisor@ampere.com");
 
     mockMvc
         .perform(get("/normative-tables").header("Authorization", reviewer))
-        .andExpect(status().isForbidden());
+        .andExpect(status().isOk());
+    mockMvc
+        .perform(get("/normative-tables/" + id).header("Authorization", reviewer))
+        .andExpect(status().isOk());
     mockMvc
         .perform(post("/normative-tables/" + id + "/publication").header("Authorization", reviewer))
         .andExpect(status().isForbidden());

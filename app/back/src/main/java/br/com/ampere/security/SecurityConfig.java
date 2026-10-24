@@ -11,6 +11,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -65,6 +66,10 @@ public class SecurityConfig {
                     // Before "/users/**": the own profile belongs to every role.
                     .requestMatchers("/users/me", "/users/me/**")
                     .authenticated()
+                    // The analyst reads the tables the calculation applies; only the admin writes
+                    // them.
+                    .requestMatchers(HttpMethod.GET, "/normative-tables", "/normative-tables/**")
+                    .hasAnyRole(REVIEWING_ROLES)
                     .requestMatchers(
                         "/normative-tables", "/normative-tables/**", "/users", "/users/**")
                     .hasRole(ADMIN)
@@ -132,6 +137,7 @@ public class SecurityConfig {
     configuration.setAllowedOriginPatterns(properties.origins());
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    configuration.setExposedHeaders(List.of(HttpHeaders.CONTENT_DISPOSITION));
     configuration.setMaxAge(Duration.ofHours(1));
     source.registerCorsConfiguration("/**", configuration);
 

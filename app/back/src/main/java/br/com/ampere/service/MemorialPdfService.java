@@ -6,6 +6,7 @@ import br.com.ampere.domain.CalculationStep;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.User;
+import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
@@ -37,6 +38,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -91,14 +93,17 @@ public class MemorialPdfService {
   private final ProjectService projectService;
   private final CalculationRepository calculationRepository;
   private final ConsumerUnitGroupRepository groupRepository;
+  private final DemandCalculationService demandCalculationService;
 
   public MemorialPdfService(
       ProjectService projectService,
       CalculationRepository calculationRepository,
-      ConsumerUnitGroupRepository groupRepository) {
+      ConsumerUnitGroupRepository groupRepository,
+      DemandCalculationService demandCalculationService) {
     this.projectService = projectService;
     this.calculationRepository = calculationRepository;
     this.groupRepository = groupRepository;
+    this.demandCalculationService = demandCalculationService;
   }
 
   public record Memorial(String filename, byte[] content) {}
@@ -115,6 +120,12 @@ public class MemorialPdfService {
                 () ->
                     new NotFoundException(
                         "Calcule a demanda do projeto antes de gerar o memorial."));
+    if (project.isEditable() && !demandCalculationService.isCurrent(calculation)) {
+      throw new BusinessException(
+          "Os dados do projeto mudaram depois do último cálculo. Recalcule a demanda antes de"
+              + " gerar o memorial.",
+          HttpStatus.CONFLICT);
+    }
     List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(projectId);
 
     return new Memorial(

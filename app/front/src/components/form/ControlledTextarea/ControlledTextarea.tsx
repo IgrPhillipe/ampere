@@ -1,4 +1,4 @@
-import { FormField } from "@components/form/FormField";
+import { type FieldVariant, FormField } from "@components/form/FormField";
 import { FieldControl } from "@components/ui/field";
 import { Textarea } from "@components/ui/textarea";
 import type { ComponentProps, ReactNode } from "react";
@@ -10,11 +10,15 @@ import {
 } from "react-hook-form";
 
 interface ControlledTextareaProps<T extends FieldValues>
-	extends Omit<ComponentProps<typeof Textarea>, "name" | "defaultValue"> {
+	extends Omit<
+		ComponentProps<typeof Textarea>,
+		"name" | "defaultValue" | "variant"
+	> {
 	control: Control<T>;
 	name: FieldPath<T>;
 	label?: ReactNode;
 	description?: ReactNode;
+	variant?: FieldVariant;
 	required?: boolean;
 	fieldClassName?: string;
 }
@@ -24,6 +28,7 @@ export const ControlledTextarea = <T extends FieldValues>({
 	name,
 	label,
 	description,
+	variant = "underline",
 	required = false,
 	className,
 	fieldClassName,
@@ -37,11 +42,18 @@ export const ControlledTextarea = <T extends FieldValues>({
 				label={label}
 				description={description}
 				error={fieldState.error?.message}
+				variant={variant}
 				required={required}
 				className={fieldClassName}
 			>
 				<FieldControl
-					render={<Textarea className={className} {...textareaProps} />}
+					render={
+						<Textarea
+							variant={variant}
+							className={className}
+							{...textareaProps}
+						/>
+					}
 					required={required}
 					name={field.name}
 					value={field.value ?? ""}

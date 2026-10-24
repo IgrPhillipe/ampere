@@ -20,7 +20,7 @@ interface StampCellProps {
 }
 
 const StampCell = ({ label, isLoading, children }: StampCellProps) => (
-	<div className="flex flex-col gap-1.5 px-6 py-4 not-first:border-t sm:not-first:border-t-0 sm:not-first:border-l border-border md:px-8">
+	<div className="flex flex-col gap-1.5 bg-card px-6 py-4 sm:last:odd:col-span-2 md:px-8 lg:last:odd:col-span-1">
 		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 			{label}
 		</dt>
@@ -39,7 +39,7 @@ export const ProjectStamp = ({
 }: ProjectStampProps) => (
 	<dl
 		className={cn(
-			"grid border-b border-border bg-card sm:grid-cols-2",
+			"grid gap-px border-b border-border bg-border sm:grid-cols-2",
 			project && project.reviewCycle > 0 ? "lg:grid-cols-5" : "lg:grid-cols-4",
 			className,
 		)}
@@ -72,9 +72,7 @@ export const ProjectStamp = ({
 
 		{project && project.reviewCycle > 0 ? (
 			<StampCell isLoading={isLoading} label="Versão">
-				{project.status === "REJECTED"
-					? `${projectVersion(project)}, em correção`
-					: project.reviewCycle}
+				{projectVersion(project)}
 			</StampCell>
 		) : null}
 	</dl>

@@ -7,16 +7,6 @@ const formatDays = (days: number) => `${days} ${days === 1 ? "dia" : "dias"}`;
 export const formatWarnings = (warnings: number) =>
 	`${warnings} ${warnings === 1 ? "alerta" : "alertas"} na pré-validação do cálculo`;
 
-export const formatDeadlineDistance = ({
-	deadlineStatus,
-	daysRemaining,
-}: ReviewQueueItem) => {
-	if (deadlineStatus === "OVERDUE")
-		return `${formatDays(Math.abs(daysRemaining))} de atraso`;
-	if (deadlineStatus === "DUE_TODAY") return "Último dia";
-	return `Faltam ${formatDays(daysRemaining)}`;
-};
-
 export const formatReviewCycle = ({ reviewCycle }: ReviewQueueItem) =>
 	`${reviewCycle}º envio`;
 

@@ -1,16 +1,10 @@
-import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import {
 	describeFindingReference,
+	FindingAnswer,
 	type FindingReferenceOptions,
-	findingSeverityBadgeVariants,
-	findingSeverityLabels,
-	findingStageLabels,
-	findingStatusBadgeVariants,
-	findingStatusLabels,
+	FindingSummary,
 } from "@features/projects";
-import { formatDate } from "@features/shared";
-import { cn } from "@lib/utils";
 import type {
 	Finding,
 	FindingResolution,
@@ -38,7 +32,6 @@ interface FindingCardProps extends FindingCardActions {
 	referenceOptions: FindingReferenceOptions;
 	editable: boolean;
 	pendingId?: string;
-	isSelected?: boolean;
 }
 
 export const FindingCard = ({
@@ -46,7 +39,6 @@ export const FindingCard = ({
 	referenceOptions,
 	editable,
 	pendingId,
-	isSelected = false,
 	onEdit,
 	onDelete,
 	onResolve,
@@ -54,65 +46,20 @@ export const FindingCard = ({
 	const reference = describeFindingReference(finding, referenceOptions);
 	const isDraft = isDraftFinding(finding);
 	const isPending = pendingId === finding.id;
-	const answer = finding.response || designerAnswers[finding.status];
-
 	return (
-		<li
-			className={cn(
-				"flex flex-col gap-3 border-b border-border py-4 last:border-b-0",
-				isSelected && "-mx-3 rounded-xs bg-surface-hover px-3",
-			)}
-		>
-			<div className="flex flex-wrap items-center gap-2">
-				<Badge variant={findingSeverityBadgeVariants[finding.severity]}>
-					{findingSeverityLabels[finding.severity]}
-				</Badge>
-				<Badge variant={findingStatusBadgeVariants[finding.status]}>
-					{findingStatusLabels[finding.status]}
-				</Badge>
-			</div>
+		<div className="flex flex-col gap-4">
+			<FindingSummary
+				finding={finding}
+				reference={reference}
+				showVersion={!isDraft}
+			/>
 
-			<div className="flex flex-col gap-1">
-				<p className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-					{findingStageLabels[finding.stage]}
-					{reference ? `: ${reference}` : null}
-				</p>
-				<p className="text-sm whitespace-pre-line text-foreground">
-					{finding.description}
-				</p>
-				{finding.standardItem ? (
-					<p className="font-mono text-xs text-muted-foreground">
-						{finding.standardItem}
-					</p>
-				) : null}
-			</div>
-
-			<p className="text-xs text-muted-foreground">
-				{finding.authorName ?? "Analista não informado"}, em{" "}
-				<time dateTime={finding.createdAt}>
-					{formatDate(finding.createdAt)}
-				</time>
-				{isDraft ? null : `, ${finding.version}º envio`}
-			</p>
-
-			{answer ? (
-				<blockquote className="border-l-2 border-border pl-3">
-					<p className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-						Resposta do projetista
-					</p>
-					<p className="mt-1 text-sm whitespace-pre-line text-foreground">
-						{answer}
-					</p>
-					{finding.respondedAt ? (
-						<p className="mt-1 text-xs text-muted-foreground">
-							Respondido em{" "}
-							<time dateTime={finding.respondedAt}>
-								{formatDate(finding.respondedAt)}
-							</time>
-						</p>
-					) : null}
-				</blockquote>
-			) : null}
+			<FindingAnswer
+				title="Resposta do Projetista"
+				text={finding.response}
+				fallback={designerAnswers[finding.status] ?? undefined}
+				respondedAt={finding.respondedAt}
+			/>
 
 			{editable ? (
 				<div className="flex flex-wrap justify-end gap-2">
@@ -164,6 +111,6 @@ export const FindingCard = ({
 					)}
 				</div>
 			) : null}
-		</li>
+		</div>
 	);
 };

@@ -3,7 +3,7 @@
 ## Estrutura do Repositório
 
 ```
-projetos3/
+ampere/
 ├── app/
 │   ├── front/          # interface web (React + Vite)
 │   └── back/           # API + motor de cálculo (Java, Spring Boot, PostgreSQL)
@@ -47,22 +47,21 @@ refactor: extract ConsumerUnit into its own class
 | Variáveis                   | camelCase (`pageSize`)                                        |
 | Constantes                  | UPPER_SNAKE_CASE (`MAX_PAGE_SIZE`)                            |
 | Pacotes Java                | minúsculo, sem separador (`br.com.ampere.controller`)         |
-| Arquivos front              | kebab-case                                                    |
+| Arquivos front              | PascalCase em componentes e páginas, kebab-case no resto      |
 | Arquivos back               | nome da classe pública (`ExampleService.java`)                |
 | Tabelas e colunas do banco  | snake_case, convertido pelo Hibernate; não sobrescreva        |
 | Idioma do código            | inglês (identificadores, commits)                             |
 | Texto de UI                 | português                                                     |
 | Mensagens de erro (API)     | português quando expostas ao usuário                          |
 
-> O código Java não usa `snake_case`. A regra anterior, herdada de um projeto
-> em Python, não se aplica. A única exceção é o schema do banco: o Hibernate
-> converte `pageSize` em `page_size` pela estratégia de nomenclatura padrão.
+> O código Java não usa `snake_case`. A única exceção é o schema do banco: o
+> Hibernate converte `pageSize` em `page_size` pela estratégia de nomenclatura padrão.
 
 ---
 
 ## Requisito POO
 
-A disciplina de **Programação Orientada a Objetos** exige que o motor de cálculo evidencie design OOP (herança, polimorfismo, encapsulamento). Classes de domínio como `BuildingType` (tipo de edificação), `ConsumerUnit` (unidade consumidora) e `DemandCalculator` (calculadora de demanda) são modeladas explicitamente, sem lógica de negócio dispersa em funções soltas. Os nomes seguem a tabela acima. O termo normativo em português aparece entre parênteses na primeira menção, para manter a rastreabilidade com a norma.
+A disciplina de **Programação Orientada a Objetos** exige que o motor de cálculo evidencie design OOP (herança, polimorfismo, encapsulamento). Classes de domínio como `BuildingType` (tipo de edificação), `ConsumerUnitGroup` (grupo de unidades consumidoras) e `DemandEngine` (motor de cálculo de demanda) são modeladas explicitamente, sem lógica de negócio dispersa em funções soltas. Os nomes seguem a tabela acima. O termo normativo em português aparece entre parênteses na primeira menção, para manter a rastreabilidade com a norma.
 
 ---
 
@@ -71,10 +70,11 @@ A disciplina de **Programação Orientada a Objetos** exige que o motor de cálc
 ### Front-end
 
 ```bash
-cd app/front && pnpm validate && pnpm build
+cd app/front && pnpm validate && pnpm test && pnpm build
 ```
 
 - [ ] `pnpm validate` passa (formatação, lint e tipos)
+- [ ] `pnpm test` passa
 - [ ] `pnpm build` passa
 - [ ] `src/routeTree.gen.ts` regenerado e commitado, se alguma rota mudou
 - [ ] Nenhuma lógica de negócio nas camadas de rota e view

@@ -15,12 +15,14 @@ import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.NormativeTableRepository;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 @Service
@@ -81,6 +83,22 @@ public class DemandCalculationService {
 
     return new Calculation(project, result, snapshot(project, groups));
   }
+
+  /** Compared as JSON trees: key order varies across runs, and 60 and 60.00 are one value. */
+  public boolean isCurrent(Calculation calculation) {
+    Project project = calculation.getProject();
+    List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(project.getId());
+
+    return objectMapper
+        .readTree(calculation.getInputSnapshot())
+        .equals(SAME_VALUE, objectMapper.readTree(snapshot(project, groups)));
+  }
+
+  private static final Comparator<JsonNode> SAME_VALUE =
+      (left, right) ->
+          left.isNumber() && right.isNumber()
+              ? left.decimalValue().compareTo(right.decimalValue())
+              : left.equals(right) ? 0 : 1;
 
   @Transactional(readOnly = true)
   public Calculation latest(Long projectId, AuthenticatedUser user) {

@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -18,7 +19,10 @@ const state = vi.hoisted(() => ({
 	assign: vi.fn(),
 }));
 
-vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn() }));
+vi.mock("@tanstack/react-router", () => ({
+	useNavigate: () => vi.fn(),
+	Link: ({ children }: { children: ReactNode }) => <a href="/">{children}</a>,
+}));
 
 vi.mock("@services/projects", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/projects")>()),
@@ -53,6 +57,8 @@ vi.mock("@services/consumer-units", async (importOriginal) => ({
 		loadedQuery({
 			data: { totalUnits: 12, totalGroups: 2, totalDeclaredLoadKw: 80 },
 		}),
+	useUpdateConsumerUnitGroup: () => idleMutation(),
+	useDeleteConsumerUnitGroup: () => idleMutation(),
 }));
 
 vi.mock("@services/submission", async (importOriginal) => ({
@@ -75,12 +81,13 @@ describe("ProjectReviewPage", () => {
 		expect(screen.getByText("Protocolo 2026-1004")).toBeVisible();
 		expect(screen.getByText("Verificação Automática")).toBeVisible();
 		expect(screen.getByText("Novo Apontamento")).toBeVisible();
-		expect(
-			screen.getByRole("button", { name: "Aprovar Projeto" }),
-		).toBeVisible();
+		// The draft finding leaves rejection as the only decision.
 		expect(
 			screen.getByRole("button", { name: "Reprovar com Apontamentos" }),
 		).toBeVisible();
+		expect(
+			screen.queryByRole("button", { name: "Aprovar Projeto" }),
+		).not.toBeInTheDocument();
 		expect(
 			screen.queryByRole("button", { name: "Reenviar Projeto" }),
 		).not.toBeInTheDocument();

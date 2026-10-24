@@ -638,7 +638,7 @@ public class DataSeeder implements CommandLineRunner {
             null,
             new BigDecimal("7.40"),
             false,
-            null,
+            false,
             EvStationType.COLLECTIVE));
   }
 

@@ -24,7 +24,7 @@ const fieldLabelVariants = cva(
 			},
 		},
 		defaultVariants: {
-			variant: "default",
+			variant: "underline",
 		},
 	},
 );

@@ -16,15 +16,18 @@ import {
 	useUpdateProject,
 } from "@services/projects";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { useEffect } from "react";
 import { useFormState } from "react-hook-form";
 
 import {
 	FindingBadge,
 	ProjectAddressFields,
+	ProjectBreadcrumb,
 	ProjectStamp,
 	ProjectStepper,
+	StageFindingsNotice,
+	StepFooter,
 } from "../../components";
 import { stageFindingsOf } from "../../constants";
 import { useProjectPermissions } from "../../hooks";
@@ -197,6 +200,15 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 				onSubmit={form.handleSubmit(onSubmit)}
 				className="flex flex-1 flex-col bg-card"
 			>
+				<div className="border-b border-border px-6 py-4 md:px-8">
+					<ProjectBreadcrumb
+						project={project}
+						current={
+							projectId === undefined ? "Novo Projeto" : "Dados da Edificação"
+						}
+					/>
+				</div>
+
 				{projectId === undefined ? null : (
 					<ProjectStamp
 						project={project}
@@ -222,6 +234,14 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 				</div>
 
 				<ProjectStepper current={0} projectId={projectId} className="mt-6" />
+
+				{projectId === undefined ? null : (
+					<StageFindingsNotice
+						projectId={projectId}
+						findings={stageFindings}
+						className="mt-6"
+					/>
+				)}
 
 				<div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_320px]">
 					<fieldset
@@ -388,17 +408,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 					</aside>
 				</div>
 
-				<div className="flex items-center justify-between border-t border-border px-6 py-4 md:px-8">
-					<Button
-						type="button"
-						variant="outline"
-						size="icon"
-						aria-label="Voltar para Meus Projetos"
-						onClick={() => void navigate({ to: "/projetos" })}
-					>
-						<ArrowLeft aria-hidden="true" />
-					</Button>
-
+				<StepFooter>
 					{/* Preso ao contador do painel, e nao ao `formState`: aqui a
 					    pergunta e "faltou preencher?", nao "o que foi preenchido e
 					    valido?". Validade continua sendo do submit, que marca os
@@ -412,7 +422,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 						{isSaving ? "Salvando..." : "Avançar para Unidades"}
 						<ArrowRight aria-hidden="true" />
 					</Button>
-				</div>
+				</StepFooter>
 			</form>
 		</PageLayout>
 	);

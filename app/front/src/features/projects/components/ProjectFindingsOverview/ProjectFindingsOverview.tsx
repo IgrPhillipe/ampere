@@ -1,9 +1,10 @@
 import { Skeleton } from "@components/ui/skeleton";
-import { padCount } from "@features/shared";
+import { formatDate, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
 import type { ProjectDetail } from "@services/projects";
-import type { ReactNode } from "react";
+import { CircleCheck, CircleX } from "lucide-react";
+import { type ReactNode, useState } from "react";
 
 import {
 	awaitsDesignerResponse,
@@ -11,6 +12,7 @@ import {
 	type FindingReferenceOptions,
 } from "../../constants";
 import type { FindingResponseValues } from "../../schemas";
+import { FindingDialog, FindingRow } from "../FindingDetails";
 import { ProjectFindingCard } from "./ProjectFindingCard";
 
 const severityOrder = { BLOCKING: 0, ADJUSTMENT: 1 } as const;
@@ -20,15 +22,32 @@ const byPriority = (left: Finding, right: Finding) =>
 	right.version - left.version ||
 	left.id.localeCompare(right.id, "pt-BR", { numeric: true });
 
-const opinionTitles: Partial<Record<ProjectDetail["status"], string>> = {
-	REJECTED: "Parecer da Reprovação",
-	APPROVED: "Parecer da Aprovação",
-};
+const opinionStyles = {
+	REJECTED: {
+		title: "Parecer da Reprovação",
+		icon: CircleX,
+		className: "border-l-destructive bg-destructive/5",
+		iconClassName: "text-destructive",
+	},
+	APPROVED: {
+		title: "Parecer da Aprovação",
+		icon: CircleCheck,
+		className: "border-l-success bg-success/10",
+		iconClassName: "text-success",
+	},
+} as const;
+
+const hasOpinion = (
+	status: ProjectDetail["status"],
+): status is keyof typeof opinionStyles => status in opinionStyles;
 
 interface ProjectFindingsOverviewProps {
 	/** `undefined` while loading. */
 	findings?: Finding[];
-	project: Pick<ProjectDetail, "status" | "reviewOpinion">;
+	project: Pick<
+		ProjectDetail,
+		"status" | "reviewOpinion" | "reviewerName" | "reviewedAt"
+	>;
 	referenceOptions: FindingReferenceOptions;
 	/** Whether the profile answers findings; each one still has to await an answer. */
 	canRespond: boolean;
@@ -69,45 +88,84 @@ export const ProjectFindingsOverview = ({
 	const history = (findings ?? [])
 		.filter((finding) => !awaiting(finding))
 		.sort(byPriority);
-	const opinionTitle = opinionTitles[project.status];
+	const opinion = hasOpinion(project.status)
+		? opinionStyles[project.status]
+		: undefined;
+	// A step links here with the finding in the hash, to answer it at once.
+	const [openedId, setOpenedId] = useState<string | null>(
+		() => window.location.hash.match(/^#apontamento-(\d+)$/)?.[1] ?? null,
+	);
+	const opened = findings?.find((finding) => finding.id === openedId);
+	const referenceOf = (finding: Finding) =>
+		describeFindingReference(finding, referenceOptions);
 
 	const renderCard = (finding: Finding) => (
-		<ProjectFindingCard
+		<FindingRow
 			key={finding.id}
 			finding={finding}
-			reference={describeFindingReference(finding, referenceOptions)}
-			canRespond={canRespond && awaiting(finding)}
-			responseStatus={
-				responseEditor?.findingId === finding.id
-					? responseEditor.status
-					: undefined
-			}
-			isResponding={isResponding}
-			onOpenStage={onOpenStage}
-			onStartResponse={onStartResponse}
-			onSubmitResponse={onSubmitResponse}
-			onCancelResponse={onCancelResponse}
+			reference={referenceOf(finding)}
+			onOpen={() => setOpenedId(finding.id)}
 		/>
 	);
 
+	const closeDialog = () => {
+		setOpenedId(null);
+		onCancelResponse();
+	};
+
 	return (
 		<div className={cn("flex flex-col gap-8 px-6 py-8 md:px-8", className)}>
-			{opinionTitle || summary ? (
+			{opinion ? (
+				<section
+					aria-labelledby="review-opinion-title"
+					className={cn(
+						"flex flex-col gap-3 overflow-hidden rounded-xs border border-l-4 border-border px-5 py-5",
+						opinion.className,
+					)}
+				>
+					<h2
+						id="review-opinion-title"
+						className="flex items-center gap-2 text-lg font-semibold text-foreground"
+					>
+						<opinion.icon
+							aria-hidden="true"
+							className={cn("size-5 shrink-0", opinion.iconClassName)}
+						/>
+						{opinion.title}
+					</h2>
+					<p className="text-base leading-relaxed whitespace-pre-line text-foreground">
+						{project.reviewOpinion ||
+							"O analista não registrou um parecer geral."}
+					</p>
+					<dl className="-mx-5 -mb-5 mt-2 grid grid-cols-2 gap-px border-t border-border bg-border">
+						<div className="flex min-w-0 flex-col gap-1.5 bg-card px-5 py-3">
+							<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+								Analista
+							</dt>
+							<dd className="text-sm font-medium break-words text-foreground">
+								{project.reviewerName ?? "Não informado"}
+							</dd>
+						</div>
+						<div className="flex min-w-0 flex-col gap-1.5 bg-card px-5 py-3">
+							<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+								Decidido em
+							</dt>
+							<dd className="font-mono text-sm text-foreground">
+								{project.reviewedAt ? (
+									<time dateTime={project.reviewedAt}>
+										{formatDate(project.reviewedAt)}
+									</time>
+								) : (
+									"Não informado"
+								)}
+							</dd>
+						</div>
+					</dl>
+				</section>
+			) : null}
+
+			{summary ? (
 				<div className="flex flex-col border border-border bg-background">
-					{opinionTitle ? (
-						<section aria-labelledby="review-opinion-title" className="p-5">
-							<h2
-								id="review-opinion-title"
-								className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase"
-							>
-								{opinionTitle}
-							</h2>
-							<p className="mt-4 text-sm whitespace-pre-line text-foreground">
-								{project.reviewOpinion ||
-									"O analista não registrou um parecer geral."}
-							</p>
-						</section>
-					) : null}
 					{summary}
 				</div>
 			) : null}
@@ -154,6 +212,33 @@ export const ProjectFindingsOverview = ({
 					<ul>{history.map(renderCard)}</ul>
 				</section>
 			) : null}
+
+			<FindingDialog
+				finding={opened}
+				reference={opened ? referenceOf(opened) : null}
+				onClose={closeDialog}
+			>
+				{opened ? (
+					<ProjectFindingCard
+						finding={opened}
+						reference={referenceOf(opened)}
+						canRespond={canRespond && awaiting(opened)}
+						responseStatus={
+							responseEditor?.findingId === opened.id
+								? responseEditor.status
+								: undefined
+						}
+						isResponding={isResponding}
+						onOpenStage={(finding) => {
+							setOpenedId(null);
+							onOpenStage(finding);
+						}}
+						onStartResponse={onStartResponse}
+						onSubmitResponse={onSubmitResponse}
+						onCancelResponse={onCancelResponse}
+					/>
+				) : null}
+			</FindingDialog>
 		</div>
 	);
 };

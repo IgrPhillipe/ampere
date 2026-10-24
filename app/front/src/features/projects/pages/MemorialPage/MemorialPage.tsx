@@ -1,6 +1,7 @@
 import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
+import { getHttpStatus } from "@lib/api-error";
 import { useGetLatestCalculation } from "@services/calculation";
 import { useGetConsumerUnitGroupValidation } from "@services/consumer-units";
 import { useGetFindingList } from "@services/project-review";
@@ -19,8 +20,11 @@ import { ArrowLeft, ArrowRight, Calculator, CircleAlert } from "lucide-react";
 
 import {
 	MemorialPreview,
+	ProjectBreadcrumb,
 	ProjectStamp,
 	ProjectStepper,
+	StageFindingsNotice,
+	StepFooter,
 	SubmissionChecklistPanel,
 } from "../../components";
 import { stageFindingsOf } from "../../constants";
@@ -63,11 +67,12 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 		project.status !== "AWAITING_SUBMISSION" &&
 		project.status !== "REJECTED";
 	const neverCalculated = calculationQuery.data === null;
+	const outdated = getHttpStatus(memorialQuery.error) === 409;
 	const hasError =
 		projectQuery.isError ||
 		calculationQuery.isError ||
 		submissionQuery.isError ||
-		memorialQuery.isError;
+		(memorialQuery.isError && !outdated);
 
 	const units = validation
 		? `${validation.totalUnits} em ${validation.totalGroups} ${
@@ -103,6 +108,10 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
 			<div className="flex flex-1 flex-col bg-card">
+				<div className="border-b border-border px-6 py-4 md:px-8">
+					<ProjectBreadcrumb project={project} current="Memorial" />
+				</div>
+
 				<ProjectStamp
 					project={project}
 					isLoading={projectQuery.isPending || validationQuery.isPending}
@@ -121,11 +130,39 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 
 				<ProjectStepper current={3} projectId={projectId} className="mt-6" />
 
+				<StageFindingsNotice
+					projectId={projectId}
+					findings={documentFindings}
+					documents={checklist?.documents}
+					references={Object.fromEntries(
+						(checklist?.items ?? []).map((item) => [item.key, item.label]),
+					)}
+					className="mt-6"
+				/>
+
 				{neverCalculated ? (
 					<div className="flex-1 px-6 py-8 md:px-8">
 						<EmptyState
 							title="Calcule a demanda antes de gerar o memorial"
 							description="O memorial é montado a partir do último cálculo de demanda do projeto."
+							icon={Calculator}
+							action={
+								<Button
+									type="button"
+									variant="outline"
+									onClick={backToCalculation}
+								>
+									<ArrowLeft aria-hidden="true" />
+									Voltar ao Cálculo
+								</Button>
+							}
+						/>
+					</div>
+				) : outdated ? (
+					<div className="flex-1 px-6 py-8 md:px-8">
+						<EmptyState
+							title="Recalcule a demanda antes de gerar o memorial"
+							description="Os dados do projeto mudaram depois do último cálculo."
 							icon={Calculator}
 							action={
 								<Button
@@ -163,6 +200,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 						/>
 
 						<SubmissionChecklistPanel
+							projectId={projectId}
 							checklist={checklist}
 							findings={documentFindings}
 							isLoading={submissionQuery.isPending}
@@ -179,22 +217,14 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 							}
 							onUpload={upload}
 							onRemove={remove}
-							className="border-t border-border lg:border-t-0 lg:border-l"
+							className="order-first border-b border-border lg:order-none lg:border-b-0 lg:border-l"
 						/>
 					</div>
 				)}
 
-				<div className="flex items-center justify-between gap-3 border-t border-border px-6 py-4 md:px-8">
-					<Button
-						type="button"
-						variant="outline"
-						size="icon"
-						aria-label="Voltar para Cálculo de Demanda"
-						onClick={backToCalculation}
-					>
-						<ArrowLeft aria-hidden="true" />
-					</Button>
-
+				<StepFooter
+					previous={{ label: "Cálculo de Demanda", onClick: backToCalculation }}
+				>
 					{project?.status === "REJECTED" ? (
 						<Button
 							type="button"
@@ -223,7 +253,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 							<ArrowRight aria-hidden="true" />
 						</Button>
 					)}
-				</div>
+				</StepFooter>
 			</div>
 		</PageLayout>
 	);

@@ -71,7 +71,7 @@ describe("ReviewQueueListing", () => {
 			"data-variant",
 			"destructive",
 		);
-		expect(screen.getAllByText("3 dias de atraso")).not.toHaveLength(0);
+		expect(screen.queryByText("3 dias de atraso")).not.toBeInTheDocument();
 		expect(screen.getAllByText("08/10/2026")).not.toHaveLength(0);
 		expect(screen.getAllByText("2º envio")).not.toHaveLength(0);
 		expect(

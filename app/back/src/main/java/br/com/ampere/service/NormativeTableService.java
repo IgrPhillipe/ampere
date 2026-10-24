@@ -36,7 +36,7 @@ public class NormativeTableService {
   /** In memory: the title and the catalogue order live in the enum, and the list is small. */
   @Transactional(readOnly = true)
   public List<NormativeTable> list(NormativeTableQuery query, AuthenticatedUser user) {
-    user.requireAdmin();
+    user.requireReviewer();
     String search = SearchTerms.fold(query.search());
 
     return tableRepository.findListingBy().stream()
@@ -50,7 +50,7 @@ public class NormativeTableService {
 
   @Transactional(readOnly = true)
   public NormativeTable findById(Long id, AuthenticatedUser user) {
-    user.requireAdmin();
+    user.requireReviewer();
 
     return tableRepository.findDetailById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND));
   }

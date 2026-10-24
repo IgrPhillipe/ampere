@@ -3,11 +3,9 @@ import { EmptyState } from "@components/EmptyState";
 import { SkeletonTable } from "@components/SkeletonTable";
 import { Button } from "@components/ui/button";
 import type { ListSort } from "@features/shared";
-import { cn } from "@lib/utils";
 import type { Project, ProjectSort } from "@services/projects";
 import { useMemo } from "react";
 
-import { ProjectCards } from "./ProjectCards";
 import { createProjectColumns, type ProjectColumnId } from "./project-columns";
 import type { ProjectRowActions } from "./project-row";
 
@@ -15,12 +13,13 @@ import type { ProjectRowActions } from "./project-row";
 const projectColumnClassNames = {
 	attention: "w-10 pr-0",
 	protocol: "w-28 text-center",
-	owner: "hidden xl:table-cell xl:w-36",
-	status: "w-48 text-center",
+	name: "w-72",
+	owner: "w-36",
+	status: "w-36 text-center",
 	pending: "w-28 text-center",
-	units: "hidden xl:table-cell xl:w-16 text-center",
-	demand: "hidden xl:table-cell xl:w-28 text-center",
-	createdAt: "hidden 2xl:table-cell 2xl:w-32 text-center",
+	units: "w-16 text-center",
+	demand: "w-28 text-center",
+	createdAt: "w-32 text-center",
 	updatedAt: "w-32 text-center",
 	action: "w-36",
 } satisfies Partial<Record<ProjectColumnId, string>>;
@@ -79,9 +78,6 @@ export const ProjectsTable = ({
 		[actions, showOwner],
 	);
 
-	// Carregamento e vazio ficam aqui, e nao dentro do `DataTable`, porque a
-	// tabela e os cartoes sao duas renderizacoes da mesma lista: deixar para o
-	// `DataTable` faria o estado vazio aparecer duas vezes, uma por breakpoint.
 	if (isLoading) return <SkeletonTable columns={10} />;
 
 	if (projects.length === 0) {
@@ -104,23 +100,15 @@ export const ProjectsTable = ({
 	}
 
 	return (
-		<>
-			<ProjectCards
-				projects={projects}
-				showOwner={showOwner}
-				{...actions}
-				className={cn("lg:hidden", className)}
-			/>
-
-			<DataTable<Project, ProjectColumnId, ProjectSort>
-				columns={columns}
-				data={projects}
-				columnClassNames={projectColumnClassNames}
-				sortableColumns={sortableColumns}
-				sort={sort}
-				onSortChange={onSortChange}
-				className={cn("hidden lg:block", className)}
-			/>
-		</>
+		// Narrower than its columns, the table scrolls sideways.
+		<DataTable<Project, ProjectColumnId, ProjectSort>
+			columns={columns}
+			data={projects}
+			columnClassNames={projectColumnClassNames}
+			sortableColumns={sortableColumns}
+			sort={sort}
+			onSortChange={onSortChange}
+			className={className}
+		/>
 	);
 };

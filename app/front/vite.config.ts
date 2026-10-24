@@ -38,6 +38,10 @@ export default defineConfig(({ mode }) => {
 				"/api": {
 					target: env.VITE_PROXY_TARGET || "http://localhost:8080",
 					changeOrigin: true,
+					// The proxy makes the call same-origin; a kept Origin trips the API's CORS check.
+					configure: (proxy) => {
+						proxy.on("proxyReq", (proxyReq) => proxyReq.removeHeader("origin"));
+					},
 				},
 			},
 		},

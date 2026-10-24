@@ -31,16 +31,18 @@ A aplicação sobe em `http://localhost:5173`. O proxy do Vite encaminha as
 chamadas para `/api` a `http://localhost:8080`, onde roda o back-end Spring Boot.
 
 Por padrão o front consome a API real. Com `VITE_ENABLE_MSW=true`, o MSW
-responde no lugar dela. Usuários de teste (os mesmos do seeder do back-end):
+responde no lugar dela só nos fluxos de login e listagem de projetos. Usuários
+de teste (os mesmos do seeder do back-end):
 
 | E-mail | Senha | Papel |
 | :--- | :--- | :--- |
 | `user@ampere.com` | `senha@123` | user |
 | `admin@ampere.com` | `senha@123` | admin |
-| `revisor@ampere.com` | `senha@123` | admin |
+| `conferente@ampere.com` | `senha@123` | admin |
+| `revisor@ampere.com` | `senha@123` | reviewer |
 
-Os papéis são provisórios. Os definitivos dependem da Q1c em
-[`docs/produto/questoes-em-aberto.md`](../../docs/produto/questoes-em-aberto.md).
+`user` é o projetista, `reviewer` é o analista e `admin` faz o que os dois fazem
+e cuida das tabelas normativas.
 
 ---
 
@@ -50,11 +52,14 @@ Os papéis são provisórios. Os definitivos dependem da Q1c em
 | :--- | :--- |
 | `pnpm dev` | servidor de desenvolvimento e geração da árvore de rotas |
 | `pnpm validate` | formata, corrige o lint e checa os tipos; obrigatório antes do PR |
+| `pnpm test` | roda os testes do Vitest |
+| `pnpm type-check` | checa os tipos |
 | `pnpm build` | type-check e bundle de produção |
 | `pnpm lint` | Biome e ESLint, sem corrigir |
 | `pnpm preview` | serve o build de produção localmente |
 
-O hook de `pre-push` roda o `pnpm validate` apenas quando `app/front` mudou.
+O hook de `pre-push` roda o `pnpm validate:ci`, que só checa, quando `app/front`
+mudou, e o `./mvnw validate` quando `app/back` mudou.
 
 ---
 

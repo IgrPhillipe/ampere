@@ -46,8 +46,8 @@ src/
 | Componentes `ui/` | kebab-case (padrão do shadcn) | `dropdown-menu.tsx` |
 | Arquivos de rota | kebab-case | `index.tsx`, `novo-projeto.tsx` |
 
-**Idioma:** identificadores, comentários e commits em **inglês** ou português sem
-acento, conforme o `CONTRIBUTING.md`; **texto de interface sempre em português**.
+**Idioma:** identificadores, comentários e commits em **inglês**, conforme o
+`CONTRIBUTING.md`; **texto de interface sempre em português**, com acentos.
 
 ---
 
@@ -179,8 +179,8 @@ declaram paleta paralela.
   refresh e imports não usados.
 - Um plugin GritQL do Biome recusa `function` declarado fora das exceções acima.
 
-Rode `pnpm validate` antes de abrir PR. O hook de `pre-push` executa o mesmo
-comando automaticamente, apenas quando `app/front` muda.
+Rode `pnpm validate` antes de abrir PR. O hook de `pre-push` roda o
+`pnpm validate:ci`, que só checa, apenas quando `app/front` muda.
 
 ---
 
@@ -240,7 +240,7 @@ O par real no código é `features/auth` + `services/auth`:
 | :--- | :--- | :--- |
 | `features/auth/pages/LoginPage` | feature | o formulário que a pessoa vê |
 | `features/auth/schemas/login.schema.ts` | feature | validação dos campos |
-| `features/auth/store/index.ts` | feature | sessão persistida (zustand) |
+| `features/shared/store/auth-store.ts` | feature | sessão persistida (zustand) |
 | `services/auth/endpoints.ts` | service | `auth/login`, `auth/me` |
 | `services/auth/requests.ts` | service | as chamadas `ky` |
 | `services/auth/hooks/mutations/useLogin` | service | mutation + navegação + toast |
@@ -281,17 +281,17 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
   inicialização).
 - `__root.tsx` faz duas coisas: a guard de autenticação em `beforeLoad` e a
   escolha da casca (`AppShell` para rotas autenticadas, `<Outlet/>` cru para
-  `/login`).
+  `/entrar`).
 
 ## Autenticação
 
 1. `__root.tsx` chama `requireAuth()` em tudo que não está em `PUBLIC_PATHS`.
 2. `requireAuth` espera a re-hidratação do store e, sem sessão, redireciona
-   para `/login?redirect=<origem>`.
+   para `/entrar?redirect=<origem>`.
 3. `useLogin` grava a sessão, navega para o `redirect` e mostra o toast.
 4. `lib/http` injeta `Authorization: Bearer <token>` em toda requisição.
 5. `useLogout` limpa o store, **limpa o cache do TanStack Query** (sem isso, os
-   dados do usuário anterior reaparecem no próximo login) e volta para `/login`.
+   dados do usuário anterior reaparecem no próximo login) e volta para `/entrar`.
 
 Para restringir por papel: `beforeLoad: requireRoles(ROLE_ACCESS.normativeTables)`.
 O `ROLE_ACCESS` de `lib/route-guard.ts` é a fonte única de quem chega a cada
@@ -567,7 +567,7 @@ export const useCreateProject = () => {
 
 ## Receita: Criar uma Rota
 
-**Modelo:** `src/routes/index.tsx` (simples) e `src/routes/login.tsx` (com search param)
+**Modelo:** `src/routes/index.tsx` (simples) e `src/routes/entrar.tsx` (com search param)
 
 1. Crie o arquivo em `src/routes/`. O nome vira o caminho:
    `projetos.tsx` → `/projetos`, `projetos/index.tsx` → `/projetos`,
@@ -687,7 +687,7 @@ porte usando a tabela de equivalências em `app/front/.migration/2026-09-base-ui
 | Tokens e regras visuais | [`design-system-front.md`](design-system-front.md) |
 | Busca com atraso | `@features/shared` (`useDebouncedValue`) |
 | Campo de busca / paginação | `@components/SearchInput`, `@components/Pagination` |
-| Filtros e ordenação de listagem | `@components/FilterSelect`, `@components/DateRangeFilter`, `@components/SortMenu`, `@components/ActiveFilters` |
+| Filtros e ordenação de listagem | `@components/FilterMenu`, `@components/MultiFilterMenu`, `@components/SearchableFilterMenu`, `@components/DateRangeFilter`, `@components/SortMenu`, `@components/ActiveFilters` |
 | Ordenação pelo cabeçalho | `@components/DataTable` (`sortableColumns`, `sort`, `onSortChange`) |
 | Envelope de resposta | `@features/shared` (`apiResponseSchema`, `paginatedResponseSchema`) |
 | Variável de ambiente | `@config` (`AppConfig`) |
@@ -700,6 +700,8 @@ porte usando a tabela de equivalências em `app/front/.migration/2026-09-base-ui
 | :--- | :--- |
 | `pnpm dev` | sobe em http://localhost:5173 e regenera a árvore de rotas |
 | `pnpm validate` | formata, corrige o lint e checa os tipos; **rode antes do PR** |
+| `pnpm test` | roda os testes do Vitest |
+| `pnpm type-check` | checa os tipos |
 | `pnpm build` | type-check + bundle de produção |
 | `pnpm lint` | Biome + ESLint, sem corrigir |
 

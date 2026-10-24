@@ -44,8 +44,9 @@ export const ConsumerUnitGroupCards = ({
 		{groups.map((group) => (
 			<li
 				key={group.id}
+				onClick={() => onOpenGroup(group)}
 				className={cn(
-					"relative flex flex-col gap-3 border-b border-border py-4",
+					"relative flex cursor-pointer flex-col gap-3 border-b border-border py-4",
 					isPendingGroup(group) &&
 						"before:absolute before:top-4 before:-left-4 before:h-6 before:w-0.5 before:bg-brand-sunset",
 				)}

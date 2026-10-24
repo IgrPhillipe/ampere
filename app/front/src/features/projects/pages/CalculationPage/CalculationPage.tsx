@@ -16,8 +16,11 @@ import { useEffect } from "react";
 import {
 	CalculationSteps,
 	LoadComposition,
+	ProjectBreadcrumb,
 	ProjectStamp,
 	ProjectStepper,
+	StageFindingsNotice,
+	StepFooter,
 	TraceabilityPanel,
 } from "../../components";
 import { stageFindingsOf } from "../../constants";
@@ -94,6 +97,10 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
 			<div className="flex flex-1 flex-col bg-card">
+				<div className="border-b border-border px-6 py-4 md:px-8">
+					<ProjectBreadcrumb project={project} current="Cálculo de Demanda" />
+				</div>
+
 				<ProjectStamp
 					project={project}
 					isLoading={projectQuery.isPending || validationQuery.isPending}
@@ -111,6 +118,15 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 				</div>
 
 				<ProjectStepper current={2} projectId={projectId} className="mt-6" />
+
+				<StageFindingsNotice
+					projectId={projectId}
+					findings={stageFindings}
+					references={Object.fromEntries(
+						(result?.steps ?? []).map((step) => [step.code, step.title]),
+					)}
+					className="mt-6"
+				/>
 
 				{isBlocked ? (
 					<div className="flex-1 px-6 py-8 md:px-8">
@@ -170,17 +186,9 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 					</div>
 				)}
 
-				<div className="flex items-center justify-between gap-3 border-t border-border px-6 py-4 md:px-8">
-					<Button
-						type="button"
-						variant="outline"
-						size="icon"
-						aria-label="Voltar para Unidades Consumidoras"
-						onClick={backToUnits}
-					>
-						<ArrowLeft aria-hidden="true" />
-					</Button>
-
+				<StepFooter
+					previous={{ label: "Unidades Consumidoras", onClick: backToUnits }}
+				>
 					<Button
 						type="button"
 						disabled={!result}
@@ -194,7 +202,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 						Gerar Memorial
 						<ArrowRight aria-hidden="true" />
 					</Button>
-				</div>
+				</StepFooter>
 			</div>
 		</PageLayout>
 	);

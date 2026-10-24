@@ -45,7 +45,7 @@ export const ControlledCombobox = <T extends FieldValues>({
 	emptyMessage,
 	options,
 	disabled,
-	variant = "default",
+	variant = "underline",
 	required = false,
 	className,
 	fieldClassName,

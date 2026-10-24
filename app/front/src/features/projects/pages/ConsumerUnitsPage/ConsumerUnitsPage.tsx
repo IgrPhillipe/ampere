@@ -13,7 +13,7 @@ import {
 import { useGetFindingList } from "@services/project-review";
 import { useGetProject } from "@services/projects";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, CircleAlert, Layers, Plus } from "lucide-react";
+import { ArrowRight, CircleAlert, Layers, Plus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useWatch } from "react-hook-form";
 
@@ -21,8 +21,11 @@ import {
 	ConsumerUnitGroupsTable,
 	GroupSheet,
 	type OpenedGroup,
+	ProjectBreadcrumb,
 	ProjectStamp,
 	ProjectStepper,
+	StageFindingsNotice,
+	StepFooter,
 	ValidationPanel,
 } from "../../components";
 import { GROUP_USAGE_TYPES, stageFindingsOf } from "../../constants";
@@ -128,6 +131,13 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 				onSubmit={form.handleSubmit(saveNewGroup)}
 				className="flex flex-1 flex-col bg-card"
 			>
+				<div className="border-b border-border px-6 py-4 md:px-8">
+					<ProjectBreadcrumb
+						project={project}
+						current="Unidades Consumidoras"
+					/>
+				</div>
+
 				<ProjectStamp
 					project={project}
 					isLoading={projectQuery.isPending || validationQuery.isPending}
@@ -145,6 +155,15 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 				</div>
 
 				<ProjectStepper current={1} projectId={projectId} className="mt-6" />
+
+				<StageFindingsNotice
+					projectId={projectId}
+					findings={stageFindings}
+					references={Object.fromEntries(
+						groups.map((group) => [group.id, group.name]),
+					)}
+					className="mt-6"
+				/>
 
 				{hasError ? (
 					<div className="flex-1 px-6 py-8 md:px-8">
@@ -244,24 +263,18 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 					</div>
 				)}
 
-				<div className="flex items-center justify-between gap-3 border-t border-border px-6 py-4 md:px-8">
-					<Button
-						type="button"
-						variant="outline"
-						size="icon"
-						aria-label="Voltar para Dados da Edificação"
-						onClick={() =>
+				<StepFooter
+					previous={{
+						label: "Dados da Edificação",
+						onClick: () =>
 							void navigate({
 								to: "/projetos/$id/dados",
 								params: { id: projectId },
-							})
-						}
-					>
-						<ArrowLeft aria-hidden="true" />
-					</Button>
-
+							}),
+					}}
+				>
 					{isAdding ? (
-						<div className="flex items-center gap-2">
+						<>
 							<Button type="button" variant="ghost" onClick={cancelAdding}>
 								Cancelar
 							</Button>
@@ -274,7 +287,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 								{createGroup.isPending ? "Salvando..." : "Salvar Grupo"}
 								<ArrowRight aria-hidden="true" />
 							</Button>
-						</div>
+						</>
 					) : (
 						<Button
 							type="button"
@@ -292,7 +305,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 							<ArrowRight aria-hidden="true" />
 						</Button>
 					)}
-				</div>
+				</StepFooter>
 			</form>
 
 			<GroupSheet

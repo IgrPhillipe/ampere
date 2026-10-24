@@ -81,7 +81,8 @@ describe("ProjectFindingsOverview", () => {
 		expect(descriptions[0]).toHaveTextContent("Substituir ART.");
 		expect(screen.getByText("Corrija os documentos indicados.")).toBeVisible();
 
-		fireEvent.click(screen.getAllByRole("button", { name: "Contestar" })[0]);
+		fireEvent.click(screen.getByRole("button", { name: /Substituir ART/ }));
+		fireEvent.click(screen.getByRole("button", { name: "Contestar" }));
 		expect(onStartResponse).toHaveBeenCalledWith(blocking, "CONTESTED");
 	});
 
@@ -119,6 +120,7 @@ describe("ProjectFindingsOverview", () => {
 				response: "O documento já está assinado na página 2.",
 			}),
 		]);
+		fireEvent.click(screen.getByRole("button", { name: /Ver Detalhes/ }));
 
 		expect(
 			screen.getByText("O documento já está assinado na página 2."),
@@ -135,9 +137,20 @@ describe("ProjectFindingsOverview", () => {
 		);
 
 		const history = screen.getByRole("region", { name: "Histórico" });
+		fireEvent.click(
+			within(history).getByRole("button", { name: /Ver Detalhes/ }),
+		);
 		expect(
-			within(history).queryByRole("button", { name: "Corrigido" }),
+			screen.queryByRole("button", { name: "Corrigido" }),
 		).not.toBeInTheDocument();
+		fireEvent.keyDown(document.activeElement ?? document.body, {
+			key: "Escape",
+		});
+
+		const current = screen.getByRole("region", { name: "Apontamentos" });
+		fireEvent.click(
+			within(current).getByRole("button", { name: /Ver Detalhes/ }),
+		);
 		expect(screen.getAllByRole("button", { name: "Corrigido" })).toHaveLength(
 			1,
 		);

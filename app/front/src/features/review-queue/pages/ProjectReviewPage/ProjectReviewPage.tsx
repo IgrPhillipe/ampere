@@ -1,16 +1,19 @@
+import { Breadcrumb } from "@components/Breadcrumb";
 import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import {
 	buildFindingReferenceOptions,
 	ChangeSummaryNotice,
+	GroupSheet,
+	type OpenedGroup,
 	ProjectDetailHeader,
 	ProjectDetailLayout,
 	ProjectDetailTabs,
 	projectStatusLabels,
 	useProjectDetailActions,
 } from "@features/projects";
-import { useAuthStore } from "@features/shared";
+import { padCount, useAuthStore } from "@features/shared";
 import { getHttpStatus } from "@lib/api-error";
 import { useGetLatestCalculation } from "@services/calculation";
 import {
@@ -95,6 +98,7 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 	const findingEditor = useFindingEditor();
 	const { editor } = findingEditor;
 	const [decision, setDecision] = useState<ReviewDecision | null>(null);
+	const [openedGroup, setOpenedGroup] = useState<OpenedGroup | null>(null);
 
 	const referenceOptions = buildFindingReferenceOptions({
 		groups: groups ?? [],
@@ -170,7 +174,7 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 
 	const closedMessage =
 		project && !isUnderReview
-			? `Análise concluída: projeto ${projectStatusLabels[project.status]}.`
+			? `Análise Concluída: Projeto ${projectStatusLabels[project.status]}`
 			: undefined;
 
 	if (projectQuery.isError) {
@@ -206,11 +210,33 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 			<ProjectDetailLayout
 				header={
 					<ProjectDetailHeader
+						breadcrumb={
+							<Breadcrumb
+								items={[
+									{ label: "Fila de Análise", to: "/fila-de-analise" },
+									...(project ? [{ label: project.name }] : []),
+								]}
+							/>
+						}
 						project={project}
 						isLoading={projectQuery.isPending || validationQuery.isPending}
 						units={units}
 						demandKva={demandKva}
 						reanalysis={reanalysis}
+						metrics={[
+							{
+								label: "Pendências",
+								value: findings
+									? padCount(availability.pendingCount)
+									: undefined,
+							},
+							{
+								label: "Bloqueantes",
+								value: findings
+									? padCount(availability.blockingCount)
+									: undefined,
+							},
+						]}
 					/>
 				}
 				notices={
@@ -255,7 +281,6 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 						availability={availability}
 						canDecide={actions.decide && findings !== undefined}
 						closedMessage={closedMessage}
-						onBack={backToQueue}
 						onDecide={setDecision}
 					/>
 				}
@@ -297,16 +322,10 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 					documents={checklist?.documents}
 					groupHint={
 						actions.createFindings
-							? "Selecione o nome de um grupo para registrar um apontamento vinculado a ele."
-							: undefined
+							? "Selecione um grupo para ver os dados e registrar um apontamento vinculado a ele."
+							: "Selecione um grupo para ver os dados dele."
 					}
-					onOpenGroup={(group) => {
-						if (!actions.createFindings) return;
-						findingEditor.start({
-							stage: "CONSUMER_UNITS",
-							reference: group.id,
-						});
-					}}
+					onOpenGroup={(group) => setOpenedGroup({ group })}
 					onCheckFinding={
 						actions.createFindings
 							? (check) => findingEditor.start(checkToFindingValues(check))
@@ -323,6 +342,22 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 					}
 				/>
 			</ProjectDetailLayout>
+
+			<GroupSheet
+				projectId={projectId}
+				readOnly
+				opened={openedGroup}
+				onClose={() => setOpenedGroup(null)}
+				onCreateFinding={
+					actions.createFindings
+						? (group) =>
+								findingEditor.start({
+									stage: "CONSUMER_UNITS",
+									reference: group.id,
+								})
+						: undefined
+				}
+			/>
 
 			<DecisionDialog
 				decision={decision}

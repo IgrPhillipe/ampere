@@ -42,6 +42,8 @@ interface DataTableProps<
 	sortableColumns?: readonly TSortColumn[];
 	sort?: ListSort<TSortColumn>;
 	onSortChange?: (column: TSortColumn) => void;
+	/** Classes of the `table`, such as a minimum width that scrolls on narrow screens. */
+	tableClassName?: string;
 	className?: string;
 }
 
@@ -85,6 +87,7 @@ export const DataTable = <
 	sortableColumns,
 	sort,
 	onSortChange,
+	tableClassName,
 	className,
 }: DataTableProps<TData, TColumnId, TSortColumn>) => {
 	const table = useTable({ features: dataTableFeatures, columns, data });
@@ -99,7 +102,7 @@ export const DataTable = <
 
 	return (
 		<div className={cn("overflow-x-auto bg-card", className)}>
-			<Table className={cn(columnClassNames && "table-fixed")}>
+			<Table className={cn(columnClassNames && "table-fixed", tableClassName)}>
 				<TableHeader>
 					{table.getHeaderGroups().map((group) => (
 						<TableRow key={group.id}>

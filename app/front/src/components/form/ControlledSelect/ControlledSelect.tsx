@@ -52,7 +52,7 @@ export const ControlledSelect = <T extends FieldValues>({
 	placeholder = "Selecione uma opção",
 	items,
 	disabled,
-	variant = "default",
+	variant = "underline",
 	required = false,
 	className,
 	fieldClassName,
@@ -84,7 +84,10 @@ export const ControlledSelect = <T extends FieldValues>({
 								className={className}
 								aria-required={required || undefined}
 							>
-								<SelectValue placeholder={placeholder} />
+								<SelectValue
+									placeholder={placeholder}
+									className="min-w-0 truncate"
+								/>
 							</SelectTrigger>
 						}
 						name={field.name}

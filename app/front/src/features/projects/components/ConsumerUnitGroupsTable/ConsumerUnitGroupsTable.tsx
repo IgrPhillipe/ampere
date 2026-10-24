@@ -68,6 +68,7 @@ export const ConsumerUnitGroupsTable = ({
 				columns={columns}
 				data={groups}
 				columnClassNames={groupColumnClassNames}
+				onRowClick={onOpenGroup}
 				trailingRows={
 					newGroupControl ? (
 						<NewGroupRow

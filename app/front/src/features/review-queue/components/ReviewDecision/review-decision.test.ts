@@ -23,62 +23,42 @@ const finding: Finding = {
 };
 
 describe("getDecisionAvailability", () => {
-	it("approves without findings and asks for one to reject", () => {
+	it("approves when there is no finding", () => {
 		expect(getDecisionAvailability([])).toEqual({
 			pendingCount: 0,
 			blockingCount: 0,
-			approveBlockedReason: null,
-			rejectBlockedReason:
-				"Registre um apontamento ou reabra um anterior para reprovar o projeto.",
+			decision: "APPROVE",
+			blockedReason: null,
 		});
 	});
 
-	it("blocks the approval while a blocking draft exists", () => {
-		const availability = getDecisionAvailability([
-			{ ...finding, severity: "BLOCKING" },
-		]);
+	it("only rejects while a finding of this analysis is a draft", () => {
+		const availability = getDecisionAvailability([finding]);
 
-		expect(availability.approveBlockedReason).toBe(
-			"Exclua o apontamento bloqueante ou reprove o projeto.",
-		);
-		expect(availability.rejectBlockedReason).toBeNull();
-		expect(availability.blockingCount).toBe(1);
-	});
-
-	it("lets an adjustment through the approval", () => {
-		expect(getDecisionAvailability([finding]).approveBlockedReason).toBeNull();
-	});
-
-	it("asks to accept the correction of a previous blocking finding", () => {
-		const availability = getDecisionAvailability([
-			{ ...finding, severity: "BLOCKING", status: "FIXED" },
-		]);
-
-		expect(availability.approveBlockedReason).toBe(
-			"Aceite a correção dos apontamentos bloqueantes ou reprove o projeto.",
-		);
+		expect(availability.decision).toBe("REJECT");
 		expect(availability.pendingCount).toBe(1);
 	});
 
 	it("rejects a reanalysis on a reopened finding, as the API does", () => {
-		const availability = getDecisionAvailability([
-			{ ...finding, severity: "BLOCKING", status: "OPEN" },
-		]);
-
-		expect(availability.rejectBlockedReason).toBeNull();
-		expect(availability.approveBlockedReason).not.toBeNull();
+		expect(
+			getDecisionAvailability([
+				{ ...finding, severity: "BLOCKING", status: "OPEN" },
+			]),
+		).toMatchObject({ decision: "REJECT", blockingCount: 1 });
 	});
 
-	it("needs a reopened finding to reject when every previous one was fixed", () => {
-		expect(
-			getDecisionAvailability([{ ...finding, status: "FIXED" }])
-				.rejectBlockedReason,
-		).toBe(
-			"Registre um apontamento ou reabra um anterior para reprovar o projeto.",
+	it("waits for the analyst to accept or reopen an answered finding", () => {
+		const availability = getDecisionAvailability([
+			{ ...finding, severity: "BLOCKING", status: "FIXED" },
+		]);
+
+		expect(availability.decision).toBeNull();
+		expect(availability.blockedReason).toBe(
+			"Aceite ou reabra os apontamentos respondidos para concluir a análise.",
 		);
 	});
 
-	it("stops counting a resolved finding as pending", () => {
+	it("approves once every finding is resolved", () => {
 		expect(
 			getDecisionAvailability([
 				{ ...finding, severity: "BLOCKING", status: "RESOLVED" },
@@ -86,7 +66,7 @@ describe("getDecisionAvailability", () => {
 		).toMatchObject({
 			pendingCount: 0,
 			blockingCount: 0,
-			approveBlockedReason: null,
+			decision: "APPROVE",
 		});
 	});
 });

@@ -7,6 +7,20 @@
 @import "@fontsource/ibm-plex-mono/600.css";
 @import "./tokens.css";
 
+@theme {
+	--animate-highlight: highlight 1.6s ease-out;
+
+	@keyframes highlight {
+		0%,
+		35% {
+			background-color: var(--color-accent);
+		}
+		100% {
+			background-color: transparent;
+		}
+	}
+}
+
 /** Keeps the `dark:` variants tied to the app's explicit state. */
 @custom-variant dark (&:where(.dark, .dark *));
 

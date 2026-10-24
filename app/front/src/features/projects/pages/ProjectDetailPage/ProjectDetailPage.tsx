@@ -2,7 +2,7 @@ import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDateTime } from "@features/shared";
+import { formatDate } from "@features/shared";
 import {
 	calculationKeys,
 	useGetLatestCalculation,
@@ -31,7 +31,10 @@ import { useState } from "react";
 
 import {
 	ChangeSummaryNotice,
+	GroupSheet,
 	NextStepsPanel,
+	type OpenedGroup,
+	ProjectBreadcrumb,
 	ProjectDetailFooter,
 	ProjectDetailHeader,
 	ProjectDetailLayout,
@@ -45,7 +48,7 @@ import {
 	findingTarget,
 	projectVersion,
 } from "../../constants";
-import { useProjectDetailActions } from "../../hooks";
+import { useProjectDetailActions, useProjectPermissions } from "../../hooks";
 import type { FindingResponseValues, ResubmissionValues } from "../../schemas";
 
 const stageRoutes = {
@@ -74,8 +77,10 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 		findingId: string;
 		status: FindingResponseValues["status"];
 	} | null>(null);
+	const [openedGroup, setOpenedGroup] = useState<OpenedGroup | null>(null);
 
 	const project = projectQuery.data?.data;
+	const { canEdit } = useProjectPermissions(project);
 	const findings = findingsQuery.data?.data;
 	const checklist = submissionQuery.data?.data;
 	const validation = validationQuery.data?.data;
@@ -129,12 +134,7 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 			params: { id: projectId },
 			hash: findingTarget(finding),
 		});
-	const openGroup = (group: ConsumerUnitGroup) =>
-		void navigate({
-			to: "/projetos/$id/unidades",
-			params: { id: projectId },
-			hash: `grupo-${group.id}`,
-		});
+	const openGroup = (group: ConsumerUnitGroup) => setOpenedGroup({ group });
 
 	const downloadMemorial = () => {
 		const memorial = memorialQuery.data;
@@ -240,6 +240,7 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 		<ProjectDetailLayout
 			header={
 				<ProjectDetailHeader
+					breadcrumb={<ProjectBreadcrumb current={project?.name} />}
 					project={project}
 					isLoading={projectQuery.isPending || validationQuery.isPending}
 					units={units}
@@ -262,10 +263,8 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 								/>
 								<span>
 									Projeto enviado em{" "}
-									<time dateTime={submittedAt}>
-										{formatDateTime(submittedAt)}
-									</time>
-									. Guarde o protocolo{" "}
+									<time dateTime={submittedAt}>{formatDate(submittedAt)}</time>.
+									Guarde o protocolo{" "}
 									<span className="font-mono">{project.protocol}</span> para
 									acompanhar a análise.
 								</span>
@@ -281,10 +280,7 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 				) : null
 			}
 			footer={
-				<ProjectDetailFooter
-					backLabel="Voltar para Meus Projetos"
-					onBack={backToProjects}
-				>
+				<ProjectDetailFooter>
 					<Button
 						type="button"
 						variant="link"
@@ -379,7 +375,15 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 				totalLoadKw={validation?.totalDeclaredLoadKw ?? 0}
 				documents={checklist?.documents}
 				markedFindings={markedFindings}
+				groupHint="Selecione um grupo para ver os dados dele."
 				onOpenGroup={openGroup}
+			/>
+
+			<GroupSheet
+				projectId={projectId}
+				readOnly={!canEdit}
+				opened={openedGroup}
+				onClose={() => setOpenedGroup(null)}
 			/>
 		</ProjectDetailLayout>
 	);
