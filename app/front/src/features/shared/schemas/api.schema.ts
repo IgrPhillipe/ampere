@@ -20,7 +20,7 @@ export interface ApiResponse<T> {
 	pagination?: Pagination;
 }
 
-/** A listing's single sort key, in one direction or the other: `sort=ASC|DESC`. */
+/** Direction of a listing's sort column: `direction=ASC|DESC`, next to `sort=<column>`. */
 export const sortDirectionSchema = z.enum(["ASC", "DESC"]);
 
 export type SortDirection = z.infer<typeof sortDirectionSchema>;

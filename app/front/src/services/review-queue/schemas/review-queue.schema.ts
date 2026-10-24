@@ -10,6 +10,25 @@ export const reviewQueueFilterSchema = z.enum([
 
 export type ReviewQueueFilter = z.infer<typeof reviewQueueFilterSchema>;
 
+export const reviewQueueSortSchema = z.enum([
+	"deadline",
+	"submittedAt",
+	"demand",
+	"warnings",
+]);
+
+export type ReviewQueueSort = z.infer<typeof reviewQueueSortSchema>;
+
+/** `reviewer` value for projects nobody picked up yet. */
+export const UNASSIGNED_REVIEWER = "none";
+
+export const reviewerSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+});
+
+export type Reviewer = z.infer<typeof reviewerSchema>;
+
 export const deadlineStatusSchema = z.enum(["OVERDUE", "DUE_TODAY", "ON_TIME"]);
 
 export type DeadlineStatus = z.infer<typeof deadlineStatusSchema>;
@@ -60,3 +79,9 @@ export const reviewQueueIndicatorsResponseSchema = apiResponseSchema(
 export type ReviewQueueIndicatorsResponse = z.infer<
 	typeof reviewQueueIndicatorsResponseSchema
 >;
+
+export const reviewerListResponseSchema = apiResponseSchema(
+	z.array(reviewerSchema),
+);
+
+export type ReviewerListResponse = z.infer<typeof reviewerListResponseSchema>;

@@ -3,10 +3,11 @@ import { ListToolbar } from "@components/ListToolbar";
 import { PageLayout } from "@components/layout";
 import { Pagination } from "@components/Pagination";
 import { SearchInput } from "@components/SearchInput";
-import { SortToggle } from "@components/SortToggle";
+import { SortMenu, type SortOption } from "@components/SortMenu";
 import { Button } from "@components/ui/button";
 import {
 	type Project,
+	type ProjectSort,
 	type ProjectStatusCounts,
 	useDeleteProject,
 	useGetProjectList,
@@ -17,13 +18,22 @@ import { ArrowRight, CircleAlert } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import {
+	ProjectActiveFilters,
 	ProjectDeleteDialog,
+	ProjectFilterControls,
 	ProjectStatusFilters,
 	ProjectsTable,
 } from "../../components";
-import { useProjectFilters } from "../../hooks";
+import { PROJECT_SORT_DIRECTIONS, useProjectFilters } from "../../hooks";
 
 const PAGE_SIZE = 10;
+
+const sortOptions: SortOption<ProjectSort>[] = [
+	{ value: "updatedAt", label: "Atualização" },
+	{ value: "createdAt", label: "Criação" },
+	{ value: "name", label: "Nome" },
+	{ value: "demand", label: "Demanda" },
+];
 
 const emptyStatusCounts: ProjectStatusCounts = {
 	total: 0,
@@ -38,25 +48,22 @@ export const ProjectsPage = () => {
 	const navigate = useNavigate();
 	const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 	const deleteProject = useDeleteProject();
+	const filters = useProjectFilters();
 	const {
 		status,
 		search,
-		debouncedSearch,
-		page,
 		sort,
 		hasActiveFilters,
 		setStatus,
 		setSearch,
 		setPage,
-		toggleSort,
+		setSort,
+		sortBy,
 		clearFilters,
-	} = useProjectFilters();
+	} = filters;
 	const projectsQuery = useGetProjectList({
-		page,
+		...filters.params,
 		pageSize: PAGE_SIZE,
-		status: status ?? undefined,
-		search: debouncedSearch || undefined,
-		sort,
 	});
 	// Counters get their own query: they are global and change with neither page nor search.
 	const statusCountsQuery = useGetProjectStatusCounts();
@@ -155,12 +162,24 @@ export const ProjectsPage = () => {
 						/>
 					}
 					sort={
-						<SortToggle
-							label="Atualização"
-							descending={sort === "DESC"}
-							onToggle={toggleSort}
+						<SortMenu
+							options={sortOptions}
+							value={sort}
+							directions={PROJECT_SORT_DIRECTIONS}
+							onValueChange={setSort}
 						/>
 					}
+					refinements={
+						<ProjectFilterControls
+							municipality={filters.municipality}
+							onMunicipalityChange={filters.setMunicipality}
+							period={filters.period}
+							onPeriodChange={filters.setPeriod}
+							findings={filters.findings}
+							onFindingsChange={filters.setFindings}
+						/>
+					}
+					activeFilters={<ProjectActiveFilters filters={filters} />}
 				/>
 
 				<div className="flex-1 px-gutter py-4 md:px-gutter-md md:py-5">
@@ -191,6 +210,8 @@ export const ProjectsPage = () => {
 							onContinueDraft={handleContinueDraft}
 							onViewProject={handleViewProject}
 							onDeleteProject={handleDeleteProject}
+							sort={sort}
+							onSortChange={sortBy}
 							onClearFilters={hasActiveFilters ? clearFilters : undefined}
 						/>
 					)}

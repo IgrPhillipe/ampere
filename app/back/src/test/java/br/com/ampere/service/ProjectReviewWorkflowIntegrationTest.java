@@ -285,6 +285,115 @@ class ProjectReviewWorkflowIntegrationTest {
     file(project, document, otherAnalyst).andExpect(status().isOk());
   }
 
+  @Test
+  void recordsDesignerResponsesToRejectedFindingsAndEnforcesResponseRules() throws Exception {
+    assign(project, analyst).andExpect(status().isOk());
+    createFinding(project, analyst, FINDING_BODY).andExpect(status().isCreated());
+    Long findingId = findingRepository.findAll().getFirst().getId();
+
+    respond(project, findingId, owner, "{\"status\":\"FIXED\"}")
+        .andExpect(status().isConflict())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Só é possível responder apontamentos de um projeto reprovado."));
+
+    decide(project, analyst, "REJECT", "Corrigir a planta de situação.").andExpect(status().isOk());
+
+    mockMvc
+        .perform(
+            get("/projects/{id}", project.getId()).header(HttpHeaders.AUTHORIZATION, bearer(owner)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.reviewCycle").value(1))
+        .andExpect(jsonPath("$.data.reviewOpinion").value("Corrigir a planta de situação."))
+        .andExpect(jsonPath("$.data.changeSummary").doesNotExist());
+
+    respond(project, findingId, analyst, "{\"status\":\"FIXED\"}")
+        .andExpect(status().isForbidden());
+    respond(project, findingId, otherOwner, "{\"status\":\"FIXED\"}")
+        .andExpect(status().isNotFound());
+    Project otherProject = submittedProject("2026-7009", owner);
+    assign(otherProject, analyst).andExpect(status().isOk());
+    createFinding(otherProject, analyst, FINDING_BODY).andExpect(status().isCreated());
+    decide(otherProject, analyst, "REJECT", "Reprovado.").andExpect(status().isOk());
+    respond(otherProject, findingId, owner, "{\"status\":\"FIXED\"}")
+        .andExpect(status().isNotFound());
+
+    respond(project, findingId, owner, "{}").andExpect(status().isBadRequest());
+    respond(project, findingId, owner, "{\"status\":\"OPEN\"}").andExpect(status().isBadRequest());
+    respond(project, findingId, owner, "{\"status\":\"CONTESTED\",\"response\":\"   \"}")
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("A justificativa é obrigatória para contestar o apontamento."));
+    respond(
+            project,
+            findingId,
+            owner,
+            "{\"status\":\"FIXED\",\"response\":\"" + "a".repeat(2001) + "\"}")
+        .andExpect(status().isBadRequest());
+
+    respond(
+            project,
+            findingId,
+            owner,
+            "{\"status\":\"CONTESTED\",\"response\":\"A ART anexada já traz a assinatura na página 2.\"}")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.status").value("CONTESTED"))
+        .andExpect(
+            jsonPath("$.data.response").value("A ART anexada já traz a assinatura na página 2."))
+        .andExpect(jsonPath("$.data.respondedAt").isNotEmpty());
+
+    respond(
+            project,
+            findingId,
+            owner,
+            "{\"status\":\"FIXED\",\"response\":\"Substituí o arquivo assinado.\"}")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.status").value("FIXED"))
+        .andExpect(jsonPath("$.data.response").value("Substituí o arquivo assinado."))
+        .andExpect(jsonPath("$.data.respondedAt").isNotEmpty());
+
+    project.submit(OffsetDateTime.now(ZoneOffset.UTC));
+    projectRepository.flush();
+    resolve(project, findingId, analyst, "REOPEN")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.status").value("OPEN"))
+        .andExpect(jsonPath("$.data.response").value("Substituí o arquivo assinado."))
+        .andExpect(jsonPath("$.data.respondedAt").isNotEmpty());
+    decide(project, analyst, "REJECT", "Ainda pendente no ciclo 2.").andExpect(status().isOk());
+
+    checklist(project, owner).andExpect(jsonPath("$.data.unansweredBlocking").value(1));
+    respond(project, findingId, owner, "{\"status\":\"FIXED\"}")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.status").value("FIXED"));
+    checklist(project, owner).andExpect(jsonPath("$.data.unansweredBlocking").value(0));
+
+    project.submit(OffsetDateTime.now(ZoneOffset.UTC));
+    projectRepository.flush();
+    resolve(project, findingId, analyst, "ACCEPT").andExpect(status().isOk());
+    createFinding(project, analyst, FINDING_BODY).andExpect(status().isCreated());
+    decide(project, analyst, "REJECT", "Novo apontamento no ciclo 3.").andExpect(status().isOk());
+
+    respond(project, findingId, owner, "{\"status\":\"FIXED\"}")
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.detail").value("Este apontamento não aguarda resposta."));
+  }
+
+  private ResultActions checklist(Project target, User actor) throws Exception {
+    return mockMvc.perform(
+        get("/projects/{id}/submission", target.getId())
+            .header(HttpHeaders.AUTHORIZATION, bearer(actor)));
+  }
+
+  private ResultActions respond(Project target, Long findingId, User actor, String body)
+      throws Exception {
+    return mockMvc.perform(
+        put("/projects/{projectId}/findings/{findingId}/response", target.getId(), findingId)
+            .header(HttpHeaders.AUTHORIZATION, bearer(actor))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(body));
+  }
+
   private ResultActions assign(Project target, User actor) throws Exception {
     return mockMvc.perform(
         post("/projects/{id}/review", target.getId())

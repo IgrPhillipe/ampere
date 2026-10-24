@@ -41,7 +41,7 @@ public class SecurityConfig {
       HttpSecurity http,
       ProblemDetailAuthenticationHandler handler,
       CorsConfigurationSource corsConfigurationSource,
-      JwtAuthenticationConverter jwtAuthenticationConverter)
+      ActiveAccountConverter activeAccountConverter)
       throws Exception {
     return http.csrf(csrf -> csrf.disable())
         .cors(cors -> cors.configurationSource(corsConfigurationSource))
@@ -53,9 +53,13 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/docs/**", "/swagger-ui/**", "/v3/api-docs/**")
                     .permitAll()
+                    // Before "/users/**": the own profile belongs to every role.
+                    .requestMatchers("/users/me", "/users/me/**")
+                    .authenticated()
                     .requestMatchers(
                         "/normative-tables", "/normative-tables/**",
-                        "/review-queue", "/review-queue/**")
+                        "/review-queue", "/review-queue/**",
+                        "/users", "/users/**")
                     .hasRole("ADMIN")
                     .requestMatchers(
                         "/projects/*/review",
@@ -73,7 +77,7 @@ public class SecurityConfig {
         .oauth2ResourceServer(
             oauth2 ->
                 oauth2
-                    .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter))
+                    .jwt(jwt -> jwt.jwtAuthenticationConverter(activeAccountConverter))
                     .authenticationEntryPoint(handler)
                     .accessDeniedHandler(handler)
                     .bearerTokenResolver(ignoringPublicAuthPaths()))

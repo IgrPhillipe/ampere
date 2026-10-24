@@ -1,13 +1,16 @@
 package br.com.ampere.controller;
 
 import br.com.ampere.domain.ReviewQueueFilter;
+import br.com.ampere.domain.ReviewQueueSort;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.PageQuery;
 import br.com.ampere.dto.Pagination;
 import br.com.ampere.dto.ReviewQueueIndicatorsResponse;
 import br.com.ampere.dto.ReviewQueueItemResponse;
+import br.com.ampere.dto.ReviewerOptionResponse;
 import br.com.ampere.service.ReviewQueueListing;
+import br.com.ampere.service.ReviewQueueQuery;
 import br.com.ampere.service.ReviewQueueService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,14 +38,14 @@ public class ReviewQueueController {
   @GetMapping
   @Operation(
       operationId = "listReviewQueue",
-      summary = "Lista os projetos em análise, ordenados pelo prazo")
+      summary = "Lista os projetos em análise, ordenados e filtrados")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
         description = "Página da fila de análise"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
-        description = "Paginação inválida"),
+        description = "Parâmetros inválidos"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "403",
         description = "Apenas o papel ADMIN acessa a fila")
@@ -55,16 +58,47 @@ public class ReviewQueueController {
       @Parameter(description = "Recorte aplicado à fila de análise")
           @RequestParam(defaultValue = "ALL")
           ReviewQueueFilter filter,
-      @Parameter(description = "Ordenação pelo prazo de análise")
+      @Parameter(
+              description = "Coluna usada na ordenação (deadline, submittedAt, demand, warnings)")
+          @RequestParam(defaultValue = "deadline")
+          ReviewQueueSort sort,
+      @Parameter(description = "Direção da ordenação (ASC, DESC)")
           @RequestParam(defaultValue = "ASC")
-          SortDirection sort) {
+          SortDirection direction,
+      @Parameter(description = "Filtro por analista (id do usuário ou 'none' para sem analista)")
+          @RequestParam(required = false)
+          String reviewer,
+      @Parameter(description = "Município usado para filtrar os projetos")
+          @RequestParam(required = false)
+          String municipality) {
     ReviewQueueListing listing =
-        service.list(pagination.page(), pagination.pageSize(), search, filter, sort);
+        service.list(
+            pagination.page(),
+            pagination.pageSize(),
+            new ReviewQueueQuery(search, filter, sort, direction, reviewer, municipality));
     List<ReviewQueueItemResponse> items =
         listing.entries().stream().map(ReviewQueueItemResponse::from).toList();
 
     return ApiResponse.of(
         items, new Pagination(listing.totalElements(), pagination.page(), pagination.pageSize()));
+  }
+
+  @GetMapping("/reviewers")
+  @Operation(
+      operationId = "listReviewers",
+      summary = "Lista os analistas disponíveis para o filtro")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Lista de analistas"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "Apenas o papel ADMIN acessa a fila")
+  })
+  public ApiResponse<List<ReviewerOptionResponse>> reviewers() {
+    List<ReviewerOptionResponse> reviewers =
+        service.reviewers().stream().map(ReviewerOptionResponse::from).toList();
+    return ApiResponse.of(reviewers);
   }
 
   @GetMapping("/indicators")

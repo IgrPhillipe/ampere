@@ -4,6 +4,8 @@ import type {
 	BuildingCategory,
 	ConnectionType,
 	EntranceStandard,
+	ProjectFindingsFilter,
+	ProjectSort,
 	ProjectStatus,
 	SupplyVoltage,
 } from "./schemas";
@@ -13,7 +15,14 @@ export interface ListProjectsParams {
 	pageSize?: number;
 	status?: ProjectStatus;
 	search?: string;
-	sort?: SortDirection;
+	sort?: ProjectSort;
+	direction?: SortDirection;
+	municipality?: string;
+	/** `YYYY-MM-DD`, inclusive. */
+	createdFrom?: string;
+	/** `YYYY-MM-DD`, inclusive. */
+	createdTo?: string;
+	findings?: ProjectFindingsFilter;
 }
 
 /** Corpo de `POST /projects` — os oito campos da US02. */
