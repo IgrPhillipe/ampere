@@ -20,7 +20,7 @@ export const DecisionFooter = ({
 	onDecide,
 	className,
 }: DecisionFooterProps) => {
-	const { approveBlockedReason, rejectBlockedReason } = availability;
+	const { decision, blockedReason } = availability;
 
 	return (
 		<ProjectDetailFooter className={className}>
@@ -28,46 +28,19 @@ export const DecisionFooter = ({
 				{closedMessage ? (
 					<p className="text-sm text-muted-foreground">{closedMessage}</p>
 				) : canDecide ? (
-					<div className="flex flex-col gap-2 md:items-end">
-						<div className="flex flex-col-reverse gap-2 sm:flex-row">
-							<Button
-								type="button"
-								variant="outline"
-								disabled={rejectBlockedReason !== null}
-								aria-describedby={
-									rejectBlockedReason ? "decisao-motivo-reprovar" : undefined
-								}
-								onClick={() => onDecide("REJECT")}
-							>
-								Reprovar com Apontamentos
-							</Button>
-
-							<Button
-								type="button"
-								disabled={approveBlockedReason !== null}
-								aria-describedby={
-									approveBlockedReason ? "decisao-motivo-aprovar" : undefined
-								}
-								onClick={() => onDecide("APPROVE")}
-							>
-								Aprovar Projeto
-							</Button>
-						</div>
-
-						{approveBlockedReason ? (
-							<p
-								id="decisao-motivo-aprovar"
-								className="text-xs text-muted-foreground md:text-right"
-							>
-								{approveBlockedReason}
-							</p>
-						) : null}
-						{rejectBlockedReason ? (
-							<p id="decisao-motivo-reprovar" className="sr-only">
-								{rejectBlockedReason}
-							</p>
-						) : null}
-					</div>
+					decision === "REJECT" ? (
+						<Button type="button" onClick={() => onDecide("REJECT")}>
+							Reprovar com Apontamentos
+						</Button>
+					) : decision === "APPROVE" ? (
+						<Button type="button" onClick={() => onDecide("APPROVE")}>
+							Aprovar Projeto
+						</Button>
+					) : (
+						<p className="text-sm text-muted-foreground md:text-right">
+							{blockedReason}
+						</p>
+					)
 				) : null}
 			</div>
 		</ProjectDetailFooter>

@@ -81,12 +81,13 @@ describe("ProjectReviewPage", () => {
 		expect(screen.getByText("Protocolo 2026-1004")).toBeVisible();
 		expect(screen.getByText("Verificação Automática")).toBeVisible();
 		expect(screen.getByText("Novo Apontamento")).toBeVisible();
-		expect(
-			screen.getByRole("button", { name: "Aprovar Projeto" }),
-		).toBeVisible();
+		// The draft finding leaves rejection as the only decision.
 		expect(
 			screen.getByRole("button", { name: "Reprovar com Apontamentos" }),
 		).toBeVisible();
+		expect(
+			screen.queryByRole("button", { name: "Aprovar Projeto" }),
+		).not.toBeInTheDocument();
 		expect(
 			screen.queryByRole("button", { name: "Reenviar Projeto" }),
 		).not.toBeInTheDocument();

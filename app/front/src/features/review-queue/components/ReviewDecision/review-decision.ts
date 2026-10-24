@@ -1,4 +1,4 @@
-import type { Finding } from "@services/project-review";
+import type { Finding, ReviewDecision } from "@services/project-review";
 
 export const isDraftFinding = (finding: Finding) => finding.status === "DRAFT";
 
@@ -15,28 +15,28 @@ const supportsRejection = (finding: Finding) =>
 export interface DecisionAvailability {
 	pendingCount: number;
 	blockingCount: number;
-	approveBlockedReason: string | null;
-	rejectBlockedReason: string | null;
+	/** The only decision the findings allow; `null` while answers await the analyst. */
+	decision: ReviewDecision | null;
+	blockedReason: string | null;
 }
 
+/** Same rules as the API: pending findings reject, a fully resolved set approves. */
 export const getDecisionAvailability = (
 	findings: Finding[],
 ): DecisionAvailability => {
-	const openBlocking = findings.filter(isOpenBlockingFinding);
-
-	const approveBlockedReason =
-		openBlocking.length === 0
-			? null
-			: openBlocking.some(isDraftFinding)
-				? "Exclua o apontamento bloqueante ou reprove o projeto."
-				: "Aceite a correção dos apontamentos bloqueantes ou reprove o projeto.";
+	const decision: ReviewDecision | null = findings.some(supportsRejection)
+		? "REJECT"
+		: findings.every((finding) => finding.status === "RESOLVED")
+			? "APPROVE"
+			: null;
 
 	return {
 		pendingCount: findings.filter(isPendingFinding).length,
-		blockingCount: openBlocking.length,
-		approveBlockedReason,
-		rejectBlockedReason: findings.some(supportsRejection)
-			? null
-			: "Registre um apontamento ou reabra um anterior para reprovar o projeto.",
+		blockingCount: findings.filter(isOpenBlockingFinding).length,
+		decision,
+		blockedReason:
+			decision === null
+				? "Aceite ou reabra os apontamentos respondidos para concluir a análise."
+				: null,
 	};
 };

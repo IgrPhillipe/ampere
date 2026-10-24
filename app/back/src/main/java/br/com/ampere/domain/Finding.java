@@ -134,6 +134,10 @@ public class Finding {
     return status == FindingStatus.DRAFT;
   }
 
+  public boolean isResolved() {
+    return status == FindingStatus.RESOLVED;
+  }
+
   public boolean isOpenBlocking() {
     return severity == FindingSeverity.BLOCKING && status != FindingStatus.RESOLVED;
   }

@@ -196,12 +196,24 @@ class ProjectReviewWorkflowIntegrationTest {
   }
 
   @Test
-  void approvesWhenThereIsNoOpenBlockingFinding() throws Exception {
+  void approvesOnlyWhenEveryFindingIsResolved() throws Exception {
     Project approvable = submittedProject("2026-7002", owner);
     assign(approvable, analyst).andExpect(status().isOk());
     String adjustment = FINDING_BODY.replace("BLOCKING", "ADJUSTMENT");
     createFinding(approvable, analyst, adjustment).andExpect(status().isCreated());
 
+    decide(approvable, analyst, "APPROVE", "Projeto em conformidade.")
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Para aprovar, todos os apontamentos precisam estar resolvidos."));
+
+    Long findingId = findingRepository.findAll().getFirst().getId();
+    mockMvc
+        .perform(
+            delete("/projects/{projectId}/findings/{findingId}", approvable.getId(), findingId)
+                .header(HttpHeaders.AUTHORIZATION, bearer(analyst)))
+        .andExpect(status().isNoContent());
     decide(approvable, analyst, "APPROVE", "Projeto em conformidade.")
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.status").value("APPROVED"));

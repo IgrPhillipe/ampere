@@ -62,9 +62,11 @@ public class ProjectReviewService {
     Project project = assignedProject(projectId, user);
     List<Finding> findings =
         findingRepository.findAllByProjectIdOrderByCreatedAtAscIdAsc(projectId);
-    if (decision == ReviewDecision.APPROVE && findings.stream().anyMatch(Finding::isOpenBlocking)) {
+    // One decision at a time: a pending finding asks for a rejection, a resolved set for approval.
+    if (decision == ReviewDecision.APPROVE && !findings.stream().allMatch(Finding::isResolved)) {
       throw new BusinessException(
-          "O projeto possui apontamento bloqueante em aberto.", HttpStatus.UNPROCESSABLE_CONTENT);
+          "Para aprovar, todos os apontamentos precisam estar resolvidos.",
+          HttpStatus.UNPROCESSABLE_CONTENT);
     }
     if (decision == ReviewDecision.REJECT && findings.stream().noneMatch(Finding::isPending)) {
       throw new BusinessException(
