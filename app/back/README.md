@@ -97,10 +97,22 @@ Cada projeto pertence a quem o criou. O projetista vê só os próprios projetos
 
 ### Gestão de Usuários
 
-Restrita ao papel `admin` pelo `SecurityConfig`.
+Restrita ao papel `admin` pelo `SecurityConfig`, sem prefixo de papel no caminho. `/api/users/me` continua aberto a todos os papéis.
 
 | Método e caminho | O que faz |
 | :--- | :--- |
+| `GET /api/users` | Lista em ordem de nome, paginada; `search` busca no nome e no e-mail sem acentos, `role` filtra por `user` ou `admin` |
+| `POST /api/users` | Cria a conta com nome, e-mail e papel; devolve a senha temporária |
+| `PUT /api/users/{id}` | Substitui nome, papel e situação (`active`), os três obrigatórios; é por aqui que se desativa e reativa. O e-mail não muda |
+| `POST /api/users/{id}/password-reset` | Gera uma nova senha temporária |
+
+- A senha temporária só sai em `data.temporaryPassword`, na resposta da criação e da redefinição. Não há e-mail: o administrador a repassa.
+- Com senha temporária, `mustChangePassword` vem `true` no login e em `/api/auth/me`, até a troca em `PUT /api/users/me/password`. O back não bloqueia as outras rotas enquanto isso: levar à troca é papel do front.
+- Conta inativa recebe 403 no login, com *"Conta desativada. Procure a Neoenergia."*, mas só se a senha estiver certa. O token já emitido passa a responder 401 com a mesma mensagem: o filtro do JWT relê a situação e o papel da conta a cada requisição. Papel alterado e conta inexistente também derrubam o token, com a mensagem de sessão expirada.
+- O administrador não desativa a própria conta nem remove o próprio papel `admin` (400).
+- Erros: 400 para dados ou filtro inválidos, 404 para usuário inexistente, 409 para e-mail já cadastrado.
+
+--- | :--- |
 | `GET /api/admin/users` | Lista em ordem de nome; `search` busca no nome e no e-mail sem acentos, `role` filtra por `user` ou `admin` |
 | `POST /api/admin/users` | Cria a conta com nome, e-mail e papel; devolve a senha temporária |
 | `PUT /api/admin/users/{id}` | Altera nome, papel e situação (`active`); é por aqui que se desativa e reativa |

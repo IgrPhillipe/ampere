@@ -111,7 +111,7 @@ O caminho nomeia o recurso, no plural e em kebab-case; o método HTTP diz a aç�
 - Sem verbo no caminho: enviar um projeto é `POST /projects/{id}/submission`, publicar uma tabela é `POST /normative-tables/{id}/publication`.
 - Recurso de um projeto fica aninhado nele: `/projects/{id}/consumer-unit-groups`, `/projects/{id}/calculations`, `/projects/{id}/documents`.
 - Coleção que guarda todo o histórico é plural, e o mais recente é `/latest`: `GET /projects/{id}/calculations/latest`.
-- Sem papel no caminho: `/normative-tables` e `/review-queue` são restritos ao `admin` pelo `SecurityConfig`, não por um prefixo `/admin`.
+- Sem papel no caminho: `/normative-tables`, `/review-queue` e `/users` são restritos ao `admin` pelo `SecurityConfig`, não por um prefixo `/admin`.
 - Ordenação de lista com uma chave só usa `sort=ASC|DESC` (`SortDirection`); a chave é a da própria lista (prazo na fila, última atualização em projetos).
 
 ### Envelope
@@ -275,8 +275,10 @@ Decisões:
 - **Senha é BCrypt**, e `AuthUserResponse` não tem campo de hash: o DTO garante que ele não vaza.
 - **E-mail desconhecido e senha errada respondem igual.** Distinguir os dois revelaria quais e-mails existem na base.
 - **`/auth/me` relê o usuário do banco** em vez de confiar no token: nome e papel gravados no token ficam desatualizados.
+- **Toda requisição relê a situação e o papel da conta.** O `ActiveAccountConverter` lê só `active` e `role` pela chave primária: conta desativada responde 401 com *"Conta desativada. Procure a Neoenergia."*, e papel alterado ou conta inexistente derrubam o token. Sem isso, o token valeria até expirar.
+- **Conta inativa só é avisada a quem acerta a senha.** O login responde 403 com a mensagem da conta desativada; senha errada continua no 401 de sempre.
 
-**Rotas restritas por papel ficam no `SecurityConfig`.** As tabelas normativas (`/normative-tables/**`), a fila de análise (`/review-queue/**`) e a escrita da análise (atribuição, decisão e apontamentos) não são do projetista: o `SecurityConfig` converte o claim `role` do token em `ROLE_ADMIN` ou `ROLE_USER` e exige `hasRole("ADMIN")` nesses caminhos. Sem o papel, a resposta é 403 no mesmo `ProblemDetail` do resto da API. Rota nova de analista entra no mesmo `requestMatchers`.
+**Rotas restritas por papel ficam no `SecurityConfig`.** As tabelas normativas (`/normative-tables/**`), a fila de análise (`/review-queue/**`), a gestão de usuários (`/users/**`, exceto `/users/me`, que vem antes no `SecurityConfig`) e a escrita da análise (atribuição, decisão e apontamentos) não são do projetista: o `SecurityConfig` converte o claim `role` do token em `ROLE_ADMIN` ou `ROLE_USER` e exige `hasRole("ADMIN")` nesses caminhos. Sem o papel, a resposta é 403 no mesmo `ProblemDetail` do resto da API. Rota nova de analista entra no mesmo `requestMatchers`.
 
 Os papéis atuais (`user` / `admin`) são placeholder e dependem da **Q1c** em [`questoes-em-aberto.md`](../produto/questoes-em-aberto.md): *"pessoa de fora da Neoenergia pode acessar um sistema interno?"*. A resolução da Q1c é aplicada aqui e na pendência 13.
 
