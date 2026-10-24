@@ -1,6 +1,7 @@
 import { CountCell } from "@components/CountCell";
 import { createDataTableColumnHelper } from "@components/DataTable";
-import { formatDate, formatKva } from "@features/shared";
+import { DateCell } from "@components/DateCell";
+import { formatKva, formatPlace } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import type { Project } from "@services/projects";
 
@@ -43,9 +44,15 @@ export const createProjectColumns = (actions: ProjectRowActions) =>
 			header: "Projeto",
 			// No `min-w`: the table is `table-fixed`, so the name wraps instead.
 			cell: ({ row }) => (
-				<span className="font-semibold whitespace-normal text-foreground">
-					{row.original.name}
-				</span>
+				<div className="flex flex-col gap-1 whitespace-normal">
+					<span className="font-semibold text-foreground">
+						{row.original.name}
+					</span>
+					<span className="text-xs text-muted-foreground">
+						{row.original.address},{" "}
+						{formatPlace(row.original.municipality, row.original.state)}
+					</span>
+				</div>
 			),
 		}),
 		columnHelper.accessor("status", {
@@ -80,25 +87,15 @@ export const createProjectColumns = (actions: ProjectRowActions) =>
 		}),
 		columnHelper.accessor("createdAt", {
 			header: "Criado em",
-			cell: ({ row }) => (
-				<time
-					dateTime={row.original.createdAt}
-					className="font-mono text-xs text-foreground"
-				>
-					{formatDate(row.original.createdAt)}
-				</time>
-			),
+			cell: ({ row }) => <DateCell value={row.original.createdAt} />,
 		}),
 		columnHelper.accessor("updatedAt", {
 			header: "Atualizado",
 			cell: ({ row }) => (
-				<time
-					dateTime={row.original.updatedAt}
-					title={dayjs(row.original.updatedAt).format("DD/MM/YYYY HH:mm")}
-					className="text-sm whitespace-normal text-muted-foreground"
-				>
-					{dayjs(row.original.updatedAt).fromNow()}
-				</time>
+				<DateCell
+					value={row.original.updatedAt}
+					caption={dayjs(row.original.updatedAt).fromNow()}
+				/>
 			),
 		}),
 		columnHelper.display({
