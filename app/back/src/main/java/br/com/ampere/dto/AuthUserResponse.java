@@ -3,10 +3,7 @@ package br.com.ampere.dto;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 
-/**
- * The signed-in person, as the front's {@code authUserSchema} declares them. {@code
- * mustChangePassword} sends a temporary password to the mandatory change.
- */
+/** The signed-in person, as the front's {@code authUserSchema} declares them. */
 public record AuthUserResponse(
     String id, String name, String email, UserRole role, boolean mustChangePassword) {
 

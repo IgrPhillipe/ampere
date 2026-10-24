@@ -66,7 +66,7 @@ class UserAdministrationIntegrationTest {
         body(
             mockMvc
                 .perform(
-                    authorized(post("/admin/users"), token("admin@ampere.com", PASSWORD))
+                    authorized(post("/users"), token("admin@ampere.com", PASSWORD))
                         .content(
                             "{\"name\":\"Ana Analista\",\"email\":\" ANA@ampere.com \","
                                 + "\"role\":\"admin\"}"))
@@ -106,13 +106,13 @@ class UserAdministrationIntegrationTest {
     String adminToken = token("admin@ampere.com", PASSWORD);
     mockMvc
         .perform(
-            authorized(post("/admin/users"), adminToken)
+            authorized(post("/users"), adminToken)
                 .content("{\"name\":\"Ana\",\"email\":\"ana@ampere.com\",\"role\":\"admin\"}"))
         .andExpect(status().isCreated());
 
     String listing =
         mockMvc
-            .perform(authorized(get("/admin/users"), adminToken))
+            .perform(authorized(get("/users"), adminToken))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
@@ -125,7 +125,7 @@ class UserAdministrationIntegrationTest {
   void refusesADuplicateEmail() throws Exception {
     mockMvc
         .perform(
-            authorized(post("/admin/users"), token("admin@ampere.com", PASSWORD))
+            authorized(post("/users"), token("admin@ampere.com", PASSWORD))
                 .content("{\"name\":\"Outro\",\"email\":\"JOAO@ampere.com\",\"role\":\"user\"}"))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.detail").value("Já existe uma conta com este e-mail."));
@@ -136,7 +136,7 @@ class UserAdministrationIntegrationTest {
     String adminToken = token("admin@ampere.com", PASSWORD);
 
     mockMvc
-        .perform(authorized(get("/admin/users"), adminToken))
+        .perform(authorized(get("/users"), adminToken))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(2)))
         .andExpect(jsonPath("$.data[0].name").value("Admin Teste"))
@@ -145,13 +145,13 @@ class UserAdministrationIntegrationTest {
         .andExpect(jsonPath("$.pagination.total").value(2));
 
     mockMvc
-        .perform(authorized(get("/admin/users").param("role", "user"), adminToken))
+        .perform(authorized(get("/users").param("role", "user"), adminToken))
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].email").value("joao@ampere.com"));
 
     // Without the accent, as the administrator would type it.
     mockMvc
-        .perform(authorized(get("/admin/users").param("search", "joao proj"), adminToken))
+        .perform(authorized(get("/users").param("search", "joao proj"), adminToken))
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].name").value("João Projetista"));
   }
@@ -161,11 +161,11 @@ class UserAdministrationIntegrationTest {
     String designerToken = token("joao@ampere.com", PASSWORD);
 
     mockMvc
-        .perform(authorized(get("/admin/users"), designerToken))
+        .perform(authorized(get("/users"), designerToken))
         .andExpect(status().isForbidden());
     mockMvc
         .perform(
-            authorized(post("/admin/users/" + admin.getId() + "/password-reset"), designerToken))
+            authorized(post("/users/" + admin.getId() + "/password-reset"), designerToken))
         .andExpect(status().isForbidden());
   }
 
@@ -217,7 +217,7 @@ class UserAdministrationIntegrationTest {
 
     mockMvc
         .perform(
-            authorized(put("/admin/users/" + reviewer.getId()), token("admin@ampere.com", PASSWORD))
+            authorized(put("/users/" + reviewer.getId()), token("admin@ampere.com", PASSWORD))
                 .content("{\"name\":\"Revisor\",\"role\":\"user\",\"active\":true}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.role").value("user"));
@@ -233,7 +233,7 @@ class UserAdministrationIntegrationTest {
 
     mockMvc
         .perform(
-            authorized(put("/admin/users/" + designer.getId()), token("admin@ampere.com", PASSWORD))
+            authorized(put("/users/" + designer.getId()), token("admin@ampere.com", PASSWORD))
                 .content("{\"name\":\"João Projetista\",\"role\":\"user\",\"active\":true}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.active").value(true));
@@ -245,7 +245,7 @@ class UserAdministrationIntegrationTest {
   void keepsTheAdministratorFromDeactivatingTheirOwnAccount() throws Exception {
     mockMvc
         .perform(
-            authorized(put("/admin/users/" + admin.getId()), token("admin@ampere.com", PASSWORD))
+            authorized(put("/users/" + admin.getId()), token("admin@ampere.com", PASSWORD))
                 .content("{\"name\":\"Admin Teste\",\"role\":\"admin\",\"active\":false}"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.detail").value("Você não pode desativar a própria conta."));
@@ -257,7 +257,7 @@ class UserAdministrationIntegrationTest {
   void keepsTheAdministratorFromDroppingTheirOwnRole() throws Exception {
     mockMvc
         .perform(
-            authorized(put("/admin/users/" + admin.getId()), token("admin@ampere.com", PASSWORD))
+            authorized(put("/users/" + admin.getId()), token("admin@ampere.com", PASSWORD))
                 .content("{\"name\":\"Admin Teste\",\"role\":\"user\",\"active\":true}"))
         .andExpect(status().isBadRequest());
   }
@@ -269,7 +269,7 @@ class UserAdministrationIntegrationTest {
             mockMvc
                 .perform(
                     authorized(
-                        post("/admin/users/" + designer.getId() + "/password-reset"),
+                        post("/users/" + designer.getId() + "/password-reset"),
                         token("admin@ampere.com", PASSWORD)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.user.mustChangePassword").value(true)));
@@ -287,14 +287,14 @@ class UserAdministrationIntegrationTest {
     mockMvc
         .perform(
             authorized(
-                post("/admin/users/999999/password-reset"), token("admin@ampere.com", PASSWORD)))
+                post("/users/999999/password-reset"), token("admin@ampere.com", PASSWORD)))
         .andExpect(status().isNotFound());
   }
 
   private void deactivate(User user) throws Exception {
     mockMvc
         .perform(
-            authorized(put("/admin/users/" + user.getId()), token("admin@ampere.com", PASSWORD))
+            authorized(put("/users/" + user.getId()), token("admin@ampere.com", PASSWORD))
                 .content(
                     "{\"name\":\""
                         + user.getName()

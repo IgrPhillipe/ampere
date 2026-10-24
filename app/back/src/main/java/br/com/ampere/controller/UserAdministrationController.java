@@ -11,6 +11,7 @@ import br.com.ampere.dto.UpdateUserRequest;
 import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.UserAdministrationService;
 import br.com.ampere.service.UserListing;
+import br.com.ampere.service.UserParameters;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -31,14 +32,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Admin users", description = "Gestão de usuários pelo administrador")
+@Tag(name = "User administration", description = "Gestão de usuários pelo administrador")
 @RestController
-@RequestMapping("/admin/users")
-public class AdminUserController {
+@RequestMapping("/users")
+public class UserAdministrationController {
 
   private final UserAdministrationService service;
 
-  public AdminUserController(UserAdministrationService service) {
+  public UserAdministrationController(UserAdministrationService service) {
     this.service = service;
   }
 
@@ -90,8 +91,7 @@ public class AdminUserController {
   public ApiResponse<TemporaryAccessResponse> create(
       @Valid @RequestBody CreateUserRequest request) {
     return ApiResponse.of(
-        TemporaryAccessResponse.from(
-            service.create(request.name(), request.email(), request.role())));
+        TemporaryAccessResponse.from(service.create(request.email(), parametersOf(request))));
   }
 
   @PutMapping("/{id}")
@@ -118,7 +118,7 @@ public class AdminUserController {
       @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
         ManagedUserResponse.from(
-            service.update(id, request.name(), request.role(), request.active(), userOf(jwt))));
+            service.update(id, parametersOf(request), request.active(), userOf(jwt))));
   }
 
   @PostMapping("/{id}/password-reset")
@@ -142,5 +142,13 @@ public class AdminUserController {
 
   private static AuthenticatedUser userOf(Jwt jwt) {
     return AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role"));
+  }
+
+  private static UserParameters parametersOf(CreateUserRequest request) {
+    return new UserParameters(request.name(), request.role());
+  }
+
+  private static UserParameters parametersOf(UpdateUserRequest request) {
+    return new UserParameters(request.name(), request.role());
   }
 }

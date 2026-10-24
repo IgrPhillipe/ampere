@@ -16,10 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * The administrator's user management. There is no e-mail: the administrator hands the temporary
- * password over.
- */
+/** There is no e-mail: the administrator hands the temporary password over. */
 @Service
 public class UserAdministrationService {
 
@@ -41,16 +38,15 @@ public class UserAdministrationService {
   }
 
   @Transactional
-  public TemporaryAccess create(String name, String email, UserRole role) {
-    String normalizedEmail = User.normalizeEmail(email);
-    if (userRepository.findByEmail(normalizedEmail).isPresent()) {
+  public TemporaryAccess create(String email, UserParameters parameters) {
+    if (userRepository.findByEmail(email).isPresent()) {
       throw new BusinessException(UserService.EMAIL_TAKEN, HttpStatus.CONFLICT);
     }
 
     String temporaryPassword = TemporaryPasswords.generate();
     User user =
         User.withTemporaryPassword(
-            name, normalizedEmail, passwordEncoder.encode(temporaryPassword), role);
+            parameters.name(), email, passwordEncoder.encode(temporaryPassword), parameters.role());
     try {
       user = userRepository.saveAndFlush(user);
     } catch (DataIntegrityViolationException race) {
@@ -63,19 +59,19 @@ public class UserAdministrationService {
   /** The administrator cannot lock themself out, by deactivation or by losing the role. */
   @Transactional
   public User update(
-      Long id, String name, UserRole role, boolean active, AuthenticatedUser administrator) {
+      Long id, UserParameters parameters, boolean active, AuthenticatedUser administrator) {
     User user = find(id);
     if (user.getId().equals(administrator.id())) {
       if (!active) {
         throw new BusinessException("Você não pode desativar a própria conta.");
       }
 
-      if (role != UserRole.ADMIN) {
+      if (parameters.role() != UserRole.ADMIN) {
         throw new BusinessException("Você não pode remover o próprio papel de administrador.");
       }
     }
 
-    user.administer(name, role, active);
+    user.administer(parameters.name(), parameters.role(), active);
 
     return user;
   }

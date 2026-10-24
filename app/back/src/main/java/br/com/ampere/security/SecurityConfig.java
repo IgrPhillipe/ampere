@@ -53,10 +53,13 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/docs/**", "/swagger-ui/**", "/v3/api-docs/**")
                     .permitAll()
+                    // Before "/users/**": the own profile belongs to every role.
+                    .requestMatchers("/users/me", "/users/me/**")
+                    .authenticated()
                     .requestMatchers(
                         "/normative-tables", "/normative-tables/**",
                         "/review-queue", "/review-queue/**",
-                        "/admin/users", "/admin/users/**")
+                        "/users", "/users/**")
                     .hasRole("ADMIN")
                     .requestMatchers(
                         "/projects/*/review",
