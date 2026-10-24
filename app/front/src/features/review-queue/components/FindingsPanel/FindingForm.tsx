@@ -108,7 +108,7 @@ export const FindingForm = ({
 			/>
 
 			<div className="flex justify-end gap-2">
-				{isEditing ? (
+				{isEditing || autoFocus ? (
 					<Button type="button" variant="ghost" onClick={onCancel}>
 						Cancelar
 					</Button>

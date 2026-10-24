@@ -83,7 +83,13 @@ export const FindingsPanel = ({
 			</div>
 
 			{editable ? (
-				<section aria-labelledby="formulario-apontamento-titulo">
+				<section
+					aria-labelledby="formulario-apontamento-titulo"
+					className={cn(
+						"-mx-3 rounded-xs px-3 py-3 transition-colors duration-300",
+						autoFocusForm && "bg-accent",
+					)}
+				>
 					<h3
 						id="formulario-apontamento-titulo"
 						className="mb-4 text-base font-semibold text-foreground"
