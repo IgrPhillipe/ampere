@@ -34,7 +34,8 @@ vi.mock("@services/project-review", async (importOriginal) => ({
 
 vi.mock("@services/calculation", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/calculation")>()),
-	useGetLatestCalculation: () => loadedQuery(null),
+	useGetLatestCalculation: () =>
+		loadedQuery({ data: { checks: [], steps: [], totals: { finalKva: 76 } } }),
 }));
 
 vi.mock("@services/consumer-units", async (importOriginal) => ({
@@ -72,6 +73,8 @@ describe("ProjectDetailPage", () => {
 
 		expect(screen.getByText("Protocolo 2026-1004")).toBeVisible();
 		expect(screen.queryByText(/Análise do Projeto/)).not.toBeInTheDocument();
+		expect(screen.getByText("Criado em")).toBeVisible();
+		expect(screen.getByText("Recebido em")).toBeVisible();
 		for (const tab of [
 			"Memória de Cálculo",
 			"Unidades Consumidoras",
@@ -80,6 +83,16 @@ describe("ProjectDetailPage", () => {
 		]) {
 			expect(screen.getByRole("tab", { name: tab })).toBeVisible();
 		}
+	});
+
+	it("leaves the automatic verification to the analysts", () => {
+		signInAs("user");
+		state.project = makeProjectDetail();
+		renderPage();
+
+		expect(
+			screen.queryByText("Verificação Automática"),
+		).not.toBeInTheDocument();
 	});
 
 	it("lets the designer answer and resubmit a rejected project", () => {

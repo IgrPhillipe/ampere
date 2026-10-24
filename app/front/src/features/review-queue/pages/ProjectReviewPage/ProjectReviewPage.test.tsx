@@ -37,7 +37,8 @@ vi.mock("@services/project-review", async (importOriginal) => ({
 
 vi.mock("@services/calculation", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/calculation")>()),
-	useGetLatestCalculation: () => loadedQuery(null),
+	useGetLatestCalculation: () =>
+		loadedQuery({ data: { checks: [], steps: [], totals: { finalKva: 76 } } }),
 }));
 
 vi.mock("@services/consumer-units", async (importOriginal) => ({
@@ -61,6 +62,7 @@ describe("ProjectReviewPage", () => {
 		render(<ProjectReviewPage projectId="4" />);
 
 		expect(screen.getByText("Protocolo 2026-1004")).toBeVisible();
+		expect(screen.getByText("Verificação Automática")).toBeVisible();
 		expect(screen.getByText("Novo Apontamento")).toBeVisible();
 		expect(
 			screen.getByRole("button", { name: "Aprovar Projeto" }),

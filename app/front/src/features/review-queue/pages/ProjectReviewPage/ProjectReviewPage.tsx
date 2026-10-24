@@ -288,6 +288,7 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 					groups={groups}
 					totalLoadKw={validation?.totalDeclaredLoadKw ?? 0}
 					documents={checklist?.documents}
+					showVerification
 					groupHint={
 						actions.createFindings
 							? "Selecione o nome de um grupo para registrar um apontamento vinculado a ele."
