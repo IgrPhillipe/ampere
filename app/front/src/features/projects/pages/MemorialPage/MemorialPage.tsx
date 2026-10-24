@@ -24,6 +24,7 @@ import {
 	SubmissionChecklistPanel,
 } from "../../components";
 import { stageFindingsOf } from "../../constants";
+import { useProjectPermissions } from "../../hooks";
 
 interface MemorialPageProps {
 	projectId: string;
@@ -54,11 +55,13 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	);
 	const validation = validationQuery.data?.data;
 	const checklist = submissionQuery.data?.data;
-	const editable =
-		project?.status === "DRAFT" ||
-		project?.status === "AWAITING_SUBMISSION" ||
-		project?.status === "REJECTED";
-	const submitted = project !== undefined && !editable;
+	const { canEditDocuments: editable, isOwner } =
+		useProjectPermissions(project);
+	const submitted =
+		project !== undefined &&
+		project.status !== "DRAFT" &&
+		project.status !== "AWAITING_SUBMISSION" &&
+		project.status !== "REJECTED";
 	const neverCalculated = calculationQuery.data === null;
 	const hasError =
 		projectQuery.isError ||
@@ -202,10 +205,10 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 								})
 							}
 						>
-							Revisar e Reenviar
+							{isOwner ? "Revisar e Reenviar" : "Ver Projeto"}
 							<ArrowRight aria-hidden="true" />
 						</Button>
-					) : submitted ? (
+					) : submitted || (project !== undefined && !isOwner) ? (
 						<Button type="button" onClick={goToDetail}>
 							Ver Projeto
 							<ArrowRight aria-hidden="true" />

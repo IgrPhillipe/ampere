@@ -11,6 +11,7 @@ import br.com.ampere.domain.NormativeTableSort;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.Standard;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.StandardRepository;
 import java.math.BigDecimal;
@@ -88,7 +89,9 @@ class NormativeTableServiceTest {
   }
 
   private List<Long> ids(NormativeTableQuery query) {
-    return service.list(query).stream().map(NormativeTable::getId).toList();
+    return service.list(query, new AuthenticatedUser(1L, UserRole.ADMIN)).stream()
+        .map(NormativeTable::getId)
+        .toList();
   }
 
   private static NormativeTableQuery search(String term) {

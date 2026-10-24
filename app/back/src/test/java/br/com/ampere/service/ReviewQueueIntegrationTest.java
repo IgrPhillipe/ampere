@@ -85,6 +85,8 @@ class ReviewQueueIntegrationTest {
 
   private User admin;
 
+  private User reviewer;
+
   @BeforeEach
   void seed() {
     calculationRepository.deleteAll();
@@ -105,11 +107,23 @@ class ReviewQueueIntegrationTest {
     owner =
         userRepository.save(new User("João Projetista", "user@ampere.com", hash, UserRole.USER));
     admin = userRepository.save(new User("Admin Teste", "admin@ampere.com", hash, UserRole.ADMIN));
+    reviewer =
+        userRepository.save(
+            new User("Revisor Teste", "revisor@ampere.com", hash, UserRole.REVIEWER));
     now = OffsetDateTime.now(ZoneOffset.UTC);
   }
 
   @Test
-  void onlyTheAnalystSeesTheQueue() throws Exception {
+  void onlyTheAnalystAndTheAdminSeeTheQueue() throws Exception {
+    for (String email : List.of("revisor@ampere.com", "admin@ampere.com")) {
+      mockMvc
+          .perform(get("/review-queue").header("Authorization", "Bearer " + token(email)))
+          .andExpect(status().isOk());
+      mockMvc
+          .perform(
+              get("/review-queue/indicators").header("Authorization", "Bearer " + token(email)))
+          .andExpect(status().isOk());
+    }
     mockMvc
         .perform(get("/review-queue").header("Authorization", "Bearer " + token("user@ampere.com")))
         .andExpect(status().isForbidden());
@@ -313,16 +327,25 @@ class ReviewQueueIntegrationTest {
   }
 
   @Test
-  void listsReviewersSortedForAdminAndRefusesForNonAdmin() throws Exception {
+  void listsTheActiveAnalystsAndAdminsAndRefusesTheDesigner() throws Exception {
     String hash = passwordEncoder.encode(PASSWORD);
     userRepository.save(new User("Revisor Beta", "beta@ampere.com", hash, UserRole.ADMIN));
+    User inactive = new User("Analista Inativo", "inativo@ampere.com", hash, UserRole.REVIEWER);
+    inactive.administer(inactive.getName(), UserRole.REVIEWER, false);
+    userRepository.save(inactive);
 
     asAnalyst(get("/review-queue/reviewers"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data", hasSize(2)))
+        .andExpect(jsonPath("$.data", hasSize(3)))
         .andExpect(jsonPath("$.data[0].name").value("Admin Teste"))
         .andExpect(jsonPath("$.data[0].id").value(String.valueOf(admin.getId())))
-        .andExpect(jsonPath("$.data[1].name").value("Revisor Beta"));
+        .andExpect(jsonPath("$.data[1].name").value("Revisor Beta"))
+        .andExpect(jsonPath("$.data[2].name").value("Revisor Teste"));
+    mockMvc
+        .perform(
+            get("/review-queue/reviewers")
+                .header("Authorization", "Bearer " + token("revisor@ampere.com")))
+        .andExpect(status().isOk());
 
     mockMvc
         .perform(
@@ -386,6 +409,12 @@ class ReviewQueueIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-7002"));
+  }
+
+  @Test
+  void filtersByAnAnalystWithTheReviewerRole() throws Exception {
+    asAnalyst(get("/review-queue").param("reviewer", String.valueOf(reviewer.getId())))
+        .andExpect(status().isOk());
   }
 
   @Test

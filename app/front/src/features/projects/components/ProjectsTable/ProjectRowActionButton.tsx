@@ -7,8 +7,9 @@ import {
 	DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu";
 import type { Project } from "@services/projects";
-import { EllipsisVertical, Trash2 } from "lucide-react";
+import { EllipsisVertical, Pencil, Trash2 } from "lucide-react";
 
+import { useProjectPermissions } from "../../hooks";
 import { getProjectRowAction, type ProjectRowActions } from "./project-row";
 
 interface ProjectRowActionButtonProps extends ProjectRowActions {
@@ -21,7 +22,10 @@ export const ProjectRowActionButton = ({
 	buttonClassName,
 	...actions
 }: ProjectRowActionButtonProps) => {
-	const action = getProjectRowAction(project);
+	const { canEdit, canDelete, isOwner } = useProjectPermissions(project);
+	const action = getProjectRowAction(project, isOwner);
+	// The owner reaches the edit through "Continuar" or "Corrigir"; the admin needs the item.
+	const canEditSubmitted = canEdit && !isOwner && project.status !== "DRAFT";
 
 	return (
 		<div className="flex items-center justify-end gap-1">
@@ -32,7 +36,7 @@ export const ProjectRowActionButton = ({
 				onClick={() => action.run(actions, project)}
 			/>
 
-			{project.status === "DRAFT" ? (
+			{canDelete || canEditSubmitted ? (
 				<DropdownMenu>
 					<DropdownMenuTrigger
 						render={
@@ -48,13 +52,21 @@ export const ProjectRowActionButton = ({
 					</DropdownMenuTrigger>
 
 					<DropdownMenuContent align="end">
-						<DropdownMenuItem
-							variant="destructive"
-							onClick={() => actions.onDeleteProject(project)}
-						>
-							<Trash2 aria-hidden="true" />
-							Excluir Projeto
-						</DropdownMenuItem>
+						{canEditSubmitted ? (
+							<DropdownMenuItem onClick={() => actions.onEditProject(project)}>
+								<Pencil aria-hidden="true" />
+								Editar Projeto
+							</DropdownMenuItem>
+						) : null}
+						{canDelete ? (
+							<DropdownMenuItem
+								variant="destructive"
+								onClick={() => actions.onDeleteProject(project)}
+							>
+								<Trash2 aria-hidden="true" />
+								Excluir Projeto
+							</DropdownMenuItem>
+						) : null}
 					</DropdownMenuContent>
 				</DropdownMenu>
 			) : (

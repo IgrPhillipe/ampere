@@ -10,6 +10,7 @@ import {
 	projectStatusLabels,
 	useProjectDetailActions,
 } from "@features/projects";
+import { useAuthStore } from "@features/shared";
 import { getHttpStatus } from "@lib/api-error";
 import { useGetLatestCalculation } from "@services/calculation";
 import {
@@ -53,18 +54,22 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 	const navigate = useNavigate();
 	const projectQuery = useGetProject(projectId);
 	const project = projectQuery.data?.data;
+	const userId = useAuthStore((state) => state.user?.id);
+	// Nobody reviews their own project, so the admin who owns it only reads.
+	const isOwnProject = project !== undefined && project.ownerId === userId;
 	const isUnderReview = project?.status === "UNDER_REVIEW";
 
 	const assignment = useAssignProjectReview();
 	const { mutate: assign } = assignment;
 
 	useEffect(() => {
-		if (isUnderReview) assign(projectId);
-	}, [assign, isUnderReview, projectId]);
+		if (isUnderReview && !isOwnProject) assign(projectId);
+	}, [assign, isUnderReview, isOwnProject, projectId]);
 
 	const isTaken = getHttpStatus(assignment.error) === 409;
 	const actions = useProjectDetailActions({
 		status: project?.status,
+		ownerId: project?.ownerId,
 		holdsReview: assignment.isSuccess,
 	});
 
@@ -209,8 +214,20 @@ export const ProjectReviewPage = ({ projectId }: ProjectReviewPageProps) => {
 					/>
 				}
 				notices={
-					isTaken || (reanalysis && project?.changeSummary) ? (
+					isTaken || isOwnProject || (reanalysis && project?.changeSummary) ? (
 						<>
+							{isOwnProject ? (
+								<p
+									role="status"
+									className="flex items-center gap-3 border-b border-border bg-surface-hover px-6 py-3 text-sm md:px-8"
+								>
+									<Lock aria-hidden="true" className="size-4 shrink-0" />
+									<span>
+										Este projeto é seu. Você pode consultá-lo, mas a análise
+										fica com outro analista.
+									</span>
+								</p>
+							) : null}
 							{isTaken ? (
 								<p
 									role="status"

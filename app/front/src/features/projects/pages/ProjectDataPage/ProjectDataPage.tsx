@@ -21,6 +21,7 @@ import { useFormState } from "react-hook-form";
 
 import { FindingBadge, ProjectStamp, ProjectStepper } from "../../components";
 import { stageFindingsOf } from "../../constants";
+import { useProjectPermissions } from "../../hooks";
 import {
 	type ProjectCreationFormValues,
 	projectCreationSchema,
@@ -109,10 +110,8 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 		"PROJECT_DATA",
 	);
 	const validation = validationQuery.data?.data;
-	const isEditable =
-		projectId === undefined ||
-		project?.status === "DRAFT" ||
-		project?.status === "REJECTED";
+	const { canEdit } = useProjectPermissions(project);
+	const isEditable = projectId === undefined || canEdit;
 	const isSaving = createProject.isPending || updateProject.isPending;
 
 	const form = useZodForm(projectCreationSchema, {

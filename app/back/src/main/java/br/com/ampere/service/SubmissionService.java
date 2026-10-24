@@ -49,7 +49,9 @@ public class SubmissionService {
 
   @Transactional
   public Project submit(Long projectId, String changeSummary, AuthenticatedUser user) {
-    Project project = projectService.findWritableById(projectId, user);
+    Project project =
+        projectService.findOwnedById(
+            projectId, "Só o projetista dono do projeto o envia para análise.", user);
     if (!project.canBeSubmitted()) {
       throw new BusinessException("Este projeto já foi enviado para análise.", HttpStatus.CONFLICT);
     }

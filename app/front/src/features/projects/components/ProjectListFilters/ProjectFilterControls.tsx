@@ -4,6 +4,7 @@ import {
 	type ProjectFindingsFilter,
 	projectFindingsFilterSchema,
 	useGetMunicipalityList,
+	useGetProjectOwnerList,
 } from "@services/projects";
 
 import { projectFindingsFilterLabels } from "../../constants/project-findings";
@@ -14,6 +15,9 @@ const findingsOptions = projectFindingsFilterSchema.options.map((value) => ({
 }));
 
 interface ProjectFilterControlsProps {
+	showOwner?: boolean;
+	owner?: string | null;
+	onOwnerChange?: (owner: string | null) => void;
 	municipality: string | null;
 	onMunicipalityChange: (municipality: string | null) => void;
 	period: DateRange;
@@ -23,6 +27,9 @@ interface ProjectFilterControlsProps {
 }
 
 export const ProjectFilterControls = ({
+	showOwner = false,
+	owner = null,
+	onOwnerChange,
 	municipality,
 	onMunicipalityChange,
 	period,
@@ -30,6 +37,11 @@ export const ProjectFilterControls = ({
 	findings,
 	onFindingsChange,
 }: ProjectFilterControlsProps) => {
+	const ownersQuery = useGetProjectOwnerList({ enabled: showOwner });
+	const owners = (ownersQuery.data?.data ?? []).map(({ id, name }) => ({
+		value: id,
+		label: name,
+	}));
 	const municipalitiesQuery = useGetMunicipalityList();
 	const municipalities = (municipalitiesQuery.data?.data ?? []).map((name) => ({
 		value: name,
@@ -38,6 +50,16 @@ export const ProjectFilterControls = ({
 
 	return (
 		<>
+			{showOwner && onOwnerChange ? (
+				<FilterMenu
+					label="Projetista"
+					allLabel="Todos"
+					options={owners}
+					value={owner}
+					onValueChange={onOwnerChange}
+					disabled={ownersQuery.isPending}
+				/>
+			) : null}
 			<FilterMenu
 				label="Município"
 				allLabel="Todos"

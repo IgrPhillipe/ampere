@@ -13,6 +13,7 @@ export type ProjectStatus = z.infer<typeof projectStatusSchema>;
 
 export const projectSortSchema = z.enum([
 	"name",
+	"owner",
 	"demand",
 	"createdAt",
 	"updatedAt",
@@ -34,6 +35,8 @@ export const projectSchema = z.object({
 	address: z.string(),
 	municipality: z.string(),
 	protocol: z.string(),
+	ownerId: z.string().nullable(),
+	ownerName: z.string().nullable(),
 	status: projectStatusSchema,
 	createdAt: z.iso.datetime({ offset: true }),
 	updatedAt: z.iso.datetime({ offset: true }),
@@ -73,6 +76,17 @@ export type ProjectStatusCountsResponse = z.infer<
 
 export const municipalityListResponseSchema = apiResponseSchema(
 	z.array(z.string()),
+);
+
+export const projectOwnerSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+});
+
+export type ProjectOwner = z.infer<typeof projectOwnerSchema>;
+
+export const projectOwnerListResponseSchema = apiResponseSchema(
+	z.array(projectOwnerSchema),
 );
 
 export type MunicipalityListResponse = z.infer<
@@ -137,6 +151,7 @@ export const projectDetailSchema = z.object({
 	createdAt: z.iso.datetime({ offset: true }),
 	updatedAt: z.iso.datetime({ offset: true }),
 	submittedAt: z.iso.datetime({ offset: true }).nullish(),
+	ownerId: z.string().nullish(),
 	ownerName: z.string().nullish(),
 	reviewerName: z.string().nullish(),
 	reviewCycle: z.number().int().nonnegative(),

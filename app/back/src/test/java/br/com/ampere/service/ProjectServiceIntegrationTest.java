@@ -327,22 +327,26 @@ class ProjectServiceIntegrationTest {
                 "Recife",
                 null,
                 null,
-                OpenFindingsFilter.BLOCKING_OPEN));
+                OpenFindingsFilter.BLOCKING_OPEN,
+                null));
 
     assertThat(listing.projects()).containsExactly(alpha, zeta);
     assertThat(listing.totalElements()).isEqualTo(2);
   }
 
   @Test
-  void listsDistinctMunicipalitiesForDesignerAndAnalyst() {
+  void listsDistinctMunicipalitiesPerRole() {
     save("A", "Recife", "2026-0010");
     save("B", "Olinda", "2026-0020");
     save("C", "recife ", "2026-0030");
     save("E", "Jaboatão dos Guararapes", "2026-0050");
 
     User analystUser =
+        userRepository.save(new User("Revisor", "revisor@ampere.com", "hash", UserRole.REVIEWER));
+    AuthenticatedUser analyst = new AuthenticatedUser(analystUser.getId(), UserRole.REVIEWER);
+    User adminUser =
         userRepository.save(new User("Admin", "admin@ampere.com", "hash", UserRole.ADMIN));
-    AuthenticatedUser analyst = new AuthenticatedUser(analystUser.getId(), UserRole.ADMIN);
+    AuthenticatedUser admin = new AuthenticatedUser(adminUser.getId(), UserRole.ADMIN);
 
     assertThat(service.listMunicipalities(designer))
         .containsExactly("Jaboatão dos Guararapes", "Olinda", "Recife");
@@ -353,6 +357,8 @@ class ProjectServiceIntegrationTest {
     projectRepository.save(submitted);
 
     assertThat(service.listMunicipalities(analyst)).containsExactly("Caruaru");
+    assertThat(service.listMunicipalities(admin))
+        .containsExactly("Caruaru", "Jaboatão dos Guararapes", "Olinda", "Recife");
   }
 
   @Test
@@ -479,7 +485,15 @@ class ProjectServiceIntegrationTest {
   private ProjectListing list(ProjectStatus status, String search) {
     return list(
         new ProjectListQuery(
-            status, search, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, null));
+            status,
+            search,
+            ProjectSort.UPDATED_AT,
+            SortDirection.DESC,
+            null,
+            null,
+            null,
+            null,
+            null));
   }
 
   private ProjectListing list(ProjectListQuery query) {
@@ -487,7 +501,7 @@ class ProjectServiceIntegrationTest {
   }
 
   private static ProjectListQuery sortedBy(ProjectSort sort, SortDirection direction) {
-    return new ProjectListQuery(null, null, sort, direction, null, null, null, null);
+    return new ProjectListQuery(null, null, sort, direction, null, null, null, null, null);
   }
 
   private static ProjectListQuery filtered(
@@ -500,12 +514,13 @@ class ProjectServiceIntegrationTest {
         municipality,
         createdFrom,
         createdTo,
+        null,
         null);
   }
 
   private static ProjectListQuery filtered(OpenFindingsFilter findings) {
     return new ProjectListQuery(
-        null, null, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, findings);
+        null, null, ProjectSort.UPDATED_AT, SortDirection.DESC, null, null, null, findings, null);
   }
 
   private Project save(String name, String municipality, String protocol) {

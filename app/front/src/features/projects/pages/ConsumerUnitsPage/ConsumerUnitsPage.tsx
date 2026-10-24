@@ -26,6 +26,7 @@ import {
 	ValidationPanel,
 } from "../../components";
 import { GROUP_USAGE_TYPES, stageFindingsOf } from "../../constants";
+import { useProjectPermissions } from "../../hooks";
 import { type NewGroupFormValues, newGroupSchema } from "../../schemas";
 
 const pendingCounterId = "unidades-pendencias";
@@ -74,8 +75,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 	const groups = groupsQuery.data?.data ?? [];
 	const validation = validationQuery.data?.data;
 	const canCalculate = validation?.canCalculate ?? false;
-	const isEditable =
-		project?.status === "DRAFT" || project?.status === "REJECTED";
+	const { canEdit: isEditable } = useProjectPermissions(project);
 	const hasError =
 		projectQuery.isError || groupsQuery.isError || validationQuery.isError;
 

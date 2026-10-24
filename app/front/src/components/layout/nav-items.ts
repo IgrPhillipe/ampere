@@ -1,4 +1,5 @@
 import type { UserRole } from "@features/shared";
+import { ROLE_ACCESS } from "@lib/route-guard";
 import type { LucideIcon } from "lucide-react";
 
 export interface NavItem {
@@ -8,22 +9,23 @@ export interface NavItem {
 	/** Matches the exact route only; use it on index items like "/". */
 	exact?: boolean;
 	/** Without `roles`, the item shows for everyone. */
-	roles?: UserRole[];
+	roles?: readonly UserRole[];
 	/** Keeps a future area visible without offering a route that does not exist. */
 	disabled?: boolean;
 }
 
 export const APP_NAV_ITEMS: NavItem[] = [
+	{ to: "/projetos", label: "Meus Projetos", exact: true, roles: ["user"] },
+	{ to: "/projetos", label: "Projetos", exact: true, roles: ["admin"] },
 	{
 		to: "/fila-de-analise",
 		label: "Fila de Análise",
-		roles: ["admin"],
+		roles: ROLE_ACCESS.reviewQueue,
 	},
-	{ to: "/projetos", label: "Meus Projetos", exact: true, roles: ["user"] },
 	{
 		to: "/tabelas-normativas",
 		label: "Tabelas Normativas",
-		roles: ["admin"],
+		roles: ROLE_ACCESS.normativeTables,
 	},
 ];
 

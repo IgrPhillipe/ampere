@@ -1,8 +1,10 @@
 package br.com.ampere.security;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -31,13 +33,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * A designer reaches only their own projects; the analyst reads the submitted ones, never writes.
+ * A designer reaches only their own projects; the analyst reads the submitted ones, never writes;
+ * the admin reads and writes every project in any status.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -83,13 +87,16 @@ class ProjectOwnershipAccessIntegrationTest {
     normativeTableRepository.deleteAll();
     standardRepository.deleteAll();
     userRepository.deleteAll();
+    standardRepository.saveAll(
+        List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
 
     String hash = passwordEncoder.encode(PASSWORD);
     User firstDesigner =
         userRepository.save(new User("Ana Projetista", "ana@ampere.com", hash, UserRole.USER));
     User secondDesigner =
         userRepository.save(new User("Beto Projetista", "beto@ampere.com", hash, UserRole.USER));
-    userRepository.save(new User("Alice Analista", "admin@ampere.com", hash, UserRole.ADMIN));
+    userRepository.save(new User("Alice Analista", "revisor@ampere.com", hash, UserRole.REVIEWER));
+    userRepository.save(new User("Carla Admin", "admin@ampere.com", hash, UserRole.ADMIN));
 
     firstDraft = projectRepository.save(project("Projeto Ana", "2026-2001", firstDesigner));
     firstSubmitted = submitted("Projeto Ana Enviado", "2026-2002", firstDesigner);
@@ -177,7 +184,7 @@ class ProjectOwnershipAccessIntegrationTest {
 
   @Test
   void analystReadsAllSubmittedProjectsButCannotSeeDrafts() throws Exception {
-    String analyst = bearer("admin@ampere.com");
+    String analyst = bearer("revisor@ampere.com");
     mockMvc
         .perform(get("/projects").header("Authorization", analyst))
         .andExpect(status().isOk())
@@ -198,7 +205,7 @@ class ProjectOwnershipAccessIntegrationTest {
 
   @Test
   void analystCountsOnlyTheSubmittedProjects() throws Exception {
-    String analyst = bearer("admin@ampere.com");
+    String analyst = bearer("revisor@ampere.com");
 
     mockMvc
         .perform(get("/projects/status-counts").header("Authorization", analyst))
@@ -210,7 +217,7 @@ class ProjectOwnershipAccessIntegrationTest {
 
   @Test
   void analystCannotWriteThroughDesignerEndpoints() throws Exception {
-    String analyst = bearer("admin@ampere.com");
+    String analyst = bearer("revisor@ampere.com");
     String base = "/projects/" + firstSubmitted.getId();
 
     mockMvc
@@ -242,6 +249,191 @@ class ProjectOwnershipAccessIntegrationTest {
     mockMvc
         .perform(post(base + "/submission").header("Authorization", analyst))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void adminListsAndCountsEveryProjectIncludingDrafts() throws Exception {
+    String admin = bearer("admin@ampere.com");
+
+    mockMvc
+        .perform(get("/projects").header("Authorization", admin))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.pagination.total").value(4))
+        .andExpect(
+            jsonPath("$.data[?(@.protocol == '2026-3001')].ownerName").value("Beto Projetista"))
+        .andExpect(
+            jsonPath("$.data[?(@.protocol == '2026-3001')].ownerId")
+                .value(String.valueOf(secondDraft.getOwner().getId())));
+    mockMvc
+        .perform(get("/projects/{id}", secondDraft.getId()).header("Authorization", admin))
+        .andExpect(
+            jsonPath("$.data.ownerId").value(String.valueOf(secondDraft.getOwner().getId())));
+    mockMvc
+        .perform(get("/projects/status-counts").header("Authorization", admin))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.total").value(4))
+        .andExpect(jsonPath("$.data.draft").value(2))
+        .andExpect(jsonPath("$.data.underReview").value(2));
+    mockMvc
+        .perform(get("/projects/{id}", secondDraft.getId()).header("Authorization", admin))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void adminFiltersAndSortsByTheDesigner() throws Exception {
+    String admin = bearer("admin@ampere.com");
+    String beto = String.valueOf(secondDraft.getOwner().getId());
+
+    mockMvc
+        .perform(get("/projects").param("owner", beto).header("Authorization", admin))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.pagination.total").value(2))
+        .andExpect(
+            jsonPath("$.data[*].protocol").value(containsInAnyOrder("2026-3001", "2026-3002")));
+    mockMvc
+        .perform(
+            get("/projects")
+                .param("sort", "owner")
+                .param("direction", "DESC")
+                .header("Authorization", admin))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].ownerName").value("Beto Projetista"))
+        .andExpect(jsonPath("$.data[3].ownerName").value("Ana Projetista"));
+  }
+
+  @Test
+  void listsTheDesignersEachRoleReaches() throws Exception {
+    mockMvc
+        .perform(get("/projects/owners").header("Authorization", bearer("admin@ampere.com")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[*].name").value(contains("Ana Projetista", "Beto Projetista")));
+    mockMvc
+        .perform(get("/projects/owners").header("Authorization", bearer("ana@ampere.com")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[*].name").value(contains("Ana Projetista")));
+    // Both designers have a submitted project, so the analyst reaches both.
+    mockMvc
+        .perform(get("/projects/owners").header("Authorization", bearer("revisor@ampere.com")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[*].name").value(contains("Ana Projetista", "Beto Projetista")));
+  }
+
+  @Test
+  void analystCannotAnswerFindingsOrUploadDocuments() throws Exception {
+    String analyst = bearer("revisor@ampere.com");
+    String base = "/projects/" + firstSubmitted.getId();
+
+    mockMvc
+        .perform(
+            put(base + "/findings/1/response")
+                .header("Authorization", analyst)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\":\"FIXED\"}"))
+        .andExpect(status().isForbidden());
+    mockMvc
+        .perform(
+            multipart(base + "/documents")
+                .file(
+                    new MockMultipartFile(
+                        "file", "art.pdf", "application/pdf", "%PDF-1.4".getBytes()))
+                .param("type", "ART")
+                .header("Authorization", analyst))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void adminEditsAndDeletesAnotherOwnersDraft() throws Exception {
+    String admin = bearer("admin@ampere.com");
+
+    mockMvc
+        .perform(
+            put("/projects/{id}", secondDraft.getId())
+                .header("Authorization", admin)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(PROJECT_BODY))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.name").value("Residencial Monte Verde"));
+    mockMvc
+        .perform(delete("/projects/{id}", secondDraft.getId()).header("Authorization", admin))
+        .andExpect(status().isNoContent());
+  }
+
+  /** The admin skips the owner rule, never the status: a submitted project is frozen. */
+  @Test
+  void adminCannotChangeASubmittedProject() throws Exception {
+    String admin = bearer("admin@ampere.com");
+    String base = "/projects/" + firstSubmitted.getId();
+
+    mockMvc
+        .perform(
+            put(base)
+                .header("Authorization", admin)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(PROJECT_BODY))
+        .andExpect(status().isConflict());
+    mockMvc.perform(delete(base).header("Authorization", admin)).andExpect(status().isConflict());
+    mockMvc
+        .perform(post(base + "/calculations").header("Authorization", admin))
+        .andExpect(status().isConflict());
+    mockMvc
+        .perform(delete(base + "/consumer-unit-groups/1").header("Authorization", admin))
+        .andExpect(status().isConflict());
+    mockMvc
+        .perform(delete(base + "/documents/1").header("Authorization", admin))
+        .andExpect(status().isConflict());
+    mockMvc
+        .perform(
+            multipart(base + "/documents")
+                .file(
+                    new MockMultipartFile(
+                        "file", "art.pdf", "application/pdf", "%PDF-1.4".getBytes()))
+                .param("type", "ART")
+                .header("Authorization", admin))
+        .andExpect(status().isConflict());
+  }
+
+  @Test
+  void onlyTheOwnerSubmitsAndAnswersFindings() throws Exception {
+    String admin = bearer("admin@ampere.com");
+
+    mockMvc
+        .perform(
+            post("/projects/{id}/submission", secondDraft.getId()).header("Authorization", admin))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.detail").value("Só o projetista dono do projeto o envia para análise."));
+    mockMvc
+        .perform(
+            put("/projects/{id}/findings/1/response", secondSubmitted.getId())
+                .header("Authorization", admin)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\":\"FIXED\"}"))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Só o projetista dono do projeto responde os apontamentos."));
+  }
+
+  @Test
+  void adminCreatesAProject() throws Exception {
+    mockMvc
+        .perform(
+            post("/projects")
+                .header("Authorization", bearer("admin@ampere.com"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(PROJECT_BODY))
+        .andExpect(status().isCreated());
+  }
+
+  @Test
+  void designerStillCannotEditASubmittedProject() throws Exception {
+    mockMvc
+        .perform(
+            put("/projects/{id}", firstSubmitted.getId())
+                .header("Authorization", bearer("ana@ampere.com"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(PROJECT_BODY))
+        .andExpect(status().isConflict());
   }
 
   private Project submitted(String name, String protocol, User owner) {

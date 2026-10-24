@@ -66,8 +66,10 @@ describe("getProjectDetailActions", () => {
 });
 
 describe("getProjectProfile", () => {
-	it("maps the session admin to the reviewer", () => {
+	it("maps each role, and the admin who owns the project, to a profile", () => {
 		expect(getProjectProfile("user")).toBe("designer");
+		expect(getProjectProfile("reviewer")).toBe("reviewer");
 		expect(getProjectProfile("admin")).toBe("reviewer");
+		expect(getProjectProfile("admin", true)).toBe("designer");
 	});
 });

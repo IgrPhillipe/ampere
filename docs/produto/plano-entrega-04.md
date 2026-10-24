@@ -112,7 +112,7 @@ Revisar com o monitor, até sexta, 16/10, o README, a seção "Entrega 03", o pr
 O `Project` guarda o `owner` desde o #86, mas nenhum service o confere. Qualquer usuário autenticado lê, altera, envia e exclui o projeto de outro pelo id.
 
 - [ ] Para o papel `user`: listagem, contadores e busca filtram pelo dono. Leitura e escrita de projeto de outro dono devolvem 404
-- [ ] Para o papel `admin`: leitura de todos os projetos enviados e nenhuma escrita nos endpoints do projetista
+- [ ] Para o papel `reviewer`: leitura de todos os projetos enviados e nenhuma escrita nos endpoints do projetista; o `admin` lê e escreve todos
 - [ ] A regra vale para projeto, grupos, cálculo, documentos, memorial e envio
 - [ ] Projetos do seed recebem um dono
 - [ ] Testes de acesso entre dois projetistas e entre projetista e analista

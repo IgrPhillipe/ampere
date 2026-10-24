@@ -21,6 +21,7 @@ import {
 	TraceabilityPanel,
 } from "../../components";
 import { stageFindingsOf } from "../../constants";
+import { useProjectPermissions } from "../../hooks";
 
 interface CalculationPageProps {
 	projectId: string;
@@ -41,8 +42,8 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 		"CALCULATION",
 	);
 	const validation = validationQuery.data?.data;
-	const isEditable =
-		project?.status === "DRAFT" || project?.status === "REJECTED";
+	// Opening the step recalculates, so only who can edit the project triggers it.
+	const { canEdit: isEditable } = useProjectPermissions(project);
 	const canCalculate = validation?.canCalculate ?? false;
 	const latestQuery = useGetLatestCalculation(projectId, {
 		enabled: project !== undefined && !isEditable,

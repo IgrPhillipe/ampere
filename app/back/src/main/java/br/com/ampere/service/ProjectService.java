@@ -4,6 +4,7 @@ import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.User;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
@@ -84,13 +85,14 @@ public class ProjectService {
         projectRepository.searchAccessibleProjects(
             new ProjectSearch(
                 user.id(),
-                user.isAdmin(),
+                user.projectVisibility(),
                 query.status(),
                 SearchTerms.normalize(query.search()),
                 query.municipality(),
                 startOf(query.createdFrom()),
                 query.createdTo() == null ? null : startOf(query.createdTo().plusDays(1)),
                 query.findings(),
+                query.owner(),
                 query.sort(),
                 query.direction()),
             PageRequest.of(page - 1, pageSize));
@@ -111,19 +113,25 @@ public class ProjectService {
     Collator collator = Collator.getInstance(Locale.of("pt", "BR"));
     collator.setStrength(Collator.SECONDARY);
     Map<String, String> unique = new TreeMap<>(collator);
-    projectRepository.findAccessibleMunicipalities(user.id(), user.isAdmin()).stream()
+    projectRepository.findAccessibleMunicipalities(user.id(), user.projectVisibility()).stream()
         .map(String::trim)
         .forEach(municipality -> unique.merge(municipality, municipality, ProjectService::first));
 
     return List.copyOf(unique.values());
   }
 
+  /** The designers of the projects the user reaches, for the admin's filter. */
+  @Transactional(readOnly = true)
+  public List<User> listOwners(AuthenticatedUser user) {
+    return projectRepository.findAccessibleOwners(user.id(), user.projectVisibility());
+  }
+
   @Transactional(readOnly = true)
   public Map<ProjectStatus, Long> countPerStatus(AuthenticatedUser user) {
     Map<ProjectStatus, Long> counts = new EnumMap<>(ProjectStatus.class);
     projectRepository
-        .countAccessiblePerStatus(user.id(), user.isAdmin())
-        .forEach(count -> counts.put(count.getStatus(), count.getTotal()));
+        .countAccessiblePerStatus(user.id(), user.projectVisibility())
+        .forEach(count -> counts.put(count.status(), count.total()));
 
     return Map.copyOf(counts);
   }
@@ -132,8 +140,7 @@ public class ProjectService {
   public Project findById(Long id, AuthenticatedUser user) {
     Project project =
         projectRepository.findDetailById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND));
-    boolean visible = user.isAdmin() ? project.wasSubmitted() : project.isOwnedBy(user.id());
-    if (!visible) {
+    if (!isVisibleTo(project, user)) {
       // Same answer as a missing id, so another owner's project is not revealed.
       throw new NotFoundException(NOT_FOUND);
     }
@@ -142,7 +149,7 @@ public class ProjectService {
   }
 
   public Project create(ProjectParameters parameters, AuthenticatedUser user) {
-    designerOrFail(user);
+    writerOrFail(user);
     for (int attempt = 1; attempt <= PROTOCOL_ATTEMPTS; attempt++) {
       try {
         return projectCreation.createWithGeneratedProtocol(parameters, user.id());
@@ -197,14 +204,32 @@ public class ProjectService {
     return project;
   }
 
+  /** Answering findings and submitting speak for the designer, so not even the admin does it. */
+  Project findOwnedById(Long id, String message, AuthenticatedUser user) {
+    Project project = findWritableById(id, user);
+    if (!project.isOwnedBy(user.id())) {
+      throw new BusinessException(message, HttpStatus.FORBIDDEN);
+    }
+
+    return project;
+  }
+
   Project findWritableById(Long id, AuthenticatedUser user) {
-    designerOrFail(user);
+    writerOrFail(user);
 
     return findById(id, user);
   }
 
-  private static void designerOrFail(AuthenticatedUser user) {
-    if (user.isAdmin()) {
+  private static boolean isVisibleTo(Project project, AuthenticatedUser user) {
+    return switch (user.projectVisibility()) {
+      case OWN -> project.isOwnedBy(user.id());
+      case SUBMITTED -> project.wasSubmitted();
+      case ALL -> true;
+    };
+  }
+
+  private static void writerOrFail(AuthenticatedUser user) {
+    if (user.isReviewer()) {
       throw new BusinessException(ANALYST_READ_ONLY, HttpStatus.FORBIDDEN);
     }
   }

@@ -31,6 +31,7 @@ const DEFAULT_SORT: ProjectSort = "updatedAt";
 
 export const PROJECT_SORT_DIRECTIONS: SortDirections<ProjectSort> = {
 	name: "ASC",
+	owner: "ASC",
 	demand: "DESC",
 	createdAt: "DESC",
 	updatedAt: "DESC",
@@ -56,8 +57,9 @@ export const useProjectFilters = () => {
 		createdFrom: parseAsString,
 		createdTo: parseAsString,
 		findings: parseAsStringLiteral(projectFindingsFilterSchema.options),
+		owner: parseAsString,
 	});
-	const { status, search, page, municipality, findings } = query;
+	const { status, search, page, municipality, findings, owner } = query;
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
 	const sort = useMemo<ListSort<ProjectSort>>(
@@ -87,8 +89,18 @@ export const useProjectFilters = () => {
 			createdFrom: period.from ?? undefined,
 			createdTo: period.to ?? undefined,
 			findings: findings ?? undefined,
+			owner: owner ?? undefined,
 		}),
-		[page, status, debouncedSearch, sort, municipality, period, findings],
+		[
+			page,
+			status,
+			debouncedSearch,
+			sort,
+			municipality,
+			period,
+			findings,
+			owner,
+		],
 	);
 
 	const setStatus = useCallback(
@@ -156,6 +168,13 @@ export const useProjectFilters = () => {
 		[setQuery],
 	);
 
+	const setOwner = useCallback(
+		(value: string | null) => {
+			void setQuery({ owner: value, page: null });
+		},
+		[setQuery],
+	);
+
 	const clearFilters = useCallback(() => {
 		void setQuery({
 			status: null,
@@ -164,6 +183,7 @@ export const useProjectFilters = () => {
 			createdFrom: null,
 			createdTo: null,
 			findings: null,
+			owner: null,
 			page: null,
 		});
 	}, [setQuery]);
@@ -176,6 +196,7 @@ export const useProjectFilters = () => {
 		municipality,
 		period,
 		findings,
+		owner,
 		params,
 		// An empty list under an active filter asks for "Limpar Filtros"; without one, it does not.
 		hasActiveFilters:
@@ -184,7 +205,8 @@ export const useProjectFilters = () => {
 			municipality !== null ||
 			period.from !== null ||
 			period.to !== null ||
-			findings !== null,
+			findings !== null ||
+			owner !== null,
 		setStatus,
 		setSearch,
 		setPage,
@@ -193,6 +215,7 @@ export const useProjectFilters = () => {
 		setMunicipality,
 		setPeriod,
 		setFindings,
+		setOwner,
 		clearFilters,
 	};
 };

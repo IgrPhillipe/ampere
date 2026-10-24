@@ -258,7 +258,7 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 | Feature | Rota | Página |
 | :--- | :--- | :--- |
 | `auth` | `/entrar` | Entrar |
-| `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id`, `/projetos/$id/<etapa>` | Meus Projetos, o detalhe e as etapas |
+| `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id`, `/projetos/$id/<etapa>` | Meus Projetos (Projetos, para o admin), o detalhe e as etapas |
 | `review-queue` | `/fila-de-analise` | Fila de Análise |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
 
@@ -293,16 +293,25 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 5. `useLogout` limpa o store, **limpa o cache do TanStack Query** (sem isso, os
    dados do usuário anterior reaparecem no próximo login) e volta para `/login`.
 
-Para restringir por papel: `beforeLoad: requireRoles(["admin"])`.
+Para restringir por papel: `beforeLoad: requireRoles(ROLE_ACCESS.normativeTables)`.
+O `ROLE_ACCESS` de `lib/route-guard.ts` é a fonte única de quem chega a cada
+área, e o menu (`nav-items`) usa os mesmos grupos:
+
+| Área | `user` | `reviewer` | `admin` |
+| :--- | :--- | :--- | :--- |
+| Projetos | os próprios | não | todos |
+| Fila de Análise | não | sim | sim |
+| Tabelas Normativas | não | não | sim |
 
 O que cada papel faz no detalhe do projeto sai de uma função só,
 `getProjectDetailActions` (`features/projects/constants/project-detail-actions.ts`).
 Projetista, analista e admin veem o mesmo cabeçalho e as mesmas abas
 (`ProjectDetailLayout`, `ProjectDetailHeader`, `ProjectDetailTabs`); só as ações
-mudam.
+mudam. O admin age como analista, e como projetista nos projetos que são dele.
 
-> Os papéis atuais são placeholder (`"user" | "admin"`). Os papéis reais
-> dependem da Q1c de [`../produto/questoes-em-aberto.md`](../produto/questoes-em-aberto.md).
+O que cada papel pode editar nas etapas vem de `useProjectPermissions`, que
+repete a regra do back: rascunho ou reprovado para quem escreve, admin incluído;
+responder apontamento e enviar só para o dono.
 
 ---
 
@@ -598,7 +607,7 @@ export const Route = createFileRoute("/projetos/$id")({
 
 ```ts
 export const Route = createFileRoute("/tabelas-normativas")({
-	beforeLoad: requireRoles(["admin"]),
+	beforeLoad: requireRoles(ROLE_ACCESS.normativeTables),
 	component: AdminPage,
 });
 ```

@@ -8,6 +8,7 @@ import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.StandardName;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
@@ -26,6 +27,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 /** No transaction here on purpose: the controller maps the rows after the service returns. */
 @SpringBootTest
 class NormativeTableServiceIntegrationTest {
+
+  private static final AuthenticatedUser ADMIN = new AuthenticatedUser(1L, UserRole.ADMIN);
 
   @Autowired private NormativeTableService service;
 
@@ -58,8 +61,8 @@ class NormativeTableServiceIntegrationTest {
         NormativeTableSeed.all(
             standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
 
-    List<NormativeTable> tables = service.list(NormativeTableQuery.all());
-    NormativeTable detail = service.findById(tables.get(0).getId());
+    List<NormativeTable> tables = service.list(NormativeTableQuery.all(), ADMIN);
+    NormativeTable detail = service.findById(tables.get(0).getId(), ADMIN);
 
     assertThat(tables).allSatisfy(table -> assertThat(table.getRows()).isNotEmpty());
     assertThat(tables.get(0).getStandard().getRevision()).isNotBlank();
@@ -78,7 +81,8 @@ class NormativeTableServiceIntegrationTest {
     List<NormativeTable> tables =
         service.list(
             new NormativeTableQuery(
-                "dis-nor-030", Set.of(NormativeTableStatus.PUBLISHED), null, null));
+                "dis-nor-030", Set.of(NormativeTableStatus.PUBLISHED), null, null),
+            ADMIN);
 
     assertThat(tables)
         .isNotEmpty()

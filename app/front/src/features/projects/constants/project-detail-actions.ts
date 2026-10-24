@@ -17,13 +17,16 @@ export const PROJECT_PROFILE_ACTIONS: Record<
 	reviewer: ["createFindings", "decide"],
 };
 
-/** The session "admin" is today's analyst. */
-const PROFILE_BY_ROLE: Record<UserRole, ProjectProfile> = {
-	user: "designer",
-	admin: "reviewer",
-};
+/** The admin reviews like the analyst, and acts as the designer on a project of their own. */
+export const getProjectProfile = (
+	role: UserRole,
+	isOwner = false,
+): ProjectProfile => {
+	if (role === "user") return "designer";
+	if (role === "reviewer") return "reviewer";
 
-export const getProjectProfile = (role: UserRole) => PROFILE_BY_ROLE[role];
+	return isOwner ? "designer" : "reviewer";
+};
 
 export type ProjectDetailActions = Record<ProjectDetailAction, boolean>;
 

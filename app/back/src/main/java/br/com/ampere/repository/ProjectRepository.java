@@ -13,37 +13,15 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProjectRepository extends JpaRepository<Project, Long>, ProjectRepositoryCustom {
 
-  @Query(
-      """
-      SELECT DISTINCT project.municipality
-      FROM Project project
-      WHERE (
-          (:admin = true AND project.submittedAt IS NOT NULL)
-          OR (:admin = false AND project.owner.id = :ownerId)
-        )
-      ORDER BY project.municipality ASC
-      """)
-  List<String> findAccessibleMunicipalities(
-      @Param("ownerId") Long ownerId, @Param("admin") boolean admin);
+  boolean existsByOwnerIdAndStatusNot(Long ownerId, ProjectStatus status);
+
+  boolean existsByReviewerIdAndStatus(Long reviewerId, ProjectStatus status);
 
   long countByStatusAndSubmittedAtIsNotNull(ProjectStatus status);
 
   long countByReviewedAtGreaterThanEqual(OffsetDateTime since);
 
   long countByStatusAndReviewedAtGreaterThanEqual(ProjectStatus status, OffsetDateTime since);
-
-  @Query(
-      """
-      SELECT project.status AS status, COUNT(project) AS total
-      FROM Project project
-      WHERE (
-        (:admin = true AND project.submittedAt IS NOT NULL)
-        OR (:admin = false AND project.owner.id = :ownerId)
-      )
-      GROUP BY project.status
-      """)
-  List<ProjectStatusCount> countAccessiblePerStatus(
-      @Param("ownerId") Long ownerId, @Param("admin") boolean admin);
 
   @Query(
       """
@@ -71,11 +49,4 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
           br.com.ampere.domain.ProjectStatus.AWAITING_SUBMISSION)
       """)
   int startReviewCycleOfLegacySubmissions();
-
-  interface ProjectStatusCount {
-
-    ProjectStatus getStatus();
-
-    long getTotal();
-  }
 }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum UserRole {
   USER("user"),
+  REVIEWER("reviewer"),
   ADMIN("admin");
 
   private final String value;
@@ -16,6 +17,11 @@ public enum UserRole {
   @JsonValue
   public String getValue() {
     return value;
+  }
+
+  /** The review queue, the findings and the decision belong to the analyst and the admin. */
+  public boolean canReview() {
+    return this == REVIEWER || this == ADMIN;
   }
 
   @JsonCreator

@@ -87,7 +87,10 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 	const memorialQuery = useGetMemorial(projectId, {
 		enabled: project !== undefined && !notSent,
 	});
-	const actions = useProjectDetailActions({ status: project?.status });
+	const actions = useProjectDetailActions({
+		status: project?.status,
+		ownerId: project?.ownerId,
+	});
 
 	const units = validation
 		? `${validation.totalUnits} em ${validation.totalGroups} ${
@@ -242,7 +245,7 @@ export const ProjectDetailPage = ({ projectId }: ProjectDetailPageProps) => {
 					units={units}
 					demandKva={demandKva}
 					reanalysis={reanalysis}
-					correcting={project?.status === "REJECTED"}
+					correcting={actions.resubmit}
 				/>
 			}
 			notices={

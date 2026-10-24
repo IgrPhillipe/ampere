@@ -6,6 +6,7 @@ import {
 	municipalityListResponseSchema,
 	projectDetailResponseSchema,
 	projectListResponseSchema,
+	projectOwnerListResponseSchema,
 	projectStatusCountsResponseSchema,
 } from "./schemas";
 import type { CreateProjectPayload, ListProjectsParams } from "./types";
@@ -28,6 +29,12 @@ export const getMunicipalityList = async () => {
 	const response = await http.get(e.municipalities).json<unknown>();
 
 	return municipalityListResponseSchema.parse(response);
+};
+
+export const getProjectOwnerList = async () => {
+	const response = await http.get(e.owners).json<unknown>();
+
+	return projectOwnerListResponseSchema.parse(response);
 };
 
 export const getProject = async (id: string) => {

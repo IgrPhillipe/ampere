@@ -310,7 +310,8 @@ class DataSeederTest {
         .containsExactly(
             tuple("user@ampere.com", UserRole.USER),
             tuple("admin@ampere.com", UserRole.ADMIN),
-            tuple("revisor@ampere.com", UserRole.ADMIN));
+            tuple("conferente@ampere.com", UserRole.ADMIN),
+            tuple("revisor@ampere.com", UserRole.REVIEWER));
     assertThat(users)
         .allSatisfy(
             user -> {
@@ -377,6 +378,25 @@ class DataSeederTest {
     assertThat(StreamSupport.stream(captor.getValue().spliterator(), false))
         .extracting(User::getEmail)
         .containsExactly("revisor@ampere.com");
+  }
+
+  @Test
+  void turnsTheReviewerSeededAsAnAdminIntoAnAnalyst() {
+    UserRepository userRepository = mock(UserRepository.class);
+    when(userRepository.findByEmail(any())).thenReturn(Optional.of(mock(User.class)));
+    User legacyReviewer = new User("Revisor Teste", "revisor@ampere.com", "hash", UserRole.ADMIN);
+    when(userRepository.findByEmail("revisor@ampere.com")).thenReturn(Optional.of(legacyReviewer));
+
+    seeder(
+            projectRepositoryWithProjects(),
+            mock(FindingRepository.class),
+            seededStandards(),
+            userRepository)
+        .run();
+
+    assertThat(legacyReviewer.getRole()).isEqualTo(UserRole.REVIEWER);
+    assertThat(legacyReviewer.isActive()).isTrue();
+    verify(userRepository, never()).saveAll(any());
   }
 
   @Test

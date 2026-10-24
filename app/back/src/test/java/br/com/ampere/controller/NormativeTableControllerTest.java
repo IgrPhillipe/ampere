@@ -3,6 +3,7 @@ package br.com.ampere.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -24,9 +25,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.core.MethodParameter;
 import org.springframework.format.support.DefaultFormattingConversionService;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
 class NormativeTableControllerTest {
 
@@ -73,7 +80,9 @@ class NormativeTableControllerTest {
         .andExpect(status().isOk());
 
     verify(service, times(2))
-        .list(new NormativeTableQuery(null, Set.of(NormativeTableStatus.DRAFT), null, null));
+        .list(
+            eq(new NormativeTableQuery(null, Set.of(NormativeTableStatus.DRAFT), null, null)),
+            any());
   }
 
   @Test
@@ -94,14 +103,14 @@ class NormativeTableControllerTest {
 
   private static NormativeTableService service() {
     NormativeTableService service = mock(NormativeTableService.class);
-    when(service.list(any())).thenReturn(List.of());
+    when(service.list(any(), any())).thenReturn(List.of());
 
     return service;
   }
 
   private static NormativeTableQuery queryOf(NormativeTableService service) {
     ArgumentCaptor<NormativeTableQuery> query = ArgumentCaptor.forClass(NormativeTableQuery.class);
-    verify(service).list(query.capture());
+    verify(service).list(query.capture(), any());
 
     return query.getValue();
   }
@@ -112,6 +121,7 @@ class NormativeTableControllerTest {
 
     return MockMvcBuilders.standaloneSetup(new NormativeTableController(service))
         .setConversionService(conversionService)
+        .setCustomArgumentResolvers(adminToken())
         .setControllerAdvice(new GlobalExceptionHandler(messageSource()))
         .build();
   }
@@ -124,5 +134,31 @@ class NormativeTableControllerTest {
     source.setUseCodeAsDefaultMessage(false);
 
     return source;
+  }
+
+  /** Standalone MockMvc has no security, so the admin's token is injected directly. */
+  private static HandlerMethodArgumentResolver adminToken() {
+    Jwt token =
+        Jwt.withTokenValue("token")
+            .header("alg", "none")
+            .subject("1")
+            .claim("role", "admin")
+            .build();
+
+    return new HandlerMethodArgumentResolver() {
+      @Override
+      public boolean supportsParameter(MethodParameter parameter) {
+        return parameter.getParameterType() == Jwt.class;
+      }
+
+      @Override
+      public Object resolveArgument(
+          MethodParameter parameter,
+          ModelAndViewContainer container,
+          NativeWebRequest request,
+          WebDataBinderFactory binderFactory) {
+        return token;
+      }
+    };
   }
 }
