@@ -67,7 +67,7 @@ O padrão é o mesmo das Entregas 02 e 03: uma issue por história, que funciona
 - O `AT26-INFRA` entrega o painel do projetista (US16) até 01/11 e as demais telas até 08/11.
 - A US23 entra antes da US24, que mostra a carga por analista e os municípios sem analista.
 
-**Total:** 61 issues abertas entre #88 e #154: 6 na Entrega 03, 27 na Entrega 04 e 28 no Status Report 2. As #142 a #147, da duplicação de projeto e dos documentos complementares, foram fechadas fora do escopo. A US23 (#191) e a US24 (#192), com as tarefas #193 a #196, entraram em 24/10 no Status Report 2.
+**Total:** 61 issues abertas entre #88 e #154: 6 na Entrega 03, 27 na Entrega 04 e 28 no Status Report 2. As #142 a #147, da duplicação de projeto e dos documentos complementares, foram fechadas fora do escopo. A US23 (#191) e a US24 (#192), com as tarefas #193 a #196, entraram em 24/10 no Status Report 2. Também em 24/10: `AT32-INFRA` a `AT34-INFRA`, `AT03-US18`, `AT04-US18`, `AT03-US03`, `AT04-US05` e `AT05-US05` na Entrega 04, e `AT03-US11` e `AT04-US11` no Status Report 2.
 
 ---
 
@@ -119,6 +119,24 @@ O `Project` guarda o `owner` desde o #86, mas nenhum service o confere. Qualquer
 - [ ] A regra vale para projeto, grupos, cálculo, documentos, memorial e envio
 - [ ] Projetos do seed recebem um dono
 - [ ] Testes de acesso entre dois projetistas e entre projetista e analista
+
+### `AT32-INFRA: Tabelas normativas em modo leitura para o analista [Backend/Frontend]` (#179)
+`Sprint 5`, `Backend`, `Frontend`, `Infra`
+
+- [x] `GET /normative-tables`, `GET /normative-tables/{id}` e `GET /normative-tables/codes` liberados para `reviewer`; escrita só do `admin`
+- [x] Tela "Tabelas Normativas" em modo leitura para o analista, com o item no menu
+- [x] Testes de acesso por papel e da tela em modo leitura
+
+### `AT33-INFRA: Data de envio dos projetos antigos do seed [Backend]` (#180)
+`Sprint 5`, `Backend`, `Infra`
+
+- [x] `submittedAt` preenchido nos projetos enviados do seed que não tinham a data
+- [x] Seed novo grava `submittedAt` em todo projeto enviado
+
+### `AT34-INFRA: CORS do ambiente local para POST, PUT e DELETE [Backend/Frontend]` (#185)
+`Sprint 5`, `Backend`, `Frontend`, `Infra`, `bug`
+
+- [x] O proxy do Vite remove o `Origin`, e o ambiente local deixa de recusar as escritas com 403
 
 ### `AT19-INFRA: Desenhar no Figma as telas da análise e da correção [Gestão]` (#112)
 `Sprint 5`, `Gestão`
@@ -277,13 +295,16 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 - [ ] Entidade `ProjectEvent` com tipo, versão, autor, papel, descrição e data, gravada na criação, no envio, na decisão, no reenvio e nas respostas aos apontamentos
 - [ ] `GET /api/projects/{id}/events?direction=desc`, para o dono e para o analista
 - [ ] `GET /api/projects/{id}/rework`: dias de ciclo, versões enviadas, ciclos de análise, apontamentos resolvidos e em aberto, e etapas refeitas
+- [ ] Seed dos eventos pela linha do tempo de cada `ScenarioCase` (#190)
 - [ ] Testes da ordem dos eventos e das métricas
 
 ### `AT02-US08: Aba "Histórico" da análise [Frontend]` (#104)
 
+Com a página única do #184, o histórico é a seção "Histórico" do projeto, igual para os dois perfis, e a decisão fica na coluna lateral.
+
 - [ ] Linha do tempo com a alternância "Mais Recente Primeiro"
 - [ ] Card de ciclo em dias e tabela de métricas de retrabalho
-- [ ] Ações de aprovação e reprovação preservadas no rodapé
+- [ ] Estado vazio para projeto sem eventos
 
 ## US12: Detalhe do Projeto e Histórico de Tratamento (#105)
 `Sprint 6`, `US12`. Protótipo: [H1b · Detalhes do projeto](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2155-2).
@@ -302,7 +323,9 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 - [x] Cálculo sob demanda, com aviso de cálculo desatualizado (#184)
 - [x] Apontamentos respondidos no topo da seção indicada (#184)
 - [x] Analista na mesma página, com a coluna de apontamentos e a decisão; `/fila-de-analise/$id` redireciona para `/projetos/$id` (#184)
-- [ ] A seção "Histórico" passa a ler os eventos da US08
+- [ ] "Excluir Projeto" no detalhe, para rascunho (US20)
+
+A seção "Histórico" lendo os eventos da US08 passou para a `AT02-US08` (#104).
 
 ## US18: Filtros e Ordenação das Listagens (#108)
 `Sprint 5`, `US18`.
@@ -321,6 +344,34 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 - [ ] Opções de município vindas do IBGE, com busca; CEP preenchido pelo ViaCEP no cadastro
 - [ ] Etiquetas removíveis dos filtros ativos e o botão "Limpar Filtros"
 
+### `AT03-US18: Busca, filtros e ordenação nas tabelas normativas [Backend/Frontend]` (#177)
+
+- [x] `GET /api/normative-tables` com `search`, `status`, `sort` e `direction`
+- [x] Busca, filtro "Situação" e "Ordenar por" na tela, guardados na URL, e ordenação pelos cabeçalhos
+- [x] Estado vazio com "Limpar Filtros"
+
+### `AT04-US18: Endereço pelo CEP na área de concessão [Backend/Frontend]` (#181)
+
+- [x] CEP consultado no ViaCEP, preenchendo UF, município e logradouro
+- [x] Lista estática dos municípios de Pernambuco e de Pedras de Fogo (PB), no front e no back
+- [x] Só aceita endereço da área atendida; sem CEP encontrado, UF e município escolhidos na mão
+- [x] Endereços antigos no formato "Recife/PE" separados ao subir a aplicação
+
+## Correções das Histórias da Entrega 03
+`Sprint 5`, `bug`. Tarefas abertas em 24/10 nas histórias já entregues.
+
+### `AT03-US03: Tecnologia de lâmpada "Tomadas" em banco antigo [Backend]` (#187)
+
+- [x] `EnumCheckConstraints` reescreve em todo boot as restrições de `app_user.role` e `load_group_item.lamp_technology` com os valores atuais do enum
+
+### `AT04-US05: Envio recusa cálculo anterior à última alteração do projeto [Backend/Frontend]` (#186)
+
+- [x] Todo envio de projeto em rascunho ou reprovado recalcula a demanda, e o memorial não junta grupos atuais com cálculo antigo
+
+### `AT05-US05: Comparação do memorial pelo valor, sem depender da escala [Backend]` (#188)
+
+- [x] O snapshot do cálculo é comparado por valor numérico (`60` igual a `60.00`), com teste de regressão no `SubmissionIntegrationTest`
+
 ---
 
 # Histórias do Status Report 2
@@ -330,7 +381,7 @@ Cada história tem a issue épica, a tarefa de back e a tarefa de front, nessa o
 | História | Back-end | Front-end |
 | :--- | :--- | :--- |
 | US10: Cadastro e Perfil do Projetista (#118) | Entregue. `AT01-US10`: `POST /api/auth/register`, CREA e empresa em `User`, `GET` e `PUT /api/users/me`, troca de senha, responsável técnico no memorial | **Sprint 6.** `AT02-US10`: telas "Criar Conta" e "Meu Perfil", responsável técnico no carimbo |
-| US11: Gestão de Usuários (#121) | Entregue. `AT01-US11`: CRUD em `/api/users`, situação ativa, senha temporária com troca obrigatória, bloqueio de conta inativa no filtro do JWT | **Sprint 6.** `AT02-US11`: tela "Usuários" e troca obrigatória de senha no login. `AT04-US11` (#178): projetista do projeto criado pelo administrador |
+| US11: Gestão de Usuários (#121) | Entregue. `AT01-US11`: CRUD em `/api/users`, situação ativa, senha temporária com troca obrigatória, bloqueio de conta inativa no filtro do JWT. `AT03-US11` (#182): papéis de projetista, analista e administrador | **Sprint 6.** `AT02-US11`: tela "Usuários" e troca obrigatória de senha no login. `AT04-US11` (#178): projetista do projeto criado pelo administrador |
 | US16: Painel do Projetista (#133) | **Sprint 7.** `AT01-US16`: `GET /api/dashboard/designer?period=` | **Sprint 7.** `AT02-US16`: tela "Painel" como inicial do projetista |
 | US13: Versão Congelada do Envio (#124) | **Sprint 7.** `AT01-US13`: entidade `ProjectVersion` com memorial, cálculo e documentos, `GET /api/projects/{id}/versions` e `GET .../versions/{n}/memorial`, comparativo | **Sprint 8.** `AT02-US13`: versões e "Comparar Versões" na seção "Histórico" |
 | US14: Notificações no Sistema (#127) | **Sprint 7.** `AT01-US14`: entidade `Notification`, geração nos eventos da US07, US09 e US15, `GET /api/notifications` e marcação de leitura | **Sprint 8.** `AT02-US14`: contador no sino e painel de notificações dos dois perfis |
@@ -350,3 +401,5 @@ Cada história tem a issue épica, a tarefa de back e a tarefa de front, nessa o
 | Entrega 04 | 9 (AT18 a AT24, AT30 e AT31) | 6 | 6 (com o AT17) | 6 | 27 |
 | Status Report 2 | 4 (AT25 a AT28) | 10 | 10 | 10 | 34 |
 | **Total** | **19** | **16** | **16** | **16** | **67** |
+
+A contagem não inclui as tarefas abertas em 24/10 fora do plano original: 8 na Entrega 04 e 2 no Status Report 2.
