@@ -8,16 +8,22 @@ import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.ConnectionType;
+import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DemandComponent;
 import br.com.ampere.domain.DemandResult;
 import br.com.ampere.domain.DemandStep;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingAnswer;
 import br.com.ampere.domain.FindingResolution;
 import br.com.ampere.domain.FindingSeverity;
 import br.com.ampere.domain.FindingStage;
+import br.com.ampere.domain.GroupKind;
+import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectEvent;
+import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
@@ -28,8 +34,10 @@ import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.CalculationRepository;
+import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
+import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
@@ -59,6 +67,10 @@ class ProjectServiceIntegrationTest {
 
   @Autowired private CalculationRepository calculationRepository;
 
+  @Autowired private ConsumerUnitGroupRepository groupRepository;
+
+  @Autowired private ProjectEventRepository eventRepository;
+
   @Autowired private NormativeTableRepository normativeTableRepository;
 
   @Autowired private UserRepository userRepository;
@@ -71,8 +83,10 @@ class ProjectServiceIntegrationTest {
 
   @BeforeEach
   void clearProjects() {
+    eventRepository.deleteAll();
     calculationRepository.deleteAll();
     findingRepository.deleteAll();
+    groupRepository.deleteAll();
     projectRepository.deleteAll();
     normativeTableRepository.deleteAll();
     standardRepository.deleteAll();
@@ -82,6 +96,64 @@ class ProjectServiceIntegrationTest {
     designer = new AuthenticatedUser(owner.getId(), UserRole.USER);
     standardRepository.saveAll(
         List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
+  }
+
+  @Test
+  void detailsTheProjectWithItsSummaryMetricsAndLastEvent() {
+    Project project =
+        projectRepository.save(
+            project(
+                "Residencial Resumo",
+                "Rua do Resumo, 10",
+                "Recife",
+                "2026-9110",
+                ProjectStatus.REJECTED));
+    Finding open = published(finding(project));
+    Finding contested = published(finding(project));
+    contested.respond(
+        FindingAnswer.CONTESTED,
+        "A solução já atende à norma.",
+        OffsetDateTime.parse("2026-10-15T10:00:00Z"));
+    findingRepository.saveAll(List.of(open, contested, finding(project)));
+    groupRepository.saveAll(
+        List.of(
+            residentialGroup(project, "Apartamentos A", 5),
+            residentialGroup(project, "Apartamentos B", 3)));
+    withDemand(project, new BigDecimal("50.0"));
+    withDemand(project, new BigDecimal("61.2"));
+    OffsetDateTime lastActivityAt = OffsetDateTime.parse("2026-10-16T14:20:00Z");
+    eventRepository.saveAll(
+        List.of(
+            event(project, ProjectEventType.SUBMITTED, "2026-10-04T13:00:00Z"),
+            event(project, ProjectEventType.REJECTED, lastActivityAt.toString())));
+
+    ProjectSummary summary = service.detail(project.getId(), designer);
+
+    assertThat(summary.project()).isEqualTo(project);
+    assertThat(summary.openFindingsCount()).isEqualTo(2);
+    assertThat(summary.consumerUnitsCount()).isEqualTo(8);
+    assertThat(summary.demandKva()).isEqualByComparingTo("61.2");
+    assertThat(summary.lastActivityAt()).isEqualTo(lastActivityAt);
+  }
+
+  @Test
+  void usesTheProjectUpdateAsTheLastActivityAndClosesApprovedFindings() {
+    Project approved =
+        projectRepository.save(
+            project(
+                "Residencial Aprovado",
+                "Rua Aprovada, 20",
+                "Recife",
+                "2026-9111",
+                ProjectStatus.APPROVED));
+    findingRepository.save(published(finding(approved)));
+
+    ProjectSummary summary = service.detail(approved.getId(), designer);
+
+    assertThat(summary.openFindingsCount()).isZero();
+    assertThat(summary.consumerUnitsCount()).isZero();
+    assertThat(summary.demandKva()).isNull();
+    assertThat(summary.lastActivityAt()).isEqualTo(approved.getUpdatedAt());
   }
 
   @Test
@@ -759,6 +831,36 @@ class ProjectServiceIntegrationTest {
             List.of(),
             List.of());
     calculationRepository.save(new Calculation(project, result, "{}"));
+  }
+
+  private static ConsumerUnitGroup residentialGroup(Project project, String name, int quantity) {
+    return GroupKind.RESIDENTIAL.create(
+        project,
+        new GroupSpec(
+            name,
+            quantity,
+            new BigDecimal("68"),
+            2,
+            new BigDecimal("6.5"),
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null));
+  }
+
+  private ProjectEvent event(Project project, ProjectEventType type, String occurredAt) {
+    return new ProjectEvent(
+        project,
+        type,
+        project.getReviewCycle(),
+        owner,
+        owner.getRole(),
+        type.name(),
+        null,
+        OffsetDateTime.parse(occurredAt));
   }
 
   private static ProjectParameters parameters(BuildingCategory category) {

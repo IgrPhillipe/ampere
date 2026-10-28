@@ -373,6 +373,23 @@ class ProjectControllerTest {
   }
 
   @Test
+  void exposesTheProjectSummaryMetricsInTheDetail() throws Exception {
+    ProjectService service = mock(ProjectService.class);
+    Project project = draft();
+    OffsetDateTime lastActivityAt = OffsetDateTime.parse("2026-10-16T14:20:00Z");
+    when(service.detail(4L, DESIGNER))
+        .thenReturn(new ProjectSummary(project, 3, 8, new BigDecimal("61.2"), lastActivityAt));
+
+    mockMvc(service)
+        .perform(get("/projects/4"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.openFindingsCount").value(3))
+        .andExpect(jsonPath("$.data.consumerUnitsCount").value(8))
+        .andExpect(jsonPath("$.data.demandKva").value(61.2))
+        .andExpect(jsonPath("$.data.lastActivityAt").value("2026-10-16T14:20:00Z"));
+  }
+
+  @Test
   void answersConflictWhenTheProjectIsNoLongerADraft() throws Exception {
     ProjectService service = mock(ProjectService.class);
     when(service.update(eq(1L), any(), eq(DESIGNER)))
