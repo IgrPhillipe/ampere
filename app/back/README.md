@@ -103,6 +103,21 @@ As tabelas normativas (`/api/normative-tables/**`) e a gestão de usuários (`/a
 
 Cada projeto pertence a quem o criou. O projetista vê só os próprios projetos; o analista lê os enviados para análise e não altera nenhum. Os projetos do seed pertencem a `user@ampere.com`, `projetista@ampere.com`, `joao@ampere.com`, `inativo@ampere.com` e `admin@ampere.com`. Detalhes em [`convencoes-back.md`](../../docs/tecnico/convencoes-back.md#dono-do-projeto).
 
+### Resumo e Histórico do Projeto
+
+`GET /api/projects/{id}` inclui, além dos dados técnicos, os valores usados no resumo:
+
+| Campo | Regra |
+| :--- | :--- |
+| `technicalResponsible` | Nome e CREA do dono do projeto |
+| `reviewCycle` | Número do envio para análise |
+| `openFindingsCount` | Apontamentos `OPEN` ou `CONTESTED`; zero em projeto aprovado |
+| `consumerUnitsCount` | Soma das quantidades dos grupos de unidades consumidoras |
+| `demandKva` | Demanda do último cálculo; `null` enquanto não houver cálculo |
+| `lastActivityAt` | Data do evento mais recente; sem eventos, usa `updatedAt` |
+
+O dono consulta o histórico do próprio projeto em `GET /api/projects/{id}/events?direction=DESC`. Analistas e administradores acessam o histórico dos projetos enviados, conforme a mesma regra de leitura aplicada ao detalhe. Outro projetista recebe 404, sem revelar a existência do projeto.
+
 ### Gestão de Usuários
 
 Restrita ao papel `admin` pelo `SecurityConfig`, sem prefixo de papel no caminho. `/api/users/me` continua aberto a todos os papéis.
