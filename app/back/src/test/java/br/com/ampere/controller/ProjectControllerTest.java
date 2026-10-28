@@ -41,6 +41,7 @@ import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.ProjectListQuery;
 import br.com.ampere.service.ProjectListing;
 import br.com.ampere.service.ProjectService;
+import br.com.ampere.service.ProjectSummary;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -301,7 +302,10 @@ class ProjectControllerTest {
   @Test
   void createsProjectAndAnswersCreated() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.create(any(), eq(DESIGNER))).thenReturn(draft());
+    Project project = draft();
+    when(service.create(any(), eq(DESIGNER))).thenReturn(project);
+    when(service.summarize(project))
+        .thenReturn(new ProjectSummary(project, 0, 0, null, project.getUpdatedAt()));
 
     mockMvc(service)
         .perform(post("/projects").contentType(MediaType.APPLICATION_JSON).content(validBody()))
@@ -360,8 +364,7 @@ class ProjectControllerTest {
   @Test
   void answersNotFoundForAnUnknownProject() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.findById(99L, DESIGNER))
-        .thenThrow(new NotFoundException("Projeto não encontrado."));
+    when(service.detail(99L, DESIGNER)).thenThrow(new NotFoundException("Projeto não encontrado."));
 
     mockMvc(service)
         .perform(get("/projects/99"))

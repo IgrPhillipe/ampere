@@ -11,6 +11,7 @@ import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
+import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectRepositoryCustom.ProjectSearch;
 import br.com.ampere.utils.SearchTerms;
@@ -49,6 +50,7 @@ public class ProjectService {
   private final ConsumerUnitGroupRepository groupRepository;
   private final CalculationRepository calculationRepository;
   private final ProjectDocumentRepository documentRepository;
+  private final ProjectEventRepository eventRepository;
   private final ProjectCreation projectCreation;
   private final ApplicableStandards applicableStandards;
 
@@ -58,6 +60,7 @@ public class ProjectService {
       ConsumerUnitGroupRepository groupRepository,
       CalculationRepository calculationRepository,
       ProjectDocumentRepository documentRepository,
+      ProjectEventRepository eventRepository,
       ProjectCreation projectCreation,
       ApplicableStandards applicableStandards) {
     this.projectRepository = projectRepository;
@@ -65,6 +68,7 @@ public class ProjectService {
     this.groupRepository = groupRepository;
     this.calculationRepository = calculationRepository;
     this.documentRepository = documentRepository;
+    this.eventRepository = eventRepository;
     this.projectCreation = projectCreation;
     this.applicableStandards = applicableStandards;
   }
@@ -138,6 +142,27 @@ public class ProjectService {
     }
 
     return project;
+  }
+
+  @Transactional(readOnly = true)
+  public ProjectSummary detail(Long id, AuthenticatedUser user) {
+    return summarize(findById(id, user));
+  }
+
+  @Transactional(readOnly = true)
+  public ProjectSummary summarize(Project project) {
+    Long projectId = project.getId();
+    List<Long> projectIds = List.of(projectId);
+
+    return new ProjectSummary(
+        project,
+        countPendingFindings(projectIds).getOrDefault(projectId, 0L),
+        countUnits(projectIds).getOrDefault(projectId, 0L),
+        latestDemands(projectIds).get(projectId),
+        eventRepository
+            .findFirstByProjectIdOrderByOccurredAtDescIdDesc(projectId)
+            .map(event -> event.getOccurredAt())
+            .orElse(project.getUpdatedAt()));
   }
 
   public Project create(ProjectParameters parameters, AuthenticatedUser user) {

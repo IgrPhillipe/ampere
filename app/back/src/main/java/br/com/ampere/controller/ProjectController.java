@@ -192,7 +192,8 @@ public class ProjectController {
   public ApiResponse<ProjectDetailResponse> create(
       @Valid @RequestBody ProjectRequest request, @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        ProjectDetailResponse.from(service.create(parametersOf(request), userOf(jwt))));
+        ProjectDetailResponse.from(
+            service.summarize(service.create(parametersOf(request), userOf(jwt)))));
   }
 
   @GetMapping("/{id}")
@@ -210,7 +211,7 @@ public class ProjectController {
   })
   public ApiResponse<ProjectDetailResponse> detail(
       @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(ProjectDetailResponse.from(service.findById(id, userOf(jwt))));
+    return ApiResponse.of(ProjectDetailResponse.from(service.detail(id, userOf(jwt))));
   }
 
   @PutMapping("/{id}")
@@ -237,7 +238,8 @@ public class ProjectController {
       @Valid @RequestBody ProjectRequest request,
       @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        ProjectDetailResponse.from(service.update(id, parametersOf(request), userOf(jwt))));
+        ProjectDetailResponse.from(
+            service.summarize(service.update(id, parametersOf(request), userOf(jwt)))));
   }
 
   @DeleteMapping("/{id}")

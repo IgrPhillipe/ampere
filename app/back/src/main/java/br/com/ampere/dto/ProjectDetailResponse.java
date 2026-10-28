@@ -10,6 +10,8 @@ import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
+import br.com.ampere.service.ProjectSummary;
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -33,6 +35,10 @@ public record ProjectDetailResponse(
     String reviewerName,
     OffsetDateTime reviewedAt,
     int reviewCycle,
+    long openFindingsCount,
+    long consumerUnitsCount,
+    BigDecimal demandKva,
+    OffsetDateTime lastActivityAt,
     String reviewOpinion,
     String changeSummary,
     BuildingCategory buildingType,
@@ -45,7 +51,8 @@ public record ProjectDetailResponse(
     List<DemandRuleResponse> demandRules,
     TechnicalResponsibleResponse technicalResponsible) {
 
-  public static ProjectDetailResponse from(Project project) {
+  public static ProjectDetailResponse from(ProjectSummary summary) {
+    Project project = summary.project();
     BuildingType buildingType = project.getBuildingType();
     List<StandardResponse> standards =
         project.getStandards().stream()
@@ -70,6 +77,10 @@ public record ProjectDetailResponse(
         nameOf(project.getReviewer()),
         project.getReviewedAt(),
         project.getReviewCycle(),
+        summary.openFindingsCount(),
+        summary.consumerUnitsCount(),
+        summary.demandKva(),
+        summary.lastActivityAt(),
         project.getReviewOpinion(),
         project.getChangeSummary(),
         buildingType.category(),
