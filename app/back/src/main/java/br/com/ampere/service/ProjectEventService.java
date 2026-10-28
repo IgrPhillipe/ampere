@@ -26,8 +26,11 @@ public class ProjectEventService {
   }
 
   public ProjectEvent created(Project project, User author) {
-    return record(
-        project, ProjectEventType.CREATED, author, "Projeto criado.", null, project.getCreatedAt());
+    return created(project, author, project.getCreatedAt());
+  }
+
+  public ProjectEvent created(Project project, User author, OffsetDateTime occurredAt) {
+    return record(project, ProjectEventType.CREATED, author, "Projeto criado.", null, occurredAt);
   }
 
   public void submitted(

@@ -12,6 +12,7 @@ import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.DemandCalculationService;
+import br.com.ampere.service.ProjectEventService;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
@@ -49,6 +50,7 @@ public class DemoScenarioSeeder {
   private final NormativeTableRepository normativeTableRepository;
   private final UserRepository userRepository;
   private final DemandCalculationService demandCalculation;
+  private final ProjectEventService eventService;
   private final SeedTimestamps timestamps;
   private final PlatformTransactionManager transactionManager;
   private final boolean resetScenarios;
@@ -63,6 +65,7 @@ public class DemoScenarioSeeder {
       NormativeTableRepository normativeTableRepository,
       UserRepository userRepository,
       DemandCalculationService demandCalculation,
+      ProjectEventService eventService,
       SeedTimestamps timestamps,
       PlatformTransactionManager transactionManager,
       @Value("${ampere.seed.reset-scenarios:false}") boolean resetScenarios) {
@@ -75,6 +78,7 @@ public class DemoScenarioSeeder {
     this.normativeTableRepository = normativeTableRepository;
     this.userRepository = userRepository;
     this.demandCalculation = demandCalculation;
+    this.eventService = eventService;
     this.timestamps = timestamps;
     this.transactionManager = transactionManager;
     this.resetScenarios = resetScenarios;
@@ -105,6 +109,7 @@ public class DemoScenarioSeeder {
             calculationRepository,
             documentRepository,
             demandCalculation,
+            eventService,
             timestamps,
             standardRepository.findAll().stream()
                 .collect(Collectors.toMap(Standard::getName, Function.identity())),
