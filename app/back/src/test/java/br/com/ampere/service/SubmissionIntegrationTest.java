@@ -25,6 +25,8 @@ import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectEvent;
+import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
@@ -36,6 +38,7 @@ import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
+import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
@@ -96,6 +99,8 @@ class SubmissionIntegrationTest {
 
   @Autowired private ProjectDocumentRepository documentRepository;
 
+  @Autowired private ProjectEventRepository eventRepository;
+
   private String token;
 
   private List<Standard> standards;
@@ -104,6 +109,7 @@ class SubmissionIntegrationTest {
 
   @BeforeEach
   void seed() throws Exception {
+    eventRepository.deleteAll();
     documentRepository.deleteAll();
     calculationRepository.deleteAll();
     groupRepository.deleteAll();
@@ -193,6 +199,10 @@ class SubmissionIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.status").value("UNDER_REVIEW"))
         .andExpect(jsonPath("$.data.submittedAt").isNotEmpty());
+
+    assertThat(eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(project.getId()))
+        .extracting(ProjectEvent::getType)
+        .containsExactly(ProjectEventType.SUBMITTED, ProjectEventType.PRE_VALIDATED);
 
     perform(get("/projects").param("status", "UNDER_REVIEW"))
         .andExpect(jsonPath("$.data[0].id").value(String.valueOf(project.getId())));
