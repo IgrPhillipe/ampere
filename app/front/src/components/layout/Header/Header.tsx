@@ -11,7 +11,8 @@ import {
 import { Sheet, SheetContent, SheetTitle } from "@components/ui/sheet";
 import { useAuthStore } from "@features/shared";
 import { useLogout } from "@services/auth";
-import { ChevronDownIcon, LogOutIcon, MenuIcon } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { ChevronDownIcon, LogOutIcon, MenuIcon, UserIcon } from "lucide-react";
 import { useState } from "react";
 
 import { AppBrand } from "./AppBrand";
@@ -28,6 +29,7 @@ const initialsOf = (name: string) =>
 export const Header = () => {
 	const user = useAuthStore((state) => state.user);
 	const logout = useLogout();
+	const navigate = useNavigate();
 	const [mobileOpen, setMobileOpen] = useState(false);
 
 	return (
@@ -82,6 +84,15 @@ export const Header = () => {
 							</DropdownMenuLabel>
 
 							<DropdownMenuSeparator />
+
+							<DropdownMenuItem
+								onClick={() => {
+									navigate({ to: "/meu-perfil" });
+								}}
+							>
+								<UserIcon />
+								Meu Perfil
+							</DropdownMenuItem>
 
 							<DropdownMenuItem onClick={logout}>
 								<LogOutIcon />
