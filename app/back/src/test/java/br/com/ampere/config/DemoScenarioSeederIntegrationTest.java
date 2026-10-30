@@ -22,6 +22,8 @@ import br.com.ampere.domain.LoadItem;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
+import br.com.ampere.domain.ProjectEvent;
+import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialGroup;
 import br.com.ampere.domain.User;
@@ -60,6 +62,27 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
         .extracting(Project::getProtocol)
         .containsExactlyInAnyOrderElementsOf(SCENARIO_PROTOCOLS);
     assertThat(SCENARIO_PROTOCOLS).hasSize(51).contains("2026-1001", "2026-1008", "2026-2019");
+  }
+
+  @Test
+  void recordsTheTimelineOfReanalysisScenarios() {
+    Project cycleThree = project("2026-2017");
+
+    assertThat(eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(cycleThree.getId()))
+        .extracting(ProjectEvent::getType)
+        .containsSubsequence(
+            ProjectEventType.CREATED,
+            ProjectEventType.SUBMITTED,
+            ProjectEventType.PRE_VALIDATED,
+            ProjectEventType.ASSIGNED,
+            ProjectEventType.REJECTED,
+            ProjectEventType.FINDING_ANSWERED,
+            ProjectEventType.RESUBMITTED,
+            ProjectEventType.PRE_VALIDATED,
+            ProjectEventType.REJECTED,
+            ProjectEventType.FINDING_ANSWERED,
+            ProjectEventType.RESUBMITTED,
+            ProjectEventType.PRE_VALIDATED);
   }
 
   @Test

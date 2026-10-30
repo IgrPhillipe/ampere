@@ -564,7 +564,7 @@ Quatro pontos além do que as receitas anteriores cobrem.
 
 **Guarda de estado fica no service.** `Project.isDraft()` é predicado puro; quem lança `BusinessException` é o service, porque `domain` não pode importar `error`.
 
-**Delete de entidade com filho.** A FK gerada pelo `ddl-auto` não tem `ON DELETE CASCADE`. Apague o filho explicitamente antes (`findingRepository.deleteAllByProjectId(id)`); `orphanRemoval` só cobre associação que a entidade possui.
+**Delete de entidade com filho.** A FK gerada pelo `ddl-auto` não tem `ON DELETE CASCADE`. Apague o filho explicitamente antes (`findingRepository.deleteAllByProjectId(id)`); `orphanRemoval` só cobre associação que a entidade possui. A exceção é filho só de inserção, como o `ProjectEvent`: `@OnDelete(action = OnDeleteAction.CASCADE)` na FK cria o `ON DELETE CASCADE`, e nenhum `delete` precisa conhecê-lo.
 
 ---
 
@@ -613,6 +613,7 @@ A mensagem é o que o usuário lê: em português e sem jargão. O front descart
 | Cadastro e perfil | `service/UserService`, `controller/UserController` |
 | Gestão de usuários e bloqueio de conta inativa | `service/UserAdministrationService`, `security/ActiveAccountConverter` |
 | Análise técnica e apontamentos | `service/ProjectReviewService`, `service/FindingService` |
+| Histórico do protocolo e métricas de retrabalho | `service/ProjectEventService`, `service/ProjectHistoryService` |
 | Documentação da API | `/api/docs` |
 
 ---
