@@ -6,7 +6,7 @@ import br.com.ampere.domain.UserRole;
 import java.time.OffsetDateTime;
 
 public record ProjectEventResponse(
-    Long id,
+    String id,
     ProjectEventType type,
     int version,
     String description,
@@ -17,7 +17,7 @@ public record ProjectEventResponse(
 
   public static ProjectEventResponse from(ProjectEvent event) {
     return new ProjectEventResponse(
-        event.getId(),
+        String.valueOf(event.getId()),
         event.getType(),
         event.getVersion(),
         event.getDescription(),
