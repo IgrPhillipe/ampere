@@ -127,7 +127,7 @@ As 18 tabelas entram publicadas, digitadas pelo admin e conferidas pelo conferen
 
 - **Banco local do zero:** `docker compose down -v` apaga o volume, e o seed repovoa tudo na próxima subida. O volume também guarda o banco de testes; recrie `ampere_test` antes do `verify`.
 - **Renovar só os projetos do seed:** suba a API com `ampere.seed.reset-scenarios=true`, ou com a variável `SEED_RESET_SCENARIOS=true`. O seed apaga apenas os projetos que ele mesmo criou (protocolo, nome e dono conferem) com grupos, cálculos, documentos, apontamentos e eventos, e os recria com datas novas. Usuários, tabelas e qualquer outro projeto ficam como estão. O padrão é `false`.
-- **Banco que já tinha o seed antigo:** os protocolos existentes não são refeitos. Para ter as correções e as datas novas dos projetos antigos, use a propriedade acima.
+- **Banco que já tinha o seed antigo:** os protocolos existentes não são refeitos. Para ter as correções e as datas novas dos projetos antigos, use a propriedade acima. O mesmo vale para o histórico do protocolo: projetos criados antes dele ficam sem eventos até o reset.
 - **Produção com o profile `demo`:** o seed só cria o que falta e nunca altera um projeto que não criou.
 
 Um projeto cujo protocolo (2026-2020, por exemplo) já pertença a outra pessoa não é recriado nem apagado: o seed o pula.
