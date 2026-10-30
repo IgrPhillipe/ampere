@@ -11,6 +11,7 @@ import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.service.ProjectSummary;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
@@ -35,10 +36,12 @@ public record ProjectDetailResponse(
     String reviewerName,
     OffsetDateTime reviewedAt,
     int reviewCycle,
-    long openFindingsCount,
+    @Schema(description = "Apontamentos OPEN ou CONTESTED; zero em projeto aprovado")
+        long openFindingsCount,
     long consumerUnitsCount,
-    BigDecimal demandKva,
-    OffsetDateTime lastActivityAt,
+    @Schema(description = "Demanda do último cálculo; nula sem cálculo") BigDecimal demandKva,
+    @Schema(description = "Data do último evento do histórico; sem eventos, updatedAt")
+        OffsetDateTime lastActivityAt,
     String reviewOpinion,
     String changeSummary,
     BuildingCategory buildingType,
