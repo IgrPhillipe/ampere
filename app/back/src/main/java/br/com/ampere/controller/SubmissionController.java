@@ -6,7 +6,6 @@ import br.com.ampere.dto.SubmissionChecklistResponse;
 import br.com.ampere.dto.SubmissionRequest;
 import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.MemorialPdfService;
-import br.com.ampere.service.ProjectService;
 import br.com.ampere.service.SubmissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -32,15 +31,11 @@ public class SubmissionController {
 
   private final MemorialPdfService memorialPdfService;
   private final SubmissionService submissionService;
-  private final ProjectService projectService;
 
   public SubmissionController(
-      MemorialPdfService memorialPdfService,
-      SubmissionService submissionService,
-      ProjectService projectService) {
+      MemorialPdfService memorialPdfService, SubmissionService submissionService) {
     this.memorialPdfService = memorialPdfService;
     this.submissionService = submissionService;
-    this.projectService = projectService;
   }
 
   @GetMapping(value = "/memorial", produces = MediaType.APPLICATION_PDF_VALUE)
@@ -119,8 +114,7 @@ public class SubmissionController {
     String changeSummary = request == null ? null : request.changeSummary();
     return ApiResponse.of(
         ProjectDetailResponse.from(
-            projectService.summarize(
-                submissionService.submit(projectId, changeSummary, userOf(jwt)))));
+            submissionService.submit(projectId, changeSummary, userOf(jwt))));
   }
 
   private static AuthenticatedUser userOf(Jwt jwt) {

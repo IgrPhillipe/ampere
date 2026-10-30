@@ -302,10 +302,8 @@ class ProjectControllerTest {
   @Test
   void createsProjectAndAnswersCreated() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    Project project = draft();
-    when(service.create(any(), eq(DESIGNER))).thenReturn(project);
-    when(service.summarize(project))
-        .thenReturn(new ProjectSummary(project, 0, 0, null, project.getUpdatedAt()));
+    when(service.create(any(), eq(DESIGNER)))
+        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null));
 
     mockMvc(service)
         .perform(post("/projects").contentType(MediaType.APPLICATION_JSON).content(validBody()))

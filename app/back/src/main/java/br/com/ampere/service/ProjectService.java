@@ -149,8 +149,7 @@ public class ProjectService {
     return summarize(findById(id, user));
   }
 
-  @Transactional(readOnly = true)
-  public ProjectSummary summarize(Project project) {
+  ProjectSummary summarize(Project project) {
     Long projectId = project.getId();
     List<Long> projectIds = List.of(projectId);
 
@@ -162,14 +161,14 @@ public class ProjectService {
         eventRepository
             .findFirstByProjectIdOrderByOccurredAtDescIdDesc(projectId)
             .map(event -> event.getOccurredAt())
-            .orElse(project.getUpdatedAt()));
+            .orElse(null));
   }
 
-  public Project create(ProjectParameters parameters, AuthenticatedUser user) {
+  public ProjectSummary create(ProjectParameters parameters, AuthenticatedUser user) {
     writerOrFail(user);
     for (int attempt = 1; attempt <= PROTOCOL_ATTEMPTS; attempt++) {
       try {
-        return projectCreation.createWithGeneratedProtocol(parameters, user.id());
+        return summarize(projectCreation.createWithGeneratedProtocol(parameters, user.id()));
       } catch (DataIntegrityViolationException collision) {
         log.warn("Protocol collision on attempt {} of {}", attempt, PROTOCOL_ATTEMPTS);
       }
@@ -180,7 +179,7 @@ public class ProjectService {
   }
 
   @Transactional
-  public Project update(Long id, ProjectParameters parameters, AuthenticatedUser user) {
+  public ProjectSummary update(Long id, ProjectParameters parameters, AuthenticatedUser user) {
     Project project =
         editableOrFail(id, "Só é possível alterar um projeto em rascunho ou reprovado.", user);
     String municipality = ProjectPlaces.municipalityOf(parameters);
@@ -191,7 +190,7 @@ public class ProjectService {
     project.changeBuildingType(buildingType);
     project.applyStandards(applicableStandards.of(buildingType));
 
-    return project;
+    return summarize(project);
   }
 
   @Transactional

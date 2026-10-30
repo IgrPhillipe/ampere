@@ -10,4 +10,10 @@ public record ProjectSummary(
     long openFindingsCount,
     long consumerUnitsCount,
     BigDecimal demandKva,
-    OffsetDateTime lastActivityAt) {}
+    OffsetDateTime lastEventAt) {
+
+  /** Read after the commit, so the fallback sees the update the request just made. */
+  public OffsetDateTime lastActivityAt() {
+    return lastEventAt == null ? project.getUpdatedAt() : lastEventAt;
+  }
+}

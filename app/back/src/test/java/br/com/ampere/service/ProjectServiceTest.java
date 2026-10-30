@@ -120,7 +120,7 @@ class ProjectServiceTest {
         .thenThrow(new DataIntegrityViolationException("duplicate protocol"))
         .thenReturn(created);
 
-    assertThat(service(creation).create(parameters(), DESIGNER)).isSameAs(created);
+    assertThat(service(creation).create(parameters(), DESIGNER).project()).isSameAs(created);
     verify(creation, times(2)).createWithGeneratedProtocol(any(), any());
   }
 

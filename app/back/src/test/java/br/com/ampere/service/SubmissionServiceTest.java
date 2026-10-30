@@ -121,9 +121,13 @@ class SubmissionServiceTest {
                   .isEqualTo("Informe o resumo das alterações para reenviar o projeto.");
             });
 
+    when(projectService.summarize(project))
+        .thenReturn(new ProjectSummary(project, 0, 0, null, null));
     Project resubmitted =
-        service.submit(
-            1L, "Substituí a ART assinada e corrigi a área do apartamento tipo B.", DESIGNER);
+        service
+            .submit(
+                1L, "Substituí a ART assinada e corrigi a área do apartamento tipo B.", DESIGNER)
+            .project();
 
     verify(demandCalculationService).calculate(1L, DESIGNER);
     assertThat(resubmitted.getStatus()).isEqualTo(ProjectStatus.UNDER_REVIEW);

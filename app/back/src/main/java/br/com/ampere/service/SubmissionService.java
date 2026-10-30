@@ -52,7 +52,7 @@ public class SubmissionService {
   }
 
   @Transactional
-  public Project submit(Long projectId, String changeSummary, AuthenticatedUser user) {
+  public ProjectSummary submit(Long projectId, String changeSummary, AuthenticatedUser user) {
     Project project =
         projectService.findOwnedById(
             projectId, "Só o projetista dono do projeto o envia para análise.", user);
@@ -93,7 +93,7 @@ public class SubmissionService {
     project.submit(submittedAt);
     eventService.submitted(project, project.getOwner(), calculation, submittedAt);
 
-    return project;
+    return projectService.summarize(project);
   }
 
   private SubmissionChecklist checklistOf(Project project) {
