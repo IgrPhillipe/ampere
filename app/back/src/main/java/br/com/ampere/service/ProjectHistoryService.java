@@ -27,9 +27,6 @@ public class ProjectHistoryService {
 
   static final ZoneId CYCLE_ZONE = ZoneId.of("America/Recife");
 
-  private static final List<FindingStatus> OPEN_FINDINGS =
-      List.of(FindingStatus.OPEN, FindingStatus.CONTESTED);
-
   private final ProjectService projectService;
   private final ProjectEventRepository eventRepository;
   private final FindingRepository findingRepository;
@@ -73,7 +70,7 @@ public class ProjectHistoryService {
                         || event.getType() == ProjectEventType.APPROVED)
             .count(),
         findingRepository.countByProjectIdAndStatusIn(projectId, List.of(FindingStatus.RESOLVED)),
-        findingRepository.countByProjectIdAndStatusIn(projectId, OPEN_FINDINGS),
+        findingRepository.countByProjectIdAndStatusIn(projectId, ProjectService.OPEN_FINDINGS),
         redoneCalculationSteps(project, firstSubmission));
   }
 

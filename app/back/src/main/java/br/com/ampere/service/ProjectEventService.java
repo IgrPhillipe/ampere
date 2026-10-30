@@ -70,7 +70,10 @@ public class ProjectEventService {
       return record(project, ProjectEventType.APPROVED, author, "Aprovado.", opinion, occurredAt);
     }
 
-    long count = findings.stream().filter(finding -> !finding.isResolved()).count();
+    long count =
+        findings.stream()
+            .filter(finding -> ProjectService.OPEN_FINDINGS.contains(finding.getStatus()))
+            .count();
     String noun = count == 1 ? " apontamento." : " apontamentos.";
     return record(
         project,

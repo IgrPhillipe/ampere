@@ -41,7 +41,7 @@ public class ProjectService {
       "O perfil analista só consulta os projetos enviados para análise.";
 
   /** What the designer still has to answer: drafts are hidden, an approval closes the rest. */
-  private static final List<FindingStatus> OPEN_FINDINGS =
+  static final List<FindingStatus> OPEN_FINDINGS =
       List.of(FindingStatus.OPEN, FindingStatus.CONTESTED);
 
   private final ProjectRepository projectRepository;

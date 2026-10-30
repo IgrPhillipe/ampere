@@ -10,6 +10,7 @@ import br.com.ampere.domain.CalculationCheck;
 import br.com.ampere.domain.CheckStatus;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.FindingAnswer;
+import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
@@ -50,7 +51,7 @@ class ProjectEventServiceTest {
                 new CalculationCheck("A", CheckStatus.WARNING, "Primeiro alerta."),
                 new CalculationCheck("B", CheckStatus.WARNING, "Segundo alerta.")));
     Finding finding = mock(Finding.class);
-    when(finding.isResolved()).thenReturn(false);
+    when(finding.getStatus()).thenReturn(FindingStatus.OPEN);
 
     service.created(project, designer);
     service.submitted(project, designer, calculation, at.minusDays(12));
