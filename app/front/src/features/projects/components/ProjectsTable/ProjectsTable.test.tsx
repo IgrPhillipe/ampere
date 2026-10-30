@@ -48,4 +48,23 @@ describe("ProjectsTable", () => {
 		).not.toBeInTheDocument();
 		expect(screen.queryByText("Beto Projetista")).not.toBeInTheDocument();
 	});
+
+	it("tells a list with no projects apart from a filter with no match", () => {
+		const { rerender } = render(<ProjectsTable projects={[]} {...actions} />);
+
+		expect(screen.getByText("Nenhum projeto cadastrado")).toBeInTheDocument();
+
+		rerender(
+			<ProjectsTable projects={[]} onClearFilters={vi.fn()} {...actions} />,
+		);
+
+		expect(
+			screen.getByText(
+				"Nenhum projeto encontrado para os critérios informados",
+			),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: "Limpar Filtros" }),
+		).toBeInTheDocument();
+	});
 });
