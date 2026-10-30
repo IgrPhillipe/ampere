@@ -133,7 +133,7 @@ public class FindingService {
 
     OffsetDateTime respondedAt = OffsetDateTime.now(ZoneOffset.UTC);
     finding.respond(answer, response, respondedAt);
-    eventService.findingAnswered(project, project.getOwner(), answer, response, respondedAt);
+    eventService.findingAnswered(project, project.getOwner(), finding, respondedAt);
 
     return finding;
   }

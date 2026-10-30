@@ -9,7 +9,7 @@ import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.CalculationCheck;
 import br.com.ampere.domain.CheckStatus;
 import br.com.ampere.domain.Finding;
-import br.com.ampere.domain.FindingAnswer;
+import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
@@ -58,8 +58,11 @@ class ProjectEventServiceTest {
     service.assigned(project, analyst, at.minusDays(11));
     service.decided(
         project, ReviewDecision.REJECT, analyst, List.of(finding), "Corrija a ART.", at);
-    service.findingAnswered(
-        project, designer, FindingAnswer.FIXED, "ART substituída.", at.plusDays(2));
+    Finding answered = mock(Finding.class);
+    when(answered.getStatus()).thenReturn(FindingStatus.FIXED);
+    when(answered.getStage()).thenReturn(FindingStage.DOCUMENTS);
+    when(answered.getResponse()).thenReturn("ART substituída.");
+    service.findingAnswered(project, designer, answered, at.plusDays(2));
     service.decided(
         project, ReviewDecision.APPROVE, analyst, List.of(), "Tudo certo.", at.plusDays(5));
     service.submitted(project, designer, calculation, at.plusDays(3));
@@ -80,7 +83,8 @@ class ProjectEventServiceTest {
     assertThat(recorded.get(2).getDetail()).isEqualTo("Primeiro alerta.\nSegundo alerta.");
     assertThat(recorded.get(3).getDescription()).isEqualTo("Análise assumida por Admin Teste.");
     assertThat(recorded.get(4).getDescription()).isEqualTo("Reprovado com 1 apontamento.");
-    assertThat(recorded.get(5).getDescription()).isEqualTo("Apontamento corrigido.");
+    assertThat(recorded.get(5).getDescription()).isEqualTo("Apontamento de Documentos corrigido.");
+    assertThat(recorded.get(5).getDetail()).isEqualTo("ART substituída.");
     assertThat(recorded.get(7).getDescription()).isEqualTo("Versão 2 reenviada para análise.");
     assertThat(recorded.get(7).getDetail()).isEqualTo("ART e área corrigidas.");
     assertThat(recorded.get(2).getAuthor()).isNull();

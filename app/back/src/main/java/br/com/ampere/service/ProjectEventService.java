@@ -4,7 +4,8 @@ import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.CalculationCheck;
 import br.com.ampere.domain.CheckStatus;
 import br.com.ampere.domain.Finding;
-import br.com.ampere.domain.FindingAnswer;
+import br.com.ampere.domain.FindingStage;
+import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
@@ -85,15 +86,25 @@ public class ProjectEventService {
   }
 
   public ProjectEvent findingAnswered(
-      Project project,
-      User author,
-      FindingAnswer answer,
-      String response,
-      OffsetDateTime occurredAt) {
-    String description =
-        answer == FindingAnswer.FIXED ? "Apontamento corrigido." : "Apontamento contestado.";
+      Project project, User author, Finding finding, OffsetDateTime occurredAt) {
+    String action = finding.getStatus() == FindingStatus.FIXED ? "corrigido" : "contestado";
+    String description = "Apontamento de " + stageLabel(finding.getStage()) + " " + action + ".";
     return record(
-        project, ProjectEventType.FINDING_ANSWERED, author, description, response, occurredAt);
+        project,
+        ProjectEventType.FINDING_ANSWERED,
+        author,
+        description,
+        finding.getResponse(),
+        occurredAt);
+  }
+
+  private static String stageLabel(FindingStage stage) {
+    return switch (stage) {
+      case PROJECT_DATA -> "Dados da Edificação";
+      case CONSUMER_UNITS -> "Unidades Consumidoras";
+      case CALCULATION -> "Cálculo de Demanda";
+      case DOCUMENTS -> "Documentos";
+    };
   }
 
   private ProjectEvent preValidated(
