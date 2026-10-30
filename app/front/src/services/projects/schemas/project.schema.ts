@@ -153,6 +153,10 @@ export const projectDetailSchema = z.object({
 	reviewerName: z.string().nullish(),
 	reviewedAt: z.iso.datetime({ offset: true }).nullish(),
 	reviewCycle: z.number().int().nonnegative(),
+	openFindingsCount: z.number().int().nonnegative(),
+	consumerUnitsCount: z.number().int().nonnegative(),
+	demandKva: z.number().nullable(),
+	lastActivityAt: z.iso.datetime({ offset: true }),
 	reviewOpinion: z.string().nullable(),
 	changeSummary: z.string().nullable(),
 	technicalResponsible: z
