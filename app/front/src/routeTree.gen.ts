@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TabelasNormativasRouteImport } from './routes/tabelas-normativas'
+import { Route as MeuPerfilRouteImport } from './routes/meu-perfil'
 import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as CriarContaRouteImport } from './routes/criar-conta'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjetosIndexRouteImport } from './routes/projetos/index'
 import { Route as FilaDeAnaliseIndexRouteImport } from './routes/fila-de-analise/index'
@@ -32,9 +34,19 @@ const TabelasNormativasRoute = TabelasNormativasRouteImport.update({
   path: '/tabelas-normativas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MeuPerfilRoute = MeuPerfilRouteImport.update({
+  id: '/meu-perfil',
+  path: '/meu-perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EntrarRoute = EntrarRouteImport.update({
   id: '/entrar',
   path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CriarContaRoute = CriarContaRouteImport.update({
+  id: '/criar-conta',
+  path: '/criar-conta',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -115,7 +127,9 @@ const ProjetosIdApontamentosRoute = ProjetosIdApontamentosRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/criar-conta': typeof CriarContaRoute
   '/entrar': typeof EntrarRoute
+  '/meu-perfil': typeof MeuPerfilRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/projetos/$id': typeof ProjetosIdRouteRouteWithChildren
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
@@ -134,7 +148,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/criar-conta': typeof CriarContaRoute
   '/entrar': typeof EntrarRoute
+  '/meu-perfil': typeof MeuPerfilRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
@@ -153,7 +169,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/criar-conta': typeof CriarContaRoute
   '/entrar': typeof EntrarRoute
+  '/meu-perfil': typeof MeuPerfilRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/projetos/$id': typeof ProjetosIdRouteRouteWithChildren
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
@@ -174,7 +192,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/criar-conta'
     | '/entrar'
+    | '/meu-perfil'
     | '/tabelas-normativas'
     | '/projetos/$id'
     | '/fila-de-analise/$id'
@@ -193,7 +213,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/criar-conta'
     | '/entrar'
+    | '/meu-perfil'
     | '/tabelas-normativas'
     | '/fila-de-analise/$id'
     | '/projetos/novo'
@@ -211,7 +233,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/criar-conta'
     | '/entrar'
+    | '/meu-perfil'
     | '/tabelas-normativas'
     | '/projetos/$id'
     | '/fila-de-analise/$id'
@@ -231,7 +255,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CriarContaRoute: typeof CriarContaRoute
   EntrarRoute: typeof EntrarRoute
+  MeuPerfilRoute: typeof MeuPerfilRoute
   TabelasNormativasRoute: typeof TabelasNormativasRoute
   ProjetosIdRouteRoute: typeof ProjetosIdRouteRouteWithChildren
   FilaDeAnaliseIdRoute: typeof FilaDeAnaliseIdRoute
@@ -249,11 +275,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TabelasNormativasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/meu-perfil': {
+      id: '/meu-perfil'
+      path: '/meu-perfil'
+      fullPath: '/meu-perfil'
+      preLoaderRoute: typeof MeuPerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/entrar': {
       id: '/entrar'
       path: '/entrar'
       fullPath: '/entrar'
       preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/criar-conta': {
+      id: '/criar-conta'
+      path: '/criar-conta'
+      fullPath: '/criar-conta'
+      preLoaderRoute: typeof CriarContaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -394,7 +434,9 @@ const ProjetosIdRouteRouteWithChildren = ProjetosIdRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CriarContaRoute: CriarContaRoute,
   EntrarRoute: EntrarRoute,
+  MeuPerfilRoute: MeuPerfilRoute,
   TabelasNormativasRoute: TabelasNormativasRoute,
   ProjetosIdRouteRoute: ProjetosIdRouteRouteWithChildren,
   FilaDeAnaliseIdRoute: FilaDeAnaliseIdRoute,

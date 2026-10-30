@@ -257,7 +257,7 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 
 | Feature | Rota | Página |
 | :--- | :--- | :--- |
-| `auth` | `/entrar` | Entrar |
+| `auth` | `/entrar`, `/criar-conta`, `/meu-perfil` | Entrar, Criar Conta e Meu Perfil |
 | `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id`, `/projetos/$id/<etapa>` | Meus Projetos (Projetos, para o admin), o detalhe e as etapas |
 | `review-queue` | `/fila-de-analise` | Fila de Análise |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |

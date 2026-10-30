@@ -169,8 +169,10 @@ export const ProjectDetailHeader = ({
 			}
 			className="grid grid-cols-2 gap-px border-t border-border bg-border lg:grid-cols-(--metric-columns)"
 		>
-			<HeaderCell isLoading={isLoading} label="Projetista">
-				{project?.ownerName ?? undefined}
+			<HeaderCell isLoading={isLoading} label="Responsável técnico">
+				{project?.technicalResponsible
+					? `${project.technicalResponsible.name}, CREA ${project.technicalResponsible.crea}`
+					: undefined}
 			</HeaderCell>
 
 			<HeaderCell isLoading={isLoading} label="Unidades">
