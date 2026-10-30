@@ -42,6 +42,7 @@ import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import com.jayway.jsonpath.JsonPath;
 import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.parser.PdfTextExtractor;
 import jakarta.persistence.EntityManager;
@@ -195,10 +196,17 @@ class SubmissionIntegrationTest {
 
     perform(get(submissionOf(project))).andExpect(jsonPath("$.data.canSubmit").value(true));
 
-    perform(post(submitOf(project)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.status").value("UNDER_REVIEW"))
-        .andExpect(jsonPath("$.data.submittedAt").isNotEmpty());
+    String submitted =
+        perform(post(submitOf(project)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("UNDER_REVIEW"))
+            .andExpect(jsonPath("$.data.submittedAt").isNotEmpty())
+            .andExpect(jsonPath("$.data.demandKva").isNumber())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    assertThat(JsonPath.<String>read(submitted, "$.data.lastActivityAt"))
+        .isEqualTo(JsonPath.<String>read(submitted, "$.data.submittedAt"));
 
     assertThat(eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(project.getId()))
         .extracting(ProjectEvent::getType)

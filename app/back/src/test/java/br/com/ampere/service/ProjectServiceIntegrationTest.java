@@ -649,6 +649,22 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
+  void theLastActivityOfAProjectWithoutEventsFollowsItsUpdate() throws Exception {
+    Project legacy =
+        projectRepository.save(
+            project(
+                "Residencial Legado", "Rua Antiga, 5", "Recife", "2026-9112", ProjectStatus.DRAFT));
+    OffsetDateTime before = legacy.getUpdatedAt();
+    Thread.sleep(5);
+
+    ProjectSummary summary =
+        service.update(legacy.getId(), parameters(BuildingCategory.MIXED), designer);
+    entityManager.flush();
+
+    assertThat(summary.lastActivityAt()).isAfter(before).isEqualTo(legacy.getUpdatedAt());
+  }
+
+  @Test
   void refusesToUpdateAProjectUnderReview() {
     Project underReview =
         projectRepository.save(
