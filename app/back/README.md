@@ -114,9 +114,9 @@ Cada projeto pertence a quem o criou. O projetista vê só os próprios projetos
 | `openFindingsCount` | Apontamentos `OPEN` ou `CONTESTED`; zero em projeto aprovado |
 | `consumerUnitsCount` | Soma das quantidades dos grupos de unidades consumidoras |
 | `demandKva` | Demanda do último cálculo; `null` enquanto não houver cálculo |
-| `lastActivityAt` | Data do evento mais recente; sem eventos, usa `updatedAt` |
+| `lastActivityAt` | Data do evento mais recente do histórico; edição sem evento não conta. Sem eventos, usa `updatedAt` |
 
-O dono consulta o histórico do próprio projeto em `GET /api/projects/{id}/events?direction=DESC`. Analistas e administradores acessam o histórico dos projetos enviados, conforme a mesma regra de leitura aplicada ao detalhe. Outro projetista recebe 404, sem revelar a existência do projeto.
+O dono consulta o histórico do próprio projeto em `GET /api/projects/{id}/events?direction=DESC`. Analistas acessam o histórico dos projetos enviados; administradores, o de qualquer projeto. A regra é a mesma do detalhe. Outro projetista recebe 404, sem revelar a existência do projeto.
 
 ### Gestão de Usuários
 
