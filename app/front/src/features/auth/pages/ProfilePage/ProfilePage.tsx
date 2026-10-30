@@ -156,7 +156,7 @@ export const ProfilePage = () => {
 									name="crea"
 									label="NÚMERO DO CREA"
 									required
-									placeholder="Ex.: 1684-D"
+									placeholder="Ex.: 1684D"
 								/>
 
 								<ControlledInput
