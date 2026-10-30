@@ -114,7 +114,12 @@ class ProjectServiceIntegrationTest {
         FindingAnswer.CONTESTED,
         "A solução já atende à norma.",
         OffsetDateTime.parse("2026-10-15T10:00:00Z"));
-    findingRepository.saveAll(List.of(open, contested, finding(project)));
+    Finding fixed = published(finding(project));
+    fixed.respond(
+        FindingAnswer.FIXED,
+        "Número do lote informado.",
+        OffsetDateTime.parse("2026-10-15T11:00:00Z"));
+    findingRepository.saveAll(List.of(open, contested, fixed, finding(project)));
     groupRepository.saveAll(
         List.of(
             residentialGroup(project, "Apartamentos A", 5),
@@ -137,7 +142,7 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
-  void usesTheProjectUpdateAsTheLastActivityAndClosesApprovedFindings() {
+  void closesTheFindingsOfAnApprovedProject() {
     Project approved =
         projectRepository.save(
             project(
@@ -148,12 +153,22 @@ class ProjectServiceIntegrationTest {
                 ProjectStatus.APPROVED));
     findingRepository.save(published(finding(approved)));
 
-    ProjectSummary summary = service.detail(approved.getId(), designer);
+    assertThat(service.detail(approved.getId(), designer).openFindingsCount()).isZero();
+  }
+
+  @Test
+  void summarizesAProjectWithoutGroupsCalculationOrEvents() {
+    Project draft =
+        projectRepository.save(
+            project(
+                "Residencial Vazio", "Rua Vazia, 30", "Recife", "2026-9113", ProjectStatus.DRAFT));
+
+    ProjectSummary summary = service.detail(draft.getId(), designer);
 
     assertThat(summary.openFindingsCount()).isZero();
     assertThat(summary.consumerUnitsCount()).isZero();
     assertThat(summary.demandKva()).isNull();
-    assertThat(summary.lastActivityAt()).isEqualTo(approved.getUpdatedAt());
+    assertThat(summary.lastActivityAt()).isEqualTo(draft.getUpdatedAt());
   }
 
   @Test
