@@ -1,11 +1,9 @@
-import { useAuthStore } from "@features/shared";
 import { getToastErrorMessage } from "@lib/api-error";
-import { getRoleHomePath } from "@lib/route-guard";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { login } from "../../../requests";
+import { useStartSession } from "../../useStartSession";
 
 interface UseLoginOptions {
 	/** Route to return to after login, taken from `?redirect=`. */
@@ -13,18 +11,11 @@ interface UseLoginOptions {
 }
 
 export const useLogin = ({ redirectTo }: UseLoginOptions = {}) => {
-	const navigate = useNavigate();
-	const setSession = useAuthStore((state) => state.login);
+	const startSession = useStartSession();
 
 	return useMutation({
 		mutationFn: login,
-		onSuccess: ({ data }) => {
-			setSession({ ...data.user, token: data.token });
-
-			navigate({ to: redirectTo ?? getRoleHomePath(data.user.role) });
-
-			toast.success(`Bem-vindo, ${data.user.name}.`);
-		},
+		onSuccess: ({ data }) => startSession(data, redirectTo),
 		onError: (error) =>
 			toast.error(
 				getToastErrorMessage(error, {
