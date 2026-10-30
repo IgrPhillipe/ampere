@@ -57,7 +57,7 @@ class ProjectHistoryServiceTest {
             .findFirstByProjectIdAndCalculatedAtLessThanEqualOrderByCalculatedAtDescIdDesc(
                 4L, submitted))
         .thenReturn(Optional.of(first));
-    when(calculationRepository.findFirstByProjectIdOrderByCalculatedAtDescIdDesc(4L))
+    when(calculationRepository.findFirstByProjectIdOrderByIdDesc(4L))
         .thenReturn(Optional.of(latest));
 
     ProjectRework result = service.rework(4L, DESIGNER);

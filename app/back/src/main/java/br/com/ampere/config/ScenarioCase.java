@@ -167,9 +167,7 @@ final class ScenarioCase {
   ScenarioCase submit(int daysAgo) {
     OffsetDateTime submittedAt = advance(daysAgo, 0);
     Calculation calculation =
-        kit.calculations
-            .findFirstByProjectIdOrderByCalculatedAtDescIdDesc(project.getId())
-            .orElseThrow();
+        kit.calculations.findFirstByProjectIdOrderByIdDesc(project.getId()).orElseThrow();
     project.submit(submittedAt);
     kit.events.submitted(project, project.getOwner(), calculation, submittedAt);
 

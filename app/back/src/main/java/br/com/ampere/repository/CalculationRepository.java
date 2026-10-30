@@ -2,6 +2,7 @@ package br.com.ampere.repository;
 
 import br.com.ampere.domain.Calculation;
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -13,11 +14,9 @@ public interface CalculationRepository extends JpaRepository<Calculation, Long> 
 
   Optional<Calculation> findFirstByProjectIdOrderByIdDesc(Long projectId);
 
-  Optional<Calculation> findFirstByProjectIdOrderByCalculatedAtDescIdDesc(Long projectId);
-
   Optional<Calculation>
       findFirstByProjectIdAndCalculatedAtLessThanEqualOrderByCalculatedAtDescIdDesc(
-          Long projectId, java.time.OffsetDateTime calculatedAt);
+          Long projectId, OffsetDateTime calculatedAt);
 
   void deleteAllByProjectId(Long projectId);
 

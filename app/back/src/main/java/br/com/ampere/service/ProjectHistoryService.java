@@ -98,9 +98,7 @@ public class ProjectHistoryService {
                 project.getId(), firstSubmission)
             .orElse(null);
     Calculation latest =
-        calculationRepository
-            .findFirstByProjectIdOrderByCalculatedAtDescIdDesc(project.getId())
-            .orElse(null);
+        calculationRepository.findFirstByProjectIdOrderByIdDesc(project.getId()).orElse(null);
     if (first == null || latest == null) {
       return 0;
     }
