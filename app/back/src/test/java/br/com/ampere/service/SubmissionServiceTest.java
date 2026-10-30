@@ -63,7 +63,8 @@ class SubmissionServiceTest {
             demandCalculationService,
             calculationRepository,
             documentRepository,
-            findingRepository);
+            findingRepository,
+            mock(ProjectEventService.class));
 
     SubmissionChecklist checklist = service.checklist(1L, DESIGNER);
     assertThat(checklist.canSubmit()).isFalse();
@@ -108,7 +109,8 @@ class SubmissionServiceTest {
             demandCalculationService,
             calculationRepository,
             documentRepository,
-            findingRepository);
+            findingRepository,
+            mock(ProjectEventService.class));
 
     assertThatThrownBy(() -> service.submit(1L, "   ", DESIGNER))
         .isInstanceOfSatisfying(
@@ -119,9 +121,13 @@ class SubmissionServiceTest {
                   .isEqualTo("Informe o resumo das alterações para reenviar o projeto.");
             });
 
+    when(projectService.summarize(project))
+        .thenReturn(new ProjectSummary(project, 0, 0, null, null));
     Project resubmitted =
-        service.submit(
-            1L, "Substituí a ART assinada e corrigi a área do apartamento tipo B.", DESIGNER);
+        service
+            .submit(
+                1L, "Substituí a ART assinada e corrigi a área do apartamento tipo B.", DESIGNER)
+            .project();
 
     verify(demandCalculationService).calculate(1L, DESIGNER);
     assertThat(resubmitted.getStatus()).isEqualTo(ProjectStatus.UNDER_REVIEW);
@@ -148,7 +154,8 @@ class SubmissionServiceTest {
             demandCalculationService,
             mock(CalculationRepository.class),
             mock(ProjectDocumentRepository.class),
-            mock(FindingRepository.class));
+            mock(FindingRepository.class),
+            mock(ProjectEventService.class));
 
     assertThatThrownBy(() -> service.submit(1L, "Nova versão.", DESIGNER))
         .isInstanceOfSatisfying(

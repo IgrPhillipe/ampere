@@ -10,6 +10,7 @@ import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.service.DemandCalculationService;
+import br.com.ampere.service.ProjectEventService;
 import com.lowagie.text.Document;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
@@ -28,6 +29,7 @@ final class ScenarioKit {
   final CalculationRepository calculations;
   final ProjectDocumentRepository documents;
   final DemandCalculationService demand;
+  final ProjectEventService events;
   final SeedTimestamps timestamps;
   private final Map<String, Standard> standards;
   final OffsetDateTime now;
@@ -39,6 +41,7 @@ final class ScenarioKit {
       CalculationRepository calculations,
       ProjectDocumentRepository documents,
       DemandCalculationService demand,
+      ProjectEventService events,
       SeedTimestamps timestamps,
       Map<String, Standard> standards,
       OffsetDateTime now) {
@@ -48,6 +51,7 @@ final class ScenarioKit {
     this.calculations = calculations;
     this.documents = documents;
     this.demand = demand;
+    this.events = events;
     this.timestamps = timestamps;
     this.standards = standards;
     this.now = now;

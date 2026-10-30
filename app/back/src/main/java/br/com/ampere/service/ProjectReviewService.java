@@ -3,6 +3,7 @@ package br.com.ampere.service;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ReviewDecision;
+import br.com.ampere.domain.User;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.FindingRepository;
@@ -22,14 +23,17 @@ public class ProjectReviewService {
   private final ProjectService projectService;
   private final UserRepository userRepository;
   private final FindingRepository findingRepository;
+  private final ProjectEventService eventService;
 
   public ProjectReviewService(
       ProjectService projectService,
       UserRepository userRepository,
-      FindingRepository findingRepository) {
+      FindingRepository findingRepository,
+      ProjectEventService eventService) {
     this.projectService = projectService;
     this.userRepository = userRepository;
     this.findingRepository = findingRepository;
+    this.eventService = eventService;
   }
 
   /** Assigning again to the same analyst changes nothing. */
@@ -48,10 +52,14 @@ public class ProjectReviewService {
           "Este projeto já foi assumido por outro analista.", HttpStatus.CONFLICT);
     }
 
-    project.assignReviewer(
-        userRepository
-            .findById(user.id())
-            .orElseThrow(() -> new NotFoundException("Usuário autenticado não encontrado.")));
+    if (project.getReviewer() == null) {
+      User reviewer =
+          userRepository
+              .findById(user.id())
+              .orElseThrow(() -> new NotFoundException("Usuário autenticado não encontrado."));
+      project.assignReviewer(reviewer);
+      eventService.assigned(project, reviewer, OffsetDateTime.now(ZoneOffset.UTC));
+    }
 
     return project;
   }
@@ -80,6 +88,7 @@ public class ProjectReviewService {
     } else {
       project.reject(reviewedAt, opinion);
     }
+    eventService.decided(project, decision, project.getReviewer(), findings, opinion, reviewedAt);
 
     return project;
   }

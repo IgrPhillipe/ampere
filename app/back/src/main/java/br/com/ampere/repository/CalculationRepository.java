@@ -13,6 +13,12 @@ public interface CalculationRepository extends JpaRepository<Calculation, Long> 
 
   Optional<Calculation> findFirstByProjectIdOrderByIdDesc(Long projectId);
 
+  Optional<Calculation> findFirstByProjectIdOrderByCalculatedAtDescIdDesc(Long projectId);
+
+  Optional<Calculation>
+      findFirstByProjectIdAndCalculatedAtLessThanEqualOrderByCalculatedAtDescIdDesc(
+          Long projectId, java.time.OffsetDateTime calculatedAt);
+
   void deleteAllByProjectId(Long projectId);
 
   @Query(
