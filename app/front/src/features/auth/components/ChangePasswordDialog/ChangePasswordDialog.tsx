@@ -8,7 +8,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@components/ui/dialog";
-import { useZodForm } from "@features/shared";
+import { setApiFieldErrors, useZodForm } from "@features/shared";
 import { useChangePassword } from "@services/users";
 
 import {
@@ -31,47 +31,42 @@ export const ChangePasswordDialog = ({
 		confirmNewPassword: "",
 	});
 
-	const { mutate: changeUserPassword, isPending } = useChangePassword();
+	const { mutate: changePassword, isPending } = useChangePassword();
 
-	const onSubmit = (values: ChangePasswordFormValues) => {
-		changeUserPassword(
-			{
-				currentPassword: values.currentPassword,
-				newPassword: values.newPassword,
-			},
+	const handleOpenChange = (nextOpen: boolean) => {
+		if (isPending) return;
+
+		form.reset();
+		onOpenChange(nextOpen);
+	};
+
+	const onSubmit = ({
+		currentPassword,
+		newPassword,
+	}: ChangePasswordFormValues) =>
+		changePassword(
+			{ currentPassword, newPassword },
 			{
 				onSuccess: () => {
 					form.reset();
 					onOpenChange(false);
 				},
-				onError: (error) => {
-					// @ts-expect-error ky response status check
-					if (error?.response?.status === 422) {
-						form.setError("currentPassword", {
-							type: "manual",
-							message: "A senha atual está incorreta.",
-						});
-					}
-				},
+				onError: (error) =>
+					setApiFieldErrors(form, error, { 422: "currentPassword" }),
 			},
 		);
-	};
 
 	return (
-		<Dialog
-			open={open}
-			onOpenChange={(nextOpen) => {
-				if (!isPending) {
-					form.reset();
-					onOpenChange(nextOpen);
-				}
-			}}
-		>
-			<DialogContent className="sm:max-w-md bg-card">
+		<Dialog open={open} onOpenChange={handleOpenChange}>
+			<DialogContent
+				className="bg-card sm:max-w-md"
+				showCloseButton={!isPending}
+			>
 				<DialogHeader>
 					<DialogTitle className="font-heading text-xl">
-						Alterar senha
+						Alterar Senha
 					</DialogTitle>
+
 					<DialogDescription>
 						A nova senha deve ter ao menos 8 caracteres, com letra e número.
 					</DialogDescription>
@@ -80,12 +75,12 @@ export const ChangePasswordDialog = ({
 				<form
 					noValidate
 					onSubmit={form.handleSubmit(onSubmit)}
-					className="flex flex-col gap-4 py-2"
+					className="flex flex-col gap-4"
 				>
 					<ControlledInput
 						control={form.control}
 						name="currentPassword"
-						label="SENHA ATUAL"
+						label="Senha atual"
 						type="password"
 						required
 						autoComplete="current-password"
@@ -94,7 +89,7 @@ export const ChangePasswordDialog = ({
 					<ControlledInput
 						control={form.control}
 						name="newPassword"
-						label="NOVA SENHA"
+						label="Nova senha"
 						type="password"
 						required
 						autoComplete="new-password"
@@ -103,28 +98,24 @@ export const ChangePasswordDialog = ({
 					<ControlledInput
 						control={form.control}
 						name="confirmNewPassword"
-						label="CONFIRMAR NOVA SENHA"
+						label="Confirmar nova senha"
 						type="password"
 						required
 						autoComplete="new-password"
 					/>
 
-					<DialogFooter className="mt-4 gap-2">
+					<DialogFooter className="mt-4">
 						<Button
 							type="button"
 							variant="outline"
 							disabled={isPending}
-							onClick={() => onOpenChange(false)}
+							onClick={() => handleOpenChange(false)}
 						>
 							Cancelar
 						</Button>
 
-						<Button
-							type="submit"
-							disabled={isPending}
-							className="rounded-[4px] bg-[#006C3B] text-white hover:bg-[#005B31]"
-						>
-							{isPending ? "Alterando..." : "Alterar senha"}
+						<Button type="submit" disabled={isPending}>
+							{isPending ? "Alterando..." : "Alterar Senha"}
 						</Button>
 					</DialogFooter>
 				</form>
