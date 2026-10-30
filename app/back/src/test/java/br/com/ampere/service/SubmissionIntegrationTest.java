@@ -602,6 +602,16 @@ class SubmissionIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"status\":\"FIXED\",\"response\":\"ART assinada.\"}"))
         .andExpect(status().isOk());
+    perform(
+            put(review + "/findings/" + findingId + "/response")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\":\"FIXED\",\"response\":\"ART assinada e anexada.\"}"))
+        .andExpect(status().isOk());
+    perform(
+            put(review + "/findings/" + findingId + "/response")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\":\"CONTESTED\",\"response\":\"A ART já estava assinada.\"}"))
+        .andExpect(status().isOk());
     groupRepository.save(residentialGroup(project, "Apartamento tipo B", 12));
     perform(
             post(submitOf(project))
@@ -636,10 +646,11 @@ class SubmissionIntegrationTest {
                         "ASSIGNED",
                         "REJECTED",
                         "FINDING_ANSWERED",
+                        "FINDING_ANSWERED",
                         "RESUBMITTED",
                         "PRE_VALIDATED",
                         "APPROVED")))
-        .andExpect(jsonPath("$.data[*].version").value(contains(0, 1, 1, 1, 1, 1, 2, 2, 2)))
+        .andExpect(jsonPath("$.data[*].version").value(contains(0, 1, 1, 1, 1, 1, 1, 2, 2, 2)))
         .andExpect(jsonPath("$.data[0].authorName").value("Usuário Teste"))
         .andExpect(jsonPath("$.data[3].description").value("Análise assumida por Revisor Teste."))
         .andExpect(jsonPath("$.data[3].authorRole").value("reviewer"))
@@ -647,10 +658,12 @@ class SubmissionIntegrationTest {
         .andExpect(jsonPath("$.data[4].detail").value("Assine a ART."))
         .andExpect(jsonPath("$.data[5].description").value("Apontamento de Documentos corrigido."))
         .andExpect(jsonPath("$.data[5].detail").value("ART assinada."))
-        .andExpect(jsonPath("$.data[6].description").value("Versão 2 reenviada para análise."))
-        .andExpect(jsonPath("$.data[6].detail").value("ART assinada e tipo B incluído."))
-        .andExpect(jsonPath("$.data[7].authorRole").doesNotExist())
-        .andExpect(jsonPath("$.data[8].description").value("Aprovado."));
+        .andExpect(jsonPath("$.data[6].description").value("Apontamento de Documentos contestado."))
+        .andExpect(jsonPath("$.data[6].detail").value("A ART já estava assinada."))
+        .andExpect(jsonPath("$.data[7].description").value("Versão 2 reenviada para análise."))
+        .andExpect(jsonPath("$.data[7].detail").value("ART assinada e tipo B incluído."))
+        .andExpect(jsonPath("$.data[8].authorRole").doesNotExist())
+        .andExpect(jsonPath("$.data[9].description").value("Aprovado."));
 
     perform(get(review + "/rework"))
         .andExpect(status().isOk())
