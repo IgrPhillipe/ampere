@@ -26,12 +26,12 @@ public class ProjectEventService {
     this.eventRepository = eventRepository;
   }
 
-  public ProjectEvent created(Project project, User author) {
-    return created(project, author, project.getCreatedAt());
+  public void created(Project project, User author) {
+    created(project, author, project.getCreatedAt());
   }
 
-  public ProjectEvent created(Project project, User author, OffsetDateTime occurredAt) {
-    return record(project, ProjectEventType.CREATED, author, "Projeto criado.", null, occurredAt);
+  public void created(Project project, User author, OffsetDateTime occurredAt) {
+    record(project, ProjectEventType.CREATED, author, "Projeto criado.", null, occurredAt);
   }
 
   public void submitted(
@@ -50,8 +50,8 @@ public class ProjectEventService {
     preValidated(project, calculation, occurredAt);
   }
 
-  public ProjectEvent assigned(Project project, User author, OffsetDateTime occurredAt) {
-    return record(
+  public void assigned(Project project, User author, OffsetDateTime occurredAt) {
+    record(
         project,
         ProjectEventType.ASSIGNED,
         author,
@@ -60,7 +60,7 @@ public class ProjectEventService {
         occurredAt);
   }
 
-  public ProjectEvent decided(
+  public void decided(
       Project project,
       ReviewDecision decision,
       User author,
@@ -68,7 +68,8 @@ public class ProjectEventService {
       String opinion,
       OffsetDateTime occurredAt) {
     if (decision == ReviewDecision.APPROVE) {
-      return record(project, ProjectEventType.APPROVED, author, "Aprovado.", opinion, occurredAt);
+      record(project, ProjectEventType.APPROVED, author, "Aprovado.", opinion, occurredAt);
+      return;
     }
 
     long count =
@@ -76,7 +77,7 @@ public class ProjectEventService {
             .filter(finding -> ProjectService.OPEN_FINDINGS.contains(finding.getStatus()))
             .count();
     String noun = count == 1 ? " apontamento." : " apontamentos.";
-    return record(
+    record(
         project,
         ProjectEventType.REJECTED,
         author,
@@ -85,11 +86,11 @@ public class ProjectEventService {
         occurredAt);
   }
 
-  public ProjectEvent findingAnswered(
+  public void findingAnswered(
       Project project, User author, Finding finding, OffsetDateTime occurredAt) {
     String action = finding.getStatus() == FindingStatus.FIXED ? "corrigido" : "contestado";
     String description = "Apontamento de " + stageLabel(finding.getStage()) + " " + action + ".";
-    return record(
+    record(
         project,
         ProjectEventType.FINDING_ANSWERED,
         author,
@@ -107,8 +108,7 @@ public class ProjectEventService {
     };
   }
 
-  private ProjectEvent preValidated(
-      Project project, Calculation calculation, OffsetDateTime occurredAt) {
+  private void preValidated(Project project, Calculation calculation, OffsetDateTime occurredAt) {
     List<String> warnings =
         calculation.getChecks().stream()
             .filter(check -> check.getStatus() == CheckStatus.WARNING)
@@ -122,17 +122,17 @@ public class ProjectEventService {
         };
     String detail = warnings.isEmpty() ? null : String.join("\n", warnings);
 
-    return record(project, ProjectEventType.PRE_VALIDATED, null, description, detail, occurredAt);
+    record(project, ProjectEventType.PRE_VALIDATED, null, description, detail, occurredAt);
   }
 
-  private ProjectEvent record(
+  private void record(
       Project project,
       ProjectEventType type,
       User author,
       String description,
       String detail,
       OffsetDateTime occurredAt) {
-    return eventRepository.save(
+    eventRepository.save(
         new ProjectEvent(
             project,
             type,
