@@ -1,5 +1,5 @@
 import { useAuthStore } from "@features/shared";
-import { getToastErrorMessage } from "@lib/api-error";
+import { getApiFieldErrors, getToastErrorMessage } from "@lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -17,11 +17,15 @@ export const useUpdateProfile = () => {
 			await queryClient.invalidateQueries({ queryKey: userKeys.profile() });
 			toast.success("Alterações salvas com sucesso.");
 		},
-		onError: (error) =>
+		onError: (error) => {
+			// The form shows these on the fields.
+			if (getApiFieldErrors(error).length) return;
+
 			toast.error(
 				getToastErrorMessage(error, {
 					fallback: "Não foi possível salvar as alterações do perfil.",
 				}),
-			),
+			);
+		},
 	});
 };
