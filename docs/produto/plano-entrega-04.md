@@ -287,7 +287,7 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 
 ### Recorte
 
-- **Eventos a partir da US07.** Projetos anteriores mostram só criação e envio, reconstruídos das datas do projeto.
+- **Eventos a partir da AT01-US08.** Sem carga retroativa: projetos anteriores mostram o estado vazio, e o seed recria os de demonstração.
 - **Comparação entre versões fica na US13.**
 
 ### `AT01-US08: Back-end do histórico do protocolo [Backend]` (#103)
