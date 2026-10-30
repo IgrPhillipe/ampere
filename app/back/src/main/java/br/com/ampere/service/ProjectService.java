@@ -158,10 +158,7 @@ public class ProjectService {
         countPendingFindings(projectIds).getOrDefault(projectId, 0L),
         countUnits(projectIds).getOrDefault(projectId, 0L),
         latestDemands(projectIds).get(projectId),
-        eventRepository
-            .findFirstByProjectIdOrderByOccurredAtDescIdDesc(projectId)
-            .map(event -> event.getOccurredAt())
-            .orElse(null));
+        eventRepository.findLastOccurredAt(projectId));
   }
 
   public ProjectSummary create(ProjectParameters parameters, AuthenticatedUser user) {
