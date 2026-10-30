@@ -172,7 +172,7 @@ export const ProjectDetailHeader = ({
 			<HeaderCell isLoading={isLoading} label="Responsável técnico">
 				{project?.technicalResponsible
 					? `${project.technicalResponsible.name}, CREA ${project.technicalResponsible.crea}`
-					: (project?.ownerName ?? undefined)}
+					: undefined}
 			</HeaderCell>
 
 			<HeaderCell isLoading={isLoading} label="Unidades">

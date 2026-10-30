@@ -1,70 +1,38 @@
-import type { ProjectDetail } from "@services/projects";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
+import { makeProjectDetail } from "@/test/fixtures/project-detail";
+
 import { ProjectDetailHeader } from "./ProjectDetailHeader";
 
-const baseProject = (overrides: Partial<ProjectDetail> = {}): ProjectDetail =>
-	({
-		id: "1",
-		name: "Edifício Solar",
-		address: "Rua do Sol, 100",
-		municipality: "Recife",
-		state: "PE",
-		postalCode: "50030230",
-		protocol: "2026-0001",
-		status: "DRAFT",
-		createdAt: "2026-10-16T12:00:00Z",
-		updatedAt: "2026-10-16T12:00:00Z",
-		submittedAt: null,
-		ownerId: "1",
-		ownerName: "Ana Lima",
-		reviewerName: null,
-		reviewedAt: null,
-		reviewCycle: 0,
-		reviewOpinion: null,
-		changeSummary: null,
-		buildingType: "RESIDENTIAL_MULTIFAMILY",
-		floors: 4,
-		voltage: "VOLTAGE_220_127",
-		connectionType: "THREE_PHASE",
-		entranceStandard: "AERIAL",
-		standards: [{ name: "DIS-NOR-053", revision: "REV 06" }],
-		applicableStandards: "DIS-NOR-053 REV 06",
-		demandRules: [],
-		technicalResponsible: { name: "Ana Carolina Lima", crea: "1684-D/PE" },
-		...overrides,
-	}) as unknown as ProjectDetail;
+const technicalResponsibleCell = () =>
+	screen.getByText("Responsável técnico").nextElementSibling;
 
 describe("ProjectDetailHeader", () => {
-	it("exibe o responsável técnico com nome e CREA no carimbo", () => {
+	it("mostra o nome e o CREA do responsável técnico", () => {
 		render(
 			<ProjectDetailHeader
-				project={baseProject({
-					technicalResponsible: {
-						name: "Ana Carolina Lima",
-						crea: "1684-D/PE",
-					},
+				project={makeProjectDetail({
+					technicalResponsible: { name: "Ana Lima", crea: "1684D/PE" },
 				})}
 			/>,
 		);
 
-		expect(screen.getByText("Responsável técnico")).toBeInTheDocument();
-		expect(
-			screen.getByText("Ana Carolina Lima, CREA 1684-D/PE"),
-		).toBeInTheDocument();
+		expect(technicalResponsibleCell()).toHaveTextContent(
+			"Ana Lima, CREA 1684D/PE",
+		);
 	});
 
-	it("exibe o ownerName quando o projeto não tem technicalResponsible formatado", () => {
+	it("não troca o responsável técnico pelo dono sem CREA", () => {
 		render(
 			<ProjectDetailHeader
-				project={baseProject({
+				project={makeProjectDetail({
 					technicalResponsible: null,
 					ownerName: "Carlos Projetista",
 				})}
 			/>,
 		);
 
-		expect(screen.getByText("Carlos Projetista")).toBeInTheDocument();
+		expect(technicalResponsibleCell()).toHaveTextContent("Não informado");
 	});
 });
