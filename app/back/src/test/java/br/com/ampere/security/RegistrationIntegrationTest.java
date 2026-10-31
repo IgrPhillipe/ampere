@@ -126,7 +126,8 @@ class RegistrationIntegrationTest {
                         "O e-mail é obrigatório.",
                         "A senha é obrigatória.",
                         "O CREA é obrigatório.",
-                        "A UF do CREA é obrigatória.")));
+                        "A UF do CREA é obrigatória.",
+                        "O telefone é obrigatório.")));
   }
 
   @Test
@@ -138,7 +139,7 @@ class RegistrationIntegrationTest {
                 .content(
                     """
                     {"name":"Ana","email":"ana@ampere.com","password":"senha1234",
-                     "crea":"PE123456","creaState":"PE"}
+                     "crea":"PE123456","creaState":"PE","phone":"81988214470"}
                     """))
         .andExpect(status().isBadRequest())
         .andExpect(
@@ -149,7 +150,7 @@ class RegistrationIntegrationTest {
   void requiresTheCreaOnlyOfDesigners() throws Exception {
     String designer = token("ana@ampere.com");
     mockMvc
-        .perform(profileUpdate(designer, "{\"name\":\"Ana\"}"))
+        .perform(profileUpdate(designer, "{\"name\":\"Ana\",\"phone\":\"8199\"}"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.detail").value("Informe o número do CREA e a UF."));
 
@@ -160,10 +161,24 @@ class RegistrationIntegrationTest {
             passwordEncoder.encode(PASSWORD),
             UserRole.ADMIN));
     mockMvc
-        .perform(profileUpdate(login("alice@ampere.com"), "{\"name\":\"Alice Souza\"}"))
+        .perform(
+            profileUpdate(
+                login("alice@ampere.com"), "{\"name\":\"Alice Souza\",\"phone\":\"8199\"}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.name").value("Alice Souza"))
         .andExpect(jsonPath("$.data.crea").doesNotExist());
+  }
+
+  @Test
+  void requiresThePhoneOnTheProfile() throws Exception {
+    mockMvc
+        .perform(
+            profileUpdate(
+                token("ana@ampere.com"),
+                "{\"name\":\"Ana\",\"crea\":\"123456\",\"creaState\":\"PE\",\"phone\":\" \"}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errors[0].field").value("phone"))
+        .andExpect(jsonPath("$.errors[0].defaultMessage").value("O telefone é obrigatório."));
   }
 
   @Test
@@ -242,7 +257,7 @@ class RegistrationIntegrationTest {
                 + email
                 + "\",\"password\":\""
                 + password
-                + "\",\"crea\":\"123456\",\"creaState\":\"PE\"}");
+                + "\",\"crea\":\"123456\",\"creaState\":\"PE\",\"phone\":\"(81) 98821-4470\"}");
   }
 
   private String login(String email) throws Exception {
