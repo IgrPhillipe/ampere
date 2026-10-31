@@ -82,7 +82,7 @@ export const projectCreationSchema = z
 			error: "O padrão de entrada é obrigatório.",
 		}),
 
-		// Só o administrador escolhe o projetista; a tela cobra o campo, o schema o deixa passar.
+		// Only the administrator picks it; the page counts it as required for them.
 		ownerId: z.string().optional(),
 	})
 	// Same rules as `ConcessionArea` in the back: the CEP range must match the state.
