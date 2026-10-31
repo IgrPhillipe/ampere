@@ -12,9 +12,9 @@ import { UserCards } from "./UserCards";
 import { createUserColumns, type UserColumnId } from "./user-columns";
 
 const userColumnClassNames = {
-	role: "w-40",
-	status: "w-56",
-	lastLoginAt: "hidden lg:table-cell lg:w-48",
+	role: "w-36",
+	status: "w-48",
+	lastLoginAt: "w-44",
 	action: "w-16",
 } satisfies Partial<Record<UserColumnId, string>>;
 
