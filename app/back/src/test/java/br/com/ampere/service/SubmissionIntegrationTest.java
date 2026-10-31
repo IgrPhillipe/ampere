@@ -597,21 +597,10 @@ class SubmissionIntegrationTest {
                 .content("{\"decision\":\"REJECT\",\"opinion\":\"Assine a ART.\"}"))
         .andExpect(status().isOk());
 
-    perform(
-            put(review + "/findings/" + findingId + "/response")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"status\":\"FIXED\",\"response\":\"ART assinada.\"}"))
-        .andExpect(status().isOk());
-    perform(
-            put(review + "/findings/" + findingId + "/response")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"status\":\"FIXED\",\"response\":\"ART assinada e anexada.\"}"))
-        .andExpect(status().isOk());
-    perform(
-            put(review + "/findings/" + findingId + "/response")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"status\":\"CONTESTED\",\"response\":\"A ART já estava assinada.\"}"))
-        .andExpect(status().isOk());
+    answer(review, findingId, "FIXED", "ART assinada.");
+    answer(review, findingId, "FIXED", "ART assinada e anexada.");
+    answer(review, findingId, "CONTESTED", "A ART já estava assinada.");
+    answer(review, findingId, "FIXED", "ART reenviada com a assinatura.");
     groupRepository.save(residentialGroup(project, "Apartamento tipo B", 12));
     perform(
             post(submitOf(project))
@@ -619,13 +608,46 @@ class SubmissionIntegrationTest {
                 .content("{\"changeSummary\":\"ART assinada e tipo B incluído.\"}"))
         .andExpect(status().isOk());
 
+    String adjustment =
+        mockMvc
+            .perform(
+                post(review + "/findings")
+                    .header("Authorization", analystToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"severity\":\"ADJUSTMENT\",\"stage\":\"PROJECT_DATA\","
+                            + "\"description\":\"Informe o bloco no endereço.\"}"))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    String adjustmentId = objectMapper.readTree(adjustment).path("data").path("id").asString();
     mockMvc
         .perform(
-            post(review + "/findings/" + findingId + "/resolution")
+            post(review + "/decision")
                 .header("Authorization", analystToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"resolution\":\"ACCEPT\"}"))
+                .content("{\"decision\":\"REJECT\",\"opinion\":\"Informe o bloco.\"}"))
         .andExpect(status().isOk());
+
+    answer(review, findingId, "FIXED", "ART assinada pelo responsável técnico.");
+    answer(review, findingId, "FIXED", "ART assinada pelo responsável técnico, folha 2.");
+    answer(review, adjustmentId, "FIXED", "Torre única, sem bloco.");
+    perform(
+            post(submitOf(project))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"changeSummary\":\"Bloco informado.\"}"))
+        .andExpect(status().isOk());
+
+    for (String id : List.of(findingId, adjustmentId)) {
+      mockMvc
+          .perform(
+              post(review + "/findings/" + id + "/resolution")
+                  .header("Authorization", analystToken)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"resolution\":\"ACCEPT\"}"))
+          .andExpect(status().isOk());
+    }
     mockMvc
         .perform(
             post(review + "/decision")
@@ -647,10 +669,18 @@ class SubmissionIntegrationTest {
                         "REJECTED",
                         "FINDING_ANSWERED",
                         "FINDING_ANSWERED",
+                        "FINDING_ANSWERED",
+                        "RESUBMITTED",
+                        "PRE_VALIDATED",
+                        "REJECTED",
+                        "FINDING_ANSWERED",
+                        "FINDING_ANSWERED",
                         "RESUBMITTED",
                         "PRE_VALIDATED",
                         "APPROVED")))
-        .andExpect(jsonPath("$.data[*].version").value(contains(0, 1, 1, 1, 1, 1, 1, 2, 2, 2)))
+        .andExpect(
+            jsonPath("$.data[*].version")
+                .value(contains(0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3)))
         .andExpect(jsonPath("$.data[0].authorName").value("Usuário Teste"))
         .andExpect(jsonPath("$.data[3].description").value("Análise assumida por Revisor Teste."))
         .andExpect(jsonPath("$.data[3].authorRole").value("reviewer"))
@@ -660,19 +690,36 @@ class SubmissionIntegrationTest {
         .andExpect(jsonPath("$.data[5].detail").value("ART assinada."))
         .andExpect(jsonPath("$.data[6].description").value("Apontamento de Documentos contestado."))
         .andExpect(jsonPath("$.data[6].detail").value("A ART já estava assinada."))
-        .andExpect(jsonPath("$.data[7].description").value("Versão 2 reenviada para análise."))
-        .andExpect(jsonPath("$.data[7].detail").value("ART assinada e tipo B incluído."))
-        .andExpect(jsonPath("$.data[8].authorRole").doesNotExist())
-        .andExpect(jsonPath("$.data[9].description").value("Aprovado."));
+        .andExpect(jsonPath("$.data[7].detail").value("ART reenviada com a assinatura."))
+        .andExpect(jsonPath("$.data[8].description").value("Versão 2 reenviada para análise."))
+        .andExpect(jsonPath("$.data[8].detail").value("ART assinada e tipo B incluído."))
+        .andExpect(jsonPath("$.data[9].authorRole").doesNotExist())
+        .andExpect(jsonPath("$.data[10].description").value("Reprovado com 1 apontamento."))
+        .andExpect(jsonPath("$.data[11].description").value("Apontamento de Documentos corrigido."))
+        .andExpect(jsonPath("$.data[11].detail").value("ART assinada pelo responsável técnico."))
+        .andExpect(
+            jsonPath("$.data[12].description")
+                .value("Apontamento de Dados da Edificação corrigido."))
+        .andExpect(jsonPath("$.data[13].description").value("Versão 3 reenviada para análise."))
+        .andExpect(jsonPath("$.data[15].description").value("Aprovado."));
 
     perform(get(review + "/rework"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.cycleDays").value(0))
-        .andExpect(jsonPath("$.data.submittedVersions").value(2))
-        .andExpect(jsonPath("$.data.reviewCycles").value(2))
-        .andExpect(jsonPath("$.data.resolvedFindings").value(1))
+        .andExpect(jsonPath("$.data.submittedVersions").value(3))
+        .andExpect(jsonPath("$.data.reviewCycles").value(3))
+        .andExpect(jsonPath("$.data.resolvedFindings").value(2))
         .andExpect(jsonPath("$.data.openFindings").value(0))
         .andExpect(jsonPath("$.data.redoneCalculationSteps").value(greaterThan(0)));
+  }
+
+  private void answer(String review, String findingId, String status, String response)
+      throws Exception {
+    perform(
+            put(review + "/findings/" + findingId + "/response")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\":\"" + status + "\",\"response\":\"" + response + "\"}"))
+        .andExpect(status().isOk());
   }
 
   private static Finding publishedFinding(

@@ -133,10 +133,12 @@ public class FindingService {
     }
 
     FindingStatus previous = finding.getStatus();
+    OffsetDateTime previousAnswer = finding.getRespondedAt();
+    boolean newCycle = previousAnswer == null || previousAnswer.isBefore(project.getSubmittedAt());
     OffsetDateTime respondedAt = OffsetDateTime.now(ZoneOffset.UTC);
     finding.respond(answer, response, respondedAt);
-    // Rewording an answer is not a new fact; switching between fixed and contested is.
-    if (finding.getStatus() != previous) {
+    // Rewording an answer in the same cycle is not a new fact; a new position or cycle is.
+    if (finding.getStatus() != previous || newCycle) {
       eventService.findingAnswered(project, project.getOwner(), finding, respondedAt);
     }
 
