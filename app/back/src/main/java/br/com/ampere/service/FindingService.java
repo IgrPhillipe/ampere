@@ -4,6 +4,7 @@ import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.FindingAnswer;
 import br.com.ampere.domain.FindingResolution;
+import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
@@ -131,9 +132,15 @@ public class FindingService {
       throw new BusinessException("Este apontamento não aguarda resposta.", HttpStatus.CONFLICT);
     }
 
+    FindingStatus previous = finding.getStatus();
+    OffsetDateTime previousAnswer = finding.getRespondedAt();
+    boolean newCycle = previousAnswer == null || previousAnswer.isBefore(project.getSubmittedAt());
     OffsetDateTime respondedAt = OffsetDateTime.now(ZoneOffset.UTC);
     finding.respond(answer, response, respondedAt);
-    eventService.findingAnswered(project, project.getOwner(), answer, response, respondedAt);
+    // Rewording an answer in the same cycle is not a new fact; a new position or cycle is.
+    if (finding.getStatus() != previous || newCycle) {
+      eventService.findingAnswered(project, project.getOwner(), finding, respondedAt);
+    }
 
     return finding;
   }

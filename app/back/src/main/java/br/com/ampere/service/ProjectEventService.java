@@ -4,7 +4,8 @@ import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.CalculationCheck;
 import br.com.ampere.domain.CheckStatus;
 import br.com.ampere.domain.Finding;
-import br.com.ampere.domain.FindingAnswer;
+import br.com.ampere.domain.FindingStage;
+import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
@@ -25,12 +26,12 @@ public class ProjectEventService {
     this.eventRepository = eventRepository;
   }
 
-  public ProjectEvent created(Project project, User author) {
-    return created(project, author, project.getCreatedAt());
+  public void created(Project project, User author) {
+    created(project, author, project.getCreatedAt());
   }
 
-  public ProjectEvent created(Project project, User author, OffsetDateTime occurredAt) {
-    return record(project, ProjectEventType.CREATED, author, "Projeto criado.", null, occurredAt);
+  public void created(Project project, User author, OffsetDateTime occurredAt) {
+    record(project, ProjectEventType.CREATED, author, "Projeto criado.", null, occurredAt);
   }
 
   public void submitted(
@@ -49,8 +50,8 @@ public class ProjectEventService {
     preValidated(project, calculation, occurredAt);
   }
 
-  public ProjectEvent assigned(Project project, User author, OffsetDateTime occurredAt) {
-    return record(
+  public void assigned(Project project, User author, OffsetDateTime occurredAt) {
+    record(
         project,
         ProjectEventType.ASSIGNED,
         author,
@@ -59,7 +60,7 @@ public class ProjectEventService {
         occurredAt);
   }
 
-  public ProjectEvent decided(
+  public void decided(
       Project project,
       ReviewDecision decision,
       User author,
@@ -67,12 +68,16 @@ public class ProjectEventService {
       String opinion,
       OffsetDateTime occurredAt) {
     if (decision == ReviewDecision.APPROVE) {
-      return record(project, ProjectEventType.APPROVED, author, "Aprovado.", opinion, occurredAt);
+      record(project, ProjectEventType.APPROVED, author, "Aprovado.", opinion, occurredAt);
+      return;
     }
 
-    long count = findings.stream().filter(finding -> !finding.isResolved()).count();
+    long count =
+        findings.stream()
+            .filter(finding -> ProjectService.OPEN_FINDINGS.contains(finding.getStatus()))
+            .count();
     String noun = count == 1 ? " apontamento." : " apontamentos.";
-    return record(
+    record(
         project,
         ProjectEventType.REJECTED,
         author,
@@ -81,20 +86,29 @@ public class ProjectEventService {
         occurredAt);
   }
 
-  public ProjectEvent findingAnswered(
-      Project project,
-      User author,
-      FindingAnswer answer,
-      String response,
-      OffsetDateTime occurredAt) {
-    String description =
-        answer == FindingAnswer.FIXED ? "Apontamento corrigido." : "Apontamento contestado.";
-    return record(
-        project, ProjectEventType.FINDING_ANSWERED, author, description, response, occurredAt);
+  public void findingAnswered(
+      Project project, User author, Finding finding, OffsetDateTime occurredAt) {
+    String action = finding.getStatus() == FindingStatus.FIXED ? "corrigido" : "contestado";
+    String description = "Apontamento de " + stageLabel(finding.getStage()) + " " + action + ".";
+    record(
+        project,
+        ProjectEventType.FINDING_ANSWERED,
+        author,
+        description,
+        finding.getResponse(),
+        occurredAt);
   }
 
-  private ProjectEvent preValidated(
-      Project project, Calculation calculation, OffsetDateTime occurredAt) {
+  private static String stageLabel(FindingStage stage) {
+    return switch (stage) {
+      case PROJECT_DATA -> "Dados da Edificação";
+      case CONSUMER_UNITS -> "Unidades Consumidoras";
+      case CALCULATION -> "Cálculo de Demanda";
+      case DOCUMENTS -> "Documentos";
+    };
+  }
+
+  private void preValidated(Project project, Calculation calculation, OffsetDateTime occurredAt) {
     List<String> warnings =
         calculation.getChecks().stream()
             .filter(check -> check.getStatus() == CheckStatus.WARNING)
@@ -108,17 +122,17 @@ public class ProjectEventService {
         };
     String detail = warnings.isEmpty() ? null : String.join("\n", warnings);
 
-    return record(project, ProjectEventType.PRE_VALIDATED, null, description, detail, occurredAt);
+    record(project, ProjectEventType.PRE_VALIDATED, null, description, detail, occurredAt);
   }
 
-  private ProjectEvent record(
+  private void record(
       Project project,
       ProjectEventType type,
       User author,
       String description,
       String detail,
       OffsetDateTime occurredAt) {
-    return eventRepository.save(
+    eventRepository.save(
         new ProjectEvent(
             project,
             type,

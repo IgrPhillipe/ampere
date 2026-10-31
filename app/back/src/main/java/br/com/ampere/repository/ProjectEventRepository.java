@@ -19,4 +19,6 @@ public interface ProjectEventRepository extends JpaRepository<ProjectEvent, Long
 
   @EntityGraph(attributePaths = "author")
   List<ProjectEvent> findAllByProjectIdOrderByOccurredAtDescIdDesc(Long projectId);
+
+  boolean existsByProjectId(Long projectId);
 }

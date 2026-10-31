@@ -7,6 +7,7 @@ import br.com.ampere.domain.User;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.FindingRepository;
+import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.Timestamps;
 import java.time.OffsetDateTime;
@@ -21,16 +22,19 @@ public class ProjectReviewService {
   private static final String NOT_UNDER_REVIEW = "O projeto não está em análise.";
 
   private final ProjectService projectService;
+  private final ProjectRepository projectRepository;
   private final UserRepository userRepository;
   private final FindingRepository findingRepository;
   private final ProjectEventService eventService;
 
   public ProjectReviewService(
       ProjectService projectService,
+      ProjectRepository projectRepository,
       UserRepository userRepository,
       FindingRepository findingRepository,
       ProjectEventService eventService) {
     this.projectService = projectService;
+    this.projectRepository = projectRepository;
     this.userRepository = userRepository;
     this.findingRepository = findingRepository;
     this.eventService = eventService;
@@ -40,6 +44,8 @@ public class ProjectReviewService {
   @Transactional
   public Project assign(Long projectId, AuthenticatedUser user) {
     user.requireReviewer();
+    // Two analysts at once would both find the project free.
+    projectRepository.lockById(projectId);
     Project project = projectService.findById(projectId, user);
     if (project.isOwnedBy(user.id())) {
       throw new BusinessException("Você não pode analisar um projeto seu.", HttpStatus.FORBIDDEN);

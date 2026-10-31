@@ -80,6 +80,7 @@ abstract class SeedIntegrationTestBase {
         findingRepository,
         calculationRepository,
         documentRepository,
+        eventRepository,
         standardRepository,
         normativeTableRepository,
         userRepository,

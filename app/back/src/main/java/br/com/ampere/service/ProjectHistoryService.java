@@ -12,7 +12,6 @@ import br.com.ampere.repository.ProjectEventRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,11 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProjectHistoryService {
-
-  static final ZoneId CYCLE_ZONE = ZoneId.of("America/Recife");
-
-  private static final List<FindingStatus> OPEN_FINDINGS =
-      List.of(FindingStatus.OPEN, FindingStatus.CONTESTED);
 
   private final ProjectService projectService;
   private final ProjectEventRepository eventRepository;
@@ -73,7 +67,7 @@ public class ProjectHistoryService {
                         || event.getType() == ProjectEventType.APPROVED)
             .count(),
         findingRepository.countByProjectIdAndStatusIn(projectId, List.of(FindingStatus.RESOLVED)),
-        findingRepository.countByProjectIdAndStatusIn(projectId, OPEN_FINDINGS),
+        findingRepository.countByProjectIdAndStatusIn(projectId, ProjectService.OPEN_FINDINGS),
         redoneCalculationSteps(project, firstSubmission));
   }
 
@@ -82,11 +76,11 @@ public class ProjectHistoryService {
       return null;
     }
     OffsetDateTime approved = firstOccurredAt(events, ProjectEventType.APPROVED);
-    LocalDate start = firstSubmission.atZoneSameInstant(CYCLE_ZONE).toLocalDate();
+    LocalDate start = firstSubmission.atZoneSameInstant(ReviewQueueService.ZONE).toLocalDate();
     LocalDate end =
         approved == null
-            ? LocalDate.now(CYCLE_ZONE)
-            : approved.atZoneSameInstant(CYCLE_ZONE).toLocalDate();
+            ? LocalDate.now(ReviewQueueService.ZONE)
+            : approved.atZoneSameInstant(ReviewQueueService.ZONE).toLocalDate();
 
     return ChronoUnit.DAYS.between(start, end);
   }
@@ -101,9 +95,7 @@ public class ProjectHistoryService {
                 project.getId(), firstSubmission)
             .orElse(null);
     Calculation latest =
-        calculationRepository
-            .findFirstByProjectIdOrderByCalculatedAtDescIdDesc(project.getId())
-            .orElse(null);
+        calculationRepository.findFirstByProjectIdOrderByIdDesc(project.getId()).orElse(null);
     if (first == null || latest == null) {
       return 0;
     }

@@ -167,9 +167,7 @@ final class ScenarioCase {
   ScenarioCase submit(int daysAgo) {
     OffsetDateTime submittedAt = advance(daysAgo, 0);
     Calculation calculation =
-        kit.calculations
-            .findFirstByProjectIdOrderByCalculatedAtDescIdDesc(project.getId())
-            .orElseThrow();
+        kit.calculations.findFirstByProjectIdOrderByIdDesc(project.getId()).orElseThrow();
     project.submit(submittedAt);
     kit.events.submitted(project, project.getOwner(), calculation, submittedAt);
 
@@ -210,7 +208,7 @@ final class ScenarioCase {
   ScenarioCase respond(int daysAgo, Finding finding, FindingAnswer answer, String response) {
     OffsetDateTime respondedAt = advance(daysAgo, RESPONSE);
     finding.respond(answer, response, respondedAt);
-    kit.events.findingAnswered(project, project.getOwner(), answer, response, respondedAt);
+    kit.events.findingAnswered(project, project.getOwner(), finding, respondedAt);
 
     return this;
   }

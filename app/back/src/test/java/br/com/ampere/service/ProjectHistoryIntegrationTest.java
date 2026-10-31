@@ -87,6 +87,7 @@ class ProjectHistoryIntegrationTest {
     mockMvc
         .perform(get(eventsOf(submitted)).header(HttpHeaders.AUTHORIZATION, bearer(ownerToken)))
         .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].id").isString())
         .andExpect(jsonPath("$.data[0].type").value("PRE_VALIDATED"))
         .andExpect(jsonPath("$.data[1].type").value("SUBMITTED"))
         .andExpect(jsonPath("$.data[2].type").value("CREATED"))

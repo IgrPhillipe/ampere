@@ -9,7 +9,8 @@ import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.CalculationCheck;
 import br.com.ampere.domain.CheckStatus;
 import br.com.ampere.domain.Finding;
-import br.com.ampere.domain.FindingAnswer;
+import br.com.ampere.domain.FindingStage;
+import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
@@ -41,7 +42,6 @@ class ProjectEventServiceTest {
     User analyst = user("Admin Teste", UserRole.ADMIN);
     OffsetDateTime at = OffsetDateTime.parse("2026-10-16T14:20:00Z");
     when(project.getCreatedAt()).thenReturn(at.minusDays(12));
-    when(project.getReviewCycle()).thenReturn(0, 1, 1, 1, 1, 1, 1, 2, 2);
     when(project.getChangeSummary()).thenReturn("ART e área corrigidas.");
     Calculation calculation = mock(Calculation.class);
     when(calculation.getChecks())
@@ -49,19 +49,29 @@ class ProjectEventServiceTest {
             List.of(
                 new CalculationCheck("A", CheckStatus.WARNING, "Primeiro alerta."),
                 new CalculationCheck("B", CheckStatus.WARNING, "Segundo alerta.")));
-    Finding finding = mock(Finding.class);
-    when(finding.isResolved()).thenReturn(false);
+    Finding open = finding(FindingStatus.OPEN);
+    Finding contested = finding(FindingStatus.CONTESTED);
+    Finding fixed = finding(FindingStatus.FIXED);
+    when(fixed.getStage()).thenReturn(FindingStage.DOCUMENTS);
+    when(fixed.getResponse()).thenReturn("ART substituída.");
 
+    when(project.getReviewCycle()).thenReturn(0);
     service.created(project, designer);
+    when(project.getReviewCycle()).thenReturn(1);
     service.submitted(project, designer, calculation, at.minusDays(12));
     service.assigned(project, analyst, at.minusDays(11));
     service.decided(
-        project, ReviewDecision.REJECT, analyst, List.of(finding), "Corrija a ART.", at);
-    service.findingAnswered(
-        project, designer, FindingAnswer.FIXED, "ART substituída.", at.plusDays(2));
+        project,
+        ReviewDecision.REJECT,
+        analyst,
+        List.of(open, contested, fixed),
+        "Corrija a ART.",
+        at);
+    service.findingAnswered(project, designer, fixed, at.plusDays(2));
+    when(project.getReviewCycle()).thenReturn(2);
+    service.submitted(project, designer, calculation, at.plusDays(3));
     service.decided(
         project, ReviewDecision.APPROVE, analyst, List.of(), "Tudo certo.", at.plusDays(5));
-    service.submitted(project, designer, calculation, at.plusDays(3));
 
     assertThat(recorded)
         .extracting(ProjectEvent::getType)
@@ -72,18 +82,28 @@ class ProjectEventServiceTest {
             ProjectEventType.ASSIGNED,
             ProjectEventType.REJECTED,
             ProjectEventType.FINDING_ANSWERED,
-            ProjectEventType.APPROVED,
             ProjectEventType.RESUBMITTED,
-            ProjectEventType.PRE_VALIDATED);
+            ProjectEventType.PRE_VALIDATED,
+            ProjectEventType.APPROVED);
+    assertThat(recorded)
+        .extracting(ProjectEvent::getVersion)
+        .containsExactly(0, 1, 1, 1, 1, 1, 2, 2, 2);
     assertThat(recorded.get(2).getDescription()).isEqualTo("Pré-validação com 2 alertas.");
     assertThat(recorded.get(2).getDetail()).isEqualTo("Primeiro alerta.\nSegundo alerta.");
     assertThat(recorded.get(3).getDescription()).isEqualTo("Análise assumida por Admin Teste.");
-    assertThat(recorded.get(4).getDescription()).isEqualTo("Reprovado com 1 apontamento.");
-    assertThat(recorded.get(5).getDescription()).isEqualTo("Apontamento corrigido.");
-    assertThat(recorded.get(7).getDescription()).isEqualTo("Versão 2 reenviada para análise.");
-    assertThat(recorded.get(7).getDetail()).isEqualTo("ART e área corrigidas.");
+    assertThat(recorded.get(4).getDescription()).isEqualTo("Reprovado com 2 apontamentos.");
+    assertThat(recorded.get(5).getDescription()).isEqualTo("Apontamento de Documentos corrigido.");
+    assertThat(recorded.get(5).getDetail()).isEqualTo("ART substituída.");
+    assertThat(recorded.get(6).getDescription()).isEqualTo("Versão 2 reenviada para análise.");
+    assertThat(recorded.get(6).getDetail()).isEqualTo("ART e área corrigidas.");
     assertThat(recorded.get(2).getAuthor()).isNull();
     assertThat(recorded.get(4).getAuthorRole()).isEqualTo(UserRole.ADMIN);
+  }
+
+  private static Finding finding(FindingStatus status) {
+    Finding finding = mock(Finding.class);
+    when(finding.getStatus()).thenReturn(status);
+    return finding;
   }
 
   private static User user(String name, UserRole role) {
