@@ -26,6 +26,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -95,6 +96,8 @@ public class SecurityConfig {
                     .authenticationEntryPoint(handler)
                     .accessDeniedHandler(handler)
                     .bearerTokenResolver(ignoringPublicAuthPaths()))
+        .addFilterAfter(
+            new PendingPasswordChangeFilter(handler), BearerTokenAuthenticationFilter.class)
         .exceptionHandling(
             exceptions -> exceptions.authenticationEntryPoint(handler).accessDeniedHandler(handler))
         .build();

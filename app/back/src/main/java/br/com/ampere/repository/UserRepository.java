@@ -21,6 +21,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean isActive();
 
     UserRole getRole();
+
+    boolean isMustChangePassword();
   }
 
   /** Read on every request, without loading the whole account. */
