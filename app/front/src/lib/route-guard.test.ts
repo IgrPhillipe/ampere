@@ -95,9 +95,16 @@ describe("pending password change", () => {
 		signInAs("admin", { mustChangePassword: true });
 
 		await expect(requireAuth()()).rejects.toMatchObject(toPasswordChange);
-		await expect(requireRoles(ROLE_ACCESS.users)()).rejects.toMatchObject(
-			toPasswordChange,
-		);
+	});
+
+	it("returns to the route being opened, not the one being left", async () => {
+		signInAs("admin", { mustChangePassword: true });
+
+		await expect(
+			requireAuth()({ location: { pathname: "/usuarios" } }),
+		).rejects.toMatchObject({
+			options: { to: "/trocar-senha", search: { redirect: "/usuarios" } },
+		});
 	});
 
 	it("sends a temporary password to the change from the entry routes", async () => {

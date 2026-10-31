@@ -44,7 +44,7 @@ export const Route = createRootRoute({
 	beforeLoad: async ({ location }) => {
 		if (STANDALONE_PATHS.includes(location.pathname)) return;
 
-		await requireAuth()();
+		await requireAuth()({ location });
 	},
 	component: RootComponent,
 });

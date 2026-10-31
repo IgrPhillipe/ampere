@@ -31,26 +31,28 @@ export const getRoleHomePath = (role: UserRole) => ROLE_FALLBACK[role];
 /** A temporary password keeps the user here until they replace it. */
 export const PASSWORD_CHANGE_PATH = "/trocar-senha";
 
-const requirePasswordChanged = (user: { mustChangePassword: boolean }) => {
-	if (user.mustChangePassword) {
-		throw redirect({
-			to: PASSWORD_CHANGE_PATH,
-			search: { redirect: location.pathname },
-		});
-	}
-};
+interface GuardContext {
+	/** The route being opened, which `window.location` still lags behind. */
+	location: { pathname: string };
+}
 
 /** Use in the `beforeLoad` of a route that requires a session. */
-export const requireAuth = () => async () => {
+export const requireAuth = () => async (context?: GuardContext) => {
 	await waitForAuthHydration();
 
 	const { isAuthenticated, user } = useAuthStore.getState();
+	const pathname = context?.location.pathname ?? location.pathname;
 
 	if (!isAuthenticated || !user) {
-		throw redirect({ to: "/entrar", search: { redirect: location.pathname } });
+		throw redirect({ to: "/entrar", search: { redirect: pathname } });
 	}
 
-	requirePasswordChanged(user);
+	if (user.mustChangePassword) {
+		throw redirect({
+			to: PASSWORD_CHANGE_PATH,
+			search: { redirect: pathname },
+		});
+	}
 };
 
 /** Use in the `beforeLoad` of `/trocar-senha`: only a pending change gets in. */
@@ -113,8 +115,6 @@ export const requireRoles =
 				search: { redirect: location.pathname },
 			});
 		}
-
-		requirePasswordChanged(user);
 
 		if (!roles.includes(user.role)) {
 			throw redirect({ to: fallback ?? getRoleHomePath(user.role) });
