@@ -560,6 +560,18 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
+  void requiresTheDesignerWhenTheAdministratorCreates() {
+    AuthenticatedUser admin = administrator();
+
+    assertThatThrownBy(
+            () -> service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, admin))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("O projetista é obrigatório.")
+        .extracting(exception -> ((BusinessException) exception).getStatus())
+        .isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
   void ignoresTheRequestedOwnerWhenADesignerCreates() {
     Long other = administrator().id();
 

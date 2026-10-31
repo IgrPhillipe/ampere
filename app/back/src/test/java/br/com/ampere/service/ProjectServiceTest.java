@@ -3,7 +3,6 @@ package br.com.ampere.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -119,49 +118,33 @@ class ProjectServiceTest {
   @Test
   void retriesProtocolGenerationOnceOnACollision() {
     ProjectCreation creation = mock(ProjectCreation.class);
+    User owner = mock(User.class);
     Project created = mock(Project.class);
-    when(creation.createWithGeneratedProtocol(any(), any(), anyBoolean()))
+    when(creation.ownerOf(null, DESIGNER)).thenReturn(owner);
+    when(creation.createWithGeneratedProtocol(any(), eq(owner)))
         .thenThrow(new DataIntegrityViolationException("duplicate protocol"))
         .thenReturn(created);
 
     assertThat(service(creation).create(parameters(), null, DESIGNER)).isSameAs(created);
-    verify(creation, times(2)).createWithGeneratedProtocol(any(), any(), anyBoolean());
+    verify(creation, times(1)).ownerOf(null, DESIGNER);
+    verify(creation, times(2)).createWithGeneratedProtocol(any(), eq(owner));
   }
 
   @Test
-  void createsInTheNameOfTheChosenDesignerWhenTheAdministratorCreates() {
+  void createsNothingWhenTheOwnerIsRejected() {
     ProjectCreation creation = mock(ProjectCreation.class);
-    Project created = mock(Project.class);
-    when(creation.createWithGeneratedProtocol(any(), eq(5L), eq(true))).thenReturn(created);
-
-    assertThat(service(creation).create(parameters(), 5L, ADMIN)).isSameAs(created);
-  }
-
-  @Test
-  void answersBadRequestWhenTheAdministratorOmitsTheDesigner() {
-    ProjectCreation creation = mock(ProjectCreation.class);
+    when(creation.ownerOf(null, ADMIN))
+        .thenThrow(new BusinessException("O projetista é obrigatório.", HttpStatus.BAD_REQUEST));
 
     assertThatThrownBy(() -> service(creation).create(parameters(), null, ADMIN))
-        .isInstanceOf(BusinessException.class)
-        .extracting(exception -> ((BusinessException) exception).getStatus())
-        .isEqualTo(HttpStatus.BAD_REQUEST);
-    verify(creation, never()).createWithGeneratedProtocol(any(), any(), anyBoolean());
-  }
-
-  @Test
-  void ignoresTheRequestedOwnerWhenADesignerCreates() {
-    ProjectCreation creation = mock(ProjectCreation.class);
-    Project created = mock(Project.class);
-    when(creation.createWithGeneratedProtocol(any(), eq(DESIGNER.id()), eq(false)))
-        .thenReturn(created);
-
-    assertThat(service(creation).create(parameters(), 99L, DESIGNER)).isSameAs(created);
+        .isInstanceOf(BusinessException.class);
+    verify(creation, never()).createWithGeneratedProtocol(any(), any());
   }
 
   @Test
   void answersConflictWhenEveryProtocolAttemptCollides() {
     ProjectCreation creation = mock(ProjectCreation.class);
-    when(creation.createWithGeneratedProtocol(any(), any(), anyBoolean()))
+    when(creation.createWithGeneratedProtocol(any(), any()))
         .thenThrow(new DataIntegrityViolationException("duplicate protocol"));
 
     assertThatThrownBy(() -> service(creation).create(parameters(), null, DESIGNER))
@@ -169,7 +152,7 @@ class ProjectServiceTest {
         .hasMessage("Não foi possível gerar o protocolo do projeto. Tente novamente.")
         .extracting(exception -> ((BusinessException) exception).getStatus())
         .isEqualTo(HttpStatus.CONFLICT);
-    verify(creation, times(3)).createWithGeneratedProtocol(any(), any(), anyBoolean());
+    verify(creation, times(3)).createWithGeneratedProtocol(any(), any());
   }
 
   @Test

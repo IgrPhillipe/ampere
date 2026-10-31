@@ -31,10 +31,30 @@ public class ProjectCreation {
     this.userRepository = userRepository;
   }
 
+  /** The administrator creates in the name of an active designer; the designer, for themselves. */
+  @Transactional(readOnly = true)
+  public User ownerOf(Long requestedOwnerId, AuthenticatedUser user) {
+    if (!user.isAdmin()) {
+      return userRepository
+          .findById(user.id())
+          .orElseThrow(() -> new NotFoundException("Usuário autenticado não encontrado."));
+    }
+    if (requestedOwnerId == null) {
+      throw new BusinessException("O projetista é obrigatório.", HttpStatus.BAD_REQUEST);
+    }
+
+    return userRepository
+        .findById(requestedOwnerId)
+        .filter(account -> account.isActive() && account.getRole() == UserRole.USER)
+        .orElseThrow(
+            () ->
+                new BusinessException(
+                    "O projetista informado não existe, está inativo ou não é projetista.",
+                    HttpStatus.UNPROCESSABLE_CONTENT));
+  }
+
   @Transactional
-  public Project createWithGeneratedProtocol(
-      ProjectParameters parameters, Long ownerId, boolean chosenByAdmin) {
-    User owner = chosenByAdmin ? chosenOwner(ownerId) : authenticatedOwner(ownerId);
+  public Project createWithGeneratedProtocol(ProjectParameters parameters, User owner) {
     String municipality = ProjectPlaces.municipalityOf(parameters);
     BuildingType buildingType = parameters.toBuildingType();
     int year = LocalDate.now().getYear();
@@ -55,22 +75,5 @@ public class ProjectCreation {
     project.locate(parameters.postalCode(), parameters.state());
 
     return projectRepository.saveAndFlush(project);
-  }
-
-  private User authenticatedOwner(Long ownerId) {
-    return userRepository
-        .findById(ownerId)
-        .orElseThrow(() -> new NotFoundException("Usuário autenticado não encontrado."));
-  }
-
-  private User chosenOwner(Long ownerId) {
-    return userRepository
-        .findById(ownerId)
-        .filter(account -> account.isActive() && account.getRole() == UserRole.USER)
-        .orElseThrow(
-            () ->
-                new BusinessException(
-                    "O projetista informado não existe, está inativo ou não é projetista.",
-                    HttpStatus.UNPROCESSABLE_CONTENT));
   }
 }
