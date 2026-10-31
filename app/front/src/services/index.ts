@@ -6,3 +6,4 @@ export * from "./project-review";
 export * from "./projects";
 export * from "./review-queue";
 export * from "./submission";
+export * from "./users";

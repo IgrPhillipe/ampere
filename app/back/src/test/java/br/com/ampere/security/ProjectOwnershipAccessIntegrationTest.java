@@ -456,14 +456,60 @@ class ProjectOwnershipAccessIntegrationTest {
   }
 
   @Test
-  void adminCreatesAProject() throws Exception {
+  void adminCreatesAProjectInTheNameOfTheChosenDesigner() throws Exception {
+    Long designerId = userRepository.findByEmail("ana@ampere.com").orElseThrow().getId();
+
+    mockMvc
+        .perform(
+            post("/projects")
+                .header("Authorization", bearer("admin@ampere.com"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withOwner(designerId)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.ownerId").value(String.valueOf(designerId)));
+  }
+
+  @Test
+  void adminMustChooseTheDesigner() throws Exception {
     mockMvc
         .perform(
             post("/projects")
                 .header("Authorization", bearer("admin@ampere.com"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(PROJECT_BODY))
-        .andExpect(status().isCreated());
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void adminCannotCreateInTheNameOfAReviewer() throws Exception {
+    Long reviewerId = userRepository.findByEmail("revisor@ampere.com").orElseThrow().getId();
+
+    mockMvc
+        .perform(
+            post("/projects")
+                .header("Authorization", bearer("admin@ampere.com"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withOwner(reviewerId)))
+        .andExpect(status().isUnprocessableContent());
+  }
+
+  @Test
+  void designerCreatesForThemselvesWhateverTheBodySays() throws Exception {
+    Long anaId = userRepository.findByEmail("ana@ampere.com").orElseThrow().getId();
+    Long betoId = userRepository.findByEmail("beto@ampere.com").orElseThrow().getId();
+
+    mockMvc
+        .perform(
+            post("/projects")
+                .header("Authorization", bearer("ana@ampere.com"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withOwner(betoId)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.ownerId").value(String.valueOf(anaId)));
+  }
+
+  private static String withOwner(Long ownerId) {
+    return PROJECT_BODY.replace("\"floors\"", "\"ownerId\": \"" + ownerId + "\", \"floors\"");
   }
 
   @Test

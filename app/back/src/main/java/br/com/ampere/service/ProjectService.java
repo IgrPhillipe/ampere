@@ -140,11 +140,21 @@ public class ProjectService {
     return project;
   }
 
-  public Project create(ProjectParameters parameters, AuthenticatedUser user) {
+  /**
+   * The administrator creates in the name of {@code requestedOwnerId}; the designer always creates
+   * for themselves and the requested owner is ignored.
+   */
+  public Project create(
+      ProjectParameters parameters, Long requestedOwnerId, AuthenticatedUser user) {
     writerOrFail(user);
+    if (user.isAdmin() && requestedOwnerId == null) {
+      throw new BusinessException("O projetista é obrigatório.", HttpStatus.BAD_REQUEST);
+    }
+
+    Long ownerId = user.isAdmin() ? requestedOwnerId : user.id();
     for (int attempt = 1; attempt <= PROTOCOL_ATTEMPTS; attempt++) {
       try {
-        return projectCreation.createWithGeneratedProtocol(parameters, user.id());
+        return projectCreation.createWithGeneratedProtocol(parameters, ownerId, user.isAdmin());
       } catch (DataIntegrityViolationException collision) {
         log.warn("Protocol collision on attempt {} of {}", attempt, PROTOCOL_ATTEMPTS);
       }

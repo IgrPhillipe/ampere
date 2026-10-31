@@ -29,6 +29,8 @@ interface InfiniteFilterMenuProps {
 	isLoading: boolean;
 	onLoadMore: () => void;
 	allLabel: string;
+	/** The label of the button that clears the selection; defaults to `allLabel`. */
+	clearLabel?: string;
 	searchPlaceholder: string;
 	emptyMessage: string;
 	disabled?: boolean;
@@ -47,6 +49,7 @@ export const InfiniteFilterMenu = ({
 	isLoading,
 	onLoadMore,
 	allLabel,
+	clearLabel = allLabel,
 	searchPlaceholder,
 	emptyMessage,
 	disabled,
@@ -136,7 +139,7 @@ export const InfiniteFilterMenu = ({
 						onClick={() => onValueChange(null)}
 						className="w-full justify-start"
 					>
-						{allLabel}
+						{clearLabel}
 					</Button>
 				}
 			>

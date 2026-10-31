@@ -168,6 +168,28 @@ class UserAdministrationIntegrationTest {
   }
 
   @Test
+  void filtersByTheAccountStatus() throws Exception {
+    String adminToken = token("admin@ampere.com", PASSWORD);
+    User designer = userRepository.findByEmail("joao@ampere.com").orElseThrow();
+    deactivate(designer);
+
+    mockMvc
+        .perform(authorized(get("/users").param("active", "true"), adminToken))
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].email").value("admin@ampere.com"));
+
+    mockMvc
+        .perform(authorized(get("/users").param("active", "false"), adminToken))
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].email").value("joao@ampere.com"));
+
+    mockMvc
+        .perform(
+            authorized(get("/users").param("role", "user").param("active", "true"), adminToken))
+        .andExpect(jsonPath("$.data", hasSize(0)));
+  }
+
+  @Test
   void pagesTheListing() throws Exception {
     mockMvc
         .perform(
