@@ -130,7 +130,7 @@ Restrita ao papel `admin` pelo `SecurityConfig`, sem prefixo de papel no caminho
 | `POST /api/users/{id}/password-reset` | Gera uma nova senha temporária |
 
 - A senha temporária só sai em `data.temporaryPassword`, na resposta da criação e da redefinição. Não há e-mail: o administrador a repassa.
-- Com senha temporária, `mustChangePassword` vem `true` no login e em `/api/auth/me`, até a troca em `PUT /api/users/me/password`. O back não bloqueia as outras rotas enquanto isso: levar à troca é papel do front.
+- Com senha temporária, `mustChangePassword` vem `true` no login e em `/api/auth/me`, até a troca em `PUT /api/users/me/password`. Enquanto isso, só a troca, `GET /api/users/me` e `GET /api/auth/me` respondem; as outras rotas devolvem 403 com `code: "PASSWORD_CHANGE_REQUIRED"`, também numa sessão já aberta quando o administrador redefine a senha.
 - Conta inativa recebe 403 no login, com *"Conta desativada. Procure a Neoenergia."*, mas só se a senha estiver certa. O token já emitido passa a responder 401 com a mesma mensagem: o filtro do JWT relê a situação e o papel da conta a cada requisição. Papel alterado e conta inexistente também derrubam o token, com a mensagem de sessão expirada.
 - A redefinição de senha não derruba o token já aberto. Para cortar o acesso na hora, desative a conta.
 - O administrador não desativa a própria conta nem remove o próprio papel `admin` (400).
