@@ -311,8 +311,8 @@ Com a página única do #184, o histórico é a seção "Histórico" do projeto,
 
 ### `AT01-US12: Back-end do resumo do projeto [Backend]` (#106)
 
-- [ ] `GET /api/projects/{id}` passa a trazer responsável técnico, apontamentos em aberto, versão e última movimentação
-- [ ] O projetista lê os eventos do próprio projeto pelo endpoint da `AT01-US08`. Depende dela
+- [x] `GET /api/projects/{id}` passa a trazer responsável técnico, apontamentos em aberto, versão e última movimentação
+- [x] O projetista lê os eventos do próprio projeto pelo endpoint da `AT01-US08`. Depende dela
 
 ### `AT02-US12: Página única do projeto [Frontend]` (#107)
 
@@ -323,7 +323,8 @@ Com a página única do #184, o histórico é a seção "Histórico" do projeto,
 - [x] Cálculo sob demanda, com aviso de cálculo desatualizado (#184)
 - [x] Apontamentos respondidos no topo da seção indicada (#184)
 - [x] Analista na mesma página, com a coluna de apontamentos e a decisão; `/fila-de-analise/$id` redireciona para `/projetos/$id` (#184)
-- [ ] "Excluir Projeto" no detalhe, para rascunho (US20)
+- [x] Cabeçalho com unidades, demanda, apontamentos em aberto e última movimentação lidos do resumo do `GET /api/projects/{id}` (#106)
+- [x] "Excluir Projeto" no detalhe, para rascunho (US20)
 
 A seção "Histórico" lendo os eventos da US08 passou para a `AT02-US08` (#104).
 

@@ -1,5 +1,5 @@
 import { getHttpStatus, getToastErrorMessage } from "@lib/api-error";
-import { projectEventKeys } from "@services/project-events";
+import { projectKeys } from "@services/projects";
 import { reviewQueueKeys } from "@services/review-queue";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -15,7 +15,7 @@ export const useAssignProjectReview = () => {
 			Promise.all([
 				queryClient.invalidateQueries({ queryKey: reviewQueueKeys.all() }),
 				queryClient.invalidateQueries({
-					queryKey: projectEventKeys.project(projectId),
+					queryKey: projectKeys.detail(projectId),
 				}),
 			]),
 		onError: (error) => {

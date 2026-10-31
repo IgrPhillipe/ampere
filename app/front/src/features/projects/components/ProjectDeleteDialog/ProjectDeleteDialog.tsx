@@ -2,7 +2,7 @@ import { ConfirmDialog } from "@components/ConfirmDialog";
 import type { Project } from "@services/projects";
 
 interface ProjectDeleteDialogProps {
-	project: Project | null;
+	project: Pick<Project, "name" | "protocol"> | null;
 	isPending: boolean;
 	onOpenChange: (open: boolean) => void;
 	onConfirm: () => void;

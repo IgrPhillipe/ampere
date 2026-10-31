@@ -1,5 +1,5 @@
 import { getToastErrorMessage } from "@lib/api-error";
-import { projectEventKeys } from "@services/project-events";
+import { projectKeys } from "@services/projects";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -17,7 +17,7 @@ export const useResolveFinding = () => {
 					queryKey: projectReviewKeys.findings(projectId),
 				}),
 				queryClient.invalidateQueries({
-					queryKey: projectEventKeys.project(projectId),
+					queryKey: projectKeys.detail(projectId),
 				}),
 			]);
 

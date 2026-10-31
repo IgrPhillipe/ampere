@@ -5,8 +5,8 @@ import { makeProjectDetail } from "@/test/fixtures/project-detail";
 
 import { ProjectDetailHeader } from "./ProjectDetailHeader";
 
-const technicalResponsibleCell = () =>
-	screen.getByText("Responsável técnico").nextElementSibling;
+const cell = (label: string) => screen.getByText(label).nextElementSibling;
+const technicalResponsibleCell = () => cell("Responsável técnico");
 
 describe("ProjectDetailHeader", () => {
 	it("mostra o nome e o CREA do responsável técnico", () => {
@@ -34,5 +34,39 @@ describe("ProjectDetailHeader", () => {
 		);
 
 		expect(technicalResponsibleCell()).toHaveTextContent("Não informado");
+	});
+
+	it("lê as unidades e a demanda do resumo do projeto", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({ consumerUnitsCount: 8, demandKva: 61.2 })}
+			/>,
+		);
+
+		expect(cell("Unidades")).toHaveTextContent("08 unidades");
+		expect(cell("Demanda")).toHaveTextContent(/^61,2 kVA$/);
+	});
+
+	it("indica o projeto ainda sem cálculo", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({ consumerUnitsCount: 1, demandKva: null })}
+			/>,
+		);
+
+		expect(cell("Unidades")).toHaveTextContent("01 unidade");
+		expect(cell("Demanda")).toHaveTextContent("Sem cálculo");
+	});
+
+	it("mostra a data da última movimentação", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({
+					lastActivityAt: "2026-10-20T15:00:00Z",
+				})}
+			/>,
+		);
+
+		expect(cell("Última movimentação")).toHaveTextContent("20/10/2026");
 	});
 });

@@ -1,6 +1,11 @@
 import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDate, formatKva, formatPostalCode } from "@features/shared";
+import {
+	formatDate,
+	formatKva,
+	formatPostalCode,
+	padCount,
+} from "@features/shared";
 import { cn } from "@lib/utils";
 import {
 	type ConcessionState,
@@ -22,7 +27,7 @@ interface HeaderCellProps {
 }
 
 const HeaderCell = ({ label, isLoading, children }: HeaderCellProps) => (
-	<div className="flex min-w-0 flex-col gap-1.5 bg-card px-6 py-4 last:odd:col-span-2 md:px-8 lg:last:odd:col-span-1">
+	<div className="flex min-w-0 flex-col gap-1.5 bg-card px-6 py-4 last:odd:col-span-2 md:px-8 xl:px-4 xl:first:pl-8 xl:last:odd:col-span-1">
 		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 			{label}
 		</dt>
@@ -71,8 +76,6 @@ interface ProjectDetailHeaderProps {
 	project?: ProjectDetail;
 	breadcrumb?: ReactNode;
 	isLoading?: boolean;
-	units?: string;
-	demandKva?: number | null;
 	reanalysis?: boolean;
 	/** The designer sees the version a rejected project is being corrected into. */
 	correcting?: boolean;
@@ -83,14 +86,12 @@ interface ProjectDetailHeaderProps {
 	className?: string;
 }
 
-const BASE_METRICS = 7;
+const BASE_METRICS = 8;
 
 export const ProjectDetailHeader = ({
 	project,
 	breadcrumb,
 	isLoading = false,
-	units,
-	demandKva,
 	reanalysis = false,
 	correcting = false,
 	metrics = [],
@@ -165,9 +166,10 @@ export const ProjectDetailHeader = ({
 			style={
 				{
 					"--metric-columns": `repeat(${BASE_METRICS + metrics.length}, minmax(0, 1fr))`,
+					"--metric-half-columns": `repeat(${Math.ceil((BASE_METRICS + metrics.length) / 2)}, minmax(0, 1fr))`,
 				} as CSSProperties
 			}
-			className="grid grid-cols-2 gap-px border-t border-border bg-border lg:grid-cols-(--metric-columns)"
+			className="grid grid-cols-2 gap-px border-t border-border bg-border lg:grid-cols-(--metric-half-columns) xl:grid-cols-(--metric-columns)"
 		>
 			<HeaderCell isLoading={isLoading} label="Responsável técnico">
 				{project?.technicalResponsible
@@ -176,15 +178,17 @@ export const ProjectDetailHeader = ({
 			</HeaderCell>
 
 			<HeaderCell isLoading={isLoading} label="Unidades">
-				{units}
+				{project
+					? `${padCount(project.consumerUnitsCount)} ${project.consumerUnitsCount === 1 ? "unidade" : "unidades"}`
+					: undefined}
 			</HeaderCell>
 
 			<HeaderCell isLoading={isLoading} label="Demanda">
-				{demandKva === undefined
-					? undefined
-					: demandKva === null
+				{project
+					? project.demandKva === null
 						? "Sem cálculo"
-						: formatKva(demandKva, 1)}
+						: formatKva(project.demandKva, 1)
+					: undefined}
 			</HeaderCell>
 
 			<HeaderCell isLoading={isLoading} label="Normas">
@@ -211,6 +215,10 @@ export const ProjectDetailHeader = ({
 				{project?.submittedAt ? (
 					<HeaderDate value={project.submittedAt} />
 				) : undefined}
+			</HeaderCell>
+
+			<HeaderCell isLoading={isLoading} label="Última movimentação">
+				{project ? <HeaderDate value={project.lastActivityAt} /> : undefined}
 			</HeaderCell>
 
 			{metrics.map((metric) => (
