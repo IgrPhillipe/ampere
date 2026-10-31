@@ -45,4 +45,28 @@ describe("http", () => {
 
 		expect(sentAuthorization()).toBeNull();
 	});
+
+	it("marks the change as pending when the API refuses a temporary password", async () => {
+		fetchMock.mockResolvedValueOnce(
+			Response.json(
+				{ status: 403, code: "PASSWORD_CHANGE_REQUIRED" },
+				{ status: 403 },
+			),
+		);
+
+		await expect(api.get("projects")).rejects.toThrow();
+
+		expect(useAuthStore.getState().user?.mustChangePassword).toBe(true);
+	});
+
+	it("keeps the session as it is on any other refusal", async () => {
+		fetchMock.mockResolvedValueOnce(
+			Response.json({ status: 403 }, { status: 403 }),
+		);
+
+		await expect(api.get("users")).rejects.toThrow();
+
+		expect(useAuthStore.getState().user?.mustChangePassword).toBe(false);
+		expect(useAuthStore.getState().isAuthenticated).toBe(true);
+	});
 });
