@@ -1,4 +1,5 @@
 import { getHttpStatus, getToastErrorMessage } from "@lib/api-error";
+import { projectEventKeys } from "@services/project-events";
 import { reviewQueueKeys } from "@services/review-queue";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -10,8 +11,13 @@ export const useAssignProjectReview = () => {
 
 	return useMutation({
 		mutationFn: assignProjectReview,
-		onSuccess: () =>
-			queryClient.invalidateQueries({ queryKey: reviewQueueKeys.all() }),
+		onSuccess: (_, projectId) =>
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: reviewQueueKeys.all() }),
+				queryClient.invalidateQueries({
+					queryKey: projectEventKeys.project(projectId),
+				}),
+			]),
 		onError: (error) => {
 			if (getHttpStatus(error) === 409) return;
 

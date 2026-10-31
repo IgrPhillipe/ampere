@@ -302,9 +302,9 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 
 Com a página única do #184, o histórico é a seção "Histórico" do projeto, igual para os dois perfis, e a decisão fica na coluna lateral.
 
-- [ ] Linha do tempo com a alternância "Mais Recente Primeiro"
-- [ ] Card de ciclo em dias e tabela de métricas de retrabalho
-- [ ] Estado vazio para projeto sem eventos
+- [x] Linha do tempo com a alternância "Mais Recente Primeiro"
+- [x] Card de ciclo em dias e tabela de métricas de retrabalho
+- [x] Estado vazio para projeto sem eventos
 
 ## US12: Detalhe do Projeto e Histórico de Tratamento (#105)
 `Sprint 6`, `US12`. Protótipo: [H1b · Detalhes do projeto](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2155-2).
