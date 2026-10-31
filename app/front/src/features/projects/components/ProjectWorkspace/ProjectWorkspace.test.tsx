@@ -21,6 +21,7 @@ const state = vi.hoisted(() => ({
 	submit: vi.fn(),
 	remove: vi.fn(),
 	navigate: vi.fn(),
+	onDeleted: undefined as (() => void) | undefined,
 }));
 
 vi.mock("@tanstack/react-router", () => ({
@@ -33,7 +34,10 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@services/projects", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/projects")>()),
 	useGetProject: () => loadedQuery({ data: state.project }),
-	useDeleteProject: () => idleMutation({ mutate: state.remove }),
+	useDeleteProject: (options: { onDeleted: () => void }) => {
+		state.onDeleted = options.onDeleted;
+		return idleMutation({ mutate: state.remove });
+	},
 }));
 
 vi.mock("@services/project-review", async (importOriginal) => ({
@@ -239,8 +243,8 @@ describe("ProjectWorkspace", () => {
 		// The open dialog hides the page, so only its own button is left.
 		fireEvent.click(screen.getByRole("button", { name: "Excluir Projeto" }));
 
-		expect(state.remove).toHaveBeenCalledWith("4", expect.anything());
-		state.remove.mock.calls[0][1].onSuccess();
+		expect(state.remove).toHaveBeenCalledWith("4");
+		state.onDeleted?.();
 		expect(state.navigate).toHaveBeenCalledWith({
 			to: "/projetos",
 			replace: true,

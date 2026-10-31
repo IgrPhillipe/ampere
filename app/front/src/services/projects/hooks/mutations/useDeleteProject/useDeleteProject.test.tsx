@@ -46,4 +46,28 @@ describe("useDeleteProject", () => {
 		expect(queryClient.getQueryState(countsKey)?.isInvalidated).toBe(true);
 		expect(toast.success).toHaveBeenCalledWith("Projeto excluído.");
 	});
+
+	it("lets the caller leave before the detail is removed", async () => {
+		const queryClient = new QueryClient();
+		const detailKey = projectKeys.detail("4");
+		queryClient.setQueryData(detailKey, { data: { id: "4" } });
+		let detailWhenLeaving: unknown;
+		const onDeleted = vi.fn(() => {
+			detailWhenLeaving = queryClient.getQueryData(detailKey);
+		});
+
+		const wrapper = ({ children }: PropsWithChildren) => (
+			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+		);
+		const { result } = renderHook(() => useDeleteProject({ onDeleted }), {
+			wrapper,
+		});
+
+		act(() => result.current.mutate("4"));
+		await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+		expect(onDeleted).toHaveBeenCalledOnce();
+		expect(detailWhenLeaving).toEqual({ data: { id: "4" } });
+		expect(queryClient.getQueryData(detailKey)).toBeUndefined();
+	});
 });

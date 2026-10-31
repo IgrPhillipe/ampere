@@ -84,7 +84,9 @@ export const ProjectWorkspace = ({
 	const { project, projectQuery, permissions, checklist } = workspace;
 	const current = useCurrentSection(projectId);
 	const submitMutation = useSubmitProject();
-	const deleteMutation = useDeleteProject();
+	const deleteMutation = useDeleteProject({
+		onDeleted: () => navigate({ to: "/projetos", replace: true }),
+	});
 	const [deleting, setDeleting] = useState(false);
 	const detailActions = useProjectDetailActions({
 		status: project?.status,
@@ -128,11 +130,6 @@ export const ProjectWorkspace = ({
 					void navigate({ to: "/projetos/$id", params: { id: projectId } }),
 			},
 		);
-
-	const confirmDelete = () =>
-		deleteMutation.mutate(projectId, {
-			onSuccess: () => void navigate({ to: "/projetos", replace: true }),
-		});
 
 	const deleteAction =
 		!reviewing && permissions.canDelete ? (
@@ -311,7 +308,7 @@ export const ProjectWorkspace = ({
 				project={deleting && project ? project : null}
 				isPending={deleteMutation.isPending}
 				onOpenChange={setDeleting}
-				onConfirm={confirmDelete}
+				onConfirm={() => deleteMutation.mutate(projectId)}
 			/>
 		</ProjectWorkspaceContext>
 	);
