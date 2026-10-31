@@ -128,6 +128,8 @@ O sistema bloqueia a seleção manual da norma e atribui automaticamente as norm
 - **DIS-NOR-053 REV 06**: estrutura do cálculo e método da área útil. O tipo de edificação define o método pelos itens 6.22 a 6.25.
 - **DIS-NOR-030 REV 07**: método da carga instalada, item 6.27.
 
+O tipo de ligação é monofásico ou trifásico: em Pernambuco e na área atendida da Paraíba não se usa ligação bifásica (validação com a cliente em 29/10).
+
 O sistema não importa planilhas: os dados são informados no próprio formulário.
 
 > Detalhamento do método e das tabelas em [`../tecnico/fontes-normativas.md`](../tecnico/fontes-normativas.md) e [`../tecnico/engine-calculo.md`](../tecnico/engine-calculo.md).
@@ -167,6 +169,13 @@ Interface de agrupamento de cargas por tipologia com motor de validação assín
 
 ### Conversação (Regras de Negócio e Interface)
 Permite adicionar UCs agrupadas (apartamentos, áreas comuns, recarga de veículo elétrico), informadas no próprio sistema, sem importação de planilha. O sistema aplica a tabela normativa respectiva a cada grupo (Tabela 3, Tabela 5, Tabela 6) e exibe um painel de validação em tempo real, bloqueando o avanço e sinalizando pendências críticas (ex.: motores acima de 5 CV sem fator de partida ou falta de indicação de gerenciamento de carga veicular).
+
+Ao salvar um grupo novo, o sistema abre o grupo para o projetista informar as cargas.
+
+**Apartamentos** (validação com a cliente em 29/10):
+- Cada grupo de apartamentos tem a sua ligação, monofásica ou trifásica. Um edifício pode ter os dois tipos, e um bloco pode ter apartamentos com áreas úteis diferentes, um grupo para cada
+- Apartamento monofásico informa a carga instalada total. Apartamento trifásico detalha as cargas por tipo, como a área comum
+- O sistema calcula a demanda individual de cada apartamento pelo método da carga instalada (DIS-NOR-053, item 6.22.3) e recusa como baixa tensão a unidade acima de 75 kW
 
 ### Confirmação (Critérios de Aceite - BDD)
 
@@ -216,6 +225,8 @@ Ao lado, exibe o painel de rastreabilidade técnica com:
 - Padrão de entrada
 - Proteção geral (disjuntor)
 - Seção do ramal de entrada
+
+**Revisão da norma:** o protocolo usa as revisões das tabelas vigentes na data do primeiro envio, mesmo que uma tabela seja atualizada enquanto ele tramita; o reenvio recalcula com as mesmas revisões. No rascunho, uma revisão nova deixa o cálculo desatualizado, com aviso da tabela que mudou (validação com a cliente em 29/10).
 
 ### Confirmação (Critérios de Aceite - BDD)
 
@@ -338,11 +349,12 @@ O analista visualiza o painel de validações do sistema e os dados submetidos.
 Na reprovação, o sistema notifica o projetista dentro do próprio sistema ([US14](#us14-notificações-no-sistema)) e o direciona para a etapa apontada no seu painel.
 
 **Regras do apontamento:**
-- Ao clicar em "Analisar" na fila, o projeto fica atribuído ao analista. Outro analista vê o projeto como "Em análise por" e o nome do responsável.
-- O apontamento nasce de duas formas: pelo atalho "Virar Apontamento" de um alerta da verificação automática, que já traz a etapa e o item da norma, ou pelo formulário da lateral.
+- O projeto é atribuído ao analista pelo gestor ou pela regra de município ([US23](#us23-distribuição-da-fila-de-análise)). "Analisar" aparece só para o analista responsável; os demais veem o projeto em consulta, como "Em análise por" e o nome do responsável.
+- O apontamento nasce de duas formas: pelo atalho "Virar Apontamento" de um alerta da verificação automática, que já traz a etapa e o item da norma, ou pelo formulário da lateral. O formulário começa na seção aberta, e trocar a seção limpa o grupo, a parcela ou o documento escolhido.
 - Cada apontamento registra a gravidade (**Bloqueante** ou **Ajuste**), a etapa (Dados da edificação, Unidades consumidoras com o grupo, Cálculo com a parcela, ou Documentos com o tipo), a descrição, o item da norma quando houver, o autor e a data.
 - Até a decisão, os apontamentos ficam em rascunho e podem ser editados ou excluídos pelo analista.
 - "Aprovar Projeto" só é liberado sem apontamento bloqueante aberto. "Reprovar com Apontamentos" exige ao menos um apontamento. As duas decisões pedem confirmação e registram o parecer.
+- Ajuste não impede o andamento: o projeto pode ser aprovado com ajustes pendentes, que viram ressalvas no parecer, na Visão Geral e no memorial. O projetista não responde ressalva (validação com a cliente em 29/10).
 - Os anexos do projeto abrem em um visualizador de PDF na aba "Documentos".
 - Na reanálise, os apontamentos da versão anterior aparecem com a resposta do projetista. O analista aceita a correção, que fecha o apontamento, ou o reabre.
 
@@ -445,6 +457,7 @@ Conta com atalhos que abrem a etapa exata onde ocorreu a divergência. O projeti
 **Regras da correção:**
 - O projeto reprovado volta a ser editável. A etapa apontada mostra um selo no grupo, na parcela ou no documento indicado.
 - Para cada apontamento, o projetista marca "Corrigido" com uma resposta curta, ou "Contestar" com uma justificativa, quando discorda do apontamento.
+- Ao salvar um grupo ou substituir um documento apontado, o sistema pergunta se o apontamento foi corrigido, com a resposta já preenchida.
 - Um apontamento bloqueante conta como tratado quando foi corrigido ou contestado.
 - O reenvio recalcula a demanda e devolve o projeto à fila marcado como "Reanálise".
 
@@ -625,6 +638,8 @@ No envio e em cada reenvio, o sistema grava a versão do projeto com:
 - O memorial em PDF gerado naquele momento, com o protocolo, a versão e a data impressos no rodapé
 - O cálculo usado e os documentos anexados
 - O resumo das alterações informado no reenvio ([US09](#us09-correção-de-apontamentos-e-reenvio-com-versionamento))
+
+O memorial oficial é o do envio: o download de um projeto enviado devolve sempre o PDF gravado na versão. Enquanto o projeto está em rascunho ou em correção, o memorial sai marcado como "Prévia".
 
 O memorial da versão não é regerado: alterações feitas depois da reprovação entram apenas na versão seguinte. A aba "Histórico" ([US08](#us08-linha-do-tempo-e-histórico-do-protocolo)) lista as versões com o download do memorial de cada uma e um comparativo da demanda e dos grupos entre duas versões.
 
@@ -809,6 +824,9 @@ O menu do analista ganha "Indicadores" e "Meus Pareceres", previstos no protóti
 - Projetos em análise por analista
 - **Apontamentos mais frequentes** por etapa e item da norma
 - Municípios com mais projetos
+- Projetos aprovados, reprovados e em análise no período
+- Projetos com mais de uma reprovação
+- Alertas por categoria da edificação (residencial, não residencial e misto)
 
 "Meus Pareceres" lista os projetos decididos pelo analista logado, com a decisão, a data, o número de apontamentos e a versão, com os filtros da [US18](#us18-filtros-e-ordenação-das-listagens).
 
@@ -961,16 +979,21 @@ Projetos enviados, reprovados ou aprovados não podem ser excluídos: o protocol
 Distribuição dos projetos enviados entre os analistas: atribuição manual, em lote, e regra por município.
 
 ### User Story
-> **Como** administrador da Neoenergia,  
+> **Como** gestor da Neoenergia (`admin`),  
 > **Quero** atribuir os projetos aos analistas, um a um, em lote ou por município,  
 > **Para que** a carga da análise fique equilibrada e cada região tenha um responsável.
 
 ### Conversação (Regras de Negócio e Interface)
-Na fila de análise, o administrador seleciona um ou vários projetos e escolhe o analista em "Atribuir Analista". Vale para projeto sem analista e para reatribuição de projeto em análise. Na reatribuição, os apontamentos em rascunho passam para o novo analista; os publicados ficam com o autor original.
+Na fila de análise, o gestor seleciona um ou vários projetos e escolhe o analista em "Atribuir Analista". Vale para projeto sem analista e para reatribuição de projeto em análise. Na reatribuição, os apontamentos em rascunho passam para o novo analista; os publicados ficam com o autor original.
 
-A tela "Distribuição", visível só para o administrador, lista os analistas ativos e os municípios de cada um. Um município pertence a no máximo um analista.
+A tela "Distribuição", visível só para o gestor, lista os analistas ativos e os municípios de cada um. Um município pertence a no máximo um analista.
 
-No envio, o projeto vai direto para o analista do município. Sem regra para o município, ou com o analista inativo, o projeto cai na fila geral e "Analisar" funciona como na [US07](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos). Na reanálise, o projeto volta para o analista que reprovou, se ele ainda estiver ativo.
+No envio, o projeto vai direto para o analista do município. Sem regra para o município, ou com o analista inativo, o projeto fica "Não Atribuído" até o gestor atribuir. Na reanálise, o projeto volta para o analista que reprovou, se ele ainda estiver ativo.
+
+**Atribuição só pelo gestor** (validação com a cliente em 29/10):
+- A fila mostra a coluna "Analista Responsável", com "Não Atribuído" quando não há analista
+- O analista não assume projeto sozinho: "Analisar" aparece só para o responsável ([US07](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos))
+- O papel `admin` aparece como "Gestor" na interface
 
 ### Confirmação (Critérios de Aceite - BDD)
 
@@ -981,7 +1004,7 @@ No envio, o projeto vai direto para o analista do município. Sem regra para o m
 - **E** o histórico do protocolo registra a atribuição pelo sistema.
 
 #### Cenário 2 (Negativo): Reatribuição para Analista Inativo
-- **Dado** que o administrador selecionou dois projetos na fila
+- **Dado** que o gestor selecionou dois projetos na fila
 - **Quando** tenta atribuí-los a um analista desativado
 - **Então** o sistema recusa com a mensagem *"Analista inativo."*
 - **E** os dois projetos mantêm o analista anterior.
