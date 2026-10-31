@@ -5,6 +5,8 @@ import {
 	useGetProjectEventList,
 	useGetProjectRework,
 } from "@services/project-events";
+import { useGetFindingList } from "@services/project-review";
+import { useGetProject } from "@services/projects";
 import { CircleAlert, History } from "lucide-react";
 import { useState } from "react";
 
@@ -14,11 +16,14 @@ interface ProjectHistoryPageProps {
 	projectId: string;
 }
 
-/** The same section for the designer and the analyst: the timeline and, beside it, the rework. */
 export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 	const [direction, setDirection] = useState<SortDirection>("DESC");
 	const eventsQuery = useGetProjectEventList(projectId, { direction });
 	const reworkQuery = useGetProjectRework(projectId);
+	const { data: project } = useGetProject(projectId);
+	const { data: findings } = useGetFindingList(projectId);
+	const awaitingFindings =
+		findings?.data.filter(({ status }) => status === "FIXED").length ?? 0;
 
 	if (eventsQuery.isError || reworkQuery.isError) {
 		return (
@@ -63,6 +68,8 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 
 			<ReworkPanel
 				rework={reworkQuery.data?.data}
+				approved={project?.data.status === "APPROVED"}
+				awaitingFindings={awaitingFindings}
 				isLoading={reworkQuery.isPending}
 				className="border-t border-border @5xl:border-t-0 @5xl:border-l"
 			/>

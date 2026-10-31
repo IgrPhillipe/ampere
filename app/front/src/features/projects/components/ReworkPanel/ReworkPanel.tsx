@@ -27,27 +27,48 @@ const redoneNote = ({
 		: `${redoneCalculationSteps} etapas do cálculo mudaram de valor entre o primeiro envio e a versão atual.`;
 };
 
-const cycleCaption = (cycleDays: number | null | undefined) =>
-	cycleDays === null
-		? "Aguardando o primeiro envio"
-		: cycleDays === 1
-			? "Dia desde o primeiro envio"
-			: "Dias desde o primeiro envio";
+const cycleCaption = (
+	cycleDays: number | null | undefined,
+	approved: boolean,
+) => {
+	if (cycleDays === null) return "Aguardando o primeiro envio";
+
+	const days = cycleDays === 1 ? "Dia" : "Dias";
+
+	return approved
+		? `${days} do primeiro envio à aprovação`
+		: `${days} desde o primeiro envio`;
+};
+
+/** FIXED findings count neither as resolved nor as open until the analyst checks them. */
+const awaitingNote = (awaitingFindings: number) => {
+	if (awaitingFindings === 0) return null;
+
+	return awaitingFindings === 1
+		? "Um apontamento corrigido aguarda a conferência do analista."
+		: `${awaitingFindings} apontamentos corrigidos aguardam a conferência do analista.`;
+};
 
 interface ReworkPanelProps {
 	rework?: ProjectRework;
+	approved?: boolean;
+	/** Findings the designer marked as fixed, still waiting for the analyst. */
+	awaitingFindings?: number;
 	isLoading?: boolean;
 	className?: string;
 }
 
-/** The approval cycle in days and the rework the protocol went through. */
 export const ReworkPanel = ({
 	rework,
+	approved = false,
+	awaitingFindings = 0,
 	isLoading = false,
 	className,
 }: ReworkPanelProps) => {
 	const loaded = isLoading ? undefined : rework;
-	const note = loaded ? redoneNote(loaded) : null;
+	const notes = loaded
+		? [redoneNote(loaded), awaitingNote(awaitingFindings)].filter(Boolean)
+		: [];
 
 	return (
 		<aside
@@ -59,16 +80,21 @@ export const ReworkPanel = ({
 					Ciclo de Aprovação
 				</h2>
 
-				{loaded ? (
-					<p className="mt-6 font-mono text-5xl font-medium tracking-tight">
-						{loaded.cycleDays ?? "—"}
-					</p>
-				) : (
+				{!loaded ? (
 					<Skeleton className="mt-6 h-14 w-24 bg-primary-foreground/20" />
+				) : loaded.cycleDays === null ? null : (
+					<p className="mt-6 font-mono text-5xl font-medium tracking-tight">
+						{loaded.cycleDays}
+					</p>
 				)}
 
-				<p className="mt-2 font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase">
-					{cycleCaption(loaded?.cycleDays)}
+				<p
+					className={cn(
+						"font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase",
+						loaded?.cycleDays === null ? "mt-6" : "mt-2",
+					)}
+				>
+					{cycleCaption(loaded?.cycleDays, approved)}
 				</p>
 			</div>
 
@@ -98,9 +124,11 @@ export const ReworkPanel = ({
 					))}
 				</dl>
 
-				{note ? (
-					<p className="mt-3 text-xs text-muted-foreground">{note}</p>
-				) : null}
+				{notes.map((note) => (
+					<p key={note} className="mt-3 text-xs text-muted-foreground">
+						{note}
+					</p>
+				))}
 			</section>
 		</aside>
 	);

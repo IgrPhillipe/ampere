@@ -1,5 +1,6 @@
 import type { SortDirection } from "@features/shared";
 import type { ProjectEvent, ProjectRework } from "@services/project-events";
+import type { Finding } from "@services/project-review";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -42,6 +43,7 @@ const EVENTS = [
 		type: "REJECTED",
 		version: 1,
 		description: "Reprovado com 3 apontamentos.",
+		detail: "Corrija a ART antes de reenviar.",
 		authorName: "Lucas Gabriel",
 		authorRole: "admin",
 		occurredAt: "2026-08-26T14:02:00Z",
@@ -60,6 +62,10 @@ const REWORK: ProjectRework = {
 const state = vi.hoisted(() => ({
 	events: [] as ProjectEvent[],
 	directions: [] as (SortDirection | undefined)[],
+	failed: false,
+	refetches: [] as string[],
+	status: "UNDER_REVIEW",
+	findings: [] as Pick<Finding, "id" | "status">[],
 }));
 
 /** Stands in for the API: it sorts by the direction it receives. */
@@ -70,6 +76,12 @@ vi.mock("@services/project-events", async (importOriginal) => ({
 		{ direction }: { direction?: SortDirection } = {},
 	) => {
 		state.directions.push(direction);
+		if (state.failed)
+			return {
+				...loadedQuery(undefined),
+				isError: true,
+				refetch: () => state.refetches.push("events"),
+			};
 		const ascending = [...state.events].sort((a, b) =>
 			a.occurredAt.localeCompare(b.occurredAt),
 		);
@@ -78,18 +90,38 @@ vi.mock("@services/project-events", async (importOriginal) => ({
 			data: direction === "ASC" ? ascending : ascending.reverse(),
 		});
 	},
-	useGetProjectRework: () => loadedQuery({ data: REWORK }),
+	useGetProjectRework: () => ({
+		...loadedQuery({ data: REWORK }),
+		refetch: () => state.refetches.push("rework"),
+	}),
+}));
+
+vi.mock("@services/projects", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@services/projects")>()),
+	useGetProject: () => loadedQuery({ data: { status: state.status } }),
+}));
+
+vi.mock("@services/project-review", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@services/project-review")>()),
+	useGetFindingList: () => loadedQuery({ data: state.findings }),
 }));
 
 const timelineDescriptions = () =>
-	within(screen.getByRole("list"))
-		.getAllByRole("listitem")
-		.map((item) => within(item).getByText(/\.$/).textContent);
+	EVENTS.map(({ description }) => description).sort((a, b) =>
+		screen.getByText(a).compareDocumentPosition(screen.getByText(b)) &
+		Node.DOCUMENT_POSITION_PRECEDING
+			? 1
+			: -1,
+	);
 
 describe("ProjectHistoryPage", () => {
 	beforeEach(() => {
 		state.events = EVENTS;
 		state.directions = [];
+		state.failed = false;
+		state.refetches = [];
+		state.status = "UNDER_REVIEW";
+		state.findings = [];
 	});
 
 	it("lists the most recent event first by default", () => {
@@ -159,5 +191,38 @@ describe("ProjectHistoryPage", () => {
 		expect(
 			screen.getByText("Apontamentos em aberto").nextSibling,
 		).toHaveTextContent("03");
+	});
+
+	it("names the cycle up to the approval and counts the findings waiting for the analyst", () => {
+		state.status = "APPROVED";
+		state.findings = [
+			{ id: "1", status: "FIXED" },
+			{ id: "2", status: "RESOLVED" },
+		];
+
+		render(<ProjectHistoryPage projectId="4" />);
+
+		expect(
+			screen.getByText("Dias do primeiro envio à aprovação"),
+		).toBeInTheDocument();
+		expect(
+			screen.getByText(
+				"Um apontamento corrigido aguarda a conferência do analista.",
+			),
+		).toBeInTheDocument();
+	});
+
+	it("offers to retry both requests when the history fails", () => {
+		state.failed = true;
+
+		render(<ProjectHistoryPage projectId="4" />);
+
+		expect(
+			screen.getByText("Não foi possível carregar o histórico"),
+		).toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole("button", { name: "Tentar Novamente" }));
+
+		expect(state.refetches).toEqual(["events", "rework"]);
 	});
 });
