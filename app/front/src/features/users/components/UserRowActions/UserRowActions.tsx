@@ -22,7 +22,6 @@ export interface UserRowActionHandlers {
 
 interface UserRowActionsProps extends UserRowActionHandlers {
 	user: ManagedUser;
-	/** The administrator cannot deactivate their own account. */
 	isCurrentUser: boolean;
 }
 
@@ -55,10 +54,13 @@ export const UserRowActions = ({
 					Editar
 				</DropdownMenuItem>
 
-				<DropdownMenuItem onClick={() => onResetPassword(user)}>
-					<KeyRound aria-hidden="true" />
-					Redefinir Senha
-				</DropdownMenuItem>
+				{/* The administrator changes their own password in "Meu Perfil". */}
+				{isCurrentUser ? null : (
+					<DropdownMenuItem onClick={() => onResetPassword(user)}>
+						<KeyRound aria-hidden="true" />
+						Redefinir Senha
+					</DropdownMenuItem>
+				)}
 
 				{user.active && !isCurrentUser ? (
 					<DropdownMenuItem

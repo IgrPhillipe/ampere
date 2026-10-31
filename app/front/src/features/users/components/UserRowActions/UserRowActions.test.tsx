@@ -52,7 +52,7 @@ describe("UserRowActions", () => {
 		).not.toBeInTheDocument();
 	});
 
-	it("does not let the administrator deactivate their own account", async () => {
+	it("keeps the administrator from deactivating or resetting their own account", async () => {
 		openMenu(managedUserOf({ id: "1", role: "admin" }), true);
 
 		expect(
@@ -60,6 +60,9 @@ describe("UserRowActions", () => {
 		).toBeInTheDocument();
 		expect(
 			screen.queryByRole("menuitem", { name: "Desativar" }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("menuitem", { name: "Redefinir Senha" }),
 		).not.toBeInTheDocument();
 	});
 });
