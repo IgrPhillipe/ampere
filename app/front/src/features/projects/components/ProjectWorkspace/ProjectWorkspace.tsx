@@ -2,6 +2,7 @@ import { Breadcrumb, type BreadcrumbItem } from "@components/Breadcrumb";
 import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
+import { Skeleton } from "@components/ui/skeleton";
 import { formatDate, useAuthStore } from "@features/shared";
 import { cn } from "@lib/utils";
 import { useSubmitProject } from "@services/submission";
@@ -248,7 +249,18 @@ export const ProjectWorkspace = ({
 						)}
 					>
 						<div className="@container flex min-w-0 flex-1 flex-col">
-							<Outlet />
+							{/* The analyst's workspace replaces this one once the project loads, so an earlier section would mount twice. */}
+							{project ? (
+								<Outlet />
+							) : (
+								<div
+									aria-busy="true"
+									className="flex flex-col gap-3 px-6 py-8 md:px-8"
+								>
+									<Skeleton className="h-6 w-48" />
+									<Skeleton className="h-40 w-full" />
+								</div>
+							)}
 						</div>
 
 						{aside ? (
