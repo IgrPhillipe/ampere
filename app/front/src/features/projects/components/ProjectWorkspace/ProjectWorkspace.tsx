@@ -135,6 +135,7 @@ export const ProjectWorkspace = ({
 			</div>
 		) : detailActions.resubmit ? (
 			<Button
+				nativeButton={false}
 				render={
 					<Link to="/projetos/$id" params={{ id: projectId }} hash="reenvio" />
 				}
