@@ -6,10 +6,25 @@ import { Pagination } from "@components/Pagination";
 import { SearchInput } from "@components/SearchInput";
 import { Button } from "@components/ui/button";
 import { userRoleSchema } from "@services/auth";
-import { useGetUserList } from "@services/users";
-import { CircleAlert } from "lucide-react";
+import {
+	type ManagedUser,
+	type TemporaryAccess,
+	useGetUserList,
+	useResetUserPassword,
+	useUpdateUser,
+} from "@services/users";
+import { CircleAlert, Plus } from "lucide-react";
+import { useMemo, useState } from "react";
 
-import { UserActiveFilters, UsersTable } from "../../components";
+import {
+	ResetPasswordDialog,
+	TemporaryPasswordDialog,
+	UserActiveFilters,
+	UserFormDialog,
+	type UserRowActionHandlers,
+	UserStatusDialog,
+	UsersTable,
+} from "../../components";
 import {
 	USER_STATUSES,
 	userRoleLabels,
@@ -31,12 +46,63 @@ export const UsersPage = () => {
 	const filters = useUserFilters();
 	const usersQuery = useGetUserList(filters.params);
 	const pagination = usersQuery.data?.pagination;
+	const [isFormOpen, setFormOpen] = useState(false);
+	// Kept after closing so the dialog does not swap content mid-animation.
+	const [userToEdit, setUserToEdit] = useState<ManagedUser | null>(null);
+	const [userToToggle, setUserToToggle] = useState<ManagedUser | null>(null);
+	const [userToReset, setUserToReset] = useState<ManagedUser | null>(null);
+	const [temporaryAccess, setTemporaryAccess] =
+		useState<TemporaryAccess | null>(null);
+	const updateStatus = useUpdateUser({
+		successMessage: userToToggle?.active
+			? "Usuário desativado."
+			: "Usuário reativado.",
+		errorFallback: "Não foi possível alterar a situação do usuário.",
+	});
+	const resetPassword = useResetUserPassword();
+
+	const openNewUser = () => {
+		setUserToEdit(null);
+		setFormOpen(true);
+	};
+
+	const actions = useMemo<UserRowActionHandlers>(
+		() => ({
+			onEdit: (user) => {
+				setUserToEdit(user);
+				setFormOpen(true);
+			},
+			onResetPassword: setUserToReset,
+			onToggleActive: setUserToToggle,
+		}),
+		[],
+	);
+
+	const toggleActive = ({ id, name, role, active }: ManagedUser) =>
+		updateStatus.mutate(
+			{ id, payload: { name, role, active: !active } },
+			{ onSuccess: () => setUserToToggle(null) },
+		);
+
+	const confirmReset = (user: ManagedUser) =>
+		resetPassword.mutate(user.id, {
+			onSuccess: ({ data }) => {
+				setUserToReset(null);
+				setTemporaryAccess(data);
+			},
+		});
 
 	return (
 		<PageLayout
 			title="Usuários"
 			description="Contas de projetistas, analistas e administradores. O sistema não envia e-mail: repasse a senha temporária ao usuário."
 			bleed
+			actions={
+				<Button type="button" size="sm" onClick={openNewUser}>
+					<Plus aria-hidden="true" />
+					Novo Usuário
+				</Button>
+			}
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
 			<section
@@ -94,6 +160,8 @@ export const UsersPage = () => {
 						<UsersTable
 							users={usersQuery.data?.data ?? []}
 							isLoading={usersQuery.isPending}
+							actions={actions}
+							onCreate={openNewUser}
 							onClearFilters={
 								filters.hasActiveFilters ? filters.clearFilters : undefined
 							}
@@ -111,6 +179,36 @@ export const UsersPage = () => {
 					/>
 				) : null}
 			</section>
+
+			<UserFormDialog
+				open={isFormOpen}
+				user={userToEdit}
+				onOpenChange={setFormOpen}
+				onCreated={setTemporaryAccess}
+			/>
+
+			<UserStatusDialog
+				user={userToToggle}
+				isPending={updateStatus.isPending}
+				onOpenChange={(open) => {
+					if (!open) setUserToToggle(null);
+				}}
+				onConfirm={toggleActive}
+			/>
+
+			<ResetPasswordDialog
+				user={userToReset}
+				isPending={resetPassword.isPending}
+				onOpenChange={(open) => {
+					if (!open) setUserToReset(null);
+				}}
+				onConfirm={confirmReset}
+			/>
+
+			<TemporaryPasswordDialog
+				access={temporaryAccess}
+				onClose={() => setTemporaryAccess(null)}
+			/>
 		</PageLayout>
 	);
 };

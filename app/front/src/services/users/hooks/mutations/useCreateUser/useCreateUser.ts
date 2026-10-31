@@ -1,4 +1,8 @@
-import { getApiFieldErrors, getToastErrorMessage } from "@lib/api-error";
+import {
+	getApiFieldErrors,
+	getHttpStatus,
+	getToastErrorMessage,
+} from "@lib/api-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -14,7 +18,9 @@ export const useCreateUser = () => {
 			queryClient.invalidateQueries({ queryKey: userKeys.lists() }),
 		onError: (error) => {
 			// The form shows these on the fields.
-			if (getApiFieldErrors(error).length) return;
+			if (getHttpStatus(error) === 409 || getApiFieldErrors(error).length) {
+				return;
+			}
 
 			toast.error(
 				getToastErrorMessage(error, {
