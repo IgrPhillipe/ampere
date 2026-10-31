@@ -1,8 +1,7 @@
 import { ExpandableText } from "@components/ExpandableText";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
-import type { SortDirection } from "@features/shared";
-import dayjs from "@lib/dayjs";
+import { formatDateTime, type SortDirection } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ProjectEvent } from "@services/project-events";
 import { ArrowDown, ArrowUp } from "lucide-react";
@@ -18,7 +17,7 @@ interface EventItemProps {
 }
 
 const EventItem = ({ event, latest }: EventItemProps) => {
-	const occurredAt = dayjs(event.occurredAt);
+	const occurredAt = formatDateTime(event.occurredAt);
 	const role = eventAuthorRoleLabel(event);
 
 	return (
@@ -27,12 +26,8 @@ const EventItem = ({ event, latest }: EventItemProps) => {
 				dateTime={event.occurredAt}
 				className="flex flex-col gap-0.5 font-mono text-xs"
 			>
-				<span className="font-medium text-foreground">
-					{occurredAt.format("DD.MM.YYYY")}
-				</span>
-				<span className="text-muted-foreground">
-					{occurredAt.format("HH[H]mm")}
-				</span>
+				<span className="font-medium text-foreground">{occurredAt.date}</span>
+				<span className="text-muted-foreground">{occurredAt.time}</span>
 			</time>
 
 			<span

@@ -1,4 +1,5 @@
 export * from "./formatDate";
+export * from "./formatDateTime";
 export * from "./formatDecimal";
 export * from "./formatKva";
 export * from "./formatPlace";
