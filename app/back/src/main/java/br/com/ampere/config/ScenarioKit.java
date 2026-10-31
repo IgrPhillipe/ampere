@@ -58,6 +58,11 @@ final class ScenarioKit {
   }
 
   ScenarioCase open(Scenario scenario) {
+    return open(scenario, scenario.protocol());
+  }
+
+  /** The story under another protocol, so it can be told again beside the project it created. */
+  ScenarioCase open(Scenario scenario, String protocol) {
     List<Standard> applicable =
         scenario.building().applicableStandards().stream()
             .map(StandardName::code)
@@ -68,7 +73,7 @@ final class ScenarioKit {
             scenario.name(),
             scenario.address(),
             scenario.municipality(),
-            scenario.protocol(),
+            protocol,
             scenario.initialStatus(),
             scenario.building(),
             applicable,

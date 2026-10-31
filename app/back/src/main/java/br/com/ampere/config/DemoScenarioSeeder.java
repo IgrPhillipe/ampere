@@ -1,6 +1,7 @@
 package br.com.ampere.config;
 
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.User;
 import br.com.ampere.repository.CalculationRepository;
@@ -8,13 +9,16 @@ import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
+import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.DemandCalculationService;
 import br.com.ampere.service.ProjectEventService;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -32,8 +36,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * Demonstration projects for every case of the system, filed by protocol after the DataSeeder. A
  * scenario is created only when its protocol is absent, so a database that already has some gets
- * the rest and none twice. With {@code ampere.seed.reset-scenarios=true} the seed's own projects
- * are deleted first and recreated with fresh dates; nothing else is ever deleted.
+ * the rest and none twice. A project of its own seeded before the protocol history gets the events
+ * of its story. With {@code ampere.seed.reset-scenarios=true} the seed's own projects are deleted
+ * first and recreated with fresh dates; nothing else is ever deleted.
  */
 @Component
 @Profile("(!prod & !test) | demo")
@@ -46,6 +51,7 @@ public class DemoScenarioSeeder {
   private final FindingRepository findingRepository;
   private final CalculationRepository calculationRepository;
   private final ProjectDocumentRepository documentRepository;
+  private final ProjectEventRepository eventRepository;
   private final StandardRepository standardRepository;
   private final NormativeTableRepository normativeTableRepository;
   private final UserRepository userRepository;
@@ -61,6 +67,7 @@ public class DemoScenarioSeeder {
       FindingRepository findingRepository,
       CalculationRepository calculationRepository,
       ProjectDocumentRepository documentRepository,
+      ProjectEventRepository eventRepository,
       StandardRepository standardRepository,
       NormativeTableRepository normativeTableRepository,
       UserRepository userRepository,
@@ -74,6 +81,7 @@ public class DemoScenarioSeeder {
     this.findingRepository = findingRepository;
     this.calculationRepository = calculationRepository;
     this.documentRepository = documentRepository;
+    this.eventRepository = eventRepository;
     this.standardRepository = standardRepository;
     this.normativeTableRepository = normativeTableRepository;
     this.userRepository = userRepository;
@@ -116,9 +124,11 @@ public class DemoScenarioSeeder {
             OffsetDateTime.now(ZoneOffset.UTC));
     TransactionTemplate transaction = new TransactionTemplate(transactionManager);
     int created = 0;
+    int histories = 0;
     for (Scenario scenario : DemoScenarios.all(users.get())) {
       try {
         created += transaction.execute(status -> seed(kit, scenario));
+        histories += completeHistory(kit, scenario, transaction);
       } catch (RuntimeException failure) {
         log.warn(
             "DemoScenarioSeeder: scenario {} not seeded: {}",
@@ -129,10 +139,11 @@ public class DemoScenarioSeeder {
     int revisions =
         transaction.execute(
             status -> new NormativeTableRevisions(normativeTableRepository, timestamps).seed());
-    if (created > 0 || revisions > 0) {
+    if (created > 0 || histories > 0 || revisions > 0) {
       log.info(
-          "DemoScenarioSeeder: {} scenario projects and {} table revisions inserted.",
+          "DemoScenarioSeeder: {} scenario projects, {} histories and {} table revisions inserted.",
           created,
+          histories,
           revisions);
     }
 
@@ -153,6 +164,60 @@ public class DemoScenarioSeeder {
     ScenarioCase story = kit.open(scenario);
     scenario.story().accept(story);
     story.finish();
+
+    return 1;
+  }
+
+  /**
+   * Seeded before the history: the story is told again under another protocol in a transaction that
+   * is rolled back, and only its events are kept, moved to the dates of the project.
+   */
+  private int completeHistory(ScenarioKit kit, Scenario scenario, TransactionTemplate transaction) {
+    Long projectId =
+        transaction.execute(
+            status ->
+                projectRepository
+                    .findByProtocol(scenario.protocol())
+                    .filter(project -> isSeeded(project, scenario))
+                    .filter(project -> !eventRepository.existsByProjectId(project.getId()))
+                    .map(Project::getId)
+                    .orElse(null));
+    if (projectId == null) {
+      return 0;
+    }
+
+    List<ProjectEvent> told =
+        transaction.execute(
+            status -> {
+              status.setRollbackOnly();
+              ScenarioCase story = kit.open(scenario, scenario.protocol() + "-historico");
+              scenario.story().accept(story);
+
+              return eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(
+                  story.project().getId());
+            });
+    transaction.executeWithoutResult(
+        status -> {
+          Project project = projectRepository.findById(projectId).orElseThrow();
+          Duration shift =
+              Duration.between(told.getFirst().getOccurredAt(), project.getCreatedAt());
+          eventRepository.saveAll(
+              told.stream()
+                  .map(
+                      event ->
+                          new ProjectEvent(
+                              project,
+                              event.getType(),
+                              event.getVersion(),
+                              event.getAuthor() == null
+                                  ? null
+                                  : userRepository.getReferenceById(event.getAuthor().getId()),
+                              event.getAuthorRole(),
+                              event.getDescription(),
+                              event.getDetail(),
+                              event.getOccurredAt().plus(shift)))
+                  .toList());
+        });
 
     return 1;
   }

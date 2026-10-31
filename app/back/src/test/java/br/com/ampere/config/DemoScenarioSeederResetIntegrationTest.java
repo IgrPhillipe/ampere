@@ -124,6 +124,29 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
   }
 
   @Test
+  void completesOnceTheHistoryOfTheScenariosSeededBeforeIt() {
+    scenarioSeeder(false).seed();
+    Project seeded = projectRepository.findByProtocol("2026-2017").orElseThrow();
+    List<String> told = timeline(seeded);
+    Project foreign = projectRepository.findByProtocol("2026-2020").orElseThrow();
+    foreign.rename("Projeto de outra pessoa", foreign.getAddress(), foreign.getMunicipality());
+    projectRepository.save(foreign);
+    eventRepository.deleteAll();
+
+    assertThat(scenarioSeeder(false).seed()).isZero();
+
+    assertThat(timeline(seeded)).isEqualTo(told);
+    assertThat(timeline(foreign)).isEmpty();
+    assertThat(projectRepository.count()).isEqualTo(SCENARIOS);
+    assertThat(projectRepository.findByProtocol("2026-2017-historico")).isEmpty();
+    long events = eventRepository.count();
+
+    scenarioSeeder(false).seed();
+
+    assertThat(eventRepository.count()).isEqualTo(events);
+  }
+
+  @Test
   void leavesTheScenariosAloneUntilTheResetIsAsked() {
     scenarioSeeder(false).seed();
     Project first = projectRepository.findByProtocol("2026-2001").orElseThrow();
@@ -239,5 +262,19 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
             4, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE);
     return new Project(
         name, "Rua Qualquer, 1", "Recife", protocol, status, building, List.of(), owner);
+  }
+
+  private List<String> timeline(Project project) {
+    return eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(project.getId()).stream()
+        .map(
+            event ->
+                event.getType()
+                    + " "
+                    + event.getVersion()
+                    + " "
+                    + event.getOccurredAt().toInstant()
+                    + " "
+                    + event.getDescription())
+        .toList();
   }
 }
