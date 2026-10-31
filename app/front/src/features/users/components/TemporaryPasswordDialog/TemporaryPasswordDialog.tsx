@@ -51,12 +51,12 @@ export const TemporaryPasswordDialog = ({
 				</DialogHeader>
 
 				<div className="flex items-center justify-between gap-3 rounded-md border border-border bg-surface-hover px-4 py-3">
-					<code
-						className="font-mono text-lg font-semibold tracking-wide break-all text-foreground select-all"
-						aria-label="Senha temporária"
-					>
-						{access?.temporaryPassword}
-					</code>
+					<p className="min-w-0">
+						<span className="sr-only">Senha temporária: </span>
+						<code className="font-mono text-lg font-semibold tracking-wide break-all text-foreground select-all">
+							{access?.temporaryPassword}
+						</code>
+					</p>
 
 					<Button
 						type="button"
