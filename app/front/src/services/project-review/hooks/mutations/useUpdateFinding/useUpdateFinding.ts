@@ -1,5 +1,4 @@
 import { getToastErrorMessage } from "@lib/api-error";
-import { projectKeys } from "@services/projects";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -12,14 +11,9 @@ export const useUpdateFinding = () => {
 	return useMutation({
 		mutationFn: updateFinding,
 		onSuccess: async (_, { projectId }) => {
-			await Promise.all([
-				queryClient.invalidateQueries({
-					queryKey: projectReviewKeys.findings(projectId),
-				}),
-				queryClient.invalidateQueries({
-					queryKey: projectKeys.detail(projectId),
-				}),
-			]);
+			await queryClient.invalidateQueries({
+				queryKey: projectReviewKeys.findings(projectId),
+			});
 
 			toast.success("Apontamento atualizado.");
 		},
