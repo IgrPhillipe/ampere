@@ -28,6 +28,13 @@ export const profileSchema = z.object({
 		.trim()
 		.min(1, { error: "O telefone é obrigatório." })
 		.max(20, { error: "O telefone deve ter no máximo 20 caracteres." }),
+	// Analysts and administrators have no CREA: kept as loaded and not shown.
+	crea: z.string(),
+	creaState: z.string(),
+});
+
+/** The designer's CREA identifies the technical responsible, so it is required. */
+export const designerProfileSchema = profileSchema.extend({
 	crea: z
 		.string({ error: "O número do CREA é obrigatório." })
 		.trim()

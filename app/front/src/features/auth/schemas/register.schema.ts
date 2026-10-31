@@ -2,11 +2,11 @@ import type { z } from "zod";
 
 import {
 	confirmationSchema,
+	designerProfileSchema,
 	passwordSchema,
-	profileSchema,
 } from "./profile.schema";
 
-export const registerSchema = profileSchema
+export const registerSchema = designerProfileSchema
 	.extend({ password: passwordSchema, confirmPassword: confirmationSchema })
 	.refine((data) => data.password === data.confirmPassword, {
 		error: "As senhas não conferem.",

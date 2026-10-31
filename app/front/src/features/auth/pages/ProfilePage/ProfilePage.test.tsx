@@ -2,6 +2,8 @@ import type { ProfileResponse } from "@services/users";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { signInAs } from "@/test/fixtures/project-detail";
+
 import { ProfilePage } from "./ProfilePage";
 
 const profile: ProfileResponse = {
@@ -40,6 +42,7 @@ const responsibleText = () =>
 describe("ProfilePage", () => {
 	beforeEach(() => {
 		mockUpdate.mockReset();
+		signInAs("user");
 		loaded();
 	});
 
@@ -78,6 +81,41 @@ describe("ProfilePage", () => {
 			phone: "(81) 98821-4470",
 			crea: "1684D",
 			creaState: "PE",
+		});
+	});
+
+	it.each([
+		"admin",
+		"reviewer",
+	] as const)("deixa %s salvar sem CREA e sem o registro profissional", async (role) => {
+		signInAs(role);
+		profileQuery.mockReturnValue({
+			data: { data: { ...profile, role, crea: null, creaState: null } },
+			isLoading: false,
+			isError: false,
+			refetch: mockRefetch,
+		});
+
+		render(<ProfilePage />);
+		await screen.findByDisplayValue("Ana Lima");
+
+		expect(screen.queryByText("Registro Profissional")).not.toBeInTheDocument();
+		expect(
+			screen.queryByText("Responsável técnico no carimbo e no memorial"),
+		).not.toBeInTheDocument();
+
+		fireEvent.change(screen.getByLabelText(/nome completo/i), {
+			target: { value: "Ana Souza" },
+		});
+		fireEvent.click(screen.getByRole("button", { name: "Salvar Alterações" }));
+
+		await waitFor(() => expect(mockUpdate).toHaveBeenCalledOnce());
+		expect(mockUpdate.mock.lastCall?.[0]).toEqual({
+			name: "Ana Souza",
+			company: null,
+			phone: "(81) 98821-4470",
+			crea: "",
+			creaState: "",
 		});
 	});
 

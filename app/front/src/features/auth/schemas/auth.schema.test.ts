@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { changePasswordSchema, profileSchema, registerSchema } from "./index";
+import {
+	changePasswordSchema,
+	designerProfileSchema,
+	profileSchema,
+	registerSchema,
+} from "./index";
 
 const profile = {
 	name: "Ana Carolina Lima",
@@ -15,8 +20,22 @@ const messagesOf = (result: { error?: { issues: { message: string }[] } }) =>
 	result.error?.issues.map((issue) => issue.message) ?? [];
 
 describe("profileSchema", () => {
+	it("aceita analista e administrador sem CREA", () => {
+		expect(
+			profileSchema.safeParse({ ...profile, crea: "", creaState: "" }).success,
+		).toBe(true);
+	});
+
+	it("exige o telefone", () => {
+		expect(profileSchema.safeParse({ ...profile, phone: " " }).success).toBe(
+			false,
+		);
+	});
+});
+
+describe("designerProfileSchema", () => {
 	it("aceita o perfil e devolve a UF em maiúsculas", () => {
-		const result = profileSchema.parse(profile);
+		const result = designerProfileSchema.parse(profile);
 
 		expect(result.creaState).toBe("PE");
 	});
@@ -26,11 +45,17 @@ describe("profileSchema", () => {
 		"1684D/PE",
 		"123",
 	])("recusa o CREA %s, que a API não aceita", (crea) => {
-		const result = profileSchema.safeParse({ ...profile, crea });
+		const result = designerProfileSchema.safeParse({ ...profile, crea });
 
 		expect(messagesOf(result)).toContain(
 			"Informe só o número do CREA, sem a UF e sem hífen.",
 		);
+	});
+
+	it("exige o CREA do projetista", () => {
+		const result = designerProfileSchema.safeParse({ ...profile, crea: "" });
+
+		expect(messagesOf(result)).toContain("O número do CREA é obrigatório.");
 	});
 });
 

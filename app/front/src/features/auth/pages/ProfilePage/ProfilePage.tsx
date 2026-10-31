@@ -2,7 +2,12 @@ import { EmptyState } from "@components/EmptyState";
 import { ControlledInput, FormActions } from "@components/form";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
-import { formatPhone, setApiFieldErrors, useZodForm } from "@features/shared";
+import {
+	formatPhone,
+	setApiFieldErrors,
+	useAuthStore,
+	useZodForm,
+} from "@features/shared";
 import {
 	type ProfileResponse,
 	useGetProfile,
@@ -13,7 +18,11 @@ import { useEffect, useState } from "react";
 import { useFormState, useWatch } from "react-hook-form";
 
 import { ChangePasswordDialog } from "../../components";
-import { type ProfileFormValues, profileSchema } from "../../schemas";
+import {
+	designerProfileSchema,
+	type ProfileFormValues,
+	profileSchema,
+} from "../../schemas";
 
 const formValuesOf = (profile: ProfileResponse): ProfileFormValues => ({
 	name: profile.name,
@@ -48,8 +57,9 @@ export const ProfilePage = () => {
 	const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
 
 	const profile = profileQuery.data?.data;
+	const isDesigner = useAuthStore((state) => state.user?.role === "user");
 
-	const form = useZodForm(profileSchema, {
+	const form = useZodForm(isDesigner ? designerProfileSchema : profileSchema, {
 		name: "",
 		email: "",
 		company: "",
@@ -106,7 +116,11 @@ export const ProfilePage = () => {
 	return (
 		<PageLayout
 			title="Meu Perfil"
-			description="Seus dados e o registro profissional que identificam o responsável técnico dos seus projetos."
+			description={
+				isDesigner
+					? "Seus dados e o registro profissional que identificam o responsável técnico dos seus projetos."
+					: "Seus dados de contato e a senha de acesso ao portal."
+			}
 			className="mx-auto w-full max-w-page"
 		>
 			<div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -163,41 +177,46 @@ export const ProfilePage = () => {
 							</div>
 						</section>
 
-						<section aria-labelledby="registro-profissional">
-							<h2 id="registro-profissional" className={sectionTitleClassName}>
-								Registro Profissional
-							</h2>
+						{isDesigner ? (
+							<section aria-labelledby="registro-profissional">
+								<h2
+									id="registro-profissional"
+									className={sectionTitleClassName}
+								>
+									Registro Profissional
+								</h2>
 
-							<div className="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2">
-								<ControlledInput
-									control={form.control}
-									name="crea"
-									label="Número do CREA"
-									required
-									placeholder="Ex.: 1684D"
-								/>
+								<div className="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2">
+									<ControlledInput
+										control={form.control}
+										name="crea"
+										label="Número do CREA"
+										required
+										placeholder="Ex.: 1684D"
+									/>
 
-								<ControlledInput
-									control={form.control}
-									name="creaState"
-									label="UF do CREA"
-									required
-									maxLength={2}
-									placeholder="PE"
-									className="uppercase"
-								/>
-							</div>
+									<ControlledInput
+										control={form.control}
+										name="creaState"
+										label="UF do CREA"
+										required
+										maxLength={2}
+										placeholder="PE"
+										className="uppercase"
+									/>
+								</div>
 
-							<div className="mt-6 border-b border-border pb-4">
-								<p className="text-xs tracking-wider text-muted-foreground uppercase">
-									Responsável técnico no carimbo e no memorial
-								</p>
+								<div className="mt-6 border-b border-border pb-4">
+									<p className="text-xs tracking-wider text-muted-foreground uppercase">
+										Responsável técnico no carimbo e no memorial
+									</p>
 
-								<p className="mt-1.5 font-medium text-foreground">
-									{technicalResponsibleOf(name, crea, creaState)}
-								</p>
-							</div>
-						</section>
+									<p className="mt-1.5 font-medium text-foreground">
+										{technicalResponsibleOf(name, crea, creaState)}
+									</p>
+								</div>
+							</section>
+						) : null}
 					</fieldset>
 
 					<FormActions>
