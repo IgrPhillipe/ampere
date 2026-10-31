@@ -676,7 +676,8 @@ porte usando a tabela de equivalências em `app/front/.migration/2026-09-base-ui
 | :--- | :--- |
 | Cliente HTTP | `@lib/http` (`http`) |
 | Mensagem de erro para toast | `@lib/api-error` (`getToastErrorMessage`) |
-| Guard de rota | `@lib/route-guard` (`requireAuth`, `requireRoles`) |
+| Erro da API no campo do formulário | `@features/shared` (`setApiFieldErrors`) |
+| Guard de rota | `@lib/route-guard` (`requireAuth`, `requireRoles`, `redirectSignedIn`) |
 | Sessão do usuário | `@features/shared` (`useAuthStore`) |
 | Formulário com Zod | `@features/shared` (`useZodForm`) |
 | Campo de formulário | `@components/form` (`ControlledInput`, `FormField`) |
