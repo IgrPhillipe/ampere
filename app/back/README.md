@@ -109,7 +109,7 @@ Restrita ao papel `admin` pelo `SecurityConfig`, sem prefixo de papel no caminho
 
 | Método e caminho | O que faz |
 | :--- | :--- |
-| `GET /api/users` | Lista em ordem de nome, paginada; `search` busca no nome e no e-mail sem acentos, `role` filtra por `user`, `reviewer` ou `admin` |
+| `GET /api/users` | Lista em ordem de nome, paginada; `search` busca no nome e no e-mail sem acentos, `role` filtra por `user`, `reviewer` ou `admin` e `active` pela situação |
 | `POST /api/users` | Cria a conta com nome, e-mail e papel; devolve a senha temporária |
 | `PUT /api/users/{id}` | Substitui nome, papel e situação (`active`), os três obrigatórios; é por aqui que se desativa e reativa. O e-mail não muda |
 | `POST /api/users/{id}/password-reset` | Gera uma nova senha temporária |
