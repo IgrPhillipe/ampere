@@ -16,7 +16,7 @@ export const projectEventTypeSchema = z.enum([
 export type ProjectEventType = z.infer<typeof projectEventTypeSchema>;
 
 export const projectEventSchema = z.object({
-	id: z.coerce.string(),
+	id: z.string(),
 	type: projectEventTypeSchema,
 	/** The project's review cycle when the event happened; `0` before the first submission. */
 	version: z.number().int().nonnegative(),
