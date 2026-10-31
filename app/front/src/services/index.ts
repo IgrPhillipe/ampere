@@ -2,6 +2,7 @@ export * from "./auth";
 export * from "./calculation";
 export * from "./consumer-units";
 export * from "./normative-tables";
+export * from "./project-events";
 export * from "./project-review";
 export * from "./projects";
 export * from "./review-queue";
