@@ -5,4 +5,5 @@ export const userKeys = {
 	lists: () => [...userKeys.all(), "list"] as const,
 	list: (params: ListUsersParams = {}) =>
 		[...userKeys.lists(), params] as const,
+	profile: () => [...userKeys.all(), "profile"] as const,
 };

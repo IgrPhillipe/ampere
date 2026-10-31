@@ -15,6 +15,7 @@ import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.service.ProjectService;
+import br.com.ampere.service.ProjectSummary;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -74,7 +75,8 @@ class MessageLocalizationTest {
 
   @Test
   void acceptsEnumValuesInAnyCaseInTheRequestBody() throws Exception {
-    when(projectService.create(any(), any(), any())).thenReturn(draft());
+    when(projectService.create(any(), any(), any()))
+        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null));
     Jwt jwt =
         Jwt.withTokenValue("token")
             .header("alg", "none")

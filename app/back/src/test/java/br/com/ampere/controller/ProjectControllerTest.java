@@ -41,6 +41,7 @@ import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.ProjectListQuery;
 import br.com.ampere.service.ProjectListing;
 import br.com.ampere.service.ProjectService;
+import br.com.ampere.service.ProjectSummary;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -301,7 +302,8 @@ class ProjectControllerTest {
   @Test
   void createsProjectAndAnswersCreated() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.create(any(), any(), eq(DESIGNER))).thenReturn(draft());
+    when(service.create(any(), any(), eq(DESIGNER)))
+        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null));
 
     mockMvc(service)
         .perform(post("/projects").contentType(MediaType.APPLICATION_JSON).content(validBody()))
@@ -318,7 +320,8 @@ class ProjectControllerTest {
   @Test
   void passesTheOwnerIdOfTheBodyToTheService() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.create(any(), eq(5L), eq(DESIGNER))).thenReturn(draft());
+    when(service.create(any(), eq(5L), eq(DESIGNER)))
+        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null));
 
     mockMvc(service)
         .perform(
@@ -373,13 +376,29 @@ class ProjectControllerTest {
   @Test
   void answersNotFoundForAnUnknownProject() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.findById(99L, DESIGNER))
-        .thenThrow(new NotFoundException("Projeto não encontrado."));
+    when(service.detail(99L, DESIGNER)).thenThrow(new NotFoundException("Projeto não encontrado."));
 
     mockMvc(service)
         .perform(get("/projects/99"))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.detail").value("Projeto não encontrado."));
+  }
+
+  @Test
+  void exposesTheProjectSummaryMetricsInTheDetail() throws Exception {
+    ProjectService service = mock(ProjectService.class);
+    Project project = draft();
+    OffsetDateTime lastActivityAt = OffsetDateTime.parse("2026-10-16T14:20:00Z");
+    when(service.detail(4L, DESIGNER))
+        .thenReturn(new ProjectSummary(project, 3, 8, new BigDecimal("61.2"), lastActivityAt));
+
+    mockMvc(service)
+        .perform(get("/projects/4"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.openFindingsCount").value(3))
+        .andExpect(jsonPath("$.data.consumerUnitsCount").value(8))
+        .andExpect(jsonPath("$.data.demandKva").value(61.2))
+        .andExpect(jsonPath("$.data.lastActivityAt").value("2026-10-16T14:20:00Z"));
   }
 
   @Test

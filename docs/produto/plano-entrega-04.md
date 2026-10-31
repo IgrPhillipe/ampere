@@ -287,24 +287,24 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 
 ### Recorte
 
-- **Eventos a partir da US07.** Projetos anteriores mostram só criação e envio, reconstruídos das datas do projeto.
+- **Eventos a partir da AT01-US08.** Sem carga retroativa: projetos anteriores mostram o estado vazio, e o seed recria os de demonstração.
 - **Comparação entre versões fica na US13.**
 
 ### `AT01-US08: Back-end do histórico do protocolo [Backend]` (#103)
 
-- [ ] Entidade `ProjectEvent` com tipo, versão, autor, papel, descrição e data, gravada na criação, no envio, na decisão, no reenvio e nas respostas aos apontamentos
-- [ ] `GET /api/projects/{id}/events?direction=desc`, para o dono e para o analista
-- [ ] `GET /api/projects/{id}/rework`: dias de ciclo, versões enviadas, ciclos de análise, apontamentos resolvidos e em aberto, e etapas refeitas
-- [ ] Seed dos eventos pela linha do tempo de cada `ScenarioCase` (#190)
-- [ ] Testes da ordem dos eventos e das métricas
+- [x] Entidade `ProjectEvent` com tipo, versão, autor, papel, descrição e data, gravada na criação, no envio, na decisão, no reenvio e nas respostas aos apontamentos
+- [x] `GET /api/projects/{id}/events?direction=desc`, para o dono e para o analista
+- [x] `GET /api/projects/{id}/rework`: dias de ciclo, versões enviadas, ciclos de análise, apontamentos resolvidos e em aberto, e etapas refeitas
+- [x] Seed dos eventos pela linha do tempo de cada `ScenarioCase` (#190)
+- [x] Testes da ordem dos eventos e das métricas
 
 ### `AT02-US08: Aba "Histórico" da análise [Frontend]` (#104)
 
 Com a página única do #184, o histórico é a seção "Histórico" do projeto, igual para os dois perfis, e a decisão fica na coluna lateral.
 
-- [ ] Linha do tempo com a alternância "Mais Recente Primeiro"
-- [ ] Card de ciclo em dias e tabela de métricas de retrabalho
-- [ ] Estado vazio para projeto sem eventos
+- [x] Linha do tempo com a alternância "Mais Recente Primeiro"
+- [x] Card de ciclo em dias e tabela de métricas de retrabalho
+- [x] Estado vazio para projeto sem eventos
 
 ## US12: Detalhe do Projeto e Histórico de Tratamento (#105)
 `Sprint 6`, `US12`. Protótipo: [H1b · Detalhes do projeto](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2155-2).

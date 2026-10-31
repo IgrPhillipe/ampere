@@ -12,6 +12,7 @@ import br.com.ampere.repository.UserRepository;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -44,6 +45,28 @@ public class DataSeeder implements CommandLineRunner {
   public static final String INACTIVE_DESIGNER_EMAIL = "inativo@ampere.com";
   public static final String PARAIBA_DESIGNER_EMAIL = "joao@ampere.com";
   public static final String NEW_DESIGNER_EMAIL = "novo@ampere.com";
+
+  /** "Meu Perfil" requires a phone, so every seeded account has one. */
+  private static final Map<String, String> PHONES =
+      Map.of(
+          USER_EMAIL,
+          "81999990002",
+          ADMIN_EMAIL,
+          "81999990003",
+          NormativeTableSeed.VERIFIED_BY,
+          "81999990004",
+          REVIEWER_EMAIL,
+          "81999990005",
+          SECOND_DESIGNER_EMAIL,
+          "81999990000",
+          SECOND_ANALYST_EMAIL,
+          "81999990006",
+          INACTIVE_DESIGNER_EMAIL,
+          "81999990007",
+          PARAIBA_DESIGNER_EMAIL,
+          "83999990001",
+          NEW_DESIGNER_EMAIL,
+          "81999990008");
 
   private record Account(User user, int createdDaysAgo) {}
 
@@ -79,6 +102,7 @@ public class DataSeeder implements CommandLineRunner {
     demoteLegacyReviewer();
     indexLegacyUsers();
     completeDevelopmentProfile();
+    completeSeededPhones();
     // These fix databases of the development era; the demo profile in production must not touch
     // projects it did not create.
     if (!environment.acceptsProfiles(Profiles.of("prod"))) {
@@ -111,6 +135,23 @@ public class DataSeeder implements CommandLineRunner {
                     "PE",
                     designer.getCompany(),
                     designer.getPhone()));
+  }
+
+  /** Accounts seeded before the phone was required get theirs. */
+  private void completeSeededPhones() {
+    PHONES.forEach(
+        (email, phone) ->
+            userRepository
+                .findByEmail(email)
+                .filter(user -> user.getPhone() == null)
+                .ifPresent(
+                    user ->
+                        user.updateProfile(
+                            user.getName(),
+                            user.getCrea(),
+                            user.getCreaState(),
+                            user.getCompany(),
+                            phone)));
   }
 
   /** Projects seeded before ownership existed go to the development designer. */
@@ -161,20 +202,28 @@ public class DataSeeder implements CommandLineRunner {
 
   private static List<Account> accounts(String hash) {
     User inactive =
-        User.designer("Bruno Inativo", INACTIVE_DESIGNER_EMAIL, hash, "777888", "PE", null, null);
+        User.designer(
+            "Bruno Inativo",
+            INACTIVE_DESIGNER_EMAIL,
+            hash,
+            "777888",
+            "PE",
+            null,
+            PHONES.get(INACTIVE_DESIGNER_EMAIL));
     inactive.administer(inactive.getName(), UserRole.USER, false);
     User newcomer =
         User.withTemporaryPassword("Diego Novato", NEW_DESIGNER_EMAIL, hash, UserRole.USER);
-    newcomer.updateProfile("Diego Novato", "998877", "PE", null, null);
+    newcomer.updateProfile("Diego Novato", "998877", "PE", null, PHONES.get(NEW_DESIGNER_EMAIL));
 
     return List.of(
         new Account(
-            User.designer("Usuário Teste", USER_EMAIL, hash, "123456", "PE", null, null), 200),
-        new Account(new User("Admin Teste", ADMIN_EMAIL, hash, UserRole.ADMIN), 200),
-        new Account(
-            new User("Conferente Teste", NormativeTableSeed.VERIFIED_BY, hash, UserRole.ADMIN),
+            User.designer(
+                "Usuário Teste", USER_EMAIL, hash, "123456", "PE", null, PHONES.get(USER_EMAIL)),
             200),
-        new Account(new User("Revisor Teste", REVIEWER_EMAIL, hash, UserRole.REVIEWER), 200),
+        new Account(staff("Admin Teste", ADMIN_EMAIL, hash, UserRole.ADMIN), 200),
+        new Account(
+            staff("Conferente Teste", NormativeTableSeed.VERIFIED_BY, hash, UserRole.ADMIN), 200),
+        new Account(staff("Revisor Teste", REVIEWER_EMAIL, hash, UserRole.REVIEWER), 200),
         new Account(
             User.designer(
                 "Carla Projetista",
@@ -183,9 +232,9 @@ public class DataSeeder implements CommandLineRunner {
                 "654321",
                 "PE",
                 "Carla Engenharia Elétrica",
-                "81999990000"),
+                PHONES.get(SECOND_DESIGNER_EMAIL)),
             150),
-        new Account(new User("Ana Analista", SECOND_ANALYST_EMAIL, hash, UserRole.REVIEWER), 120),
+        new Account(staff("Ana Analista", SECOND_ANALYST_EMAIL, hash, UserRole.REVIEWER), 120),
         new Account(inactive, 190),
         new Account(
             User.designer(
@@ -195,9 +244,16 @@ public class DataSeeder implements CommandLineRunner {
                 "223344",
                 "PB",
                 "Batista Instalações Elétricas",
-                "83999990001"),
+                PHONES.get(PARAIBA_DESIGNER_EMAIL)),
             60),
         new Account(newcomer, 2));
+  }
+
+  /** An analyst or administrator: no CREA, only the phone of the profile. */
+  private static User staff(String name, String email, String hash, UserRole role) {
+    User user = new User(name, email, hash, role);
+    user.updateProfile(name, null, null, null, PHONES.get(email));
+    return user;
   }
 
   /** The reviewer was seeded as an admin before the analyst had a role of their own. */

@@ -214,7 +214,7 @@ public class ProjectController {
   })
   public ApiResponse<ProjectDetailResponse> detail(
       @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(ProjectDetailResponse.from(service.findById(id, userOf(jwt))));
+    return ApiResponse.of(ProjectDetailResponse.from(service.detail(id, userOf(jwt))));
   }
 
   @PutMapping("/{id}")

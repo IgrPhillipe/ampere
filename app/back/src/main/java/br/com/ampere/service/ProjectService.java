@@ -11,6 +11,7 @@ import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
+import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectRepositoryCustom.ProjectSearch;
 import br.com.ampere.utils.SearchTerms;
@@ -41,7 +42,7 @@ public class ProjectService {
       "O perfil analista só consulta os projetos enviados para análise.";
 
   /** What the designer still has to answer: drafts are hidden, an approval closes the rest. */
-  private static final List<FindingStatus> OPEN_FINDINGS =
+  static final List<FindingStatus> OPEN_FINDINGS =
       List.of(FindingStatus.OPEN, FindingStatus.CONTESTED);
 
   private final ProjectRepository projectRepository;
@@ -49,6 +50,7 @@ public class ProjectService {
   private final ConsumerUnitGroupRepository groupRepository;
   private final CalculationRepository calculationRepository;
   private final ProjectDocumentRepository documentRepository;
+  private final ProjectEventRepository eventRepository;
   private final ProjectCreation projectCreation;
   private final ApplicableStandards applicableStandards;
 
@@ -58,6 +60,7 @@ public class ProjectService {
       ConsumerUnitGroupRepository groupRepository,
       CalculationRepository calculationRepository,
       ProjectDocumentRepository documentRepository,
+      ProjectEventRepository eventRepository,
       ProjectCreation projectCreation,
       ApplicableStandards applicableStandards) {
     this.projectRepository = projectRepository;
@@ -65,6 +68,7 @@ public class ProjectService {
     this.groupRepository = groupRepository;
     this.calculationRepository = calculationRepository;
     this.documentRepository = documentRepository;
+    this.eventRepository = eventRepository;
     this.projectCreation = projectCreation;
     this.applicableStandards = applicableStandards;
   }
@@ -140,14 +144,31 @@ public class ProjectService {
     return project;
   }
 
-  public Project create(
+  @Transactional(readOnly = true)
+  public ProjectSummary detail(Long id, AuthenticatedUser user) {
+    return summarize(findById(id, user));
+  }
+
+  ProjectSummary summarize(Project project) {
+    Long projectId = project.getId();
+    List<Long> projectIds = List.of(projectId);
+
+    return new ProjectSummary(
+        project,
+        countPendingFindings(projectIds).getOrDefault(projectId, 0L),
+        countUnits(projectIds).getOrDefault(projectId, 0L),
+        latestDemands(projectIds).get(projectId),
+        eventRepository.findLastOccurredAt(projectId));
+  }
+
+  public ProjectSummary create(
       ProjectParameters parameters, Long requestedOwnerId, AuthenticatedUser user) {
     writerOrFail(user);
     User owner = projectCreation.ownerOf(requestedOwnerId, user);
 
     for (int attempt = 1; attempt <= PROTOCOL_ATTEMPTS; attempt++) {
       try {
-        return projectCreation.createWithGeneratedProtocol(parameters, owner);
+        return summarize(projectCreation.createWithGeneratedProtocol(parameters, owner));
       } catch (DataIntegrityViolationException collision) {
         log.warn("Protocol collision on attempt {} of {}", attempt, PROTOCOL_ATTEMPTS);
       }
@@ -158,7 +179,7 @@ public class ProjectService {
   }
 
   @Transactional
-  public Project update(Long id, ProjectParameters parameters, AuthenticatedUser user) {
+  public ProjectSummary update(Long id, ProjectParameters parameters, AuthenticatedUser user) {
     Project project =
         editableOrFail(id, "Só é possível alterar um projeto em rascunho ou reprovado.", user);
     String municipality = ProjectPlaces.municipalityOf(parameters);
@@ -169,7 +190,7 @@ public class ProjectService {
     project.changeBuildingType(buildingType);
     project.applyStandards(applicableStandards.of(buildingType));
 
-    return project;
+    return summarize(project);
   }
 
   @Transactional

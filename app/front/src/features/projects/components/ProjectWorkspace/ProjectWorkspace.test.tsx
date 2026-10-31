@@ -101,6 +101,14 @@ describe("ProjectWorkspace", () => {
 		expect(screen.queryByRole("tab")).not.toBeInTheDocument();
 	});
 
+	it("holds the section until the project loads", () => {
+		signInAs("reviewer");
+		state.project = undefined;
+		renderWorkspace();
+
+		expect(screen.queryByText("Conteúdo da seção")).not.toBeInTheDocument();
+	});
+
 	it("marks every section of a sent project as done", () => {
 		signInAs("user");
 		state.project = makeProjectDetail({ status: "APPROVED" });

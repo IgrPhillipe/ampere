@@ -1,7 +1,9 @@
 package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -25,6 +27,8 @@ import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectEvent;
+import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
@@ -36,9 +40,11 @@ import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
+import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import com.jayway.jsonpath.JsonPath;
 import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.parser.PdfTextExtractor;
 import jakarta.persistence.EntityManager;
@@ -96,6 +102,8 @@ class SubmissionIntegrationTest {
 
   @Autowired private ProjectDocumentRepository documentRepository;
 
+  @Autowired private ProjectEventRepository eventRepository;
+
   private String token;
 
   private List<Standard> standards;
@@ -104,6 +112,7 @@ class SubmissionIntegrationTest {
 
   @BeforeEach
   void seed() throws Exception {
+    eventRepository.deleteAll();
     documentRepository.deleteAll();
     calculationRepository.deleteAll();
     groupRepository.deleteAll();
@@ -189,10 +198,21 @@ class SubmissionIntegrationTest {
 
     perform(get(submissionOf(project))).andExpect(jsonPath("$.data.canSubmit").value(true));
 
-    perform(post(submitOf(project)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.status").value("UNDER_REVIEW"))
-        .andExpect(jsonPath("$.data.submittedAt").isNotEmpty());
+    String submitted =
+        perform(post(submitOf(project)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("UNDER_REVIEW"))
+            .andExpect(jsonPath("$.data.submittedAt").isNotEmpty())
+            .andExpect(jsonPath("$.data.demandKva").isNumber())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    assertThat(JsonPath.<String>read(submitted, "$.data.lastActivityAt"))
+        .isEqualTo(JsonPath.<String>read(submitted, "$.data.submittedAt"));
+
+    assertThat(eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(project.getId()))
+        .extracting(ProjectEvent::getType)
+        .containsExactly(ProjectEventType.SUBMITTED, ProjectEventType.PRE_VALIDATED);
 
     perform(get("/projects").param("status", "UNDER_REVIEW"))
         .andExpect(jsonPath("$.data[0].id").value(String.valueOf(project.getId())));
@@ -510,6 +530,204 @@ class SubmissionIntegrationTest {
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].id").value(String.valueOf(project.getId())))
         .andExpect(jsonPath("$.data[0].reanalysis").value(true));
+  }
+
+  @Test
+  void recordsTheProtocolTimelineThroughAFullReviewCycle() throws Exception {
+    userRepository.save(
+        new User(
+            "Revisor Teste",
+            "revisor@ampere.com",
+            passwordEncoder.encode(PASSWORD),
+            UserRole.REVIEWER));
+    String analystToken = "Bearer " + token("revisor@ampere.com");
+
+    String created =
+        perform(
+                post("/projects")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        """
+                        {
+                          "name": "Residencial Linha do Tempo",
+                          "address": "Rua da Aurora, 100",
+                          "postalCode": "50050000",
+                          "state": "PE",
+                          "municipality": "Recife",
+                          "buildingType": "RESIDENTIAL_MULTIFAMILY",
+                          "floors": 12,
+                          "voltage": "V380_220",
+                          "connectionType": "THREE_PHASE",
+                          "entranceStandard": "COLLECTIVE"
+                        }
+                        """))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    Project project =
+        projectRepository
+            .findById(
+                Long.valueOf(objectMapper.readTree(created).path("data").path("id").asString()))
+            .orElseThrow();
+    groupRepository.save(residentialGroup(project, "Apartamento tipo A", 24));
+    perform(post("/projects/" + project.getId() + "/calculations")).andExpect(status().isCreated());
+    for (DocumentType type : DocumentType.values()) {
+      upload(project, type, type.name() + ".pdf", PDF).andExpect(status().isCreated());
+    }
+    perform(post(submitOf(project))).andExpect(status().isOk());
+
+    String review = "/projects/" + project.getId();
+    for (int attempt = 0; attempt < 2; attempt++) {
+      mockMvc
+          .perform(post(review + "/review").header("Authorization", analystToken))
+          .andExpect(status().isOk());
+    }
+    String finding =
+        mockMvc
+            .perform(
+                post(review + "/findings")
+                    .header("Authorization", analystToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"severity\":\"BLOCKING\",\"stage\":\"DOCUMENTS\","
+                            + "\"documentType\":\"ART\",\"description\":\"Assinar a ART.\"}"))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    String findingId = objectMapper.readTree(finding).path("data").path("id").asString();
+    mockMvc
+        .perform(
+            post(review + "/decision")
+                .header("Authorization", analystToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"decision\":\"REJECT\",\"opinion\":\"Assine a ART.\"}"))
+        .andExpect(status().isOk());
+
+    answer(review, findingId, "FIXED", "ART assinada.");
+    answer(review, findingId, "FIXED", "ART assinada e anexada.");
+    answer(review, findingId, "CONTESTED", "A ART já estava assinada.");
+    answer(review, findingId, "FIXED", "ART reenviada com a assinatura.");
+    groupRepository.save(residentialGroup(project, "Apartamento tipo B", 12));
+    perform(
+            post(submitOf(project))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"changeSummary\":\"ART assinada e tipo B incluído.\"}"))
+        .andExpect(status().isOk());
+
+    String adjustment =
+        mockMvc
+            .perform(
+                post(review + "/findings")
+                    .header("Authorization", analystToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"severity\":\"ADJUSTMENT\",\"stage\":\"PROJECT_DATA\","
+                            + "\"description\":\"Informe o bloco no endereço.\"}"))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    String adjustmentId = objectMapper.readTree(adjustment).path("data").path("id").asString();
+    mockMvc
+        .perform(
+            post(review + "/decision")
+                .header("Authorization", analystToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"decision\":\"REJECT\",\"opinion\":\"Informe o bloco.\"}"))
+        .andExpect(status().isOk());
+
+    answer(review, findingId, "FIXED", "ART assinada pelo responsável técnico.");
+    answer(review, findingId, "FIXED", "ART assinada pelo responsável técnico, folha 2.");
+    answer(review, adjustmentId, "FIXED", "Torre única, sem bloco.");
+    perform(
+            post(submitOf(project))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"changeSummary\":\"Bloco informado.\"}"))
+        .andExpect(status().isOk());
+
+    for (String id : List.of(findingId, adjustmentId)) {
+      mockMvc
+          .perform(
+              post(review + "/findings/" + id + "/resolution")
+                  .header("Authorization", analystToken)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"resolution\":\"ACCEPT\"}"))
+          .andExpect(status().isOk());
+    }
+    mockMvc
+        .perform(
+            post(review + "/decision")
+                .header("Authorization", analystToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"decision\":\"APPROVE\",\"opinion\":\"Projeto aprovado.\"}"))
+        .andExpect(status().isOk());
+
+    perform(get(review + "/events").param("direction", "ASC"))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.data[*].type")
+                .value(
+                    contains(
+                        "CREATED",
+                        "SUBMITTED",
+                        "PRE_VALIDATED",
+                        "ASSIGNED",
+                        "REJECTED",
+                        "FINDING_ANSWERED",
+                        "FINDING_ANSWERED",
+                        "FINDING_ANSWERED",
+                        "RESUBMITTED",
+                        "PRE_VALIDATED",
+                        "REJECTED",
+                        "FINDING_ANSWERED",
+                        "FINDING_ANSWERED",
+                        "RESUBMITTED",
+                        "PRE_VALIDATED",
+                        "APPROVED")))
+        .andExpect(
+            jsonPath("$.data[*].version")
+                .value(contains(0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3)))
+        .andExpect(jsonPath("$.data[0].authorName").value("Usuário Teste"))
+        .andExpect(jsonPath("$.data[3].description").value("Análise assumida por Revisor Teste."))
+        .andExpect(jsonPath("$.data[3].authorRole").value("reviewer"))
+        .andExpect(jsonPath("$.data[4].description").value("Reprovado com 1 apontamento."))
+        .andExpect(jsonPath("$.data[4].detail").value("Assine a ART."))
+        .andExpect(jsonPath("$.data[5].description").value("Apontamento de Documentos corrigido."))
+        .andExpect(jsonPath("$.data[5].detail").value("ART assinada."))
+        .andExpect(jsonPath("$.data[6].description").value("Apontamento de Documentos contestado."))
+        .andExpect(jsonPath("$.data[6].detail").value("A ART já estava assinada."))
+        .andExpect(jsonPath("$.data[7].detail").value("ART reenviada com a assinatura."))
+        .andExpect(jsonPath("$.data[8].description").value("Versão 2 reenviada para análise."))
+        .andExpect(jsonPath("$.data[8].detail").value("ART assinada e tipo B incluído."))
+        .andExpect(jsonPath("$.data[9].authorRole").doesNotExist())
+        .andExpect(jsonPath("$.data[10].description").value("Reprovado com 1 apontamento."))
+        .andExpect(jsonPath("$.data[11].description").value("Apontamento de Documentos corrigido."))
+        .andExpect(jsonPath("$.data[11].detail").value("ART assinada pelo responsável técnico."))
+        .andExpect(
+            jsonPath("$.data[12].description")
+                .value("Apontamento de Dados da Edificação corrigido."))
+        .andExpect(jsonPath("$.data[13].description").value("Versão 3 reenviada para análise."))
+        .andExpect(jsonPath("$.data[15].description").value("Aprovado."));
+
+    perform(get(review + "/rework"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.cycleDays").value(0))
+        .andExpect(jsonPath("$.data.submittedVersions").value(3))
+        .andExpect(jsonPath("$.data.reviewCycles").value(3))
+        .andExpect(jsonPath("$.data.resolvedFindings").value(2))
+        .andExpect(jsonPath("$.data.openFindings").value(0))
+        .andExpect(jsonPath("$.data.redoneCalculationSteps").value(greaterThan(0)));
+  }
+
+  private void answer(String review, String findingId, String status, String response)
+      throws Exception {
+    perform(
+            put(review + "/findings/" + findingId + "/response")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\":\"" + status + "\",\"response\":\"" + response + "\"}"))
+        .andExpect(status().isOk());
   }
 
   private static Finding publishedFinding(

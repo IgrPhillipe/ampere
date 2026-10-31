@@ -5,10 +5,12 @@ import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
+import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.DemandCalculationService;
+import br.com.ampere.service.ProjectEventService;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -25,10 +27,12 @@ abstract class SeedIntegrationTestBase {
   @Autowired protected FindingRepository findingRepository;
   @Autowired protected CalculationRepository calculationRepository;
   @Autowired protected ProjectDocumentRepository documentRepository;
+  @Autowired protected ProjectEventRepository eventRepository;
   @Autowired protected StandardRepository standardRepository;
   @Autowired protected NormativeTableRepository normativeTableRepository;
   @Autowired protected UserRepository userRepository;
   @Autowired protected DemandCalculationService demandCalculation;
+  @Autowired protected ProjectEventService projectEventService;
   @Autowired protected PasswordEncoder passwordEncoder;
   @Autowired protected PlatformTransactionManager transactionManager;
   @Autowired protected EntityManager entityManager;
@@ -39,6 +43,7 @@ abstract class SeedIntegrationTestBase {
   }
 
   protected void wipe() {
+    eventRepository.deleteAll();
     documentRepository.deleteAll();
     calculationRepository.deleteAll();
     findingRepository.deleteAll();
@@ -75,10 +80,12 @@ abstract class SeedIntegrationTestBase {
         findingRepository,
         calculationRepository,
         documentRepository,
+        eventRepository,
         standardRepository,
         normativeTableRepository,
         userRepository,
         demandCalculation,
+        projectEventService,
         new SeedTimestamps(entityManager),
         transactionManager,
         resetScenarios);

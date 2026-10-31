@@ -31,6 +31,7 @@ import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
+import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectRepositoryCustom.ProjectSearch;
 import java.time.LocalDate;
@@ -125,7 +126,7 @@ class ProjectServiceTest {
         .thenThrow(new DataIntegrityViolationException("duplicate protocol"))
         .thenReturn(created);
 
-    assertThat(service(creation).create(parameters(), null, DESIGNER)).isSameAs(created);
+    assertThat(service(creation).create(parameters(), null, DESIGNER).project()).isSameAs(created);
     verify(creation, times(1)).ownerOf(null, DESIGNER);
     verify(creation, times(2)).createWithGeneratedProtocol(any(), eq(owner));
   }
@@ -239,6 +240,7 @@ class ProjectServiceTest {
         mock(ConsumerUnitGroupRepository.class),
         mock(CalculationRepository.class),
         mock(ProjectDocumentRepository.class),
+        mock(ProjectEventRepository.class),
         creation,
         mock(ApplicableStandards.class));
   }
@@ -258,6 +260,7 @@ class ProjectServiceTest {
         mock(ConsumerUnitGroupRepository.class),
         calculationRepository,
         mock(ProjectDocumentRepository.class),
+        mock(ProjectEventRepository.class),
         mock(ProjectCreation.class),
         mock(ApplicableStandards.class));
   }

@@ -1,5 +1,6 @@
 package br.com.ampere.service;
 
+import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.FindingSeverity;
 import br.com.ampere.domain.FindingStatus;
@@ -8,8 +9,8 @@ import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
+import br.com.ampere.utils.Timestamps;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -26,18 +27,21 @@ public class SubmissionService {
   private final CalculationRepository calculationRepository;
   private final ProjectDocumentRepository documentRepository;
   private final FindingRepository findingRepository;
+  private final ProjectEventService eventService;
 
   public SubmissionService(
       ProjectService projectService,
       DemandCalculationService demandCalculationService,
       CalculationRepository calculationRepository,
       ProjectDocumentRepository documentRepository,
-      FindingRepository findingRepository) {
+      FindingRepository findingRepository,
+      ProjectEventService eventService) {
     this.projectService = projectService;
     this.demandCalculationService = demandCalculationService;
     this.calculationRepository = calculationRepository;
     this.documentRepository = documentRepository;
     this.findingRepository = findingRepository;
+    this.eventService = eventService;
   }
 
   @Transactional(readOnly = true)
@@ -48,7 +52,7 @@ public class SubmissionService {
   }
 
   @Transactional
-  public Project submit(Long projectId, String changeSummary, AuthenticatedUser user) {
+  public ProjectSummary submit(Long projectId, String changeSummary, AuthenticatedUser user) {
     Project project =
         projectService.findOwnedById(
             projectId, "Só o projetista dono do projeto o envia para análise.", user);
@@ -83,9 +87,13 @@ public class SubmissionService {
       demandCalculationService.calculate(projectId, user);
     }
 
-    project.submit(OffsetDateTime.now(ZoneOffset.UTC));
+    Calculation calculation =
+        calculationRepository.findFirstByProjectIdOrderByIdDesc(projectId).orElseThrow();
+    OffsetDateTime submittedAt = Timestamps.now();
+    project.submit(submittedAt);
+    eventService.submitted(project, project.getOwner(), calculation, submittedAt);
 
-    return project;
+    return projectService.summarize(project);
   }
 
   private SubmissionChecklist checklistOf(Project project) {

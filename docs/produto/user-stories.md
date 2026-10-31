@@ -512,9 +512,9 @@ A página "Meu Perfil", no menu do usuário, permite editar os dados e trocar a 
 - **E** exibe a mensagem *"Já existe uma conta com este e-mail."* no campo de e-mail.
 
 ### Checklist de Implementação
-- [ ] Criar conta de projetista com dados profissionais e política de senha
-- [ ] Editar perfil e trocar senha
-- [ ] Exibir o responsável técnico no carimbo e no memorial
+- [x] Criar conta de projetista com dados profissionais e política de senha
+- [x] Editar perfil e trocar senha
+- [x] Exibir o responsável técnico no carimbo e no memorial
 
 ---
 

@@ -75,6 +75,7 @@ class ProjectDetailIntegrationTest {
                     EntranceStandard.COLLECTIVE),
                 null,
                 designer)
+            .project()
             .getId();
 
     Project project = service.findById(id, designer);

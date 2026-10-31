@@ -9,6 +9,7 @@ import {
 } from "@components/ui/card";
 import { useZodForm } from "@features/shared";
 import { useLogin } from "@services/auth";
+import { Link } from "@tanstack/react-router";
 
 import { type LoginFormValues, loginSchema } from "../../schemas";
 
@@ -62,6 +63,16 @@ export const LoginPage = ({ redirectTo }: LoginPageProps) => {
 								{isPending ? "Entrando..." : "Entrar"}
 							</Button>
 						</FormActions>
+
+						<div className="text-center text-sm text-muted-foreground mt-2">
+							Não tem uma conta?{" "}
+							<Link
+								to="/criar-conta"
+								className="text-primary hover:underline font-medium"
+							>
+								Criar Conta
+							</Link>
+						</div>
 					</form>
 				</CardContent>
 			</Card>
