@@ -5,6 +5,7 @@ import { UserRoleBadge } from "../UserRoleBadge";
 import { type UserRowActionHandlers, UserRowActions } from "../UserRowActions";
 import { UserStatusBadge } from "../UserStatusBadge";
 import { LastAccessCell } from "./LastAccessCell";
+import { UserIdentity } from "./UserIdentity";
 
 interface UserCardsProps {
 	users: ManagedUser[];
@@ -26,20 +27,7 @@ export const UserCards = ({
 				className="flex items-start gap-3 border-b border-border px-6 py-4 last:border-b-0"
 			>
 				<div className="flex min-w-0 flex-1 flex-col gap-3">
-					<div className="flex min-w-0 flex-col gap-1">
-						<span className="font-semibold text-foreground">
-							{user.name}
-							{user.id === currentUserId ? (
-								<span className="font-normal text-muted-foreground">
-									{" "}
-									(você)
-								</span>
-							) : null}
-						</span>
-						<span className="text-xs break-all text-muted-foreground">
-							{user.email}
-						</span>
-					</div>
+					<UserIdentity user={user} isCurrentUser={user.id === currentUserId} />
 
 					<div className="flex flex-wrap items-center gap-1.5">
 						<UserRoleBadge role={user.role} />

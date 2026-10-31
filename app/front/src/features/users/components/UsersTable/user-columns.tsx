@@ -5,6 +5,7 @@ import { UserRoleBadge } from "../UserRoleBadge";
 import { type UserRowActionHandlers, UserRowActions } from "../UserRowActions";
 import { UserStatusBadge } from "../UserStatusBadge";
 import { LastAccessCell } from "./LastAccessCell";
+import { UserIdentity } from "./UserIdentity";
 
 const columnHelper = createDataTableColumnHelper<ManagedUser>();
 
@@ -23,17 +24,10 @@ export const createUserColumns = (
 		columnHelper.accessor("name", {
 			header: "Usuário",
 			cell: ({ row }) => (
-				<div className="flex flex-col gap-1 whitespace-normal">
-					<span className="font-semibold text-foreground">
-						{row.original.name}
-						{row.original.id === currentUserId ? (
-							<span className="font-normal text-muted-foreground"> (você)</span>
-						) : null}
-					</span>
-					<span className="text-xs break-all text-muted-foreground">
-						{row.original.email}
-					</span>
-				</div>
+				<UserIdentity
+					user={row.original}
+					isCurrentUser={row.original.id === currentUserId}
+				/>
 			),
 		}),
 		columnHelper.accessor("role", {
