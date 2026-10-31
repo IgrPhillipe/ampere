@@ -1,5 +1,5 @@
 import { useAuthStore } from "@features/shared";
-import { getRoleHomePath } from "@lib/route-guard";
+import { getRoleHomePath, PASSWORD_CHANGE_PATH } from "@lib/route-guard";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -14,8 +14,17 @@ export const useStartSession = () => {
 	return useCallback(
 		({ token, user }: LoginResponse, redirectTo?: string) => {
 			setSession({ ...user, token });
-			navigate({ to: redirectTo ?? getRoleHomePath(user.role) });
 			toast.success(`Bem-vindo, ${user.name}.`);
+
+			if (user.mustChangePassword) {
+				navigate({
+					to: PASSWORD_CHANGE_PATH,
+					search: { redirect: redirectTo },
+				});
+				return;
+			}
+
+			navigate({ to: redirectTo ?? getRoleHomePath(user.role) });
 		},
 		[navigate, setSession],
 	);

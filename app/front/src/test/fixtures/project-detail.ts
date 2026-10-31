@@ -82,7 +82,10 @@ export const idleMutation = (overrides: Record<string, unknown> = {}) => ({
 	...overrides,
 });
 
-export const signInAs = (role: UserRole) => {
+export const signInAs = (
+	role: UserRole,
+	overrides: Partial<CurrentUser> = {},
+) => {
 	const user: CurrentUser = {
 		id: "1",
 		name: "Pessoa Teste",
@@ -90,6 +93,7 @@ export const signInAs = (role: UserRole) => {
 		role,
 		token: "token",
 		mustChangePassword: false,
+		...overrides,
 	};
 
 	useAuthStore.setState({ user, isAuthenticated: true });

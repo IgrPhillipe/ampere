@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
+import { Route as TrocarSenhaRouteImport } from './routes/trocar-senha'
 import { Route as TabelasNormativasRouteImport } from './routes/tabelas-normativas'
 import { Route as MeuPerfilRouteImport } from './routes/meu-perfil'
 import { Route as EntrarRouteImport } from './routes/entrar'
@@ -33,6 +34,11 @@ import { Route as ProjetosIdApontamentosRouteImport } from './routes/projetos/$i
 const UsuariosRoute = UsuariosRouteImport.update({
   id: '/usuarios',
   path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrocarSenhaRoute = TrocarSenhaRouteImport.update({
+  id: '/trocar-senha',
+  path: '/trocar-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TabelasNormativasRoute = TabelasNormativasRouteImport.update({
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
+  '/trocar-senha': typeof TrocarSenhaRoute
   '/usuarios': typeof UsuariosRoute
   '/projetos/$id': typeof ProjetosIdRouteRouteWithChildren
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
+  '/trocar-senha': typeof TrocarSenhaRoute
   '/usuarios': typeof UsuariosRoute
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
+  '/trocar-senha': typeof TrocarSenhaRoute
   '/usuarios': typeof UsuariosRoute
   '/projetos/$id': typeof ProjetosIdRouteRouteWithChildren
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/meu-perfil'
     | '/tabelas-normativas'
+    | '/trocar-senha'
     | '/usuarios'
     | '/projetos/$id'
     | '/fila-de-analise/$id'
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/meu-perfil'
     | '/tabelas-normativas'
+    | '/trocar-senha'
     | '/usuarios'
     | '/fila-de-analise/$id'
     | '/projetos/novo'
@@ -248,6 +259,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/meu-perfil'
     | '/tabelas-normativas'
+    | '/trocar-senha'
     | '/usuarios'
     | '/projetos/$id'
     | '/fila-de-analise/$id'
@@ -271,6 +283,7 @@ export interface RootRouteChildren {
   EntrarRoute: typeof EntrarRoute
   MeuPerfilRoute: typeof MeuPerfilRoute
   TabelasNormativasRoute: typeof TabelasNormativasRoute
+  TrocarSenhaRoute: typeof TrocarSenhaRoute
   UsuariosRoute: typeof UsuariosRoute
   ProjetosIdRouteRoute: typeof ProjetosIdRouteRouteWithChildren
   FilaDeAnaliseIdRoute: typeof FilaDeAnaliseIdRoute
@@ -286,6 +299,13 @@ declare module '@tanstack/react-router' {
       path: '/usuarios'
       fullPath: '/usuarios'
       preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trocar-senha': {
+      id: '/trocar-senha'
+      path: '/trocar-senha'
+      fullPath: '/trocar-senha'
+      preLoaderRoute: typeof TrocarSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tabelas-normativas': {
@@ -458,6 +478,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarRoute: EntrarRoute,
   MeuPerfilRoute: MeuPerfilRoute,
   TabelasNormativasRoute: TabelasNormativasRoute,
+  TrocarSenhaRoute: TrocarSenhaRoute,
   UsuariosRoute: UsuariosRoute,
   ProjetosIdRouteRoute: ProjetosIdRouteRouteWithChildren,
   FilaDeAnaliseIdRoute: FilaDeAnaliseIdRoute,
