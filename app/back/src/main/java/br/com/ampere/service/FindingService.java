@@ -10,8 +10,8 @@ import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
+import br.com.ampere.utils.Timestamps;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -135,7 +135,7 @@ public class FindingService {
     FindingStatus previous = finding.getStatus();
     OffsetDateTime previousAnswer = finding.getRespondedAt();
     boolean newCycle = previousAnswer == null || previousAnswer.isBefore(project.getSubmittedAt());
-    OffsetDateTime respondedAt = OffsetDateTime.now(ZoneOffset.UTC);
+    OffsetDateTime respondedAt = Timestamps.now();
     finding.respond(answer, response, respondedAt);
     // Rewording an answer in the same cycle is not a new fact; a new position or cycle is.
     if (finding.getStatus() != previous || newCycle) {

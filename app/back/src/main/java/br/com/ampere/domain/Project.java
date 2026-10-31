@@ -1,6 +1,7 @@
 package br.com.ampere.domain;
 
 import br.com.ampere.utils.SearchTerms;
+import br.com.ampere.utils.Timestamps;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,7 +23,6 @@ import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -186,7 +186,7 @@ public class Project {
   }
 
   private static OffsetDateTime now() {
-    return OffsetDateTime.now(ZoneOffset.UTC);
+    return Timestamps.now();
   }
 
   private static String searchIndexOf(String name, String protocol) {

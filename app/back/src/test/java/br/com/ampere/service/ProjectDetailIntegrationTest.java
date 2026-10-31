@@ -74,6 +74,7 @@ class ProjectDetailIntegrationTest {
                     ConnectionType.THREE_PHASE,
                     EntranceStandard.COLLECTIVE),
                 designer)
+            .project()
             .getId();
 
     Project project = service.findById(id, designer);

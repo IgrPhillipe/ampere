@@ -8,16 +8,22 @@ import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.ConnectionType;
+import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DemandComponent;
 import br.com.ampere.domain.DemandResult;
 import br.com.ampere.domain.DemandStep;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingAnswer;
 import br.com.ampere.domain.FindingResolution;
 import br.com.ampere.domain.FindingSeverity;
 import br.com.ampere.domain.FindingStage;
+import br.com.ampere.domain.GroupKind;
+import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.OpenFindingsFilter;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectEvent;
+import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
@@ -28,8 +34,10 @@ import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.CalculationRepository;
+import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
+import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
@@ -59,6 +67,10 @@ class ProjectServiceIntegrationTest {
 
   @Autowired private CalculationRepository calculationRepository;
 
+  @Autowired private ConsumerUnitGroupRepository groupRepository;
+
+  @Autowired private ProjectEventRepository eventRepository;
+
   @Autowired private NormativeTableRepository normativeTableRepository;
 
   @Autowired private UserRepository userRepository;
@@ -71,8 +83,10 @@ class ProjectServiceIntegrationTest {
 
   @BeforeEach
   void clearProjects() {
+    eventRepository.deleteAll();
     calculationRepository.deleteAll();
     findingRepository.deleteAll();
+    groupRepository.deleteAll();
     projectRepository.deleteAll();
     normativeTableRepository.deleteAll();
     standardRepository.deleteAll();
@@ -82,6 +96,79 @@ class ProjectServiceIntegrationTest {
     designer = new AuthenticatedUser(owner.getId(), UserRole.USER);
     standardRepository.saveAll(
         List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
+  }
+
+  @Test
+  void detailsTheProjectWithItsSummaryMetricsAndLastEvent() {
+    Project project =
+        projectRepository.save(
+            project(
+                "Residencial Resumo",
+                "Rua do Resumo, 10",
+                "Recife",
+                "2026-9110",
+                ProjectStatus.REJECTED));
+    Finding open = published(finding(project));
+    Finding contested = published(finding(project));
+    contested.respond(
+        FindingAnswer.CONTESTED,
+        "A solução já atende à norma.",
+        OffsetDateTime.parse("2026-10-15T10:00:00Z"));
+    Finding fixed = published(finding(project));
+    fixed.respond(
+        FindingAnswer.FIXED,
+        "Número do lote informado.",
+        OffsetDateTime.parse("2026-10-15T11:00:00Z"));
+    findingRepository.saveAll(List.of(open, contested, fixed, finding(project)));
+    groupRepository.saveAll(
+        List.of(
+            residentialGroup(project, "Apartamentos A", 5),
+            residentialGroup(project, "Apartamentos B", 3)));
+    withDemand(project, new BigDecimal("50.0"));
+    withDemand(project, new BigDecimal("61.2"));
+    OffsetDateTime lastActivityAt = OffsetDateTime.parse("2026-10-16T14:20:00Z");
+    eventRepository.saveAll(
+        List.of(
+            event(project, ProjectEventType.SUBMITTED, "2026-10-04T13:00:00Z"),
+            event(project, ProjectEventType.REJECTED, lastActivityAt.toString())));
+
+    ProjectSummary summary = service.detail(project.getId(), designer);
+
+    assertThat(summary.project()).isEqualTo(project);
+    assertThat(summary.openFindingsCount()).isEqualTo(2);
+    assertThat(summary.consumerUnitsCount()).isEqualTo(8);
+    assertThat(summary.demandKva()).isEqualByComparingTo("61.2");
+    assertThat(summary.lastActivityAt()).isEqualTo(lastActivityAt);
+  }
+
+  @Test
+  void closesTheFindingsOfAnApprovedProject() {
+    Project approved =
+        projectRepository.save(
+            project(
+                "Residencial Aprovado",
+                "Rua Aprovada, 20",
+                "Recife",
+                "2026-9111",
+                ProjectStatus.APPROVED));
+    findingRepository.save(published(finding(approved)));
+
+    assertThat(service.detail(approved.getId(), designer).openFindingsCount()).isZero();
+  }
+
+  @Test
+  void summarizesAProjectWithoutGroupsCalculationOrEvents() {
+    Project draft =
+        projectRepository.save(
+            project(
+                "Residencial Vazio", "Rua Vazia, 30", "Recife", "2026-9113", ProjectStatus.DRAFT));
+
+    ProjectSummary summary = service.detail(draft.getId(), designer);
+
+    assertThat(summary.openFindingsCount()).isZero();
+    assertThat(summary.consumerUnitsCount()).isZero();
+    assertThat(summary.demandKva()).isNull();
+    assertThat(summary.lastActivityAt()).isEqualTo(draft.getUpdatedAt());
   }
 
   @Test
@@ -424,7 +511,7 @@ class ProjectServiceIntegrationTest {
   @Test
   void createsADraftProjectWithAGeneratedProtocolAndBothStandards() {
     Project created =
-        service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer);
+        service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer).project();
 
     assertThat(created.getId()).isNotNull();
     assertThat(created.getStatus()).isEqualTo(ProjectStatus.DRAFT);
@@ -439,7 +526,7 @@ class ProjectServiceIntegrationTest {
   @Test
   void assignsTheAuthenticatedUserAsTheOwner() {
     Project created =
-        service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer);
+        service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer).project();
 
     assertThat(created.getOwner().getId()).isEqualTo(owner.getId());
   }
@@ -514,14 +601,14 @@ class ProjectServiceIntegrationTest {
             ConnectionType.THREE_PHASE,
             EntranceStandard.COLLECTIVE);
 
-    assertThat(service.create(typed, designer).getMunicipality())
+    assertThat(service.create(typed, designer).project().getMunicipality())
         .isEqualTo("Jaboatão dos Guararapes");
   }
 
   @Test
   void storesThePostalCodeAndTheState() {
     Project created =
-        service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer);
+        service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer).project();
 
     assertThat(created.getPostalCode()).isEqualTo("54500000");
     assertThat(created.formattedPostalCode()).isEqualTo("54500-000");
@@ -530,10 +617,15 @@ class ProjectServiceIntegrationTest {
 
   @Test
   void generatesSequentialProtocolsWithinTheYear() {
-    String first = service.create(parameters(BuildingCategory.MIXED), designer).getProtocol();
-    String second = service.create(parameters(BuildingCategory.MIXED), designer).getProtocol();
+    String first =
+        service.create(parameters(BuildingCategory.MIXED), designer).project().getProtocol();
+    String second =
+        service.create(parameters(BuildingCategory.MIXED), designer).project().getProtocol();
     String third =
-        service.create(parameters(BuildingCategory.NON_RESIDENTIAL), designer).getProtocol();
+        service
+            .create(parameters(BuildingCategory.NON_RESIDENTIAL), designer)
+            .project()
+            .getProtocol();
 
     assertThat(List.of(first, second, third)).doesNotHaveDuplicates().isSorted();
   }
@@ -541,29 +633,50 @@ class ProjectServiceIntegrationTest {
   @Test
   void updatesTheTechnicalParametersOfADraft() {
     Long id =
-        service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer).getId();
+        service
+            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), designer)
+            .project()
+            .getId();
 
     Project updated =
-        service.update(
-            id,
-            new ProjectParameters(
-                "Comercial Praça Sul",
-                "54500000",
-                BrazilianState.PE,
-                "Olinda",
-                "Rua do Sol, 302",
-                BuildingCategory.NON_RESIDENTIAL,
-                3,
-                SupplyVoltage.V220_127,
-                ConnectionType.SINGLE_PHASE,
-                EntranceStandard.INDIVIDUAL),
-            designer);
+        service
+            .update(
+                id,
+                new ProjectParameters(
+                    "Comercial Praça Sul",
+                    "54500000",
+                    BrazilianState.PE,
+                    "Olinda",
+                    "Rua do Sol, 302",
+                    BuildingCategory.NON_RESIDENTIAL,
+                    3,
+                    SupplyVoltage.V220_127,
+                    ConnectionType.SINGLE_PHASE,
+                    EntranceStandard.INDIVIDUAL),
+                designer)
+            .project();
 
     assertThat(updated.getName()).isEqualTo("Comercial Praça Sul");
     assertThat(updated.getMunicipality()).isEqualTo("Olinda");
     assertThat(updated.getBuildingType().getFloors()).isEqualTo(3);
     assertThat(updated.getBuildingType().category()).isEqualTo(BuildingCategory.NON_RESIDENTIAL);
     assertThat(updated.getStandards()).hasSize(2);
+  }
+
+  @Test
+  void theLastActivityOfAProjectWithoutEventsFollowsItsUpdate() throws Exception {
+    Project legacy =
+        projectRepository.save(
+            project(
+                "Residencial Legado", "Rua Antiga, 5", "Recife", "2026-9112", ProjectStatus.DRAFT));
+    OffsetDateTime before = legacy.getUpdatedAt();
+    Thread.sleep(5);
+
+    ProjectSummary summary =
+        service.update(legacy.getId(), parameters(BuildingCategory.MIXED), designer);
+    entityManager.flush();
+
+    assertThat(summary.lastActivityAt()).isAfter(before).isEqualTo(legacy.getUpdatedAt());
   }
 
   @Test
@@ -595,7 +708,7 @@ class ProjectServiceIntegrationTest {
                 ProjectStatus.REJECTED));
 
     Project updated =
-        service.update(rejected.getId(), parameters(BuildingCategory.MIXED), designer);
+        service.update(rejected.getId(), parameters(BuildingCategory.MIXED), designer).project();
 
     assertThat(updated.getStatus()).isEqualTo(ProjectStatus.REJECTED);
     assertThat(updated.getBuildingType().category()).isEqualTo(BuildingCategory.MIXED);
@@ -606,7 +719,7 @@ class ProjectServiceIntegrationTest {
 
   @Test
   void deletesADraftProjectAndItsFindings() {
-    Project draft = service.create(parameters(BuildingCategory.MIXED), designer);
+    Project draft = service.create(parameters(BuildingCategory.MIXED), designer).project();
     findingRepository.save(published(finding(draft)));
 
     service.delete(draft.getId(), designer);
@@ -759,6 +872,36 @@ class ProjectServiceIntegrationTest {
             List.of(),
             List.of());
     calculationRepository.save(new Calculation(project, result, "{}"));
+  }
+
+  private static ConsumerUnitGroup residentialGroup(Project project, String name, int quantity) {
+    return GroupKind.RESIDENTIAL.create(
+        project,
+        new GroupSpec(
+            name,
+            quantity,
+            new BigDecimal("68"),
+            2,
+            new BigDecimal("6.5"),
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null));
+  }
+
+  private ProjectEvent event(Project project, ProjectEventType type, String occurredAt) {
+    return new ProjectEvent(
+        project,
+        type,
+        project.getReviewCycle(),
+        owner,
+        owner.getRole(),
+        type.name(),
+        null,
+        OffsetDateTime.parse(occurredAt));
   }
 
   private static ProjectParameters parameters(BuildingCategory category) {

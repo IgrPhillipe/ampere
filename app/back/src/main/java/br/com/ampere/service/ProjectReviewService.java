@@ -9,8 +9,8 @@ import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.utils.Timestamps;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -64,7 +64,7 @@ public class ProjectReviewService {
               .findById(user.id())
               .orElseThrow(() -> new NotFoundException("Usuário autenticado não encontrado."));
       project.assignReviewer(reviewer);
-      eventService.assigned(project, reviewer, OffsetDateTime.now(ZoneOffset.UTC));
+      eventService.assigned(project, reviewer, Timestamps.now());
     }
 
     return project;
@@ -88,7 +88,7 @@ public class ProjectReviewService {
     }
 
     findings.stream().filter(Finding::isDraft).forEach(Finding::publish);
-    OffsetDateTime reviewedAt = OffsetDateTime.now(ZoneOffset.UTC);
+    OffsetDateTime reviewedAt = Timestamps.now();
     if (decision == ReviewDecision.APPROVE) {
       project.approve(reviewedAt, opinion);
     } else {
