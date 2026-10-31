@@ -292,11 +292,11 @@ Apresentação de sábado, 05/12. Vale uma das duas notas de Projetos 3.
 
 ### `AT01-US08: Back-end do histórico do protocolo [Backend]` (#103)
 
-- [ ] Entidade `ProjectEvent` com tipo, versão, autor, papel, descrição e data, gravada na criação, no envio, na decisão, no reenvio e nas respostas aos apontamentos
-- [ ] `GET /api/projects/{id}/events?direction=desc`, para o dono e para o analista
-- [ ] `GET /api/projects/{id}/rework`: dias de ciclo, versões enviadas, ciclos de análise, apontamentos resolvidos e em aberto, e etapas refeitas
-- [ ] Seed dos eventos pela linha do tempo de cada `ScenarioCase` (#190)
-- [ ] Testes da ordem dos eventos e das métricas
+- [x] Entidade `ProjectEvent` com tipo, versão, autor, papel, descrição e data, gravada na criação, no envio, na decisão, no reenvio e nas respostas aos apontamentos
+- [x] `GET /api/projects/{id}/events?direction=desc`, para o dono e para o analista
+- [x] `GET /api/projects/{id}/rework`: dias de ciclo, versões enviadas, ciclos de análise, apontamentos resolvidos e em aberto, e etapas refeitas
+- [x] Seed dos eventos pela linha do tempo de cada `ScenarioCase` (#190)
+- [x] Testes da ordem dos eventos e das métricas
 
 ### `AT02-US08: Aba "Histórico" da análise [Frontend]` (#104)
 
