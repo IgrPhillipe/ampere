@@ -22,7 +22,6 @@ import { type UserFormValues, userFormSchema } from "../../schemas";
 
 interface UserFormDialogProps {
 	open: boolean;
-	/** Without a user the dialog creates one. */
 	user: ManagedUser | null;
 	onOpenChange: (open: boolean) => void;
 	onCreated: (access: TemporaryAccess) => void;

@@ -4,7 +4,6 @@ import { requirePendingPasswordChange } from "@lib/route-guard";
 import { createFileRoute } from "@tanstack/react-router";
 
 interface ChangePasswordSearch {
-	/** Route the user was heading to, opened after the change. */
 	redirect?: string;
 }
 
