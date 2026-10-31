@@ -105,7 +105,7 @@ export const ProjectTimeline = ({
 					aria-pressed={newestFirst}
 					disabled={isLoading || !events?.length}
 					onClick={() => onDirectionChange(newestFirst ? "ASC" : "DESC")}
-					className="font-mono tracking-[0.08em] uppercase"
+					className="font-mono tracking-[0.08em] uppercase aria-pressed:bg-accent aria-pressed:text-accent-foreground"
 				>
 					Mais Recente Primeiro
 					<DirectionIcon aria-hidden="true" />
