@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as TabelasNormativasRouteImport } from './routes/tabelas-normativas'
 import { Route as MeuPerfilRouteImport } from './routes/meu-perfil'
 import { Route as EntrarRouteImport } from './routes/entrar'
@@ -29,6 +30,11 @@ import { Route as ProjetosIdDadosRouteImport } from './routes/projetos/$id/dados
 import { Route as ProjetosIdCalculoRouteImport } from './routes/projetos/$id/calculo'
 import { Route as ProjetosIdApontamentosRouteImport } from './routes/projetos/$id/apontamentos'
 
+const UsuariosRoute = UsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TabelasNormativasRoute = TabelasNormativasRouteImport.update({
   id: '/tabelas-normativas',
   path: '/tabelas-normativas',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
+  '/usuarios': typeof UsuariosRoute
   '/projetos/$id': typeof ProjetosIdRouteRouteWithChildren
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByTo {
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
+  '/usuarios': typeof UsuariosRoute
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
   '/fila-de-analise': typeof FilaDeAnaliseIndexRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
+  '/usuarios': typeof UsuariosRoute
   '/projetos/$id': typeof ProjetosIdRouteRouteWithChildren
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/meu-perfil'
     | '/tabelas-normativas'
+    | '/usuarios'
     | '/projetos/$id'
     | '/fila-de-analise/$id'
     | '/projetos/novo'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/meu-perfil'
     | '/tabelas-normativas'
+    | '/usuarios'
     | '/fila-de-analise/$id'
     | '/projetos/novo'
     | '/fila-de-analise'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/meu-perfil'
     | '/tabelas-normativas'
+    | '/usuarios'
     | '/projetos/$id'
     | '/fila-de-analise/$id'
     | '/projetos/novo'
@@ -259,6 +271,7 @@ export interface RootRouteChildren {
   EntrarRoute: typeof EntrarRoute
   MeuPerfilRoute: typeof MeuPerfilRoute
   TabelasNormativasRoute: typeof TabelasNormativasRoute
+  UsuariosRoute: typeof UsuariosRoute
   ProjetosIdRouteRoute: typeof ProjetosIdRouteRouteWithChildren
   FilaDeAnaliseIdRoute: typeof FilaDeAnaliseIdRoute
   ProjetosNovoRoute: typeof ProjetosNovoRoute
@@ -268,6 +281,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/usuarios': {
+      id: '/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tabelas-normativas': {
       id: '/tabelas-normativas'
       path: '/tabelas-normativas'
@@ -438,6 +458,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarRoute: EntrarRoute,
   MeuPerfilRoute: MeuPerfilRoute,
   TabelasNormativasRoute: TabelasNormativasRoute,
+  UsuariosRoute: UsuariosRoute,
   ProjetosIdRouteRoute: ProjetosIdRouteRouteWithChildren,
   FilaDeAnaliseIdRoute: FilaDeAnaliseIdRoute,
   ProjetosNovoRoute: ProjetosNovoRoute,

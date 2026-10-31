@@ -35,6 +35,7 @@ describe("role navigation", () => {
 			"Projetos",
 			"Fila de Análise",
 			"Tabelas Normativas",
+			"Usuários",
 		]);
 	});
 
@@ -42,6 +43,7 @@ describe("role navigation", () => {
 		expect(ROLE_ACCESS.projects).not.toContain("reviewer");
 		expect(ROLE_ACCESS.normativeTables).not.toContain("user");
 		expect(ROLE_ACCESS.reviewQueue).not.toContain("user");
+		expect(ROLE_ACCESS.users).toEqual(["admin"]);
 	});
 });
 
