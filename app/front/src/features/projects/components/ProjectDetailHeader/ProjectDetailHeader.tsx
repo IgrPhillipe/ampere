@@ -27,7 +27,7 @@ interface HeaderCellProps {
 }
 
 const HeaderCell = ({ label, isLoading, children }: HeaderCellProps) => (
-	<div className="flex min-w-0 flex-col gap-1.5 bg-card px-6 py-4 last:odd:col-span-2 md:px-8 lg:px-4 lg:first:pl-8 lg:last:odd:col-span-1">
+	<div className="flex min-w-0 flex-col gap-1.5 bg-card px-6 py-4 last:odd:col-span-2 md:px-8 xl:px-4 xl:first:pl-8 xl:last:odd:col-span-1">
 		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
 			{label}
 		</dt>
@@ -166,9 +166,10 @@ export const ProjectDetailHeader = ({
 			style={
 				{
 					"--metric-columns": `repeat(${BASE_METRICS + metrics.length}, minmax(0, 1fr))`,
+					"--metric-half-columns": `repeat(${Math.ceil((BASE_METRICS + metrics.length) / 2)}, minmax(0, 1fr))`,
 				} as CSSProperties
 			}
-			className="grid grid-cols-2 gap-px border-t border-border bg-border lg:grid-cols-(--metric-columns)"
+			className="grid grid-cols-2 gap-px border-t border-border bg-border lg:grid-cols-(--metric-half-columns) xl:grid-cols-(--metric-columns)"
 		>
 			<HeaderCell isLoading={isLoading} label="Responsável técnico">
 				{project?.technicalResponsible
