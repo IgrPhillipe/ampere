@@ -133,7 +133,11 @@ export const ProjectWorkspace = ({
 
 	const deleteAction =
 		!reviewing && permissions.canDelete ? (
-			<Button type="button" variant="outline" onClick={() => setDeleting(true)}>
+			<Button
+				type="button"
+				variant="destructive-ghost"
+				onClick={() => setDeleting(true)}
+			>
 				<Trash2 aria-hidden="true" />
 				Excluir Projeto
 			</Button>
