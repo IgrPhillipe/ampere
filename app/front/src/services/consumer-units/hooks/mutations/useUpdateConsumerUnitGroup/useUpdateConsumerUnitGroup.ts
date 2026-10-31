@@ -1,5 +1,6 @@
 import { getToastErrorMessage } from "@lib/api-error";
 import { calculationKeys } from "@services/calculation";
+import { projectKeys } from "@services/projects";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -19,6 +20,9 @@ export const useUpdateConsumerUnitGroup = (projectId: string) => {
 				}),
 				queryClient.invalidateQueries({
 					queryKey: calculationKeys.latest(projectId),
+				}),
+				queryClient.invalidateQueries({
+					queryKey: projectKeys.detail(projectId),
 				}),
 			]);
 
