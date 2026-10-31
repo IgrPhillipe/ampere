@@ -93,8 +93,8 @@ export const ProjectsTable = ({
 			/>
 		) : (
 			<EmptyState
-				title="Nenhum projeto encontrado para os critérios informados"
-				description="Verifique o protocolo ou o nome do projeto e tente novamente."
+				title="Nenhum projeto cadastrado"
+				description="Os projetos criados em Novo Projeto aparecem aqui."
 			/>
 		);
 	}

@@ -1,6 +1,13 @@
 import type { UserRole } from "@features/shared";
 import { useAuthStore, waitForAuthHydration } from "@features/shared";
-import { redirect } from "@tanstack/react-router";
+import { type ParsedLocation, redirect } from "@tanstack/react-router";
+
+declare module "@tanstack/react-router" {
+	interface HistoryState {
+		/** Set by the logout, which leaves the page before it clears the session. */
+		signingOut?: boolean;
+	}
+}
 
 /** Who reaches each area: the same split the back enforces. */
 export const ROLE_ACCESS = {
@@ -30,6 +37,21 @@ export const requireAuth = () => async () => {
 		throw redirect({ to: "/entrar", search: { redirect: location.pathname } });
 	}
 };
+
+/** Use in the `beforeLoad` of `/entrar` and `/criar-conta`: whoever is signed in goes home. */
+export const redirectSignedIn =
+	() =>
+	async ({ location }: { location: ParsedLocation }) => {
+		if (location.state.signingOut) return;
+
+		await waitForAuthHydration();
+
+		const { isAuthenticated, user } = useAuthStore.getState();
+
+		if (isAuthenticated && user) {
+			throw redirect({ to: getRoleHomePath(user.role) });
+		}
+	};
 
 /** `/` has no page of its own: it sends each role to its home. */
 export const redirectToRoleHome = () => async () => {

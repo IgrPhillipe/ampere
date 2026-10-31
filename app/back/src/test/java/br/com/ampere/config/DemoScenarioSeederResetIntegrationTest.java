@@ -15,6 +15,7 @@ import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
+import br.com.ampere.service.GroupValidation;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -22,13 +23,17 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /** Seeds the database more than once, over databases that already hold something. */
 @SpringBootTest
 class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
 
   private static final int SCENARIOS = 51;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @BeforeEach
   void startEmpty() {
@@ -144,6 +149,25 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
     scenarioSeeder(false).seed();
 
     assertThat(eventRepository.count()).isEqualTo(events);
+  }
+
+  @Test
+  void answersTheElevatorOfAScenarioSeededWithoutIt() {
+    scenarioSeeder(false).seed();
+    Project rejected = projectRepository.findByProtocol("2026-2020").orElseThrow();
+    jdbcTemplate.update(
+        "UPDATE load_group_item SET simultaneous_start = NULL WHERE category = 'MOTORS'");
+    assertThat(
+            GroupValidation.of(groupRepository.findAllByProjectIdOrderById(rejected.getId()))
+                .canCalculate())
+        .isFalse();
+
+    scenarioSeeder(false).seed();
+
+    assertThat(
+            GroupValidation.of(groupRepository.findAllByProjectIdOrderById(rejected.getId()))
+                .canCalculate())
+        .isTrue();
   }
 
   @Test

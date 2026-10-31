@@ -1,4 +1,5 @@
 import { getToastErrorMessage } from "@lib/api-error";
+import { projectEventKeys } from "@services/project-events";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -11,9 +12,14 @@ export const useResolveFinding = () => {
 	return useMutation({
 		mutationFn: resolveFinding,
 		onSuccess: async (_, { projectId, resolution }) => {
-			await queryClient.invalidateQueries({
-				queryKey: projectReviewKeys.findings(projectId),
-			});
+			await Promise.all([
+				queryClient.invalidateQueries({
+					queryKey: projectReviewKeys.findings(projectId),
+				}),
+				queryClient.invalidateQueries({
+					queryKey: projectEventKeys.project(projectId),
+				}),
+			]);
 
 			toast.success(
 				resolution === "ACCEPT" ? "Correção aceita." : "Apontamento reaberto.",

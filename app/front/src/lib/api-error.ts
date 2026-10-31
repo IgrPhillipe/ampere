@@ -113,6 +113,26 @@ export const extractApiDetail = (error: unknown): string | undefined => {
 export const getHttpStatus = (error: unknown): number | undefined =>
 	isHTTPError(error) ? error.response.status : undefined;
 
+export interface ApiFieldError {
+	field: string;
+	message: string;
+}
+
+/** The bean validation errors of a 400, one per rejected request field. */
+export const getApiFieldErrors = (error: unknown): ApiFieldError[] => {
+	if (!isHTTPError(error) || error.data == null) return [];
+	if (typeof error.data !== "object") return [];
+
+	const { errors = [] } = error.data as SpringErrorBody;
+
+	return errors.flatMap((item) => {
+		const field = clean(item.field);
+		const message = clean(item.defaultMessage) ?? clean(item.message);
+
+		return field && message ? [{ field, message }] : [];
+	});
+};
+
 interface ToastErrorOptions {
 	fallback: string;
 }

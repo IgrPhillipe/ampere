@@ -156,6 +156,9 @@ public class DemoScenarioSeeder {
       Project project = existing.get();
       if (!resetScenarios || !isSeeded(project, scenario)) {
         completeAddress(project, scenario);
+        if (isSeeded(project, scenario)) {
+          groupRepository.answerTheCommonAreaElevator(project.getId());
+        }
         return 0;
       }
       delete(project);

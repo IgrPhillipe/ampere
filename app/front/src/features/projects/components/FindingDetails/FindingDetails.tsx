@@ -10,7 +10,7 @@ import {
 import { formatDate } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, type ReactNode, useState } from "react";
 
 import {
 	findingSeverityBadgeVariants,
@@ -244,33 +244,43 @@ export const FindingRow = ({
 
 interface FindingDialogProps {
 	finding: Finding | undefined;
-	reference: string | null;
+	referenceOf: (finding: Finding) => string | null;
 	onClose: () => void;
-	children: ReactNode;
+	children: (finding: Finding) => ReactNode;
 }
 
 export const FindingDialog = ({
 	finding,
-	reference,
+	referenceOf,
 	onClose,
 	children,
-}: FindingDialogProps) => (
-	<Dialog
-		open={finding !== undefined}
-		onOpenChange={(open) => {
-			if (!open) onClose();
-		}}
-	>
-		<DialogContent className="max-h-[85vh] gap-0 overflow-y-auto bg-card p-0 sm:max-w-xl">
-			<DialogHeader className="border-b border-border px-6 py-5 pr-12 text-left">
-				<DialogTitle className="font-heading text-lg">Apontamento</DialogTitle>
-				<DialogDescription>
-					{finding
-						? `${findingStageLabels[finding.stage]}${reference ? `: ${reference}` : ""}`
-						: null}
-				</DialogDescription>
-			</DialogHeader>
-			<div className="px-6 py-5">{children}</div>
-		</DialogContent>
-	</Dialog>
-);
+}: FindingDialogProps) => {
+	// Keeps the last finding on screen while the dialog fades out.
+	const [shown, setShown] = useState(finding);
+	if (finding && finding !== shown) setShown(finding);
+
+	const reference = shown ? referenceOf(shown) : null;
+
+	return (
+		<Dialog
+			open={finding !== undefined}
+			onOpenChange={(open) => {
+				if (!open) onClose();
+			}}
+		>
+			<DialogContent className="max-h-[85vh] gap-0 overflow-y-auto bg-card p-0 sm:max-w-xl">
+				<DialogHeader className="border-b border-border px-6 py-5 pr-12 text-left">
+					<DialogTitle className="font-heading text-lg">
+						Apontamento
+					</DialogTitle>
+					<DialogDescription>
+						{shown
+							? `${findingStageLabels[shown.stage]}${reference ? `: ${reference}` : ""}`
+							: null}
+					</DialogDescription>
+				</DialogHeader>
+				<div className="px-6 py-5">{shown ? children(shown) : null}</div>
+			</DialogContent>
+		</Dialog>
+	);
+};

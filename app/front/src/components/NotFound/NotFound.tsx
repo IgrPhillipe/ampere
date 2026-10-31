@@ -11,6 +11,8 @@ export const NotFound = () => (
 			</p>
 		</div>
 
-		<Button render={<Link to="/" />}>Voltar para o Início</Button>
+		<Button nativeButton={false} render={<Link to="/" />}>
+			Voltar para o Início
+		</Button>
 	</div>
 );
