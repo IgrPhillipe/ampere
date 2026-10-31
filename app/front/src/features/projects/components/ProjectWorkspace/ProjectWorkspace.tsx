@@ -202,11 +202,7 @@ export const ProjectWorkspace = ({
 					<ProjectDetailHeader
 						breadcrumb={<Breadcrumb items={breadcrumb} />}
 						project={project}
-						isLoading={
-							projectQuery.isPending || workspace.validationQuery.isPending
-						}
-						units={workspace.units}
-						demandKva={workspace.demandKva}
+						isLoading={projectQuery.isPending}
 						reanalysis={reanalysis}
 						correcting={detailActions.resubmit}
 						metrics={metrics}

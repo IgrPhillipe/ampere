@@ -45,18 +45,6 @@ export const useProjectWorkspace = (projectId: string) => {
 		calculationQuery.data === null ? null : calculationQuery.data?.data;
 	const outdated = calculation?.outdated === true;
 
-	const units = validation
-		? `${validation.totalUnits} em ${validation.totalGroups} ${
-				validation.totalGroups === 1 ? "grupo" : "grupos"
-			}`
-		: undefined;
-	const demandKva =
-		calculation === null
-			? null
-			: calculation
-				? calculation.totals.finalKva
-				: undefined;
-
 	const awaiting =
 		project && findings
 			? findings.filter((finding) => awaitsDesignerResponse(finding, project))
@@ -107,8 +95,6 @@ export const useProjectWorkspace = (projectId: string) => {
 		findings,
 		calculation,
 		outdated,
-		units,
-		demandKva,
 		awaiting,
 		sections,
 	};

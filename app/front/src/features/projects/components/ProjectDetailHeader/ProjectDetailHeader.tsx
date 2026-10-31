@@ -1,6 +1,11 @@
 import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDate, formatKva, formatPostalCode } from "@features/shared";
+import {
+	formatDate,
+	formatKva,
+	formatPostalCode,
+	padCount,
+} from "@features/shared";
 import { cn } from "@lib/utils";
 import {
 	type ConcessionState,
@@ -71,8 +76,6 @@ interface ProjectDetailHeaderProps {
 	project?: ProjectDetail;
 	breadcrumb?: ReactNode;
 	isLoading?: boolean;
-	units?: string;
-	demandKva?: number | null;
 	reanalysis?: boolean;
 	/** The designer sees the version a rejected project is being corrected into. */
 	correcting?: boolean;
@@ -89,8 +92,6 @@ export const ProjectDetailHeader = ({
 	project,
 	breadcrumb,
 	isLoading = false,
-	units,
-	demandKva,
 	reanalysis = false,
 	correcting = false,
 	metrics = [],
@@ -176,15 +177,17 @@ export const ProjectDetailHeader = ({
 			</HeaderCell>
 
 			<HeaderCell isLoading={isLoading} label="Unidades">
-				{units}
+				{project
+					? `${padCount(project.consumerUnitsCount)} ${project.consumerUnitsCount === 1 ? "unidade" : "unidades"}`
+					: undefined}
 			</HeaderCell>
 
 			<HeaderCell isLoading={isLoading} label="Demanda">
-				{demandKva === undefined
-					? undefined
-					: demandKva === null
+				{project
+					? project.demandKva === null
 						? "Sem cálculo"
-						: formatKva(demandKva, 1)}
+						: formatKva(project.demandKva, 1)
+					: undefined}
 			</HeaderCell>
 
 			<HeaderCell isLoading={isLoading} label="Normas">
