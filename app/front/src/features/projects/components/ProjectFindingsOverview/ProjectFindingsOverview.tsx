@@ -125,25 +125,25 @@ export const ProjectFindingsOverview = ({
 
 			<FindingDialog
 				finding={opened}
-				reference={opened ? referenceOf(opened) : null}
+				referenceOf={referenceOf}
 				onClose={closeDialog}
 			>
-				{opened ? (
+				{(finding) => (
 					<ProjectFindingCard
-						finding={opened}
-						reference={referenceOf(opened)}
-						canRespond={canRespond && awaiting(opened)}
+						finding={finding}
+						reference={referenceOf(finding)}
+						canRespond={canRespond && awaiting(finding)}
 						responseStatus={
-							responseEditor?.findingId === opened.id
+							responseEditor?.findingId === finding.id
 								? responseEditor.status
 								: undefined
 						}
 						isResponding={isResponding}
 						onOpenStage={
 							onOpenStage
-								? (finding) => {
+								? (target) => {
 										setOpenedId(null);
-										onOpenStage(finding);
+										onOpenStage(target);
 									}
 								: undefined
 						}
@@ -151,7 +151,7 @@ export const ProjectFindingsOverview = ({
 						onSubmitResponse={onSubmitResponse}
 						onCancelResponse={onCancelResponse}
 					/>
-				) : null}
+				)}
 			</FindingDialog>
 		</div>
 	);

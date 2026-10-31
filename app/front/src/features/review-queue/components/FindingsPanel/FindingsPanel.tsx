@@ -166,20 +166,20 @@ export const FindingsPanel = ({
 
 			<FindingDialog
 				finding={opened}
-				reference={
-					opened ? describeFindingReference(opened, referenceOptions) : null
+				referenceOf={(finding) =>
+					describeFindingReference(finding, referenceOptions)
 				}
 				onClose={close}
 			>
-				{opened ? (
+				{(finding) => (
 					<FindingCard
-						finding={opened}
+						finding={finding}
 						referenceOptions={referenceOptions}
 						editable={editable}
 						pendingId={pendingId}
 						{...dialogActions}
 					/>
-				) : null}
+				)}
 			</FindingDialog>
 		</aside>
 	);
