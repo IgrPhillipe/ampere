@@ -12,4 +12,6 @@ public record ProfileRequest(
     @Pattern(regexp = Crea.NUMBER, message = Crea.NUMBER_MESSAGE) String crea,
     @Pattern(regexp = Crea.STATE, message = Crea.STATE_MESSAGE) String creaState,
     @Size(max = 120, message = "A empresa deve ter no máximo {max} caracteres.") String company,
-    @Size(max = 20, message = "O telefone deve ter no máximo {max} caracteres.") String phone) {}
+    @NotBlank(message = "O telefone é obrigatório.")
+        @Size(max = 20, message = "O telefone deve ter no máximo {max} caracteres.")
+        String phone) {}

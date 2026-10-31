@@ -2,10 +2,12 @@ import {
 	APP_NAV_ITEMS,
 	filterNavItemsByRole,
 } from "@components/layout/nav-items";
-import type { UserRole } from "@features/shared";
-import { describe, expect, it } from "vitest";
+import { type UserRole, useAuthStore } from "@features/shared";
+import { afterEach, describe, expect, it } from "vitest";
 
-import { getRoleHomePath, ROLE_ACCESS } from "./route-guard";
+import { signInAs } from "@/test/fixtures/project-detail";
+
+import { getRoleHomePath, ROLE_ACCESS, redirectSignedIn } from "./route-guard";
 
 const labelsOf = (role: UserRole) =>
 	filterNavItemsByRole(APP_NAV_ITEMS, role).map(({ label }) => label);
@@ -40,5 +42,34 @@ describe("role navigation", () => {
 		expect(ROLE_ACCESS.projects).not.toContain("reviewer");
 		expect(ROLE_ACCESS.normativeTables).not.toContain("user");
 		expect(ROLE_ACCESS.reviewQueue).not.toContain("user");
+	});
+});
+
+describe("redirectSignedIn", () => {
+	const at = (state: { signingOut?: boolean } = {}) =>
+		({ state }) as unknown as Parameters<
+			ReturnType<typeof redirectSignedIn>
+		>[0]["location"];
+
+	afterEach(() => useAuthStore.getState().logout());
+
+	it("sends whoever is signed in to the role's home", async () => {
+		signInAs("reviewer");
+
+		await expect(redirectSignedIn()({ location: at() })).rejects.toMatchObject({
+			options: { to: "/fila-de-analise" },
+		});
+	});
+
+	it("lets the visitor and the logout through", async () => {
+		await expect(
+			redirectSignedIn()({ location: at() }),
+		).resolves.toBeUndefined();
+
+		signInAs("user");
+
+		await expect(
+			redirectSignedIn()({ location: at({ signingOut: true }) }),
+		).resolves.toBeUndefined();
 	});
 });
