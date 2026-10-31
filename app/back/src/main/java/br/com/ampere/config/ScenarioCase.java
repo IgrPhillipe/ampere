@@ -13,6 +13,7 @@ import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
+import br.com.ampere.domain.ReviewDecision;
 import br.com.ampere.domain.User;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -80,6 +81,7 @@ final class ScenarioCase {
     this.project = project;
     this.cursor = kit.now.minusYears(20);
     this.createdAt = advance(createdDaysAgo, CREATION);
+    kit.events.created(project, project.getOwner(), createdAt);
   }
 
   Project project() {
@@ -154,13 +156,20 @@ final class ScenarioCase {
   }
 
   ScenarioCase assignTo(User reviewer) {
-    project.assignReviewer(reviewer);
+    if (!project.isAssignedTo(reviewer.getId())) {
+      project.assignReviewer(reviewer);
+      kit.events.assigned(project, reviewer, cursor);
+    }
 
     return this;
   }
 
   ScenarioCase submit(int daysAgo) {
-    project.submit(advance(daysAgo, 0));
+    OffsetDateTime submittedAt = advance(daysAgo, 0);
+    Calculation calculation =
+        kit.calculations.findFirstByProjectIdOrderByIdDesc(project.getId()).orElseThrow();
+    project.submit(submittedAt);
+    kit.events.submitted(project, project.getOwner(), calculation, submittedAt);
 
     return this;
   }
@@ -175,13 +184,18 @@ final class ScenarioCase {
   List<Finding> reject(int daysAgo, User analyst, String opinion, FindingSpec... specs) {
     List<Finding> findings = write(analyst, advance(daysAgo, FINDINGS), specs);
     findings.forEach(Finding::publish);
-    project.reject(advance(daysAgo, 0), opinion);
+    OffsetDateTime reviewedAt = advance(daysAgo, 0);
+    project.reject(reviewedAt, opinion);
+    kit.events.decided(project, ReviewDecision.REJECT, analyst, findings, opinion, reviewedAt);
 
     return findings;
   }
 
   ScenarioCase approve(int daysAgo, String opinion) {
-    project.approve(advance(daysAgo, 0), opinion);
+    OffsetDateTime reviewedAt = advance(daysAgo, 0);
+    project.approve(reviewedAt, opinion);
+    kit.events.decided(
+        project, ReviewDecision.APPROVE, project.getReviewer(), List.of(), opinion, reviewedAt);
 
     return this;
   }
@@ -192,7 +206,9 @@ final class ScenarioCase {
   }
 
   ScenarioCase respond(int daysAgo, Finding finding, FindingAnswer answer, String response) {
-    finding.respond(answer, response, advance(daysAgo, RESPONSE));
+    OffsetDateTime respondedAt = advance(daysAgo, RESPONSE);
+    finding.respond(answer, response, respondedAt);
+    kit.events.findingAnswered(project, project.getOwner(), finding, respondedAt);
 
     return this;
   }

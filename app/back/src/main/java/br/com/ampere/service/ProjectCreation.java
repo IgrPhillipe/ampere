@@ -18,14 +18,17 @@ public class ProjectCreation {
   private final ProjectRepository projectRepository;
   private final ApplicableStandards applicableStandards;
   private final UserRepository userRepository;
+  private final ProjectEventService eventService;
 
   public ProjectCreation(
       ProjectRepository projectRepository,
       ApplicableStandards applicableStandards,
-      UserRepository userRepository) {
+      UserRepository userRepository,
+      ProjectEventService eventService) {
     this.projectRepository = projectRepository;
     this.applicableStandards = applicableStandards;
     this.userRepository = userRepository;
+    this.eventService = eventService;
   }
 
   @Transactional
@@ -53,6 +56,9 @@ public class ProjectCreation {
             owner);
     project.locate(parameters.postalCode(), parameters.state());
 
-    return projectRepository.saveAndFlush(project);
+    Project created = projectRepository.saveAndFlush(project);
+    eventService.created(created, owner);
+
+    return created;
   }
 }

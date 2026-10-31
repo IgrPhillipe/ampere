@@ -41,6 +41,8 @@ public interface FindingRepository extends JpaRepository<Finding, Long> {
   long countByProjectIdAndSeverityAndStatus(
       Long projectId, FindingSeverity severity, FindingStatus status);
 
+  long countByProjectIdAndStatusIn(Long projectId, Collection<FindingStatus> statuses);
+
   interface FindingCount {
 
     Long getProjectId();

@@ -36,7 +36,7 @@ final class ScenarioGroups {
         "Área comum",
         1,
         LoadUsage.COMMON_AREA,
-        item(LoadCategory.MOTORS, "Elevador", 1, "12", PowerUnit.CV, null, null),
+        item(LoadCategory.MOTORS, "Elevador", 1, "12", PowerUnit.CV, null, false),
         item(
             LoadCategory.LIGHTING_AND_OUTLETS,
             "Iluminação",

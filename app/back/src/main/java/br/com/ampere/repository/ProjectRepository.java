@@ -2,11 +2,13 @@ package br.com.ampere.repository;
 
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import jakarta.persistence.LockModeType;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -35,6 +37,11 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
   Optional<Project> findDetailById(Long id);
 
   Optional<Project> findByProtocol(String protocol);
+
+  /** Holds the row until the transaction ends: the next caller waits and reads what it left. */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT project FROM Project project WHERE project.id = :id")
+  Optional<Project> lockById(@Param("id") Long id);
 
   List<Project> findAllByOwnerIsNull();
 

@@ -15,6 +15,7 @@ import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
+import br.com.ampere.service.GroupValidation;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -22,13 +23,17 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /** Seeds the database more than once, over databases that already hold something. */
 @SpringBootTest
 class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
 
   private static final int SCENARIOS = 51;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @BeforeEach
   void startEmpty() {
@@ -121,6 +126,48 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
     assertThat(findingRepository.count()).isEqualTo(findings);
     assertThat(documentRepository.count()).isEqualTo(documents);
     assertThat(calculationRepository.count()).isEqualTo(calculations);
+  }
+
+  @Test
+  void completesOnceTheHistoryOfTheScenariosSeededBeforeIt() {
+    scenarioSeeder(false).seed();
+    Project seeded = projectRepository.findByProtocol("2026-2017").orElseThrow();
+    List<String> told = timeline(seeded);
+    Project foreign = projectRepository.findByProtocol("2026-2020").orElseThrow();
+    foreign.rename("Projeto de outra pessoa", foreign.getAddress(), foreign.getMunicipality());
+    projectRepository.save(foreign);
+    eventRepository.deleteAll();
+
+    assertThat(scenarioSeeder(false).seed()).isZero();
+
+    assertThat(timeline(seeded)).isEqualTo(told);
+    assertThat(timeline(foreign)).isEmpty();
+    assertThat(projectRepository.count()).isEqualTo(SCENARIOS);
+    assertThat(projectRepository.findByProtocol("2026-2017-historico")).isEmpty();
+    long events = eventRepository.count();
+
+    scenarioSeeder(false).seed();
+
+    assertThat(eventRepository.count()).isEqualTo(events);
+  }
+
+  @Test
+  void answersTheElevatorOfAScenarioSeededWithoutIt() {
+    scenarioSeeder(false).seed();
+    Project rejected = projectRepository.findByProtocol("2026-2020").orElseThrow();
+    jdbcTemplate.update(
+        "UPDATE load_group_item SET simultaneous_start = NULL WHERE category = 'MOTORS'");
+    assertThat(
+            GroupValidation.of(groupRepository.findAllByProjectIdOrderById(rejected.getId()))
+                .canCalculate())
+        .isFalse();
+
+    scenarioSeeder(false).seed();
+
+    assertThat(
+            GroupValidation.of(groupRepository.findAllByProjectIdOrderById(rejected.getId()))
+                .canCalculate())
+        .isTrue();
   }
 
   @Test
@@ -239,5 +286,19 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
             4, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE);
     return new Project(
         name, "Rua Qualquer, 1", "Recife", protocol, status, building, List.of(), owner);
+  }
+
+  private List<String> timeline(Project project) {
+    return eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(project.getId()).stream()
+        .map(
+            event ->
+                event.getType()
+                    + " "
+                    + event.getVersion()
+                    + " "
+                    + event.getOccurredAt().toInstant()
+                    + " "
+                    + event.getDescription())
+        .toList();
   }
 }

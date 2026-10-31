@@ -28,6 +28,8 @@ Todos com a senha `senha@123`.
 
 Os prazos e as datas são relativos ao momento do seed: um projeto enviado há 30 dias vence hoje, e assim por diante. O histórico segue a ordem real: criação, documentos e cálculo, envio, apontamentos, resposta, reenvio. Com o tempo os prazos envelhecem; para renová-los, veja [Como Reiniciar](#como-reiniciar).
 
+Cada cenário também grava a linha do tempo do protocolo: criação, envio ou reenvio, pré-validação, atribuição, decisão e respostas aos apontamentos, sempre com as datas da própria história. Os projetos de reanálise, especialmente `2026-2009` (ciclo 2) e `2026-2017` (ciclo 3), exercitam as métricas de versões enviadas, decisões, apontamentos e passos de cálculo refeitos.
+
 Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin, **B** = Bruno.
 
 ### Rascunhos
@@ -124,8 +126,8 @@ As 18 tabelas entram publicadas, digitadas pelo admin e conferidas pelo conferen
 ## Como Reiniciar
 
 - **Banco local do zero:** `docker compose down -v` apaga o volume, e o seed repovoa tudo na próxima subida. O volume também guarda o banco de testes; recrie `ampere_test` antes do `verify`.
-- **Renovar só os projetos do seed:** suba a API com `ampere.seed.reset-scenarios=true`, ou com a variável `SEED_RESET_SCENARIOS=true`. O seed apaga apenas os projetos que ele mesmo criou (protocolo, nome e dono conferem) com grupos, cálculos, documentos e apontamentos, e os recria com datas novas. Usuários, tabelas e qualquer outro projeto ficam como estão. O padrão é `false`.
-- **Banco que já tinha o seed antigo:** os protocolos existentes não são refeitos. Para ter as correções e as datas novas dos projetos antigos, use a propriedade acima.
+- **Renovar só os projetos do seed:** suba a API com `ampere.seed.reset-scenarios=true`, ou com a variável `SEED_RESET_SCENARIOS=true`. O seed apaga apenas os projetos que ele mesmo criou (protocolo, nome e dono conferem) com grupos, cálculos, documentos, apontamentos e eventos, e os recria com datas novas. Usuários, tabelas e qualquer outro projeto ficam como estão. O padrão é `false`.
+- **Banco que já tinha o seed antigo:** os protocolos existentes não são refeitos. Para ter as correções e as datas novas dos projetos antigos, use a propriedade acima. O histórico do protocolo não depende dela: a cada subida, o seed grava os eventos dos seus projetos que ainda não têm nenhum, com as datas que eles já têm, sem apagar nada.
 - **Produção com o profile `demo`:** o seed só cria o que falta e nunca altera um projeto que não criou.
 
 Um projeto cujo protocolo (2026-2020, por exemplo) já pertença a outra pessoa não é recriado nem apagado: o seed o pula.

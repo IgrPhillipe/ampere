@@ -4,6 +4,7 @@ import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.FindingAnswer;
 import br.com.ampere.domain.FindingResolution;
+import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
@@ -27,16 +28,19 @@ public class FindingService {
   private final ConsumerUnitGroupRepository groupRepository;
   private final ProjectService projectService;
   private final ProjectReviewService reviewService;
+  private final ProjectEventService eventService;
 
   public FindingService(
       FindingRepository findingRepository,
       ConsumerUnitGroupRepository groupRepository,
       ProjectService projectService,
-      ProjectReviewService reviewService) {
+      ProjectReviewService reviewService,
+      ProjectEventService eventService) {
     this.findingRepository = findingRepository;
     this.groupRepository = groupRepository;
     this.projectService = projectService;
     this.reviewService = reviewService;
+    this.eventService = eventService;
   }
 
   /** The designer sees a finding only after the decision publishes it. */
@@ -128,7 +132,15 @@ public class FindingService {
       throw new BusinessException("Este apontamento não aguarda resposta.", HttpStatus.CONFLICT);
     }
 
-    finding.respond(answer, response, OffsetDateTime.now(ZoneOffset.UTC));
+    FindingStatus previous = finding.getStatus();
+    OffsetDateTime previousAnswer = finding.getRespondedAt();
+    boolean newCycle = previousAnswer == null || previousAnswer.isBefore(project.getSubmittedAt());
+    OffsetDateTime respondedAt = OffsetDateTime.now(ZoneOffset.UTC);
+    finding.respond(answer, response, respondedAt);
+    // Rewording an answer in the same cycle is not a new fact; a new position or cycle is.
+    if (finding.getStatus() != previous || newCycle) {
+      eventService.findingAnswered(project, project.getOwner(), finding, respondedAt);
+    }
 
     return finding;
   }
