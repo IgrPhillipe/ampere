@@ -11,7 +11,7 @@ import {
 	type TemporaryAccess,
 	useGetUserList,
 	useResetUserPassword,
-	useUpdateUser,
+	useToggleUserActive,
 } from "@services/users";
 import { CircleAlert, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -53,12 +53,7 @@ export const UsersPage = () => {
 	const [userToReset, setUserToReset] = useState<ManagedUser | null>(null);
 	const [temporaryAccess, setTemporaryAccess] =
 		useState<TemporaryAccess | null>(null);
-	const updateStatus = useUpdateUser({
-		successMessage: userToToggle?.active
-			? "Usuário desativado."
-			: "Usuário reativado.",
-		errorFallback: "Não foi possível alterar a situação do usuário.",
-	});
+	const toggleActive = useToggleUserActive();
 	const resetPassword = useResetUserPassword();
 
 	const openNewUser = () => {
@@ -78,11 +73,8 @@ export const UsersPage = () => {
 		[],
 	);
 
-	const toggleActive = ({ id, name, role, active }: ManagedUser) =>
-		updateStatus.mutate(
-			{ id, payload: { name, role, active: !active } },
-			{ onSuccess: () => setUserToToggle(null) },
-		);
+	const confirmToggle = (user: ManagedUser) =>
+		toggleActive.mutate(user, { onSuccess: () => setUserToToggle(null) });
 
 	const confirmReset = (user: ManagedUser) =>
 		resetPassword.mutate(user.id, {
@@ -189,11 +181,11 @@ export const UsersPage = () => {
 
 			<UserStatusDialog
 				user={userToToggle}
-				isPending={updateStatus.isPending}
+				isPending={toggleActive.isPending}
 				onOpenChange={(open) => {
 					if (!open) setUserToToggle(null);
 				}}
-				onConfirm={toggleActive}
+				onConfirm={confirmToggle}
 			/>
 
 			<ResetPasswordDialog

@@ -1,3 +1,4 @@
+import type { ManagedUser } from "@services/users";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
@@ -10,6 +11,7 @@ import { UsersPage } from "./UsersPage";
 
 const refetch = vi.fn();
 const mockReset = vi.fn();
+const mockToggle = vi.fn();
 const listQuery = vi.hoisted(() => ({
 	current: {} as Record<string, unknown>,
 }));
@@ -18,7 +20,22 @@ vi.mock("@services/users", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/users")>()),
 	useGetUserList: () => listQuery.current,
 	useResetUserPassword: () => ({ mutate: mockReset, isPending: false }),
+	useToggleUserActive: () => ({ mutate: mockToggle, isPending: false }),
 }));
+
+const listOf = (...users: ManagedUser[]) => ({
+	isPending: false,
+	isError: false,
+	data: {
+		data: users,
+		pagination: { total: users.length, page: 1, pageSize: 20 },
+	},
+});
+
+const openRowMenu = (name: string) =>
+	fireEvent.click(
+		screen.getAllByRole("button", { name: `Ações do usuário ${name}` })[0],
+	);
 
 const renderPage = (searchParams = "") =>
 	render(
@@ -33,6 +50,7 @@ describe("UsersPage", () => {
 	beforeEach(() => {
 		signInAs("admin");
 		refetch.mockReset();
+		mockToggle.mockReset();
 	});
 
 	it("shows the skeleton while loading", () => {
@@ -72,23 +90,45 @@ describe("UsersPage", () => {
 		expect(screen.getByText("Situação: Inativo")).toBeInTheDocument();
 	});
 
+	it("deactivates an account after the confirmation", async () => {
+		const user = managedUserOf();
+		listQuery.current = listOf(user);
+		mockToggle.mockImplementation((_user, options) => options.onSuccess());
+		renderPage();
+
+		openRowMenu("Ana Projetista");
+		fireEvent.click(await screen.findByRole("menuitem", { name: "Desativar" }));
+
+		expect(await screen.findByText("Desativar Usuário")).toBeInTheDocument();
+		fireEvent.click(screen.getByRole("button", { name: "Desativar" }));
+
+		expect(mockToggle).toHaveBeenCalledWith(user, expect.anything());
+		await waitFor(() =>
+			expect(screen.queryByText("Desativar Usuário")).not.toBeInTheDocument(),
+		);
+	});
+
+	it("reactivates an inactive account", async () => {
+		const user = managedUserOf({ active: false });
+		listQuery.current = listOf(user);
+		renderPage();
+
+		openRowMenu("Ana Projetista");
+		fireEvent.click(await screen.findByRole("menuitem", { name: "Reativar" }));
+		fireEvent.click(await screen.findByRole("button", { name: "Reativar" }));
+
+		expect(mockToggle).toHaveBeenCalledWith(user, expect.anything());
+	});
+
 	it("shows the new temporary password once after a reset", async () => {
 		const user = managedUserOf();
-		listQuery.current = {
-			isPending: false,
-			isError: false,
-			data: { data: [user], pagination: { total: 1, page: 1, pageSize: 20 } },
-		};
+		listQuery.current = listOf(user);
 		mockReset.mockImplementation((_id, options) =>
 			options.onSuccess({ data: { user, temporaryPassword: "Nova5678" } }),
 		);
 		renderPage();
 
-		fireEvent.click(
-			screen.getAllByRole("button", {
-				name: "Ações do usuário Ana Projetista",
-			})[0],
-		);
+		openRowMenu("Ana Projetista");
 		fireEvent.click(
 			await screen.findByRole("menuitem", { name: "Redefinir Senha" }),
 		);
