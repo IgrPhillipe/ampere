@@ -84,7 +84,6 @@ export const useProjectWorkspace = (projectId: string) => {
 
 	return {
 		projectQuery,
-		validationQuery,
 		calculationQuery,
 		submissionQuery,
 		findingsQuery,
