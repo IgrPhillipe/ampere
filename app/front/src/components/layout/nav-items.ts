@@ -27,6 +27,7 @@ export const APP_NAV_ITEMS: NavItem[] = [
 		label: "Tabelas Normativas",
 		roles: ROLE_ACCESS.normativeTables,
 	},
+	{ to: "/usuarios", label: "Usuários", roles: ROLE_ACCESS.users },
 ];
 
 export const filterNavItemsByRole = (

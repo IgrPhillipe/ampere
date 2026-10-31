@@ -113,6 +113,16 @@ export const extractApiDetail = (error: unknown): string | undefined => {
 export const getHttpStatus = (error: unknown): number | undefined =>
 	isHTTPError(error) ? error.response.status : undefined;
 
+/** The API refuses a temporary password everywhere but its own change. */
+export const hasPasswordChangeCode = (body: unknown): boolean =>
+	typeof body === "object" &&
+	body !== null &&
+	"code" in body &&
+	body.code === "PASSWORD_CHANGE_REQUIRED";
+
+export const isPasswordChangeRequired = (error: unknown): boolean =>
+	isHTTPError(error) && hasPasswordChangeCode(error.data);
+
 export interface ApiFieldError {
 	field: string;
 	message: string;

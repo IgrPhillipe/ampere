@@ -1,4 +1,3 @@
-import { ControlledInput } from "@components/form";
 import { Button } from "@components/ui/button";
 import {
 	Dialog,
@@ -8,13 +7,11 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@components/ui/dialog";
-import { setApiFieldErrors, useZodForm } from "@features/shared";
-import { useChangePassword } from "@services/users";
 
 import {
-	type ChangePasswordFormValues,
-	changePasswordSchema,
-} from "../../schemas";
+	ChangePasswordForm,
+	useChangePasswordForm,
+} from "../ChangePasswordForm";
 
 interface ChangePasswordDialogProps {
 	open: boolean;
@@ -25,13 +22,9 @@ export const ChangePasswordDialog = ({
 	open,
 	onOpenChange,
 }: ChangePasswordDialogProps) => {
-	const form = useZodForm(changePasswordSchema, {
-		currentPassword: "",
-		newPassword: "",
-		confirmNewPassword: "",
+	const { form, isPending, submit } = useChangePasswordForm({
+		onSuccess: () => onOpenChange(false),
 	});
-
-	const { mutate: changePassword, isPending } = useChangePassword();
 
 	const handleOpenChange = (nextOpen: boolean) => {
 		if (isPending) return;
@@ -39,22 +32,6 @@ export const ChangePasswordDialog = ({
 		form.reset();
 		onOpenChange(nextOpen);
 	};
-
-	const onSubmit = ({
-		currentPassword,
-		newPassword,
-	}: ChangePasswordFormValues) =>
-		changePassword(
-			{ currentPassword, newPassword },
-			{
-				onSuccess: () => {
-					form.reset();
-					onOpenChange(false);
-				},
-				onError: (error) =>
-					setApiFieldErrors(form, error, { 422: "currentPassword" }),
-			},
-		);
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
@@ -72,38 +49,7 @@ export const ChangePasswordDialog = ({
 					</DialogDescription>
 				</DialogHeader>
 
-				<form
-					noValidate
-					onSubmit={form.handleSubmit(onSubmit)}
-					className="flex flex-col gap-4"
-				>
-					<ControlledInput
-						control={form.control}
-						name="currentPassword"
-						label="Senha atual"
-						type="password"
-						required
-						autoComplete="current-password"
-					/>
-
-					<ControlledInput
-						control={form.control}
-						name="newPassword"
-						label="Nova senha"
-						type="password"
-						required
-						autoComplete="new-password"
-					/>
-
-					<ControlledInput
-						control={form.control}
-						name="confirmNewPassword"
-						label="Confirmar nova senha"
-						type="password"
-						required
-						autoComplete="new-password"
-					/>
-
+				<ChangePasswordForm form={form} onSubmit={submit}>
 					<DialogFooter className="mt-4">
 						<Button
 							type="button"
@@ -118,7 +64,7 @@ export const ChangePasswordDialog = ({
 							{isPending ? "Alterando..." : "Alterar Senha"}
 						</Button>
 					</DialogFooter>
-				</form>
+				</ChangePasswordForm>
 			</DialogContent>
 		</Dialog>
 	);

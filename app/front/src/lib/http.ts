@@ -3,10 +3,25 @@ import ky, { isHTTPError } from "ky";
 
 import { AppConfig } from "@/config";
 
-import { type ApiHTTPError, parseSpringErrorBody } from "./api-error";
+import {
+	type ApiHTTPError,
+	hasPasswordChangeCode,
+	parseSpringErrorBody,
+} from "./api-error";
 
 const isLogin = (request: Request) =>
 	new URL(request.url).pathname.endsWith("/auth/login");
+
+const requiresPasswordChange = async (response: Response) => {
+	if (response.status !== 403) return false;
+
+	const body: unknown = await response
+		.clone()
+		.json()
+		.catch(() => null);
+
+	return hasPasswordChangeCode(body);
+};
 
 export const http = ky.create({
 	prefix: AppConfig.API_URL,
@@ -23,13 +38,19 @@ export const http = ky.create({
 				}
 			},
 		],
-		/** A session the server refuses tears down the local session. */
+		/** A refused session tears down the local one; a temporary password opens its change. */
 		afterResponse: [
-			({ request, response }) => {
-				if (response.status !== 401) return;
+			async ({ request, response }) => {
 				if (isLogin(request)) return;
 
-				useAuthStore.getState().logout();
+				if (response.status === 401) {
+					useAuthStore.getState().logout();
+					return;
+				}
+
+				if (await requiresPasswordChange(response)) {
+					useAuthStore.getState().updateUser({ mustChangePassword: true });
+				}
 			},
 		],
 		beforeError: [

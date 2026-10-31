@@ -7,7 +7,15 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { signInAs } from "@/test/fixtures/project-detail";
 
-import { getRoleHomePath, ROLE_ACCESS, redirectSignedIn } from "./route-guard";
+import {
+	getRoleHomePath,
+	ROLE_ACCESS,
+	redirectSignedIn,
+	redirectToRoleHome,
+	requireAuth,
+	requirePendingPasswordChange,
+	requireRoles,
+} from "./route-guard";
 
 const labelsOf = (role: UserRole) =>
 	filterNavItemsByRole(APP_NAV_ITEMS, role).map(({ label }) => label);
@@ -35,6 +43,7 @@ describe("role navigation", () => {
 			"Projetos",
 			"Fila de Análise",
 			"Tabelas Normativas",
+			"Usuários",
 		]);
 	});
 
@@ -42,6 +51,7 @@ describe("role navigation", () => {
 		expect(ROLE_ACCESS.projects).not.toContain("reviewer");
 		expect(ROLE_ACCESS.normativeTables).not.toContain("user");
 		expect(ROLE_ACCESS.reviewQueue).not.toContain("user");
+		expect(ROLE_ACCESS.users).toEqual(["admin"]);
 	});
 });
 
@@ -71,5 +81,66 @@ describe("redirectSignedIn", () => {
 		await expect(
 			redirectSignedIn()({ location: at({ signingOut: true }) }),
 		).resolves.toBeUndefined();
+	});
+});
+
+describe("pending password change", () => {
+	const toPasswordChange = {
+		options: { to: "/trocar-senha", search: { redirect: location.pathname } },
+	};
+
+	afterEach(() => useAuthStore.getState().logout());
+
+	it("keeps a temporary password out of every guarded route", async () => {
+		signInAs("admin", { mustChangePassword: true });
+
+		await expect(requireAuth()()).rejects.toMatchObject(toPasswordChange);
+	});
+
+	it("returns to the route being opened, not the one being left", async () => {
+		signInAs("admin", { mustChangePassword: true });
+
+		await expect(
+			requireAuth()({ location: { pathname: "/usuarios" } }),
+		).rejects.toMatchObject({
+			options: { to: "/trocar-senha", search: { redirect: "/usuarios" } },
+		});
+	});
+
+	it("sends a temporary password to the change from the entry routes", async () => {
+		signInAs("reviewer", { mustChangePassword: true });
+		const location = { state: {} } as Parameters<
+			ReturnType<typeof redirectSignedIn>
+		>[0]["location"];
+
+		await expect(redirectSignedIn()({ location })).rejects.toMatchObject({
+			options: { to: "/trocar-senha" },
+		});
+		await expect(redirectToRoleHome()()).rejects.toMatchObject({
+			options: { to: "/trocar-senha" },
+		});
+	});
+
+	it("opens the change only while it is pending", async () => {
+		await expect(requirePendingPasswordChange()()).rejects.toMatchObject({
+			options: { to: "/entrar" },
+		});
+
+		signInAs("reviewer");
+
+		await expect(requirePendingPasswordChange()()).rejects.toMatchObject({
+			options: { to: "/fila-de-analise" },
+		});
+
+		signInAs("reviewer", { mustChangePassword: true });
+
+		await expect(requirePendingPasswordChange()()).resolves.toBeUndefined();
+	});
+
+	it("lets a changed password through", async () => {
+		signInAs("admin");
+
+		await expect(requireAuth()()).resolves.toBeUndefined();
+		await expect(requireRoles(ROLE_ACCESS.users)()).resolves.toBeUndefined();
 	});
 });

@@ -513,6 +513,62 @@ class UserAdministrationIntegrationTest {
   }
 
   @Test
+  void keepsATemporaryPasswordToItsOwnChange() throws Exception {
+    String temporaryPassword = resetPassword(designer);
+    String token = token("joao@ampere.com", temporaryPassword);
+
+    mockMvc
+        .perform(authorized(get("/projects"), token))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.detail")
+                .value(ProblemDetailAuthenticationHandler.PASSWORD_CHANGE_REQUIRED_MESSAGE))
+        .andExpect(
+            jsonPath("$.code")
+                .value(ProblemDetailAuthenticationHandler.PASSWORD_CHANGE_REQUIRED_CODE));
+    mockMvc.perform(authorized(get("/auth/me"), token)).andExpect(status().isOk());
+    mockMvc.perform(authorized(get("/users/me"), token)).andExpect(status().isOk());
+
+    mockMvc
+        .perform(
+            authorized(put("/users/me/password"), token)
+                .content(
+                    "{\"currentPassword\":\""
+                        + temporaryPassword
+                        + "\",\"newPassword\":\"nova12345\"}"))
+        .andExpect(status().isNoContent());
+
+    mockMvc.perform(authorized(get("/projects"), token)).andExpect(status().isOk());
+  }
+
+  @Test
+  void holdsTheOpenSessionOfAnAccountWhosePasswordWasReset() throws Exception {
+    String designerToken = token("joao@ampere.com", PASSWORD);
+    mockMvc.perform(authorized(get("/projects"), designerToken)).andExpect(status().isOk());
+
+    resetPassword(designer);
+
+    mockMvc
+        .perform(authorized(get("/projects"), designerToken))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.code")
+                .value(ProblemDetailAuthenticationHandler.PASSWORD_CHANGE_REQUIRED_CODE));
+  }
+
+  @Test
+  void keepsTheAdministrationFromAnAdministratorWithATemporaryPassword() throws Exception {
+    String temporaryPassword = resetPassword(admin);
+
+    mockMvc
+        .perform(authorized(get("/users"), token("admin@ampere.com", temporaryPassword)))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.code")
+                .value(ProblemDetailAuthenticationHandler.PASSWORD_CHANGE_REQUIRED_CODE));
+  }
+
+  @Test
   void answersNotFoundForAnUnknownUser() throws Exception {
     String adminToken = token("admin@ampere.com", PASSWORD);
 
@@ -524,6 +580,18 @@ class UserAdministrationIntegrationTest {
             authorized(put("/users/999999"), adminToken)
                 .content("{\"name\":\"Ninguém\",\"role\":\"user\",\"active\":true}"))
         .andExpect(status().isNotFound());
+  }
+
+  private String resetPassword(User user) throws Exception {
+    return body(mockMvc
+            .perform(
+                authorized(
+                    post("/users/" + user.getId() + "/password-reset"),
+                    token("admin@ampere.com", PASSWORD)))
+            .andExpect(status().isOk()))
+        .get("data")
+        .get("temporaryPassword")
+        .asString();
   }
 
   private void deactivate(User user) throws Exception {

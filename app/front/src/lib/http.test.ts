@@ -1,6 +1,7 @@
 import { useAuthStore } from "@features/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { isPasswordChangeRequired } from "./api-error";
 import { http } from "./http";
 
 const fetchMock = vi.fn(async () => Response.json({ data: {} }));
@@ -44,5 +45,32 @@ describe("http", () => {
 		});
 
 		expect(sentAuthorization()).toBeNull();
+	});
+
+	it("marks the change as pending when the API refuses a temporary password", async () => {
+		fetchMock.mockResolvedValueOnce(
+			Response.json(
+				{ status: 403, code: "PASSWORD_CHANGE_REQUIRED" },
+				{ status: 403 },
+			),
+		);
+
+		const error = await api.get("projects").catch((cause: unknown) => cause);
+
+		expect(isPasswordChangeRequired(error)).toBe(true);
+		expect(useAuthStore.getState().user?.mustChangePassword).toBe(true);
+	});
+
+	it("keeps the session as it is on any other refusal", async () => {
+		fetchMock.mockResolvedValueOnce(
+			Response.json({ status: 403 }, { status: 403 }),
+		);
+
+		const error = await api.get("users").catch((cause: unknown) => cause);
+
+		expect(isPasswordChangeRequired(error)).toBe(false);
+
+		expect(useAuthStore.getState().user?.mustChangePassword).toBe(false);
+		expect(useAuthStore.getState().isAuthenticated).toBe(true);
 	});
 });
