@@ -20,3 +20,15 @@ export interface ChangePasswordRequestPayload {
 	currentPassword: string;
 	newPassword: string;
 }
+
+export interface CreateUserPayload {
+	name: string;
+	email: string;
+	role: UserRole;
+}
+
+export interface UpdateUserPayload {
+	name: string;
+	role: UserRole;
+	active: boolean;
+}

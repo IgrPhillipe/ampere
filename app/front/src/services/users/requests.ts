@@ -4,12 +4,16 @@ import { http } from "@lib/http";
 import { UserEndpoints as e } from "./endpoints";
 import {
 	managedUserListResponseSchema,
+	managedUserResponseSchema,
 	profileResponseSchema,
+	temporaryAccessResponseSchema,
 } from "./schemas";
 import type {
 	ChangePasswordRequestPayload,
+	CreateUserPayload,
 	ListUsersParams,
 	ProfileRequestPayload,
+	UpdateUserPayload,
 } from "./types";
 
 const profileEnvelopeSchema = apiResponseSchema(profileResponseSchema);
@@ -20,6 +24,31 @@ export const getUserList = async (params: ListUsersParams = {}) => {
 		.json<unknown>();
 
 	return managedUserListResponseSchema.parse(response);
+};
+
+export const createUser = async (payload: CreateUserPayload) => {
+	const response = await http.post(e.list, { json: payload }).json<unknown>();
+
+	return temporaryAccessResponseSchema.parse(response);
+};
+
+export interface UpdateUserParams {
+	id: string;
+	payload: UpdateUserPayload;
+}
+
+export const updateUser = async ({ id, payload }: UpdateUserParams) => {
+	const response = await http
+		.put(e.detail(id), { json: payload })
+		.json<unknown>();
+
+	return managedUserResponseSchema.parse(response);
+};
+
+export const resetUserPassword = async (id: string) => {
+	const response = await http.post(e.passwordReset(id)).json<unknown>();
+
+	return temporaryAccessResponseSchema.parse(response);
 };
 
 export const getProfile = async () => {
