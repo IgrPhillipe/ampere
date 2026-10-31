@@ -75,7 +75,9 @@ describe("ProjectOwnerField", () => {
 	it("offers only the active designers and stores the picked one", async () => {
 		renderForm();
 
-		fireEvent.click(screen.getByRole("combobox"));
+		const trigger = screen.getByRole("combobox", { name: /Projetista/ });
+		expect(trigger).toHaveAttribute("aria-required", "true");
+		fireEvent.click(trigger);
 		fireEvent.click(
 			await screen.findByRole("option", { name: "Beto Projetista" }),
 		);
@@ -83,6 +85,7 @@ describe("ProjectOwnerField", () => {
 		await waitFor(() =>
 			expect(screen.getByRole("status")).toHaveTextContent("6"),
 		);
+		expect(trigger).toHaveTextContent("Beto Projetista");
 		expect(getUserList).toHaveBeenCalledWith(
 			expect.objectContaining({ role: "user", active: true, page: 1 }),
 		);
@@ -91,13 +94,11 @@ describe("ProjectOwnerField", () => {
 	it("only shows the owner, without listing designers, when disabled", () => {
 		renderForm({ disabled: true });
 
-		const trigger = screen.getByRole("combobox");
+		const trigger = screen.getByRole("combobox", { name: /Projetista/ });
 
 		expect(trigger).toBeDisabled();
-		expect(trigger).toHaveAttribute(
-			"aria-label",
-			"Projetista: Carla Projetista",
-		);
+		expect(trigger).toHaveTextContent("Carla Projetista");
+		expect(trigger).not.toHaveAttribute("aria-required");
 		expect(getUserList).not.toHaveBeenCalled();
 	});
 });

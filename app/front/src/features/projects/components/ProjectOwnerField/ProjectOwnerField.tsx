@@ -1,8 +1,7 @@
-import { FormField } from "@components/form";
-import { InfiniteFilterMenu } from "@components/InfiniteFilterMenu";
+import { ControlledInfiniteCombobox } from "@components/form";
 import { useGetDesignerInfiniteList } from "@services/users";
 import { useState } from "react";
-import { type Control, Controller } from "react-hook-form";
+import type { Control } from "react-hook-form";
 
 import type { ProjectCreationFormValues } from "../../schemas";
 
@@ -30,35 +29,22 @@ export const ProjectOwnerField = ({
 		.map(({ id, name }) => ({ value: id, label: name }));
 
 	return (
-		<Controller
+		<ControlledInfiniteCombobox
 			control={control}
 			name="ownerId"
-			render={({ field, fieldState }) => (
-				<FormField
-					label="Projetista"
-					required={!disabled}
-					error={fieldState.error?.message}
-				>
-					<InfiniteFilterMenu
-						label="Projetista"
-						allLabel="Selecione o projetista"
-						clearLabel="Limpar seleção"
-						searchPlaceholder="Buscar projetista"
-						emptyMessage="Nenhum projetista ativo encontrado."
-						options={designers}
-						value={field.value ? field.value : null}
-						selectedLabel={ownerName ?? undefined}
-						onValueChange={(next) => field.onChange(next ?? undefined)}
-						onSearchChange={setSearch}
-						hasNextPage={designersQuery.hasNextPage}
-						isFetchingNextPage={designersQuery.isFetchingNextPage}
-						isLoading={designersQuery.isPending}
-						onLoadMore={() => void designersQuery.fetchNextPage()}
-						disabled={disabled}
-						className="w-full"
-					/>
-				</FormField>
-			)}
+			label="Projetista"
+			placeholder="Selecione o projetista"
+			searchPlaceholder="Buscar projetista"
+			emptyMessage="Nenhum projetista ativo encontrado."
+			required={!disabled}
+			disabled={disabled}
+			options={designers}
+			selectedLabel={ownerName ?? undefined}
+			onSearchChange={setSearch}
+			hasNextPage={designersQuery.hasNextPage}
+			isFetchingNextPage={designersQuery.isFetchingNextPage}
+			isLoading={designersQuery.isPending}
+			onLoadMore={designersQuery.fetchNextPage}
 		/>
 	);
 };
