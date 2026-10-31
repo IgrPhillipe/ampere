@@ -42,11 +42,9 @@ export const projectReworkSchema = z.object({
 
 export type ProjectRework = z.infer<typeof projectReworkSchema>;
 
-/** `GET /projects/{id}/events`. */
 export const projectEventListResponseSchema = apiResponseSchema(
 	z.array(projectEventSchema),
 );
 
-/** `GET /projects/{id}/rework`. */
 export const projectReworkResponseSchema =
 	apiResponseSchema(projectReworkSchema);

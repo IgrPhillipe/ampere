@@ -71,12 +71,10 @@ interface ProjectTimelineProps {
 	direction: SortDirection;
 	onDirectionChange: (direction: SortDirection) => void;
 	isLoading?: boolean;
-	/** Shown in place of the list when the project has no events. */
 	empty?: ReactNode;
 	className?: string;
 }
 
-/** The protocol's events, newest or oldest first; the API sorts them. */
 export const ProjectTimeline = ({
 	events,
 	direction,
