@@ -5,6 +5,7 @@ import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.SupplyVoltage;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -12,10 +13,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-/**
- * The fields of US02. Protocol, status and standards belong to the system. {@code ownerId} is read
- * only when the administrator creates the project; the designer's own id is used otherwise.
- */
+/** The fields of US02. Protocol, status and standards belong to the system. */
 public record ProjectRequest(
     @NotBlank(message = "O nome é obrigatório.")
         @Size(max = 120, message = "O nome deve ter no máximo {max} caracteres.")
@@ -38,4 +36,10 @@ public record ProjectRequest(
     @NotNull(message = "A tensão de fornecimento é obrigatória.") SupplyVoltage voltage,
     @NotNull(message = "O tipo de ligação é obrigatório.") ConnectionType connectionType,
     @NotNull(message = "O padrão de entrada é obrigatório.") EntranceStandard entranceStandard,
-    Long ownerId) {}
+    @Schema(
+            description =
+                "Projetista dono. Obrigatório quando o admin cria; ignorado para o projetista"
+                    + " e na edição",
+            type = "string",
+            example = "5")
+        Long ownerId) {}

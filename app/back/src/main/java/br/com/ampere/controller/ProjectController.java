@@ -181,7 +181,10 @@ public class ProjectController {
         description = "Projeto criado"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
-        description = "Dados da edificação inválidos"),
+        description = "Dados da edificação inválidos ou projetista ausente na criação pelo admin"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "O perfil analista não altera projetos"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "409",
         description = "Não foi possível gerar o protocolo"),
