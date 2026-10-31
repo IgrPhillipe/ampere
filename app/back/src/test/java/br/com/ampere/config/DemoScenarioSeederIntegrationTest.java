@@ -28,6 +28,7 @@ import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialGroup;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
+import br.com.ampere.service.GroupValidation;
 import br.com.ampere.service.ReviewQueueService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -83,6 +84,15 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
             ProjectEventType.FINDING_ANSWERED,
             ProjectEventType.RESUBMITTED,
             ProjectEventType.PRE_VALIDATED);
+  }
+
+  @Test
+  void onlyTheDraftsWithPendingGroupsFailTheGroupValidation() {
+    Set<String> pending = Set.of("2026-1001", "2026-2001", "2026-2002", "2026-2025");
+
+    assertThat(SCENARIO_PROTOCOLS)
+        .filteredOn(protocol -> !GroupValidation.of(groups(protocol)).canCalculate())
+        .containsExactlyInAnyOrderElementsOf(pending);
   }
 
   @Test
