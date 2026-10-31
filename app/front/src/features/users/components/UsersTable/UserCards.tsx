@@ -46,9 +46,12 @@ export const UserCards = ({
 						<UserStatusBadge user={user} />
 					</div>
 
-					<div className="flex gap-1.5 text-xs text-muted-foreground">
+					<div className="flex flex-wrap items-baseline gap-x-1.5 text-xs text-muted-foreground">
 						<span>Último acesso</span>
-						<LastAccessCell value={user.lastLoginAt} />
+						<LastAccessCell
+							value={user.lastLoginAt}
+							className="text-xs whitespace-nowrap"
+						/>
 					</div>
 				</div>
 

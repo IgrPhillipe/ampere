@@ -65,6 +65,21 @@ describe("UsersTable", () => {
 		expect(handlers.onEdit).toHaveBeenCalledWith(managedUserOf());
 	});
 
+	it("does not open the edit from the row menu", async () => {
+		const handlers = actions();
+		render(<UsersTable users={[managedUserOf()]} actions={handlers} />);
+
+		fireEvent.click(
+			desktopTable().getByRole("button", {
+				name: "Ações do usuário Ana Projetista",
+			}),
+		);
+		fireEvent.click(await screen.findByRole("menuitem", { name: "Desativar" }));
+
+		expect(handlers.onToggleActive).toHaveBeenCalledOnce();
+		expect(handlers.onEdit).not.toHaveBeenCalled();
+	});
+
 	it("marks the signed-in administrator", () => {
 		signInAs("admin");
 		render(<UsersTable users={[managedUserOf({ id: "1", role: "admin" })]} />);
