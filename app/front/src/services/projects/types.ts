@@ -46,4 +46,6 @@ export interface CreateProjectPayload {
 	voltage: SupplyVoltage;
 	connectionType: ConnectionType;
 	entranceStandard: EntranceStandard;
+	/** Só vale para o administrador, que cria em nome de um projetista. */
+	ownerId?: string;
 }

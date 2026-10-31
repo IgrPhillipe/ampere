@@ -37,11 +37,17 @@ public class UserAdministrationService {
 
   @Transactional(readOnly = true)
   public UserListing list(
-      int page, int pageSize, String search, UserRole role, AuthenticatedUser administrator) {
+      int page,
+      int pageSize,
+      String search,
+      UserRole role,
+      Boolean active,
+      AuthenticatedUser administrator) {
     administrator.requireAdmin();
     PageRequest pageRequest =
         PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.ASC, "name").and(Sort.by("id")));
-    Page<User> users = userRepository.search(role, SearchTerms.normalize(search), pageRequest);
+    Page<User> users =
+        userRepository.search(role, active, SearchTerms.normalize(search), pageRequest);
 
     return new UserListing(users.getContent(), users.getTotalElements());
   }

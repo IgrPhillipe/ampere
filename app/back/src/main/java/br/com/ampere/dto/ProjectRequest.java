@@ -12,7 +12,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-/** The fields of US02. Protocol, status and standards belong to the system. */
+/**
+ * The fields of US02. Protocol, status and standards belong to the system. {@code ownerId} is read
+ * only when the administrator creates the project; the designer's own id is used otherwise.
+ */
 public record ProjectRequest(
     @NotBlank(message = "O nome é obrigatório.")
         @Size(max = 120, message = "O nome deve ter no máximo {max} caracteres.")
@@ -34,4 +37,5 @@ public record ProjectRequest(
         Integer floors,
     @NotNull(message = "A tensão de fornecimento é obrigatória.") SupplyVoltage voltage,
     @NotNull(message = "O tipo de ligação é obrigatório.") ConnectionType connectionType,
-    @NotNull(message = "O padrão de entrada é obrigatório.") EntranceStandard entranceStandard) {}
+    @NotNull(message = "O padrão de entrada é obrigatório.") EntranceStandard entranceStandard,
+    Long ownerId) {}
