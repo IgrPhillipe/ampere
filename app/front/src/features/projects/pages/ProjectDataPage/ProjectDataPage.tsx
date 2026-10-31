@@ -155,17 +155,9 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 
 	const onSubmit = (submitted: ProjectCreationFormValues) => {
 		if (projectId === undefined) {
-			if (isAdmin && !submitted.ownerId) {
-				form.setError("ownerId", { message: "O projetista é obrigatório." });
-				return;
-			}
-
-			createProject.mutate(
-				isAdmin ? submitted : { ...submitted, ownerId: undefined },
-				{
-					onSuccess: (response) => goToUnits(response.data.id),
-				},
-			);
+			createProject.mutate(submitted, {
+				onSuccess: (response) => goToUnits(response.data.id),
+			});
 			return;
 		}
 
