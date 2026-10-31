@@ -134,10 +134,10 @@ describe("ProjectHistoryPage", () => {
 		render(<ProjectHistoryPage projectId="4" />);
 		const items = within(screen.getByRole("list")).getAllByRole("listitem");
 
-		expect(items[0]).toHaveTextContent("Lucas Gabriel · Analista");
+		expect(items[0]).toHaveTextContent("Lucas Gabriel, Analista");
 		expect(items[1]).toHaveTextContent("Sistema");
-		expect(items[2]).toHaveTextContent("Ana Lima · Projetista");
-		expect(items[2]).toHaveTextContent("Enviado · Versão 1");
+		expect(items[2]).toHaveTextContent("Ana Lima, Projetista");
+		expect(items[2]).toHaveTextContent("Enviado, Versão 1");
 	});
 
 	it("shows the empty state for a project without events", () => {

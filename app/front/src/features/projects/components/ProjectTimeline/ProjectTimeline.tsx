@@ -60,7 +60,7 @@ const EventItem = ({ event, latest }: EventItemProps) => {
 				<p className="text-xs text-muted-foreground">
 					{event.authorName ? (
 						<>
-							{event.authorName} · <span className="lowercase">{role}</span>
+							{event.authorName}, <span className="lowercase">{role}</span>
 						</>
 					) : (
 						role

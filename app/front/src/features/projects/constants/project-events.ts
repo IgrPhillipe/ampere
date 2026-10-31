@@ -4,15 +4,14 @@ import type { ProjectEvent, ProjectEventType } from "@services/project-events";
 export const PROJECT_EVENT_LABELS = {
 	CREATED: "Criado",
 	SUBMITTED: "Enviado",
-	PRE_VALIDATED: "Recebido",
-	ASSIGNED: "Em Análise",
+	PRE_VALIDATED: "Pré-validado",
+	ASSIGNED: "Análise Assumida",
 	REJECTED: "Reprovado",
 	APPROVED: "Aprovado",
 	FINDING_ANSWERED: "Apontamento Respondido",
 	RESUBMITTED: "Reenviado",
 } as const satisfies Record<ProjectEventType, string>;
 
-/** The events only the designer produces; every other authored event is the analyst's. */
 const DESIGNER_EVENTS = new Set<ProjectEventType>([
 	"CREATED",
 	"SUBMITTED",
@@ -38,11 +37,10 @@ export const eventAuthorRoleLabel = ({
 	return DESIGNER_EVENTS.has(type) ? ROLE_LABELS.user : ROLE_LABELS.reviewer;
 };
 
-/** The submissions carry the version they opened. */
 export const eventLabel = ({
 	type,
 	version,
 }: Pick<ProjectEvent, "type" | "version">) =>
 	type === "SUBMITTED" || type === "RESUBMITTED"
-		? `${PROJECT_EVENT_LABELS[type]} · Versão ${version}`
+		? `${PROJECT_EVENT_LABELS[type]}, Versão ${version}`
 		: PROJECT_EVENT_LABELS[type];
