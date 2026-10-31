@@ -3,7 +3,7 @@ import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDate, useAuthStore } from "@features/shared";
+import { formatDate, padCount, useAuthStore } from "@features/shared";
 import { cn } from "@lib/utils";
 import { useSubmitProject } from "@services/submission";
 import {
@@ -102,6 +102,16 @@ export const ProjectWorkspace = ({
 					]),
 				)
 			: workspace.sections;
+
+	const designerMetrics: HeaderMetric[] =
+		project && project.reviewCycle > 0
+			? [
+					{
+						label: "Apontamentos em aberto",
+						value: padCount(project.openFindingsCount),
+					},
+				]
+			: [];
 
 	const notSent =
 		project?.status === "DRAFT" || project?.status === "AWAITING_SUBMISSION";
@@ -205,7 +215,7 @@ export const ProjectWorkspace = ({
 						isLoading={projectQuery.isPending}
 						reanalysis={reanalysis}
 						correcting={detailActions.resubmit}
-						metrics={metrics}
+						metrics={reviewing ? metrics : (metrics ?? designerMetrics)}
 						actions={reviewing ? actions : (actions ?? designerActions)}
 					/>
 

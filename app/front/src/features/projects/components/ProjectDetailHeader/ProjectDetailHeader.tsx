@@ -86,7 +86,7 @@ interface ProjectDetailHeaderProps {
 	className?: string;
 }
 
-const BASE_METRICS = 7;
+const BASE_METRICS = 8;
 
 export const ProjectDetailHeader = ({
 	project,
@@ -214,6 +214,10 @@ export const ProjectDetailHeader = ({
 				{project?.submittedAt ? (
 					<HeaderDate value={project.submittedAt} />
 				) : undefined}
+			</HeaderCell>
+
+			<HeaderCell isLoading={isLoading} label="Última movimentação">
+				{project ? <HeaderDate value={project.lastActivityAt} /> : undefined}
 			</HeaderCell>
 
 			{metrics.map((metric) => (

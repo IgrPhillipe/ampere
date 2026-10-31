@@ -195,4 +195,32 @@ describe("ProjectWorkspace", () => {
 			screen.queryByRole("button", { name: "Enviar para Análise" }),
 		).not.toBeInTheDocument();
 	});
+
+	it("shows the designer the open findings of a sent project", () => {
+		signInAs("user");
+		state.project = makeProjectDetail({
+			status: "REJECTED",
+			ownerId: "1",
+			openFindingsCount: 3,
+		});
+		renderWorkspace();
+
+		expect(
+			screen.getByText("Apontamentos em aberto").nextElementSibling,
+		).toHaveTextContent(/^03$/);
+	});
+
+	it("leaves the open findings out of a draft never sent", () => {
+		signInAs("user");
+		state.project = makeProjectDetail({
+			status: "DRAFT",
+			ownerId: "1",
+			reviewCycle: 0,
+		});
+		renderWorkspace();
+
+		expect(
+			screen.queryByText("Apontamentos em aberto"),
+		).not.toBeInTheDocument();
+	});
 });

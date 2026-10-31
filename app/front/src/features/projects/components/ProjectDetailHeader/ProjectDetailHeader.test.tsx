@@ -57,4 +57,16 @@ describe("ProjectDetailHeader", () => {
 		expect(cell("Unidades")).toHaveTextContent("01 unidade");
 		expect(cell("Demanda")).toHaveTextContent("Sem cálculo");
 	});
+
+	it("mostra a data da última movimentação", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({
+					lastActivityAt: "2026-10-20T15:00:00Z",
+				})}
+			/>,
+		);
+
+		expect(cell("Última movimentação")).toHaveTextContent("20/10/2026");
+	});
 });
