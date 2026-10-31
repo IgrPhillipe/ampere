@@ -1,14 +1,26 @@
-import { apiResponseSchema } from "@features/shared";
+import { apiResponseSchema, toSearchParams } from "@features/shared";
 import { http } from "@lib/http";
 
 import { UserEndpoints as e } from "./endpoints";
-import { profileResponseSchema } from "./schemas";
+import {
+	managedUserListResponseSchema,
+	profileResponseSchema,
+} from "./schemas";
 import type {
 	ChangePasswordRequestPayload,
+	ListUsersParams,
 	ProfileRequestPayload,
 } from "./types";
 
 const profileEnvelopeSchema = apiResponseSchema(profileResponseSchema);
+
+export const getUserList = async (params: ListUsersParams = {}) => {
+	const response = await http
+		.get(e.list, { searchParams: toSearchParams({ ...params }) })
+		.json<unknown>();
+
+	return managedUserListResponseSchema.parse(response);
+};
 
 export const getProfile = async () => {
 	const response = await http.get(e.profile).json<unknown>();

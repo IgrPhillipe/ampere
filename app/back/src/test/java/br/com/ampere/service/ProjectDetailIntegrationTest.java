@@ -73,6 +73,7 @@ class ProjectDetailIntegrationTest {
                     SupplyVoltage.V380_220,
                     ConnectionType.THREE_PHASE,
                     EntranceStandard.COLLECTIVE),
+                null,
                 designer)
             .project()
             .getId();

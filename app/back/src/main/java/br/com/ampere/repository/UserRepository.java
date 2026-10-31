@@ -31,13 +31,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
       SELECT account
       FROM User account
       WHERE (:role IS NULL OR account.role = :role)
+        AND (:active IS NULL OR account.active = :active)
         AND (
           :search = ''
           OR account.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
         )
       """)
   Page<User> search(
-      @Param("role") UserRole role, @Param("search") String search, Pageable pageable);
+      @Param("role") UserRole role,
+      @Param("active") Boolean active,
+      @Param("search") String search,
+      Pageable pageable);
 
   List<User> findAllBySearchIndex(String searchIndex);
 

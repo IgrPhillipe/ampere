@@ -1,7 +1,7 @@
 import { ControlledInput, ControlledSelect } from "@components/form";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
-import { formatPostalCode, useZodForm } from "@features/shared";
+import { formatPostalCode, useAuthStore, useZodForm } from "@features/shared";
 import { calculationKeys } from "@services/calculation";
 import { isConcessionState } from "@services/locations";
 import { useGetFindingList } from "@services/project-review";
@@ -21,6 +21,7 @@ import {
 	FindingBadge,
 	ProjectAddressFields,
 	ProjectBreadcrumb,
+	ProjectOwnerField,
 	StageFindingsNotice,
 	StepFooter,
 } from "../../components";
@@ -37,13 +38,17 @@ import {
 	projectCreationSchema,
 } from "../../schemas";
 
-const PROGRESS_SECTIONS: {
+/** The designer only counts while the administrator is choosing it, on creation. */
+const progressSectionsOf = (
+	withOwner: boolean,
+): {
 	title: string;
 	fields: ReadonlyArray<keyof ProjectCreationFormValues>;
-}[] = [
+}[] => [
 	{
 		title: "Identificação",
 		fields: [
+			...(withOwner ? (["ownerId"] as const) : []),
 			"name",
 			"postalCode",
 			"state",
@@ -79,6 +84,7 @@ const formValuesOf = (
 	voltage: project.voltage,
 	connectionType: project.connectionType,
 	entranceStandard: project.entranceStandard,
+	ownerId: project.ownerId ?? undefined,
 });
 
 interface ProjectDataPageProps {
@@ -104,7 +110,9 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 		"PROJECT_DATA",
 	);
 	const { canEdit } = useProjectPermissions(project);
+	const isAdmin = useAuthStore((state) => state.user?.role === "admin");
 	const isEditable = projectId === undefined || canEdit;
+	const choosesOwner = isAdmin && projectId === undefined;
 	const isSaving = createProject.isPending || updateProject.isPending;
 
 	const form = useZodForm(projectCreationSchema, {
@@ -118,6 +126,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 		voltage: undefined,
 		connectionType: undefined,
 		entranceStandard: undefined,
+		ownerId: undefined,
 	});
 
 	useEffect(() => {
@@ -129,11 +138,13 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 	const values = form.watch();
 	const { isDirty } = useFormState({ control: form.control });
 
-	const progress = PROGRESS_SECTIONS.map(({ title, fields }) => ({
-		title,
-		filled: fields.filter((field) => isFilled(values[field])).length,
-		required: fields.length,
-	}));
+	const progress = progressSectionsOf(choosesOwner).map(
+		({ title, fields }) => ({
+			title,
+			filled: fields.filter((field) => isFilled(values[field])).length,
+			required: fields.length,
+		}),
+	);
 
 	const totalFilled = progress.reduce((sum, item) => sum + item.filled, 0);
 	const totalRequired = progress.reduce((sum, item) => sum + item.required, 0);
@@ -156,7 +167,8 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 		}
 
 		updateProject.mutate(
-			{ id: projectId, payload: submitted },
+			// The owner never changes after the creation.
+			{ id: projectId, payload: { ...submitted, ownerId: undefined } },
 			{
 				onSuccess: () => {
 					// The latest calculation may now be outdated.
@@ -200,6 +212,14 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 							</div>
 
 							<div className="mt-6 grid gap-x-8 gap-y-6 md:grid-cols-2">
+								{isAdmin ? (
+									<ProjectOwnerField
+										control={form.control}
+										disabled={!choosesOwner}
+										ownerName={project?.ownerName}
+									/>
+								) : null}
+
 								<ControlledInput
 									control={form.control}
 									name="name"

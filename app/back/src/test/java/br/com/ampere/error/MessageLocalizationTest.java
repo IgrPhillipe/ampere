@@ -75,7 +75,7 @@ class MessageLocalizationTest {
 
   @Test
   void acceptsEnumValuesInAnyCaseInTheRequestBody() throws Exception {
-    when(projectService.create(any(), any()))
+    when(projectService.create(any(), any(), any()))
         .thenReturn(new ProjectSummary(draft(), 0, 0, null, null));
     Jwt jwt =
         Jwt.withTokenValue("token")

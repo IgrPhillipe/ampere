@@ -306,7 +306,7 @@ A publicação de tabela normativa exige um segundo `admin`, diferente de quem c
 - **Rascunho também responde 404 ao analista**: ele só vê o que foi enviado para análise.
 - **O `admin` passa só pela regra de dono** (`ProjectVisibility.ALL`), nunca pelas de situação: projeto em análise ou aprovado fica congelado para todos, e a exclusão vale só para rascunho.
 - **Responder apontamento e enviar são do dono** (`ProjectService.findOwnedById`): o `admin` recebe 403 em projeto de outro projetista.
-- **Projeto criado pelo `admin` é do próprio `admin`.** O corpo de `POST /projects` não tem dono.
+- **O `admin` cria em nome de um projetista.** `ownerId` é obrigatório no `POST /projects` do `admin` (400 sem ele) e precisa ser de projetista ativo (422). O projetista cria para si: o `ownerId` dele é ignorado, assim como no `PUT`. O dono não muda depois da criação.
 - **Ninguém analisa o próprio projeto.** Assumir a análise de um projeto seu responde 403, mesmo para o `admin`.
 - **Os services repetem a regra de papel do `SecurityConfig`** (`AuthenticatedUser.requireReviewer()` e `requireAdmin()`), para que um matcher fora do lugar não abra a rota.
 - **Troca de papel com trabalho em andamento responde 409**: projetista com projeto não aprovado, ou analista com análise em andamento que perderia a análise.

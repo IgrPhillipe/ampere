@@ -161,11 +161,14 @@ public class ProjectService {
         eventRepository.findLastOccurredAt(projectId));
   }
 
-  public ProjectSummary create(ProjectParameters parameters, AuthenticatedUser user) {
+  public ProjectSummary create(
+      ProjectParameters parameters, Long requestedOwnerId, AuthenticatedUser user) {
     writerOrFail(user);
+    User owner = projectCreation.ownerOf(requestedOwnerId, user);
+
     for (int attempt = 1; attempt <= PROTOCOL_ATTEMPTS; attempt++) {
       try {
-        return summarize(projectCreation.createWithGeneratedProtocol(parameters, user.id()));
+        return summarize(projectCreation.createWithGeneratedProtocol(parameters, owner));
       } catch (DataIntegrityViolationException collision) {
         log.warn("Protocol collision on attempt {} of {}", attempt, PROTOCOL_ATTEMPTS);
       }

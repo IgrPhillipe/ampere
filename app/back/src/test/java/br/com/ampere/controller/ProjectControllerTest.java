@@ -302,7 +302,7 @@ class ProjectControllerTest {
   @Test
   void createsProjectAndAnswersCreated() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.create(any(), eq(DESIGNER)))
+    when(service.create(any(), any(), eq(DESIGNER)))
         .thenReturn(new ProjectSummary(draft(), 0, 0, null, null));
 
     mockMvc(service)
@@ -315,6 +315,20 @@ class ProjectControllerTest {
         .andExpect(
             jsonPath("$.data.applicableStandards").value("DIS-NOR-053 REV 06 e DIS-NOR-030 REV 07"))
         .andExpect(jsonPath("$.data.demandRules", hasSize(2)));
+  }
+
+  @Test
+  void passesTheOwnerIdOfTheBodyToTheService() throws Exception {
+    ProjectService service = mock(ProjectService.class);
+    when(service.create(any(), eq(5L), eq(DESIGNER)))
+        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null));
+
+    mockMvc(service)
+        .perform(
+            post("/projects")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validBody().replace("\"floors\"", "\"ownerId\": \"5\", \"floors\"")))
+        .andExpect(status().isCreated());
   }
 
   @Test

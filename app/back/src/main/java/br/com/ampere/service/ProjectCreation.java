@@ -3,11 +3,14 @@ package br.com.ampere.service;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.User;
+import br.com.ampere.domain.UserRole;
+import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.Protocols;
 import java.time.LocalDate;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,12 +34,30 @@ public class ProjectCreation {
     this.eventService = eventService;
   }
 
+  /** The administrator creates in the name of an active designer; the designer, for themselves. */
+  @Transactional(readOnly = true)
+  public User ownerOf(Long requestedOwnerId, AuthenticatedUser user) {
+    if (!user.isAdmin()) {
+      return userRepository
+          .findById(user.id())
+          .orElseThrow(() -> new NotFoundException("Usuário autenticado não encontrado."));
+    }
+    if (requestedOwnerId == null) {
+      throw new BusinessException("O projetista é obrigatório.", HttpStatus.BAD_REQUEST);
+    }
+
+    return userRepository
+        .findById(requestedOwnerId)
+        .filter(account -> account.isActive() && account.getRole() == UserRole.USER)
+        .orElseThrow(
+            () ->
+                new BusinessException(
+                    "O projetista informado não existe, está inativo ou não é projetista.",
+                    HttpStatus.UNPROCESSABLE_CONTENT));
+  }
+
   @Transactional
-  public Project createWithGeneratedProtocol(ProjectParameters parameters, Long ownerId) {
-    User owner =
-        userRepository
-            .findById(ownerId)
-            .orElseThrow(() -> new NotFoundException("Usuário autenticado não encontrado."));
+  public Project createWithGeneratedProtocol(ProjectParameters parameters, User owner) {
     String municipality = ProjectPlaces.municipalityOf(parameters);
     BuildingType buildingType = parameters.toBuildingType();
     int year = LocalDate.now().getYear();

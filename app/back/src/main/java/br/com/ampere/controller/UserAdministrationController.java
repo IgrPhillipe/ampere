@@ -63,9 +63,14 @@ public class UserAdministrationController {
       @Parameter(description = "Papel dos usuários listados; ausente lista todos")
           @RequestParam(required = false)
           UserRole role,
+      @Parameter(
+              description =
+                  "Situação da conta: true só ativas, false só inativas; ausente lista todas")
+          @RequestParam(required = false)
+          Boolean active,
       @AuthenticationPrincipal Jwt jwt) {
     UserListing listing =
-        service.list(pagination.page(), pagination.pageSize(), search, role, userOf(jwt));
+        service.list(pagination.page(), pagination.pageSize(), search, role, active, userOf(jwt));
     List<ManagedUserResponse> items =
         listing.users().stream().map(ManagedUserResponse::from).toList();
 

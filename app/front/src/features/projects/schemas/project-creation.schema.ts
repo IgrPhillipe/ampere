@@ -81,6 +81,9 @@ export const projectCreationSchema = z
 		entranceStandard: z.enum(entranceStandardSchema.options, {
 			error: "O padrão de entrada é obrigatório.",
 		}),
+
+		// Only the administrator picks it; the page counts it as required for them.
+		ownerId: z.string().optional(),
 	})
 	// Same rules as `ConcessionArea` in the back: the CEP range must match the state.
 	.superRefine(({ postalCode, state, municipality }, context) => {

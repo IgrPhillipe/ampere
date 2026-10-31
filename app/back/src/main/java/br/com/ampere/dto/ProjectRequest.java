@@ -5,6 +5,7 @@ import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.SupplyVoltage;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -34,4 +35,11 @@ public record ProjectRequest(
         Integer floors,
     @NotNull(message = "A tensão de fornecimento é obrigatória.") SupplyVoltage voltage,
     @NotNull(message = "O tipo de ligação é obrigatório.") ConnectionType connectionType,
-    @NotNull(message = "O padrão de entrada é obrigatório.") EntranceStandard entranceStandard) {}
+    @NotNull(message = "O padrão de entrada é obrigatório.") EntranceStandard entranceStandard,
+    @Schema(
+            description =
+                "Projetista dono. Obrigatório quando o admin cria; ignorado para o projetista"
+                    + " e na edição",
+            type = "string",
+            example = "5")
+        Long ownerId) {}
