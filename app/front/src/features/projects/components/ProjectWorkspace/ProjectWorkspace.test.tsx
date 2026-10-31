@@ -19,10 +19,12 @@ const state = vi.hoisted(() => ({
 	findings: [] as unknown[],
 	canSubmit: true,
 	submit: vi.fn(),
+	remove: vi.fn(),
+	navigate: vi.fn(),
 }));
 
 vi.mock("@tanstack/react-router", () => ({
-	useNavigate: () => vi.fn(),
+	useNavigate: () => state.navigate,
 	useMatchRoute: () => () => false,
 	Outlet: () => <p>Conteúdo da seção</p>,
 	Link: ({ children }: { children: ReactNode }) => <a href="/">{children}</a>,
@@ -31,6 +33,7 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@services/projects", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/projects")>()),
 	useGetProject: () => loadedQuery({ data: state.project }),
+	useDeleteProject: () => idleMutation({ mutate: state.remove }),
 }));
 
 vi.mock("@services/project-review", async (importOriginal) => ({
@@ -76,6 +79,8 @@ describe("ProjectWorkspace", () => {
 		state.findings = [];
 		state.canSubmit = true;
 		state.submit.mockClear();
+		state.remove.mockClear();
+		state.navigate.mockClear();
 	});
 
 	it("keeps the header and the sections around the open section", () => {
@@ -221,6 +226,59 @@ describe("ProjectWorkspace", () => {
 
 		expect(
 			screen.queryByText("Apontamentos em aberto"),
+		).not.toBeInTheDocument();
+	});
+
+	it("lets the owner delete a draft and returns to the list", () => {
+		signInAs("user");
+		state.project = makeProjectDetail({ status: "DRAFT", ownerId: "1" });
+		renderWorkspace();
+
+		fireEvent.click(screen.getByRole("button", { name: "Excluir Projeto" }));
+		expect(screen.getByText("Excluir projeto?")).toBeVisible();
+		// The open dialog hides the page, so only its own button is left.
+		fireEvent.click(screen.getByRole("button", { name: "Excluir Projeto" }));
+
+		expect(state.remove).toHaveBeenCalledWith("4", expect.anything());
+		state.remove.mock.calls[0][1].onSuccess();
+		expect(state.navigate).toHaveBeenCalledWith({
+			to: "/projetos",
+			replace: true,
+		});
+	});
+
+	it("lets an admin delete a draft they do not own", () => {
+		signInAs("admin");
+		state.project = makeProjectDetail({ status: "DRAFT", ownerId: "2" });
+		renderWorkspace();
+
+		expect(
+			screen.getByRole("button", { name: "Excluir Projeto" }),
+		).toBeVisible();
+	});
+
+	it.each([
+		"AWAITING_SUBMISSION",
+		"UNDER_REVIEW",
+		"REJECTED",
+		"APPROVED",
+	] as const)("keeps a %s project from being deleted", (status) => {
+		signInAs("user");
+		state.project = makeProjectDetail({ status, ownerId: "1" });
+		renderWorkspace();
+
+		expect(
+			screen.queryByRole("button", { name: "Excluir Projeto" }),
+		).not.toBeInTheDocument();
+	});
+
+	it("gives the analyst no delete action", () => {
+		signInAs("reviewer");
+		state.project = makeProjectDetail({ status: "DRAFT", ownerId: "2" });
+		renderWorkspace();
+
+		expect(
+			screen.queryByRole("button", { name: "Excluir Projeto" }),
 		).not.toBeInTheDocument();
 	});
 });

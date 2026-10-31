@@ -5,6 +5,7 @@ import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { formatDate, padCount, useAuthStore } from "@features/shared";
 import { cn } from "@lib/utils";
+import { useDeleteProject } from "@services/projects";
 import { useSubmitProject } from "@services/submission";
 import {
 	Link,
@@ -12,8 +13,8 @@ import {
 	useMatchRoute,
 	useNavigate,
 } from "@tanstack/react-router";
-import { CircleAlert, Lock, RotateCcw, Send } from "lucide-react";
-import type { ReactNode } from "react";
+import { CircleAlert, Lock, RotateCcw, Send, Trash2 } from "lucide-react";
+import { type ReactNode, useState } from "react";
 
 import {
 	getProjectsPageTitle,
@@ -22,6 +23,7 @@ import {
 } from "../../constants";
 import { useProjectDetailActions, useProjectWorkspace } from "../../hooks";
 import { ChangeSummaryNotice } from "../ChangeSummaryNotice";
+import { ProjectDeleteDialog } from "../ProjectDeleteDialog";
 import { type HeaderMetric, ProjectDetailHeader } from "../ProjectDetailHeader";
 import {
 	ProjectSectionNav,
@@ -82,6 +84,8 @@ export const ProjectWorkspace = ({
 	const { project, projectQuery, permissions, checklist } = workspace;
 	const current = useCurrentSection(projectId);
 	const submitMutation = useSubmitProject();
+	const deleteMutation = useDeleteProject();
+	const [deleting, setDeleting] = useState(false);
 	const detailActions = useProjectDetailActions({
 		status: project?.status,
 		ownerId: project?.ownerId,
@@ -125,7 +129,20 @@ export const ProjectWorkspace = ({
 			},
 		);
 
-	const designerActions =
+	const confirmDelete = () =>
+		deleteMutation.mutate(projectId, {
+			onSuccess: () => void navigate({ to: "/projetos", replace: true }),
+		});
+
+	const deleteAction =
+		!reviewing && permissions.canDelete ? (
+			<Button type="button" variant="outline" onClick={() => setDeleting(true)}>
+				<Trash2 aria-hidden="true" />
+				Excluir Projeto
+			</Button>
+		) : null;
+
+	const submitAction =
 		permissions.isOwner && notSent ? (
 			<div className="flex flex-col gap-1.5 lg:items-end">
 				<Button
@@ -153,6 +170,14 @@ export const ProjectWorkspace = ({
 				<RotateCcw aria-hidden="true" />
 				Reenviar Projeto
 			</Button>
+		) : null;
+
+	const designerActions =
+		deleteAction || submitAction ? (
+			<>
+				{deleteAction}
+				{submitAction}
+			</>
 		) : null;
 
 	if (projectQuery.isError) {
@@ -282,6 +307,12 @@ export const ProjectWorkspace = ({
 			</PageLayout>
 
 			{children}
+			<ProjectDeleteDialog
+				project={deleting && project ? project : null}
+				isPending={deleteMutation.isPending}
+				onOpenChange={setDeleting}
+				onConfirm={confirmDelete}
+			/>
 		</ProjectWorkspaceContext>
 	);
 };
