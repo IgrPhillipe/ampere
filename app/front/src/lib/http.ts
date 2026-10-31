@@ -3,12 +3,15 @@ import ky, { isHTTPError } from "ky";
 
 import { AppConfig } from "@/config";
 
-import { type ApiHTTPError, parseSpringErrorBody } from "./api-error";
+import {
+	type ApiHTTPError,
+	hasPasswordChangeCode,
+	parseSpringErrorBody,
+} from "./api-error";
 
 const isLogin = (request: Request) =>
 	new URL(request.url).pathname.endsWith("/auth/login");
 
-/** The API refuses a temporary password everywhere but its own change. */
 const requiresPasswordChange = async (response: Response) => {
 	if (response.status !== 403) return false;
 
@@ -17,12 +20,7 @@ const requiresPasswordChange = async (response: Response) => {
 		.json()
 		.catch(() => null);
 
-	return (
-		typeof body === "object" &&
-		body !== null &&
-		"code" in body &&
-		body.code === "PASSWORD_CHANGE_REQUIRED"
-	);
+	return hasPasswordChangeCode(body);
 };
 
 export const http = ky.create({

@@ -1,6 +1,7 @@
 import { useAuthStore } from "@features/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { isPasswordChangeRequired } from "./api-error";
 import { http } from "./http";
 
 const fetchMock = vi.fn(async () => Response.json({ data: {} }));
@@ -54,8 +55,9 @@ describe("http", () => {
 			),
 		);
 
-		await expect(api.get("projects")).rejects.toThrow();
+		const error = await api.get("projects").catch((cause: unknown) => cause);
 
+		expect(isPasswordChangeRequired(error)).toBe(true);
 		expect(useAuthStore.getState().user?.mustChangePassword).toBe(true);
 	});
 
@@ -64,7 +66,9 @@ describe("http", () => {
 			Response.json({ status: 403 }, { status: 403 }),
 		);
 
-		await expect(api.get("users")).rejects.toThrow();
+		const error = await api.get("users").catch((cause: unknown) => cause);
+
+		expect(isPasswordChangeRequired(error)).toBe(false);
 
 		expect(useAuthStore.getState().user?.mustChangePassword).toBe(false);
 		expect(useAuthStore.getState().isAuthenticated).toBe(true);

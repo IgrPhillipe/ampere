@@ -1,12 +1,15 @@
 import { QueryCache, QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { getToastErrorMessage } from "./api-error";
+import { getToastErrorMessage, isPasswordChangeRequired } from "./api-error";
 
 export const queryClient = new QueryClient({
 	/** A query error becomes a toast without every hook needing an `onError`. */
 	queryCache: new QueryCache({
 		onError: (error) => {
+			// The shell already opens the password change; a toast would only repeat it.
+			if (isPasswordChangeRequired(error)) return;
+
 			const message = getToastErrorMessage(error, {
 				fallback: "Nao foi possivel carregar os dados. Tente novamente.",
 			});
