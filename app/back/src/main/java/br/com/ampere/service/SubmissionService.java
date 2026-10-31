@@ -9,8 +9,8 @@ import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
+import br.com.ampere.utils.Timestamps;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -89,7 +89,7 @@ public class SubmissionService {
 
     Calculation calculation =
         calculationRepository.findFirstByProjectIdOrderByIdDesc(projectId).orElseThrow();
-    OffsetDateTime submittedAt = OffsetDateTime.now(ZoneOffset.UTC);
+    OffsetDateTime submittedAt = Timestamps.now();
     project.submit(submittedAt);
     eventService.submitted(project, project.getOwner(), calculation, submittedAt);
 
