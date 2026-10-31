@@ -11,6 +11,8 @@ import type { TemporaryAccess } from "@services/users";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 
+import { useRetainedValue } from "../../hooks";
+
 interface TemporaryPasswordDialogProps {
 	/** Lives only in this state: the password is never cached nor shown again. */
 	access: TemporaryAccess | null;
@@ -21,6 +23,8 @@ export const TemporaryPasswordDialog = ({
 	access,
 	onClose,
 }: TemporaryPasswordDialogProps) => {
+	const shownAccess = useRetainedValue(access);
+
 	const copyPassword = async () => {
 		if (!access) return;
 
@@ -44,9 +48,9 @@ export const TemporaryPasswordDialog = ({
 					</DialogTitle>
 
 					<DialogDescription>
-						Repasse esta senha a {access?.user.name} ({access?.user.email}). Ela
-						não será exibida novamente, e a troca é obrigatória no próximo
-						login.
+						Repasse esta senha a {shownAccess?.user.name} (
+						{shownAccess?.user.email}). Ela não será exibida novamente, e a
+						troca é obrigatória no próximo login.
 					</DialogDescription>
 				</DialogHeader>
 
@@ -54,7 +58,7 @@ export const TemporaryPasswordDialog = ({
 					<p className="min-w-0">
 						<span className="sr-only">Senha temporária: </span>
 						<code className="font-mono text-lg font-semibold tracking-wide break-all text-foreground select-all">
-							{access?.temporaryPassword}
+							{shownAccess?.temporaryPassword}
 						</code>
 					</p>
 

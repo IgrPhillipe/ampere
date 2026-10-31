@@ -1,6 +1,8 @@
 import { ConfirmDialog } from "@components/ConfirmDialog";
 import type { ManagedUser } from "@services/users";
 
+import { useRetainedValue } from "../../hooks";
+
 interface UserStatusDialogProps {
 	user: ManagedUser | null;
 	isPending: boolean;
@@ -14,7 +16,8 @@ export const UserStatusDialog = ({
 	onOpenChange,
 	onConfirm,
 }: UserStatusDialogProps) => {
-	const deactivating = user?.active ?? false;
+	const shownUser = useRetainedValue(user);
+	const deactivating = shownUser?.active ?? false;
 
 	return (
 		<ConfirmDialog
@@ -22,8 +25,8 @@ export const UserStatusDialog = ({
 			title={deactivating ? "Desativar Usuário" : "Reativar Usuário"}
 			description={
 				deactivating
-					? `${user?.name} não poderá mais entrar no sistema, e a sessão aberta é encerrada no próximo acesso. Os projetos e as análises da conta são mantidos.`
-					: `${user?.name} volta a entrar no sistema com a senha atual.`
+					? `${shownUser?.name} não poderá mais entrar no sistema, e a sessão aberta é encerrada no próximo acesso. Os projetos e as análises da conta são mantidos.`
+					: `${shownUser?.name} volta a entrar no sistema com a senha atual.`
 			}
 			confirmLabel={deactivating ? "Desativar" : "Reativar"}
 			pendingLabel={deactivating ? "Desativando..." : "Reativando..."}
