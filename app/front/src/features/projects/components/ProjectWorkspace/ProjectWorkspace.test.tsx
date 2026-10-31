@@ -219,6 +219,30 @@ describe("ProjectWorkspace", () => {
 		).toHaveTextContent(/^03$/);
 	});
 
+	it("shows the analyst their own figures instead of the open findings", () => {
+		signInAs("reviewer");
+		state.project = makeProjectDetail({
+			status: "UNDER_REVIEW",
+			openFindingsCount: 3,
+		});
+		render(
+			<QueryClientProvider client={new QueryClient()}>
+				<ProjectWorkspace
+					projectId="4"
+					reviewing
+					metrics={[{ label: "Pendências", value: "02" }]}
+				/>
+			</QueryClientProvider>,
+		);
+
+		expect(screen.getByText("Pendências").nextElementSibling).toHaveTextContent(
+			/^02$/,
+		);
+		expect(
+			screen.queryByText("Apontamentos em aberto"),
+		).not.toBeInTheDocument();
+	});
+
 	it("leaves the open findings out of a draft never sent", () => {
 		signInAs("user");
 		state.project = makeProjectDetail({

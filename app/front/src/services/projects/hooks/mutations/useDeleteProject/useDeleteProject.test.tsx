@@ -70,4 +70,32 @@ describe("useDeleteProject", () => {
 		expect(detailWhenLeaving).toEqual({ data: { id: "4" } });
 		expect(queryClient.getQueryData(detailKey)).toBeUndefined();
 	});
+
+	it("keeps the caller and the detail in place when the deletion fails", async () => {
+		vi.mocked(deleteProject).mockRejectedValue(
+			new Error("Só é possível excluir um projeto em rascunho."),
+		);
+		const queryClient = new QueryClient({
+			defaultOptions: { mutations: { retry: false } },
+		});
+		const detailKey = projectKeys.detail("4");
+		queryClient.setQueryData(detailKey, { data: { id: "4" } });
+		const onDeleted = vi.fn();
+
+		const wrapper = ({ children }: PropsWithChildren) => (
+			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+		);
+		const { result } = renderHook(() => useDeleteProject({ onDeleted }), {
+			wrapper,
+		});
+
+		act(() => result.current.mutate("4"));
+		await waitFor(() => expect(result.current.isError).toBe(true));
+
+		expect(onDeleted).not.toHaveBeenCalled();
+		expect(queryClient.getQueryData(detailKey)).toEqual({ data: { id: "4" } });
+		expect(toast.error).toHaveBeenCalledWith(
+			"Só é possível excluir um projeto em rascunho.",
+		);
+	});
 });
