@@ -4,7 +4,7 @@
 > **Regra:** o código de cada ciclo fecha uma semana antes da entrega. A última semana é só de preparação: README, POST-IT, print das issues, screencasts, validação com o monitor e com o cliente e ensaio. A correção de POO usa o conteúdo do GitHub logo após o prazo.
 > **Histórias:** US07, US08, US09, US12, US18 e US20 na Entrega 04. US10, US11, US13 a US17, US19, US23 e US24 no SR2.
 > Histórias completas em [`user-stories.md`](user-stories.md). Critérios em [`../cronograma-poo.md`](../cronograma-poo.md) e [`../cronograma-projetos3.md`](../cronograma-projetos3.md).
-> Issues no [milestone Entrega 03](https://github.com/IgrPhillipe/ampere/milestone/2), no [milestone Entrega 04](https://github.com/IgrPhillipe/ampere/milestone/3) e no [milestone Status Report 2](https://github.com/IgrPhillipe/ampere/milestone/4), #88 a #154.
+> Issues no [milestone Entrega 03](https://github.com/IgrPhillipe/ampere/milestone/2), no [milestone Entrega 04](https://github.com/IgrPhillipe/ampere/milestone/3) e no [milestone Status Report 2](https://github.com/IgrPhillipe/ampere/milestone/4), #88 a #215.
 
 ## Ciclos
 
@@ -13,12 +13,12 @@
 | Sprint 4 | 04/10 a 18/10 | Preparação da Entrega 03 e início do desenvolvimento | README, screencasts, monitor e retro da Entrega 03. US07, US20, restrição por dono e telas no Figma | Entrega 03 e Entrega 04 |
 | Sprint 5 | 19/10 a 25/10 | Desenvolvimento | US09 e US18 | Entrega 04 |
 | Sprint 6 | 26/10 a 01/11 | Desenvolvimento. **Code freeze em 01/11** | US08 e US12. Front da US10 e da US11, `AT04-US11` e telas do SR2 no Figma | Entrega 04 e Status Report 2 |
-| Sprint 7 | 02/11 a 08/11 | Preparação da Entrega 04 e início do SR2 | Monitor, cliente, POST-IT, print, screencasts, avaliação individual e ensaio da apresentação. US16 e back da US13, US14, US19 e US23 | Entrega 04 e Status Report 2 |
-| Sprint 8 | 09/11 a 15/11 | Desenvolvimento | Front da US13, US14 e US23. Back da US15, US17 e US24 | Status Report 2 |
-| Sprint 9 | 16/11 a 22/11 | Desenvolvimento. **Code freeze em 22/11** | Front da US15, US17, US19 e US24. Ajustes da validação com o cliente | Status Report 2 |
+| Sprint 7 | 02/11 a 08/11 | Preparação da Entrega 04 e início do SR2 | Monitor, cliente, POST-IT, print, screencasts, avaliação individual e ensaio da apresentação. Telas no Figma do `AT19-INFRA` e do `AT26-INFRA`. US16, back da US13, US14, US19 e US23 e ajustes da US03 e da US07 | Entrega 04 e Status Report 2 |
+| Sprint 8 | 09/11 a 15/11 | Desenvolvimento | Front da US13, US14 e US23. Back da US15, US17 e US24. Ajustes da US02, US03, US07 e US15 | Status Report 2 |
+| Sprint 9 | 16/11 a 22/11 | Desenvolvimento. **Code freeze em 22/11** | Front da US15, US17, US19 e US24. Ajustes da US03, US04, US05, US09 e das tabelas normativas | Status Report 2 |
 | Sprint 10 | 23/11 a 04/12 | Preparação do SR2 | Material e ensaio do SR2 e relatório de IA | Status Report 2 |
 
-**Ritmo:** sem aula em 31/10, as Sprints 6 e 7 recebem parte do SR2: 8 tarefas na Sprint 6, 6 na 7, 6 na 8 e 4 na 9, que guarda folga para os ajustes da validação com o cliente.
+**Ritmo:** sem aula em 31/10, as Sprints 6 e 7 recebem parte do SR2: 8 tarefas na Sprint 6, 6 na 7, 6 na 8 e 4 na 9. Com os ajustes abertos em 31/10, a Sprint 7 passa a 8 tarefas de código, a 8 a 10 e a 9 a 10.
 
 **Sprint 7:** quem não está na preparação desenvolve o SR2 em PR. O merge na main vai até quarta, 04/11, antes da revisão com o monitor e dos screencasts. PR pronto depois disso espera até 10/11, depois da correção da Entrega 04.
 
@@ -32,7 +32,7 @@
 | Sáb 24/10 | GitHub e Google Sites atualizados com os ajustes pós-retro | Projetos 3 |
 | Dom 01/11 | Code freeze da Entrega 04 | |
 | Qui 05/11 | Entrega 04 revisada com o monitor | POO |
-| Sáb 07/11 | Validação com o cliente e registro do feedback no Google Sites | Projetos 3 |
+| Sáb 07/11 | Feedback da validação com o cliente no Google Sites | Projetos 3 |
 | Seg 09/11 | **Entrega 04** | POO |
 | 09 a 13/11 | **Apresentação final**, 8 minutos, time inteiro presente | POO |
 | Sáb 14/11 | Rec'n Play, atividade assíncrona | Projetos 3 |
@@ -50,9 +50,9 @@ Feriados sem aula: 09, 10 e 12/10, 31/10, 02/11, 15/11 e 20/11.
 
 O padrão é o mesmo das Entregas 02 e 03: uma issue por história, que funciona como épico, e duas tarefas por história, uma de **Backend** e uma de **Frontend**. A US20 tem só a tarefa de front, porque o `DELETE /api/projects/{id}` já existe e apaga em cascata.
 
-**Milestones:** Gestão da Entrega 03 no **Entrega 03**. Histórias e Gestão das Sprints 4 a 7 no **Entrega 04**, com vencimento em 09/11. Sprints 8 a 10 no **Status Report 2**, com vencimento em 05/12.
+**Milestones:** Gestão da Entrega 03 no **Entrega 03**. Histórias da Entrega 04 e Gestão das Sprints 4 a 7 no **Entrega 04**, com vencimento em 09/11. Histórias do SR2, ajustes abertos depois do code freeze da Entrega 04 e Gestão das Sprints 8 a 10 no **Status Report 2**, com vencimento em 05/12, seja qual for a sprint. O `AT26-INFRA`, das telas do SR2, também fica no Status Report 2.
 
-**Labels:** `Sprint 4` a `Sprint 10`, `US07` a `US20`, `US23` e `US24`.
+**Labels:** `Sprint 4` a `Sprint 10`, `US02` a `US20`, `US23` e `US24`.
 
 **Tarefas de código abertas sem responsável.** Cada pessoa se atribui ao assumir a tarefa.
 
@@ -66,8 +66,9 @@ O padrão é o mesmo das Entregas 02 e 03: uma issue por história, que funciona
 - Na Sprint 6, o back da US08 entra antes do back da US12, que lê os mesmos eventos.
 - O `AT26-INFRA` entrega o painel do projetista (US16) até 01/11 e as demais telas até 08/11.
 - A US23 entra antes da US24, que mostra a carga por analista e os municípios sem analista.
+- O `AT05-US03`, na Sprint 8, entra antes do `AT06-US03`, que monta as telas sobre o contrato dele.
 
-**Total:** 61 issues abertas entre #88 e #154: 6 na Entrega 03, 27 na Entrega 04 e 28 no Status Report 2. As #142 a #147, da duplicação de projeto e dos documentos complementares, foram fechadas fora do escopo. A US23 (#191) e a US24 (#192), com as tarefas #193 a #196, entraram em 24/10 no Status Report 2. Também em 24/10: `AT32-INFRA` a `AT34-INFRA`, `AT03-US18`, `AT04-US18`, `AT03-US03`, `AT04-US05` e `AT05-US05` na Entrega 04, e `AT03-US11` e `AT04-US11` no Status Report 2.
+**Total:** 61 issues abertas entre #88 e #154: 6 na Entrega 03, 27 na Entrega 04 e 28 no Status Report 2. As #142 a #147, da duplicação de projeto e dos documentos complementares, foram fechadas fora do escopo. A US23 (#191) e a US24 (#192), com as tarefas #193 a #196, entraram em 24/10 no Status Report 2. Também em 24/10: `AT32-INFRA` a `AT34-INFRA`, `AT03-US18`, `AT04-US18`, `AT03-US03`, `AT04-US05` e `AT05-US05` na Entrega 04, e `AT03-US11` e `AT04-US11` no Status Report 2. Em 31/10, os ajustes #204 a #215 entraram no Status Report 2.
 
 ---
 
@@ -139,7 +140,7 @@ O `Project` guarda o `owner` desde o #86, mas nenhum service o confere. Qualquer
 - [x] O proxy do Vite remove o `Origin`, e o ambiente local deixa de recusar as escritas com 403
 
 ### `AT19-INFRA: Desenhar no Figma as telas da análise e da correção [Gestão]` (#112)
-`Sprint 5`, `Gestão`
+`Sprint 7`, `Gestão`. Aberta desde a Sprint 5.
 
 - [ ] Tela de correção e reenvio do projetista (US09), que não tem protótipo
 - [ ] Selo de apontamento dentro das etapas H3 e H4
@@ -179,7 +180,7 @@ Revisar com o monitor, até quinta, 05/11, o README, a seção "Entrega 04", o p
 ### `AT20-INFRA: Validação com o cliente [Gestão]` (#113)
 `Sprint 7`, `Gestão`
 
-Entregável de Projetos 3 do sábado, 07/11. Demonstrar à Neoenergia o ciclo completo: cálculo, envio, análise com apontamento, correção e reenvio. Registrar o feedback no Google Sites e abrir issues para os ajustes.
+Concluída em 29/10, antes do previsto. O feedback da Neoenergia virou os ajustes #204 a #215, em [Ajustes Abertos em 31/10](#ajustes-abertos-em-3110). O registro no Google Sites é o entregável de Projetos 3 do sábado, 07/11.
 
 ### `AT31-INFRA: Preparar a avaliação individual de POO [Gestão]` (#154)
 `Sprint 7`, `Gestão`
@@ -192,7 +193,7 @@ A avaliação individual acontece junto com a avaliação da unidade, com pergun
 Resumo de até 8 minutos, de 09 a 13/11, com o time inteiro presente: problema, solução, fluxo de trabalho, ferramentas com links, lições aprendidas e demonstração. O ensaio acontece na Sprint 7.
 
 ### `AT26-INFRA: Desenhar no Figma as telas do SR2 [Gestão]` (#149)
-`Sprint 6`, `Gestão`, milestone Status Report 2
+`Sprint 7`, `Gestão`, milestone Status Report 2
 
 Painel do projetista (US16) até 01/11. Distribuição da fila (US23), comparativo de versões (US13), painel do administrador (US24) e indicadores do analista (US17) até 08/11. Cadastro e perfil (US10) e usuários (US11) seguem os padrões do login e da listagem, sem protótipo. As notificações já têm protótipo.
 
@@ -392,6 +393,25 @@ Cada história tem a issue épica, a tarefa de back e a tarefa de front, nessa o
 | US17: Painel do Analista (#136) | **Sprint 8.** `AT01-US17`: `GET /api/dashboard/review?period=` e `GET /api/review-queue/mine` | **Sprint 9.** `AT02-US17`: telas "Indicadores" e "Meus Pareceres" |
 | US24: Painel do Administrador (#192) | **Sprint 8.** `AT01-US24`: `GET /api/dashboard/admin` e filtros de situação em `GET /api/users` | **Sprint 9.** `AT02-US24`: tela "Painel" como inicial do administrador |
 
+## Ajustes Abertos em 31/10
+
+A maior parte vem da validação com o cliente de 29/10. Todos no milestone Status Report 2.
+
+| Sprint | Tarefa | Ajuste |
+| :--- | :--- | :--- |
+| Sprint 7 | `AT04-US07: Formulário de apontamento segue a seção aberta [Frontend]` (#205) | O formulário vazio recebe a seção da aba aberta, e trocar a seção limpa a referência |
+| Sprint 7 | `AT04-US03: Cargas abertas ao salvar o grupo [Frontend]` (#208) | Salvar um grupo novo abre o `GroupSheet` nas cargas |
+| Sprint 8 | `AT03-US07: Aprovação com ressalvas [Backend/Frontend]` (#204) | Ajuste pendente vira ressalva e não impede a aprovação |
+| Sprint 8 | `AT03-US02: Ligação só monofásica ou trifásica [Backend/Frontend]` (#206) | A bifásica sai, e os projetos gravados com ela passam a trifásica |
+| Sprint 8 | `AT03-US15: Prazo de retorno na visão do projetista [Backend/Frontend]` (#207) | Prazo de retorno e analista no projeto em análise |
+| Sprint 8 | `AT05-US03: Ligação por grupo e demanda individual do apartamento [Backend]` (#209) | Ligação por apartamento, demanda individual pela DIS-NOR-030 e limite de 75 kW |
+| Sprint 9 | `AT06-US03: Ligação e cargas do apartamento nas telas [Frontend]` (#210) | Ligação e cargas do apartamento nas telas, sobre o contrato do #209 |
+| Sprint 9 | `AT03-US04: Revisão da norma fixada no primeiro envio [Backend/Frontend]` (#211) | O protocolo calcula com as revisões vigentes no primeiro envio |
+| Sprint 9 | `AT03-US09: Correção marcada ao salvar o item apontado [Frontend]` (#212) | Salvar o item apontado pergunta se o apontamento foi corrigido |
+| Sprint 9 | `AT06-US05: Documentos do envio sem duplicação [Frontend]` (#213) | A checagem de envio vira a lista única de anexos |
+| Sprint 9 | `AT35-INFRA: Revisor cadastra e aprova revisões das tabelas normativas [Backend/Frontend]` (#214) | O revisor cadastra e aprova, e quem cadastra não aprova |
+| Sprint 9 | `AT36-INFRA: Histórico de revisões da tabela normativa [Backend/Frontend]` (#215) | Histórico e comparativo das revisões. Primeiro item a sair se faltar tempo |
+
 ---
 
 # Resumo das Issues
@@ -403,4 +423,4 @@ Cada história tem a issue épica, a tarefa de back e a tarefa de front, nessa o
 | Status Report 2 | 4 (AT25 a AT28) | 10 | 10 | 10 | 34 |
 | **Total** | **19** | **16** | **16** | **16** | **67** |
 
-A contagem não inclui as tarefas abertas em 24/10 fora do plano original: 8 na Entrega 04 e 2 no Status Report 2.
+A contagem não inclui as tarefas abertas fora do plano original: em 24/10, 8 na Entrega 04 e 2 no Status Report 2; em 31/10, 12 no Status Report 2.
