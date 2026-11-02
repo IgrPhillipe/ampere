@@ -169,6 +169,7 @@ Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/i
 - `submitted` conta projetos com evento `SUBMITTED` no período; `RESUBMITTED` não entra.
 - `firstReviewApprovalPercent` considera a primeira decisão de cada projeto que caiu no período: aprovado depois de um reenvio conta como reprovado na primeira análise. Nulo sem decisões no período.
 - `averageDaysToApproval` vai do primeiro `SUBMITTED` ao `APPROVED`, em dias corridos; nulo sem aprovações. Aprovação sem `SUBMITTED` no histórico fica fora da média. `approvedDemand` soma o último cálculo de todos os aprovados no período.
+- Cada item de `actionRequired` traz `version` (número do envio), `consumerUnits`, `rejectedAt` no reprovado e `pendingStage` no rascunho: a primeira etapa incompleta, na ordem unidades, cálculo atualizado e documentos; nula quando falta só enviar. Cada item de `underReview` traz `version`, e acima de 1 é reanálise.
 - "Sem alteração" do rascunho usa `Project.updatedAt`. Editar grupos, cargas ou documentos e calcular a demanda também atualizam a data (`Project.touch()`).
 - `hasSubmissions` diz se algum projeto do projetista já foi enviado (`submittedAt` preenchido), em qualquer data.
 

@@ -13,10 +13,13 @@ import br.com.ampere.domain.DemandComponent;
 import br.com.ampere.domain.DemandResult;
 import br.com.ampere.domain.DemandStep;
 import br.com.ampere.domain.EntranceStandard;
+import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.FindingAnswer;
 import br.com.ampere.domain.FindingSeverity;
 import br.com.ampere.domain.FindingStage;
+import br.com.ampere.domain.GroupKind;
+import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
@@ -190,6 +193,33 @@ class DesignerDashboardIntegrationTest {
   }
 
   @Test
+  void actionItemsCarryVersionUnitsRejectionDateAndPendingStep() throws Exception {
+    Project rejected = rejected("2026-5151", owner);
+    Project withoutGroups =
+        projectRepository.save(project("2026-5152", ProjectStatus.DRAFT, owner));
+    Project withGroups = projectRepository.save(project("2026-5153", ProjectStatus.DRAFT, owner));
+    groupRepository.save(GroupKind.EV_CHARGING.create(withGroups, charging()));
+    lastChanged(withoutGroups, now.minusDays(30));
+    lastChanged(withGroups, now.minusDays(20));
+    entityManager.clear();
+
+    designerDashboard()
+        .andExpect(jsonPath("$.data.actionRequired", hasSize(3)))
+        .andExpect(jsonPath("$.data.actionRequired[0].protocol").value(rejected.getProtocol()))
+        .andExpect(jsonPath("$.data.actionRequired[0].version").value(1))
+        .andExpect(jsonPath("$.data.actionRequired[0].rejectedAt").isNotEmpty())
+        .andExpect(jsonPath("$.data.actionRequired[0].pendingStage").isEmpty())
+        .andExpect(jsonPath("$.data.actionRequired[1].protocol").value("2026-5152"))
+        .andExpect(jsonPath("$.data.actionRequired[1].version").value(0))
+        .andExpect(jsonPath("$.data.actionRequired[1].consumerUnits").value(0))
+        .andExpect(jsonPath("$.data.actionRequired[1].rejectedAt").isEmpty())
+        .andExpect(jsonPath("$.data.actionRequired[1].pendingStage").value("CONSUMER_UNITS"))
+        .andExpect(jsonPath("$.data.actionRequired[2].protocol").value("2026-5153"))
+        .andExpect(jsonPath("$.data.actionRequired[2].consumerUnits").value(6))
+        .andExpect(jsonPath("$.data.actionRequired[2].pendingStage").value("CALCULATION"));
+  }
+
+  @Test
   void listsTheProjectsUnderReviewFromTheShortestDeadline() throws Exception {
     submitted("2026-5201", now.minusDays(10), owner);
     submitted("2026-5202", now.minusDays(40), owner);
@@ -199,6 +229,7 @@ class DesignerDashboardIntegrationTest {
         .andExpect(jsonPath("$.data.hasSubmissions").value(true))
         .andExpect(jsonPath("$.data.underReview", hasSize(2)))
         .andExpect(jsonPath("$.data.underReview[0].protocol").value("2026-5202"))
+        .andExpect(jsonPath("$.data.underReview[0].version").value(1))
         .andExpect(jsonPath("$.data.underReview[0].deadline").value(today.minusDays(10).toString()))
         .andExpect(jsonPath("$.data.underReview[0].daysRemaining").value(-10))
         .andExpect(jsonPath("$.data.underReview[1].protocol").value("2026-5201"))
@@ -457,6 +488,22 @@ class DesignerDashboardIntegrationTest {
             12, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
         standards,
         designer);
+  }
+
+  private static GroupSpec charging() {
+    return new GroupSpec(
+        "Recarga de veículo elétrico",
+        6,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        new BigDecimal("7.4"),
+        false,
+        true,
+        EvStationType.COLLECTIVE);
   }
 
   private void event(Project project, ProjectEventType type, OffsetDateTime occurredAt) {

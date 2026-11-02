@@ -3,13 +3,18 @@ package br.com.ampere.service;
 import static br.com.ampere.utils.Timestamps.ZONE;
 
 import br.com.ampere.domain.DashboardPeriod;
+import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.FindingSeverity;
+import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.repository.CalculationRepository;
+import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
+import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectEventRepository.Approval;
 import br.com.ampere.repository.ProjectEventRepository.DecisionCount;
@@ -27,7 +32,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,16 +54,25 @@ public class DesignerDashboardService {
   private final ProjectEventRepository eventRepository;
   private final FindingRepository findingRepository;
   private final CalculationRepository calculationRepository;
+  private final ConsumerUnitGroupRepository groupRepository;
+  private final ProjectDocumentRepository documentRepository;
+  private final DemandCalculationService calculationService;
 
   public DesignerDashboardService(
       ProjectRepository projectRepository,
       ProjectEventRepository eventRepository,
       FindingRepository findingRepository,
-      CalculationRepository calculationRepository) {
+      CalculationRepository calculationRepository,
+      ConsumerUnitGroupRepository groupRepository,
+      ProjectDocumentRepository documentRepository,
+      DemandCalculationService calculationService) {
     this.projectRepository = projectRepository;
     this.eventRepository = eventRepository;
     this.findingRepository = findingRepository;
     this.calculationRepository = calculationRepository;
+    this.groupRepository = groupRepository;
+    this.documentRepository = documentRepository;
+    this.calculationService = calculationService;
   }
 
   @Transactional(readOnly = true)
@@ -80,23 +96,72 @@ public class DesignerDashboardService {
     List<Project> rejected =
         projectRepository.findAllByOwnerIdAndStatusOrderByReviewedAtAscIdAsc(
             ownerId, ProjectStatus.REJECTED);
+    OffsetDateTime idleBefore =
+        today.minusDays(IDLE_DRAFT_DAYS).atStartOfDay(ZONE).toOffsetDateTime();
+    List<Project> idleDrafts =
+        projectRepository.findAllByOwnerIdAndStatusAndUpdatedAtBeforeOrderByUpdatedAtAscIdAsc(
+            ownerId, ProjectStatus.DRAFT, idleBefore);
     Map<Long, Long> blocking = openBlockingFindings(rejected);
+    Map<Long, Long> units = consumerUnits(rejected, idleDrafts);
 
     List<ActionItem> items = new ArrayList<>();
     for (Project project : rejected) {
-      items.add(new ActionItem(project, blocking.getOrDefault(project.getId(), 0L), null));
+      items.add(
+          new ActionItem(
+              project,
+              blocking.getOrDefault(project.getId(), 0L),
+              null,
+              units.getOrDefault(project.getId(), 0L),
+              null));
     }
-
-    OffsetDateTime idleBefore =
-        today.minusDays(IDLE_DRAFT_DAYS).atStartOfDay(ZONE).toOffsetDateTime();
-    for (Project draft :
-        projectRepository.findAllByOwnerIdAndStatusAndUpdatedAtBeforeOrderByUpdatedAtAscIdAsc(
-            ownerId, ProjectStatus.DRAFT, idleBefore)) {
-      LocalDate lastChange = draft.getUpdatedAt().atZoneSameInstant(ZONE).toLocalDate();
-      items.add(new ActionItem(draft, 0, ChronoUnit.DAYS.between(lastChange, today)));
+    for (Project draft : idleDrafts) {
+      items.add(
+          new ActionItem(
+              draft,
+              0,
+              ChronoUnit.DAYS.between(Timestamps.localDate(draft.getUpdatedAt()), today),
+              units.getOrDefault(draft.getId(), 0L),
+              pendingStage(draft)));
     }
 
     return items;
+  }
+
+  private Map<Long, Long> consumerUnits(List<Project> rejected, List<Project> drafts) {
+    List<Long> projectIds =
+        Stream.concat(rejected.stream(), drafts.stream()).map(Project::getId).toList();
+    if (projectIds.isEmpty()) {
+      return Map.of();
+    }
+
+    return groupRepository.countUnitsPerProject(projectIds).stream()
+        .collect(
+            Collectors.toUnmodifiableMap(
+                ConsumerUnitGroupRepository.UnitCount::getProjectId,
+                ConsumerUnitGroupRepository.UnitCount::getTotal));
+  }
+
+  /** The first step still incomplete, in the order the project tabs follow; null when none. */
+  private FindingStage pendingStage(Project draft) {
+    Long projectId = draft.getId();
+    if (!GroupValidation.of(groupRepository.findAllByProjectIdOrderById(projectId))
+        .canCalculate()) {
+      return FindingStage.CONSUMER_UNITS;
+    }
+    boolean calculated =
+        calculationRepository
+            .findFirstByProjectIdOrderByIdDesc(projectId)
+            .map(calculationService::isCurrent)
+            .orElse(false);
+    if (!calculated) {
+      return FindingStage.CALCULATION;
+    }
+    Set<DocumentType> attached =
+        documentRepository.findAllByProjectIdOrderByType(projectId).stream()
+            .map(ProjectDocument::getType)
+            .collect(Collectors.toSet());
+
+    return attached.containsAll(List.of(DocumentType.values())) ? null : FindingStage.DOCUMENTS;
   }
 
   private Map<Long, Long> openBlockingFindings(List<Project> projects) {
