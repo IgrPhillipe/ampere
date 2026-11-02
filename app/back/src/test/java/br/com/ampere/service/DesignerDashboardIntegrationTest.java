@@ -1,6 +1,7 @@
 package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -227,7 +228,8 @@ class DesignerDashboardIntegrationTest {
                                     result.getResponse().getContentAsString(),
                                     "$.data.actionRequired[0].rejectedAt"))
                             .toInstant())
-                    .isEqualTo(rejected.getReviewedAt().truncatedTo(ChronoUnit.MICROS).toInstant()))
+                    // PostgreSQL rounds to microseconds, so an exact match is flaky.
+                    .isCloseTo(rejected.getReviewedAt().toInstant(), within(1, ChronoUnit.MILLIS)))
         .andExpect(jsonPath("$.data.actionRequired[0].consumerUnits").value(6))
         .andExpect(jsonPath("$.data.actionRequired[0].pendingStage").isEmpty())
         .andExpect(jsonPath("$.data.actionRequired[1].protocol").value("2026-5152"))
