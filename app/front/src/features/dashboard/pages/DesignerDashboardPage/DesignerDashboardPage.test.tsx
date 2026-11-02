@@ -130,7 +130,8 @@ describe("DesignerDashboardPage", () => {
 						idleDays: null,
 						version: 1,
 						consumerUnits: 21,
-						rejectedAt: "2026-10-24T10:00:00-03:00",
+						// After 21h in Recife: already the next day in UTC.
+						rejectedAt: "2026-10-24T23:30:00-03:00",
 						pendingStage: null,
 					},
 					{
@@ -144,6 +145,18 @@ describe("DesignerDashboardPage", () => {
 						consumerUnits: 1,
 						rejectedAt: null,
 						pendingStage: null,
+					},
+					{
+						id: "11",
+						name: "Edifício Capibaribe",
+						protocol: "2026-2002",
+						status: "DRAFT",
+						blockingFindings: 0,
+						idleDays: 18,
+						version: 0,
+						consumerUnits: 40,
+						rejectedAt: null,
+						pendingStage: "DOCUMENTS",
 					},
 				],
 			}),
@@ -163,6 +176,10 @@ describe("DesignerDashboardPage", () => {
 			screen.getByRole("link", { name: /continuar rascunho/i }),
 		).toHaveAttribute("href", "/projetos/10");
 		expect(screen.getByText("1 UC")).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", { name: /continuar em documentos/i }),
+		).toHaveAttribute("href", "/projetos/11/documentos");
+		expect(screen.getByText("em 24/10/2026")).toBeInTheDocument();
 	});
 
 	it("shows the period indicators and an overdue review", () => {

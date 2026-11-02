@@ -7,7 +7,7 @@ import {
 	sectionPath,
 	stageSections,
 } from "@features/projects";
-import { formatDate, padCount } from "@features/shared";
+import { formatDateTime, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ActionRequiredItem } from "@services/dashboard";
 import { Link } from "@tanstack/react-router";
@@ -129,7 +129,7 @@ export const ActionRequiredList = ({
 									</Badge>
 									{item.rejectedAt ? (
 										<span className="text-xs text-muted-foreground">
-											em {formatDate(item.rejectedAt)}
+											em {formatDateTime(item.rejectedAt).date}
 										</span>
 									) : null}
 									{describeProject(item).map((part) => (
