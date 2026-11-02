@@ -2,6 +2,7 @@ import { Skeleton } from "@components/ui/skeleton";
 import { formatDecimal, formatPercent, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { DesignerIndicators } from "@services/dashboard";
+import { useId } from "react";
 
 const formatNumber = (value: number) =>
 	value.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
@@ -56,48 +57,54 @@ export const DashboardIndicators = ({
 	hasSubmissions = true,
 	periodLabel,
 	className,
-}: DashboardIndicatorsProps) => (
-	<section
-		aria-labelledby="dashboard-indicators-title"
-		className={cn("bg-primary text-primary-foreground", className)}
-	>
-		<h2
-			id="dashboard-indicators-title"
-			className="px-gutter pt-5 font-mono text-xs tracking-wider uppercase opacity-80 md:px-gutter-md"
+}: DashboardIndicatorsProps) => {
+	const titleId = useId();
+
+	return (
+		<section
+			aria-labelledby={titleId}
+			className={cn("bg-primary text-primary-foreground", className)}
 		>
-			Indicadores do período, {periodLabel}
-		</h2>
+			<h2
+				id={titleId}
+				className="px-gutter pt-5 font-mono text-xs tracking-wider uppercase opacity-80 md:px-gutter-md"
+			>
+				Indicadores do período, {periodLabel}
+			</h2>
 
-		{hasSubmissions ? (
-			<dl className="grid grid-cols-2 lg:grid-cols-4">
-				{TILES.map(({ label, format, emptyLabel }) => {
-					const value = indicators ? format(indicators) : undefined;
+			{hasSubmissions ? (
+				<dl className="grid grid-cols-2 lg:grid-cols-4">
+					{TILES.map(({ label, format, emptyLabel }) => {
+						const value = indicators ? format(indicators) : undefined;
 
-					return (
-						<div
-							key={label}
-							className="flex min-h-28 flex-col-reverse justify-center gap-2 border-primary-foreground/20 pr-5 pl-gutter odd:border-r md:pl-gutter-md lg:border-r lg:last:border-r-0"
-						>
-							<dt className="font-mono text-xs tracking-wider uppercase opacity-80">
-								{label}
-							</dt>
-							<dd className="font-mono text-3xl font-semibold whitespace-nowrap sm:text-4xl">
-								{value === undefined ? (
-									<Skeleton className="h-10 w-16 bg-primary-foreground/25" />
-								) : (
-									(value ?? (
-										<span className="text-base font-medium">{emptyLabel}</span>
-									))
-								)}
-							</dd>
-						</div>
-					);
-				})}
-			</dl>
-		) : (
-			<p className="px-gutter pt-3 pb-6 text-base md:px-gutter-md">
-				Os indicadores aparecem depois do primeiro envio.
-			</p>
-		)}
-	</section>
-);
+						return (
+							<div
+								key={label}
+								className="flex min-h-28 flex-col-reverse justify-center gap-2 border-primary-foreground/20 pr-5 pl-gutter odd:border-r md:pl-gutter-md lg:border-r lg:last:border-r-0"
+							>
+								<dt className="font-mono text-xs tracking-wider uppercase opacity-80">
+									{label}
+								</dt>
+								<dd className="font-mono text-3xl font-semibold whitespace-nowrap sm:text-4xl">
+									{value === undefined ? (
+										<Skeleton className="h-10 w-16 bg-primary-foreground/25" />
+									) : (
+										(value ?? (
+											<span className="text-base font-medium">
+												{emptyLabel}
+											</span>
+										))
+									)}
+								</dd>
+							</div>
+						);
+					})}
+				</dl>
+			) : (
+				<p className="px-gutter pt-3 pb-6 text-base md:px-gutter-md">
+					Os indicadores aparecem depois do primeiro envio.
+				</p>
+			)}
+		</section>
+	);
+};
