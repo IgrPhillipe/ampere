@@ -103,6 +103,34 @@ describe("DesignerDashboardPage", () => {
 		).toHaveAttribute("href", "/projetos/9");
 	});
 
+	it("offers the resubmission for a rejected project without blocking findings", () => {
+		state.query = loadedQuery({
+			data: makeDashboard({
+				actionRequired: [
+					{
+						id: "8",
+						name: "Edifício Madalena",
+						protocol: "2026-0477",
+						status: "REJECTED",
+						blockingFindings: 0,
+						idleDays: null,
+					},
+				],
+			}),
+		});
+		renderPage();
+
+		expect(
+			screen.getByRole("region", { name: "Exige Ação" }),
+		).not.toHaveTextContent(/bloqueante/i);
+		expect(
+			screen.getByRole("link", { name: /reenviar projeto/i }),
+		).toHaveAttribute("href", "/projetos/8");
+		expect(
+			screen.queryByRole("link", { name: /ver apontamentos/i }),
+		).not.toBeInTheDocument();
+	});
+
 	it("shows the period indicators and an overdue review", () => {
 		state.query = loadedQuery({
 			data: makeDashboard({

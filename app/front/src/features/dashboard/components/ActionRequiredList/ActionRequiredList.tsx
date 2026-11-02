@@ -13,12 +13,21 @@ const describeItem = ({
 	idleDays,
 }: ActionRequiredItem) => {
 	if (status === "REJECTED") {
+		if (blockingFindings === 0) return null;
+
 		return `${padCount(blockingFindings)} ${blockingFindings === 1 ? "bloqueante" : "bloqueantes"}`;
 	}
 
 	if (idleDays === null) return null;
 
 	return `Parado há ${idleDays === 1 ? "1 dia" : `${idleDays} dias`}`;
+};
+
+/** Rejected with no blocking finding left: the project only waits for the resubmission. */
+const getShortcut = ({ status, blockingFindings }: ActionRequiredItem) => {
+	if (status === "DRAFT") return "Continuar Rascunho";
+
+	return blockingFindings > 0 ? "Ver Apontamentos" : "Reenviar Projeto";
 };
 
 const linkClassName =
@@ -53,6 +62,7 @@ export const ActionRequiredList = ({
 				{items.map((item) => {
 					const isRejected = item.status === "REJECTED";
 					const detail = describeItem(item);
+					const shortcut = getShortcut(item);
 
 					return (
 						<li
@@ -88,10 +98,10 @@ export const ActionRequiredList = ({
 								<Link
 									to="/projetos/$id"
 									params={{ id: item.id }}
-									aria-label={`${isRejected ? "Ver apontamentos" : "Continuar rascunho"} de ${item.name}`}
+									aria-label={`${shortcut} de ${item.name}`}
 									className={linkClassName}
 								>
-									{isRejected ? "Ver Apontamentos" : "Continuar Rascunho"}
+									{shortcut}
 									{linkArrow}
 								</Link>
 							</div>
