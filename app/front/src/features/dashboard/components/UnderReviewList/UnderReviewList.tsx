@@ -1,4 +1,5 @@
 import { DeadlineStatusBadge } from "@components/DeadlineStatusBadge";
+import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
 import { formatDate, padCount } from "@features/shared";
 import type { UnderReviewItem } from "@services/dashboard";
@@ -61,13 +62,15 @@ export const UnderReviewList = ({ items, className }: UnderReviewListProps) => (
 											</span>
 										) : null}
 									</Link>
-									<span className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground">
+									<span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
 										<span>
 											{daysRemaining < 0 ? "Venceu" : "Vence"} em{" "}
 											{formatDate(deadline)}
 										</span>
 										<span className="font-mono">v{padCount(version)}</span>
-										{version > 1 ? <span>Reanálise</span> : null}
+										{version > 1 ? (
+											<Badge variant="tag">Reanálise</Badge>
+										) : null}
 									</span>
 								</div>
 								<div className="flex items-center gap-2">
