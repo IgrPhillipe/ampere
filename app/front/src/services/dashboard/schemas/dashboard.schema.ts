@@ -18,6 +18,12 @@ export const actionRequiredItemSchema = z.object({
 	status: z.enum(["REJECTED", "DRAFT"]),
 	blockingFindings: z.number().int().nonnegative(),
 	idleDays: z.number().int().nonnegative().nullable(),
+	/** Submission number; 0 for a draft never sent. */
+	version: z.number().int().nonnegative(),
+	consumerUnits: z.number().int().nonnegative(),
+	rejectedAt: z.iso.datetime({ offset: true }).nullable(),
+	/** First incomplete step of a draft; `null` when only the submission is left. */
+	pendingStage: findingStageSchema.nullable(),
 });
 
 export type ActionRequiredItem = z.infer<typeof actionRequiredItemSchema>;
@@ -26,6 +32,8 @@ export const underReviewItemSchema = z.object({
 	id: z.string(),
 	name: z.string(),
 	protocol: z.string().nullable(),
+	/** Above 1 means a reanalysis. */
+	version: z.number().int().positive(),
 	deadline: z.iso.date(),
 	/** Negative once the deadline has passed. */
 	daysRemaining: z.number().int(),

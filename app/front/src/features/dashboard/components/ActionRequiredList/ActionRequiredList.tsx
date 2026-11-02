@@ -1,10 +1,13 @@
 import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
 import {
+	findingStageLabels,
 	projectStatusBadgeVariants,
 	projectStatusLabels,
+	sectionPath,
+	stageSections,
 } from "@features/projects";
-import { padCount } from "@features/shared";
+import { formatDate, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ActionRequiredItem } from "@services/dashboard";
 import { Link } from "@tanstack/react-router";
@@ -29,11 +32,36 @@ const describeItem = ({
 };
 
 /** Rejected with no blocking finding left: the project only waits for the resubmission. */
-const getShortcut = ({ status, blockingFindings }: ActionRequiredItem) => {
-	if (status === "DRAFT") return "Continuar Rascunho";
+const getShortcut = ({
+	status,
+	blockingFindings,
+	pendingStage,
+}: ActionRequiredItem) => {
+	if (status === "DRAFT") {
+		return pendingStage
+			? {
+					label: `Continuar em ${findingStageLabels[pendingStage]}`,
+					to: sectionPath(stageSections[pendingStage]),
+				}
+			: { label: "Continuar Rascunho", to: sectionPath("overview") };
+	}
 
-	return blockingFindings > 0 ? "Ver Apontamentos" : "Reenviar Projeto";
+	return {
+		label: blockingFindings > 0 ? "Ver Apontamentos" : "Reenviar Projeto",
+		to: sectionPath("overview"),
+	};
 };
+
+const describeProject = ({
+	protocol,
+	version,
+	consumerUnits,
+}: ActionRequiredItem) =>
+	[
+		protocol,
+		version > 0 ? `v${padCount(version)}` : null,
+		`${consumerUnits} ${consumerUnits === 1 ? "UC" : "UCs"}`,
+	].filter((part): part is string => part !== null);
 
 const linkClassName =
 	"group inline-flex items-center gap-1.5 self-start text-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
@@ -95,23 +123,31 @@ export const ActionRequiredList = ({
 										</span>
 									) : null}
 								</div>
-								<div className="flex flex-wrap items-center gap-2">
+								<div className="flex flex-wrap items-center gap-x-3 gap-y-1">
 									<Badge variant={projectStatusBadgeVariants[item.status]}>
 										{projectStatusLabels[item.status]}
 									</Badge>
-									{item.protocol ? (
-										<span className="font-mono text-xs text-muted-foreground">
-											{item.protocol}
+									{item.rejectedAt ? (
+										<span className="text-xs text-muted-foreground">
+											em {formatDate(item.rejectedAt)}
 										</span>
 									) : null}
+									{describeProject(item).map((part) => (
+										<span
+											key={part}
+											className="font-mono text-xs text-muted-foreground"
+										>
+											{part}
+										</span>
+									))}
 								</div>
 								<Link
-									to="/projetos/$id"
+									to={shortcut.to}
 									params={{ id: item.id }}
-									aria-label={`${shortcut} de ${item.name}`}
+									aria-label={`${shortcut.label} de ${item.name}`}
 									className={linkClassName}
 								>
-									{shortcut}
+									{shortcut.label}
 									{linkArrow}
 								</Link>
 							</div>
