@@ -11,6 +11,7 @@ declare module "@tanstack/react-router" {
 
 /** Who reaches each area: the same split the back enforces. */
 export const ROLE_ACCESS = {
+	dashboard: ["user"],
 	projects: ["user", "admin"],
 	/** The project page itself: the analyst reads and reviews it there. */
 	projectWorkspace: ["user", "reviewer", "admin"],
@@ -21,7 +22,7 @@ export const ROLE_ACCESS = {
 
 /** Where to send each role when it lands on a route it cannot see. */
 const ROLE_FALLBACK: Record<UserRole, string> = {
-	user: "/projetos",
+	user: "/painel",
 	reviewer: "/fila-de-analise",
 	admin: "/projetos",
 };

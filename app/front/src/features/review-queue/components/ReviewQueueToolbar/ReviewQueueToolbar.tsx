@@ -2,7 +2,7 @@ import { FilterTiles } from "@components/FilterTiles";
 import { ListToolbar } from "@components/ListToolbar";
 import { SearchInput } from "@components/SearchInput";
 import { SortMenu, type SortOption } from "@components/SortMenu";
-import { type ListSort, padCount } from "@features/shared";
+import { formatPercent, type ListSort, padCount } from "@features/shared";
 import type {
 	ReviewQueueFilter,
 	ReviewQueueIndicators,
@@ -18,9 +18,6 @@ const sortOptions: SortOption<ReviewQueueSort>[] = [
 	{ value: "demand", label: "Demanda" },
 	{ value: "warnings", label: "Alertas" },
 ];
-
-const formatPercent = (value: number) =>
-	`${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 
 interface ReviewQueueToolbarProps {
 	indicators?: ReviewQueueIndicators;

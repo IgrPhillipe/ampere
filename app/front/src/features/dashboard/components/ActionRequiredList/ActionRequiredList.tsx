@@ -1,0 +1,124 @@
+import { Badge } from "@components/ui/badge";
+import { Skeleton } from "@components/ui/skeleton";
+import {
+	projectStatusBadgeVariants,
+	projectStatusLabels,
+} from "@features/projects";
+import { padCount } from "@features/shared";
+import { cn } from "@lib/utils";
+import type { ActionRequiredItem } from "@services/dashboard";
+import { Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
+
+import { DashboardSection, DashboardSectionEmpty } from "../DashboardSection";
+
+const describeItem = ({
+	status,
+	blockingFindings,
+	idleDays,
+}: ActionRequiredItem) => {
+	if (status === "REJECTED") {
+		if (blockingFindings === 0) return null;
+
+		return `${padCount(blockingFindings)} ${blockingFindings === 1 ? "bloqueante" : "bloqueantes"}`;
+	}
+
+	if (idleDays === null) return null;
+
+	return `Parado há ${idleDays === 1 ? "1 dia" : `${idleDays} dias`}`;
+};
+
+/** Rejected with no blocking finding left: the project only waits for the resubmission. */
+const getShortcut = ({ status, blockingFindings }: ActionRequiredItem) => {
+	if (status === "DRAFT") return "Continuar Rascunho";
+
+	return blockingFindings > 0 ? "Ver Apontamentos" : "Reenviar Projeto";
+};
+
+const linkClassName =
+	"group inline-flex items-center gap-1.5 self-start text-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
+
+const linkArrow = (
+	<ArrowRight
+		aria-hidden="true"
+		className="size-3.5 transition-transform group-hover:translate-x-0.5"
+	/>
+);
+
+interface ActionRequiredListProps {
+	items?: ActionRequiredItem[];
+	className?: string;
+}
+
+export const ActionRequiredList = ({
+	items,
+	className,
+}: ActionRequiredListProps) => (
+	<DashboardSection title="Exige Ação" className={className}>
+		{!items ? (
+			<div className="flex flex-col gap-4 py-4">
+				<Skeleton className="h-16 w-full" />
+				<Skeleton className="h-16 w-full" />
+			</div>
+		) : items.length === 0 ? (
+			<DashboardSectionEmpty>Nada exige sua ação agora.</DashboardSectionEmpty>
+		) : (
+			<ul className="flex flex-col">
+				{items.map((item) => {
+					const isRejected = item.status === "REJECTED";
+					const detail = describeItem(item);
+					const shortcut = getShortcut(item);
+
+					return (
+						<li
+							key={item.id}
+							className="border-b border-border py-4 last:border-b-0"
+						>
+							<div
+								className={cn(
+									"flex flex-col gap-2 border-l-4 pl-4",
+									isRejected ? "border-destructive" : "border-warning",
+								)}
+							>
+								<div className="flex flex-col gap-1">
+									<span className="font-medium">{item.name}</span>
+									{detail ? (
+										<span
+											className={cn(
+												"font-mono text-xs tracking-wider uppercase",
+												isRejected
+													? "text-destructive"
+													: "text-muted-foreground",
+											)}
+										>
+											{detail}
+										</span>
+									) : null}
+								</div>
+								<div className="flex flex-wrap items-center gap-2">
+									<Badge variant={projectStatusBadgeVariants[item.status]}>
+										{projectStatusLabels[item.status]}
+									</Badge>
+									{item.protocol ? (
+										<span className="font-mono text-xs text-muted-foreground">
+											{item.protocol}
+										</span>
+									) : null}
+								</div>
+								<Link
+									to="/projetos/$id"
+									params={{ id: item.id }}
+									aria-label={`${shortcut} de ${item.name}`}
+									className={linkClassName}
+								>
+									{shortcut}
+									{linkArrow}
+								</Link>
+							</div>
+						</li>
+					);
+				})}
+			</ul>
+		)}
+	</DashboardSection>
+);

@@ -22,13 +22,13 @@ const labelsOf = (role: UserRole) =>
 
 describe("role navigation", () => {
 	it("sends each role to its home", () => {
-		expect(getRoleHomePath("user")).toBe("/projetos");
+		expect(getRoleHomePath("user")).toBe("/painel");
 		expect(getRoleHomePath("reviewer")).toBe("/fila-de-analise");
 		expect(getRoleHomePath("admin")).toBe("/projetos");
 	});
 
-	it("gives the designer only their own projects", () => {
-		expect(labelsOf("user")).toEqual(["Meus Projetos"]);
+	it("gives the designer the dashboard and their own projects", () => {
+		expect(labelsOf("user")).toEqual(["Painel", "Meus Projetos"]);
 	});
 
 	it("gives the analyst the review queue and the normative tables", () => {
@@ -52,6 +52,7 @@ describe("role navigation", () => {
 		expect(ROLE_ACCESS.normativeTables).not.toContain("user");
 		expect(ROLE_ACCESS.reviewQueue).not.toContain("user");
 		expect(ROLE_ACCESS.users).toEqual(["admin"]);
+		expect(ROLE_ACCESS.dashboard).toEqual(["user"]);
 	});
 });
 
@@ -69,6 +70,25 @@ describe("redirectSignedIn", () => {
 		await expect(redirectSignedIn()({ location: at() })).rejects.toMatchObject({
 			options: { to: "/fila-de-analise" },
 		});
+	});
+
+	it("opens the dashboard for the designer after login", async () => {
+		signInAs("user");
+
+		await expect(redirectSignedIn()({ location: at() })).rejects.toMatchObject({
+			options: { to: "/painel" },
+		});
+		await expect(redirectToRoleHome()()).rejects.toMatchObject({
+			options: { to: "/painel" },
+		});
+	});
+
+	it("sends the designer home from an area they cannot see", async () => {
+		signInAs("user");
+
+		await expect(requireRoles(ROLE_ACCESS.reviewQueue)()).rejects.toMatchObject(
+			{ options: { to: "/painel" } },
+		);
 	});
 
 	it("lets the visitor and the logout through", async () => {

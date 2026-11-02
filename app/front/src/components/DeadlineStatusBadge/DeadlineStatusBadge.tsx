@@ -15,12 +15,14 @@ const deadlineStatusVariants = {
 
 interface DeadlineStatusBadgeProps {
 	deadlineStatus: DeadlineStatus;
+	className?: string;
 }
 
 export const DeadlineStatusBadge = ({
 	deadlineStatus,
+	className,
 }: DeadlineStatusBadgeProps) => (
-	<Badge variant={deadlineStatusVariants[deadlineStatus]}>
+	<Badge variant={deadlineStatusVariants[deadlineStatus]} className={className}>
 		{deadlineStatusLabels[deadlineStatus]}
 	</Badge>
 );
