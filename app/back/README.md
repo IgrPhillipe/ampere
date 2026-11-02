@@ -164,11 +164,13 @@ Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/i
 | `actionRequired` | não | todo `REJECTED`, com a contagem de apontamentos `BLOCKING` em `OPEN` (pode ser 0), depois `DRAFT` sem alteração há mais de 15 dias, do mais parado ao menos |
 | `underReview` | não | `UNDER_REVIEW` do prazo mais curto ao mais longo; `daysRemaining` negativo quando atrasado |
 | `indicators` | sim | lidos do histórico (`ProjectEvent`), porque o reenvio sobrescreve `submittedAt` |
-| `findingsRanking` | sim | apontamentos publicados, por etapa e item da norma, os 10 mais frequentes |
+| `findingsRanking` | sim | apontamentos publicados, por etapa e item da norma, os 10 mais frequentes; o período vale pela data de criação do apontamento, não pela de publicação |
 
 - `submitted` conta projetos com evento `SUBMITTED` no período; `RESUBMITTED` não entra.
 - `firstReviewApprovalPercent` considera a primeira decisão de cada projeto que caiu no período: aprovado depois de um reenvio conta como reprovado na primeira análise. Nulo sem decisões no período.
-- `averageDaysToApproval` vai do primeiro `SUBMITTED` ao `APPROVED`, em dias corridos; nulo sem aprovações. `approvedDemand` soma o último cálculo dos aprovados no período.
+- `averageDaysToApproval` vai do primeiro `SUBMITTED` ao `APPROVED`, em dias corridos; nulo sem aprovações. Aprovação sem `SUBMITTED` no histórico fica fora da média. `approvedDemand` soma o último cálculo de todos os aprovados no período.
+- "Sem alteração" do rascunho usa `Project.updatedAt`, que não muda quando só grupos, cargas, documentos ou cálculo são editados.
+- `hasSubmissions` diz se algum projeto do projetista já foi enviado (`submittedAt` preenchido), em qualquer data.
 
 ---
 
