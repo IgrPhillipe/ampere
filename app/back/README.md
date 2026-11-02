@@ -155,6 +155,23 @@ Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/i
 
 ---
 
+## Painel do Projetista
+
+`GET /api/dashboard/designer?period=` responde só ao papel `user`; `reviewer` e `admin` recebem 403. `period` aceita `LAST_30_DAYS` (padrão), `LAST_90_DAYS` e `CURRENT_YEAR`, contados no fuso de Recife com o dia de hoje incluído.
+
+| Bloco | Período | Regra |
+| :--- | :--- | :--- |
+| `actionRequired` | não | `REJECTED` com apontamento `BLOCKING` em `OPEN`, depois `DRAFT` sem alteração há mais de 15 dias, do mais parado ao menos |
+| `underReview` | não | `UNDER_REVIEW` do prazo mais curto ao mais longo; `daysRemaining` negativo quando atrasado |
+| `indicators` | sim | lidos do histórico (`ProjectEvent`), porque o reenvio sobrescreve `submittedAt` |
+| `findingsRanking` | sim | apontamentos publicados, por etapa e item da norma, os 10 mais frequentes |
+
+- `submitted` conta projetos com evento `SUBMITTED` no período; `RESUBMITTED` não entra.
+- `firstReviewApprovalPercent` considera a primeira decisão de cada projeto que caiu no período: aprovado depois de um reenvio conta como reprovado na primeira análise. Sem decisões, 0.
+- `averageDaysToApproval` vai do primeiro `SUBMITTED` ao `APPROVED`, em dias corridos; nulo sem aprovações. `approvedDemand` soma o último cálculo dos aprovados no período.
+
+---
+
 ## Análise Técnica e Apontamentos
 
 O papel `reviewer` representa o analista, e o `admin` faz tudo o que ele faz. Um projeto `UNDER_REVIEW` é assumido por um único analista: repetir a atribuição não muda nada, e outro analista recebe 409. As rotas de escrita da análise são restritas a `reviewer` e `admin` pelo `SecurityConfig`.
