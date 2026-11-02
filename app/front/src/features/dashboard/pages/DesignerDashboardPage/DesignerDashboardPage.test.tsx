@@ -248,6 +248,16 @@ describe("DesignerDashboardPage", () => {
 		).toHaveAttribute("href", "/projetos/novo");
 	});
 
+	it("says when each list has nothing to show", () => {
+		renderPage();
+
+		expect(screen.getByText("Nada exige sua ação agora.")).toBeInTheDocument();
+		expect(screen.getByText("Nenhum projeto em análise.")).toBeInTheDocument();
+		expect(
+			screen.getByText("Nenhum apontamento recebido no período."),
+		).toBeInTheDocument();
+	});
+
 	it("asks for the selected period", () => {
 		renderPage("?period=CURRENT_YEAR");
 
