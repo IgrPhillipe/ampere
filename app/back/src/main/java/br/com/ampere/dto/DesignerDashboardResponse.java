@@ -69,7 +69,9 @@ public record DesignerDashboardResponse(
 
   public record IndicatorsResponse(
       @Schema(description = "Projetos enviados pela primeira vez no período") long submitted,
-      @Schema(description = "Aprovados na primeira análise, de 0 a 100")
+      @Schema(
+              description =
+                  "Aprovados na primeira análise, de 0 a 100; nulo sem decisões no período")
           BigDecimal firstReviewApprovalPercent,
       @Schema(description = "Dias do primeiro envio à aprovação; nulo sem aprovações")
           BigDecimal averageDaysToApproval,

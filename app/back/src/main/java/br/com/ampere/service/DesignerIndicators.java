@@ -11,9 +11,10 @@ public record DesignerIndicators(
     BigDecimal averageDaysToApproval,
     BigDecimal approvedDemand) {
 
+  /** Null when no project had its first decision in the period. */
   public BigDecimal firstReviewApprovalPercent() {
     if (firstDecisions == 0) {
-      return BigDecimal.ZERO;
+      return null;
     }
 
     return BigDecimal.valueOf(firstReviewApprovals * 100)

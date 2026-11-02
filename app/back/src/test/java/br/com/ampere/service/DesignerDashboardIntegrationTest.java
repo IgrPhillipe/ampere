@@ -213,7 +213,7 @@ class DesignerDashboardIntegrationTest {
         .andExpect(jsonPath("$.data.actionRequired", hasSize(0)))
         .andExpect(jsonPath("$.data.underReview", hasSize(0)))
         .andExpect(jsonPath("$.data.indicators.submitted").value(0))
-        .andExpect(jsonPath("$.data.indicators.firstReviewApprovalPercent").value(0))
+        .andExpect(jsonPath("$.data.indicators.firstReviewApprovalPercent").isEmpty())
         .andExpect(jsonPath("$.data.indicators.averageDaysToApproval").isEmpty())
         .andExpect(jsonPath("$.data.indicators.approvedDemand").value(0))
         .andExpect(jsonPath("$.data.findingsRanking", hasSize(0)));
@@ -236,6 +236,19 @@ class DesignerDashboardIntegrationTest {
         .andExpect(jsonPath("$.data.indicators.firstReviewApprovalPercent").value(50.0))
         .andExpect(jsonPath("$.data.indicators.averageDaysToApproval").value(12.5))
         .andExpect(jsonPath("$.data.indicators.approvedDemand").value(150.75));
+  }
+
+  @Test
+  void submissionsWithoutDecisionHaveNoApprovalRate() throws Exception {
+    Project waiting = submitted("2026-5511", now.minusDays(3), owner);
+    event(waiting, ProjectEventType.SUBMITTED, now.minusDays(3));
+
+    designerDashboard()
+        .andExpect(jsonPath("$.data.hasSubmissions").value(true))
+        .andExpect(jsonPath("$.data.indicators.submitted").value(1))
+        .andExpect(jsonPath("$.data.indicators.firstReviewApprovalPercent").isEmpty())
+        .andExpect(jsonPath("$.data.indicators.averageDaysToApproval").isEmpty())
+        .andExpect(jsonPath("$.data.indicators.approvedDemand").value(0));
   }
 
   @Test
@@ -357,7 +370,9 @@ class DesignerDashboardIntegrationTest {
         .andExpect(jsonPath("$.data.indicators.approvedDemand").value(10 * approved))
         .andExpect(jsonPath("$.data.findingsRanking", hasSize(submitted == 0 ? 0 : 1)));
     if (approved == 0) {
-      result.andExpect(jsonPath("$.data.indicators.averageDaysToApproval").isEmpty());
+      result
+          .andExpect(jsonPath("$.data.indicators.firstReviewApprovalPercent").isEmpty())
+          .andExpect(jsonPath("$.data.indicators.averageDaysToApproval").isEmpty());
     } else {
       result
           .andExpect(jsonPath("$.data.indicators.firstReviewApprovalPercent").value(100.0))

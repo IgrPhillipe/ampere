@@ -167,7 +167,7 @@ Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/i
 | `findingsRanking` | sim | apontamentos publicados, por etapa e item da norma, os 10 mais frequentes |
 
 - `submitted` conta projetos com evento `SUBMITTED` no período; `RESUBMITTED` não entra.
-- `firstReviewApprovalPercent` considera a primeira decisão de cada projeto que caiu no período: aprovado depois de um reenvio conta como reprovado na primeira análise. Sem decisões, 0.
+- `firstReviewApprovalPercent` considera a primeira decisão de cada projeto que caiu no período: aprovado depois de um reenvio conta como reprovado na primeira análise. Nulo sem decisões no período.
 - `averageDaysToApproval` vai do primeiro `SUBMITTED` ao `APPROVED`, em dias corridos; nulo sem aprovações. `approvedDemand` soma o último cálculo dos aprovados no período.
 
 ---
