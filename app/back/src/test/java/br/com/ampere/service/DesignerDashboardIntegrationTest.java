@@ -1,17 +1,24 @@
 package br.com.ampere.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.ampere.config.NormativeTableSeed;
 import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.DashboardPeriod;
 import br.com.ampere.domain.DemandComponent;
+import br.com.ampere.domain.DemandFixtures;
 import br.com.ampere.domain.DemandResult;
 import br.com.ampere.domain.DemandStep;
+import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.FindingAnswer;
@@ -34,13 +41,19 @@ import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.utils.Timestamps;
+import com.jayway.jsonpath.JsonPath;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +61,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -111,7 +125,9 @@ class DesignerDashboardIntegrationTest {
     standardRepository.deleteAll();
     userRepository.deleteAll();
 
-    standards = standardRepository.saveAll(List.of(new Standard("DIS-NOR-053", "REV 06")));
+    standards =
+        standardRepository.saveAll(
+            List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
     String hash = passwordEncoder.encode(PASSWORD);
     owner = userRepository.save(new User("João Projetista", DESIGNER, hash, UserRole.USER));
     otherOwner =
@@ -189,15 +205,102 @@ class DesignerDashboardIntegrationTest {
   }
 
   @Test
+  void actionItemsCarryVersionUnitsRejectionDateAndPendingStep() throws Exception {
+    Project rejected = rejected("2026-5151", owner);
+    groupRepository.save(DemandFixtures.charging(rejected, 6, "7.4"));
+    Project withoutGroups =
+        projectRepository.save(project("2026-5152", ProjectStatus.DRAFT, owner));
+    Project withGroups = projectRepository.save(project("2026-5153", ProjectStatus.DRAFT, owner));
+    groupRepository.save(DemandFixtures.charging(withGroups, 6, "7.4"));
+    lastChanged(withoutGroups, now.minusDays(30));
+    lastChanged(withGroups, now.minusDays(20));
+    entityManager.clear();
+
+    designerDashboard()
+        .andExpect(jsonPath("$.data.actionRequired", hasSize(3)))
+        .andExpect(jsonPath("$.data.actionRequired[0].protocol").value(rejected.getProtocol()))
+        .andExpect(jsonPath("$.data.actionRequired[0].version").value(1))
+        .andExpect(
+            result ->
+                assertThat(
+                        OffsetDateTime.parse(
+                                JsonPath.read(
+                                    result.getResponse().getContentAsString(),
+                                    "$.data.actionRequired[0].rejectedAt"))
+                            .toInstant())
+                    // PostgreSQL rounds to microseconds, so an exact match is flaky.
+                    .isCloseTo(rejected.getReviewedAt().toInstant(), within(1, ChronoUnit.MILLIS)))
+        .andExpect(jsonPath("$.data.actionRequired[0].consumerUnits").value(6))
+        .andExpect(jsonPath("$.data.actionRequired[0].pendingStage").isEmpty())
+        .andExpect(jsonPath("$.data.actionRequired[1].protocol").value("2026-5152"))
+        .andExpect(jsonPath("$.data.actionRequired[1].version").value(0))
+        .andExpect(jsonPath("$.data.actionRequired[1].consumerUnits").value(0))
+        .andExpect(jsonPath("$.data.actionRequired[1].rejectedAt").isEmpty())
+        .andExpect(jsonPath("$.data.actionRequired[1].pendingStage").value("CONSUMER_UNITS"))
+        .andExpect(jsonPath("$.data.actionRequired[2].protocol").value("2026-5153"))
+        .andExpect(jsonPath("$.data.actionRequired[2].consumerUnits").value(6))
+        .andExpect(jsonPath("$.data.actionRequired[2].pendingStage").value("CALCULATION"));
+  }
+
+  @Test
+  void thePendingStepFollowsTheCalculationAndTheDocuments() throws Exception {
+    publishTables();
+    Project draft = projectRepository.save(project("2026-5161", ProjectStatus.DRAFT, owner));
+    groupRepository.save(DemandFixtures.charging(draft, 6, "7.4"));
+    as(DESIGNER, post("/projects/" + draft.getId() + "/calculations"))
+        .andExpect(status().isCreated());
+    idle(draft);
+
+    assertPendingStage("DOCUMENTS");
+
+    for (DocumentType type : DocumentType.values()) {
+      upload(draft, type);
+    }
+    idle(draft);
+
+    designerDashboard().andExpect(jsonPath("$.data.actionRequired[0].pendingStage").isEmpty());
+
+    groupRepository.save(DemandFixtures.charging(draft, 2, "7.4"));
+    idle(draft);
+
+    assertPendingStage("CALCULATION");
+  }
+
+  @Test
+  void calculatingAndChangingDocumentsKeepADraftOffTheIdleList() throws Exception {
+    publishTables();
+    Project draft = projectRepository.save(project("2026-5171", ProjectStatus.DRAFT, owner));
+    groupRepository.save(DemandFixtures.charging(draft, 6, "7.4"));
+
+    idle(draft);
+    as(DESIGNER, post("/projects/" + draft.getId() + "/calculations"))
+        .andExpect(status().isCreated());
+    entityManager.flush();
+    designerDashboard().andExpect(jsonPath("$.data.actionRequired", hasSize(0)));
+
+    idle(draft);
+    String documentId = JsonPath.read(upload(draft, DocumentType.ART), "$.data.id");
+    entityManager.flush();
+    designerDashboard().andExpect(jsonPath("$.data.actionRequired", hasSize(0)));
+
+    idle(draft);
+    as(DESIGNER, delete("/projects/" + draft.getId() + "/documents/" + documentId))
+        .andExpect(status().isNoContent());
+    entityManager.flush();
+    designerDashboard().andExpect(jsonPath("$.data.actionRequired", hasSize(0)));
+  }
+
+  @Test
   void listsTheProjectsUnderReviewFromTheShortestDeadline() throws Exception {
     submitted("2026-5201", now.minusDays(10), owner);
     submitted("2026-5202", now.minusDays(40), owner);
-    LocalDate today = LocalDate.now(ReviewQueueService.ZONE);
+    LocalDate today = LocalDate.now(Timestamps.ZONE);
 
     designerDashboard()
         .andExpect(jsonPath("$.data.hasSubmissions").value(true))
         .andExpect(jsonPath("$.data.underReview", hasSize(2)))
         .andExpect(jsonPath("$.data.underReview[0].protocol").value("2026-5202"))
+        .andExpect(jsonPath("$.data.underReview[0].version").value(1))
         .andExpect(jsonPath("$.data.underReview[0].deadline").value(today.minusDays(10).toString()))
         .andExpect(jsonPath("$.data.underReview[0].daysRemaining").value(-10))
         .andExpect(jsonPath("$.data.underReview[1].protocol").value("2026-5201"))
@@ -283,8 +386,7 @@ class DesignerDashboardIntegrationTest {
         projectRepository.findByProtocol("2026-5601").orElseThrow(),
         ProjectEventType.RESUBMITTED,
         now.minusDays(1));
-    LocalDate startOfYear =
-        DashboardPeriod.CURRENT_YEAR.since(LocalDate.now(ReviewQueueService.ZONE));
+    LocalDate startOfYear = DashboardPeriod.CURRENT_YEAR.since(LocalDate.now(Timestamps.ZONE));
     long submittedThisYear = submissions.stream().filter(at -> inYear(at, startOfYear)).count();
     long approvedThisYear =
         submissions.stream().filter(at -> inYear(at.plusDays(4), startOfYear)).count();
@@ -315,8 +417,8 @@ class DesignerDashboardIntegrationTest {
   void theOneSecondBeforeThePeriodStartsInRecifeIsLeftOut() throws Exception {
     OffsetDateTime start =
         DashboardPeriod.LAST_30_DAYS
-            .since(LocalDate.now(ReviewQueueService.ZONE))
-            .atStartOfDay(ReviewQueueService.ZONE)
+            .since(LocalDate.now(Timestamps.ZONE))
+            .atStartOfDay(Timestamps.ZONE)
             .toOffsetDateTime();
     Project before = submitted("2026-5661", start.minusSeconds(1), owner);
     event(before, ProjectEventType.SUBMITTED, start.minusSeconds(1));
@@ -421,7 +523,7 @@ class DesignerDashboardIntegrationTest {
   }
 
   private static boolean inYear(OffsetDateTime instant, LocalDate startOfYear) {
-    return !instant.atZoneSameInstant(ReviewQueueService.ZONE).toLocalDate().isBefore(startOfYear);
+    return !instant.atZoneSameInstant(Timestamps.ZONE).toLocalDate().isBefore(startOfYear);
   }
 
   private Project submitted(String protocol, OffsetDateTime submittedAt, User designer) {
@@ -457,6 +559,41 @@ class DesignerDashboardIntegrationTest {
             12, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
         standards,
         designer);
+  }
+
+  private void assertPendingStage(String stage) throws Exception {
+    designerDashboard()
+        .andExpect(jsonPath("$.data.actionRequired", hasSize(1)))
+        .andExpect(jsonPath("$.data.actionRequired[0].pendingStage").value(stage));
+  }
+
+  private void idle(Project project) {
+    entityManager.flush();
+    lastChanged(project, now.minusDays(20));
+    entityManager.clear();
+  }
+
+  private String upload(Project project, DocumentType type) throws Exception {
+    return as(
+            DESIGNER,
+            multipart("/projects/" + project.getId() + "/documents")
+                .file(
+                    new MockMultipartFile(
+                        "file",
+                        "documento.pdf",
+                        MediaType.APPLICATION_PDF_VALUE,
+                        "%PDF-1.4\n%%EOF".getBytes(StandardCharsets.US_ASCII)))
+                .param("type", type.name()))
+        .andExpect(status().isCreated())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+  }
+
+  private void publishTables() {
+    normativeTableRepository.saveAll(
+        NormativeTableSeed.all(
+            standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
   }
 
   private void event(Project project, ProjectEventType type, OffsetDateTime occurredAt) {
@@ -546,7 +683,7 @@ class DesignerDashboardIntegrationTest {
 
   private ResultActions as(
       String email,
-      org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder request)
+      org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder<?> request)
       throws Exception {
     return mockMvc.perform(request.header("Authorization", "Bearer " + token(email)));
   }

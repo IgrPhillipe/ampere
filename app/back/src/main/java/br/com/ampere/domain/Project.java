@@ -313,6 +313,11 @@ public class Project {
     return owner != null && owner.getId().equals(userId);
   }
 
+  /** Marks a change made through the project's groups, documents or calculation. */
+  public void touch() {
+    updatedAt = now();
+  }
+
   public void assignOwner(User owner) {
     this.owner = Objects.requireNonNull(owner, "owner");
   }

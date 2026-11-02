@@ -34,6 +34,8 @@ import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -217,6 +219,40 @@ class ConsumerUnitGroupServiceIntegrationTest {
     assertThat(groupRepository.existsById(group.getId())).isFalse();
     assertThat(findingRepository.findById(finding.getId()))
         .hasValueSatisfying(kept -> assertThat(kept.getConsumerUnitGroup()).isNull());
+  }
+
+  @Test
+  void creatingEditingAndDeletingAGroupCountAsProjectChanges() {
+    Long projectId = draft().getId();
+
+    leftIdle(projectId);
+    Long groupId = service.create(projectId, charging(true), designer).getId();
+    assertChangedNow(projectId);
+
+    leftIdle(projectId);
+    service.update(projectId, groupId, charging(false), designer);
+    assertChangedNow(projectId);
+
+    leftIdle(projectId);
+    service.delete(projectId, groupId, designer);
+    assertChangedNow(projectId);
+  }
+
+  private void leftIdle(Long projectId) {
+    entityManager.flush();
+    entityManager
+        .createQuery("UPDATE Project project SET project.updatedAt = :at WHERE project.id = :id")
+        .setParameter("at", OffsetDateTime.now(ZoneOffset.UTC).minusDays(30))
+        .setParameter("id", projectId)
+        .executeUpdate();
+    entityManager.clear();
+  }
+
+  private void assertChangedNow(Long projectId) {
+    entityManager.flush();
+    entityManager.clear();
+    assertThat(projectRepository.findById(projectId).orElseThrow().getUpdatedAt())
+        .isAfter(OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(1));
   }
 
   private Project draft() {

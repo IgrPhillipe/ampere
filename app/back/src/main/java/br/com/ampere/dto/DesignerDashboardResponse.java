@@ -1,12 +1,14 @@
 package br.com.ampere.dto;
 
 import br.com.ampere.domain.FindingStage;
+import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.service.DesignerDashboard;
 import br.com.ampere.service.DesignerIndicators;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public record DesignerDashboardResponse(
@@ -36,17 +38,29 @@ public record DesignerDashboardResponse(
       ProjectStatus status,
       @Schema(description = "Bloqueantes em aberto; 0 em rascunho ou reprovado sem bloqueante")
           long blockingFindings,
-      @Schema(description = "Dias sem movimentação do rascunho; nulo para reprovado")
-          Long idleDays) {
+      @Schema(description = "Dias sem movimentação do rascunho; nulo para reprovado") Long idleDays,
+      @Schema(description = "Número do envio para análise; 0 em rascunho nunca enviado")
+          int version,
+      long consumerUnits,
+      @Schema(description = "Data da reprovação; nula para rascunho") OffsetDateTime rejectedAt,
+      @Schema(
+              description =
+                  "Primeira etapa incompleta do rascunho; nula para reprovado ou rascunho completo")
+          FindingStage pendingStage) {
 
     static ActionItemResponse from(DesignerDashboard.ActionItem item) {
+      Project project = item.project();
       return new ActionItemResponse(
-          String.valueOf(item.project().getId()),
-          item.project().getName(),
-          item.project().getProtocol(),
-          item.project().getStatus(),
+          String.valueOf(project.getId()),
+          project.getName(),
+          project.getProtocol(),
+          project.getStatus(),
           item.blockingFindings(),
-          item.idleDays());
+          item.idleDays(),
+          project.getReviewCycle(),
+          item.consumerUnits(),
+          project.isRejected() ? project.getReviewedAt() : null,
+          item.pendingStage());
     }
   }
 
@@ -54,6 +68,7 @@ public record DesignerDashboardResponse(
       String id,
       String name,
       String protocol,
+      @Schema(description = "Número do envio para análise; acima de 1 é reanálise") int version,
       LocalDate deadline,
       @Schema(description = "Negativo quando o prazo já passou") long daysRemaining) {
 
@@ -62,6 +77,7 @@ public record DesignerDashboardResponse(
           String.valueOf(item.project().getId()),
           item.project().getName(),
           item.project().getProtocol(),
+          item.project().getReviewCycle(),
           item.deadline(),
           item.daysRemaining());
     }

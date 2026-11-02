@@ -59,6 +59,7 @@ public class ProjectDocumentService {
         originalFilename == null || originalFilename.isBlank()
             ? type.name().toLowerCase() + ".pdf"
             : originalFilename;
+    project.touch();
 
     // Replaced in place: Hibernate flushes inserts before deletes and would break the unique key.
     return documentRepository
@@ -74,7 +75,7 @@ public class ProjectDocumentService {
 
   @Transactional
   public void delete(Long projectId, Long documentId, AuthenticatedUser user) {
-    editableOrFail(projectId, user);
+    Project project = editableOrFail(projectId, user);
     ProjectDocument document =
         documentRepository
             .findById(documentId)
@@ -82,6 +83,7 @@ public class ProjectDocumentService {
             .orElseThrow(() -> new NotFoundException(NOT_FOUND));
 
     documentRepository.delete(document);
+    project.touch();
   }
 
   private Project editableOrFail(Long projectId, AuthenticatedUser user) {

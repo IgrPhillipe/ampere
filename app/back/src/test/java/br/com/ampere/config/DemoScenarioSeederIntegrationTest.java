@@ -29,7 +29,7 @@ import br.com.ampere.domain.ResidentialGroup;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.service.GroupValidation;
-import br.com.ampere.service.ReviewQueueService;
+import br.com.ampere.utils.Timestamps;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -269,14 +269,14 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
 
   @Test
   void fillsTheReviewQueueWithEveryDeadlineAndAssignment() {
-    LocalDate today = LocalDate.now(ReviewQueueService.ZONE);
+    LocalDate today = LocalDate.now(Timestamps.ZONE);
     List<Project> queue =
         projectRepository.findAll().stream()
             .filter(project -> project.getStatus() == ProjectStatus.UNDER_REVIEW)
             .toList();
 
     assertThat(queue)
-        .extracting(project -> project.deadlineStatus(today, ReviewQueueService.ZONE))
+        .extracting(project -> project.deadlineStatus(today, Timestamps.ZONE))
         .contains(DeadlineStatus.OVERDUE, DeadlineStatus.DUE_TODAY, DeadlineStatus.ON_TIME);
     assertThat(daysLeft("2026-2036", today)).isEqualTo(2);
     assertThat(daysLeft("2026-2037", today)).isEqualTo(3);
@@ -545,7 +545,6 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
   }
 
   private long daysLeft(String protocol, LocalDate today) {
-    return ChronoUnit.DAYS.between(
-        today, project(protocol).reviewDeadline(ReviewQueueService.ZONE));
+    return ChronoUnit.DAYS.between(today, project(protocol).reviewDeadline(Timestamps.ZONE));
   }
 }

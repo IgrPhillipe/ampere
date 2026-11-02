@@ -62,6 +62,7 @@ public class DemandCalculationService {
     if (!GroupValidation.of(groups).canCalculate()) {
       throw unprocessable("Há grupos com pendências. Corrija-os antes de calcular a demanda.");
     }
+    project.touch();
 
     return calculationRepository.save(compute(project, groups));
   }
@@ -86,12 +87,15 @@ public class DemandCalculationService {
 
   /** Compared as JSON trees: key order varies across runs, and 60 and 60.00 are one value. */
   public boolean isCurrent(Calculation calculation) {
-    Project project = calculation.getProject();
-    List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(project.getId());
+    return isCurrent(
+        calculation, groupRepository.findAllByProjectIdOrderById(calculation.getProject().getId()));
+  }
 
+  /** For a caller that already loaded the project's groups. */
+  public boolean isCurrent(Calculation calculation, List<ConsumerUnitGroup> groups) {
     return objectMapper
         .readTree(calculation.getInputSnapshot())
-        .equals(SAME_VALUE, objectMapper.readTree(snapshot(project, groups)));
+        .equals(SAME_VALUE, objectMapper.readTree(snapshot(calculation.getProject(), groups)));
   }
 
   private static final Comparator<JsonNode> SAME_VALUE =

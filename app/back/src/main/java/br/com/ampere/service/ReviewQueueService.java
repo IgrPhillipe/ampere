@@ -1,5 +1,7 @@
 package br.com.ampere.service;
 
+import static br.com.ampere.utils.Timestamps.ZONE;
+
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ReviewQueueFilter;
@@ -17,7 +19,6 @@ import br.com.ampere.utils.SearchTerms;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
@@ -31,9 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReviewQueueService {
-
-  /** The day a deadline falls on depends on the time zone, so it is fixed in one place. */
-  public static final ZoneId ZONE = ZoneId.of("America/Recife");
 
   public static final BigDecimal HIGH_DEMAND_THRESHOLD = new BigDecimal("50");
 
@@ -82,7 +80,7 @@ public class ReviewQueueService {
 
     List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
     Map<Long, List<String>> warnings = latestWarnings(projectIds);
-    Map<Long, Long> consumerUnits = countUnits(projectIds);
+    Map<Long, Long> consumerUnits = groupRepository.unitsPerProject(projectIds);
     Map<Long, BigDecimal> demands = latestDemands(projectIds);
 
     List<ReviewQueueEntry> entries =
@@ -200,18 +198,6 @@ public class ReviewQueueService {
                 CalculationRepository.LatestWarning::getProjectId,
                 Collectors.mapping(
                     CalculationRepository.LatestWarning::getMessage, Collectors.toList())));
-  }
-
-  private Map<Long, Long> countUnits(List<Long> projectIds) {
-    if (projectIds.isEmpty()) {
-      return Map.of();
-    }
-
-    return groupRepository.countUnitsPerProject(projectIds).stream()
-        .collect(
-            Collectors.toUnmodifiableMap(
-                ConsumerUnitGroupRepository.UnitCount::getProjectId,
-                ConsumerUnitGroupRepository.UnitCount::getTotal));
   }
 
   private Map<Long, BigDecimal> latestDemands(List<Long> projectIds) {

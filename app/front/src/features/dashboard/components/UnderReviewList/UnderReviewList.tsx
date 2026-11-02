@@ -1,6 +1,7 @@
 import { DeadlineStatusBadge } from "@components/DeadlineStatusBadge";
+import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDate } from "@features/shared";
+import { formatDate, padCount } from "@features/shared";
 import type { UnderReviewItem } from "@services/dashboard";
 import type { DeadlineStatus } from "@services/review-queue";
 import { Link } from "@tanstack/react-router";
@@ -39,43 +40,53 @@ export const UnderReviewList = ({ items, className }: UnderReviewListProps) => (
 			<DashboardSectionEmpty>Nenhum projeto em análise.</DashboardSectionEmpty>
 		) : (
 			<ul className="flex flex-col">
-				{items.map(({ id, name, protocol, deadline, daysRemaining }) => {
-					const dayCount = describeDays(daysRemaining);
+				{items.map(
+					({ id, name, protocol, version, deadline, daysRemaining }) => {
+						const dayCount = describeDays(daysRemaining);
 
-					return (
-						<li
-							key={id}
-							className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border py-3 last:border-b-0"
-						>
-							<div className="flex flex-col gap-1">
-								<Link
-									to="/projetos/$id"
-									params={{ id }}
-									className="text-sm hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-								>
-									{name}
-									{protocol ? (
-										<span className="text-muted-foreground">, {protocol}</span>
-									) : null}
-								</Link>
-								<span className="text-xs text-muted-foreground">
-									{daysRemaining < 0 ? "Venceu" : "Vence"} em{" "}
-									{formatDate(deadline)}
-								</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<DeadlineStatusBadge
-									deadlineStatus={toDeadlineStatus(daysRemaining)}
-								/>
-								{dayCount ? (
-									<span className="font-mono text-xs text-muted-foreground">
-										{dayCount}
+						return (
+							<li
+								key={id}
+								className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border py-3 last:border-b-0"
+							>
+								<div className="flex flex-col gap-1">
+									<Link
+										to="/projetos/$id"
+										params={{ id }}
+										className="text-sm hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+									>
+										{name}
+										{protocol ? (
+											<span className="text-muted-foreground">
+												, {protocol}
+											</span>
+										) : null}
+									</Link>
+									<span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+										<span>
+											{daysRemaining < 0 ? "Venceu" : "Vence"} em{" "}
+											{formatDate(deadline)}
+										</span>
+										<span className="font-mono">v{padCount(version)}</span>
+										{version > 1 ? (
+											<Badge variant="tag">Reanálise</Badge>
+										) : null}
 									</span>
-								) : null}
-							</div>
-						</li>
-					);
-				})}
+								</div>
+								<div className="flex items-center gap-2">
+									<DeadlineStatusBadge
+										deadlineStatus={toDeadlineStatus(daysRemaining)}
+									/>
+									{dayCount ? (
+										<span className="font-mono text-xs text-muted-foreground">
+											{dayCount}
+										</span>
+									) : null}
+								</div>
+							</li>
+						);
+					},
+				)}
 			</ul>
 		)}
 	</DashboardSection>

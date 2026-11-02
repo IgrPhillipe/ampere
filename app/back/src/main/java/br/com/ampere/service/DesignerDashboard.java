@@ -14,7 +14,12 @@ public record DesignerDashboard(
     List<FindingRank> findingsRanking) {
 
   /** A rejected project, with its open blocking findings, or a draft idle for too long. */
-  public record ActionItem(Project project, long blockingFindings, Long idleDays) {}
+  public record ActionItem(
+      Project project,
+      long blockingFindings,
+      Long idleDays,
+      long consumerUnits,
+      FindingStage pendingStage) {}
 
   public record ReviewItem(Project project, LocalDate deadline, long daysRemaining) {}
 

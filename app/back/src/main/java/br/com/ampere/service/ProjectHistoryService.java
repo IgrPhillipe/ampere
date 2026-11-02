@@ -9,10 +9,9 @@ import br.com.ampere.domain.SortDirection;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectEventRepository;
+import br.com.ampere.utils.Timestamps;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -76,13 +75,8 @@ public class ProjectHistoryService {
       return null;
     }
     OffsetDateTime approved = firstOccurredAt(events, ProjectEventType.APPROVED);
-    LocalDate start = firstSubmission.atZoneSameInstant(ReviewQueueService.ZONE).toLocalDate();
-    LocalDate end =
-        approved == null
-            ? LocalDate.now(ReviewQueueService.ZONE)
-            : approved.atZoneSameInstant(ReviewQueueService.ZONE).toLocalDate();
 
-    return ChronoUnit.DAYS.between(start, end);
+    return Timestamps.daysBetween(firstSubmission, approved == null ? Timestamps.now() : approved);
   }
 
   private long redoneCalculationSteps(Project project, OffsetDateTime firstSubmission) {

@@ -15,6 +15,7 @@ import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectRepositoryCustom.ProjectSearch;
 import br.com.ampere.utils.SearchTerms;
+import br.com.ampere.utils.Timestamps;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -105,7 +106,7 @@ public class ProjectService {
         projects.getContent(),
         projects.getTotalElements(),
         countPendingFindings(projectIds),
-        countUnits(projectIds),
+        groupRepository.unitsPerProject(projectIds),
         latestDemands(projectIds));
   }
 
@@ -156,7 +157,7 @@ public class ProjectService {
     return new ProjectSummary(
         project,
         countPendingFindings(projectIds).getOrDefault(projectId, 0L),
-        countUnits(projectIds).getOrDefault(projectId, 0L),
+        groupRepository.unitsPerProject(projectIds).getOrDefault(projectId, 0L),
         latestDemands(projectIds).get(projectId),
         eventRepository.findLastOccurredAt(projectId));
   }
@@ -266,20 +267,8 @@ public class ProjectService {
                 FindingRepository.FindingCount::getTotal));
   }
 
-  private Map<Long, Long> countUnits(List<Long> projectIds) {
-    if (projectIds.isEmpty()) {
-      return Map.of();
-    }
-
-    return groupRepository.countUnitsPerProject(projectIds).stream()
-        .collect(
-            Collectors.toUnmodifiableMap(
-                ConsumerUnitGroupRepository.UnitCount::getProjectId,
-                ConsumerUnitGroupRepository.UnitCount::getTotal));
-  }
-
   private static OffsetDateTime startOf(LocalDate day) {
-    return day == null ? null : day.atStartOfDay(ReviewQueueService.ZONE).toOffsetDateTime();
+    return day == null ? null : day.atStartOfDay(Timestamps.ZONE).toOffsetDateTime();
   }
 
   private Map<Long, BigDecimal> latestDemands(List<Long> projectIds) {
