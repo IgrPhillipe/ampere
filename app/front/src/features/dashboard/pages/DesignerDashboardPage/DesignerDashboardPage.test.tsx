@@ -1,5 +1,5 @@
 import type { DesignerDashboard } from "@services/dashboard";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { withNuqsTestingAdapter } from "nuqs/adapters/testing";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -157,7 +157,46 @@ describe("DesignerDashboardPage", () => {
 		expect(
 			screen.getByText("Cálculo de Demanda: Quadro 33"),
 		).toBeInTheDocument();
-		expect(screen.getByText("Atrasado há 3 dias")).toBeInTheDocument();
+		const underReview = screen.getByRole("region", { name: "Em Análise" });
+
+		expect(underReview).toHaveTextContent("Atrasado");
+		expect(underReview).toHaveTextContent("Há 3 dias");
+		expect(underReview).toHaveTextContent("Venceu em 30/10/2026");
+	});
+
+	it("counts the days left until the review deadline", () => {
+		state.query = loadedQuery({
+			data: makeDashboard({
+				underReview: [
+					{
+						id: "13",
+						name: "Residencial Graças",
+						protocol: "2026-0472",
+						deadline: "2026-11-02",
+						daysRemaining: 0,
+					},
+					{
+						id: "14",
+						name: "Edifício Boa Vista",
+						protocol: "2026-0485",
+						deadline: "2026-11-03",
+						daysRemaining: 1,
+					},
+				],
+			}),
+		});
+		renderPage();
+
+		const [dueToday, dueTomorrow] = within(
+			screen.getByRole("region", { name: "Em Análise" }),
+		).getAllByRole("listitem");
+
+		expect(dueToday).toHaveTextContent("Vence Hoje");
+		expect(dueToday).toHaveTextContent("Vence em 02/11/2026");
+		expect(dueToday).not.toHaveTextContent("restante");
+		expect(dueTomorrow).toHaveTextContent("No Prazo");
+		expect(dueTomorrow).toHaveTextContent("1 dia restante");
+		expect(dueTomorrow).toHaveTextContent("Vence em 03/11/2026");
 	});
 
 	it("explains the indicators the period cannot measure yet", () => {
