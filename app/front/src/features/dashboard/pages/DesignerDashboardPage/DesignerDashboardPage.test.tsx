@@ -157,6 +157,9 @@ describe("DesignerDashboardPage", () => {
 		);
 		expect(screen.getByText("56%")).toBeInTheDocument();
 		expect(
+			screen.getByText("kVA de demanda aprovada").nextSibling,
+		).toHaveTextContent("612,00");
+		expect(
 			screen.getByText("Cálculo de Demanda: Quadro 33"),
 		).toBeInTheDocument();
 		const underReview = screen.getByRole("region", { name: "Em Análise" });

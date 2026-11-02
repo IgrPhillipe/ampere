@@ -1,5 +1,5 @@
 import { Skeleton } from "@components/ui/skeleton";
-import { formatPercent, padCount } from "@features/shared";
+import { formatDecimal, formatPercent, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { DesignerIndicators } from "@services/dashboard";
 
@@ -46,7 +46,7 @@ const TILES: IndicatorTile[] = [
 	},
 	{
 		label: "kVA de demanda aprovada",
-		format: ({ approvedDemand }) => formatNumber(approvedDemand),
+		format: ({ approvedDemand }) => formatDecimal(approvedDemand, 2),
 	},
 ];
 
