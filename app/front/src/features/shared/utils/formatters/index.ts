@@ -2,6 +2,7 @@ export * from "./formatDate";
 export * from "./formatDateTime";
 export * from "./formatDecimal";
 export * from "./formatKva";
+export * from "./formatPercent";
 export * from "./formatPhone";
 export * from "./formatPlace";
 export * from "./formatPostalCode";

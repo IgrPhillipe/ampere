@@ -1,5 +1,5 @@
 import { Skeleton } from "@components/ui/skeleton";
-import { padCount } from "@features/shared";
+import { formatPercent, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { DesignerIndicators } from "@services/dashboard";
 
@@ -33,7 +33,7 @@ const TILES: IndicatorTile[] = [
 		format: ({ firstReviewApprovalPercent }) =>
 			firstReviewApprovalPercent === null
 				? null
-				: `${formatNumber(firstReviewApprovalPercent)}%`,
+				: formatPercent(firstReviewApprovalPercent),
 		emptyLabel: "Sem análise",
 	},
 	{
