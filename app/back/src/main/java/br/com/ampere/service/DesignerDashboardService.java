@@ -74,7 +74,7 @@ public class DesignerDashboardService {
             .toList());
   }
 
-  /** Rejected projects still blocked come first, then the drafts idle the longest. */
+  /** Rejected projects come first, then the drafts idle the longest. */
   private List<ActionItem> actionRequired(Long ownerId, LocalDate today) {
     List<Project> rejected =
         projectRepository.findAllByOwnerIdAndStatusOrderByReviewedAtAscIdAsc(
@@ -83,10 +83,7 @@ public class DesignerDashboardService {
 
     List<ActionItem> items = new ArrayList<>();
     for (Project project : rejected) {
-      long count = blocking.getOrDefault(project.getId(), 0L);
-      if (count > 0) {
-        items.add(new ActionItem(project, count, null));
-      }
+      items.add(new ActionItem(project, blocking.getOrDefault(project.getId(), 0L), null));
     }
 
     OffsetDateTime idleBefore =

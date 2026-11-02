@@ -13,7 +13,7 @@ public record DesignerDashboard(
     DesignerIndicators indicators,
     List<FindingRank> findingsRanking) {
 
-  /** A rejected project with open blocking findings, or a draft idle for too long. */
+  /** A rejected project, with its open blocking findings, or a draft idle for too long. */
   public record ActionItem(Project project, long blockingFindings, Long idleDays) {}
 
   public record ReviewItem(Project project, LocalDate deadline, long daysRemaining) {}

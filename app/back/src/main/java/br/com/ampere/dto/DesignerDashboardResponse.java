@@ -12,7 +12,7 @@ import java.util.List;
 public record DesignerDashboardResponse(
     @Schema(description = "O projetista já enviou algum projeto para análise")
         boolean hasSubmissions,
-    @Schema(description = "Reprovados com bloqueantes em aberto e rascunhos parados")
+    @Schema(description = "Todos os reprovados e os rascunhos parados")
         List<ActionItemResponse> actionRequired,
     @Schema(description = "Projetos em análise, do prazo mais curto ao mais longo")
         List<ReviewItemResponse> underReview,
@@ -34,7 +34,8 @@ public record DesignerDashboardResponse(
       String name,
       String protocol,
       ProjectStatus status,
-      long blockingFindings,
+      @Schema(description = "Bloqueantes em aberto; 0 em rascunho ou reprovado sem bloqueante")
+          long blockingFindings,
       @Schema(description = "Dias sem movimentação do rascunho; nulo para reprovado")
           Long idleDays) {
 

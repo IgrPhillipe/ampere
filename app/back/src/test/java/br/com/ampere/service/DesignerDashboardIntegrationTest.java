@@ -138,7 +138,7 @@ class DesignerDashboardIntegrationTest {
   }
 
   @Test
-  void aRejectedProjectWithOpenBlockingFindingsRequiresAction() throws Exception {
+  void everyRejectedProjectRequiresActionWithItsOpenBlockingFindings() throws Exception {
     Project rejected = rejected("2026-5001", owner);
     finding(rejected, FindingSeverity.BLOCKING, FindingStage.CALCULATION, "6.2", now);
     finding(rejected, FindingSeverity.BLOCKING, FindingStage.DOCUMENTS, null, now);
@@ -149,13 +149,17 @@ class DesignerDashboardIntegrationTest {
 
     designerDashboard()
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.actionRequired", hasSize(1)))
+        .andExpect(jsonPath("$.data.actionRequired", hasSize(2)))
         .andExpect(jsonPath("$.data.actionRequired[0].id").value(rejected.getId().toString()))
         .andExpect(jsonPath("$.data.actionRequired[0].name").value("Residencial 2026-5001"))
         .andExpect(jsonPath("$.data.actionRequired[0].protocol").value("2026-5001"))
         .andExpect(jsonPath("$.data.actionRequired[0].status").value("REJECTED"))
         .andExpect(jsonPath("$.data.actionRequired[0].blockingFindings").value(2))
-        .andExpect(jsonPath("$.data.actionRequired[0].idleDays").isEmpty());
+        .andExpect(jsonPath("$.data.actionRequired[0].idleDays").isEmpty())
+        .andExpect(jsonPath("$.data.actionRequired[1].protocol").value("2026-5002"))
+        .andExpect(jsonPath("$.data.actionRequired[1].status").value("REJECTED"))
+        .andExpect(jsonPath("$.data.actionRequired[1].blockingFindings").value(0))
+        .andExpect(jsonPath("$.data.actionRequired[1].idleDays").isEmpty());
   }
 
   @Test
