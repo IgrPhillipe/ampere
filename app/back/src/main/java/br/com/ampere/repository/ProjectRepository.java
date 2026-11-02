@@ -25,6 +25,15 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
 
   long countByStatusAndReviewedAtGreaterThanEqual(ProjectStatus status, OffsetDateTime since);
 
+  List<Project> findAllByOwnerIdAndStatusOrderByReviewedAtAscIdAsc(
+      Long ownerId, ProjectStatus status);
+
+  List<Project> findAllByOwnerIdAndStatusAndUpdatedAtBeforeOrderByUpdatedAtAscIdAsc(
+      Long ownerId, ProjectStatus status, OffsetDateTime updatedBefore);
+
+  List<Project> findAllByOwnerIdAndStatusAndSubmittedAtIsNotNullOrderBySubmittedAtAscIdAsc(
+      Long ownerId, ProjectStatus status);
+
   @Query(
       """
       SELECT MAX(project.protocol)

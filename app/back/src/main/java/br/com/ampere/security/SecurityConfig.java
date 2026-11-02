@@ -40,6 +40,8 @@ public class SecurityConfig {
 
   private static final String ADMIN = UserRole.ADMIN.name();
 
+  private static final String DESIGNER = UserRole.USER.name();
+
   private static final String[] REVIEWING_ROLES =
       Arrays.stream(UserRole.values())
           .filter(UserRole::canReview)
@@ -81,6 +83,8 @@ public class SecurityConfig {
                         "/projects/*/decision",
                         "/projects/*/findings/*/resolution")
                     .hasAnyRole(REVIEWING_ROLES)
+                    .requestMatchers("/dashboard/designer")
+                    .hasRole(DESIGNER)
                     .requestMatchers(HttpMethod.POST, "/projects/*/findings")
                     .hasAnyRole(REVIEWING_ROLES)
                     .requestMatchers(HttpMethod.PUT, "/projects/*/findings/*")

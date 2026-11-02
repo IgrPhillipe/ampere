@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.error.BusinessException;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -40,7 +41,14 @@ class AuthenticatedUserTest {
         .isInstanceOf(BusinessException.class)
         .extracting(exception -> ((BusinessException) exception).getStatus())
         .isEqualTo(HttpStatus.FORBIDDEN);
+    for (AuthenticatedUser user : List.of(reviewer, new AuthenticatedUser(9L, UserRole.ADMIN))) {
+      assertThatThrownBy(user::requireDesigner)
+          .isInstanceOf(BusinessException.class)
+          .extracting(exception -> ((BusinessException) exception).getStatus())
+          .isEqualTo(HttpStatus.FORBIDDEN);
+    }
     reviewer.requireReviewer();
+    designer.requireDesigner();
     new AuthenticatedUser(9L, UserRole.ADMIN).requireAdmin();
   }
 

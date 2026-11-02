@@ -37,6 +37,12 @@ public record AuthenticatedUser(Long id, UserRole role) {
     }
   }
 
+  public void requireDesigner() {
+    if (role != UserRole.USER) {
+      throw new BusinessException(FORBIDDEN, HttpStatus.FORBIDDEN);
+    }
+  }
+
   public void requireAdmin() {
     if (!isAdmin()) {
       throw new BusinessException(FORBIDDEN, HttpStatus.FORBIDDEN);
