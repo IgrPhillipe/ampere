@@ -85,27 +85,15 @@ export const ActionRequiredList = ({
 										.filter(Boolean)
 										.join(", ")}
 								</span>
-								{isRejected ? (
-									<Link
-										to="/projetos/$id/apontamentos"
-										params={{ id: item.id }}
-										aria-label={`Ver apontamentos de ${item.name}`}
-										className={linkClassName}
-									>
-										Ver Apontamentos
-										{linkArrow}
-									</Link>
-								) : (
-									<Link
-										to="/projetos/$id"
-										params={{ id: item.id }}
-										aria-label={`Continuar rascunho de ${item.name}`}
-										className={linkClassName}
-									>
-										Continuar Rascunho
-										{linkArrow}
-									</Link>
-								)}
+								<Link
+									to="/projetos/$id"
+									params={{ id: item.id }}
+									aria-label={`${isRejected ? "Ver apontamentos" : "Continuar rascunho"} de ${item.name}`}
+									className={linkClassName}
+								>
+									{isRejected ? "Ver Apontamentos" : "Continuar Rascunho"}
+									{linkArrow}
+								</Link>
 							</div>
 						</li>
 					);

@@ -96,7 +96,7 @@ describe("DesignerDashboardPage", () => {
 		expect(actions).toHaveTextContent("02 bloqueantes");
 		expect(
 			screen.getByRole("link", { name: /ver apontamentos/i }),
-		).toHaveAttribute("href", "/projetos/7/apontamentos");
+		).toHaveAttribute("href", "/projetos/7");
 		expect(actions).toHaveTextContent("Parado há 21 dias");
 		expect(
 			screen.getByRole("link", { name: /continuar rascunho/i }),
