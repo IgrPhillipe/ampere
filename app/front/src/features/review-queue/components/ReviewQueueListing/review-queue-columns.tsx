@@ -1,12 +1,12 @@
 import { createDataTableColumnHelper } from "@components/DataTable";
 import { DateCell } from "@components/DateCell";
+import { DeadlineStatusBadge } from "@components/DeadlineStatusBadge";
 import { formatKva } from "@features/shared";
 import type { ReviewQueueItem } from "@services/review-queue";
 
 import { AlertsCell } from "./AlertsCell";
 import { AnalyzeButton } from "./AnalyzeButton";
 import { DeadlineCell } from "./DeadlineCell";
-import { DeadlineStatusBadge } from "./DeadlineStatusBadge";
 import { QueueItemIndicator } from "./QueueItemIndicator";
 import {
 	formatQueueItemOrigin,
