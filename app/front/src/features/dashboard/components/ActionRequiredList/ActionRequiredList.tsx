@@ -1,4 +1,9 @@
+import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
+import {
+	projectStatusBadgeVariants,
+	projectStatusLabels,
+} from "@features/projects";
 import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ActionRequiredItem } from "@services/dashboard";
@@ -90,11 +95,16 @@ export const ActionRequiredList = ({
 										</span>
 									) : null}
 								</div>
-								<span className="font-mono text-xs text-muted-foreground">
-									{[item.protocol, isRejected ? "Reprovado" : "Rascunho"]
-										.filter(Boolean)
-										.join(", ")}
-								</span>
+								<div className="flex flex-wrap items-center gap-2">
+									<Badge variant={projectStatusBadgeVariants[item.status]}>
+										{projectStatusLabels[item.status]}
+									</Badge>
+									{item.protocol ? (
+										<span className="font-mono text-xs text-muted-foreground">
+											{item.protocol}
+										</span>
+									) : null}
+								</div>
 								<Link
 									to="/projetos/$id"
 									params={{ id: item.id }}

@@ -93,6 +93,8 @@ describe("DesignerDashboardPage", () => {
 
 		const actions = screen.getByRole("region", { name: "Exige Ação" });
 
+		expect(within(actions).getByText("Reprovado")).toBeInTheDocument();
+		expect(within(actions).getByText("Rascunho")).toBeInTheDocument();
 		expect(actions).toHaveTextContent("02 bloqueantes");
 		expect(
 			screen.getByRole("link", { name: /ver apontamentos/i }),
