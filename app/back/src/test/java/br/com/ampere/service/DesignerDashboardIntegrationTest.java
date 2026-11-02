@@ -1,17 +1,22 @@
 package br.com.ampere.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.ampere.config.NormativeTableSeed;
 import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.DashboardPeriod;
 import br.com.ampere.domain.DemandComponent;
 import br.com.ampere.domain.DemandResult;
 import br.com.ampere.domain.DemandStep;
+import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.Finding;
@@ -38,13 +43,18 @@ import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.Timestamps;
+import com.jayway.jsonpath.JsonPath;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -115,7 +126,9 @@ class DesignerDashboardIntegrationTest {
     standardRepository.deleteAll();
     userRepository.deleteAll();
 
-    standards = standardRepository.saveAll(List.of(new Standard("DIS-NOR-053", "REV 06")));
+    standards =
+        standardRepository.saveAll(
+            List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
     String hash = passwordEncoder.encode(PASSWORD);
     owner = userRepository.save(new User("João Projetista", DESIGNER, hash, UserRole.USER));
     otherOwner =
@@ -195,6 +208,7 @@ class DesignerDashboardIntegrationTest {
   @Test
   void actionItemsCarryVersionUnitsRejectionDateAndPendingStep() throws Exception {
     Project rejected = rejected("2026-5151", owner);
+    groupRepository.save(GroupKind.EV_CHARGING.create(rejected, charging()));
     Project withoutGroups =
         projectRepository.save(project("2026-5152", ProjectStatus.DRAFT, owner));
     Project withGroups = projectRepository.save(project("2026-5153", ProjectStatus.DRAFT, owner));
@@ -207,7 +221,16 @@ class DesignerDashboardIntegrationTest {
         .andExpect(jsonPath("$.data.actionRequired", hasSize(3)))
         .andExpect(jsonPath("$.data.actionRequired[0].protocol").value(rejected.getProtocol()))
         .andExpect(jsonPath("$.data.actionRequired[0].version").value(1))
-        .andExpect(jsonPath("$.data.actionRequired[0].rejectedAt").isNotEmpty())
+        .andExpect(
+            result ->
+                assertThat(
+                        OffsetDateTime.parse(
+                                JsonPath.read(
+                                    result.getResponse().getContentAsString(),
+                                    "$.data.actionRequired[0].rejectedAt"))
+                            .toInstant())
+                    .isEqualTo(rejected.getReviewedAt().truncatedTo(ChronoUnit.MICROS).toInstant()))
+        .andExpect(jsonPath("$.data.actionRequired[0].consumerUnits").value(6))
         .andExpect(jsonPath("$.data.actionRequired[0].pendingStage").isEmpty())
         .andExpect(jsonPath("$.data.actionRequired[1].protocol").value("2026-5152"))
         .andExpect(jsonPath("$.data.actionRequired[1].version").value(0))
@@ -217,6 +240,54 @@ class DesignerDashboardIntegrationTest {
         .andExpect(jsonPath("$.data.actionRequired[2].protocol").value("2026-5153"))
         .andExpect(jsonPath("$.data.actionRequired[2].consumerUnits").value(6))
         .andExpect(jsonPath("$.data.actionRequired[2].pendingStage").value("CALCULATION"));
+  }
+
+  @Test
+  void thePendingStepFollowsTheCalculationAndTheDocuments() throws Exception {
+    publishTables();
+    Project draft = projectRepository.save(project("2026-5161", ProjectStatus.DRAFT, owner));
+    Long groupId = groupRepository.save(GroupKind.EV_CHARGING.create(draft, charging())).getId();
+    as(DESIGNER, post("/projects/" + draft.getId() + "/calculations"))
+        .andExpect(status().isCreated());
+    idle(draft);
+
+    assertPendingStage("DOCUMENTS");
+
+    for (DocumentType type : DocumentType.values()) {
+      upload(draft, type);
+    }
+    idle(draft);
+
+    designerDashboard().andExpect(jsonPath("$.data.actionRequired[0].pendingStage").isEmpty());
+
+    groupRepository.findById(groupId).orElseThrow().update(charging(8));
+    idle(draft);
+
+    assertPendingStage("CALCULATION");
+  }
+
+  @Test
+  void calculatingAndChangingDocumentsKeepADraftOffTheIdleList() throws Exception {
+    publishTables();
+    Project draft = projectRepository.save(project("2026-5171", ProjectStatus.DRAFT, owner));
+    groupRepository.save(GroupKind.EV_CHARGING.create(draft, charging()));
+
+    idle(draft);
+    as(DESIGNER, post("/projects/" + draft.getId() + "/calculations"))
+        .andExpect(status().isCreated());
+    entityManager.flush();
+    designerDashboard().andExpect(jsonPath("$.data.actionRequired", hasSize(0)));
+
+    idle(draft);
+    String documentId = JsonPath.read(upload(draft, DocumentType.ART), "$.data.id");
+    entityManager.flush();
+    designerDashboard().andExpect(jsonPath("$.data.actionRequired", hasSize(0)));
+
+    idle(draft);
+    as(DESIGNER, delete("/projects/" + draft.getId() + "/documents/" + documentId))
+        .andExpect(status().isNoContent());
+    entityManager.flush();
+    designerDashboard().andExpect(jsonPath("$.data.actionRequired", hasSize(0)));
   }
 
   @Test
@@ -490,10 +561,49 @@ class DesignerDashboardIntegrationTest {
         designer);
   }
 
+  private void assertPendingStage(String stage) throws Exception {
+    designerDashboard()
+        .andExpect(jsonPath("$.data.actionRequired", hasSize(1)))
+        .andExpect(jsonPath("$.data.actionRequired[0].pendingStage").value(stage));
+  }
+
+  private void idle(Project project) {
+    entityManager.flush();
+    lastChanged(project, now.minusDays(20));
+    entityManager.clear();
+  }
+
+  private String upload(Project project, DocumentType type) throws Exception {
+    return as(
+            DESIGNER,
+            multipart("/projects/" + project.getId() + "/documents")
+                .file(
+                    new MockMultipartFile(
+                        "file",
+                        "documento.pdf",
+                        MediaType.APPLICATION_PDF_VALUE,
+                        "%PDF-1.4\n%%EOF".getBytes(StandardCharsets.US_ASCII)))
+                .param("type", type.name()))
+        .andExpect(status().isCreated())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+  }
+
+  private void publishTables() {
+    normativeTableRepository.saveAll(
+        NormativeTableSeed.all(
+            standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
+  }
+
   private static GroupSpec charging() {
+    return charging(6);
+  }
+
+  private static GroupSpec charging(int stations) {
     return new GroupSpec(
         "Recarga de veículo elétrico",
-        6,
+        stations,
         null,
         null,
         null,
@@ -593,7 +703,7 @@ class DesignerDashboardIntegrationTest {
 
   private ResultActions as(
       String email,
-      org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder request)
+      org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder<?> request)
       throws Exception {
     return mockMvc.perform(request.header("Authorization", "Bearer " + token(email)));
   }

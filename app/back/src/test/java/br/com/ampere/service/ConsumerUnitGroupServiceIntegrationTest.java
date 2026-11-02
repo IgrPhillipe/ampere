@@ -222,22 +222,37 @@ class ConsumerUnitGroupServiceIntegrationTest {
   }
 
   @Test
-  void editingAGroupCountsAsAProjectChange() {
-    Project project = draft();
-    OffsetDateTime longAgo = OffsetDateTime.now(ZoneOffset.UTC).minusDays(30);
+  void creatingEditingAndDeletingAGroupCountAsProjectChanges() {
+    Long projectId = draft().getId();
+
+    leftIdle(projectId);
+    Long groupId = service.create(projectId, charging(true), designer).getId();
+    assertChangedNow(projectId);
+
+    leftIdle(projectId);
+    service.update(projectId, groupId, charging(false), designer);
+    assertChangedNow(projectId);
+
+    leftIdle(projectId);
+    service.delete(projectId, groupId, designer);
+    assertChangedNow(projectId);
+  }
+
+  private void leftIdle(Long projectId) {
+    entityManager.flush();
     entityManager
-        .createQuery("UPDATE Project project SET project.updatedAt = :at WHERE project = :p")
-        .setParameter("at", longAgo)
-        .setParameter("p", project)
+        .createQuery("UPDATE Project project SET project.updatedAt = :at WHERE project.id = :id")
+        .setParameter("at", OffsetDateTime.now(ZoneOffset.UTC).minusDays(30))
+        .setParameter("id", projectId)
         .executeUpdate();
     entityManager.clear();
+  }
 
-    service.create(project.getId(), commonArea(), designer);
+  private void assertChangedNow(Long projectId) {
     entityManager.flush();
     entityManager.clear();
-
-    assertThat(projectRepository.findById(project.getId()).orElseThrow().getUpdatedAt())
-        .isAfter(longAgo.plusDays(29));
+    assertThat(projectRepository.findById(projectId).orElseThrow().getUpdatedAt())
+        .isAfter(OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(1));
   }
 
   private Project draft() {
