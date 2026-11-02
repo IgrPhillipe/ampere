@@ -24,8 +24,6 @@ public interface ProjectEventRepository extends JpaRepository<ProjectEvent, Long
 
   boolean existsByProjectId(Long projectId);
 
-  boolean existsByProjectOwnerIdAndType(Long ownerId, ProjectEventType type);
-
   @Query(
       """
       SELECT COUNT(DISTINCT event.project.id)

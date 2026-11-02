@@ -65,7 +65,7 @@ public class DesignerDashboardService {
     OffsetDateTime since = period.since(today).atStartOfDay(ZONE).toOffsetDateTime();
 
     return new DesignerDashboard(
-        eventRepository.existsByProjectOwnerIdAndType(user.id(), ProjectEventType.SUBMITTED),
+        projectRepository.existsByOwnerIdAndSubmittedAtIsNotNull(user.id()),
         actionRequired(user.id(), today),
         underReview(user.id(), today),
         indicators(user.id(), since),

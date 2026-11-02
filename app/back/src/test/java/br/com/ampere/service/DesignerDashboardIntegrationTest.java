@@ -195,6 +195,7 @@ class DesignerDashboardIntegrationTest {
     LocalDate today = LocalDate.now(ReviewQueueService.ZONE);
 
     designerDashboard()
+        .andExpect(jsonPath("$.data.hasSubmissions").value(true))
         .andExpect(jsonPath("$.data.underReview", hasSize(2)))
         .andExpect(jsonPath("$.data.underReview[0].protocol").value("2026-5202"))
         .andExpect(jsonPath("$.data.underReview[0].deadline").value(today.minusDays(10).toString()))
