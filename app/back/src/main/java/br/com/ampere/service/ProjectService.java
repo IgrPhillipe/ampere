@@ -106,7 +106,7 @@ public class ProjectService {
         projects.getContent(),
         projects.getTotalElements(),
         countPendingFindings(projectIds),
-        countUnits(projectIds),
+        groupRepository.unitsPerProject(projectIds),
         latestDemands(projectIds));
   }
 
@@ -157,7 +157,7 @@ public class ProjectService {
     return new ProjectSummary(
         project,
         countPendingFindings(projectIds).getOrDefault(projectId, 0L),
-        countUnits(projectIds).getOrDefault(projectId, 0L),
+        groupRepository.unitsPerProject(projectIds).getOrDefault(projectId, 0L),
         latestDemands(projectIds).get(projectId),
         eventRepository.findLastOccurredAt(projectId));
   }
@@ -265,18 +265,6 @@ public class ProjectService {
             Collectors.toUnmodifiableMap(
                 FindingRepository.FindingCount::getProjectId,
                 FindingRepository.FindingCount::getTotal));
-  }
-
-  private Map<Long, Long> countUnits(List<Long> projectIds) {
-    if (projectIds.isEmpty()) {
-      return Map.of();
-    }
-
-    return groupRepository.countUnitsPerProject(projectIds).stream()
-        .collect(
-            Collectors.toUnmodifiableMap(
-                ConsumerUnitGroupRepository.UnitCount::getProjectId,
-                ConsumerUnitGroupRepository.UnitCount::getTotal));
   }
 
   private static OffsetDateTime startOf(LocalDate day) {

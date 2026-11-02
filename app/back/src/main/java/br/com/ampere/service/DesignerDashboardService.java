@@ -2,6 +2,7 @@ package br.com.ampere.service;
 
 import static br.com.ampere.utils.Timestamps.ZONE;
 
+import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DashboardPeriod;
 import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.FindingSeverity;
@@ -102,7 +103,9 @@ public class DesignerDashboardService {
         projectRepository.findAllByOwnerIdAndStatusAndUpdatedAtBeforeOrderByUpdatedAtAscIdAsc(
             ownerId, ProjectStatus.DRAFT, idleBefore);
     Map<Long, Long> blocking = openBlockingFindings(rejected);
-    Map<Long, Long> units = consumerUnits(rejected, idleDrafts);
+    Map<Long, Long> units =
+        groupRepository.unitsPerProject(
+            Stream.concat(rejected.stream(), idleDrafts.stream()).map(Project::getId).toList());
 
     List<ActionItem> items = new ArrayList<>();
     for (Project project : rejected) {
@@ -127,31 +130,17 @@ public class DesignerDashboardService {
     return items;
   }
 
-  private Map<Long, Long> consumerUnits(List<Project> rejected, List<Project> drafts) {
-    List<Long> projectIds =
-        Stream.concat(rejected.stream(), drafts.stream()).map(Project::getId).toList();
-    if (projectIds.isEmpty()) {
-      return Map.of();
-    }
-
-    return groupRepository.countUnitsPerProject(projectIds).stream()
-        .collect(
-            Collectors.toUnmodifiableMap(
-                ConsumerUnitGroupRepository.UnitCount::getProjectId,
-                ConsumerUnitGroupRepository.UnitCount::getTotal));
-  }
-
   /** The first step still incomplete, in the order the project tabs follow; null when none. */
   private FindingStage pendingStage(Project draft) {
     Long projectId = draft.getId();
-    if (!GroupValidation.of(groupRepository.findAllByProjectIdOrderById(projectId))
-        .canCalculate()) {
+    List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(projectId);
+    if (!GroupValidation.of(groups).canCalculate()) {
       return FindingStage.CONSUMER_UNITS;
     }
     boolean calculated =
         calculationRepository
             .findFirstByProjectIdOrderByIdDesc(projectId)
-            .map(calculationService::isCurrent)
+            .map(calculation -> calculationService.isCurrent(calculation, groups))
             .orElse(false);
     if (!calculated) {
       return FindingStage.CALCULATION;

@@ -3,7 +3,9 @@ package br.com.ampere.repository;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -25,6 +27,16 @@ public interface ConsumerUnitGroupRepository extends JpaRepository<ConsumerUnitG
       GROUP BY consumerUnitGroup.project.id
       """)
   List<UnitCount> countUnitsPerProject(@Param("projectIds") Collection<Long> projectIds);
+
+  /** Units per project id; a project without groups is left out. */
+  default Map<Long, Long> unitsPerProject(Collection<Long> projectIds) {
+    if (projectIds.isEmpty()) {
+      return Map.of();
+    }
+
+    return countUnitsPerProject(projectIds).stream()
+        .collect(Collectors.toUnmodifiableMap(UnitCount::getProjectId, UnitCount::getTotal));
+  }
 
   /** The seed once left the start of the common area elevator unanswered, which blocks a resend. */
   @Modifying
