@@ -1,6 +1,7 @@
 export * from "./auth";
 export * from "./calculation";
 export * from "./consumer-units";
+export * from "./dashboard";
 export * from "./normative-tables";
 export * from "./project-events";
 export * from "./project-review";
