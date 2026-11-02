@@ -87,6 +87,14 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
   }
 
   @Test
+  void leavesADraftIdleLongEnoughForTheDesignerDashboard() {
+    Project idle = project("2026-1001");
+
+    assertThat(idle.getStatus()).isEqualTo(ProjectStatus.DRAFT);
+    assertThat(idle.getUpdatedAt()).isBefore(OffsetDateTime.now().minusDays(15));
+  }
+
+  @Test
   void onlyTheDraftsWithPendingGroupsFailTheGroupValidation() {
     Set<String> pending = Set.of("2026-1001", "2026-2001", "2026-2002", "2026-2025");
 

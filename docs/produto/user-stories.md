@@ -773,7 +773,7 @@ Painel inicial do projetista com o que exige ação e os indicadores de qualidad
 
 ### Conversação (Regras de Negócio e Interface)
 O item "Painel" entra no menu do projetista e passa a ser a tela inicial após o login. O painel exibe:
-- **Exige ação:** projetos reprovados com bloqueantes em aberto e rascunhos sem movimentação há mais de 15 dias, cada um com o atalho para a etapa
+- **Exige ação:** projetos reprovados, com o número de bloqueantes em aberto, e rascunhos sem movimentação há mais de 15 dias, cada um com o atalho para a etapa
 - **Em análise:** projetos na fila com os dias restantes do prazo
 - **Indicadores do período:** projetos enviados, taxa de aprovação na primeira análise, tempo médio até a aprovação e demanda total aprovada
 - **Apontamentos mais recebidos:** ranking por etapa e item da norma, com a quantidade

@@ -37,7 +37,7 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 | Protocolo | Projeto | Proj. | Situação | O que demonstra |
 | :--- | :--- | :--- | :--- | :--- |
 | 2026-2001 | Residencial Mar Azul | U | Rascunho | Projeto vazio, sem grupos |
-| 2026-1001 | Residencial Monte Verde | U | Rascunho | Grupos nos três estados: Validado, Revisar (motor acima de 5 CV sem a partida) e Falta Dado (recarga sem gerenciamento). Não calcula |
+| 2026-1001 | Residencial Monte Verde | U | Rascunho | Grupos nos três estados: Validado, Revisar (motor acima de 5 CV sem a partida) e Falta Dado (recarga sem gerenciamento). Não calcula. Parado há 20 dias: aparece em "Exige ação" no Painel do projetista |
 | 2026-2002 | Edifício Capibaribe | U | Rascunho | Grupo com Falta Dado: cobertura sem área útil |
 | 2026-2025 | Galpão Industrial Caruaru | C | Rascunho | Grupo em Revisar, não residencial |
 | 2026-2016 | Residencial Petrolina Sol | U | Rascunho | Calculado, sem nenhum documento |

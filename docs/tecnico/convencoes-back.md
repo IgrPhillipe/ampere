@@ -282,7 +282,7 @@ Decisões:
 
 | Papel | O que é | Caminhos exclusivos |
 | :--- | :--- | :--- |
-| `user` | projetista | nenhum: projetos e perfil |
+| `user` | projetista | painel do projetista (`/dashboard/designer`); o resto são projetos e perfil |
 | `reviewer` | analista | fila (`/review-queue/**`) e escrita da análise (atribuição, decisão e apontamentos), junto com o `admin` |
 | `admin` | acesso total | tabelas normativas (`/normative-tables/**`) e gestão de usuários (`/users/**`, exceto `/users/me`, que vem antes no `SecurityConfig`), além de tudo o que o `reviewer` faz |
 
@@ -308,7 +308,7 @@ A publicação de tabela normativa exige um segundo `admin`, diferente de quem c
 - **Responder apontamento e enviar são do dono** (`ProjectService.findOwnedById`): o `admin` recebe 403 em projeto de outro projetista.
 - **O `admin` cria em nome de um projetista.** `ownerId` é obrigatório no `POST /projects` do `admin` (400 sem ele) e precisa ser de projetista ativo (422). O projetista cria para si: o `ownerId` dele é ignorado, assim como no `PUT`. O dono não muda depois da criação.
 - **Ninguém analisa o próprio projeto.** Assumir a análise de um projeto seu responde 403, mesmo para o `admin`.
-- **Os services repetem a regra de papel do `SecurityConfig`** (`AuthenticatedUser.requireReviewer()` e `requireAdmin()`), para que um matcher fora do lugar não abra a rota.
+- **Os services repetem a regra de papel do `SecurityConfig`** (`AuthenticatedUser.requireReviewer()`, `requireAdmin()` e `requireDesigner()`), para que um matcher fora do lugar não abra a rota.
 - **Troca de papel com trabalho em andamento responde 409**: projetista com projeto não aprovado, ou analista com análise em andamento que perderia a análise.
 - **Listagem, busca, municípios e contadores filtram no banco** (`searchAccessibleProjects`, `findAccessibleMunicipalities`, `countAccessiblePerStatus`), não na memória. O alcance de cada papel é o `ProjectVisibility` (`OWN`, `SUBMITTED`, `ALL`), lido de `AuthenticatedUser.projectVisibility()`.
 - A regra vale para tudo que fica aninhado no projeto: grupos, cálculo, documentos, memorial e envio. Os services desses recursos passam por `ProjectService.findById` (leitura), `findWritableById`, `draftOrFail` ou `editableOrFail` (escrita; o último aceita rascunho e reprovado), e não leem o projeto direto do repository.

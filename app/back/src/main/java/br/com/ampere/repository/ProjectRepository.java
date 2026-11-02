@@ -19,11 +19,22 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
 
   boolean existsByReviewerIdAndStatus(Long reviewerId, ProjectStatus status);
 
+  boolean existsByOwnerIdAndSubmittedAtIsNotNull(Long ownerId);
+
   long countByStatusAndSubmittedAtIsNotNull(ProjectStatus status);
 
   long countByReviewedAtGreaterThanEqual(OffsetDateTime since);
 
   long countByStatusAndReviewedAtGreaterThanEqual(ProjectStatus status, OffsetDateTime since);
+
+  List<Project> findAllByOwnerIdAndStatusOrderByReviewedAtAscIdAsc(
+      Long ownerId, ProjectStatus status);
+
+  List<Project> findAllByOwnerIdAndStatusAndUpdatedAtBeforeOrderByUpdatedAtAscIdAsc(
+      Long ownerId, ProjectStatus status, OffsetDateTime updatedBefore);
+
+  List<Project> findAllByOwnerIdAndStatusAndSubmittedAtIsNotNullOrderBySubmittedAtAscIdAsc(
+      Long ownerId, ProjectStatus status);
 
   @Query(
       """
