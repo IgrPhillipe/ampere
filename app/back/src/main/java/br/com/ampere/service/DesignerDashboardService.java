@@ -35,9 +35,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class DesignerDashboardService {
 
   /** A draft untouched for more than this many days asks for the designer's attention. */
-  public static final int IDLE_DRAFT_DAYS = 15;
+  private static final int IDLE_DRAFT_DAYS = 15;
 
-  public static final int RANKING_SIZE = 10;
+  private static final int RANKING_SIZE = 10;
 
   private static final List<ProjectEventType> DECISIONS =
       List.of(ProjectEventType.APPROVED, ProjectEventType.REJECTED);
@@ -104,7 +104,7 @@ public class DesignerDashboardService {
     }
 
     return findingRepository
-        .countPerProjectBySeverity(
+        .countPerProjectBySeverityAndStatus(
             projects.stream().map(Project::getId).toList(),
             FindingSeverity.BLOCKING,
             FindingStatus.OPEN)

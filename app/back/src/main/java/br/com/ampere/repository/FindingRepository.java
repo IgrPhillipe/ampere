@@ -40,7 +40,7 @@ public interface FindingRepository extends JpaRepository<Finding, Long> {
         AND finding.status = :status
       GROUP BY finding.project.id
       """)
-  List<FindingCount> countPerProjectBySeverity(
+  List<FindingCount> countPerProjectBySeverityAndStatus(
       @Param("projectIds") Collection<Long> projectIds,
       @Param("severity") FindingSeverity severity,
       @Param("status") FindingStatus status);
