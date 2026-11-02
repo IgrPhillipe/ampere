@@ -15,6 +15,7 @@ export interface NavItem {
 }
 
 export const APP_NAV_ITEMS: NavItem[] = [
+	{ to: "/painel", label: "Painel", roles: ROLE_ACCESS.dashboard },
 	{ to: "/projetos", label: "Meus Projetos", exact: true, roles: ["user"] },
 	{ to: "/projetos", label: "Projetos", exact: true, roles: ["admin"] },
 	{

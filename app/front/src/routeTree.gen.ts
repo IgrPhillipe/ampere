@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as TrocarSenhaRouteImport } from './routes/trocar-senha'
 import { Route as TabelasNormativasRouteImport } from './routes/tabelas-normativas'
+import { Route as PainelRouteImport } from './routes/painel'
 import { Route as MeuPerfilRouteImport } from './routes/meu-perfil'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as CriarContaRouteImport } from './routes/criar-conta'
@@ -44,6 +45,11 @@ const TrocarSenhaRoute = TrocarSenhaRouteImport.update({
 const TabelasNormativasRoute = TabelasNormativasRouteImport.update({
   id: '/tabelas-normativas',
   path: '/tabelas-normativas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PainelRoute = PainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MeuPerfilRoute = MeuPerfilRouteImport.update({
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/criar-conta': typeof CriarContaRoute
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
+  '/painel': typeof PainelRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
   '/usuarios': typeof UsuariosRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/criar-conta': typeof CriarContaRoute
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
+  '/painel': typeof PainelRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
   '/usuarios': typeof UsuariosRoute
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/criar-conta': typeof CriarContaRoute
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
+  '/painel': typeof PainelRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
   '/usuarios': typeof UsuariosRoute
@@ -213,6 +222,7 @@ export interface FileRouteTypes {
     | '/criar-conta'
     | '/entrar'
     | '/meu-perfil'
+    | '/painel'
     | '/tabelas-normativas'
     | '/trocar-senha'
     | '/usuarios'
@@ -236,6 +246,7 @@ export interface FileRouteTypes {
     | '/criar-conta'
     | '/entrar'
     | '/meu-perfil'
+    | '/painel'
     | '/tabelas-normativas'
     | '/trocar-senha'
     | '/usuarios'
@@ -258,6 +269,7 @@ export interface FileRouteTypes {
     | '/criar-conta'
     | '/entrar'
     | '/meu-perfil'
+    | '/painel'
     | '/tabelas-normativas'
     | '/trocar-senha'
     | '/usuarios'
@@ -282,6 +294,7 @@ export interface RootRouteChildren {
   CriarContaRoute: typeof CriarContaRoute
   EntrarRoute: typeof EntrarRoute
   MeuPerfilRoute: typeof MeuPerfilRoute
+  PainelRoute: typeof PainelRoute
   TabelasNormativasRoute: typeof TabelasNormativasRoute
   TrocarSenhaRoute: typeof TrocarSenhaRoute
   UsuariosRoute: typeof UsuariosRoute
@@ -313,6 +326,13 @@ declare module '@tanstack/react-router' {
       path: '/tabelas-normativas'
       fullPath: '/tabelas-normativas'
       preLoaderRoute: typeof TabelasNormativasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/painel': {
+      id: '/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof PainelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/meu-perfil': {
@@ -477,6 +497,7 @@ const rootRouteChildren: RootRouteChildren = {
   CriarContaRoute: CriarContaRoute,
   EntrarRoute: EntrarRoute,
   MeuPerfilRoute: MeuPerfilRoute,
+  PainelRoute: PainelRoute,
   TabelasNormativasRoute: TabelasNormativasRoute,
   TrocarSenhaRoute: TrocarSenhaRoute,
   UsuariosRoute: UsuariosRoute,
