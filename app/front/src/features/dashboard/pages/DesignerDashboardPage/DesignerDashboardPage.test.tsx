@@ -160,13 +160,34 @@ describe("DesignerDashboardPage", () => {
 		expect(screen.getByText("Atrasado há 3 dias")).toBeInTheDocument();
 	});
 
+	it("explains the indicators the period cannot measure yet", () => {
+		state.query = loadedQuery({
+			data: makeDashboard({
+				indicators: {
+					submitted: 2,
+					firstReviewApprovalPercent: null,
+					averageDaysToApproval: null,
+					approvedDemand: 0,
+				},
+			}),
+		});
+		renderPage();
+
+		expect(
+			screen.getByText("Aprovados na 1ª análise").nextSibling,
+		).toHaveTextContent("Sem análise");
+		expect(
+			screen.getByText("Tempo médio até aprovação").nextSibling,
+		).toHaveTextContent("Sem aprovação");
+	});
+
 	it("explains the indicators and offers a new project before the first submission", () => {
 		state.query = loadedQuery({
 			data: makeDashboard({
 				hasSubmissions: false,
 				indicators: {
 					submitted: 0,
-					firstReviewApprovalPercent: 0,
+					firstReviewApprovalPercent: null,
 					averageDaysToApproval: null,
 					approvedDemand: 0,
 				},

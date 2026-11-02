@@ -60,7 +60,7 @@ describe("designer dashboard API contract", () => {
 				underReview: [],
 				indicators: {
 					submitted: 0,
-					firstReviewApprovalPercent: 0,
+					firstReviewApprovalPercent: null,
 					averageDaysToApproval: null,
 					approvedDemand: 0,
 				},

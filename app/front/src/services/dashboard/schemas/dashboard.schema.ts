@@ -35,7 +35,8 @@ export type UnderReviewItem = z.infer<typeof underReviewItemSchema>;
 
 export const designerIndicatorsSchema = z.object({
 	submitted: z.number().int().nonnegative(),
-	firstReviewApprovalPercent: z.number().min(0).max(100),
+	/** `null` without a first decision in the period. */
+	firstReviewApprovalPercent: z.number().min(0).max(100).nullable(),
 	averageDaysToApproval: z.number().nonnegative().nullable(),
 	/** Total demand of the approved projects, in kVA. */
 	approvedDemand: z.number().nonnegative(),

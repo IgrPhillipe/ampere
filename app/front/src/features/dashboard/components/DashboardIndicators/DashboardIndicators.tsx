@@ -19,6 +19,8 @@ interface IndicatorTile {
 	label: string;
 	/** `null` when the period has nothing to measure. */
 	format: (indicators: DesignerIndicators) => string | null;
+	/** Shown in place of a `null` value. */
+	emptyLabel?: string;
 }
 
 const TILES: IndicatorTile[] = [
@@ -29,7 +31,10 @@ const TILES: IndicatorTile[] = [
 	{
 		label: "Aprovados na 1ª análise",
 		format: ({ firstReviewApprovalPercent }) =>
-			`${formatNumber(firstReviewApprovalPercent)}%`,
+			firstReviewApprovalPercent === null
+				? null
+				: `${formatNumber(firstReviewApprovalPercent)}%`,
+		emptyLabel: "Sem análise",
 	},
 	{
 		label: "Tempo médio até aprovação",
@@ -37,6 +42,7 @@ const TILES: IndicatorTile[] = [
 			averageDaysToApproval === null
 				? null
 				: `${formatNumber(averageDaysToApproval)} d`,
+		emptyLabel: "Sem aprovação",
 	},
 	{
 		label: "kVA de demanda aprovada",
@@ -64,7 +70,7 @@ export const DashboardIndicators = ({
 
 		{hasSubmissions ? (
 			<dl className="grid grid-cols-2 lg:grid-cols-4">
-				{TILES.map(({ label, format }) => {
+				{TILES.map(({ label, format, emptyLabel }) => {
 					const value = indicators ? format(indicators) : undefined;
 
 					return (
@@ -80,7 +86,7 @@ export const DashboardIndicators = ({
 									<Skeleton className="h-10 w-16 bg-primary-foreground/25" />
 								) : (
 									(value ?? (
-										<span className="text-base font-medium">Sem aprovação</span>
+										<span className="text-base font-medium">{emptyLabel}</span>
 									))
 								)}
 							</dd>
