@@ -75,7 +75,7 @@ export const DashboardIndicators = ({
 							<dt className="font-mono text-xs tracking-wider uppercase opacity-80">
 								{label}
 							</dt>
-							<dd className="font-mono text-4xl font-semibold">
+							<dd className="font-mono text-3xl font-semibold whitespace-nowrap sm:text-4xl">
 								{value === undefined ? (
 									<Skeleton className="h-10 w-16 bg-primary-foreground/25" />
 								) : (
