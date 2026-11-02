@@ -48,6 +48,7 @@ public class ConsumerUnitGroupService {
   public ConsumerUnitGroup create(
       Long projectId, GroupParameters parameters, AuthenticatedUser user) {
     Project project = projectService.editableOrFail(projectId, NOT_EDITABLE, user);
+    project.touch();
 
     return groupRepository.save(parameters.kind().create(project, parameters.spec()));
   }
@@ -55,7 +56,7 @@ public class ConsumerUnitGroupService {
   @Transactional
   public ConsumerUnitGroup update(
       Long projectId, Long groupId, GroupParameters parameters, AuthenticatedUser user) {
-    projectService.editableOrFail(projectId, NOT_EDITABLE, user);
+    Project project = projectService.editableOrFail(projectId, NOT_EDITABLE, user);
     ConsumerUnitGroup group = findOrFail(projectId, groupId);
     if (group.kind() != parameters.kind()) {
       throw new BusinessException(
@@ -63,18 +64,20 @@ public class ConsumerUnitGroupService {
     }
 
     group.update(parameters.spec());
+    project.touch();
 
     return group;
   }
 
   @Transactional
   public void delete(Long projectId, Long groupId, AuthenticatedUser user) {
-    projectService.editableOrFail(projectId, NOT_EDITABLE, user);
+    Project project = projectService.editableOrFail(projectId, NOT_EDITABLE, user);
     ConsumerUnitGroup group = findOrFail(projectId, groupId);
 
     // A finding may point to the group: keep the finding, drop the reference.
     findingRepository.findAllByConsumerUnitGroupId(groupId).forEach(Finding::detachGroup);
     groupRepository.delete(group);
+    project.touch();
   }
 
   private ConsumerUnitGroup findOrFail(Long projectId, Long groupId) {

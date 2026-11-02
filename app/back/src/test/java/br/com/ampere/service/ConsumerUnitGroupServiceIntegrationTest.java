@@ -34,6 +34,8 @@ import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -217,6 +219,25 @@ class ConsumerUnitGroupServiceIntegrationTest {
     assertThat(groupRepository.existsById(group.getId())).isFalse();
     assertThat(findingRepository.findById(finding.getId()))
         .hasValueSatisfying(kept -> assertThat(kept.getConsumerUnitGroup()).isNull());
+  }
+
+  @Test
+  void editingAGroupCountsAsAProjectChange() {
+    Project project = draft();
+    OffsetDateTime longAgo = OffsetDateTime.now(ZoneOffset.UTC).minusDays(30);
+    entityManager
+        .createQuery("UPDATE Project project SET project.updatedAt = :at WHERE project = :p")
+        .setParameter("at", longAgo)
+        .setParameter("p", project)
+        .executeUpdate();
+    entityManager.clear();
+
+    service.create(project.getId(), commonArea(), designer);
+    entityManager.flush();
+    entityManager.clear();
+
+    assertThat(projectRepository.findById(project.getId()).orElseThrow().getUpdatedAt())
+        .isAfter(longAgo.plusDays(29));
   }
 
   private Project draft() {

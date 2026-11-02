@@ -62,6 +62,7 @@ public class DemandCalculationService {
     if (!GroupValidation.of(groups).canCalculate()) {
       throw unprocessable("Há grupos com pendências. Corrija-os antes de calcular a demanda.");
     }
+    project.touch();
 
     return calculationRepository.save(compute(project, groups));
   }
