@@ -83,7 +83,8 @@ final class DemoScenarios {
             "54505010",
             residential(12, V380),
             u.user(),
-            14,
+            // Untouched for more than 15 days: the designer dashboard asks to continue it.
+            20,
             c ->
                 c.addAll(
                     apartments("Apartamento tipo A", 24, "68", 2, "6.50"),
