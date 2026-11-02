@@ -297,6 +297,42 @@ class DesignerDashboardIntegrationTest {
   }
 
   @Test
+  void anApprovalWithoutSubmissionInTheHistoryCountsOnlyInTheApprovedDemand() throws Exception {
+    Project legacy = approved("2026-5651", owner, new BigDecimal("30"));
+    event(legacy, ProjectEventType.APPROVED, now.minusDays(3));
+    Project recorded = approved("2026-5652", owner, new BigDecimal("20"));
+    event(recorded, ProjectEventType.SUBMITTED, now.minusDays(10));
+    event(recorded, ProjectEventType.APPROVED, now.minusDays(4));
+
+    designerDashboard()
+        .andExpect(jsonPath("$.data.indicators.submitted").value(1))
+        .andExpect(jsonPath("$.data.indicators.firstReviewApprovalPercent").value(100.0))
+        .andExpect(jsonPath("$.data.indicators.averageDaysToApproval").value(6.0))
+        .andExpect(jsonPath("$.data.indicators.approvedDemand").value(50));
+  }
+
+  @Test
+  void theOneSecondBeforeThePeriodStartsInRecifeIsLeftOut() throws Exception {
+    OffsetDateTime start =
+        DashboardPeriod.LAST_30_DAYS
+            .since(LocalDate.now(ReviewQueueService.ZONE))
+            .atStartOfDay(ReviewQueueService.ZONE)
+            .toOffsetDateTime();
+    Project before = submitted("2026-5661", start.minusSeconds(1), owner);
+    event(before, ProjectEventType.SUBMITTED, start.minusSeconds(1));
+    finding(
+        before, FindingSeverity.BLOCKING, FindingStage.CALCULATION, "6.2", start.minusSeconds(1));
+    Project atStart = submitted("2026-5662", start, owner);
+    event(atStart, ProjectEventType.SUBMITTED, start);
+    finding(atStart, FindingSeverity.BLOCKING, FindingStage.CALCULATION, "6.2", start);
+
+    designerDashboard(DashboardPeriod.LAST_30_DAYS)
+        .andExpect(jsonPath("$.data.indicators.submitted").value(1))
+        .andExpect(jsonPath("$.data.findingsRanking", hasSize(1)))
+        .andExpect(jsonPath("$.data.findingsRanking[0].total").value(1));
+  }
+
+  @Test
   void ranksThePublishedFindingsByStageAndStandardItem() throws Exception {
     Project project = rejected("2026-5701", owner);
     for (int index = 0; index < 3; index++) {
