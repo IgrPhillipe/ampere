@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 /** Groups and published tables for calculation tests, typed as the examples of Anexo I state. */
-final class DemandFixtures {
+public final class DemandFixtures {
 
   static final Map<String, Standard> STANDARDS =
       Map.of(
@@ -81,7 +81,7 @@ final class DemandFixtures {
             null));
   }
 
-  static ConsumerUnitGroup charging(Project project, int points, String kw) {
+  public static ConsumerUnitGroup charging(Project project, int points, String kw) {
     return GroupKind.EV_CHARGING.create(
         project,
         new GroupSpec(

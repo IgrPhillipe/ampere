@@ -14,17 +14,15 @@ import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.DashboardPeriod;
 import br.com.ampere.domain.DemandComponent;
+import br.com.ampere.domain.DemandFixtures;
 import br.com.ampere.domain.DemandResult;
 import br.com.ampere.domain.DemandStep;
 import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EntranceStandard;
-import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.FindingAnswer;
 import br.com.ampere.domain.FindingSeverity;
 import br.com.ampere.domain.FindingStage;
-import br.com.ampere.domain.GroupKind;
-import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
@@ -208,11 +206,11 @@ class DesignerDashboardIntegrationTest {
   @Test
   void actionItemsCarryVersionUnitsRejectionDateAndPendingStep() throws Exception {
     Project rejected = rejected("2026-5151", owner);
-    groupRepository.save(GroupKind.EV_CHARGING.create(rejected, charging()));
+    groupRepository.save(DemandFixtures.charging(rejected, 6, "7.4"));
     Project withoutGroups =
         projectRepository.save(project("2026-5152", ProjectStatus.DRAFT, owner));
     Project withGroups = projectRepository.save(project("2026-5153", ProjectStatus.DRAFT, owner));
-    groupRepository.save(GroupKind.EV_CHARGING.create(withGroups, charging()));
+    groupRepository.save(DemandFixtures.charging(withGroups, 6, "7.4"));
     lastChanged(withoutGroups, now.minusDays(30));
     lastChanged(withGroups, now.minusDays(20));
     entityManager.clear();
@@ -246,7 +244,7 @@ class DesignerDashboardIntegrationTest {
   void thePendingStepFollowsTheCalculationAndTheDocuments() throws Exception {
     publishTables();
     Project draft = projectRepository.save(project("2026-5161", ProjectStatus.DRAFT, owner));
-    Long groupId = groupRepository.save(GroupKind.EV_CHARGING.create(draft, charging())).getId();
+    groupRepository.save(DemandFixtures.charging(draft, 6, "7.4"));
     as(DESIGNER, post("/projects/" + draft.getId() + "/calculations"))
         .andExpect(status().isCreated());
     idle(draft);
@@ -260,7 +258,7 @@ class DesignerDashboardIntegrationTest {
 
     designerDashboard().andExpect(jsonPath("$.data.actionRequired[0].pendingStage").isEmpty());
 
-    groupRepository.findById(groupId).orElseThrow().update(charging(8));
+    groupRepository.save(DemandFixtures.charging(draft, 2, "7.4"));
     idle(draft);
 
     assertPendingStage("CALCULATION");
@@ -270,7 +268,7 @@ class DesignerDashboardIntegrationTest {
   void calculatingAndChangingDocumentsKeepADraftOffTheIdleList() throws Exception {
     publishTables();
     Project draft = projectRepository.save(project("2026-5171", ProjectStatus.DRAFT, owner));
-    groupRepository.save(GroupKind.EV_CHARGING.create(draft, charging()));
+    groupRepository.save(DemandFixtures.charging(draft, 6, "7.4"));
 
     idle(draft);
     as(DESIGNER, post("/projects/" + draft.getId() + "/calculations"))
@@ -594,26 +592,6 @@ class DesignerDashboardIntegrationTest {
     normativeTableRepository.saveAll(
         NormativeTableSeed.all(
             standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
-  }
-
-  private static GroupSpec charging() {
-    return charging(6);
-  }
-
-  private static GroupSpec charging(int stations) {
-    return new GroupSpec(
-        "Recarga de veículo elétrico",
-        stations,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        new BigDecimal("7.4"),
-        false,
-        true,
-        EvStationType.COLLECTIVE);
   }
 
   private void event(Project project, ProjectEventType type, OffsetDateTime occurredAt) {
