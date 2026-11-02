@@ -1,5 +1,7 @@
 package br.com.ampere.service;
 
+import static br.com.ampere.utils.Timestamps.ZONE;
+
 import br.com.ampere.domain.AppliedTable;
 import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.CalculationStep;
@@ -33,7 +35,6 @@ import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -49,7 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class MemorialPdfService {
 
-  private static final ZoneId ZONE = ZoneId.of("America/Recife");
   private static final DateTimeFormatter DATE_FORMAT =
       DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
   private static final Locale PT_BR = Locale.of("pt", "BR");

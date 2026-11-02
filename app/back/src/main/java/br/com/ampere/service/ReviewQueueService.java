@@ -1,5 +1,7 @@
 package br.com.ampere.service;
 
+import static br.com.ampere.utils.Timestamps.ZONE;
+
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ReviewQueueFilter;
@@ -17,7 +19,6 @@ import br.com.ampere.utils.SearchTerms;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
@@ -33,8 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReviewQueueService {
 
   /** The day a deadline falls on depends on the time zone, so it is fixed in one place. */
-  public static final ZoneId ZONE = ZoneId.of("America/Recife");
-
   public static final BigDecimal HIGH_DEMAND_THRESHOLD = new BigDecimal("50");
 
   /** {@code reviewer} value for the projects no analyst picked up yet. */

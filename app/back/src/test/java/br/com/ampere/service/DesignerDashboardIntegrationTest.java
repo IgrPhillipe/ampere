@@ -34,6 +34,7 @@ import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.utils.Timestamps;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -192,7 +193,7 @@ class DesignerDashboardIntegrationTest {
   void listsTheProjectsUnderReviewFromTheShortestDeadline() throws Exception {
     submitted("2026-5201", now.minusDays(10), owner);
     submitted("2026-5202", now.minusDays(40), owner);
-    LocalDate today = LocalDate.now(ReviewQueueService.ZONE);
+    LocalDate today = LocalDate.now(Timestamps.ZONE);
 
     designerDashboard()
         .andExpect(jsonPath("$.data.hasSubmissions").value(true))
@@ -283,8 +284,7 @@ class DesignerDashboardIntegrationTest {
         projectRepository.findByProtocol("2026-5601").orElseThrow(),
         ProjectEventType.RESUBMITTED,
         now.minusDays(1));
-    LocalDate startOfYear =
-        DashboardPeriod.CURRENT_YEAR.since(LocalDate.now(ReviewQueueService.ZONE));
+    LocalDate startOfYear = DashboardPeriod.CURRENT_YEAR.since(LocalDate.now(Timestamps.ZONE));
     long submittedThisYear = submissions.stream().filter(at -> inYear(at, startOfYear)).count();
     long approvedThisYear =
         submissions.stream().filter(at -> inYear(at.plusDays(4), startOfYear)).count();
@@ -315,8 +315,8 @@ class DesignerDashboardIntegrationTest {
   void theOneSecondBeforeThePeriodStartsInRecifeIsLeftOut() throws Exception {
     OffsetDateTime start =
         DashboardPeriod.LAST_30_DAYS
-            .since(LocalDate.now(ReviewQueueService.ZONE))
-            .atStartOfDay(ReviewQueueService.ZONE)
+            .since(LocalDate.now(Timestamps.ZONE))
+            .atStartOfDay(Timestamps.ZONE)
             .toOffsetDateTime();
     Project before = submitted("2026-5661", start.minusSeconds(1), owner);
     event(before, ProjectEventType.SUBMITTED, start.minusSeconds(1));
@@ -421,7 +421,7 @@ class DesignerDashboardIntegrationTest {
   }
 
   private static boolean inYear(OffsetDateTime instant, LocalDate startOfYear) {
-    return !instant.atZoneSameInstant(ReviewQueueService.ZONE).toLocalDate().isBefore(startOfYear);
+    return !instant.atZoneSameInstant(Timestamps.ZONE).toLocalDate().isBefore(startOfYear);
   }
 
   private Project submitted(String protocol, OffsetDateTime submittedAt, User designer) {

@@ -15,6 +15,7 @@ import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectRepositoryCustom.ProjectSearch;
 import br.com.ampere.utils.SearchTerms;
+import br.com.ampere.utils.Timestamps;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -279,7 +280,7 @@ public class ProjectService {
   }
 
   private static OffsetDateTime startOf(LocalDate day) {
-    return day == null ? null : day.atStartOfDay(ReviewQueueService.ZONE).toOffsetDateTime();
+    return day == null ? null : day.atStartOfDay(Timestamps.ZONE).toOffsetDateTime();
   }
 
   private Map<Long, BigDecimal> latestDemands(List<Long> projectIds) {

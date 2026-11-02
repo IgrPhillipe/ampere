@@ -1,6 +1,6 @@
 package br.com.ampere.service;
 
-import static br.com.ampere.service.ReviewQueueService.ZONE;
+import static br.com.ampere.utils.Timestamps.ZONE;
 
 import br.com.ampere.domain.DashboardPeriod;
 import br.com.ampere.domain.FindingSeverity;
@@ -17,6 +17,7 @@ import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.service.DesignerDashboard.ActionItem;
 import br.com.ampere.service.DesignerDashboard.FindingRank;
 import br.com.ampere.service.DesignerDashboard.ReviewItem;
+import br.com.ampere.utils.Timestamps;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -150,9 +151,8 @@ public class DesignerDashboardService {
             .filter(approval -> approval.getFirstSubmittedAt() != null)
             .map(
                 approval ->
-                    ChronoUnit.DAYS.between(
-                        approval.getFirstSubmittedAt().atZoneSameInstant(ZONE).toLocalDate(),
-                        approval.getApprovedAt().atZoneSameInstant(ZONE).toLocalDate()))
+                    Timestamps.daysBetween(
+                        approval.getFirstSubmittedAt(), approval.getApprovedAt()))
             .toList();
     if (days.isEmpty()) {
       return null;
