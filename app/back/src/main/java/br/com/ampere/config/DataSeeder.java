@@ -77,7 +77,8 @@ public class DataSeeder implements CommandLineRunner {
   private final PasswordEncoder passwordEncoder;
   private final SeedTimestamps timestamps;
   private final Environment environment;
-  private final br.com.ampere.repository.ReviewerMunicipalityRepository reviewerMunicipalityRepository;
+  private final br.com.ampere.repository.ReviewerMunicipalityRepository
+      reviewerMunicipalityRepository;
 
   public DataSeeder(
       ProjectRepository projectRepository,

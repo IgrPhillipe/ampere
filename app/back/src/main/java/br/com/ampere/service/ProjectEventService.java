@@ -55,13 +55,7 @@ public class ProjectEventService {
         author == null
             ? "Análise atribuída pelo sistema."
             : "Análise atribuída por " + author.getName() + ".";
-    record(
-        project,
-        ProjectEventType.ASSIGNED,
-        author,
-        description,
-        null,
-        occurredAt);
+    record(project, ProjectEventType.ASSIGNED, author, description, null, occurredAt);
   }
 
   public void decided(

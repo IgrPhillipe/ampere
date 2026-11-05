@@ -50,10 +50,14 @@ public class ReviewerMunicipalityService {
   }
 
   @Transactional(readOnly = true)
-  public List<ReviewerMunicipalityItemResponse> listReviewersWithMunicipalities(AuthenticatedUser caller) {
+  public List<ReviewerMunicipalityItemResponse> listReviewersWithMunicipalities(
+      AuthenticatedUser caller) {
     caller.requireAdmin();
-    List<User> activeReviewers = userRepository.findAllByRoleInAndActiveTrueOrderByNameAsc(UserAdministrationService.REVIEWING_ROLES);
-    List<ReviewerMunicipality> allMunicipalities = municipalityRepository.findAllByOrderByStateAscMunicipalityAsc();
+    List<User> activeReviewers =
+        userRepository.findAllByRoleInAndActiveTrueOrderByNameAsc(
+            UserAdministrationService.REVIEWING_ROLES);
+    List<ReviewerMunicipality> allMunicipalities =
+        municipalityRepository.findAllByOrderByStateAscMunicipalityAsc();
 
     Map<Long, List<MunicipalityAssignmentDto>> byReviewer = new LinkedHashMap<>();
     for (User reviewer : activeReviewers) {
@@ -101,7 +105,11 @@ public class ReviewerMunicipalityService {
           ConcessionArea.municipalityOf(item.state(), item.municipality());
       if (canonicalName.isEmpty()) {
         throw new BusinessException(
-            "Município fora da área de concessão: " + item.municipality() + " (" + item.state() + ").",
+            "Município fora da área de concessão: "
+                + item.municipality()
+                + " ("
+                + item.state()
+                + ").",
             HttpStatus.BAD_REQUEST);
       }
       String canonical = canonicalName.get();
@@ -129,7 +137,8 @@ public class ReviewerMunicipalityService {
     municipalityRepository.flush();
 
     for (MunicipalityAssignmentDto item : normalizedList) {
-      municipalityRepository.save(new ReviewerMunicipality(reviewer, item.state(), item.municipality()));
+      municipalityRepository.save(
+          new ReviewerMunicipality(reviewer, item.state(), item.municipality()));
     }
 
     return normalizedList;
@@ -213,7 +222,8 @@ public class ReviewerMunicipalityService {
     }
 
     Optional<ReviewerMunicipality> match =
-        municipalityRepository.findByStateAndMunicipality(project.getState(), project.getMunicipality());
+        municipalityRepository.findByStateAndMunicipality(
+            project.getState(), project.getMunicipality());
     if (match.isPresent()) {
       User reviewer = match.get().getReviewer();
       if (reviewer.isActive()) {

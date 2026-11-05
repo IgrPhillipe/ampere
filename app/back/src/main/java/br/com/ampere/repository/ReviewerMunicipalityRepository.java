@@ -16,7 +16,8 @@ public interface ReviewerMunicipalityRepository extends JpaRepository<ReviewerMu
   List<ReviewerMunicipality> findAllByReviewerIdOrderByStateAscMunicipalityAsc(Long reviewerId);
 
   @EntityGraph(attributePaths = {"reviewer"})
-  Optional<ReviewerMunicipality> findByStateAndMunicipality(BrazilianState state, String municipality);
+  Optional<ReviewerMunicipality> findByStateAndMunicipality(
+      BrazilianState state, String municipality);
 
   void deleteAllByReviewerId(Long reviewerId);
 }

@@ -37,7 +37,9 @@ abstract class SeedIntegrationTestBase {
   @Autowired protected PlatformTransactionManager transactionManager;
   @Autowired protected EntityManager entityManager;
   @Autowired protected Environment environment;
-  @Autowired protected br.com.ampere.repository.ReviewerMunicipalityRepository reviewerMunicipalityRepository;
+
+  @Autowired
+  protected br.com.ampere.repository.ReviewerMunicipalityRepository reviewerMunicipalityRepository;
 
   protected TransactionTemplate transaction() {
     return new TransactionTemplate(transactionManager);

@@ -62,7 +62,9 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
     assertThat(projectRepository.findAll())
         .extracting(Project::getProtocol)
         .containsExactlyInAnyOrderElementsOf(SCENARIO_PROTOCOLS);
-    assertThat(SCENARIO_PROTOCOLS).hasSize(53).contains("2026-1001", "2026-1008", "2026-2019", "2026-2044", "2026-2045");
+    assertThat(SCENARIO_PROTOCOLS)
+        .hasSize(53)
+        .contains("2026-1001", "2026-1008", "2026-2019", "2026-2044", "2026-2045");
   }
 
   @Test

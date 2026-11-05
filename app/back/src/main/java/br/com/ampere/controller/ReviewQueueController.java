@@ -188,7 +188,8 @@ public class ReviewQueueController {
   public ApiResponse<Void> assignBatch(
       @Valid @RequestBody br.com.ampere.dto.BatchAssignmentRequest request,
       @AuthenticationPrincipal Jwt jwt) {
-    reviewerMunicipalityService.assignBatch(request.projectIds(), request.reviewerId(), userOf(jwt));
+    reviewerMunicipalityService.assignBatch(
+        request.projectIds(), request.reviewerId(), userOf(jwt));
     return ApiResponse.empty();
   }
 

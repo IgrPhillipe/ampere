@@ -14,9 +14,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.util.Objects;
 
-/**
- * Responsibility rule linking a municipality in the concession area to a single reviewer.
- */
+/** Responsibility rule linking a municipality in the concession area to a single reviewer. */
 @Entity
 @Table(
     name = "reviewer_municipality",
