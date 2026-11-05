@@ -58,6 +58,8 @@ export const reviewQueueItemSchema = z.object({
 	demandKva: z.number().nonnegative().nullable(),
 	reanalysis: z.boolean(),
 	reviewCycle: z.number().int().positive(),
+	reviewerId: z.string().nullable().optional(),
+	reviewerName: z.string().nullable().optional(),
 });
 
 export type ReviewQueueItem = z.infer<typeof reviewQueueItemSchema>;

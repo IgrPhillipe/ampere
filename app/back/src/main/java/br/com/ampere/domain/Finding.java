@@ -122,6 +122,11 @@ public class Finding {
   }
 
   /** The group was deleted: the finding stays, pointing to the stage only. */
+  public void changeAuthor(User newAuthor) {
+    this.author = Objects.requireNonNull(newAuthor, "newAuthor");
+  }
+
+  /** The group was deleted: the finding stays, pointing to the stage only. */
   public void detachGroup() {
     consumerUnitGroup = null;
   }

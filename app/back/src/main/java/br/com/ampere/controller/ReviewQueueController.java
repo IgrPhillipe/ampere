@@ -35,9 +35,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReviewQueueController {
 
   private final ReviewQueueService service;
+  private final br.com.ampere.service.ReviewerMunicipalityService reviewerMunicipalityService;
 
-  public ReviewQueueController(ReviewQueueService service) {
+  public ReviewQueueController(
+      ReviewQueueService service,
+      br.com.ampere.service.ReviewerMunicipalityService reviewerMunicipalityService) {
     this.service = service;
+    this.reviewerMunicipalityService = reviewerMunicipalityService;
   }
 
   @GetMapping
@@ -158,6 +162,34 @@ public class ReviewQueueController {
   })
   public ApiResponse<ReviewQueueIndicatorsResponse> indicators(@AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(ReviewQueueIndicatorsResponse.from(service.indicators(userOf(jwt))));
+  }
+
+  @PutMapping("/assignment")
+  @Operation(
+      operationId = "assignReviewQueueBatch",
+      summary = "Atribui ou reatribui vários projetos de uma vez")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Projetos atribuídos com sucesso"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "Apenas administradores acessam este recurso"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "Projeto ou analista não encontrado"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "409",
+        description = "Projeto fora de UNDER_REVIEW"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "422",
+        description = "Analista inativo ou com papel user")
+  })
+  public ApiResponse<Void> assignBatch(
+      @Valid @RequestBody br.com.ampere.dto.BatchAssignmentRequest request,
+      @AuthenticationPrincipal Jwt jwt) {
+    reviewerMunicipalityService.assignBatch(request.projectIds(), request.reviewerId(), userOf(jwt));
+    return ApiResponse.empty();
   }
 
   private static AuthenticatedUser userOf(Jwt jwt) {

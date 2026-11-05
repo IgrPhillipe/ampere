@@ -37,12 +37,14 @@ abstract class SeedIntegrationTestBase {
   @Autowired protected PlatformTransactionManager transactionManager;
   @Autowired protected EntityManager entityManager;
   @Autowired protected Environment environment;
+  @Autowired protected br.com.ampere.repository.ReviewerMunicipalityRepository reviewerMunicipalityRepository;
 
   protected TransactionTemplate transaction() {
     return new TransactionTemplate(transactionManager);
   }
 
   protected void wipe() {
+    reviewerMunicipalityRepository.deleteAll();
     eventRepository.deleteAll();
     documentRepository.deleteAll();
     calculationRepository.deleteAll();
@@ -62,7 +64,8 @@ abstract class SeedIntegrationTestBase {
         userRepository,
         passwordEncoder,
         new SeedTimestamps(entityManager),
-        seedEnvironment);
+        seedEnvironment,
+        reviewerMunicipalityRepository);
   }
 
   protected void bootstrap() {

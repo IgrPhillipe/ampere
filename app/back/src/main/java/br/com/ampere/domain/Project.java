@@ -251,6 +251,10 @@ public class Project {
     this.reviewer = Objects.requireNonNull(reviewer, "reviewer");
   }
 
+  public void clearReviewer() {
+    this.reviewer = null;
+  }
+
   public boolean isAssignedTo(Long userId) {
     return reviewer != null && reviewer.getId().equals(userId);
   }

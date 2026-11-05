@@ -28,7 +28,9 @@ public record ReviewQueueItemResponse(
     long consumerUnitsCount,
     BigDecimal demandKva,
     boolean reanalysis,
-    @Schema(description = "Número do envio para análise, a partir de 1") int reviewCycle) {
+    @Schema(description = "Número do envio para análise, a partir de 1") int reviewCycle,
+    String reviewerId,
+    String reviewerName) {
 
   public static ReviewQueueItemResponse from(ReviewQueueEntry entry) {
     Project project = entry.project();
@@ -49,6 +51,8 @@ public record ReviewQueueItemResponse(
         entry.consumerUnitsCount(),
         entry.demandKva(),
         project.isReanalysis(),
-        project.getReviewCycle());
+        project.getReviewCycle(),
+        project.getReviewer() == null ? null : String.valueOf(project.getReviewer().getId()),
+        project.getReviewer() == null ? null : project.getReviewer().getName());
   }
 }

@@ -98,23 +98,31 @@ class ProjectReviewWorkflowIntegrationTest {
     otherAnalyst =
         userRepository.save(new User("Carlos Analista", "carlos@ampere.com", hash, UserRole.ADMIN));
     project = submittedProject("2026-7001", owner);
+    project.assignReviewer(analyst);
+    projectRepository.save(project);
   }
 
   @Test
-  void assignsExactlyOneAnalystAndOnlyThatAnalystCanWriteFindings() throws Exception {
+  void allowsOnlyAssignedAnalystToOpenReviewAndWriteFindings() throws Exception {
+    Project unassigned = submittedProject("2026-7099", owner);
     mockMvc
         .perform(
-            post("/projects/{id}/review", project.getId())
+            post("/projects/{id}/review", unassigned.getId())
                 .header(HttpHeaders.AUTHORIZATION, bearer(owner)))
         .andExpect(status().isForbidden());
-    assign(project, analyst)
+
+    assign(unassigned, analyst).andExpect(status().isForbidden());
+
+    unassigned.assignReviewer(analyst);
+    projectRepository.save(unassigned);
+
+    assign(unassigned, analyst)
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.reviewerId").value(analyst.getId()));
-    assign(project, analyst).andExpect(status().isOk());
-    assign(project, otherAnalyst).andExpect(status().isConflict());
+    assign(unassigned, otherAnalyst).andExpect(status().isForbidden());
     mockMvc
         .perform(
-            get("/projects/{id}", project.getId())
+            get("/projects/{id}", unassigned.getId())
                 .header(HttpHeaders.AUTHORIZATION, bearer(otherAnalyst)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.ownerName").value("Ana Projetista"))
@@ -122,14 +130,14 @@ class ProjectReviewWorkflowIntegrationTest {
 
     mockMvc
         .perform(
-            post("/projects/{id}/findings", project.getId())
+            post("/projects/{id}/findings", unassigned.getId())
                 .header(HttpHeaders.AUTHORIZATION, bearer(otherAnalyst))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(FINDING_BODY))
         .andExpect(status().isForbidden());
     mockMvc
         .perform(
-            post("/projects/{id}/findings", project.getId())
+            post("/projects/{id}/findings", unassigned.getId())
                 .header(HttpHeaders.AUTHORIZATION, bearer(analyst))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(FINDING_BODY))
@@ -140,20 +148,20 @@ class ProjectReviewWorkflowIntegrationTest {
 
     mockMvc
         .perform(
-            get("/projects/{id}/findings", project.getId())
+            get("/projects/{id}/findings", unassigned.getId())
                 .header(HttpHeaders.AUTHORIZATION, bearer(analyst)))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.data[0].description").value("Anexar a comprovação do sistema de recarga."));
     mockMvc
         .perform(
-            get("/projects/{id}/findings", project.getId())
+            get("/projects/{id}/findings", unassigned.getId())
                 .header(HttpHeaders.AUTHORIZATION, bearer(owner)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data").isEmpty());
     mockMvc
         .perform(
-            get("/projects/{id}/findings", project.getId())
+            get("/projects/{id}/findings", unassigned.getId())
                 .header(HttpHeaders.AUTHORIZATION, bearer(otherOwner)))
         .andExpect(status().isNotFound());
   }

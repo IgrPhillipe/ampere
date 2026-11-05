@@ -164,6 +164,15 @@ final class ScenarioCase {
     return this;
   }
 
+  ScenarioCase assignAutomatically(User reviewer) {
+    if (!project.isAssignedTo(reviewer.getId())) {
+      project.assignReviewer(reviewer);
+      kit.events.assigned(project, null, cursor);
+    }
+
+    return this;
+  }
+
   ScenarioCase submit(int daysAgo) {
     OffsetDateTime submittedAt = advance(daysAgo, 0);
     Calculation calculation =

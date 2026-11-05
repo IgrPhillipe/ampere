@@ -40,11 +40,10 @@ public class ProjectReviewService {
     this.eventService = eventService;
   }
 
-  /** Assigning again to the same analyst changes nothing. */
+  /** Checks that the analyst is assigned to this project and can open the review. */
   @Transactional
   public Project assign(Long projectId, AuthenticatedUser user) {
     user.requireReviewer();
-    // Two analysts at once would both find the project free.
     projectRepository.lockById(projectId);
     Project project = projectService.findById(projectId, user);
     if (project.isOwnedBy(user.id())) {
@@ -53,18 +52,9 @@ public class ProjectReviewService {
     if (!project.isUnderReview()) {
       throw new BusinessException(NOT_UNDER_REVIEW, HttpStatus.CONFLICT);
     }
-    if (project.getReviewer() != null && !project.isAssignedTo(user.id())) {
+    if (project.getReviewer() == null || !project.isAssignedTo(user.id())) {
       throw new BusinessException(
-          "Este projeto já foi assumido por outro analista.", HttpStatus.CONFLICT);
-    }
-
-    if (project.getReviewer() == null) {
-      User reviewer =
-          userRepository
-              .findById(user.id())
-              .orElseThrow(() -> new NotFoundException("Usuário autenticado não encontrado."));
-      project.assignReviewer(reviewer);
-      eventService.assigned(project, reviewer, Timestamps.now());
+          "Somente o analista responsável pode abrir a análise.", HttpStatus.FORBIDDEN);
     }
 
     return project;

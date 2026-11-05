@@ -77,6 +77,7 @@ public class DataSeeder implements CommandLineRunner {
   private final PasswordEncoder passwordEncoder;
   private final SeedTimestamps timestamps;
   private final Environment environment;
+  private final br.com.ampere.repository.ReviewerMunicipalityRepository reviewerMunicipalityRepository;
 
   public DataSeeder(
       ProjectRepository projectRepository,
@@ -85,7 +86,8 @@ public class DataSeeder implements CommandLineRunner {
       UserRepository userRepository,
       PasswordEncoder passwordEncoder,
       SeedTimestamps timestamps,
-      Environment environment) {
+      Environment environment,
+      br.com.ampere.repository.ReviewerMunicipalityRepository reviewerMunicipalityRepository) {
     this.projectRepository = projectRepository;
     this.standardRepository = standardRepository;
     this.normativeTableRepository = normativeTableRepository;
@@ -93,12 +95,14 @@ public class DataSeeder implements CommandLineRunner {
     this.passwordEncoder = passwordEncoder;
     this.timestamps = timestamps;
     this.environment = environment;
+    this.reviewerMunicipalityRepository = reviewerMunicipalityRepository;
   }
 
   @Override
   @Transactional
   public void run(String... args) {
     seedUsers();
+    seedReviewerMunicipalities();
     demoteLegacyReviewer();
     indexLegacyUsers();
     completeDevelopmentProfile();
@@ -111,6 +115,20 @@ public class DataSeeder implements CommandLineRunner {
       dateLegacySubmissions();
     }
     seedNormativeTables(seedStandards());
+  }
+
+  private void seedReviewerMunicipalities() {
+    if (reviewerMunicipalityRepository.count() > 0) {
+      return;
+    }
+    userRepository
+        .findByEmail(SECOND_ANALYST_EMAIL)
+        .ifPresent(
+            ana -> {
+              reviewerMunicipalityRepository.save(
+                  new br.com.ampere.domain.ReviewerMunicipality(
+                      ana, br.com.ampere.domain.BrazilianState.PE, "Caruaru"));
+            });
   }
 
   /** Users created before the administrator's search existed get their search index. */

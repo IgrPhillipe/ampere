@@ -75,6 +75,8 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 | 2026-2015 | Sede Regional Administrativa | A | Revisor | No prazo | Projeto do administrador analisado por outro |
 | 2026-2040 | Condomínio Pedras Norte | J | Sem analista | No prazo | Paraíba na fila |
 | 2026-2043 | Edifício Comercial Centro de Pedras | J | Ana | No prazo | Paraíba com a segunda analista |
+| 2026-2044 | Residencial Caruaru Prime | U | Ana | No prazo | Distribuído automaticamente para Ana no envio pela regra do município Caruaru |
+| 2026-2045 | Empresarial Gravatá Plaza | C | Sem analista | No prazo | Município sem analista atribuído: fica Não Atribuído na fila |
 | 2026-1008 | Condomínio Jardim Recife | U | Revisor | Reanálise 2 | Reenviado com resumo das alterações; apontamentos respondidos |
 | 2026-2009 | Condomínio Graças Garden | U | Revisor | Reanálise 2 | Resposta longa, um apontamento corrigido e outro contestado; grupo corrigido e novo cálculo |
 | 2026-2010 | Residencial Espinheiro | U | Revisor | Reanálise 2 | Analista já aceitou uma resposta e reabriu a outra |

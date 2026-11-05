@@ -733,6 +733,34 @@ final class DemoScenarios {
               ready(c, 15, commercial("Salas", 12));
               c.submit(12).assignTo(u.ana());
             }),
+        Scenario.of(
+            "2026-2044",
+            "Residencial Caruaru Prime",
+            "Avenida Agamenon Magalhães, 500",
+            "Caruaru",
+            "55014000",
+            residential(8, V380),
+            u.user(),
+            10,
+            // Distributed automatically to Ana on submission because Caruaru is in her list.
+            c -> {
+              ready(c, 7, apartments("Apartamento padrão", 16, "65", 2, "6.00"));
+              c.submit(4).assignAutomatically(u.ana());
+            }),
+        Scenario.of(
+            "2026-2045",
+            "Empresarial Gravatá Plaza",
+            "Rua Cleto Campelo, 80",
+            "Gravatá",
+            "55641000",
+            nonResidential(4, V380),
+            u.carla(),
+            12,
+            // Municipality without an assigned reviewer: remains unassigned in the queue.
+            c -> {
+              ready(c, 8, commercial("Salas comerciais", 8));
+              c.submit(6);
+            }),
         reanalysisOfGracasGarden(u),
         reanalysisOfEspinheiro(u),
         threeCyclesOfRecifeAntigo(u));
