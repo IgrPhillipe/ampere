@@ -263,5 +263,36 @@ describe("ConsumerUnitsPage", () => {
 		expect(
 			screen.queryByRole("combobox", { name: /Parcela/i }),
 		).not.toBeInTheDocument();
+		expect(screen.getByText("Nenhuma carga informada.")).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: /Adicionar Carga/i }),
+		).not.toBeInTheDocument();
+	});
+
+	it("hides the load actions from an analyst", async () => {
+		signInAs("reviewer");
+		state.project = makeProjectDetail({ id: "4", status: "UNDER_REVIEW" });
+		state.groups = [
+			makeLoadGroup({
+				items: [
+					{
+						category: "MOTORS",
+						description: "Elevador",
+						quantity: 1,
+						powerUnit: "KW",
+					},
+				],
+			}),
+		];
+
+		renderPage();
+		fireEvent.click(
+			screen.getAllByRole("button", { name: "Administração" })[0],
+		);
+
+		expect(await screen.findByDisplayValue("Elevador")).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: /Remover Carga/i }),
+		).not.toBeInTheDocument();
 	});
 });

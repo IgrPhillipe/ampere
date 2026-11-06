@@ -131,21 +131,24 @@ export const LoadGroupForm = ({
 							Cargas Instaladas
 						</h3>
 
-						<Button
-							type="button"
-							variant="link"
-							size="sm"
-							onClick={() => items.append(EMPTY_ITEM)}
-						>
-							<Plus aria-hidden="true" />
-							Adicionar Carga
-						</Button>
+						{readOnly ? null : (
+							<Button
+								type="button"
+								variant="link"
+								size="sm"
+								onClick={() => items.append(EMPTY_ITEM)}
+							>
+								<Plus aria-hidden="true" />
+								Adicionar Carga
+							</Button>
+						)}
 					</div>
 
 					{items.fields.length === 0 ? (
 						<p className="text-sm text-muted-foreground">
-							Nenhuma carga informada. Adicione iluminação, motores, bombas e
-							demais cargas do grupo.
+							{readOnly
+								? "Nenhuma carga informada."
+								: "Nenhuma carga informada. Adicione iluminação, motores, bombas e demais cargas do grupo."}
 						</p>
 					) : null}
 
@@ -236,16 +239,18 @@ export const LoadGroupForm = ({
 										/>
 									) : null}
 
-									<Button
-										type="button"
-										variant="destructive-ghost"
-										size="sm"
-										onClick={() => items.remove(index)}
-										className="justify-self-start sm:col-span-2"
-									>
-										<Trash2 aria-hidden="true" />
-										Remover Carga
-									</Button>
+									{readOnly ? null : (
+										<Button
+											type="button"
+											variant="destructive-ghost"
+											size="sm"
+											onClick={() => items.remove(index)}
+											className="justify-self-start sm:col-span-2"
+										>
+											<Trash2 aria-hidden="true" />
+											Remover Carga
+										</Button>
+									)}
 								</div>
 							</li>
 						))}
