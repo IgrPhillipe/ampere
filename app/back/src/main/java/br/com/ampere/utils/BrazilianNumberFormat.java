@@ -5,7 +5,6 @@ import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Locale;
 
-/** Formats exported values using the same two decimal places shown by the application. */
 public final class BrazilianNumberFormat {
 
   private static final Locale LOCALE = Locale.forLanguageTag("pt-BR");
@@ -13,10 +12,6 @@ public final class BrazilianNumberFormat {
   private BrazilianNumberFormat() {}
 
   public static String format(BigDecimal value) {
-    if (value == null) {
-      return "";
-    }
-
     NumberFormat format = NumberFormat.getNumberInstance(LOCALE);
     format.setGroupingUsed(true);
     format.setMinimumFractionDigits(2);
