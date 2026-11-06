@@ -124,7 +124,10 @@ return ApiResponse.of(items, new Pagination(items.size(), 1, items.size()));
 
 O `pagination` é omitido quando nulo. Os nomes dos campos espelham o tipo do front e precisam ser idênticos.
 
-A única exceção é `204 No Content`, que por definição não tem corpo: o `DELETE /projects/{id}` devolve vazio, não um `200` com `data` nulo.
+Duas exceções:
+
+- `204 No Content`, que por definição não tem corpo: o `DELETE /projects/{id}` devolve vazio, não um `200` com `data` nulo.
+- Download de arquivo, que devolve os bytes com `Content-Disposition`: memorial, documentos e exportações em planilha. Erro nessas rotas continua em `ProblemDetail`.
 
 ### `id` Sai como String
 

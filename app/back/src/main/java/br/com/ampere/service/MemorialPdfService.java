@@ -1,7 +1,5 @@
 package br.com.ampere.service;
 
-import static br.com.ampere.utils.Timestamps.ZONE;
-
 import br.com.ampere.domain.AppliedTable;
 import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.CalculationStep;
@@ -12,6 +10,8 @@ import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
+import br.com.ampere.utils.BrazilianDateFormat;
+import br.com.ampere.utils.BrazilianNumberFormat;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.Element;
@@ -33,9 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -50,8 +47,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class MemorialPdfService {
 
-  private static final DateTimeFormatter DATE_FORMAT =
-      DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
   private static final Locale PT_BR = Locale.of("pt", "BR");
   private static final String EMPTY = "Não informado";
 
@@ -197,7 +192,7 @@ public class MemorialPdfService {
     addStampCell(
         stamp,
         "Data do cálculo",
-        calculation.getCalculatedAt().atZoneSameInstant(ZONE).format(DATE_FORMAT),
+        BrazilianDateFormat.dateTime(calculation.getCalculatedAt()),
         false);
     document.add(stamp);
   }
@@ -264,9 +259,7 @@ public class MemorialPdfService {
     addField(fields, "Tipo de ligação", calculation.getConnectionType().label());
     addField(fields, "Padrão de entrada", calculation.getEntranceStandard().label());
     addField(
-        fields,
-        "Data do cálculo",
-        calculation.getCalculatedAt().atZoneSameInstant(ZONE).format(DATE_FORMAT));
+        fields, "Data do cálculo", BrazilianDateFormat.dateTime(calculation.getCalculatedAt()));
     document.add(fields);
   }
 
@@ -523,7 +516,7 @@ public class MemorialPdfService {
       return EMPTY;
     }
 
-    return new DecimalFormat("#,##0.00", DecimalFormatSymbols.getInstance(PT_BR)).format(value);
+    return BrazilianNumberFormat.format(value);
   }
 
   private static String orEmpty(String value) {

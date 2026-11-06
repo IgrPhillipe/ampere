@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,26 +59,42 @@ public class ReviewQueueService {
   public ReviewQueueListing list(
       int page, int pageSize, ReviewQueueQuery query, AuthenticatedUser user) {
     user.requireReviewer();
-    String reviewer = query.reviewer() == null ? "" : query.reviewer().trim();
-    boolean unassigned = UNASSIGNED.equalsIgnoreCase(reviewer);
     LocalDate today = LocalDate.now(ZONE);
-
     Page<Project> projects =
         projectRepository.searchReviewQueue(
-            new ReviewQueueSearch(
-                SearchTerms.normalize(query.search()),
-                query.filter() == ReviewQueueFilter.DUE_SOON ? dueSoonCutoff(today) : null,
-                query.filter() == ReviewQueueFilter.HIGH_DEMAND ? HIGH_DEMAND_THRESHOLD : null,
-                query.filter() == ReviewQueueFilter.REANALYSIS,
-                query.states(),
-                query.municipalities(),
-                reviewer.isEmpty() || unassigned ? null : analystId(reviewer),
-                unassigned,
-                query.owner(),
-                query.sort(),
-                query.direction()),
-            PageRequest.of(page - 1, pageSize));
+            search(query, today), PageRequest.of(page - 1, pageSize));
 
+    return listing(projects, today);
+  }
+
+  @Transactional(readOnly = true)
+  public ReviewQueueListing listAll(ReviewQueueQuery query, AuthenticatedUser user) {
+    user.requireReviewer();
+    LocalDate today = LocalDate.now(ZONE);
+
+    return listing(
+        projectRepository.searchReviewQueue(search(query, today), Pageable.unpaged()), today);
+  }
+
+  private ReviewQueueSearch search(ReviewQueueQuery query, LocalDate today) {
+    String reviewer = query.reviewer() == null ? "" : query.reviewer().trim();
+    boolean unassigned = UNASSIGNED.equalsIgnoreCase(reviewer);
+
+    return new ReviewQueueSearch(
+        SearchTerms.normalize(query.search()),
+        query.filter() == ReviewQueueFilter.DUE_SOON ? dueSoonCutoff(today) : null,
+        query.filter() == ReviewQueueFilter.HIGH_DEMAND ? HIGH_DEMAND_THRESHOLD : null,
+        query.filter() == ReviewQueueFilter.REANALYSIS,
+        query.states(),
+        query.municipalities(),
+        reviewer.isEmpty() || unassigned ? null : analystId(reviewer),
+        unassigned,
+        query.owner(),
+        query.sort(),
+        query.direction());
+  }
+
+  private ReviewQueueListing listing(Page<Project> projects, LocalDate today) {
     List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
     Map<Long, List<String>> warnings = latestWarnings(projectIds);
     Map<Long, Long> consumerUnits = groupRepository.unitsPerProject(projectIds);

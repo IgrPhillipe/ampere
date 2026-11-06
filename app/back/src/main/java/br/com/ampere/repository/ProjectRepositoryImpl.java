@@ -273,8 +273,10 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
     TypedQuery<Project> query =
         entityManager.createQuery(select + " " + where + " ORDER BY " + orderBy, Project.class);
     parameters.forEach(query::setParameter);
-    query.setFirstResult((int) pageable.getOffset());
-    query.setMaxResults(pageable.getPageSize());
+    if (pageable.isPaged()) {
+      query.setFirstResult((int) pageable.getOffset());
+      query.setMaxResults(pageable.getPageSize());
+    }
 
     return new PageImpl<>(query.getResultList(), pageable, total);
   }
