@@ -112,14 +112,9 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 				},
 			},
 			{
-				onSuccess: (response) => {
+				onSuccess: ({ data: group }) => {
 					cancelAdding();
-					const group = response.data;
-					const isLoadGroup = group.kind === "LOAD";
-					setOpened({
-						group,
-						focusField: isLoadGroup ? "items[0].category" : undefined,
-					});
+					setOpened({ group, focusField: group.issues[0]?.field });
 				},
 			},
 		);

@@ -42,22 +42,26 @@ export const LoadGroupForm = ({
 	onCancel,
 	onDelete,
 }: GroupFormProps<LoadGroup>) => {
+	// The back points the missing loads issue at the whole list.
+	const startsOnFirstItem =
+		!readOnly && focusField === "items" && group.items.length === 0;
+	const initialFocus = startsOnFirstItem ? "items[0].description" : focusField;
+
 	const form = useZodForm(loadGroupFormSchema, {
 		name: group.name,
 		quantity: group.quantity,
 		usage: group.usage ?? null,
-		items:
-			group.items.length > 0
-				? group.items.map((item) => ({
-						category: item.category,
-						description: item.description,
-						quantity: item.quantity,
-						power: item.power ?? null,
-						powerUnit: item.powerUnit,
-						lampTechnology: item.lampTechnology ?? null,
-						simultaneousStart: toYesNo(item.simultaneousStart),
-					}))
-				: [EMPTY_ITEM],
+		items: startsOnFirstItem
+			? [EMPTY_ITEM]
+			: group.items.map((item) => ({
+					category: item.category,
+					description: item.description,
+					quantity: item.quantity,
+					power: item.power ?? null,
+					powerUnit: item.powerUnit,
+					lampTechnology: item.lampTechnology ?? null,
+					simultaneousStart: toYesNo(item.simultaneousStart),
+				})),
 	});
 
 	const items = useFieldArray({ control: form.control, name: "items" });
@@ -66,7 +70,7 @@ export const LoadGroupForm = ({
 		({ category }) => category,
 	);
 
-	useEffect(() => focusIssueField(form, focusField), [form, focusField]);
+	useEffect(() => focusIssueField(form, initialFocus), [form, initialFocus]);
 
 	const submit = (values: LoadGroupFormValues) =>
 		onSave({

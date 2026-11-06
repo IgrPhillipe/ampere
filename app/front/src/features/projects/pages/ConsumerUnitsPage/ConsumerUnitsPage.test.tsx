@@ -104,6 +104,12 @@ const submitNewGroup = async (
 	fireEvent.click(screen.getAllByRole("button", { name: /Salvar Grupo/i })[0]);
 };
 
+const missingData = (field: string) => ({
+	severity: "MISSING_DATA" as const,
+	field,
+	message: "Informe o dado.",
+});
+
 const makeLoadGroup = (
 	overrides: Partial<Extract<ConsumerUnitGroup, { kind: "LOAD" }>> = {},
 ): ConsumerUnitGroup => ({
@@ -157,22 +163,105 @@ describe("ConsumerUnitsPage", () => {
 		});
 	});
 
+	it("opens a new residential group on its first pending field", async () => {
+		state.createGroup = respondWith({
+			id: "101",
+			name: "Cobertura",
+			kind: "RESIDENTIAL",
+			quantity: 2,
+			status: "MISSING_DATA",
+			issues: [missingData("usefulArea")],
+			declaredLoadKw: 0,
+			summary: "2 unidades",
+		});
+
+		renderPage();
+		await submitNewGroup("Cobertura", "Apartamento", "2");
+
+		await waitFor(() => {
+			expect(
+				screen.getByRole("spinbutton", { name: /Área útil/i }),
+			).toHaveFocus();
+		});
+	});
+
+	it("keeps the line open when the group is not saved", async () => {
+		renderPage();
+		await submitNewGroup("Administração", "Área comum", "1");
+
+		await waitFor(() => {
+			expect(state.createGroup.mutate).toHaveBeenCalledTimes(1);
+		});
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+		expect(screen.getAllByPlaceholderText("Nome do grupo")[0]).toHaveValue(
+			"Administração",
+		);
+	});
+
 	it.each([
 		["Área comum", "Administração", "COMMON_AREA"],
 		["Carga comercial", "Salas Comerciais", "COMMERCIAL"],
-	] as const)("saves a %s group and opens the Sheet focusing the first load category", async (option, name, usage) => {
-		state.createGroup = respondWith(makeLoadGroup({ name, usage }));
+	] as const)("opens a new %s group on the first load", async (option, name, usage) => {
+		state.createGroup = respondWith(
+			makeLoadGroup({ name, usage, issues: [missingData("items")] }),
+		);
 
 		renderPage();
 		await submitNewGroup(name, option, "1");
 
 		await waitFor(() => {
-			expect(state.createGroup.mutate).toHaveBeenCalledTimes(1);
 			expect(screen.getByRole("heading", { name })).toBeInTheDocument();
+			expect(screen.getByRole("textbox", { name: /Descrição/i })).toHaveFocus();
 		});
+	});
+
+	it("opens the first load from the missing loads issue", async () => {
+		state.groups = [makeLoadGroup({ issues: [missingData("items")] })];
+
+		renderPage();
+		fireEvent.click(screen.getByRole("button", { name: "Informar Dado" }));
 
 		await waitFor(() => {
-			expect(screen.getByRole("combobox", { name: /Parcela/i })).toHaveFocus();
+			expect(screen.getByRole("textbox", { name: /Descrição/i })).toHaveFocus();
 		});
+	});
+
+	it("saves a group without loads opened from the table", async () => {
+		state.groups = [makeLoadGroup()];
+
+		renderPage();
+		fireEvent.click(
+			screen.getAllByRole("button", { name: "Administração" })[0],
+		);
+
+		expect(
+			await screen.findByText(/Nenhuma carga informada\. Adicione/),
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("combobox", { name: /Parcela/i }),
+		).not.toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole("button", { name: /Salvar Grupo/i }));
+
+		await waitFor(() => {
+			expect(state.updateGroup.mutate).toHaveBeenCalledTimes(1);
+		});
+		expect(state.updateGroup.mutate.mock.calls[0][0]).toMatchObject({
+			payload: { items: [] },
+		});
+	});
+
+	it("does not invent a load for an analyst", async () => {
+		signInAs("reviewer");
+		state.project = makeProjectDetail({ id: "4", status: "REJECTED" });
+		state.groups = [makeLoadGroup({ issues: [missingData("items")] })];
+
+		renderPage();
+		fireEvent.click(screen.getByRole("button", { name: "Informar Dado" }));
+
+		expect(await screen.findByRole("dialog")).toBeInTheDocument();
+		expect(
+			screen.queryByRole("combobox", { name: /Parcela/i }),
+		).not.toBeInTheDocument();
 	});
 });
