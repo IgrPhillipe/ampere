@@ -78,6 +78,48 @@ const pickUsage = async (option: string) => {
 	await waitFor(() => expect(screen.queryAllByRole("option")).toHaveLength(0));
 };
 
+const respondWith = (group: ConsumerUnitGroup) => ({
+	...idleMutation(),
+	mutate: vi.fn((_args, options) => {
+		const response: ConsumerUnitGroupResponse = { data: group };
+		options?.onSuccess?.(response);
+	}),
+});
+
+const submitNewGroup = async (
+	name: string,
+	usage: string,
+	quantity: string,
+) => {
+	fireEvent.click(
+		screen.getAllByRole("button", { name: /Adicionar Grupo/i })[0],
+	);
+	fireEvent.change(screen.getAllByPlaceholderText("Nome do grupo")[0], {
+		target: { value: name },
+	});
+	await pickUsage(usage);
+	fireEvent.change(screen.getAllByPlaceholderText("00")[0], {
+		target: { value: quantity },
+	});
+	fireEvent.click(screen.getAllByRole("button", { name: /Salvar Grupo/i })[0]);
+};
+
+const makeLoadGroup = (
+	overrides: Partial<Extract<ConsumerUnitGroup, { kind: "LOAD" }>> = {},
+): ConsumerUnitGroup => ({
+	id: "102",
+	name: "Administração",
+	kind: "LOAD",
+	usage: "COMMON_AREA",
+	quantity: 1,
+	status: "MISSING_DATA",
+	issues: [],
+	declaredLoadKw: 0,
+	summary: "1 unidade",
+	items: [],
+	...overrides,
+});
+
 describe("ConsumerUnitsPage", () => {
 	beforeEach(() => {
 		signInAs("user");
@@ -89,7 +131,7 @@ describe("ConsumerUnitsPage", () => {
 	});
 
 	it("saves a new residential group and opens its GroupSheet", async () => {
-		const createdGroup: ConsumerUnitGroup = {
+		state.createGroup = respondWith({
 			id: "101",
 			name: "Apartamentos Tipo",
 			kind: "RESIDENTIAL",
@@ -102,37 +144,10 @@ describe("ConsumerUnitsPage", () => {
 			usefulArea: null,
 			bedrooms: null,
 			compactUnit: null,
-		};
-
-		state.createGroup = {
-			...idleMutation(),
-			mutate: vi.fn((_args, options) => {
-				const response: ConsumerUnitGroupResponse = {
-					data: createdGroup,
-				};
-				options?.onSuccess?.(response);
-			}),
-		};
+		});
 
 		renderPage();
-
-		const addButtons = screen.getAllByRole("button", {
-			name: /Adicionar Grupo/i,
-		});
-		fireEvent.click(addButtons[0]);
-
-		const nameInput = screen.getAllByPlaceholderText("Nome do grupo")[0];
-		fireEvent.change(nameInput, { target: { value: "Apartamentos Tipo" } });
-
-		await pickUsage("Apartamento");
-
-		const quantityInput = screen.getAllByPlaceholderText("00")[0];
-		fireEvent.change(quantityInput, { target: { value: "12" } });
-
-		const saveButton = screen.getAllByRole("button", {
-			name: /Salvar Grupo/i,
-		})[0];
-		fireEvent.click(saveButton);
+		await submitNewGroup("Apartamentos Tipo", "Apartamento", "12");
 
 		await waitFor(() => {
 			expect(state.createGroup.mutate).toHaveBeenCalledTimes(1);
@@ -142,121 +157,22 @@ describe("ConsumerUnitsPage", () => {
 		});
 	});
 
-	it("saves a common area group and opens the Sheet focusing the first load category", async () => {
-		const createdGroup: ConsumerUnitGroup = {
-			id: "102",
-			name: "Administração",
-			kind: "LOAD",
-			usage: "COMMON_AREA",
-			quantity: 1,
-			status: "MISSING_DATA",
-			issues: [],
-			declaredLoadKw: 0,
-			summary: "1 unidade",
-			items: [],
-		};
-
-		state.createGroup = {
-			...idleMutation(),
-			mutate: vi.fn((_args, options) => {
-				const response: ConsumerUnitGroupResponse = {
-					data: createdGroup,
-				};
-				options?.onSuccess?.(response);
-			}),
-		};
+	it.each([
+		["Área comum", "Administração", "COMMON_AREA"],
+		["Carga comercial", "Salas Comerciais", "COMMERCIAL"],
+	] as const)("saves a %s group and opens the Sheet focusing the first load category", async (option, name, usage) => {
+		state.createGroup = respondWith(makeLoadGroup({ name, usage }));
 
 		renderPage();
-
-		const addButtons = screen.getAllByRole("button", {
-			name: /Adicionar Grupo/i,
-		});
-		fireEvent.click(addButtons[0]);
-
-		const nameInput = screen.getAllByPlaceholderText("Nome do grupo")[0];
-		fireEvent.change(nameInput, { target: { value: "Administração" } });
-
-		await pickUsage("Área comum");
-
-		const quantityInput = screen.getAllByPlaceholderText("00")[0];
-		fireEvent.change(quantityInput, { target: { value: "1" } });
-
-		const saveButton = screen.getAllByRole("button", {
-			name: /Salvar Grupo/i,
-		})[0];
-		fireEvent.click(saveButton);
+		await submitNewGroup(name, option, "1");
 
 		await waitFor(() => {
 			expect(state.createGroup.mutate).toHaveBeenCalledTimes(1);
-			expect(
-				screen.getByRole("heading", { name: "Administração" }),
-			).toBeInTheDocument();
-		});
-
-		// The sheet is open, and for LOAD groups it defaults to the first empty load item
-		// with focus directed to items[0].category.
-		await waitFor(() => {
-			const selectTrigger = screen.getByRole("combobox", { name: /Parcela/i });
-			expect(selectTrigger).toBeInTheDocument();
-			expect(document.activeElement).toBe(selectTrigger);
-		});
-	});
-
-	it("saves a commercial group and opens the Sheet focusing the first load category", async () => {
-		const createdGroup: ConsumerUnitGroup = {
-			id: "103",
-			name: "Salas Comerciais",
-			kind: "LOAD",
-			usage: "COMMERCIAL",
-			quantity: 2,
-			status: "MISSING_DATA",
-			issues: [],
-			declaredLoadKw: 0,
-			summary: "2 unidades",
-			items: [],
-		};
-
-		state.createGroup = {
-			...idleMutation(),
-			mutate: vi.fn((_args, options) => {
-				const response: ConsumerUnitGroupResponse = {
-					data: createdGroup,
-				};
-				options?.onSuccess?.(response);
-			}),
-		};
-
-		renderPage();
-
-		const addButtons = screen.getAllByRole("button", {
-			name: /Adicionar Grupo/i,
-		});
-		fireEvent.click(addButtons[0]);
-
-		const nameInput = screen.getAllByPlaceholderText("Nome do grupo")[0];
-		fireEvent.change(nameInput, { target: { value: "Salas Comerciais" } });
-
-		await pickUsage("Carga comercial");
-
-		const quantityInput = screen.getAllByPlaceholderText("00")[0];
-		fireEvent.change(quantityInput, { target: { value: "2" } });
-
-		const saveButton = screen.getAllByRole("button", {
-			name: /Salvar Grupo/i,
-		})[0];
-		fireEvent.click(saveButton);
-
-		await waitFor(() => {
-			expect(state.createGroup.mutate).toHaveBeenCalledTimes(1);
-			expect(
-				screen.getByRole("heading", { name: "Salas Comerciais" }),
-			).toBeInTheDocument();
+			expect(screen.getByRole("heading", { name })).toBeInTheDocument();
 		});
 
 		await waitFor(() => {
-			const selectTrigger = screen.getByRole("combobox", { name: /Parcela/i });
-			expect(selectTrigger).toBeInTheDocument();
-			expect(document.activeElement).toBe(selectTrigger);
+			expect(screen.getByRole("combobox", { name: /Parcela/i })).toHaveFocus();
 		});
 	});
 });
