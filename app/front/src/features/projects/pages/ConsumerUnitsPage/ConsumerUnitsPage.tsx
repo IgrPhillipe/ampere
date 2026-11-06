@@ -111,7 +111,20 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 					...newGroupLoad[kind](values.load),
 				},
 			},
-			{ onSuccess: cancelAdding },
+			{
+				onSuccess: (response) => {
+					cancelAdding();
+					const group = response.data;
+					const isLoadGroup =
+						group.kind === "LOAD" ||
+						group.usage === "COMMON_AREA" ||
+						group.usage === "COMMERCIAL";
+					setOpened({
+						group,
+						focusField: isLoadGroup ? "items[0].category" : undefined,
+					});
+				},
+			},
 		);
 	};
 

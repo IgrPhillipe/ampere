@@ -46,15 +46,18 @@ export const LoadGroupForm = ({
 		name: group.name,
 		quantity: group.quantity,
 		usage: group.usage ?? null,
-		items: group.items.map((item) => ({
-			category: item.category,
-			description: item.description,
-			quantity: item.quantity,
-			power: item.power ?? null,
-			powerUnit: item.powerUnit,
-			lampTechnology: item.lampTechnology ?? null,
-			simultaneousStart: toYesNo(item.simultaneousStart),
-		})),
+		items:
+			group.items.length > 0
+				? group.items.map((item) => ({
+						category: item.category,
+						description: item.description,
+						quantity: item.quantity,
+						power: item.power ?? null,
+						powerUnit: item.powerUnit,
+						lampTechnology: item.lampTechnology ?? null,
+						simultaneousStart: toYesNo(item.simultaneousStart),
+					}))
+				: [EMPTY_ITEM],
 	});
 
 	const items = useFieldArray({ control: form.control, name: "items" });
