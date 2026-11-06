@@ -85,7 +85,7 @@ curl -s -X POST http://localhost:8080/api/auth/login \
   -d '{"email":"user@ampere.com","password":"senha@123"}'
 ```
 
-As tabelas normativas (`/api/normative-tables/**`) e a gestão de usuários (`/api/users/**`, exceto `/api/users/me`) exigem o papel `admin`; a fila (`/api/review-queue/**`) aceita `reviewer` e `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`.
+As tabelas normativas (`/api/normative-tables/**`), a gestão de usuários (`/api/users/**`, exceto `/api/users/me`), os municípios dos analistas (`/api/reviewers/**`) e a atribuição em lote (`/api/review-queue/assignment`) exigem o papel `admin`; o resto da fila (`/api/review-queue/**`) aceita `reviewer` e `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`.
 
 ### Cadastro e Perfil
 
@@ -177,11 +177,11 @@ Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/i
 
 ## Análise Técnica e Apontamentos
 
-O papel `reviewer` representa o analista, e o `admin` faz tudo o que ele faz. Um projeto `UNDER_REVIEW` é assumido por um único analista: repetir a atribuição não muda nada, e outro analista recebe 409. As rotas de escrita da análise são restritas a `reviewer` e `admin` pelo `SecurityConfig`.
+O papel `reviewer` representa o analista, e o `admin` faz tudo o que ele faz. Um projeto `UNDER_REVIEW` tem um único analista responsável, definido pelo gestor ou pela distribuição no envio: o analista não assume projeto sozinho. As rotas de escrita da análise são restritas a `reviewer` e `admin` pelo `SecurityConfig`.
 
 | Método e caminho | Quem usa | Regra principal |
 | :--- | :--- | :--- |
-| `POST /api/projects/{id}/review` | Analista | Assume a análise |
+| `POST /api/projects/{id}/review` | Analista atribuído | Abre a análise; responde 403 a quem não é o responsável e ao dono do projeto |
 | `GET /api/projects/{id}/findings` | Dono ou analista | Lista na ordem de criação; o dono não vê rascunhos |
 | `POST /api/projects/{id}/findings` | Analista atribuído | Cria um apontamento `DRAFT` no ciclo atual |
 | `PUT /api/projects/{id}/findings/{findingId}` | Analista atribuído | Altera só apontamento `DRAFT` |
@@ -189,6 +189,22 @@ O papel `reviewer` representa o analista, e o `admin` faz tudo o que ele faz. Um
 | `POST /api/projects/{id}/decision` | Analista atribuído | Aprova ou reprova e publica os rascunhos como `OPEN` |
 | `POST /api/projects/{id}/findings/{findingId}/resolution` | Analista atribuído | Na reanálise, aceita ou reabre apontamento de ciclo anterior |
 | `GET /api/projects/{id}/documents/{documentId}/file` | Dono ou analista | Devolve o PDF; vale a mesma regra de leitura do projeto |
+
+### Distribuição
+
+| Método e caminho | Quem usa | Regra principal |
+| :--- | :--- | :--- |
+| `GET /api/reviewers/municipalities` | `admin` | Lista os analistas ativos e os municípios de cada um |
+| `PUT /api/reviewers/{id}/municipalities` | `admin` | Substitui a lista do analista |
+| `PUT /api/review-queue/assignment` | `admin` | Atribui ou reatribui vários projetos; responde 204 |
+
+- **Município.** Pertence a no máximo um analista ativo. Outro analista recebe 409; a regra de quem foi desativado ou perdeu o papel passa para quem a pedir.
+- **Envio.** O projeto vai para o analista do município. Sem regra, ou com um analista que não pode receber, fica sem responsável na fila.
+- **Reenvio.** Volta para quem reprovou. Se essa pessoa não puder mais analisar, segue a regra do município.
+- **Lote.** Tudo ou nada: `{ "projectIds": ["12", "15"], "reviewerId": "7" }`. Os apontamentos em rascunho passam para o novo analista; os publicados ficam com o autor. Repetir o analista atual não gera evento.
+- **Dono.** Ninguém recebe o próprio projeto: o lote responde 422, e a distribuição deixa o projeto sem responsável.
+
+Toda atribuição grava um evento `ASSIGNED`, com o gestor como autor ou sem autor na distribuição.
 
 ### Contrato do Apontamento
 
