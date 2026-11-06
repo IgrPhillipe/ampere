@@ -4,6 +4,7 @@ import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.StandardName;
+import br.com.ampere.domain.User;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
@@ -31,6 +32,7 @@ final class ScenarioKit {
   final DemandCalculationService demand;
   final ProjectEventService events;
   final SeedTimestamps timestamps;
+  final User manager;
   private final Map<String, Standard> standards;
   final OffsetDateTime now;
 
@@ -43,6 +45,7 @@ final class ScenarioKit {
       DemandCalculationService demand,
       ProjectEventService events,
       SeedTimestamps timestamps,
+      User manager,
       Map<String, Standard> standards,
       OffsetDateTime now) {
     this.projects = projects;
@@ -53,6 +56,7 @@ final class ScenarioKit {
     this.demand = demand;
     this.events = events;
     this.timestamps = timestamps;
+    this.manager = manager;
     this.standards = standards;
     this.now = now;
   }

@@ -156,18 +156,17 @@ final class ScenarioCase {
   }
 
   ScenarioCase assignTo(User reviewer) {
-    if (!project.isAssignedTo(reviewer.getId())) {
-      project.assignReviewer(reviewer);
-      kit.events.assigned(project, reviewer, cursor);
-    }
-
-    return this;
+    return assign(reviewer, kit.manager);
   }
 
-  ScenarioCase assignAutomatically(User reviewer) {
+  ScenarioCase distributeTo(User reviewer) {
+    return assign(reviewer, null);
+  }
+
+  private ScenarioCase assign(User reviewer, User author) {
     if (!project.isAssignedTo(reviewer.getId())) {
       project.assignReviewer(reviewer);
-      kit.events.assigned(project, null, cursor);
+      kit.events.assigned(project, author, cursor);
     }
 
     return this;
@@ -185,8 +184,12 @@ final class ScenarioCase {
 
   ScenarioCase resubmit(int daysAgo, String changeSummary) {
     project.recordChangeSummary(changeSummary);
+    submit(daysAgo);
+    if (project.getReviewer() != null) {
+      kit.events.assigned(project, null, cursor);
+    }
 
-    return submit(daysAgo);
+    return this;
   }
 
   /** Findings written and published together with the decision, as the analyst does it. */
