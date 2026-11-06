@@ -115,10 +115,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 				onSuccess: (response) => {
 					cancelAdding();
 					const group = response.data;
-					const isLoadGroup =
-						group.kind === "LOAD" ||
-						group.usage === "COMMON_AREA" ||
-						group.usage === "COMMERCIAL";
+					const isLoadGroup = group.kind === "LOAD";
 					setOpened({
 						group,
 						focusField: isLoadGroup ? "items[0].category" : undefined,

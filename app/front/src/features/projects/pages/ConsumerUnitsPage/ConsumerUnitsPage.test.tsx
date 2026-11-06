@@ -95,6 +95,8 @@ describe("ConsumerUnitsPage", () => {
 			kind: "RESIDENTIAL",
 			quantity: 12,
 			status: "VALIDATED",
+			issues: [],
+			declaredLoadKw: 180,
 			summary: "12 unidades",
 			unitLoadKw: 15,
 			usefulArea: null,
@@ -148,6 +150,8 @@ describe("ConsumerUnitsPage", () => {
 			usage: "COMMON_AREA",
 			quantity: 1,
 			status: "MISSING_DATA",
+			issues: [],
+			declaredLoadKw: 0,
 			summary: "1 unidade",
 			items: [],
 		};
@@ -206,6 +210,8 @@ describe("ConsumerUnitsPage", () => {
 			usage: "COMMERCIAL",
 			quantity: 2,
 			status: "MISSING_DATA",
+			issues: [],
+			declaredLoadKw: 0,
 			summary: "2 unidades",
 			items: [],
 		};
