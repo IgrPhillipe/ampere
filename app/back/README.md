@@ -44,6 +44,18 @@ docker compose up -d db
 
 API em `http://localhost:8080/api`, documentação em `http://localhost:8080/api/docs`.
 
+### Exportações
+
+- `GET /api/projects/{id}/calculation.xlsx` baixa o último cálculo gravado, com as abas
+  Identificação, Grupos e Etapas. Projeto sem cálculo responde 404.
+- `GET /api/projects/export.csv` exporta todos os projetos visíveis ao usuário.
+- `GET /api/review-queue/export.csv` exporta todos os projetos da fila (apenas `reviewer` e
+  `admin`).
+
+As exportações CSV aceitam os mesmos filtros e parâmetros `sort`/`direction` das respectivas
+listagens, sem paginação. Os arquivos usam ponto e vírgula, codificação UTF-8 com BOM e números
+formatados para pt-BR.
+
 ---
 
 ## Comandos

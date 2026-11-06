@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,29 +78,48 @@ public class ProjectService {
   @Transactional(readOnly = true)
   public ProjectListing list(
       int page, int pageSize, ProjectListQuery query, AuthenticatedUser user) {
+    validateDateRange(query);
+
+    Page<Project> projects =
+        projectRepository.searchAccessibleProjects(
+            search(query, user), PageRequest.of(page - 1, pageSize));
+
+    return listing(projects);
+  }
+
+  @Transactional(readOnly = true)
+  public ProjectListing listAll(ProjectListQuery query, AuthenticatedUser user) {
+    validateDateRange(query);
+
+    return listing(
+        projectRepository.searchAccessibleProjects(search(query, user), Pageable.unpaged()));
+  }
+
+  private static void validateDateRange(ProjectListQuery query) {
     if (query.createdFrom() != null
         && query.createdTo() != null
         && query.createdFrom().isAfter(query.createdTo())) {
       throw new BusinessException("A data inicial deve ser anterior ou igual à data final.");
     }
+  }
 
-    Page<Project> projects =
-        projectRepository.searchAccessibleProjects(
-            new ProjectSearch(
-                user.id(),
-                user.projectVisibility(),
-                query.status(),
-                SearchTerms.normalize(query.search()),
-                query.states(),
-                query.municipalities(),
-                startOf(query.createdFrom()),
-                query.createdTo() == null ? null : startOf(query.createdTo().plusDays(1)),
-                query.findings(),
-                query.owner(),
-                query.sort(),
-                query.direction()),
-            PageRequest.of(page - 1, pageSize));
+  private static ProjectSearch search(ProjectListQuery query, AuthenticatedUser user) {
+    return new ProjectSearch(
+        user.id(),
+        user.projectVisibility(),
+        query.status(),
+        SearchTerms.normalize(query.search()),
+        query.states(),
+        query.municipalities(),
+        startOf(query.createdFrom()),
+        query.createdTo() == null ? null : startOf(query.createdTo().plusDays(1)),
+        query.findings(),
+        query.owner(),
+        query.sort(),
+        query.direction());
+  }
 
+  private ProjectListing listing(Page<Project> projects) {
     List<Long> projectIds = projects.getContent().stream().map(Project::getId).toList();
 
     return new ProjectListing(
