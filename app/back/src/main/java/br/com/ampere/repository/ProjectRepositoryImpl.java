@@ -147,7 +147,8 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
         };
 
     return page(
-        "SELECT project FROM Project project LEFT JOIN FETCH project.owner",
+        "SELECT project FROM Project project LEFT JOIN FETCH project.owner"
+            + " LEFT JOIN FETCH project.reviewer",
         where,
         parameters,
         column + ", project.id ASC",

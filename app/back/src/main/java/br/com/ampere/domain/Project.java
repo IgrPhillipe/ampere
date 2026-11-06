@@ -251,6 +251,15 @@ public class Project {
     this.reviewer = Objects.requireNonNull(reviewer, "reviewer");
   }
 
+  public void clearReviewer() {
+    this.reviewer = null;
+  }
+
+  /** Nobody reviews their own project, not even the administrator. */
+  public boolean canBeReviewedBy(User user) {
+    return user.isActiveReviewer() && !isOwnedBy(user.getId());
+  }
+
   public boolean isAssignedTo(Long userId) {
     return reviewer != null && reviewer.getId().equals(userId);
   }

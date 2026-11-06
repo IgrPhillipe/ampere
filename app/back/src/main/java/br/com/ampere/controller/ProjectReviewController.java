@@ -30,24 +30,26 @@ public class ProjectReviewController {
   }
 
   @PostMapping("/review")
-  @Operation(operationId = "assignProjectReview", summary = "Atribui o projeto ao analista")
+  @Operation(
+      operationId = "openProjectReview",
+      summary = "Abre a análise para o analista responsável")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
-        description = "Análise atribuída"),
+        description = "Análise aberta"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "403",
-        description = "Apenas analista e administrador assumem a análise"),
+        description = "Apenas o analista responsável abre a análise"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Projeto não encontrado"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "409",
-        description = "Projeto fora de análise, ou assumido por outro analista")
+        description = "Projeto fora de análise")
   })
-  public ApiResponse<ReviewAssignmentResponse> assign(
+  public ApiResponse<ReviewAssignmentResponse> open(
       @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(ReviewAssignmentResponse.from(service.assign(projectId, userOf(jwt))));
+    return ApiResponse.of(ReviewAssignmentResponse.from(service.open(projectId, userOf(jwt))));
   }
 
   @PostMapping("/decision")

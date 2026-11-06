@@ -5,6 +5,7 @@ import br.com.ampere.domain.ReviewQueueFilter;
 import br.com.ampere.domain.ReviewQueueSort;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.dto.ApiResponse;
+import br.com.ampere.dto.BatchAssignmentRequest;
 import br.com.ampere.dto.PageQuery;
 import br.com.ampere.dto.Pagination;
 import br.com.ampere.dto.ReviewQueueIndicatorsResponse;
@@ -12,6 +13,7 @@ import br.com.ampere.dto.ReviewQueueItemResponse;
 import br.com.ampere.dto.UserOptionResponse;
 import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.OwnerListing;
+import br.com.ampere.service.ReviewAssignmentService;
 import br.com.ampere.service.ReviewQueueListing;
 import br.com.ampere.service.ReviewQueueQuery;
 import br.com.ampere.service.ReviewQueueService;
@@ -22,11 +24,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Review queue", description = "Fila de análise técnica dos projetos enviados")
@@ -35,9 +41,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReviewQueueController {
 
   private final ReviewQueueService service;
+  private final ReviewAssignmentService assignmentService;
 
-  public ReviewQueueController(ReviewQueueService service) {
+  public ReviewQueueController(
+      ReviewQueueService service, ReviewAssignmentService assignmentService) {
     this.service = service;
+    this.assignmentService = assignmentService;
   }
 
   @GetMapping
@@ -158,6 +167,33 @@ public class ReviewQueueController {
   })
   public ApiResponse<ReviewQueueIndicatorsResponse> indicators(@AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(ReviewQueueIndicatorsResponse.from(service.indicators(userOf(jwt))));
+  }
+
+  @PutMapping("/assignment")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+      operationId = "assignReviewQueueBatch",
+      summary = "Atribui ou reatribui vários projetos de uma vez")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "204",
+        description = "Projetos atribuídos"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "Apenas administradores acessam este recurso"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "Projeto ou analista não encontrado"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "409",
+        description = "Projeto fora de análise"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "422",
+        description = "Analista inativo, com papel user ou dono do projeto")
+  })
+  public void assign(
+      @Valid @RequestBody BatchAssignmentRequest request, @AuthenticationPrincipal Jwt jwt) {
+    assignmentService.assign(request.projectIds(), request.reviewerId(), userOf(jwt));
   }
 
   private static AuthenticatedUser userOf(Jwt jwt) {

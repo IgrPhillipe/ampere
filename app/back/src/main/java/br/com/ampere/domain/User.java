@@ -213,6 +213,10 @@ public class User {
     return active;
   }
 
+  public boolean isActiveReviewer() {
+    return active && role.canReview();
+  }
+
   public boolean isMustChangePassword() {
     return mustChangePassword;
   }

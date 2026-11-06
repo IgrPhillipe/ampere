@@ -19,8 +19,8 @@ import type {
 
 const FILENAME = /filename="?([^";]+)"?/;
 
-export const assignProjectReview = async (projectId: string) => {
-	const response = await http.post(e.assignment(projectId)).json<unknown>();
+export const openProjectReview = async (projectId: string) => {
+	const response = await http.post(e.opening(projectId)).json<unknown>();
 
 	return reviewAssignmentResponseSchema.parse(response);
 };

@@ -74,7 +74,12 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/normative-tables", "/normative-tables/**")
                     .hasAnyRole(REVIEWING_ROLES)
                     .requestMatchers(
-                        "/normative-tables", "/normative-tables/**", "/users", "/users/**")
+                        "/normative-tables",
+                        "/normative-tables/**",
+                        "/users",
+                        "/users/**",
+                        "/reviewers/**",
+                        "/review-queue/assignment")
                     .hasRole(ADMIN)
                     .requestMatchers(
                         "/review-queue",

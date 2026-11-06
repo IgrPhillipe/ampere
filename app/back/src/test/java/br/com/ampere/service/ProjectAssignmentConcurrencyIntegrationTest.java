@@ -12,7 +12,6 @@ import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
-import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
@@ -40,7 +39,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @SpringBootTest
 class ProjectAssignmentConcurrencyIntegrationTest {
 
-  @Autowired private ProjectReviewService reviewService;
+  @Autowired private ReviewAssignmentService assignmentService;
   @Autowired private PlatformTransactionManager transactionManager;
   @Autowired private ProjectEventRepository eventRepository;
   @Autowired private ProjectDocumentRepository documentRepository;
@@ -67,64 +66,67 @@ class ProjectAssignmentConcurrencyIntegrationTest {
   }
 
   @Test
-  void theSecondAnalystWaitsForTheFirstAndFindsTheProjectTaken() throws Exception {
+  void theSecondBatchWaitsForTheFirstAndReassignsTheProjects() throws Exception {
     User owner =
         userRepository.save(new User("Ana Projetista", "ana@ampere.com", "x", UserRole.USER));
+    User manager =
+        userRepository.save(new User("Gina Gestora", "gina@ampere.com", "x", UserRole.ADMIN));
     User first =
         userRepository.save(new User("Alice Analista", "alice@ampere.com", "x", UserRole.REVIEWER));
     User second =
         userRepository.save(new User("Bruno Analista", "bruno@ampere.com", "x", UserRole.REVIEWER));
+    Long projectA = submittedProject("2026-8201", owner).getId();
+    Long projectB = submittedProject("2026-8202", owner).getId();
+    AuthenticatedUser caller = new AuthenticatedUser(manager.getId(), UserRole.ADMIN);
+
+    CountDownLatch assigned = new CountDownLatch(1);
+    CountDownLatch release = new CountDownLatch(1);
+    TransactionTemplate transaction = new TransactionTemplate(transactionManager);
+    CompletableFuture<Void> firstBatch =
+        CompletableFuture.runAsync(
+            () ->
+                transaction.executeWithoutResult(
+                    status -> {
+                      assignmentService.assign(List.of(projectA, projectB), first.getId(), caller);
+                      assigned.countDown();
+                      await(release);
+                    }));
+    assertThat(assigned.await(10, TimeUnit.SECONDS)).isTrue();
+
+    CompletableFuture<Void> secondBatch =
+        CompletableFuture.runAsync(
+            () -> assignmentService.assign(List.of(projectB, projectA), second.getId(), caller));
+    Thread.sleep(500);
+    assertThat(secondBatch).isNotDone();
+
+    release.countDown();
+    firstBatch.get(10, TimeUnit.SECONDS);
+    secondBatch.get(10, TimeUnit.SECONDS);
+
+    for (Long project : List.of(projectA, projectB)) {
+      assertThat(projectRepository.findDetailById(project).orElseThrow().getReviewer().getId())
+          .isEqualTo(second.getId());
+      assertThat(eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(project))
+          .extracting(ProjectEvent::getType)
+          .containsExactly(ProjectEventType.ASSIGNED, ProjectEventType.ASSIGNED);
+    }
+  }
+
+  private Project submittedProject(String protocol, User owner) {
     Project project =
         new Project(
-            "Residencial Concorrência",
+            "Residencial " + protocol,
             "Rua da Aurora, 100",
             "Recife",
-            "2026-8201",
+            protocol,
             ProjectStatus.DRAFT,
             new ResidentialMultifamily(
                 4, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
             List.of(),
             owner);
     project.submit(OffsetDateTime.now(ZoneOffset.UTC));
-    Long projectId = projectRepository.save(project).getId();
 
-    CountDownLatch taken = new CountDownLatch(1);
-    CountDownLatch release = new CountDownLatch(1);
-    TransactionTemplate transaction = new TransactionTemplate(transactionManager);
-    CompletableFuture<Void> firstAssignment =
-        CompletableFuture.runAsync(
-            () ->
-                transaction.executeWithoutResult(
-                    status -> {
-                      reviewService.assign(projectId, reviewer(first));
-                      taken.countDown();
-                      await(release);
-                    }));
-    assertThat(taken.await(10, TimeUnit.SECONDS)).isTrue();
-
-    CompletableFuture<Void> secondAssignment =
-        CompletableFuture.runAsync(() -> reviewService.assign(projectId, reviewer(second)));
-    Thread.sleep(500);
-    assertThat(secondAssignment).isNotDone();
-
-    release.countDown();
-    firstAssignment.get(10, TimeUnit.SECONDS);
-
-    assertThat(secondAssignment)
-        .failsWithin(10, TimeUnit.SECONDS)
-        .withThrowableThat()
-        .havingRootCause()
-        .isInstanceOf(BusinessException.class)
-        .withMessage("Este projeto já foi assumido por outro analista.");
-    assertThat(projectRepository.findDetailById(projectId).orElseThrow().getReviewer().getId())
-        .isEqualTo(first.getId());
-    assertThat(eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(projectId))
-        .extracting(ProjectEvent::getType)
-        .containsExactly(ProjectEventType.ASSIGNED);
-  }
-
-  private static AuthenticatedUser reviewer(User user) {
-    return new AuthenticatedUser(user.getId(), UserRole.REVIEWER);
+    return projectRepository.save(project);
   }
 
   private static void await(CountDownLatch latch) {

@@ -4,13 +4,13 @@ import { reviewQueueKeys } from "@services/review-queue";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { assignProjectReview } from "../../../requests";
+import { openProjectReview } from "../../../requests";
 
-export const useAssignProjectReview = () => {
+export const useOpenProjectReview = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: assignProjectReview,
+		mutationFn: openProjectReview,
 		onSuccess: (_, projectId) =>
 			Promise.all([
 				queryClient.invalidateQueries({ queryKey: reviewQueueKeys.all() }),
@@ -19,11 +19,11 @@ export const useAssignProjectReview = () => {
 				}),
 			]),
 		onError: (error) => {
-			if (getHttpStatus(error) === 409) return;
+			if (getHttpStatus(error) === 403) return;
 
 			toast.error(
 				getToastErrorMessage(error, {
-					fallback: "Não foi possível assumir a análise do projeto.",
+					fallback: "Não foi possível abrir a análise do projeto.",
 				}),
 			);
 		},

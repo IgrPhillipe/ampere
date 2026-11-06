@@ -11,6 +11,7 @@ import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.repository.ReviewerMunicipalityRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.DemandCalculationService;
@@ -55,6 +56,7 @@ public class DemoScenarioSeeder {
   private final StandardRepository standardRepository;
   private final NormativeTableRepository normativeTableRepository;
   private final UserRepository userRepository;
+  private final ReviewerMunicipalityRepository municipalityRepository;
   private final DemandCalculationService demandCalculation;
   private final ProjectEventService eventService;
   private final SeedTimestamps timestamps;
@@ -71,6 +73,7 @@ public class DemoScenarioSeeder {
       StandardRepository standardRepository,
       NormativeTableRepository normativeTableRepository,
       UserRepository userRepository,
+      ReviewerMunicipalityRepository municipalityRepository,
       DemandCalculationService demandCalculation,
       ProjectEventService eventService,
       SeedTimestamps timestamps,
@@ -85,6 +88,7 @@ public class DemoScenarioSeeder {
     this.standardRepository = standardRepository;
     this.normativeTableRepository = normativeTableRepository;
     this.userRepository = userRepository;
+    this.municipalityRepository = municipalityRepository;
     this.demandCalculation = demandCalculation;
     this.eventService = eventService;
     this.timestamps = timestamps;
@@ -109,6 +113,7 @@ public class DemoScenarioSeeder {
       return 0;
     }
 
+    seedMunicipalities(users.get());
     ScenarioKit kit =
         new ScenarioKit(
             projectRepository,
@@ -119,6 +124,7 @@ public class DemoScenarioSeeder {
             demandCalculation,
             eventService,
             timestamps,
+            users.get().admin(),
             standardRepository.findAll().stream()
                 .collect(Collectors.toMap(Standard::getName, Function.identity())),
             OffsetDateTime.now(ZoneOffset.UTC));
@@ -223,6 +229,13 @@ public class DemoScenarioSeeder {
         });
 
     return 1;
+  }
+
+  /** Only into an empty table: the manager may have changed the lists since the last run. */
+  private void seedMunicipalities(DemoUsers users) {
+    if (municipalityRepository.count() == 0) {
+      municipalityRepository.saveAll(DemoScenarios.municipalities(users));
+    }
   }
 
   /** The protocol is not enough: somebody else may have filed a project under it. */

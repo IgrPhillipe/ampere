@@ -3,12 +3,8 @@ package br.com.ampere.service;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ReviewDecision;
-import br.com.ampere.domain.User;
 import br.com.ampere.error.BusinessException;
-import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.FindingRepository;
-import br.com.ampere.repository.ProjectRepository;
-import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.Timestamps;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -22,49 +18,30 @@ public class ProjectReviewService {
   private static final String NOT_UNDER_REVIEW = "O projeto não está em análise.";
 
   private final ProjectService projectService;
-  private final ProjectRepository projectRepository;
-  private final UserRepository userRepository;
   private final FindingRepository findingRepository;
   private final ProjectEventService eventService;
 
   public ProjectReviewService(
       ProjectService projectService,
-      ProjectRepository projectRepository,
-      UserRepository userRepository,
       FindingRepository findingRepository,
       ProjectEventService eventService) {
     this.projectService = projectService;
-    this.projectRepository = projectRepository;
-    this.userRepository = userRepository;
     this.findingRepository = findingRepository;
     this.eventService = eventService;
   }
 
-  /** Assigning again to the same analyst changes nothing. */
-  @Transactional
-  public Project assign(Long projectId, AuthenticatedUser user) {
+  /** Only the analyst assigned by the manager or by the distribution opens the review. */
+  @Transactional(readOnly = true)
+  public Project open(Long projectId, AuthenticatedUser user) {
     user.requireReviewer();
-    // Two analysts at once would both find the project free.
-    projectRepository.lockById(projectId);
     Project project = projectService.findById(projectId, user);
-    if (project.isOwnedBy(user.id())) {
-      throw new BusinessException("Você não pode analisar um projeto seu.", HttpStatus.FORBIDDEN);
-    }
+    notOwnProjectOrFail(project, user);
     if (!project.isUnderReview()) {
       throw new BusinessException(NOT_UNDER_REVIEW, HttpStatus.CONFLICT);
     }
-    if (project.getReviewer() != null && !project.isAssignedTo(user.id())) {
+    if (!project.isAssignedTo(user.id())) {
       throw new BusinessException(
-          "Este projeto já foi assumido por outro analista.", HttpStatus.CONFLICT);
-    }
-
-    if (project.getReviewer() == null) {
-      User reviewer =
-          userRepository
-              .findById(user.id())
-              .orElseThrow(() -> new NotFoundException("Usuário autenticado não encontrado."));
-      project.assignReviewer(reviewer);
-      eventService.assigned(project, reviewer, Timestamps.now());
+          "Somente o analista responsável pode abrir a análise.", HttpStatus.FORBIDDEN);
     }
 
     return project;
@@ -99,10 +76,11 @@ public class ProjectReviewService {
     return project;
   }
 
-  /** The project under review, as long as the caller is the analyst who took it. */
+  /** The project under review, as long as the caller is its assigned analyst. */
   Project assignedProject(Long projectId, AuthenticatedUser user) {
     user.requireReviewer();
     Project project = projectService.findById(projectId, user);
+    notOwnProjectOrFail(project, user);
     if (!project.isAssignedTo(user.id())) {
       throw new BusinessException(
           "Somente o analista responsável pode alterar esta análise.", HttpStatus.FORBIDDEN);
@@ -112,5 +90,11 @@ public class ProjectReviewService {
     }
 
     return project;
+  }
+
+  private static void notOwnProjectOrFail(Project project, AuthenticatedUser user) {
+    if (project.isOwnedBy(user.id())) {
+      throw new BusinessException("Você não pode analisar um projeto seu.", HttpStatus.FORBIDDEN);
+    }
   }
 }

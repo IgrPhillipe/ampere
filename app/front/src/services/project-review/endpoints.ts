@@ -1,5 +1,5 @@
 export const ProjectReviewEndpoints = {
-	assignment: (projectId: string) => `projects/${projectId}/review`,
+	opening: (projectId: string) => `projects/${projectId}/review`,
 	decision: (projectId: string) => `projects/${projectId}/decision`,
 	findings: (projectId: string) => `projects/${projectId}/findings`,
 	finding: (projectId: string, findingId: string) =>

@@ -5,7 +5,7 @@ export const PROJECT_EVENT_LABELS = {
 	CREATED: "Criado",
 	SUBMITTED: "Enviado",
 	PRE_VALIDATED: "Pré-validado",
-	ASSIGNED: "Análise Assumida",
+	ASSIGNED: "Análise Atribuída",
 	REJECTED: "Reprovado",
 	APPROVED: "Aprovado",
 	FINDING_ANSWERED: "Apontamento Respondido",

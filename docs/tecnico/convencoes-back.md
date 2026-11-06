@@ -111,7 +111,7 @@ O caminho nomeia o recurso, no plural e em kebab-case; o método HTTP diz a aç�
 - Sem verbo no caminho: enviar um projeto é `POST /projects/{id}/submission`, publicar uma tabela é `POST /normative-tables/{id}/publication`.
 - Recurso de um projeto fica aninhado nele: `/projects/{id}/consumer-unit-groups`, `/projects/{id}/calculations`, `/projects/{id}/documents`.
 - Coleção que guarda todo o histórico é plural, e o mais recente é `/latest`: `GET /projects/{id}/calculations/latest`.
-- Sem papel no caminho: `/normative-tables` e `/users` são restritos ao `admin`, e `/review-queue` ao `reviewer` e ao `admin`, pelo `SecurityConfig`, não por um prefixo `/admin`.
+- Sem papel no caminho: `/normative-tables`, `/users`, `/reviewers` e `/review-queue/assignment` são restritos ao `admin`, e o resto de `/review-queue` ao `reviewer` e ao `admin`, pelo `SecurityConfig`, não por um prefixo `/admin`.
 - Ordenação de lista usa `sort=<coluna>` e `direction=ASC|DESC` (`SortDirection`). Cada lista tem o enum das suas colunas (`ProjectSort`, `ReviewQueueSort`), e o empate sai pelo `id`.
 
 ### Envelope
@@ -283,8 +283,8 @@ Decisões:
 | Papel | O que é | Caminhos exclusivos |
 | :--- | :--- | :--- |
 | `user` | projetista | painel do projetista (`/dashboard/designer`); o resto são projetos e perfil |
-| `reviewer` | analista | fila (`/review-queue/**`) e escrita da análise (atribuição, decisão e apontamentos), junto com o `admin` |
-| `admin` | acesso total | tabelas normativas (`/normative-tables/**`) e gestão de usuários (`/users/**`, exceto `/users/me`, que vem antes no `SecurityConfig`), além de tudo o que o `reviewer` faz |
+| `reviewer` | analista | fila (`/review-queue/**`, exceto `/review-queue/assignment`) e escrita da análise (abertura, decisão e apontamentos) do projeto atribuído a ele, junto com o `admin` |
+| `admin` | acesso total | tabelas normativas (`/normative-tables/**`), gestão de usuários (`/users/**`, exceto `/users/me`, que vem antes no `SecurityConfig`), municípios dos analistas (`/reviewers/**`) e atribuição em lote (`/review-queue/assignment`), além de tudo o que o `reviewer` faz |
 
 `UserRole.canReview()` diz quem analisa; o `SecurityConfig` monta `hasAnyRole` a partir dele. Rota nova de análise entra no mesmo `requestMatchers`.
 
@@ -307,7 +307,7 @@ A publicação de tabela normativa exige um segundo `admin`, diferente de quem c
 - **O `admin` passa só pela regra de dono** (`ProjectVisibility.ALL`), nunca pelas de situação: projeto em análise ou aprovado fica congelado para todos, e a exclusão vale só para rascunho.
 - **Responder apontamento e enviar são do dono** (`ProjectService.findOwnedById`): o `admin` recebe 403 em projeto de outro projetista.
 - **O `admin` cria em nome de um projetista.** `ownerId` é obrigatório no `POST /projects` do `admin` (400 sem ele) e precisa ser de projetista ativo (422). O projetista cria para si: o `ownerId` dele é ignorado, assim como no `PUT`. O dono não muda depois da criação.
-- **Ninguém analisa o próprio projeto.** Assumir a análise de um projeto seu responde 403, mesmo para o `admin`.
+- **Ninguém analisa o próprio projeto.** Abrir, apontar ou decidir um projeto seu responde 403, mesmo para o `admin`. A atribuição em lote recusa o dono com 422, e a distribuição não o escolhe (`Project.canBeReviewedBy`).
 - **Os services repetem a regra de papel do `SecurityConfig`** (`AuthenticatedUser.requireReviewer()`, `requireAdmin()` e `requireDesigner()`), para que um matcher fora do lugar não abra a rota.
 - **Troca de papel com trabalho em andamento responde 409**: projetista com projeto não aprovado, ou analista com análise em andamento que perderia a análise.
 - **Listagem, busca, municípios e contadores filtram no banco** (`searchAccessibleProjects`, `findAccessibleMunicipalities`, `countAccessiblePerStatus`), não na memória. O alcance de cada papel é o `ProjectVisibility` (`OWN`, `SUBMITTED`, `ALL`), lido de `AuthenticatedUser.projectVisibility()`.

@@ -121,6 +121,10 @@ public class Finding {
     this.standardItem = blankToNull(standardItem);
   }
 
+  public void reassignTo(User author) {
+    this.author = Objects.requireNonNull(author, "author");
+  }
+
   /** The group was deleted: the finding stays, pointing to the stage only. */
   public void detachGroup() {
     consumerUnitGroup = null;

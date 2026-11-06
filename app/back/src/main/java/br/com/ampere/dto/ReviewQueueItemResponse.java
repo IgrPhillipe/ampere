@@ -3,6 +3,7 @@ package br.com.ampere.dto;
 import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.User;
 import br.com.ampere.service.ReviewQueueEntry;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
@@ -28,10 +29,13 @@ public record ReviewQueueItemResponse(
     long consumerUnitsCount,
     BigDecimal demandKva,
     boolean reanalysis,
-    @Schema(description = "Número do envio para análise, a partir de 1") int reviewCycle) {
+    @Schema(description = "Número do envio para análise, a partir de 1") int reviewCycle,
+    String reviewerId,
+    String reviewerName) {
 
   public static ReviewQueueItemResponse from(ReviewQueueEntry entry) {
     Project project = entry.project();
+    User reviewer = project.getReviewer();
 
     return new ReviewQueueItemResponse(
         String.valueOf(project.getId()),
@@ -49,6 +53,8 @@ public record ReviewQueueItemResponse(
         entry.consumerUnitsCount(),
         entry.demandKva(),
         project.isReanalysis(),
-        project.getReviewCycle());
+        project.getReviewCycle(),
+        reviewer == null ? null : String.valueOf(reviewer.getId()),
+        reviewer == null ? null : reviewer.getName());
   }
 }

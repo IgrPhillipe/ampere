@@ -26,6 +26,7 @@ import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialGroup;
+import br.com.ampere.domain.ReviewerMunicipality;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.service.GroupValidation;
@@ -62,7 +63,29 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
     assertThat(projectRepository.findAll())
         .extracting(Project::getProtocol)
         .containsExactlyInAnyOrderElementsOf(SCENARIO_PROTOCOLS);
-    assertThat(SCENARIO_PROTOCOLS).hasSize(51).contains("2026-1001", "2026-1008", "2026-2019");
+    assertThat(SCENARIO_PROTOCOLS)
+        .hasSize(53)
+        .contains("2026-1001", "2026-1008", "2026-2019", "2026-2044", "2026-2045");
+  }
+
+  @Test
+  void showsTheDistributionByMunicipality() {
+    assertThat(municipalityRepository.findAllByOrderByStateAscMunicipalityAsc())
+        .allSatisfy(
+            rule ->
+                assertThat(rule.getReviewer().getEmail())
+                    .isEqualTo(DataSeeder.SECOND_ANALYST_EMAIL))
+        .extracting(ReviewerMunicipality::getMunicipality)
+        .containsExactly("Caruaru", "Garanhuns", "Petrolina");
+
+    Project distributed = detail("2026-2044");
+    assertThat(distributed.getReviewer().getEmail()).isEqualTo(DataSeeder.SECOND_ANALYST_EMAIL);
+    assertThat(eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(distributed.getId()))
+        .filteredOn(event -> event.getType() == ProjectEventType.ASSIGNED)
+        .singleElement()
+        .extracting(ProjectEvent::getDescription)
+        .isEqualTo("Análise atribuída a Ana Analista pelo sistema.");
+    assertThat(detail("2026-2045").getReviewer()).isNull();
   }
 
   @Test
@@ -108,7 +131,7 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
     for (int sequence = 1; sequence <= 8; sequence++) {
       assertThat(SCENARIO_PROTOCOLS).contains("2026-100" + sequence);
     }
-    for (int sequence = 2001; sequence <= 2043; sequence++) {
+    for (int sequence = 2001; sequence <= 2045; sequence++) {
       assertThat(SCENARIO_PROTOCOLS).contains("2026-" + sequence);
     }
   }

@@ -12,11 +12,11 @@ import {
 	type Finding,
 	type FindingResolution,
 	type ReviewDecision,
-	useAssignProjectReview,
 	useCreateFinding,
 	useDecideProjectReview,
 	useDeleteFinding,
 	useGetFindingList,
+	useOpenProjectReview,
 	useResolveFinding,
 	useUpdateFinding,
 } from "@services/project-review";
@@ -50,18 +50,18 @@ export const ProjectReviewWorkspace = ({
 	const project = useGetProject(projectId).data?.data;
 	const isUnderReview = project?.status === "UNDER_REVIEW";
 
-	const assignment = useAssignProjectReview();
-	const { mutate: assign } = assignment;
+	const review = useOpenProjectReview();
+	const { mutate: openReview } = review;
 
 	useEffect(() => {
-		if (isUnderReview) assign(projectId);
-	}, [assign, isUnderReview, projectId]);
+		if (isUnderReview) openReview(projectId);
+	}, [openReview, isUnderReview, projectId]);
 
-	const isTaken = getHttpStatus(assignment.error) === 409;
+	const isConsulting = getHttpStatus(review.error) === 403;
 	const actions = useProjectDetailActions({
 		status: project?.status,
 		ownerId: project?.ownerId,
-		holdsReview: assignment.isSuccess,
+		holdsReview: review.isSuccess,
 	});
 
 	const findingsQuery = useGetFindingList(projectId);
@@ -172,15 +172,17 @@ export const ProjectReviewWorkspace = ({
 				documents: attention.DOCUMENTS,
 			}}
 			notices={
-				isTaken ? (
+				isConsulting ? (
 					<p
 						role="status"
 						className="flex items-center gap-3 border-b border-border bg-surface-hover px-6 py-3 text-sm md:px-8"
 					>
 						<Lock aria-hidden="true" className="size-4 shrink-0" />
 						<span>
-							Em análise por {project?.reviewerName ?? "outro analista"}. Você
-							pode consultar o projeto, mas só o responsável registra
+							{project?.reviewerName
+								? `Em análise por ${project.reviewerName}.`
+								: "Projeto sem analista responsável."}{" "}
+							Você pode consultar o projeto, mas só o responsável registra
 							apontamentos e decide.
 						</span>
 					</p>
