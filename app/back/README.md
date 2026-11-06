@@ -269,6 +269,32 @@ Projeto fora de `REJECTED` responde 409 no `/response`; apontamento em rascunho 
 
 ---
 
+## Notificações
+
+Central do sino do cabeçalho, para projetista e analista. Sem e-mail. Cada notificação guarda destinatário, tipo, protocolo, texto, link da tela e data de leitura. Os endpoints valem para qualquer usuário autenticado e só enxergam as notificações do próprio usuário.
+
+| Método e caminho | Regra principal |
+| :--- | :--- |
+| `GET /api/notifications` | Devolve `{ "unreadCount": 4, "items": [...] }`: as 50 mais recentes, da mais nova à mais antiga, e a contagem de todas as não lidas |
+| `POST /api/notifications/{id}/read` | Marca uma como lida e devolve a notificação; repetir mantém a primeira leitura. Notificação de outro usuário ou inexistente responde 404 |
+| `POST /api/notifications/read-all` | Marca todas como lidas; responde 204. Elas continuam na lista |
+
+| Evento | Tipo | Destinatário | Link |
+| :--- | :--- | :--- | :--- |
+| Decisão de aprovar | `PROJECT_APPROVED` | Dono do projeto | `/projetos/{id}` |
+| Decisão de reprovar ("reprovado com N apontamentos") | `PROJECT_REJECTED` | Dono do projeto | `/projetos/{id}/apontamentos` |
+| Analista reabre um apontamento que o dono já respondeu | `FINDING_REOPENED` | Dono do projeto | `/projetos/{id}/apontamentos` |
+| Reenvio de projeto reprovado | `PROJECT_RESUBMITTED` | Analista atribuído | `/fila-de-analise/{id}` |
+| Prazo de análise vence em até 3 dias (hoje inclusive) | `REVIEW_DEADLINE_NEAR` | Analista atribuído | `/fila-de-analise/{id}` |
+| Prazo de análise vencido | `REVIEW_OVERDUE` | Analista atribuído | `/fila-de-analise/{id}` |
+| Aprovação expira em até 30 dias (36 meses após a aprovação) | `APPROVAL_EXPIRING` | Dono do projeto | `/projetos/{id}` |
+
+- As quatro primeiras nascem na transação da operação que as causa (decisão, resolução do apontamento, envio). Sem destinatário (projeto sem dono, ou sem analista atribuído), nada é gerado.
+- As três últimas não têm ação do usuário: `NotificationScheduler` varre os projetos todo dia às 06:00 (horário de Recife). `NOTIFICATIONS_CRON` troca o horário e `-` desliga a varredura. Cada aviso sai uma vez por projeto, tipo e ciclo de análise, então rodar a varredura de novo não repete nada. O prazo é o de `Project.reviewDeadline`, sem desconto de dias suspensos (US15).
+- O contador some quando as notificações são lidas, mas elas continuam na lista.
+
+---
+
 ## Variáveis de Ambiente
 
 | Variável | Obrigatória | Padrão | Descrição |
@@ -281,6 +307,7 @@ Projeto fora de `REJECTED` responde 409 no `/response`; apontamento em rascunho 
 | `JWT_EXPIRATION` | Não | `8h` | Validade do token |
 | `CORS_ALLOWED_ORIGINS` | Não | vazio | Origens externas que podem chamar a API, separadas por vírgula. Aceita padrão: `https://ampere-virid.vercel.app,https://*-igrph.vercel.app`. Vazio: apenas a mesma origem |
 | `CORS_PREVIEW_ORIGINS` | Não | `https://ampere-*-igrph.vercel.app` | Deploy previews do front na Vercel, somados a `CORS_ALLOWED_ORIGINS`. O padrão cobre `ampere-<hash>-igrph.vercel.app` e `ampere-git-<branch>-igrph.vercel.app` |
+| `NOTIFICATIONS_CRON` | Não | `0 0 6 * * *` | Horário da varredura diária de prazos e validade das notificações (cron do Spring, fuso de Recife). `-` desliga |
 | `DDL_AUTO` | Não | `update` | Alavanca de recuperação de schema. `create` apaga e recria o schema a cada inicialização; use uma vez e **remova a variável** |
 
 Gerar um segredo:
