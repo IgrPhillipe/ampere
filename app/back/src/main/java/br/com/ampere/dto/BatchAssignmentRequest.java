@@ -5,5 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public record BatchAssignmentRequest(
-    @NotEmpty(message = "Projetos são obrigatórios.") List<String> projectIds,
-    @NotNull(message = "Analista é obrigatório.") String reviewerId) {}
+    @NotEmpty(message = "Selecione ao menos um projeto.")
+        List<@NotNull(message = "Projeto inválido.") Long> projectIds,
+    @NotNull(message = "O analista é obrigatório.") Long reviewerId) {}

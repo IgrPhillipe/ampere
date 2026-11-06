@@ -534,13 +534,22 @@ class SubmissionIntegrationTest {
 
   @Test
   void recordsTheProtocolTimelineThroughAFullReviewCycle() throws Exception {
-    userRepository.save(
-        new User(
-            "Revisor Teste",
-            "revisor@ampere.com",
-            passwordEncoder.encode(PASSWORD),
-            UserRole.REVIEWER));
+    User analyst =
+        userRepository.save(
+            new User(
+                "Revisor Teste",
+                "revisor@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.REVIEWER));
     String analystToken = "Bearer " + token("revisor@ampere.com");
+    User manager =
+        userRepository.save(
+            new User(
+                "Gestor Teste",
+                "gestor@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.ADMIN));
+    String managerToken = "Bearer " + token("gestor@ampere.com");
 
     String created =
         perform(
@@ -580,9 +589,18 @@ class SubmissionIntegrationTest {
     String review = "/projects/" + project.getId();
     for (int attempt = 0; attempt < 2; attempt++) {
       mockMvc
-          .perform(post(review + "/review").header("Authorization", analystToken))
-          .andExpect(status().isOk());
+          .perform(
+              put("/review-queue/assignment")
+                  .header("Authorization", managerToken)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(
+                      "{\"projectIds\":[\"%s\"],\"reviewerId\":\"%s\"}"
+                          .formatted(project.getId(), analyst.getId())))
+          .andExpect(status().isNoContent());
     }
+    mockMvc
+        .perform(post(review + "/review").header("Authorization", analystToken))
+        .andExpect(status().isOk());
     String finding =
         mockMvc
             .perform(
@@ -680,18 +698,22 @@ class SubmissionIntegrationTest {
                         "FINDING_ANSWERED",
                         "RESUBMITTED",
                         "PRE_VALIDATED",
+                        "ASSIGNED",
                         "REJECTED",
                         "FINDING_ANSWERED",
                         "FINDING_ANSWERED",
                         "RESUBMITTED",
                         "PRE_VALIDATED",
+                        "ASSIGNED",
                         "APPROVED")))
         .andExpect(
             jsonPath("$.data[*].version")
-                .value(contains(0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3)))
+                .value(contains(0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3)))
         .andExpect(jsonPath("$.data[0].authorName").value("Usuário Teste"))
-        .andExpect(jsonPath("$.data[3].description").value("Análise assumida por Revisor Teste."))
-        .andExpect(jsonPath("$.data[3].authorRole").value("reviewer"))
+        .andExpect(
+            jsonPath("$.data[3].description")
+                .value("Análise atribuída a Revisor Teste por Gestor Teste."))
+        .andExpect(jsonPath("$.data[3].authorRole").value("admin"))
         .andExpect(jsonPath("$.data[4].description").value("Reprovado com 1 apontamento."))
         .andExpect(jsonPath("$.data[4].detail").value("Assine a ART."))
         .andExpect(jsonPath("$.data[5].description").value("Apontamento de Documentos corrigido."))
@@ -702,14 +724,18 @@ class SubmissionIntegrationTest {
         .andExpect(jsonPath("$.data[8].description").value("Versão 2 reenviada para análise."))
         .andExpect(jsonPath("$.data[8].detail").value("ART assinada e tipo B incluído."))
         .andExpect(jsonPath("$.data[9].authorRole").doesNotExist())
-        .andExpect(jsonPath("$.data[10].description").value("Reprovado com 1 apontamento."))
-        .andExpect(jsonPath("$.data[11].description").value("Apontamento de Documentos corrigido."))
-        .andExpect(jsonPath("$.data[11].detail").value("ART assinada pelo responsável técnico."))
         .andExpect(
-            jsonPath("$.data[12].description")
+            jsonPath("$.data[10].description")
+                .value("Análise atribuída a Revisor Teste pelo sistema."))
+        .andExpect(jsonPath("$.data[10].authorRole").doesNotExist())
+        .andExpect(jsonPath("$.data[11].description").value("Reprovado com 1 apontamento."))
+        .andExpect(jsonPath("$.data[12].description").value("Apontamento de Documentos corrigido."))
+        .andExpect(jsonPath("$.data[12].detail").value("ART assinada pelo responsável técnico."))
+        .andExpect(
+            jsonPath("$.data[13].description")
                 .value("Apontamento de Dados da Edificação corrigido."))
-        .andExpect(jsonPath("$.data[13].description").value("Versão 3 reenviada para análise."))
-        .andExpect(jsonPath("$.data[15].description").value("Aprovado."));
+        .andExpect(jsonPath("$.data[14].description").value("Versão 3 reenviada para análise."))
+        .andExpect(jsonPath("$.data[17].description").value("Aprovado."));
 
     perform(get(review + "/rework"))
         .andExpect(status().isOk())

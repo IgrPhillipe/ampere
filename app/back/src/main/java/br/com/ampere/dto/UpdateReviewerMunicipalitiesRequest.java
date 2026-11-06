@@ -5,5 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public record UpdateReviewerMunicipalitiesRequest(
-    @NotNull(message = "Lista de municípios é obrigatória.")
-        List<@Valid MunicipalityAssignmentDto> municipalities) {}
+    @NotNull(message = "A lista de municípios é obrigatória.")
+        List<@NotNull(message = "Município inválido.") @Valid MunicipalityRequest>
+            municipalities) {}

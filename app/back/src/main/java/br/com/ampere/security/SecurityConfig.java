@@ -78,8 +78,7 @@ public class SecurityConfig {
                         "/normative-tables/**",
                         "/users",
                         "/users/**",
-                        "/reviewers/municipalities",
-                        "/reviewers/*/municipalities",
+                        "/reviewers/**",
                         "/review-queue/assignment")
                     .hasRole(ADMIN)
                     .requestMatchers(

@@ -98,8 +98,7 @@ class ProjectReviewWorkflowIntegrationTest {
     otherAnalyst =
         userRepository.save(new User("Carlos Analista", "carlos@ampere.com", hash, UserRole.ADMIN));
     project = submittedProject("2026-7001", owner);
-    project.assignReviewer(analyst);
-    projectRepository.save(project);
+    assignTo(project, analyst);
   }
 
   @Test
@@ -111,15 +110,14 @@ class ProjectReviewWorkflowIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, bearer(owner)))
         .andExpect(status().isForbidden());
 
-    assign(unassigned, analyst).andExpect(status().isForbidden());
+    open(unassigned, analyst).andExpect(status().isForbidden());
 
-    unassigned.assignReviewer(analyst);
-    projectRepository.save(unassigned);
+    assignTo(unassigned, analyst);
 
-    assign(unassigned, analyst)
+    open(unassigned, analyst)
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.reviewerId").value(analyst.getId()));
-    assign(unassigned, otherAnalyst).andExpect(status().isForbidden());
+    open(unassigned, otherAnalyst).andExpect(status().isForbidden());
     mockMvc
         .perform(
             get("/projects/{id}", unassigned.getId())
@@ -168,7 +166,7 @@ class ProjectReviewWorkflowIntegrationTest {
 
   @Test
   void enforcesDecisionRulesAndPublishesDraftFindings() throws Exception {
-    assign(project, analyst).andExpect(status().isOk());
+    open(project, analyst).andExpect(status().isOk());
 
     decide(project, analyst, "REJECT", "Revisar os documentos.")
         .andExpect(status().isUnprocessableContent());
@@ -206,7 +204,8 @@ class ProjectReviewWorkflowIntegrationTest {
   @Test
   void approvesOnlyWhenEveryFindingIsResolved() throws Exception {
     Project approvable = submittedProject("2026-7002", owner);
-    assign(approvable, analyst).andExpect(status().isOk());
+    assignTo(approvable, analyst);
+    open(approvable, analyst).andExpect(status().isOk());
     String adjustment = FINDING_BODY.replace("BLOCKING", "ADJUSTMENT");
     createFinding(approvable, analyst, adjustment).andExpect(status().isCreated());
 
@@ -230,17 +229,23 @@ class ProjectReviewWorkflowIntegrationTest {
   @Test
   void nobodyReviewsTheirOwnProject() throws Exception {
     Project own = submittedProject("2026-7004", otherAnalyst);
+    assignTo(own, otherAnalyst);
 
-    assign(own, otherAnalyst)
+    createFinding(own, otherAnalyst, FINDING_BODY)
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.detail").value("Você não pode analisar um projeto seu."));
+    decide(own, otherAnalyst, "APPROVE", "Aprovo o meu.").andExpect(status().isForbidden());
+    open(own, otherAnalyst)
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.detail").value("Você não pode analisar um projeto seu."));
   }
 
   /** {@code otherAnalyst} is an admin: the admin reviews like the analyst does. */
   @Test
-  void theAdminAssignsWritesFindingsAndDecides() throws Exception {
+  void theAdminOpensWritesFindingsAndDecides() throws Exception {
     Project rejectable = submittedProject("2026-7003", owner);
-    assign(rejectable, otherAnalyst).andExpect(status().isOk());
+    assignTo(rejectable, otherAnalyst);
+    open(rejectable, otherAnalyst).andExpect(status().isOk());
     createFinding(rejectable, otherAnalyst, FINDING_BODY).andExpect(status().isCreated());
 
     decide(rejectable, otherAnalyst, "REJECT", "Falta a comprovação do sistema de recarga.")
@@ -250,7 +255,7 @@ class ProjectReviewWorkflowIntegrationTest {
 
   @Test
   void acceptsAndReopensAPreviousCycleFindingDuringReanalysis() throws Exception {
-    assign(project, analyst).andExpect(status().isOk());
+    open(project, analyst).andExpect(status().isOk());
     createFinding(project, analyst, FINDING_BODY).andExpect(status().isCreated());
     decide(project, analyst, "REJECT", "Corrigir item bloqueante.").andExpect(status().isOk());
     Long findingId = findingRepository.findAll().getFirst().getId();
@@ -268,7 +273,7 @@ class ProjectReviewWorkflowIntegrationTest {
 
   @Test
   void rejectsTheReanalysisWithAReopenedFinding() throws Exception {
-    assign(project, analyst).andExpect(status().isOk());
+    open(project, analyst).andExpect(status().isOk());
     createFinding(project, analyst, FINDING_BODY).andExpect(status().isCreated());
     decide(project, analyst, "REJECT", "Corrigir item bloqueante.").andExpect(status().isOk());
     Long findingId = findingRepository.findAll().getFirst().getId();
@@ -284,7 +289,7 @@ class ProjectReviewWorkflowIntegrationTest {
 
   @Test
   void refusesAReferenceOutsideTheStage() throws Exception {
-    assign(project, analyst).andExpect(status().isOk());
+    open(project, analyst).andExpect(status().isOk());
 
     createFinding(project, analyst, FINDING_BODY.replace("DOCUMENTS", "PROJECT_DATA"))
         .andExpect(status().isBadRequest())
@@ -294,7 +299,7 @@ class ProjectReviewWorkflowIntegrationTest {
 
   @Test
   void validatesTheDecisionInPortuguese() throws Exception {
-    assign(project, analyst).andExpect(status().isOk());
+    open(project, analyst).andExpect(status().isOk());
 
     mockMvc
         .perform(
@@ -314,7 +319,7 @@ class ProjectReviewWorkflowIntegrationTest {
     ProjectDocument document =
         documentRepository.save(
             new ProjectDocument(project, DocumentType.SITE_PLAN, "planta.pdf", pdf));
-    assign(project, analyst).andExpect(status().isOk());
+    open(project, analyst).andExpect(status().isOk());
 
     file(project, document, owner)
         .andExpect(status().isOk())
@@ -329,7 +334,7 @@ class ProjectReviewWorkflowIntegrationTest {
 
   @Test
   void recordsDesignerResponsesToRejectedFindingsAndEnforcesResponseRules() throws Exception {
-    assign(project, analyst).andExpect(status().isOk());
+    open(project, analyst).andExpect(status().isOk());
     createFinding(project, analyst, FINDING_BODY).andExpect(status().isCreated());
     Long findingId = findingRepository.findAll().getFirst().getId();
 
@@ -354,7 +359,8 @@ class ProjectReviewWorkflowIntegrationTest {
     respond(project, findingId, otherOwner, "{\"status\":\"FIXED\"}")
         .andExpect(status().isNotFound());
     Project otherProject = submittedProject("2026-7009", owner);
-    assign(otherProject, analyst).andExpect(status().isOk());
+    assignTo(otherProject, analyst);
+    open(otherProject, analyst).andExpect(status().isOk());
     createFinding(otherProject, analyst, FINDING_BODY).andExpect(status().isCreated());
     decide(otherProject, analyst, "REJECT", "Reprovado.").andExpect(status().isOk());
     respond(otherProject, findingId, owner, "{\"status\":\"FIXED\"}")
@@ -436,7 +442,12 @@ class ProjectReviewWorkflowIntegrationTest {
             .content(body));
   }
 
-  private ResultActions assign(Project target, User actor) throws Exception {
+  private void assignTo(Project target, User reviewer) {
+    target.assignReviewer(reviewer);
+    projectRepository.save(target);
+  }
+
+  private ResultActions open(Project target, User actor) throws Exception {
     return mockMvc.perform(
         post("/projects/{id}/review", target.getId())
             .header(HttpHeaders.AUTHORIZATION, bearer(actor)));

@@ -102,7 +102,7 @@ public class ReviewQueueService {
     return new ReviewQueueListing(entries, projects.getTotalElements());
   }
 
-  /** Whoever can take a project from the queue: active analysts and admins. */
+  /** Whoever can hold a review: active analysts and admins. */
   @Transactional(readOnly = true)
   public List<User> reviewers(AuthenticatedUser user) {
     user.requireReviewer();

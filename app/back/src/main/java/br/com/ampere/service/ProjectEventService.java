@@ -51,10 +51,9 @@ public class ProjectEventService {
   }
 
   public void assigned(Project project, User author, OffsetDateTime occurredAt) {
+    String assignedBy = author == null ? "pelo sistema" : "por " + author.getName();
     String description =
-        author == null
-            ? "Análise atribuída pelo sistema."
-            : "Análise atribuída por " + author.getName() + ".";
+        "Análise atribuída a " + project.getReviewer().getName() + " " + assignedBy + ".";
     record(project, ProjectEventType.ASSIGNED, author, description, null, occurredAt);
   }
 

@@ -1,60 +1,73 @@
 package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.ampere.config.NormativeTableSeed;
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.FindingSeverity;
 import br.com.ampere.domain.FindingStage;
+import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ResidentialGroup;
 import br.com.ampere.domain.ResidentialMultifamily;
+import br.com.ampere.domain.ReviewerMunicipality;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
-import br.com.ampere.dto.MunicipalityAssignmentDto;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
+import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ReviewerMunicipalityRepository;
+import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.databind.ObjectMapper;
 
+// Not @Transactional: an open session would hide what open-in-view=false breaks in production.
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
 class ReviewerDistributionIntegrationTest {
 
   private static final String PASSWORD = "senha@123";
   private static final byte[] PDF = "%PDF-1.7\ncontent".getBytes(StandardCharsets.US_ASCII);
+  private static final String CARUARU =
+      "{\"municipalities\":[{\"state\":\"PE\",\"municipality\":\"Caruaru\"}]}";
 
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
@@ -67,12 +80,14 @@ class ReviewerDistributionIntegrationTest {
   @Autowired private FindingRepository findingRepository;
   @Autowired private ProjectEventRepository eventRepository;
   @Autowired private ReviewerMunicipalityRepository municipalityRepository;
-  @Autowired private ReviewerMunicipalityService reviewerMunicipalityService;
+  @Autowired private NormativeTableRepository normativeTableRepository;
+  @Autowired private StandardRepository standardRepository;
   @Autowired private DemandCalculationService demandCalculationService;
 
+  private List<Standard> standards;
   private User admin;
-  private User analystAna;
-  private User analystBruno;
+  private User ana;
+  private User bruno;
   private User designer;
 
   @BeforeEach
@@ -81,16 +96,23 @@ class ReviewerDistributionIntegrationTest {
     eventRepository.deleteAll();
     documentRepository.deleteAll();
     calculationRepository.deleteAll();
-    groupRepository.deleteAll();
     findingRepository.deleteAll();
+    groupRepository.deleteAll();
     projectRepository.deleteAll();
+    normativeTableRepository.deleteAll();
+    standardRepository.deleteAll();
     userRepository.deleteAll();
 
+    standards =
+        standardRepository.saveAll(
+            List.of(new Standard("DIS-NOR-053", "REV 06"), new Standard("DIS-NOR-030", "REV 07")));
+    normativeTableRepository.saveAll(
+        NormativeTableSeed.all(
+            standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
     String hash = passwordEncoder.encode(PASSWORD);
     admin = userRepository.save(new User("Admin Gestor", "admin@ampere.com", hash, UserRole.ADMIN));
-    analystAna =
-        userRepository.save(new User("Ana Analista", "ana@ampere.com", hash, UserRole.REVIEWER));
-    analystBruno =
+    ana = userRepository.save(new User("Ana Analista", "ana@ampere.com", hash, UserRole.REVIEWER));
+    bruno =
         userRepository.save(
             new User("Bruno Analista", "bruno@ampere.com", hash, UserRole.REVIEWER));
     designer =
@@ -98,77 +120,62 @@ class ReviewerDistributionIntegrationTest {
   }
 
   @Test
-  void managesReviewerMunicipalitiesWithValidationAndConflictHandling() throws Exception {
-    String adminToken = bearer(admin);
-    String anaToken = bearer(analystAna);
+  void listsEveryActiveReviewerOnlyToTheAdmin() throws Exception {
+    rule(ana, "Gravatá");
+    rule(ana, "Caruaru");
+    deactivate(bruno);
 
-    // Only admin can list
     mockMvc
-        .perform(get("/reviewers/municipalities").header(HttpHeaders.AUTHORIZATION, anaToken))
+        .perform(get("/reviewers/municipalities").header(HttpHeaders.AUTHORIZATION, bearer(ana)))
         .andExpect(status().isForbidden());
-
     mockMvc
-        .perform(get("/reviewers/municipalities").header(HttpHeaders.AUTHORIZATION, adminToken))
+        .perform(get("/reviewers/municipalities").header(HttpHeaders.AUTHORIZATION, bearer(admin)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data").isArray())
-        .andExpect(
-            jsonPath("$.data[?(@.reviewer.name == 'Ana Analista')].municipalities").isEmpty());
+        .andExpect(jsonPath("$.data", hasSize(2)))
+        .andExpect(jsonPath("$.data[0].reviewer.name").value("Admin Gestor"))
+        .andExpect(jsonPath("$.data[0].municipalities", empty()))
+        .andExpect(jsonPath("$.data[1].reviewer.id").value(String.valueOf(ana.getId())))
+        .andExpect(jsonPath("$.data[1].municipalities[0].municipality").value("Caruaru"))
+        .andExpect(jsonPath("$.data[1].municipalities[1].state").value("PE"))
+        .andExpect(jsonPath("$.data[1].municipalities[1].municipality").value("Gravatá"));
+  }
 
-    // 400 - Outside concession area
-    mockMvc
-        .perform(
-            put("/reviewers/{id}/municipalities", analystAna.getId())
-                .header(HttpHeaders.AUTHORIZATION, adminToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"municipalities\": [{\"state\": \"SP\", \"municipality\": \"São Paulo\"}]}"))
-        .andExpect(status().isBadRequest());
+  @Test
+  void replacesTheListWithTheOfficialSpellingAndWithoutRepetition() throws Exception {
+    rule(ana, "Recife");
 
-    // 404 - Unknown or non-reviewer
-    mockMvc
-        .perform(
-            put("/reviewers/{id}/municipalities", designer.getId())
-                .header(HttpHeaders.AUTHORIZATION, adminToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"municipalities\": [{\"state\": \"PE\", \"municipality\": \"Caruaru\"}]}"))
-        .andExpect(status().isNotFound());
+    replaceMunicipalities(
+            ana,
+            "{\"municipalities\":[{\"state\":\"PE\",\"municipality\":\"caruaru\"},"
+                + "{\"state\":\"PE\",\"municipality\":\"CARUARU\"},"
+                + "{\"state\":\"PE\",\"municipality\":\"gravata\"}]}")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[*].municipality", contains("Caruaru", "Gravatá")));
 
-    // 422 - Inactive analyst
-    analystBruno.administer(analystBruno.getName(), UserRole.REVIEWER, false);
-    userRepository.save(analystBruno);
-    mockMvc
-        .perform(
-            put("/reviewers/{id}/municipalities", analystBruno.getId())
-                .header(HttpHeaders.AUTHORIZATION, adminToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"municipalities\": [{\"state\": \"PE\", \"municipality\": \"Caruaru\"}]}"))
-        .andExpect(status().isUnprocessableEntity())
+    assertThat(municipalityRepository.findAllByOrderByStateAscMunicipalityAsc())
+        .extracting(ReviewerMunicipality::getMunicipality)
+        .containsExactly("Caruaru", "Gravatá");
+  }
+
+  @Test
+  void refusesInvalidMunicipalityLists() throws Exception {
+    replaceMunicipalities(ana, "{\"municipalities\":[{\"state\":\"PE\",\"municipality\":\"Lua\"}]}")
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("Município fora da área de concessão: Lua (PE)."));
+    replaceMunicipalities(ana, "{\"municipalities\":[null]}").andExpect(status().isBadRequest());
+    replaceMunicipalities(designer, CARUARU).andExpect(status().isNotFound());
+
+    deactivate(bruno);
+    replaceMunicipalities(bruno, CARUARU)
+        .andExpect(status().isUnprocessableContent())
         .andExpect(jsonPath("$.detail").value("Analista inativo."));
+  }
 
-    analystBruno.administer(analystBruno.getName(), UserRole.REVIEWER, true);
-    userRepository.save(analystBruno);
+  @Test
+  void aMunicipalityBelongsToOneActiveReviewerAtATime() throws Exception {
+    rule(ana, "Caruaru");
 
-    // Assign Caruaru to Ana
-    mockMvc
-        .perform(
-            put("/reviewers/{id}/municipalities", analystAna.getId())
-                .header(HttpHeaders.AUTHORIZATION, adminToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"municipalities\": [{\"state\": \"PE\", \"municipality\": \"Caruaru\"}]}"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data[0].municipality").value("Caruaru"));
-
-    // 409 - Caruaru already belongs to Ana
-    mockMvc
-        .perform(
-            put("/reviewers/{id}/municipalities", analystBruno.getId())
-                .header(HttpHeaders.AUTHORIZATION, adminToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"municipalities\": [{\"state\": \"PE\", \"municipality\": \"Caruaru\"}]}"))
+    replaceMunicipalities(bruno, CARUARU)
         .andExpect(status().isConflict())
         .andExpect(
             jsonPath("$.detail")
@@ -176,261 +183,387 @@ class ReviewerDistributionIntegrationTest {
   }
 
   @Test
-  void automaticDistributionOnSubmissionAndReanalysisDevolution() throws Exception {
-    reviewerMunicipalityService.updateMunicipalities(
-        analystAna.getId(),
-        List.of(new MunicipalityAssignmentDto(br.com.ampere.domain.BrazilianState.PE, "Caruaru")),
-        new AuthenticatedUser(admin.getId(), UserRole.ADMIN));
+  void anotherReviewerTakesTheMunicipalityOfAnInactiveOrDemotedOne() throws Exception {
+    rule(ana, "Caruaru");
+    rule(bruno, "Gravatá");
+    deactivate(ana);
+    demote(bruno);
 
-    // Project from Caruaru -> auto assigned to Ana with system event (null author)
-    Project p1 = readyProject("2026-9001", "Caruaru", designer);
-    submitProject(p1, designer);
-
-    Project reloadedP1 = projectRepository.findDetailById(p1.getId()).orElseThrow();
-    assertThat(reloadedP1.getReviewer()).isNotNull();
-    assertThat(reloadedP1.getReviewer().getId()).isEqualTo(analystAna.getId());
-
-    List<ProjectEvent> p1Events =
-        eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(p1.getId());
-    ProjectEvent p1Assigned =
-        p1Events.stream()
-            .filter(e -> e.getType() == ProjectEventType.ASSIGNED)
-            .findFirst()
-            .orElseThrow();
-    assertThat(p1Assigned.getAuthor()).isNull();
-    assertThat(p1Assigned.getDescription()).isEqualTo("Análise atribuída pelo sistema.");
-
-    // Project from Gravata (no rule) -> unassigned
-    Project p2 = readyProject("2026-9002", "Gravatá", designer);
-    submitProject(p2, designer);
-
-    Project reloadedP2 = projectRepository.findDetailById(p2.getId()).orElseThrow();
-    assertThat(reloadedP2.getReviewer()).isNull();
-    assertThat(eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(p2.getId()))
-        .noneMatch(e -> e.getType() == ProjectEventType.ASSIGNED);
-
-    // Reanalysis devolution to whoever rejected:
-    // Reject p1 with Ana
-    reloadedP1.reject(OffsetDateTime.now(ZoneOffset.UTC), "Favor corrigir.");
-    projectRepository.save(reloadedP1);
-
-    // Designer resubmits p1
-    mockMvc
-        .perform(
-            post("/projects/{id}/submission", p1.getId())
-                .header(HttpHeaders.AUTHORIZATION, bearer(designer))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"changeSummary\": \"Corrigido o documento.\"}"))
+    replaceMunicipalities(
+            admin,
+            "{\"municipalities\":[{\"state\":\"PE\",\"municipality\":\"Caruaru\"},"
+                + "{\"state\":\"PE\",\"municipality\":\"Gravatá\"}]}")
         .andExpect(status().isOk());
 
-    Project resubmittedP1 = projectRepository.findDetailById(p1.getId()).orElseThrow();
-    assertThat(resubmittedP1.getReviewer()).isNotNull();
-    assertThat(resubmittedP1.getReviewer().getId()).isEqualTo(analystAna.getId());
-
-    // If reviewer was deactivated, devolution leaves it unassigned
-    resubmittedP1.reject(OffsetDateTime.now(ZoneOffset.UTC), "Nova reprovação.");
-    projectRepository.save(resubmittedP1);
-
-    analystAna.administer(analystAna.getName(), UserRole.REVIEWER, false);
-    userRepository.save(analystAna);
-
-    mockMvc
-        .perform(
-            post("/projects/{id}/submission", p1.getId())
-                .header(HttpHeaders.AUTHORIZATION, bearer(designer))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"changeSummary\": \"Segunda correção.\"}"))
-        .andExpect(status().isOk());
-
-    Project resubmittedP1Again = projectRepository.findDetailById(p1.getId()).orElseThrow();
-    assertThat(resubmittedP1Again.getReviewer()).isNull();
+    assertThat(municipalityRepository.findAll())
+        .extracting(found -> found.getReviewer().getId())
+        .containsOnly(admin.getId());
   }
 
   @Test
-  void batchAssignmentAllOrNothingAndDraftFindingsMigration() throws Exception {
-    String adminToken = bearer(admin);
-    Project p1 = readyProject("2026-9011", "Recife", designer);
-    submitProject(p1, designer);
-    Project p2 = readyProject("2026-9012", "Olinda", designer);
-    submitProject(p2, designer);
+  void submissionGoesToTheReviewerOfTheMunicipality() throws Exception {
+    rule(ana, "Caruaru");
+    Project project = readyProject("2026-9001", "Caruaru", designer);
 
-    // p1 already has draft finding from Bruno
-    p1.assignReviewer(analystBruno);
-    projectRepository.save(p1);
-    Finding draftFinding =
-        findingRepository.save(
-            new Finding(
-                p1,
-                FindingSeverity.BLOCKING,
-                FindingStage.DOCUMENTS,
-                null,
-                null,
-                DocumentType.ART,
-                "Assinar a ART.",
-                null,
-                analystBruno,
-                1));
+    submit(project).andExpect(status().isOk());
 
-    // Reject when reviewer is inactive -> 422 "Analista inativo."
-    analystAna.administer(analystAna.getName(), UserRole.REVIEWER, false);
-    userRepository.save(analystAna);
+    assertThat(reviewerOf(project).getId()).isEqualTo(ana.getId());
+    ProjectEvent assignment = lastAssignmentOf(project);
+    assertThat(assignment.getAuthor()).isNull();
+    assertThat(assignment.getDescription())
+        .isEqualTo("Análise atribuída a Ana Analista pelo sistema.");
+  }
 
-    mockMvc
-        .perform(
-            put("/review-queue/assignment")
-                .header(HttpHeaders.AUTHORIZATION, adminToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"projectIds\": [\""
-                        + p1.getId()
-                        + "\", \""
-                        + p2.getId()
-                        + "\"], \"reviewerId\": \""
-                        + analystAna.getId()
-                        + "\"}"))
-        .andExpect(status().isUnprocessableEntity())
-        .andExpect(jsonPath("$.detail").value("Analista inativo."));
+  @Test
+  void submissionStaysUnassignedWithoutAnEligibleReviewer() throws Exception {
+    rule(ana, "Caruaru");
+    rule(bruno, "Gravatá");
+    deactivate(ana);
+    demote(bruno);
+    Project inactive = readyProject("2026-9002", "Caruaru", designer);
+    Project demoted = readyProject("2026-9003", "Gravatá", designer);
+    Project noRule = readyProject("2026-9004", "Recife", designer);
 
-    // Nothing changed for either project
-    assertThat(projectRepository.findDetailById(p1.getId()).orElseThrow().getReviewer().getId())
-        .isEqualTo(analystBruno.getId());
-    assertThat(projectRepository.findDetailById(p2.getId()).orElseThrow().getReviewer()).isNull();
+    for (Project project : List.of(inactive, demoted, noRule)) {
+      submit(project).andExpect(status().isOk());
 
-    // Reactivate Ana and assign batch
-    analystAna.administer(analystAna.getName(), UserRole.REVIEWER, true);
-    userRepository.save(analystAna);
+      assertThat(reviewerOf(project)).isNull();
+      assertThat(assignmentsOf(project)).isEmpty();
+    }
+  }
 
-    mockMvc
-        .perform(
-            put("/review-queue/assignment")
-                .header(HttpHeaders.AUTHORIZATION, adminToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"projectIds\": [\""
-                        + p1.getId()
-                        + "\", \""
-                        + p2.getId()
-                        + "\"], \"reviewerId\": \""
-                        + analystAna.getId()
-                        + "\"}"))
-        .andExpect(status().isOk());
+  @Test
+  void resubmissionGoesBackToWhoRejected() throws Exception {
+    Project project = readyProject("2026-9005", "Recife", designer);
+    submit(project).andExpect(status().isOk());
+    assign(List.of(project), bruno).andExpect(status().isNoContent());
+    reject(project);
 
-    assertThat(projectRepository.findDetailById(p1.getId()).orElseThrow().getReviewer().getId())
-        .isEqualTo(analystAna.getId());
-    assertThat(projectRepository.findDetailById(p2.getId()).orElseThrow().getReviewer().getId())
-        .isEqualTo(analystAna.getId());
+    resubmit(project).andExpect(status().isOk());
 
-    // Draft finding author migrated to Ana
-    Finding reloadedFinding = findingRepository.findById(draftFinding.getId()).orElseThrow();
-    assertThat(reloadedFinding.getAuthor().getId()).isEqualTo(analystAna.getId());
+    assertThat(reviewerOf(project).getId()).isEqualTo(bruno.getId());
+    assertThat(lastAssignmentOf(project).getAuthor()).isNull();
+  }
 
-    // Project ASSIGNED event recorded with admin as author
-    List<ProjectEvent> events =
-        eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(p1.getId());
-    ProjectEvent assignmentEvent =
-        events.stream()
-            .filter(e -> e.getType() == ProjectEventType.ASSIGNED)
-            .reduce((first, second) -> second)
-            .orElseThrow();
-    assertThat(assignmentEvent.getAuthor()).isNotNull();
-    assertThat(assignmentEvent.getAuthor().getId()).isEqualTo(admin.getId());
-    assertThat(assignmentEvent.getDescription()).isEqualTo("Análise atribuída por Admin Gestor.");
+  @Test
+  void resubmissionFallsBackToTheMunicipalityWhenWhoRejectedIsGone() throws Exception {
+    rule(ana, "Caruaru");
+    Project project = readyProject("2026-9006", "Caruaru", designer);
+    submit(project).andExpect(status().isOk());
+    assign(List.of(project), bruno).andExpect(status().isNoContent());
+    reject(project);
+    deactivate(bruno);
 
-    // Conflict when a project is not UNDER_REVIEW
-    p2.approve(OffsetDateTime.now(ZoneOffset.UTC));
-    projectRepository.save(p2);
+    resubmit(project).andExpect(status().isOk());
 
-    mockMvc
-        .perform(
-            put("/review-queue/assignment")
-                .header(HttpHeaders.AUTHORIZATION, adminToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"projectIds\": [\""
-                        + p1.getId()
-                        + "\", \""
-                        + p2.getId()
-                        + "\"], \"reviewerId\": \""
-                        + analystBruno.getId()
-                        + "\"}"))
+    assertThat(reviewerOf(project).getId()).isEqualTo(ana.getId());
+  }
+
+  @Test
+  void resubmissionStaysUnassignedWhenNobodyCanTakeIt() throws Exception {
+    Project project = readyProject("2026-9007", "Recife", designer);
+    submit(project).andExpect(status().isOk());
+    assign(List.of(project), bruno).andExpect(status().isNoContent());
+    reject(project);
+    demote(bruno);
+
+    resubmit(project).andExpect(status().isOk());
+
+    assertThat(reviewerOf(project)).isNull();
+  }
+
+  @Test
+  void theDistributionNeverHandsAProjectToItsOwner() throws Exception {
+    rule(admin, "Caruaru");
+    Project project = readyProject("2026-9008", "Caruaru", admin);
+
+    submit(project).andExpect(status().isOk());
+
+    assertThat(reviewerOf(project)).isNull();
+  }
+
+  @Test
+  void batchReassignsAndMovesOnlyTheDrafts() throws Exception {
+    Project first = readyProject("2026-9011", "Recife", designer);
+    Project second = readyProject("2026-9012", "Olinda", designer);
+    submit(first).andExpect(status().isOk());
+    submit(second).andExpect(status().isOk());
+    assign(List.of(first), bruno).andExpect(status().isNoContent());
+    Finding draft = finding(first, bruno);
+    Finding published = finding(first, bruno);
+    published.publish();
+    findingRepository.save(published);
+
+    assign(List.of(first, second), ana).andExpect(status().isNoContent());
+
+    assertThat(reviewerOf(first).getId()).isEqualTo(ana.getId());
+    assertThat(reviewerOf(second).getId()).isEqualTo(ana.getId());
+    assertThat(authorOf(draft)).isEqualTo(ana.getId());
+    assertThat(authorOf(published)).isEqualTo(bruno.getId());
+    ProjectEvent assignment = lastAssignmentOf(first);
+    assertThat(assignment.getAuthor().getId()).isEqualTo(admin.getId());
+    assertThat(assignment.getDescription())
+        .isEqualTo("Análise atribuída a Ana Analista por Admin Gestor.");
+  }
+
+  @Test
+  void batchIgnoresRepeatedIdsAndWhoAlreadyHoldsTheProject() throws Exception {
+    Project project = readyProject("2026-9013", "Recife", designer);
+    submit(project).andExpect(status().isOk());
+
+    assign(List.of(project, project), ana).andExpect(status().isNoContent());
+    assign(List.of(project), ana).andExpect(status().isNoContent());
+
+    assertThat(assignmentsOf(project)).hasSize(1);
+  }
+
+  @Test
+  void batchChangesNothingWhenOneProjectFails() throws Exception {
+    Project first = readyProject("2026-9014", "Recife", designer);
+    Project second = readyProject("2026-9015", "Olinda", designer);
+    submit(first).andExpect(status().isOk());
+    submit(second).andExpect(status().isOk());
+    assign(List.of(first), bruno).andExpect(status().isNoContent());
+    second = projectRepository.findDetailById(second.getId()).orElseThrow();
+    second.approve(OffsetDateTime.now(ZoneOffset.UTC));
+    projectRepository.save(second);
+
+    assign(List.of(first, second), ana)
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.detail").value("O projeto não está em análise."));
+
+    assertThat(reviewerOf(first).getId()).isEqualTo(bruno.getId());
+    assertThat(assignmentsOf(first)).hasSize(1);
   }
 
   @Test
-  void reviewQueueItemResponseIncludesReviewerIdAndName() throws Exception {
-    Project p = readyProject("2026-9021", "Recife", designer);
-    submitProject(p, designer);
-    p.assignReviewer(analystAna);
-    projectRepository.save(p);
+  void batchRefusesAnInactiveReviewerAndKeepsTheProjects() throws Exception {
+    Project first = readyProject("2026-9016", "Recife", designer);
+    Project second = readyProject("2026-9017", "Olinda", designer);
+    submit(first).andExpect(status().isOk());
+    submit(second).andExpect(status().isOk());
+    assign(List.of(first), bruno).andExpect(status().isNoContent());
+    deactivate(ana);
+
+    assign(List.of(first, second), ana)
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(jsonPath("$.detail").value("Analista inativo."));
+
+    assertThat(reviewerOf(first).getId()).isEqualTo(bruno.getId());
+    assertThat(reviewerOf(second)).isNull();
+  }
+
+  @Test
+  void batchRefusesWhoCannotReviewTheProject() throws Exception {
+    Project project = readyProject("2026-9018", "Recife", designer);
+    Project adminProject = readyProject("2026-9019", "Olinda", admin);
+    submit(project).andExpect(status().isOk());
+    submit(adminProject).andExpect(status().isOk());
+
+    assign(List.of(project), designer).andExpect(status().isUnprocessableContent());
+    assign(List.of(adminProject), admin)
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(jsonPath("$.detail").value("O analista não pode analisar um projeto próprio."));
+  }
+
+  @Test
+  void batchAnswersNotFoundAndKeepsItToTheAdmin() throws Exception {
+    Project project = readyProject("2026-9020", "Recife", designer);
+    submit(project).andExpect(status().isOk());
+
+    assignment(bearer(admin), "[\"999999\"]", ana.getId()).andExpect(status().isNotFound());
+    assignment(bearer(admin), "[\"" + project.getId() + "\"]", 999999L)
+        .andExpect(status().isNotFound());
+    assignment(bearer(ana), "[\"" + project.getId() + "\"]", ana.getId())
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void theQueueNamesTheReviewerOfEachProject() throws Exception {
+    Project assigned = readyProject("2026-9021", "Recife", designer);
+    Project unassigned = readyProject("2026-9022", "Olinda", designer);
+    submit(assigned).andExpect(status().isOk());
+    submit(unassigned).andExpect(status().isOk());
+    assign(List.of(assigned), ana).andExpect(status().isNoContent());
 
     mockMvc
-        .perform(get("/review-queue").header(HttpHeaders.AUTHORIZATION, bearer(analystAna)))
+        .perform(get("/review-queue").header(HttpHeaders.AUTHORIZATION, bearer(ana)))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.data[?(@.protocol == '2026-9021')].reviewerId")
-                .value(String.valueOf(analystAna.getId())))
+                .value(String.valueOf(ana.getId())))
         .andExpect(
-            jsonPath("$.data[?(@.protocol == '2026-9021')].reviewerName").value("Ana Analista"));
+            jsonPath("$.data[?(@.protocol == '2026-9021')].reviewerName").value(ana.getName()))
+        .andExpect(jsonPath("$.data[?(@.protocol == '2026-9022')].reviewerId").value((Object) null))
+        .andExpect(
+            jsonPath("$.data[?(@.protocol == '2026-9022')].reviewerName").value((Object) null));
   }
 
   @Test
-  void postReviewRefusesAnyoneOtherThanAssignedAnalyst() throws Exception {
-    Project p = readyProject("2026-9031", "Recife", designer);
-    submitProject(p, designer);
-    p.assignReviewer(analystAna);
-    projectRepository.save(p);
+  void onlyTheAssignedReviewerOpensTheReview() throws Exception {
+    Project project = readyProject("2026-9031", "Recife", designer);
+    submit(project).andExpect(status().isOk());
 
-    // Bruno attempts to open review on Ana's project -> 403
-    mockMvc
-        .perform(
-            post("/projects/{id}/review", p.getId())
-                .header(HttpHeaders.AUTHORIZATION, bearer(analystBruno)))
-        .andExpect(status().isForbidden());
+    open(project, ana)
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.detail").value("Somente o analista responsável pode abrir a análise."));
 
-    // Ana opens her own review -> 200
-    mockMvc
-        .perform(
-            post("/projects/{id}/review", p.getId())
-                .header(HttpHeaders.AUTHORIZATION, bearer(analystAna)))
+    assign(List.of(project), ana).andExpect(status().isNoContent());
+
+    open(project, bruno).andExpect(status().isForbidden());
+    open(project, ana)
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.reviewerId").value(String.valueOf(analystAna.getId())));
+        .andExpect(jsonPath("$.data.reviewerId").value(String.valueOf(ana.getId())))
+        .andExpect(jsonPath("$.data.reviewerName").value(ana.getName()));
+  }
+
+  private ResultActions open(Project project, User user) throws Exception {
+    return mockMvc.perform(
+        post("/projects/{id}/review", project.getId())
+            .header(HttpHeaders.AUTHORIZATION, bearer(user)));
+  }
+
+  private ResultActions replaceMunicipalities(User reviewer, String body) throws Exception {
+    return mockMvc.perform(
+        put("/reviewers/{id}/municipalities", reviewer.getId())
+            .header(HttpHeaders.AUTHORIZATION, bearer(admin))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(body));
+  }
+
+  private ResultActions assign(List<Project> projects, User reviewer) throws Exception {
+    String ids =
+        projects.stream()
+            .map(project -> "\"" + project.getId() + "\"")
+            .collect(Collectors.joining(",", "[", "]"));
+
+    return assignment(bearer(admin), ids, reviewer.getId());
+  }
+
+  private ResultActions assignment(String token, String projectIds, Long reviewerId)
+      throws Exception {
+    return mockMvc.perform(
+        put("/review-queue/assignment")
+            .header(HttpHeaders.AUTHORIZATION, token)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                "{\"projectIds\":%s,\"reviewerId\":\"%s\"}".formatted(projectIds, reviewerId)));
+  }
+
+  private ResultActions submit(Project project) throws Exception {
+    return mockMvc.perform(
+        post("/projects/{id}/submission", project.getId())
+            .header(HttpHeaders.AUTHORIZATION, bearer(project.getOwner())));
+  }
+
+  private ResultActions resubmit(Project project) throws Exception {
+    return mockMvc.perform(
+        post("/projects/{id}/submission", project.getId())
+            .header(HttpHeaders.AUTHORIZATION, bearer(project.getOwner()))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"changeSummary\":\"Documentos corrigidos.\"}"));
+  }
+
+  private void reject(Project project) {
+    Project found = projectRepository.findDetailById(project.getId()).orElseThrow();
+    found.reject(OffsetDateTime.now(ZoneOffset.UTC), "Corrigir os documentos.");
+    projectRepository.save(found);
+  }
+
+  private void rule(User reviewer, String municipality) {
+    municipalityRepository.save(
+        new ReviewerMunicipality(reviewer, BrazilianState.PE, municipality));
+  }
+
+  private void deactivate(User user) {
+    user.administer(user.getName(), user.getRole(), false);
+    userRepository.save(user);
+  }
+
+  private void demote(User user) {
+    user.administer(user.getName(), UserRole.USER, true);
+    userRepository.save(user);
+  }
+
+  private Finding finding(Project project, User author) {
+    return findingRepository.save(
+        new Finding(
+            project,
+            FindingSeverity.BLOCKING,
+            FindingStage.DOCUMENTS,
+            null,
+            null,
+            DocumentType.ART,
+            "Assinar a ART.",
+            null,
+            author,
+            1));
+  }
+
+  private Long authorOf(Finding finding) {
+    return findingRepository
+        .findAllByProjectIdInAndStatus(List.of(finding.getProject().getId()), finding.getStatus())
+        .stream()
+        .filter(found -> found.getId().equals(finding.getId()))
+        .findFirst()
+        .orElseThrow()
+        .getAuthor()
+        .getId();
+  }
+
+  private User reviewerOf(Project project) {
+    return projectRepository.findDetailById(project.getId()).orElseThrow().getReviewer();
+  }
+
+  private List<ProjectEvent> assignmentsOf(Project project) {
+    return eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(project.getId()).stream()
+        .filter(event -> event.getType() == ProjectEventType.ASSIGNED)
+        .toList();
+  }
+
+  private ProjectEvent lastAssignmentOf(Project project) {
+    return assignmentsOf(project).getLast();
   }
 
   private Project readyProject(String protocol, String municipality, User owner) {
-    Project p =
-        Project.draft(
-            "Residencial " + protocol,
-            "Rua Central, 100",
-            municipality,
-            protocol,
-            new ResidentialMultifamily(
-                4, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
-            List.<Standard>of(),
-            owner);
-    Project saved = projectRepository.save(p);
+    Project project =
+        projectRepository.save(
+            Project.draft(
+                "Residencial " + protocol,
+                "Rua Central, 100",
+                municipality,
+                protocol,
+                new ResidentialMultifamily(
+                    4,
+                    SupplyVoltage.V380_220,
+                    ConnectionType.THREE_PHASE,
+                    EntranceStandard.COLLECTIVE),
+                standards,
+                owner));
     groupRepository.save(
-        ResidentialGroup.apartments(
-            saved,
-            "Apt Padrão",
-            8,
-            new java.math.BigDecimal("60"),
-            2,
-            new java.math.BigDecimal("6.0")));
+        new ResidentialGroup(
+            project,
+            new GroupSpec(
+                "Apartamento",
+                8,
+                new BigDecimal("60"),
+                2,
+                new BigDecimal("6.0"),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null)));
     for (DocumentType type : DocumentType.values()) {
-      documentRepository.save(new ProjectDocument(saved, type, type.name() + ".pdf", PDF));
+      documentRepository.save(new ProjectDocument(project, type, type.name() + ".pdf", PDF));
     }
     demandCalculationService.calculate(
-        saved.getId(), new AuthenticatedUser(owner.getId(), UserRole.USER));
-    return saved;
-  }
+        project.getId(), new AuthenticatedUser(owner.getId(), owner.getRole()));
 
-  private void submitProject(Project project, User owner) throws Exception {
-    mockMvc
-        .perform(
-            post("/projects/{id}/submission", project.getId())
-                .header(HttpHeaders.AUTHORIZATION, bearer(owner)))
-        .andExpect(status().isOk());
+    return project;
   }
 
   private String bearer(User user) throws Exception {
@@ -440,14 +573,12 @@ class ReviewerDistributionIntegrationTest {
                 post("/auth/login")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
-                        "{\"email\":\""
-                            + user.getEmail()
-                            + "\",\"password\":\""
-                            + PASSWORD
-                            + "\"}"))
+                        "{\"email\":\"%s\",\"password\":\"%s\"}"
+                            .formatted(user.getEmail(), PASSWORD)))
             .andReturn()
             .getResponse()
             .getContentAsString();
+
     return "Bearer " + objectMapper.readTree(body).path("data").path("token").asString();
   }
 }

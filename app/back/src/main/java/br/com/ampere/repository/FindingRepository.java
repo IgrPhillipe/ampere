@@ -66,6 +66,8 @@ public interface FindingRepository extends JpaRepository<Finding, Long> {
 
   List<Finding> findAllByConsumerUnitGroupId(Long groupId);
 
+  List<Finding> findAllByProjectIdInAndStatus(Collection<Long> projectIds, FindingStatus status);
+
   @EntityGraph(attributePaths = {"author", "consumerUnitGroup"})
   Optional<Finding> findByIdAndProjectId(Long id, Long projectId);
 

@@ -59,6 +59,7 @@ class ProjectEventServiceTest {
     service.created(project, designer);
     when(project.getReviewCycle()).thenReturn(1);
     service.submitted(project, designer, calculation, at.minusDays(12));
+    when(project.getReviewer()).thenReturn(analyst);
     service.assigned(project, analyst, at.minusDays(11));
     service.decided(
         project,
@@ -90,7 +91,8 @@ class ProjectEventServiceTest {
         .containsExactly(0, 1, 1, 1, 1, 1, 2, 2, 2);
     assertThat(recorded.get(2).getDescription()).isEqualTo("Pré-validação com 2 alertas.");
     assertThat(recorded.get(2).getDetail()).isEqualTo("Primeiro alerta.\nSegundo alerta.");
-    assertThat(recorded.get(3).getDescription()).isEqualTo("Análise assumida por Admin Teste.");
+    assertThat(recorded.get(3).getDescription())
+        .isEqualTo("Análise atribuída a Admin Teste por Admin Teste.");
     assertThat(recorded.get(4).getDescription()).isEqualTo("Reprovado com 2 apontamentos.");
     assertThat(recorded.get(5).getDescription()).isEqualTo("Apontamento de Documentos corrigido.");
     assertThat(recorded.get(5).getDetail()).isEqualTo("ART substituída.");

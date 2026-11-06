@@ -121,9 +121,8 @@ public class Finding {
     this.standardItem = blankToNull(standardItem);
   }
 
-  /** The group was deleted: the finding stays, pointing to the stage only. */
-  public void changeAuthor(User newAuthor) {
-    this.author = Objects.requireNonNull(newAuthor, "newAuthor");
+  public void reassignTo(User author) {
+    this.author = Objects.requireNonNull(author, "author");
   }
 
   /** The group was deleted: the finding stays, pointing to the stage only. */

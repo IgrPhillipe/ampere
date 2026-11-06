@@ -3,6 +3,7 @@ package br.com.ampere.dto;
 import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.User;
 import br.com.ampere.service.ReviewQueueEntry;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
@@ -34,6 +35,7 @@ public record ReviewQueueItemResponse(
 
   public static ReviewQueueItemResponse from(ReviewQueueEntry entry) {
     Project project = entry.project();
+    User reviewer = project.getReviewer();
 
     return new ReviewQueueItemResponse(
         String.valueOf(project.getId()),
@@ -52,7 +54,7 @@ public record ReviewQueueItemResponse(
         entry.demandKva(),
         project.isReanalysis(),
         project.getReviewCycle(),
-        project.getReviewer() == null ? null : String.valueOf(project.getReviewer().getId()),
-        project.getReviewer() == null ? null : project.getReviewer().getName());
+        reviewer == null ? null : String.valueOf(reviewer.getId()),
+        reviewer == null ? null : reviewer.getName());
   }
 }
