@@ -111,7 +111,12 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 					...newGroupLoad[kind](values.load),
 				},
 			},
-			{ onSuccess: cancelAdding },
+			{
+				onSuccess: ({ data: group }) => {
+					cancelAdding();
+					setOpened({ group, focusField: group.issues[0]?.field });
+				},
+			},
 		);
 	};
 

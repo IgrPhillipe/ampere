@@ -42,19 +42,26 @@ export const LoadGroupForm = ({
 	onCancel,
 	onDelete,
 }: GroupFormProps<LoadGroup>) => {
+	// The back points the missing loads issue at the whole list.
+	const startsOnFirstItem =
+		!readOnly && focusField === "items" && group.items.length === 0;
+	const initialFocus = startsOnFirstItem ? "items[0].description" : focusField;
+
 	const form = useZodForm(loadGroupFormSchema, {
 		name: group.name,
 		quantity: group.quantity,
 		usage: group.usage ?? null,
-		items: group.items.map((item) => ({
-			category: item.category,
-			description: item.description,
-			quantity: item.quantity,
-			power: item.power ?? null,
-			powerUnit: item.powerUnit,
-			lampTechnology: item.lampTechnology ?? null,
-			simultaneousStart: toYesNo(item.simultaneousStart),
-		})),
+		items: startsOnFirstItem
+			? [EMPTY_ITEM]
+			: group.items.map((item) => ({
+					category: item.category,
+					description: item.description,
+					quantity: item.quantity,
+					power: item.power ?? null,
+					powerUnit: item.powerUnit,
+					lampTechnology: item.lampTechnology ?? null,
+					simultaneousStart: toYesNo(item.simultaneousStart),
+				})),
 	});
 
 	const items = useFieldArray({ control: form.control, name: "items" });
@@ -63,7 +70,7 @@ export const LoadGroupForm = ({
 		({ category }) => category,
 	);
 
-	useEffect(() => focusIssueField(form, focusField), [form, focusField]);
+	useEffect(() => focusIssueField(form, initialFocus), [form, initialFocus]);
 
 	const submit = (values: LoadGroupFormValues) =>
 		onSave({
@@ -124,21 +131,24 @@ export const LoadGroupForm = ({
 							Cargas Instaladas
 						</h3>
 
-						<Button
-							type="button"
-							variant="link"
-							size="sm"
-							onClick={() => items.append(EMPTY_ITEM)}
-						>
-							<Plus aria-hidden="true" />
-							Adicionar Carga
-						</Button>
+						{readOnly ? null : (
+							<Button
+								type="button"
+								variant="link"
+								size="sm"
+								onClick={() => items.append(EMPTY_ITEM)}
+							>
+								<Plus aria-hidden="true" />
+								Adicionar Carga
+							</Button>
+						)}
 					</div>
 
 					{items.fields.length === 0 ? (
 						<p className="text-sm text-muted-foreground">
-							Nenhuma carga informada. Adicione iluminação, motores, bombas e
-							demais cargas do grupo.
+							{readOnly
+								? "Nenhuma carga informada."
+								: "Nenhuma carga informada. Adicione iluminação, motores, bombas e demais cargas do grupo."}
 						</p>
 					) : null}
 
@@ -229,16 +239,18 @@ export const LoadGroupForm = ({
 										/>
 									) : null}
 
-									<Button
-										type="button"
-										variant="destructive-ghost"
-										size="sm"
-										onClick={() => items.remove(index)}
-										className="justify-self-start sm:col-span-2"
-									>
-										<Trash2 aria-hidden="true" />
-										Remover Carga
-									</Button>
+									{readOnly ? null : (
+										<Button
+											type="button"
+											variant="destructive-ghost"
+											size="sm"
+											onClick={() => items.remove(index)}
+											className="justify-self-start sm:col-span-2"
+										>
+											<Trash2 aria-hidden="true" />
+											Remover Carga
+										</Button>
+									)}
 								</div>
 							</li>
 						))}
