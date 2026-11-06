@@ -737,6 +737,21 @@ class SubmissionIntegrationTest {
         .andExpect(jsonPath("$.data[14].description").value("Versão 3 reenviada para análise."))
         .andExpect(jsonPath("$.data[17].description").value("Aprovado."));
 
+    // Each decision reaches the designer; each resubmission reaches the analyst who rejected it.
+    perform(get("/notifications"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.unreadCount").value(3))
+        .andExpect(
+            jsonPath("$.data.items[*].type")
+                .value(contains("PROJECT_APPROVED", "PROJECT_REJECTED", "PROJECT_REJECTED")));
+    mockMvc
+        .perform(get("/notifications").header("Authorization", analystToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.unreadCount").value(2))
+        .andExpect(
+            jsonPath("$.data.items[*].type")
+                .value(contains("PROJECT_RESUBMITTED", "PROJECT_RESUBMITTED")));
+
     perform(get(review + "/rework"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.cycleDays").value(0))

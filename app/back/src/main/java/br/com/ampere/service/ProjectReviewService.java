@@ -20,14 +20,17 @@ public class ProjectReviewService {
   private final ProjectService projectService;
   private final FindingRepository findingRepository;
   private final ProjectEventService eventService;
+  private final NotificationService notificationService;
 
   public ProjectReviewService(
       ProjectService projectService,
       FindingRepository findingRepository,
-      ProjectEventService eventService) {
+      ProjectEventService eventService,
+      NotificationService notificationService) {
     this.projectService = projectService;
     this.findingRepository = findingRepository;
     this.eventService = eventService;
+    this.notificationService = notificationService;
   }
 
   /** Only the analyst assigned by the manager or by the distribution opens the review. */
@@ -72,6 +75,15 @@ public class ProjectReviewService {
       project.reject(reviewedAt, opinion);
     }
     eventService.decided(project, decision, project.getReviewer(), findings, opinion, reviewedAt);
+    if (decision == ReviewDecision.APPROVE) {
+      notificationService.approved(project, reviewedAt);
+    } else {
+      long open =
+          findings.stream()
+              .filter(finding -> ProjectService.OPEN_FINDINGS.contains(finding.getStatus()))
+              .count();
+      notificationService.rejected(project, open, reviewedAt);
+    }
 
     return project;
   }
