@@ -909,10 +909,10 @@ Exportação do cálculo de demanda e das listagens em planilha, para uso fora d
 > **Para que** eu possa arquivar, conferir ou reaproveitar os dados em outras ferramentas.
 
 ### Conversação (Regras de Negócio e Interface)
-- **Cálculo de demanda:** o botão "Exportar Planilha", ao lado do download do memorial, gera um `.xlsx` com uma aba de identificação, uma de grupos de UCs e uma com cada etapa do cálculo, a fórmula, o item da norma e o valor.
-- **Listagens:** "Meus Projetos" e a "Fila de Análise" exportam em `.csv` as linhas que estão filtradas na tela.
+- **Cálculo de demanda:** o botão "Exportar Planilha", ao lado do download do memorial, gera um `.xlsx` com uma aba de identificação, uma de grupos de UCs e uma com cada etapa do cálculo, a fórmula, os detalhes, o item da norma e o valor. As abas de resultado, verificações e tabelas aplicadas repetem o restante da tela de cálculo.
+- **Listagens:** "Meus Projetos" e a "Fila de Análise" exportam em `.csv` as linhas que estão filtradas na tela, com as colunas e as situações em português.
 
-Números saem no formato brasileiro, com vírgula decimal, e o nome do arquivo leva o protocolo ou a data da exportação.
+Números saem no formato brasileiro, com vírgula decimal, datas no horário de Recife, e o nome do arquivo leva o protocolo ou a data da exportação.
 
 ### Confirmação (Critérios de Aceite - BDD)
 
@@ -927,6 +927,12 @@ Números saem no formato brasileiro, com vírgula decimal, e o nome do arquivo l
 - **Quando** o projetista visualiza a etapa de memorial
 - **Então** o botão "Exportar Planilha" fica desabilitado
 - **E** a dica informa que é preciso calcular a demanda antes.
+
+#### Cenário 3 (Negativo): Exportação com Cálculo Desatualizado
+- **Dado** que os dados do projeto mudaram depois do último cálculo
+- **Quando** o projetista tenta exportar a planilha
+- **Então** o sistema recusa a exportação, como faz com o memorial
+- **E** informa que é preciso recalcular a demanda.
 
 ### Checklist de Implementação
 - [ ] Exportar o cálculo de demanda em `.xlsx`

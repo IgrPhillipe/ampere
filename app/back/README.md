@@ -47,14 +47,15 @@ API em `http://localhost:8080/api`, documentação em `http://localhost:8080/api
 ### Exportações
 
 - `GET /api/projects/{id}/calculation.xlsx` baixa o último cálculo gravado, com as abas
-  Identificação, Grupos e Etapas. Projeto sem cálculo responde 404.
+  Identificação, Grupos, Etapas, Resultado, Verificações e Tabelas Aplicadas. Projeto sem cálculo
+  responde 404; dados alterados depois do cálculo respondem 409, como no memorial.
 - `GET /api/projects/export.csv` exporta todos os projetos visíveis ao usuário.
 - `GET /api/review-queue/export.csv` exporta todos os projetos da fila (apenas `reviewer` e
   `admin`).
 
 As exportações CSV aceitam os mesmos filtros e parâmetros `sort`/`direction` das respectivas
-listagens, sem paginação. Os arquivos usam ponto e vírgula, codificação UTF-8 com BOM e números
-formatados para pt-BR.
+listagens, sem paginação. Os arquivos usam ponto e vírgula, codificação UTF-8 com BOM, cabeçalhos
+e situações em português, números em pt-BR e datas no horário de Recife.
 
 ---
 
