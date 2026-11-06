@@ -1,5 +1,5 @@
 import {
-	assignProjectReview,
+	openProjectReview,
 	resolveFinding,
 } from "@services/project-review/requests";
 import { projectKeys } from "@services/projects";
@@ -8,11 +8,11 @@ import { act, renderHook } from "@testing-library/react";
 import type { PropsWithChildren } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { useAssignProjectReview } from "./useAssignProjectReview";
+import { useOpenProjectReview } from "./useOpenProjectReview";
 import { useResolveFinding } from "./useResolveFinding";
 
 vi.mock("@services/project-review/requests", () => ({
-	assignProjectReview: vi.fn(),
+	openProjectReview: vi.fn(),
 	resolveFinding: vi.fn(),
 }));
 
@@ -51,8 +51,8 @@ describe("project summary freshness", () => {
 	});
 
 	it("refreshes the project summary after the analyst takes the review", async () => {
-		vi.mocked(assignProjectReview).mockResolvedValue({} as never);
-		const { mutation, invalidated } = setup(useAssignProjectReview);
+		vi.mocked(openProjectReview).mockResolvedValue({} as never);
+		const { mutation, invalidated } = setup(useOpenProjectReview);
 
 		await act(() => mutation.current.mutateAsync("4"));
 

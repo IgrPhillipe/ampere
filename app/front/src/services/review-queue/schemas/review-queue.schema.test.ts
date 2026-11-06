@@ -28,6 +28,8 @@ describe("review queue API contract", () => {
 					demandKva: 51.4,
 					reanalysis: true,
 					reviewCycle: 2,
+					reviewerId: "7",
+					reviewerName: "Ana Analista",
 				},
 			],
 			pagination: { total: 1, page: 1, pageSize: 10 },

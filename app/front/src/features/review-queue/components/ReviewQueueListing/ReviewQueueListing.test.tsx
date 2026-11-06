@@ -24,6 +24,8 @@ const item: ReviewQueueItem = {
 	demandKva: 229.4,
 	reanalysis: false,
 	reviewCycle: 1,
+	reviewerId: null,
+	reviewerName: null,
 };
 
 describe("ReviewQueueListing", () => {
@@ -62,6 +64,8 @@ describe("ReviewQueueListing", () => {
 						daysRemaining: -3,
 						reanalysis: true,
 						reviewCycle: 2,
+						reviewerId: null,
+						reviewerName: null,
 					},
 				]}
 			/>,

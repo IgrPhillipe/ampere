@@ -4,6 +4,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { httpErrorOf } from "@/test/fixtures/http-error";
 import {
 	idleMutation,
 	loadedQuery,
@@ -18,7 +19,9 @@ import { ProjectReviewWorkspace } from "./ProjectReviewWorkspace";
 const state = vi.hoisted(() => ({
 	holdsReview: true,
 	ownerId: "2",
-	assign: vi.fn(),
+	reviewerName: null as string | null,
+	openError: null as unknown,
+	openReview: vi.fn(),
 }));
 
 const Section = () => {
@@ -50,13 +53,22 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@services/projects", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/projects")>()),
 	useGetProject: () =>
-		loadedQuery({ data: makeProjectDetail({ ownerId: state.ownerId }) }),
+		loadedQuery({
+			data: makeProjectDetail({
+				ownerId: state.ownerId,
+				reviewerName: state.reviewerName,
+			}),
+		}),
 }));
 
 vi.mock("@services/project-review", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/project-review")>()),
-	useAssignProjectReview: () =>
-		idleMutation({ isSuccess: state.holdsReview, mutate: state.assign }),
+	useOpenProjectReview: () =>
+		idleMutation({
+			isSuccess: state.holdsReview,
+			error: state.openError,
+			mutate: state.openReview,
+		}),
 	useGetFindingList: () =>
 		loadedQuery({ data: [makeFinding({ status: "DRAFT", version: 1 })] }),
 	useCreateFinding: () => idleMutation(),
@@ -101,7 +113,9 @@ describe("ProjectReviewWorkspace", () => {
 	beforeEach(() => {
 		state.holdsReview = true;
 		state.ownerId = "2";
-		state.assign.mockClear();
+		state.openReview.mockClear();
+		state.reviewerName = null;
+		state.openError = null;
 	});
 
 	it("lets the analyst holding the review record findings and decide", () => {
@@ -147,10 +161,33 @@ describe("ProjectReviewWorkspace", () => {
 		).not.toBeInTheDocument();
 	});
 
-	it("takes the review as soon as the project opens", () => {
+	it("opens the review as soon as the project opens", () => {
 		signInAs("admin");
 		renderWorkspace();
 
-		expect(state.assign).toHaveBeenCalledWith("4");
+		expect(state.openReview).toHaveBeenCalledWith("4");
+	});
+
+	it("names the responsible analyst to whoever only consults", async () => {
+		state.holdsReview = false;
+		state.reviewerName = "Ana Analista";
+		state.openError = await httpErrorOf(403, {});
+		signInAs("reviewer");
+		renderWorkspace();
+
+		expect(screen.getByRole("status")).toHaveTextContent(
+			"Em análise por Ana Analista.",
+		);
+	});
+
+	it("tells when the project still has no analyst", async () => {
+		state.holdsReview = false;
+		state.openError = await httpErrorOf(403, {});
+		signInAs("reviewer");
+		renderWorkspace();
+
+		expect(screen.getByRole("status")).toHaveTextContent(
+			"Projeto sem analista responsável.",
+		);
 	});
 });

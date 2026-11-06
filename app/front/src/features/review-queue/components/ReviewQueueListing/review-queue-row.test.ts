@@ -20,6 +20,8 @@ const item: ReviewQueueItem = {
 	demandKva: null,
 	reanalysis: false,
 	reviewCycle: 1,
+	reviewerId: null,
+	reviewerName: null,
 };
 
 describe("getQueueItemAttention", () => {
