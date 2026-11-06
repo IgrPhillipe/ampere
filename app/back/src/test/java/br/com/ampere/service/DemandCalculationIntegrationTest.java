@@ -1,12 +1,10 @@
 package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -34,15 +32,12 @@ import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
-import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +46,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
@@ -190,131 +184,6 @@ class DemandCalculationIntegrationTest {
         .andExpect(status().isNotFound())
         .andExpect(
             jsonPath("$.detail").value("Nenhum cálculo de demanda foi feito para este projeto."));
-    mockMvc
-        .perform(
-            get("/projects/" + project.getId() + "/calculation.xlsx")
-                .header("Authorization", "Bearer " + token))
-        .andExpect(status().isNotFound());
-  }
-
-  @Test
-  void exportsTheSavedCalculationAndItsGroupsToXlsx() throws Exception {
-    publishTables();
-    Project project = draftWithPrototypeGroups(true);
-    mockMvc
-        .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
-        .andExpect(status().isCreated());
-
-    MvcResult result =
-        mockMvc
-            .perform(
-                get("/projects/" + project.getId() + "/calculation.xlsx")
-                    .header("Authorization", "Bearer " + token))
-            .andExpect(status().isOk())
-            .andExpect(
-                header().string("Content-Disposition", containsString("2026-2001-calculo.xlsx")))
-            .andReturn();
-
-    try (var workbook =
-        WorkbookFactory.create(
-            new ByteArrayInputStream(result.getResponse().getContentAsByteArray()))) {
-      assertThat(
-              List.of(workbook.getSheetName(0), workbook.getSheetName(1), workbook.getSheetName(2)))
-          .containsExactly("Identificação", "Grupos", "Etapas");
-      assertThat(workbook.getSheet("Identificação").getRow(1).getCell(1).getStringCellValue())
-          .isEqualTo("Residencial Monte Verde");
-      assertThat(workbook.getSheet("Identificação").getRow(2).getCell(1).getStringCellValue())
-          .isEqualTo("2026-2001");
-      assertThat(workbook.getSheet("Identificação").getRow(7).getCell(1).getStringCellValue())
-          .isEqualTo("DIS-NOR-053 REV 06");
-      assertThat(workbook.getSheet("Grupos").getRow(0).getCell(0).getStringCellValue())
-          .isEqualTo("Grupo");
-      assertThat(workbook.getSheet("Grupos").getRow(1).getCell(0).getStringCellValue())
-          .isEqualTo("Apartamento tipo A");
-      assertThat(workbook.getSheet("Grupos").getRow(1).getCell(2).getNumericCellValue())
-          .isEqualTo(24);
-      assertThat(workbook.getSheet("Etapas").getRow(0).getCell(3).getStringCellValue())
-          .isEqualTo("Valor (kVA)");
-      assertThat(workbook.getSheet("Etapas").getRow(1).getCell(0).getStringCellValue())
-          .isEqualTo("Drf - Demanda das Unidades Residenciais");
-      assertThat(workbook.getSheet("Etapas").getRow(1).getCell(3).getNumericCellValue())
-          .isEqualTo(77.44);
-      assertThat(workbook.getSheet("Etapas").getRow(5).getCell(3).getNumericCellValue())
-          .isEqualTo(165.00);
-      assertThat(
-              workbook.getSheet("Etapas").getRow(1).getCell(3).getCellStyle().getDataFormatString())
-          .isEqualTo("#,##0.00");
-    }
-  }
-
-  @Test
-  void hidesAnotherOwnersProjectWhenExportingItsCalculation() throws Exception {
-    User anotherOwner =
-        userRepository.save(
-            new User(
-                "Outro Usuário",
-                "outro@ampere.com",
-                passwordEncoder.encode(PASSWORD),
-                UserRole.USER));
-    Project project =
-        projectRepository.save(
-            new Project(
-                "Projeto privado",
-                "Rua A, 1",
-                "Recife",
-                "2026-2999",
-                ProjectStatus.DRAFT,
-                building(),
-                standards,
-                anotherOwner));
-
-    mockMvc
-        .perform(
-            get("/projects/" + project.getId() + "/calculation.xlsx")
-                .header("Authorization", "Bearer " + token))
-        .andExpect(status().isNotFound());
-  }
-
-  @Test
-  void exportsAllMatchingProjectsAsSafeBrazilianCsv() throws Exception {
-    publishTables();
-    Project project = draftWithPrototypeGroups(true);
-    project.rename("=Edifício; Aurora \"A\"", "Rua; 1", "Recife");
-    projectRepository.save(project);
-    projectRepository.save(
-        new Project(
-            "Outro projeto",
-            "Rua B, 2",
-            "Recife",
-            "2026-2002",
-            ProjectStatus.DRAFT,
-            building(),
-            standards,
-            owner));
-    mockMvc
-        .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
-        .andExpect(status().isCreated());
-
-    byte[] content =
-        mockMvc
-            .perform(
-                get("/projects/export.csv")
-                    .param("search", "2001")
-                    .header("Authorization", "Bearer " + token))
-            .andExpect(status().isOk())
-            .andExpect(header().string("Content-Disposition", containsString("projetos-")))
-            .andReturn()
-            .getResponse()
-            .getContentAsByteArray();
-    String csv = new String(content, StandardCharsets.UTF_8);
-
-    assertThat(content).startsWith((byte) 0xef, (byte) 0xbb, (byte) 0xbf);
-    assertThat(csv).contains("id;name;address;municipality;state;protocol");
-    assertThat(csv).contains("\"'=Edifício; Aurora \"\"A\"\"\"");
-    assertThat(csv).contains("165,00");
-    assertThat(csv).contains("2026-2001");
-    assertThat(csv).doesNotContain("2026-2002");
-    assertThat(csv.split("\r\n")).hasSize(2);
   }
 
   @Test

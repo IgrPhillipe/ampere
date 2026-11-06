@@ -34,30 +34,37 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SpreadsheetExportController {
 
+  private static final String CSV_MEDIA_TYPE = "text/csv";
+
   private final SpreadsheetExportService service;
 
   public SpreadsheetExportController(SpreadsheetExportService service) {
     this.service = service;
   }
 
-  @GetMapping(value = "/projects/{projectId}/calculation.xlsx", produces = XLSX_MEDIA_TYPE)
+  @GetMapping(
+      value = "/projects/{projectId}/calculation.xlsx",
+      produces = SpreadsheetExportService.XLSX_CONTENT_TYPE)
   @Operation(
       operationId = "exportProjectCalculation",
       summary = "Exporta o último cálculo do projeto em uma planilha Excel")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
-        description = "Planilha Excel com identificação, grupos e etapas do cálculo"),
+        description = "Planilha Excel com o cálculo, os grupos e as verificações"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
-        description = "Projeto não encontrado ou ainda sem cálculo")
+        description = "Projeto não encontrado ou ainda sem cálculo"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "409",
+        description = "Dados alterados depois do último cálculo")
   })
   public ResponseEntity<byte[]> calculation(
       @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
     return download(service.calculation(projectId, userOf(jwt)));
   }
 
-  @GetMapping(value = "/projects/export.csv", produces = "text/csv")
+  @GetMapping(value = "/projects/export.csv", produces = CSV_MEDIA_TYPE)
   @Operation(
       operationId = "exportProjects",
       summary = "Exporta todos os projetos visíveis que correspondem aos filtros")
@@ -119,7 +126,7 @@ public class SpreadsheetExportController {
     return download(service.projects(query, userOf(jwt)));
   }
 
-  @GetMapping(value = "/review-queue/export.csv", produces = "text/csv")
+  @GetMapping(value = "/review-queue/export.csv", produces = CSV_MEDIA_TYPE)
   @Operation(
       operationId = "exportReviewQueue",
       summary = "Exporta todos os projetos da fila que correspondem aos filtros")
@@ -179,7 +186,4 @@ public class SpreadsheetExportController {
   private static AuthenticatedUser userOf(Jwt jwt) {
     return AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role"));
   }
-
-  private static final String XLSX_MEDIA_TYPE =
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 }

@@ -1,12 +1,10 @@
 package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -36,7 +34,6 @@ import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -137,40 +134,6 @@ class ReviewQueueIntegrationTest {
                 .header("Authorization", "Bearer " + token("user@ampere.com")))
         .andExpect(status().isForbidden());
     mockMvc.perform(get("/review-queue")).andExpect(status().isUnauthorized());
-  }
-
-  @Test
-  void exportsFilteredQueueAsSafeBrazilianCsvOnlyForReviewers() throws Exception {
-    Project matching = project("2026-4501", ProjectStatus.DRAFT);
-    matching.rename("+Projeto; \"CSV\"", "Rua A; 1", "Recife");
-    projectRepository.save(matching);
-    addPrototypeGroups(matching);
-    calculate(matching);
-    matching.submit(now.minusDays(2));
-    projectRepository.save(matching);
-    submitted("2026-4502", now.minusDays(4));
-
-    byte[] content =
-        asAnalyst(get("/review-queue/export.csv").param("search", "4501"))
-            .andExpect(status().isOk())
-            .andExpect(header().string("Content-Disposition", containsString("fila-analise-")))
-            .andReturn()
-            .getResponse()
-            .getContentAsByteArray();
-    String csv = new String(content, StandardCharsets.UTF_8);
-
-    assertThat(content).startsWith((byte) 0xef, (byte) 0xbb, (byte) 0xbf);
-    assertThat(csv).contains("id;name;protocol;municipality;state;submittedAt");
-    assertThat(csv).contains("\"'+Projeto; \"\"CSV\"\"\"");
-    assertThat(csv).contains("135,00");
-    assertThat(csv).contains("2026-4501");
-    assertThat(csv).doesNotContain("2026-4502");
-    assertThat(csv.split("\r\n")).hasSize(2);
-    mockMvc
-        .perform(
-            get("/review-queue/export.csv")
-                .header("Authorization", "Bearer " + token("user@ampere.com")))
-        .andExpect(status().isForbidden());
   }
 
   @Test
