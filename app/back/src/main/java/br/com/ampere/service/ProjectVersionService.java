@@ -1,0 +1,251 @@
+package br.com.ampere.service;
+
+import br.com.ampere.domain.Calculation;
+import br.com.ampere.domain.ConsumerUnitGroup;
+import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectDocument;
+import br.com.ampere.domain.ProjectVersion;
+import br.com.ampere.domain.ProjectVersionDocument;
+import br.com.ampere.domain.ProjectVersionMemorial;
+import br.com.ampere.error.NotFoundException;
+import br.com.ampere.repository.ConsumerUnitGroupRepository;
+import br.com.ampere.repository.ProjectDocumentRepository;
+import br.com.ampere.repository.ProjectVersionDocumentRepository;
+import br.com.ampere.repository.ProjectVersionRepository;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
+
+/** Records each submission as an immutable version and reads the versions back. */
+@Service
+public class ProjectVersionService {
+
+  static final String FIRST_SUBMISSION = "Primeiro envio do projeto.";
+
+  private static final String NOT_FOUND = "Versão não encontrada.";
+
+  private final ProjectService projectService;
+  private final MemorialPdfService memorialPdfService;
+  private final ProjectVersionRepository versionRepository;
+  private final ProjectVersionDocumentRepository versionDocumentRepository;
+  private final ProjectDocumentRepository documentRepository;
+  private final ConsumerUnitGroupRepository groupRepository;
+  private final ObjectMapper objectMapper;
+
+  public ProjectVersionService(
+      ProjectService projectService,
+      MemorialPdfService memorialPdfService,
+      ProjectVersionRepository versionRepository,
+      ProjectVersionDocumentRepository versionDocumentRepository,
+      ProjectDocumentRepository documentRepository,
+      ConsumerUnitGroupRepository groupRepository,
+      ObjectMapper objectMapper) {
+    this.projectService = projectService;
+    this.memorialPdfService = memorialPdfService;
+    this.versionRepository = versionRepository;
+    this.versionDocumentRepository = versionDocumentRepository;
+    this.documentRepository = documentRepository;
+    this.groupRepository = groupRepository;
+    this.objectMapper = objectMapper;
+  }
+
+  /** A version with the documents it carried, listed without their bytes. */
+  public record Entry(
+      ProjectVersion version, List<ProjectVersionDocumentRepository.Summary> documents) {}
+
+  /** What the compared versions asked of the distributor, and what differs between them. */
+  public record Comparison(
+      ProjectVersion from,
+      ProjectVersion to,
+      List<GroupChange> included,
+      List<GroupChange> removed,
+      List<GroupChange> changed,
+      List<FieldChange> project) {}
+
+  public record GroupChange(Long id, String name, List<FieldChange> fields) {}
+
+  public record FieldChange(String field, String from, String to) {}
+
+  /**
+   * Called inside the submission, once the project is under review: the memorial is rendered here
+   * and never again, together with a copy of the documents and the calculation sent.
+   */
+  public ProjectVersion register(
+      Project project, Calculation calculation, OffsetDateTime submittedAt) {
+    int number = project.getReviewCycle();
+    List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(project.getId());
+    MemorialPdfService.Issued issued =
+        memorialPdfService.issue(project, calculation, groups, number, submittedAt);
+
+    ProjectVersion version =
+        versionRepository.save(
+            new ProjectVersion(
+                project,
+                number,
+                submittedAt,
+                project.getOwner(),
+                number > 1 ? project.getChangeSummary() : FIRST_SUBMISSION,
+                calculation,
+                new ProjectVersionMemorial(issued.filename(), issued.content(), issued.sha256()),
+                issued.verificationCode()));
+    for (ProjectDocument document :
+        documentRepository.findAllByProjectIdOrderByType(project.getId())) {
+      versionDocumentRepository.save(new ProjectVersionDocument(version, document));
+    }
+
+    return version;
+  }
+
+  @Transactional(readOnly = true)
+  public List<Entry> list(Long projectId, AuthenticatedUser user) {
+    projectService.findById(projectId, user);
+    List<ProjectVersion> versions = versionRepository.findAllByProjectId(projectId);
+    if (versions.isEmpty()) {
+      return List.of();
+    }
+
+    Map<Long, List<ProjectVersionDocumentRepository.Summary>> documents = new LinkedHashMap<>();
+    versionDocumentRepository
+        .findSummaries(versions.stream().map(ProjectVersion::getId).toList())
+        .forEach(
+            document ->
+                documents
+                    .computeIfAbsent(document.getVersionId(), id -> new ArrayList<>())
+                    .add(document));
+
+    return versions.stream()
+        .map(version -> new Entry(version, documents.getOrDefault(version.getId(), List.of())))
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public MemorialPdfService.Memorial memorial(Long projectId, int number, AuthenticatedUser user) {
+    projectService.findById(projectId, user);
+
+    return MemorialPdfService.storedMemorial(find(projectId, number));
+  }
+
+  @Transactional(readOnly = true)
+  public Comparison compare(Long projectId, int from, int to, AuthenticatedUser user) {
+    projectService.findById(projectId, user);
+    ProjectVersion older = find(projectId, from);
+    ProjectVersion newer = find(projectId, to);
+
+    JsonNode before = objectMapper.readTree(older.getCalculation().getInputSnapshot());
+    JsonNode after = objectMapper.readTree(newer.getCalculation().getInputSnapshot());
+    Map<Long, JsonNode> beforeGroups = groupsOf(before);
+    Map<Long, JsonNode> afterGroups = groupsOf(after);
+
+    List<GroupChange> included = new ArrayList<>();
+    List<GroupChange> changed = new ArrayList<>();
+    afterGroups.forEach(
+        (id, group) -> {
+          JsonNode previous = beforeGroups.get(id);
+          if (previous == null) {
+            included.add(new GroupChange(id, nameOf(group), List.of()));
+            return;
+          }
+          List<FieldChange> fields = differences(specOf(previous), specOf(group));
+          if (!kindOf(previous).equals(kindOf(group))) {
+            fields.add(0, new FieldChange("kind", kindOf(previous), kindOf(group)));
+          }
+          if (!fields.isEmpty()) {
+            changed.add(new GroupChange(id, nameOf(group), fields));
+          }
+        });
+    List<GroupChange> removed = new ArrayList<>();
+    beforeGroups.forEach(
+        (id, group) -> {
+          if (!afterGroups.containsKey(id)) {
+            removed.add(new GroupChange(id, nameOf(group), List.of()));
+          }
+        });
+
+    return new Comparison(
+        older,
+        newer,
+        included,
+        removed,
+        changed,
+        differences(withoutGroups(before), withoutGroups(after)));
+  }
+
+  private ProjectVersion find(Long projectId, int number) {
+    return versionRepository
+        .findByProjectIdAndNumber(projectId, number)
+        .orElseThrow(() -> new NotFoundException(NOT_FOUND));
+  }
+
+  private static Map<Long, JsonNode> groupsOf(JsonNode snapshot) {
+    Map<Long, JsonNode> groups = new LinkedHashMap<>();
+    for (JsonNode group : snapshot.path("groups")) {
+      groups.put(group.path("id").asLong(), group);
+    }
+
+    return groups;
+  }
+
+  private static JsonNode specOf(JsonNode group) {
+    return group.path("spec");
+  }
+
+  private static String kindOf(JsonNode group) {
+    return group.path("kind").asString("");
+  }
+
+  private static String nameOf(JsonNode group) {
+    return specOf(group).path("name").asString("");
+  }
+
+  private static JsonNode withoutGroups(JsonNode snapshot) {
+    ObjectNode copy = ((ObjectNode) snapshot).deepCopy();
+    copy.remove("groups");
+
+    return copy;
+  }
+
+  /** Field by field, treating 60 and 60.00 as one value. */
+  private static List<FieldChange> differences(JsonNode before, JsonNode after) {
+    Set<String> fields = new LinkedHashSet<>();
+    before.propertyNames().forEach(fields::add);
+    after.propertyNames().forEach(fields::add);
+
+    List<FieldChange> changes = new ArrayList<>();
+    for (String field : fields) {
+      JsonNode previous = before.path(field);
+      JsonNode current = after.path(field);
+      if (!sameValue(previous, current)) {
+        changes.add(new FieldChange(field, display(previous), display(current)));
+      }
+    }
+
+    return changes;
+  }
+
+  private static boolean sameValue(JsonNode left, JsonNode right) {
+    if (left.isNumber() && right.isNumber()) {
+      return left.decimalValue().compareTo(right.decimalValue()) == 0;
+    }
+
+    return left.isMissingNode() || left.isNull()
+        ? right.isMissingNode() || right.isNull()
+        : left.equals(right);
+  }
+
+  private static String display(JsonNode value) {
+    if (value.isMissingNode() || value.isNull()) {
+      return null;
+    }
+
+    return value.isString() ? value.asString() : value.toString();
+  }
+}

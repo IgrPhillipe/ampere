@@ -29,6 +29,7 @@ public class SubmissionService {
   private final FindingRepository findingRepository;
   private final ProjectEventService eventService;
   private final ReviewAssignmentService reviewAssignmentService;
+  private final ProjectVersionService versionService;
 
   public SubmissionService(
       ProjectService projectService,
@@ -37,7 +38,8 @@ public class SubmissionService {
       ProjectDocumentRepository documentRepository,
       FindingRepository findingRepository,
       ProjectEventService eventService,
-      ReviewAssignmentService reviewAssignmentService) {
+      ReviewAssignmentService reviewAssignmentService,
+      ProjectVersionService versionService) {
     this.projectService = projectService;
     this.demandCalculationService = demandCalculationService;
     this.calculationRepository = calculationRepository;
@@ -45,6 +47,7 @@ public class SubmissionService {
     this.findingRepository = findingRepository;
     this.eventService = eventService;
     this.reviewAssignmentService = reviewAssignmentService;
+    this.versionService = versionService;
   }
 
   @Transactional(readOnly = true)
@@ -94,6 +97,7 @@ public class SubmissionService {
         calculationRepository.findFirstByProjectIdOrderByIdDesc(projectId).orElseThrow();
     OffsetDateTime submittedAt = Timestamps.now();
     project.submit(submittedAt);
+    versionService.register(project, calculation, submittedAt);
     eventService.submitted(project, project.getOwner(), calculation, submittedAt);
     reviewAssignmentService.distribute(project, submittedAt);
 

@@ -38,6 +38,9 @@ public class SecurityConfig {
 
   private static final String[] PUBLIC_AUTH_PATHS = {"/auth/login", "/auth/register"};
 
+  // Anyone holding a printed or received memorial can check it, signed in or not.
+  private static final String VERIFICATION_PATH = "/memorial-verifications";
+
   private static final String ADMIN = UserRole.ADMIN.name();
 
   private static final String DESIGNER = UserRole.USER.name();
@@ -63,6 +66,10 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(HttpMethod.POST, PUBLIC_AUTH_PATHS)
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, VERIFICATION_PATH + "/*")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.POST, VERIFICATION_PATH)
                     .permitAll()
                     .requestMatchers("/docs/**", "/swagger-ui/**", "/v3/api-docs/**")
                     .permitAll()
@@ -119,7 +126,11 @@ public class SecurityConfig {
     DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
     return request -> {
       String path = request.getRequestURI().substring(request.getContextPath().length());
-      return Arrays.asList(PUBLIC_AUTH_PATHS).contains(path) ? null : resolver.resolve(request);
+      boolean isPublic =
+          Arrays.asList(PUBLIC_AUTH_PATHS).contains(path)
+              || path.equals(VERIFICATION_PATH)
+              || path.startsWith(VERIFICATION_PATH + "/");
+      return isPublic ? null : resolver.resolve(request);
     };
   }
 

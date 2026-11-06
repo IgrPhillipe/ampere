@@ -269,6 +269,24 @@ Projeto fora de `REJECTED` responde 409 no `/response`; apontamento em rascunho 
 
 ---
 
+### Versões e Verificação do Memorial
+
+Cada envio grava uma versão imutável (`ProjectVersion`): número (o ciclo de análise), data, autor, resumo das alterações, o cálculo, uma cópia dos documentos e o memorial em PDF emitido naquele momento.
+
+| Rota | Acesso | O que faz |
+| :--- | :--- | :--- |
+| `GET /api/projects/{id}/memorial` | Dono, analista, admin | Projeto enviado: devolve o PDF gravado na última versão, sem regerar. Rascunho ou projeto em correção: prévia com a marca "Prévia" e sem código de verificação |
+| `GET /api/projects/{id}/versions` | Dono, analista, admin | Versões, da primeira à última, com demanda, documentos, SHA-256 e código |
+| `GET /api/projects/{id}/versions/{number}/memorial` | Dono, analista, admin | PDF gravado na versão |
+| `GET /api/projects/{id}/versions/compare?from=&to=` | Dono, analista, admin | Grupos `included`, `removed` e `changed` (campo a campo), alterações do projeto e a demanda de cada versão |
+| `GET /api/memorial-verifications/{code}` | Público | Confere o código do rodapé |
+| `POST /api/memorial-verifications` | Público | Recebe o PDF (`multipart`, campo `file`) e confere se é idêntico ao emitido |
+
+- Regerar mudaria os bytes (o PDF leva a data de criação) e quebraria a verificação, por isso o PDF de uma versão só é lido, nunca refeito.
+- O rodapé traz protocolo, versão, data do envio e o código de verificação. Os metadados do arquivo trazem título, projetista, protocolo, versão e normas aplicadas.
+- O SHA-256 do arquivo fica na versão. O código (`XXXX-XXXX-XXXX-XXXX`) vem do SHA-256 de uma primeira renderização sem ele, pois o código impresso não pode entrar no próprio hash.
+- A verificação responde `200` com `verified` verdadeiro e protocolo, versão e data do envio, ou `verified` falso e nada mais. Um arquivo com qualquer byte alterado não confirma.
+
 ## Variáveis de Ambiente
 
 | Variável | Obrigatória | Padrão | Descrição |

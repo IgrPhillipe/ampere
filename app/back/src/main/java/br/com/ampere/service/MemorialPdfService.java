@@ -5,11 +5,13 @@ import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.CalculationStep;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectVersion;
 import br.com.ampere.domain.User;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
+import br.com.ampere.repository.ProjectVersionRepository;
 import br.com.ampere.utils.BrazilianDateFormat;
 import br.com.ampere.utils.BrazilianNumberFormat;
 import com.lowagie.text.Chunk;
@@ -23,9 +25,12 @@ import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.ColumnText;
 import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfGState;
+import com.lowagie.text.pdf.PdfName;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfPageEventHelper;
+import com.lowagie.text.pdf.PdfString;
 import com.lowagie.text.pdf.PdfWriter;
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
@@ -33,6 +38,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.OffsetDateTime;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -41,8 +50,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Builds the calculation memorial on demand, from the latest calculation of the project, with the
- * fonts, colors and rules of the front-end design system (docs/tecnico/design-system-front.md).
+ * Builds the calculation memorial with the fonts, colors and rules of the front-end design system
+ * (docs/tecnico/design-system-front.md).
+ *
+ * <p>A draft or a project in correction gets a preview, built on demand from the latest
+ * calculation, marked "Prévia" and with no verification code. A submitted project gets the PDF
+ * stored in its version, byte for byte: rendering again would change the bytes (the PDF carries its
+ * creation date) and break the verification.
  */
 @Service
 public class MemorialPdfService {
@@ -84,30 +98,46 @@ public class MemorialPdfService {
   private static final Font TOTAL_FONT = new Font(MONO_MEDIUM, 18, Font.NORMAL, INK);
   private static final Font CAPTION_FONT = new Font(SANS_MEDIUM, 9.5f, Font.NORMAL, INK);
   private static final Font FOOTER_FONT = new Font(MONO, 7, Font.NORMAL, MUTED);
+  private static final Font PREVIEW_TAG_FONT = new Font(MONO_MEDIUM, 8, Font.NORMAL, INK);
 
   private final ProjectService projectService;
   private final CalculationRepository calculationRepository;
   private final ConsumerUnitGroupRepository groupRepository;
   private final DemandCalculationService demandCalculationService;
+  private final ProjectVersionRepository versionRepository;
 
   public MemorialPdfService(
       ProjectService projectService,
       CalculationRepository calculationRepository,
       ConsumerUnitGroupRepository groupRepository,
-      DemandCalculationService demandCalculationService) {
+      DemandCalculationService demandCalculationService,
+      ProjectVersionRepository versionRepository) {
     this.projectService = projectService;
     this.calculationRepository = calculationRepository;
     this.groupRepository = groupRepository;
     this.demandCalculationService = demandCalculationService;
+    this.versionRepository = versionRepository;
   }
 
   public record Memorial(String filename, byte[] content) {}
+
+  /** A memorial issued with a version: the file, its SHA-256 and the code printed in its footer. */
+  public record Issued(String filename, byte[] content, String sha256, String verificationCode) {}
+
+  /** What a version prints in the footer. A preview has none of it. */
+  private record Stamp(int version, OffsetDateTime issuedAt, String code) {}
 
   private record Column(String header, float width, boolean numeric) {}
 
   @Transactional(readOnly = true)
   public Memorial generate(Long projectId, AuthenticatedUser user) {
     Project project = projectService.findById(projectId, user);
+    if (!project.isEditable()) {
+      Memorial stored = storedMemorial(projectId);
+      if (stored != null) {
+        return stored;
+      }
+    }
     Calculation calculation =
         calculationRepository
             .findFirstByProjectIdOrderByIdDesc(projectId)
@@ -124,18 +154,74 @@ public class MemorialPdfService {
     List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(projectId);
 
     return new Memorial(
-        "memorial-" + project.getProtocol() + ".pdf", build(project, calculation, groups));
+        "memorial-" + project.getProtocol() + ".pdf", build(project, calculation, groups, null));
   }
 
-  private byte[] build(Project project, Calculation calculation, List<ConsumerUnitGroup> groups) {
+  /** The PDF of the latest version, as it was issued. Null for a project with no version. */
+  private Memorial storedMemorial(Long projectId) {
+    return versionRepository
+        .findLatestByProjectId(projectId)
+        .map(MemorialPdfService::storedMemorial)
+        .orElse(null);
+  }
+
+  public static Memorial storedMemorial(ProjectVersion version) {
+    return new Memorial(version.getMemorial().getFilename(), version.getMemorial().getData());
+  }
+
+  /**
+   * Renders the memorial of a submission. The code in the footer comes from the SHA-256 of a first
+   * rendering without it; the second rendering carries the code and is the file that is stored,
+   * hashed and later verified.
+   */
+  public Issued issue(
+      Project project,
+      Calculation calculation,
+      List<ConsumerUnitGroup> groups,
+      int version,
+      OffsetDateTime issuedAt) {
+    byte[] unstamped = build(project, calculation, groups, new Stamp(version, issuedAt, ""));
+    String code = verificationCode(sha256(unstamped));
+    byte[] content = build(project, calculation, groups, new Stamp(version, issuedAt, code));
+
+    return new Issued(
+        "memorial-" + project.getProtocol() + "-v" + version + ".pdf",
+        content,
+        sha256(content),
+        code);
+  }
+
+  /** Sixteen hex digits of the digest, in groups of four: short enough to type from paper. */
+  public static String verificationCode(String sha256) {
+    String head = sha256.substring(0, 16).toUpperCase(Locale.ROOT);
+
+    return head.substring(0, 4)
+        + "-"
+        + head.substring(4, 8)
+        + "-"
+        + head.substring(8, 12)
+        + "-"
+        + head.substring(12, 16);
+  }
+
+  public static String sha256(byte[] content) {
+    try {
+      return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(content));
+    } catch (NoSuchAlgorithmException impossible) {
+      throw new IllegalStateException(impossible);
+    }
+  }
+
+  private byte[] build(
+      Project project, Calculation calculation, List<ConsumerUnitGroup> groups, Stamp stamp) {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
     Document document = new Document(PageSize.A4, MARGIN, MARGIN, 56, 64);
     PdfWriter writer = PdfWriter.getInstance(document, output);
-    writer.setPageEvent(new PageFrame(project.getProtocol()));
-    document.addTitle("Memorial de Cálculo de Demanda " + project.getProtocol());
+    writer.setPageEvent(new PageFrame(project.getProtocol(), stamp));
+    describe(document, writer, project, stamp);
     document.open();
 
-    addHeader(document, project);
+    addHeader(document, project, stamp);
     addStamp(document, project, calculation, groups);
     addIdentification(document, project, calculation);
     addConsumerUnits(document, groups);
@@ -147,11 +233,36 @@ public class MemorialPdfService {
     return output.toByteArray();
   }
 
-  private static void addHeader(Document document, Project project) {
+  /** Title, designer, protocol, version and standards, for whoever opens the file's properties. */
+  private static void describe(Document document, PdfWriter writer, Project project, Stamp stamp) {
+    String protocol = project.getProtocol();
+    String version = stamp == null ? "Prévia" : String.valueOf(stamp.version());
+    User owner = project.getOwner();
+    String designer = owner == null ? EMPTY : owner.getName();
+    String standards = standards(project);
+
+    document.addTitle("Memorial de Cálculo de Demanda " + protocol);
+    document.addAuthor(designer);
+    document.addSubject("Protocolo " + protocol + ", versão " + version);
+    document.addKeywords(standards);
+    document.addCreator("AMPERE");
+    writer.getInfo().put(new PdfName("Protocol"), new PdfString(protocol, PdfString.TEXT_UNICODE));
+    writer.getInfo().put(new PdfName("Version"), new PdfString(version, PdfString.TEXT_UNICODE));
+    writer.getInfo().put(new PdfName("Designer"), new PdfString(designer, PdfString.TEXT_UNICODE));
+    writer
+        .getInfo()
+        .put(new PdfName("Standards"), new PdfString(standards, PdfString.TEXT_UNICODE));
+  }
+
+  private static void addHeader(Document document, Project project, Stamp stamp) {
     Paragraph brand = new Paragraph("", BRAND_FONT);
     brand.add(spaced("AMPERE", BRAND_FONT, 1.5f));
     brand.add(new Chunk("   ", EYEBROW_FONT));
     brand.add(eyebrow("Memorial descritivo de cálculo de demanda", EYEBROW_FONT));
+    if (stamp == null) {
+      brand.add(new Chunk("   ", EYEBROW_FONT));
+      brand.add(spaced("PRÉVIA", PREVIEW_TAG_FONT, 1.5f));
+    }
     brand.setSpacingAfter(14);
     document.add(brand);
 
@@ -535,13 +646,18 @@ public class MemorialPdfService {
     }
   }
 
-  /** Green brand bar on top and the protocol and page number at the foot of every page. */
+  /**
+   * Green brand bar on top, and at the foot of every page the protocol, version, date and page
+   * number, then the verification code. A preview carries the "Prévia" mark and no code.
+   */
   private static final class PageFrame extends PdfPageEventHelper {
 
     private final String protocol;
+    private final Stamp stamp;
 
-    private PageFrame(String protocol) {
+    private PageFrame(String protocol, Stamp stamp) {
       this.protocol = protocol;
+      this.stamp = stamp;
     }
 
     @Override
@@ -562,12 +678,31 @@ public class MemorialPdfService {
       canvas.stroke();
       canvas.restoreState();
 
+      String identification = "AMPERE, protocolo " + orEmpty(protocol);
+      String second;
+      if (stamp == null) {
+        identification += ", prévia";
+        second = "Prévia sem validade e sem código de verificação";
+        watermark(writer, page);
+      } else {
+        identification +=
+            ", versão " + stamp.version() + ", " + BrazilianDateFormat.dateTime(stamp.issuedAt());
+        second = "Código de verificação " + stamp.code();
+      }
+
       ColumnText.showTextAligned(
           canvas,
           Element.ALIGN_LEFT,
-          new Phrase(eyebrow("AMPERE, protocolo " + orEmpty(protocol), FOOTER_FONT)),
+          new Phrase(eyebrow(identification, FOOTER_FONT)),
           MARGIN,
           footer,
+          0);
+      ColumnText.showTextAligned(
+          canvas,
+          Element.ALIGN_LEFT,
+          new Phrase(eyebrow(second, FOOTER_FONT)),
+          MARGIN,
+          footer - 11,
           0);
       ColumnText.showTextAligned(
           canvas,
@@ -576,6 +711,21 @@ public class MemorialPdfService {
           page.getWidth() - MARGIN,
           footer,
           0);
+    }
+
+    private static void watermark(PdfWriter writer, Rectangle page) {
+      PdfContentByte under = writer.getDirectContentUnder();
+      PdfGState opacity = new PdfGState();
+      opacity.setFillOpacity(0.08f);
+      under.saveState();
+      under.setGState(opacity);
+      under.setColorFill(INK);
+      under.beginText();
+      under.setFontAndSize(SANS_SEMIBOLD, 110);
+      under.showTextAligned(
+          Element.ALIGN_CENTER, "PRÉVIA", page.getWidth() / 2, page.getHeight() / 2, 45);
+      under.endText();
+      under.restoreState();
     }
   }
 }
