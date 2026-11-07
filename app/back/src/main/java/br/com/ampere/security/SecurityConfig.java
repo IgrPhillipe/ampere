@@ -66,9 +66,7 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.POST, PUBLIC_AUTH_PATHS)
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, VERIFICATION_PATH + "/*")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.POST, VERIFICATION_PATH)
+                    .requestMatchers(VERIFICATION_PATH, VERIFICATION_PATH + "/*")
                     .permitAll()
                     .requestMatchers("/docs/**", "/swagger-ui/**", "/v3/api-docs/**")
                     .permitAll()

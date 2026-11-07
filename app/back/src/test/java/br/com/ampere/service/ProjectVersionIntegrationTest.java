@@ -7,9 +7,11 @@ import static org.hamcrest.Matchers.hasLength;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -399,6 +401,16 @@ class ProjectVersionIntegrationTest {
                     new MockMultipartFile(
                         "file", "x.pdf", MediaType.APPLICATION_PDF_VALUE, "texto".getBytes())))
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void aPublicRouteAnswersMethodNotAllowedWithOrWithoutAToken() throws Exception {
+    perform(delete("/memorial-verifications/0000-0000-0000-0000"))
+        .andExpect(status().isMethodNotAllowed());
+    mockMvc
+        .perform(put("/memorial-verifications/0000-0000-0000-0000"))
+        .andExpect(status().isMethodNotAllowed());
+    perform(get("/memorial-verifications")).andExpect(status().isMethodNotAllowed());
   }
 
   @Test
