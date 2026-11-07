@@ -4,7 +4,6 @@ import {
 	FindingDialog,
 	type FindingReferenceOptions,
 	FindingRow,
-	type ProjectSectionKey,
 } from "@features/projects";
 import { cn } from "@lib/utils";
 import type { Finding, FindingStage } from "@services/project-review";
@@ -22,7 +21,6 @@ interface FindingsPanelProps extends FindingCardActions {
 	editable: boolean;
 	underReview: boolean;
 	editor: FindingEditor;
-	currentSection: ProjectSectionKey;
 	currentStage?: FindingStage;
 	autoFocusForm?: boolean;
 	referenceOptions: FindingReferenceOptions;
@@ -39,7 +37,6 @@ export const FindingsPanel = ({
 	editable,
 	underReview,
 	editor,
-	currentSection,
 	currentStage,
 	autoFocusForm = false,
 	referenceOptions,
@@ -117,7 +114,6 @@ export const FindingsPanel = ({
 					<FindingForm
 						key={editor.key}
 						editor={editor}
-						currentSection={currentSection}
 						currentStage={currentStage}
 						referenceOptions={referenceOptions}
 						isPending={isSaving}

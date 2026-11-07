@@ -9,7 +9,6 @@ import {
 	findingReferenceLabels,
 	findingSeverityLabels,
 	findingStageLabels,
-	type ProjectSectionKey,
 } from "@features/projects";
 import { useZodForm } from "@features/shared";
 import type { FindingStage } from "@services/project-review";
@@ -27,7 +26,6 @@ const EMPTY_VALUES: Partial<FindingFormValues> = {
 
 interface FindingFormProps {
 	editor: FindingEditor;
-	currentSection: ProjectSectionKey;
 	currentStage?: FindingStage;
 	referenceOptions: FindingReferenceOptions;
 	isPending: boolean;
@@ -38,7 +36,6 @@ interface FindingFormProps {
 
 export const FindingForm = ({
 	editor,
-	currentSection,
 	currentStage,
 	referenceOptions,
 	isPending,
@@ -58,7 +55,7 @@ export const FindingForm = ({
 	const hasReferences = Object.keys(references).length > 0;
 	const isEditing = editor.mode === "edit";
 	const previousStage = useRef(stage);
-	const previousSection = useRef(currentSection);
+	const syncedStage = useRef(currentStage);
 
 	useEffect(() => {
 		if (autoFocus) form.setFocus("description");
@@ -72,9 +69,9 @@ export const FindingForm = ({
 	}, [form, stage]);
 
 	useEffect(() => {
-		if (previousSection.current === currentSection) return;
+		if (syncedStage.current === currentStage) return;
 
-		previousSection.current = currentSection;
+		syncedStage.current = currentStage;
 		if (isEditing || description !== "") return;
 
 		form.reset(
@@ -85,7 +82,7 @@ export const FindingForm = ({
 			},
 			{ keepDefaultValues: true },
 		);
-	}, [currentSection, currentStage, description, form, isEditing]);
+	}, [currentStage, description, form, isEditing]);
 
 	return (
 		<form

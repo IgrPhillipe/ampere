@@ -41,7 +41,7 @@ interface ProjectWorkspaceProps {
 	metrics?: HeaderMetric[];
 	/** Overrides the findings counted on each section. */
 	attention?: Partial<Record<ProjectSectionKey, number>>;
-	aside?: ReactNode | ((section: ProjectSectionKey) => ReactNode);
+	aside?: (section: ProjectSectionKey) => ReactNode;
 	footer?: ReactNode;
 	registrar?: FindingRegistrar;
 	/** Dialogs and sheets owned by whoever wraps the workspace. */
@@ -282,7 +282,7 @@ export const ProjectWorkspace = ({
 
 						{aside ? (
 							<div className="border-t border-border lg:border-t-0 lg:border-l">
-								{typeof aside === "function" ? aside(current.key) : aside}
+								{aside(current.key)}
 							</div>
 						) : null}
 					</div>
