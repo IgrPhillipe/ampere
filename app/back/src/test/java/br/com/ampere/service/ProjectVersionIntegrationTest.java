@@ -2,6 +2,7 @@ package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -143,7 +144,7 @@ class ProjectVersionIntegrationTest {
         .andExpect(jsonPath("$.data[0].number").value(1))
         .andExpect(jsonPath("$.data[0].authorName").value("Usuário Teste"))
         .andExpect(jsonPath("$.data[0].submittedAt").isNotEmpty())
-        .andExpect(jsonPath("$.data[0].changeSummary").isNotEmpty())
+        .andExpect(jsonPath("$.data[0].changeSummary").value(nullValue()))
         .andExpect(jsonPath("$.data[0].demandKva").isNumber())
         .andExpect(jsonPath("$.data[0].documents", hasSize(3)))
         .andExpect(jsonPath("$.data[0].memorialSha256").value(org.hamcrest.Matchers.hasLength(64)))

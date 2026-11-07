@@ -33,8 +33,6 @@ import tools.jackson.databind.node.ObjectNode;
 @Service
 public class ProjectVersionService {
 
-  static final String FIRST_SUBMISSION = "Primeiro envio do projeto.";
-
   private static final String NOT_FOUND = "Versão não encontrada.";
 
   // Locked since the submission, so they still hold the data that was sent.
@@ -107,7 +105,7 @@ public class ProjectVersionService {
                 number,
                 submittedAt,
                 project.getOwner(),
-                number > 1 ? project.getChangeSummary() : FIRST_SUBMISSION,
+                number > 1 ? project.getChangeSummary() : null,
                 calculation,
                 new ProjectVersionMemorial(issued.filename(), issued.content(), issued.sha256()),
                 issued.verificationCode()));
