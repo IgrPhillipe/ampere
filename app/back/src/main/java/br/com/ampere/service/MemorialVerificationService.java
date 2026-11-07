@@ -4,7 +4,7 @@ import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectVersion;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.ProjectVersionRepository;
-import java.util.Locale;
+import br.com.ampere.utils.MemorialFingerprint;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class MemorialVerificationService {
 
-  private static final int CODE_LENGTH = 16;
-
   private final ProjectVersionRepository versionRepository;
 
   public MemorialVerificationService(ProjectVersionRepository versionRepository) {
@@ -26,19 +24,7 @@ public class MemorialVerificationService {
 
   @Transactional(readOnly = true)
   public Optional<ProjectVersion> byCode(String code) {
-    String normalized =
-        code == null ? "" : code.replaceAll("[^0-9A-Za-z]", "").toUpperCase(Locale.ROOT);
-    if (normalized.length() != CODE_LENGTH) {
-      return Optional.empty();
-    }
-
-    return versionRepository.findByVerificationCode(
-        String.join(
-            "-",
-            normalized.substring(0, 4),
-            normalized.substring(4, 8),
-            normalized.substring(8, 12),
-            normalized.substring(12, 16)));
+    return MemorialFingerprint.normalize(code).flatMap(versionRepository::findByVerificationCode);
   }
 
   /** Confirms only a file identical, byte for byte, to the one issued with a version. */
@@ -48,6 +34,6 @@ public class MemorialVerificationService {
       throw new BusinessException("Envie o memorial em PDF.");
     }
 
-    return versionRepository.findByMemorialSha256(MemorialPdfService.sha256(content));
+    return versionRepository.findByMemorialSha256(MemorialFingerprint.sha256(content));
   }
 }

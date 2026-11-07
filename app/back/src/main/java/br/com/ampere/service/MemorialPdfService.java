@@ -14,6 +14,7 @@ import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.ProjectVersionRepository;
 import br.com.ampere.utils.BrazilianDateFormat;
 import br.com.ampere.utils.BrazilianNumberFormat;
+import br.com.ampere.utils.MemorialFingerprint;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.Element;
@@ -38,10 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -181,35 +179,14 @@ public class MemorialPdfService {
       int version,
       OffsetDateTime issuedAt) {
     byte[] unstamped = build(project, calculation, groups, new Stamp(version, issuedAt, ""));
-    String code = verificationCode(sha256(unstamped));
+    String code = MemorialFingerprint.verificationCode(MemorialFingerprint.sha256(unstamped));
     byte[] content = build(project, calculation, groups, new Stamp(version, issuedAt, code));
 
     return new Issued(
         "memorial-" + project.getProtocol() + "-v" + version + ".pdf",
         content,
-        sha256(content),
+        MemorialFingerprint.sha256(content),
         code);
-  }
-
-  /** Sixteen hex digits of the digest, in groups of four: short enough to type from paper. */
-  public static String verificationCode(String sha256) {
-    String head = sha256.substring(0, 16).toUpperCase(Locale.ROOT);
-
-    return head.substring(0, 4)
-        + "-"
-        + head.substring(4, 8)
-        + "-"
-        + head.substring(8, 12)
-        + "-"
-        + head.substring(12, 16);
-  }
-
-  public static String sha256(byte[] content) {
-    try {
-      return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(content));
-    } catch (NoSuchAlgorithmException impossible) {
-      throw new IllegalStateException(impossible);
-    }
   }
 
   private byte[] build(

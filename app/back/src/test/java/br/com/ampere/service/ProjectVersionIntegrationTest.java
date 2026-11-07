@@ -37,6 +37,7 @@ import br.com.ampere.repository.ProjectVersionDocumentRepository;
 import br.com.ampere.repository.ProjectVersionRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.utils.MemorialFingerprint;
 import br.com.ampere.utils.Timestamps;
 import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.parser.PdfTextExtractor;
@@ -165,7 +166,7 @@ class ProjectVersionIntegrationTest {
 
     assertThat(second).isEqualTo(first);
     assertThat(ofVersion).isEqualTo(first);
-    assertThat(sha256Of(project, 1)).isEqualTo(MemorialPdfService.sha256(first));
+    assertThat(sha256Of(project, 1)).isEqualTo(MemorialFingerprint.sha256(first));
   }
 
   @Test
@@ -186,7 +187,7 @@ class ProjectVersionIntegrationTest {
         .andExpect(
             jsonPath("$.data[1].changeSummary").value("Quantidade de apartamentos corrigida."))
         .andExpect(
-            jsonPath("$.data[0].memorialSha256").value(MemorialPdfService.sha256(versionOne)));
+            jsonPath("$.data[0].memorialSha256").value(MemorialFingerprint.sha256(versionOne)));
   }
 
   @Test
