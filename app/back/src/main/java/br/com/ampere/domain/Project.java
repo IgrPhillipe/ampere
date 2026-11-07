@@ -26,12 +26,16 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "project")
 public class Project {
 
   public static final int REVIEW_PERIOD_DAYS = 30;
+
+  // DIS-NOR-053, item 6.27.6.
+  public static final int APPROVAL_VALIDITY_MONTHS = 36;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,7 +52,8 @@ public class Project {
 
   // Projects created before the address came from the CEP are all in the Pernambuco concession.
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false, columnDefinition = "varchar(2) default 'PE'")
+  @Column(nullable = false, length = 2)
+  @ColumnDefault("'PE'")
   private BrazilianState state = BrazilianState.PE;
 
   @Column(length = 8)
@@ -277,6 +282,14 @@ public class Project {
     }
 
     return submittedAt.atZoneSameInstant(zone).toLocalDate().plusDays(REVIEW_PERIOD_DAYS);
+  }
+
+  public LocalDate approvalExpiresOn(ZoneId zone) {
+    if (reviewedAt == null) {
+      throw new IllegalStateException("Project has not been reviewed.");
+    }
+
+    return reviewedAt.atZoneSameInstant(zone).toLocalDate().plusMonths(APPROVAL_VALIDITY_MONTHS);
   }
 
   public DeadlineStatus deadlineStatus(LocalDate today, ZoneId zone) {

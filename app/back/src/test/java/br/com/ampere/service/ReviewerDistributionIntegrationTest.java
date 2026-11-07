@@ -270,6 +270,40 @@ class ReviewerDistributionIntegrationTest {
     resubmit(project).andExpect(status().isOk());
 
     assertThat(reviewerOf(project).getId()).isEqualTo(ana.getId());
+    notifications(ana)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.unreadCount").value(1))
+        .andExpect(jsonPath("$.data.items[0].type").value("PROJECT_RESUBMITTED"))
+        .andExpect(jsonPath("$.data.items[0].projectId").value(String.valueOf(project.getId())));
+  }
+
+  @Test
+  void notificationsAreListedAndReadOutsideAnOpenSession() throws Exception {
+    Project project = readyProject("2026-9012", "Recife", designer);
+    submit(project).andExpect(status().isOk());
+    assign(List.of(project), bruno).andExpect(status().isNoContent());
+    reject(project);
+    resubmit(project).andExpect(status().isOk());
+
+    String body = notifications(bruno).andReturn().getResponse().getContentAsString();
+    String id =
+        objectMapper.readTree(body).path("data").path("items").path(0).path("id").asString();
+
+    mockMvc
+        .perform(
+            post("/notifications/{id}/read", id)
+                .header(HttpHeaders.AUTHORIZATION, bearer(designer)))
+        .andExpect(status().isNotFound());
+    mockMvc
+        .perform(
+            post("/notifications/{id}/read", id).header(HttpHeaders.AUTHORIZATION, bearer(bruno)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.projectId").value(String.valueOf(project.getId())))
+        .andExpect(jsonPath("$.data.read").value(true));
+    mockMvc
+        .perform(post("/notifications/read-all").header(HttpHeaders.AUTHORIZATION, bearer(bruno)))
+        .andExpect(status().isNoContent());
+    notifications(bruno).andExpect(jsonPath("$.data.unreadCount").value(0));
   }
 
   @Test
@@ -462,6 +496,10 @@ class ReviewerDistributionIntegrationTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(
                 "{\"projectIds\":%s,\"reviewerId\":\"%s\"}".formatted(projectIds, reviewerId)));
+  }
+
+  private ResultActions notifications(User user) throws Exception {
+    return mockMvc.perform(get("/notifications").header(HttpHeaders.AUTHORIZATION, bearer(user)));
   }
 
   private ResultActions submit(Project project) throws Exception {

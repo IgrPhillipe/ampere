@@ -285,7 +285,7 @@ Decisões:
 
 | Papel | O que é | Caminhos exclusivos |
 | :--- | :--- | :--- |
-| `user` | projetista | painel do projetista (`/dashboard/designer`); o resto são projetos e perfil |
+| `user` | projetista | painel do projetista (`/dashboard/designer`); o resto são projetos, perfil e notificações, abertas a todos os papéis |
 | `reviewer` | analista | fila (`/review-queue/**`, exceto `/review-queue/assignment`) e escrita da análise (abertura, decisão e apontamentos) do projeto atribuído a ele, junto com o `admin` |
 | `admin` | acesso total | tabelas normativas (`/normative-tables/**`), gestão de usuários (`/users/**`, exceto `/users/me`, que vem antes no `SecurityConfig`), municípios dos analistas (`/reviewers/**`) e atribuição em lote (`/review-queue/assignment`), além de tudo o que o `reviewer` faz |
 

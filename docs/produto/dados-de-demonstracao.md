@@ -114,6 +114,12 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 
 ---
 
+## Notificações
+
+Cada história gera as notificações do fluxo real: decisões para o projetista e reenvios para o analista. Só as de hoje ficam não lidas: "2026-1004 reprovado" e "2026-1006 aprovado" para `user@ampere.com`. Os avisos de prazo e validade saem da varredura que roda ao subir a API. Banco já semeado só recebe as notificações com `SEED_RESET_SCENARIOS=true`.
+
+---
+
 ## Tabelas Normativas
 
 As 18 tabelas entram publicadas, digitadas pelo admin e conferidas pelo conferente. O seed acrescenta revisões, só a partir das tabelas que ele mesmo publicou, cada uma com linhas que de fato diferem:

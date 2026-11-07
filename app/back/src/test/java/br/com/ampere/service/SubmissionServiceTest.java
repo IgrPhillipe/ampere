@@ -2,6 +2,7 @@ package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -66,7 +67,8 @@ class SubmissionServiceTest {
             findingRepository,
             mock(ProjectEventService.class),
             mock(ReviewAssignmentService.class),
-            mock(ProjectVersionService.class));
+            mock(ProjectVersionService.class),
+            mock(NotificationService.class));
 
     SubmissionChecklist checklist = service.checklist(1L, DESIGNER);
     assertThat(checklist.canSubmit()).isFalse();
@@ -105,6 +107,7 @@ class SubmissionServiceTest {
             1L, FindingSeverity.BLOCKING, FindingStatus.OPEN))
         .thenReturn(0L);
 
+    NotificationService notifications = mock(NotificationService.class);
     SubmissionService service =
         new SubmissionService(
             projectService,
@@ -114,7 +117,8 @@ class SubmissionServiceTest {
             findingRepository,
             mock(ProjectEventService.class),
             mock(ReviewAssignmentService.class),
-            mock(ProjectVersionService.class));
+            mock(ProjectVersionService.class),
+            notifications);
 
     assertThatThrownBy(() -> service.submit(1L, "   ", DESIGNER))
         .isInstanceOfSatisfying(
@@ -141,6 +145,7 @@ class SubmissionServiceTest {
     assertThat(resubmitted.getChangeSummary())
         .isEqualTo("Substituí a ART assinada e corrigi a área do apartamento tipo B.");
     assertThat(resubmitted.getReviewer()).isSameAs(analyst);
+    verify(notifications).resubmitted(eq(project), any(OffsetDateTime.class));
   }
 
   @Test
@@ -161,7 +166,8 @@ class SubmissionServiceTest {
             mock(FindingRepository.class),
             mock(ProjectEventService.class),
             mock(ReviewAssignmentService.class),
-            mock(ProjectVersionService.class));
+            mock(ProjectVersionService.class),
+            mock(NotificationService.class));
 
     assertThatThrownBy(() -> service.submit(1L, "Nova versão.", DESIGNER))
         .isInstanceOfSatisfying(

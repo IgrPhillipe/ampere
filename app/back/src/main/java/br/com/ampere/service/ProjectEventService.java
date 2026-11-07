@@ -69,10 +69,7 @@ public class ProjectEventService {
       return;
     }
 
-    long count =
-        findings.stream()
-            .filter(finding -> ProjectService.OPEN_FINDINGS.contains(finding.getStatus()))
-            .count();
+    long count = ProjectService.countOpen(findings);
     String noun = count == 1 ? " apontamento." : " apontamentos.";
     record(
         project,

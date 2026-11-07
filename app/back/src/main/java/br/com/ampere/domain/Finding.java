@@ -74,6 +74,8 @@ public class Finding {
 
   private OffsetDateTime respondedAt;
 
+  private Integer reopenedInCycle;
+
   protected Finding() {}
 
   public Finding(
@@ -166,11 +168,20 @@ public class Finding {
     this.respondedAt = Objects.requireNonNull(respondedAt, "respondedAt");
   }
 
-  public void resolve(FindingResolution resolution) {
-    status =
-        Objects.requireNonNull(resolution, "resolution") == FindingResolution.ACCEPT
-            ? FindingStatus.RESOLVED
-            : FindingStatus.OPEN;
+  public void resolve(FindingResolution resolution, int reviewCycle) {
+    if (Objects.requireNonNull(resolution, "resolution") == FindingResolution.ACCEPT) {
+      status = FindingStatus.RESOLVED;
+      reopenedInCycle = null;
+      return;
+    }
+    if (status != FindingStatus.OPEN) {
+      reopenedInCycle = reviewCycle;
+    }
+    status = FindingStatus.OPEN;
+  }
+
+  public boolean wasReopenedIn(int reviewCycle) {
+    return reopenedInCycle != null && reopenedInCycle == reviewCycle;
   }
 
   private static String requireText(String value, String field) {

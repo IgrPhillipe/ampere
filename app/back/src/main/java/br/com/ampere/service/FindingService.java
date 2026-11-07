@@ -105,7 +105,7 @@ public class FindingService {
           HttpStatus.CONFLICT);
     }
 
-    finding.resolve(resolution);
+    finding.resolve(resolution, project.getReviewCycle());
 
     return finding;
   }

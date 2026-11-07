@@ -152,10 +152,12 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
     long calculations = calculationRepository.count();
     long versions = versionRepository.count();
     long versionDocuments = versionDocumentRepository.count();
+    long notifications = notificationRepository.count();
 
     scenarioSeeder(true).seed();
 
     assertThat(projectRepository.count()).isEqualTo(SCENARIOS);
+    assertThat(notificationRepository.count()).isEqualTo(notifications);
     assertThat(groupRepository.count()).isEqualTo(groups);
     assertThat(findingRepository.count()).isEqualTo(findings);
     assertThat(documentRepository.count()).isEqualTo(documents);

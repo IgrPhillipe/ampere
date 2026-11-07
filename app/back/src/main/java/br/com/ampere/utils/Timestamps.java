@@ -10,7 +10,9 @@ import java.time.temporal.ChronoUnit;
 public final class Timestamps {
 
   /** Dates and deadlines follow the concessionaire's local calendar. */
-  public static final ZoneId ZONE = ZoneId.of("America/Recife");
+  public static final String ZONE_ID = "America/Recife";
+
+  public static final ZoneId ZONE = ZoneId.of(ZONE_ID);
 
   private Timestamps() {}
 

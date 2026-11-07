@@ -1,0 +1,11 @@
+package br.com.ampere.domain;
+
+public enum NotificationType {
+  PROJECT_APPROVED,
+  PROJECT_REJECTED,
+  FINDING_REOPENED,
+  PROJECT_RESUBMITTED,
+  REVIEW_DEADLINE_NEAR,
+  REVIEW_OVERDUE,
+  APPROVAL_EXPIRING
+}

@@ -8,6 +8,7 @@ import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
+import br.com.ampere.repository.NotificationRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
@@ -17,6 +18,7 @@ import br.com.ampere.repository.ReviewerMunicipalityRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.DemandCalculationService;
+import br.com.ampere.service.NotificationService;
 import br.com.ampere.service.ProjectEventService;
 import br.com.ampere.service.ProjectVersionService;
 import java.time.Duration;
@@ -33,6 +35,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -65,6 +68,8 @@ public class DemoScenarioSeeder {
   private final DemandCalculationService demandCalculation;
   private final ProjectEventService eventService;
   private final ProjectVersionService versionService;
+  private final NotificationService notificationService;
+  private final NotificationRepository notificationRepository;
   private final SeedTimestamps timestamps;
   private final PlatformTransactionManager transactionManager;
   private final boolean resetScenarios;
@@ -85,6 +90,8 @@ public class DemoScenarioSeeder {
       DemandCalculationService demandCalculation,
       ProjectEventService eventService,
       ProjectVersionService versionService,
+      NotificationService notificationService,
+      NotificationRepository notificationRepository,
       SeedTimestamps timestamps,
       PlatformTransactionManager transactionManager,
       @Value("${ampere.seed.reset-scenarios:false}") boolean resetScenarios) {
@@ -103,12 +110,15 @@ public class DemoScenarioSeeder {
     this.demandCalculation = demandCalculation;
     this.eventService = eventService;
     this.versionService = versionService;
+    this.notificationService = notificationService;
+    this.notificationRepository = notificationRepository;
     this.timestamps = timestamps;
     this.transactionManager = transactionManager;
     this.resetScenarios = resetScenarios;
   }
 
   /** Development data only: a failure is logged and the application keeps running. */
+  @Order(0)
   @EventListener(ApplicationReadyEvent.class)
   public void onReady() {
     try {
@@ -136,6 +146,8 @@ public class DemoScenarioSeeder {
             demandCalculation,
             eventService,
             versionService,
+            notificationService,
+            notificationRepository,
             timestamps,
             users.get().admin(),
             standardRepository.findAll().stream()

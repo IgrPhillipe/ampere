@@ -8,9 +8,11 @@ import br.com.ampere.domain.User;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
+import br.com.ampere.repository.NotificationRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.service.DemandCalculationService;
+import br.com.ampere.service.NotificationService;
 import br.com.ampere.service.ProjectEventService;
 import br.com.ampere.service.ProjectVersionService;
 import com.lowagie.text.Document;
@@ -33,6 +35,8 @@ final class ScenarioKit {
   final DemandCalculationService demand;
   final ProjectEventService events;
   final ProjectVersionService versions;
+  final NotificationService notifications;
+  final NotificationRepository notices;
   final SeedTimestamps timestamps;
   final User manager;
   private final Map<String, Standard> standards;
@@ -47,6 +51,8 @@ final class ScenarioKit {
       DemandCalculationService demand,
       ProjectEventService events,
       ProjectVersionService versions,
+      NotificationService notifications,
+      NotificationRepository notices,
       SeedTimestamps timestamps,
       User manager,
       Map<String, Standard> standards,
@@ -59,6 +65,8 @@ final class ScenarioKit {
     this.demand = demand;
     this.events = events;
     this.versions = versions;
+    this.notifications = notifications;
+    this.notices = notices;
     this.timestamps = timestamps;
     this.manager = manager;
     this.standards = standards;

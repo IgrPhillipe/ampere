@@ -4,6 +4,7 @@ import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
+import br.com.ampere.repository.NotificationRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
@@ -13,6 +14,7 @@ import br.com.ampere.repository.ReviewerMunicipalityRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.DemandCalculationService;
+import br.com.ampere.service.NotificationService;
 import br.com.ampere.service.ProjectEventService;
 import br.com.ampere.service.ProjectVersionService;
 import jakarta.persistence.EntityManager;
@@ -41,6 +43,8 @@ abstract class SeedIntegrationTestBase {
   @Autowired protected DemandCalculationService demandCalculation;
   @Autowired protected ProjectEventService projectEventService;
   @Autowired protected ProjectVersionService projectVersionService;
+  @Autowired protected NotificationService notificationService;
+  @Autowired protected NotificationRepository notificationRepository;
   @Autowired protected PasswordEncoder passwordEncoder;
   @Autowired protected PlatformTransactionManager transactionManager;
   @Autowired protected EntityManager entityManager;
@@ -101,6 +105,8 @@ abstract class SeedIntegrationTestBase {
         demandCalculation,
         projectEventService,
         projectVersionService,
+        notificationService,
+        notificationRepository,
         new SeedTimestamps(entityManager),
         transactionManager,
         resetScenarios);
