@@ -9,9 +9,11 @@ import {
 	findingReferenceLabels,
 	findingSeverityLabels,
 	findingStageLabels,
+	type ProjectSectionKey,
 } from "@features/projects";
 import { useZodForm } from "@features/shared";
-import { useEffect } from "react";
+import type { FindingStage } from "@services/project-review";
+import { useEffect, useRef } from "react";
 import { useWatch } from "react-hook-form";
 
 import { type FindingFormValues, findingFormSchema } from "../../schemas";
@@ -25,6 +27,8 @@ const EMPTY_VALUES: Partial<FindingFormValues> = {
 
 interface FindingFormProps {
 	editor: FindingEditor;
+	currentSection: ProjectSectionKey;
+	currentStage?: FindingStage;
 	referenceOptions: FindingReferenceOptions;
 	isPending: boolean;
 	autoFocus?: boolean;
@@ -34,6 +38,8 @@ interface FindingFormProps {
 
 export const FindingForm = ({
 	editor,
+	currentSection,
+	currentStage,
 	referenceOptions,
 	isPending,
 	autoFocus = false,
@@ -42,17 +48,44 @@ export const FindingForm = ({
 }: FindingFormProps) => {
 	const form = useZodForm(findingFormSchema, {
 		...EMPTY_VALUES,
+		stage: currentStage,
 		...editor.values,
 	});
 	const stage = useWatch({ control: form.control, name: "stage" });
+	const description = useWatch({ control: form.control, name: "description" });
 	const referenceLabel = stage ? findingReferenceLabels[stage] : null;
 	const references = stage ? referenceOptions[stage] : {};
 	const hasReferences = Object.keys(references).length > 0;
 	const isEditing = editor.mode === "edit";
+	const previousStage = useRef(stage);
+	const previousSection = useRef(currentSection);
 
 	useEffect(() => {
 		if (autoFocus) form.setFocus("description");
 	}, [autoFocus, form]);
+
+	useEffect(() => {
+		if (previousStage.current === stage) return;
+
+		previousStage.current = stage;
+		form.setValue("reference", "");
+	}, [form, stage]);
+
+	useEffect(() => {
+		if (previousSection.current === currentSection) return;
+
+		previousSection.current = currentSection;
+		if (isEditing || description !== "") return;
+
+		form.reset(
+			{
+				...form.getValues(),
+				stage: currentStage,
+				reference: "",
+			},
+			{ keepDefaultValues: true },
+		);
+	}, [currentSection, currentStage, description, form, isEditing]);
 
 	return (
 		<form

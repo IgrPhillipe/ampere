@@ -1,7 +1,9 @@
 import {
 	buildFindingReferenceOptions,
+	type ProjectSectionKey,
 	ProjectWorkspace,
 	projectStatusLabels,
+	stageSections,
 	useProjectDetailActions,
 } from "@features/projects";
 import { padCount } from "@features/shared";
@@ -11,6 +13,7 @@ import { useGetConsumerUnitGroupList } from "@services/consumer-units";
 import {
 	type Finding,
 	type FindingResolution,
+	findingStageSchema,
 	type ReviewDecision,
 	useCreateFinding,
 	useDecideProjectReview,
@@ -188,13 +191,17 @@ export const ProjectReviewWorkspace = ({
 					</p>
 				) : null
 			}
-			aside={
+			aside={(currentSection: ProjectSectionKey) => (
 				<FindingsPanel
 					findings={findings}
 					isLoading={findingsQuery.isPending}
 					editable={actions.createFindings}
 					underReview={isUnderReview}
 					editor={editor}
+					currentSection={currentSection}
+					currentStage={findingStageSchema.options.find(
+						(stage) => stageSections[stage] === currentSection,
+					)}
 					autoFocusForm={findingEditor.autoFocus}
 					referenceOptions={referenceOptions}
 					isSaving={createMutation.isPending || updateMutation.isPending}
@@ -205,7 +212,7 @@ export const ProjectReviewWorkspace = ({
 					onDelete={removeFinding}
 					onResolve={resolveFinding}
 				/>
-			}
+			)}
 			footer={
 				<DecisionFooter
 					availability={availability}

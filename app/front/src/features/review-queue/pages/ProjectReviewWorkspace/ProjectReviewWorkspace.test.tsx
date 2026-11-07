@@ -1,6 +1,6 @@
 import { useFindingRegistrar } from "@features/projects";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -21,6 +21,7 @@ const state = vi.hoisted(() => ({
 	ownerId: "2",
 	reviewerName: null as string | null,
 	openError: null as unknown,
+	activeRoute: "/projetos/$id",
 	openReview: vi.fn(),
 }));
 
@@ -45,7 +46,10 @@ const Section = () => {
 
 vi.mock("@tanstack/react-router", () => ({
 	useNavigate: () => vi.fn(),
-	useMatchRoute: () => () => false,
+	useMatchRoute:
+		() =>
+		({ to }: { to: string }) =>
+			state.activeRoute === to,
 	Outlet: () => <Section />,
 	Link: ({ children }: { children: ReactNode }) => <a href="/">{children}</a>,
 }));
@@ -87,7 +91,8 @@ vi.mock("@services/calculation", async (importOriginal) => ({
 
 vi.mock("@services/consumer-units", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/consumer-units")>()),
-	useGetConsumerUnitGroupList: () => loadedQuery({ data: [] }),
+	useGetConsumerUnitGroupList: () =>
+		loadedQuery({ data: [{ id: "7", name: "Recarga veicular" }] }),
 	useGetConsumerUnitGroupValidation: () =>
 		loadedQuery({
 			data: { totalUnits: 12, totalGroups: 2, totalDeclaredLoadKw: 80 },
@@ -102,12 +107,20 @@ vi.mock("@services/submission", async (importOriginal) => ({
 	useGetMemorial: () => ({ isPending: true }),
 }));
 
-const renderWorkspace = () =>
-	render(
-		<QueryClientProvider client={new QueryClient()}>
-			<ProjectReviewWorkspace projectId="4" />
-		</QueryClientProvider>,
-	);
+const workspace = () => (
+	<QueryClientProvider client={new QueryClient()}>
+		<ProjectReviewWorkspace projectId="4" />
+	</QueryClientProvider>
+);
+
+const renderWorkspace = () => render(workspace());
+
+const pickOption = async (name: string) => {
+	const option = await screen.findByRole("option", { name });
+	fireEvent.pointerDown(option);
+	fireEvent.click(option);
+	await waitFor(() => expect(screen.queryAllByRole("option")).toHaveLength(0));
+};
 
 describe("ProjectReviewWorkspace", () => {
 	beforeEach(() => {
@@ -116,6 +129,115 @@ describe("ProjectReviewWorkspace", () => {
 		state.openReview.mockClear();
 		state.reviewerName = null;
 		state.openError = null;
+		state.activeRoute = "/projetos/$id";
+	});
+
+	it.each([
+		["/projetos/$id/dados", "Dados da Edificação"],
+		["/projetos/$id/unidades", "Unidades Consumidoras"],
+		["/projetos/$id/calculo", "Cálculo de Demanda"],
+		["/projetos/$id/documentos", "Documentos"],
+	])("starts a blank finding in the section for %s", (route, stage) => {
+		signInAs("reviewer");
+		state.activeRoute = route;
+		renderWorkspace();
+
+		expect(screen.getByRole("combobox", { name: /^Seção/ })).toHaveTextContent(
+			stage,
+		);
+	});
+
+	it.each([
+		["/projetos/$id", "Visão Geral"],
+		["/projetos/$id/memorial", "Memorial"],
+		["/projetos/$id/historico", "Histórico"],
+	])("leaves a blank finding without a section on %s (%s)", (route) => {
+		signInAs("reviewer");
+		state.activeRoute = route;
+		renderWorkspace();
+
+		expect(screen.getByRole("combobox", { name: /^Seção/ })).toHaveTextContent(
+			"Selecione uma opção",
+		);
+	});
+
+	it("updates an empty form when the project section changes", async () => {
+		signInAs("reviewer");
+		const { rerender } = renderWorkspace();
+
+		fireEvent.click(screen.getByRole("combobox", { name: /^Seção/ }));
+		await pickOption("Documentos");
+		state.activeRoute = "/projetos/$id/unidades";
+		rerender(workspace());
+
+		expect(screen.getByRole("combobox", { name: /^Seção/ })).toHaveTextContent(
+			"Unidades Consumidoras",
+		);
+	});
+
+	it("keeps the form section and description when the analyst has started typing", () => {
+		signInAs("reviewer");
+		state.activeRoute = "/projetos/$id/dados";
+		const { rerender } = renderWorkspace();
+		fireEvent.change(screen.getByRole("textbox", { name: /^Descrição/ }), {
+			target: { value: "Ajustar os dados da edificação." },
+		});
+
+		state.activeRoute = "/projetos/$id/calculo";
+		rerender(workspace());
+
+		expect(screen.getByRole("combobox", { name: /^Seção/ })).toHaveTextContent(
+			"Dados da Edificação",
+		);
+		expect(screen.getByRole("textbox", { name: /^Descrição/ })).toHaveValue(
+			"Ajustar os dados da edificação.",
+		);
+	});
+
+	it("keeps an edited finding unchanged when the project section changes", () => {
+		signInAs("reviewer");
+		const { rerender } = renderWorkspace();
+
+		fireEvent.click(
+			screen.getByRole("button", {
+				name: /A ART não traz a assinatura do responsável técnico/,
+			}),
+		);
+		fireEvent.click(screen.getByRole("button", { name: "Editar" }));
+		state.activeRoute = "/projetos/$id/unidades";
+		rerender(workspace());
+
+		expect(screen.getByRole("combobox", { name: /^Seção/ })).toHaveTextContent(
+			"Documentos",
+		);
+		expect(screen.getByRole("textbox", { name: /^Descrição/ })).toHaveValue(
+			"A ART não traz a assinatura do responsável técnico.",
+		);
+	});
+
+	it("clears the reference when the analyst changes the section manually", async () => {
+		signInAs("reviewer");
+		renderWorkspace();
+
+		fireEvent.click(screen.getByRole("combobox", { name: /^Seção/ }));
+		await pickOption("Unidades Consumidoras");
+		expect(screen.getByRole("combobox", { name: /^Seção/ })).toHaveTextContent(
+			"Unidades Consumidoras",
+		);
+		fireEvent.click(await screen.findByRole("combobox", { name: /^Grupo/ }));
+		await pickOption("Recarga veicular");
+		expect(
+			await screen.findByRole("combobox", { name: /^Grupo/ }),
+		).toHaveTextContent("Recarga veicular");
+
+		fireEvent.click(screen.getByRole("combobox", { name: /^Seção/ }));
+		await pickOption("Dados da Edificação");
+		fireEvent.click(screen.getByRole("combobox", { name: /^Seção/ }));
+		await pickOption("Unidades Consumidoras");
+
+		expect(
+			await screen.findByRole("combobox", { name: /^Grupo/ }),
+		).not.toHaveTextContent("Recarga veicular");
 	});
 
 	it("lets the analyst holding the review record findings and decide", () => {
