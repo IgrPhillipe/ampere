@@ -1,5 +1,6 @@
 package br.com.ampere.config;
 
+import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.LampTechnology;
 import br.com.ampere.domain.NotificationType;
 import br.com.ampere.domain.UserRole;
@@ -21,7 +22,8 @@ public class EnumCheckConstraints {
       List.of(
           new Constraint("app_user", "role", UserRole.class),
           new Constraint("load_group_item", "lamp_technology", LampTechnology.class),
-          new Constraint("notification", "type", NotificationType.class));
+          new Constraint("notification", "type", NotificationType.class),
+          new Constraint("project", "state", BrazilianState.class));
 
   private final JdbcTemplate jdbcTemplate;
 

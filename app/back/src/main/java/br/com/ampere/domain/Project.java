@@ -26,6 +26,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "project")
@@ -51,7 +52,8 @@ public class Project {
 
   // Projects created before the address came from the CEP are all in the Pernambuco concession.
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false, columnDefinition = "varchar(2) default 'PE'")
+  @Column(nullable = false, length = 2)
+  @ColumnDefault("'PE'")
   private BrazilianState state = BrazilianState.PE;
 
   @Column(length = 8)
