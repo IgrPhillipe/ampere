@@ -2,7 +2,6 @@ package br.com.ampere.dto;
 
 import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.ProjectVersion;
-import br.com.ampere.repository.ProjectVersionDocumentRepository;
 import br.com.ampere.service.ProjectVersionService;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -21,12 +20,9 @@ public record ProjectVersionResponse(
   public record VersionDocumentResponse(
       DocumentType type, String typeLabel, String filename, Long fileSize) {
 
-    static VersionDocumentResponse from(ProjectVersionDocumentRepository.Summary document) {
+    static VersionDocumentResponse from(ProjectVersionService.DocumentSummary document) {
       return new VersionDocumentResponse(
-          document.getType(),
-          document.getType().label(),
-          document.getFilename(),
-          document.getFileSize());
+          document.type(), document.type().label(), document.filename(), document.fileSize());
     }
   }
 

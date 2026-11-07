@@ -74,8 +74,9 @@ public class ProjectVersionService {
   }
 
   /** A version with the documents it carried, listed without their bytes. */
-  public record Entry(
-      ProjectVersion version, List<ProjectVersionDocumentRepository.Summary> documents) {}
+  public record Entry(ProjectVersion version, List<DocumentSummary> documents) {}
+
+  public record DocumentSummary(DocumentType type, String filename, Long fileSize) {}
 
   /** What the compared versions asked of the distributor, and what differs between them. */
   public record Comparison(
@@ -142,14 +143,16 @@ public class ProjectVersionService {
       return List.of();
     }
 
-    Map<Long, List<ProjectVersionDocumentRepository.Summary>> documents = new LinkedHashMap<>();
+    Map<Long, List<DocumentSummary>> documents = new LinkedHashMap<>();
     versionDocumentRepository
         .findSummaries(versions.stream().map(ProjectVersion::getId).toList())
         .forEach(
             document ->
                 documents
                     .computeIfAbsent(document.getVersionId(), id -> new ArrayList<>())
-                    .add(document));
+                    .add(
+                        new DocumentSummary(
+                            document.getType(), document.getFilename(), document.getFileSize())));
 
     return versions.stream()
         .map(version -> new Entry(version, documents.getOrDefault(version.getId(), List.of())))
