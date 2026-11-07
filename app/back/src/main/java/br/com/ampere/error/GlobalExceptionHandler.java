@@ -10,9 +10,11 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -116,8 +118,19 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
   public ProblemDetail handleUnsupportedMediaType(HttpMediaTypeNotSupportedException exception) {
+    String detail =
+        exception.getSupportedMediaTypes().contains(MediaType.MULTIPART_FORM_DATA)
+            ? "Envie o arquivo como multipart/form-data."
+            : "Envie o corpo da requisição em JSON.";
+
+    return ProblemDetail.forStatusAndDetail(HttpStatus.UNSUPPORTED_MEDIA_TYPE, detail);
+  }
+
+  @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+  public ProblemDetail handleMethodNotSupported(HttpRequestMethodNotSupportedException exception) {
     return ProblemDetail.forStatusAndDetail(
-        HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Envie o corpo da requisição em JSON.");
+        HttpStatus.METHOD_NOT_ALLOWED,
+        "Esta rota não aceita o método " + exception.getMethod() + ".");
   }
 
   @ExceptionHandler(MaxUploadSizeExceededException.class)

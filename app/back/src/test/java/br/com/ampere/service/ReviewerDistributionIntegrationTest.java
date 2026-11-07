@@ -37,6 +37,8 @@ import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.repository.ProjectVersionDocumentRepository;
+import br.com.ampere.repository.ProjectVersionRepository;
 import br.com.ampere.repository.ReviewerMunicipalityRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
@@ -47,6 +49,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +79,8 @@ class ReviewerDistributionIntegrationTest {
   @Autowired private ProjectRepository projectRepository;
   @Autowired private ConsumerUnitGroupRepository groupRepository;
   @Autowired private CalculationRepository calculationRepository;
+  @Autowired private ProjectVersionRepository versionRepository;
+  @Autowired private ProjectVersionDocumentRepository versionDocumentRepository;
   @Autowired private ProjectDocumentRepository documentRepository;
   @Autowired private FindingRepository findingRepository;
   @Autowired private ProjectEventRepository eventRepository;
@@ -90,10 +95,13 @@ class ReviewerDistributionIntegrationTest {
   private User bruno;
   private User designer;
 
-  @BeforeEach
-  void setUp() {
+  /** The submissions here commit, and the versions they leave would block the next class's wipe. */
+  @AfterEach
+  void wipe() {
     municipalityRepository.deleteAll();
     eventRepository.deleteAll();
+    versionDocumentRepository.deleteAll();
+    versionRepository.deleteAll();
     documentRepository.deleteAll();
     calculationRepository.deleteAll();
     findingRepository.deleteAll();
@@ -102,6 +110,11 @@ class ReviewerDistributionIntegrationTest {
     normativeTableRepository.deleteAll();
     standardRepository.deleteAll();
     userRepository.deleteAll();
+  }
+
+  @BeforeEach
+  void setUp() {
+    wipe();
 
     standards =
         standardRepository.saveAll(

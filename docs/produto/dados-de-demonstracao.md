@@ -30,6 +30,8 @@ Os prazos e as datas são relativos ao momento do seed: um projeto enviado há 3
 
 Cada cenário também grava a linha do tempo do protocolo: criação, envio ou reenvio, pré-validação, atribuição, decisão e respostas aos apontamentos, sempre com as datas da própria história. Os projetos de reanálise, especialmente `2026-2009` (ciclo 2) e `2026-2017` (ciclo 3), exercitam as métricas de versões enviadas, decisões, apontamentos e passos de cálculo refeitos.
 
+Cada envio ou reenvio da história grava a versão do projeto, com o memorial em PDF e a cópia dos documentos: `2026-2009` tem duas versões para comparar, e `2026-2017`, três.
+
 Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin, **B** = Bruno.
 
 ### Rascunhos

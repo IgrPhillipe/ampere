@@ -1,5 +1,6 @@
 package br.com.ampere.config;
 
+import br.com.ampere.domain.Calculation;
 import jakarta.persistence.EntityManager;
 import java.time.OffsetDateTime;
 import org.springframework.context.annotation.Profile;
@@ -54,12 +55,14 @@ public class SeedTimestamps {
         uploadedAt);
   }
 
-  void calculation(Long id, OffsetDateTime calculatedAt) {
+  /** Refreshes it too, because the memorial of a later submission prints this date. */
+  void calculation(Calculation calculation, OffsetDateTime calculatedAt) {
     update(
         "UPDATE Calculation c SET c.calculatedAt = :calculatedAt WHERE c.id = :id",
-        id,
+        calculation.getId(),
         "calculatedAt",
         calculatedAt);
+    entityManager.refresh(calculation);
   }
 
   void table(Long id, OffsetDateTime registeredAt, OffsetDateTime verifiedAt) {

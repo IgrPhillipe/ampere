@@ -1,6 +1,7 @@
 package br.com.ampere.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.ConnectionType;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,12 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
   void startEmpty() {
     wipe();
     bootstrap();
+  }
+
+  /** The versions left here would block the wipe of the next class. */
+  @AfterEach
+  void wipeTheVersions() {
+    wipe();
   }
 
   @Test
@@ -112,12 +120,38 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
   }
 
   @Test
+  void resetGetsPastTheGuardOfTheVersionsAndNothingElseDoes() {
+    scenarioSeeder(false).seed();
+    long versions = versionRepository.count();
+    ProjectVersionGuard guard = new ProjectVersionGuard(jdbcTemplate);
+    guard.install();
+    try {
+      assertThat(scenarioSeeder(true).seed()).isEqualTo(SCENARIOS);
+      assertThat(versionRepository.count()).isEqualTo(versions);
+
+      assertThatThrownBy(
+              () -> jdbcTemplate.update("UPDATE project_version SET change_summary = 'Alterado'"))
+          .hasMessageContaining("a version is immutable");
+      assertThatThrownBy(() -> jdbcTemplate.update("UPDATE project_version_memorial SET data = ''"))
+          .hasMessageContaining("a version is immutable");
+      assertThatThrownBy(() -> jdbcTemplate.update("DELETE FROM project_version_document"))
+          .hasMessageContaining("a version is immutable");
+      assertThatThrownBy(() -> jdbcTemplate.update("DELETE FROM project_version"))
+          .hasMessageContaining("a version is immutable");
+    } finally {
+      guard.uninstall();
+    }
+  }
+
+  @Test
   void resetLeavesNoOrphanRowBehind() {
     scenarioSeeder(false).seed();
     long groups = groupRepository.count();
     long findings = findingRepository.count();
     long documents = documentRepository.count();
     long calculations = calculationRepository.count();
+    long versions = versionRepository.count();
+    long versionDocuments = versionDocumentRepository.count();
 
     scenarioSeeder(true).seed();
 
@@ -126,6 +160,13 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
     assertThat(findingRepository.count()).isEqualTo(findings);
     assertThat(documentRepository.count()).isEqualTo(documents);
     assertThat(calculationRepository.count()).isEqualTo(calculations);
+    assertThat(versions).isPositive();
+    assertThat(versionRepository.count()).isEqualTo(versions);
+    assertThat(versionDocumentRepository.count()).isEqualTo(versionDocuments);
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM project_version_memorial", Long.class))
+        .isEqualTo(versions);
   }
 
   @Test
