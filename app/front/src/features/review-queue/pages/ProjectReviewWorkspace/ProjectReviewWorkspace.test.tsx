@@ -285,6 +285,46 @@ describe("ProjectReviewWorkspace", () => {
 		);
 	});
 
+	it("catches up with the tab once the description is cleared", async () => {
+		signInAs("reviewer");
+		state.activeRoute = "/projetos/$id/dados";
+		const { rerender } = renderWorkspace();
+		const description = screen.getByRole("textbox", { name: /^Descrição/ });
+		fireEvent.change(description, { target: { value: "Rascunho" } });
+		state.activeRoute = "/projetos/$id/calculo";
+		rerender(workspace());
+
+		fireEvent.change(description, { target: { value: "" } });
+
+		await waitFor(() =>
+			expect(
+				screen.getByRole("combobox", { name: /^Seção/ }),
+			).toHaveTextContent("Cálculo de Demanda"),
+		);
+	});
+
+	it("starts the open tab's finding after canceling an edit", async () => {
+		signInAs("reviewer");
+		const { rerender } = renderWorkspace();
+		fireEvent.click(
+			screen.getByRole("button", {
+				name: /A ART não traz a assinatura do responsável técnico/,
+			}),
+		);
+		fireEvent.click(screen.getByRole("button", { name: "Editar" }));
+		state.activeRoute = "/projetos/$id/unidades";
+		rerender(workspace());
+
+		fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+
+		await waitFor(() =>
+			expect(
+				screen.getByRole("combobox", { name: /^Seção/ }),
+			).toHaveTextContent("Unidades Consumidoras"),
+		);
+		expect(screen.getByRole("textbox", { name: /^Descrição/ })).toHaveValue("");
+	});
+
 	it("keeps a shortcut's section and reference when the tab changes", async () => {
 		signInAs("reviewer");
 		state.activeRoute = "/projetos/$id/unidades";
