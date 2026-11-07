@@ -72,7 +72,7 @@ export const FindingForm = ({
 
 	useEffect(() => {
 		if (syncedStage.current === currentStage) return;
-		if (isEditing || autoFocus || description !== "") return;
+		if (isEditing || autoFocus || description.trim() !== "") return;
 
 		syncedStage.current = currentStage;
 		// An undefined value would fall back to the stage the field mounted with.

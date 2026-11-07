@@ -285,6 +285,24 @@ describe("ProjectReviewWorkspace", () => {
 		);
 	});
 
+	it("treats a blank description as an empty form", async () => {
+		signInAs("reviewer");
+		state.activeRoute = "/projetos/$id/dados";
+		const { rerender } = renderWorkspace();
+		fireEvent.change(screen.getByRole("textbox", { name: /^Descrição/ }), {
+			target: { value: "   " },
+		});
+
+		state.activeRoute = "/projetos/$id/calculo";
+		rerender(workspace());
+
+		await waitFor(() =>
+			expect(
+				screen.getByRole("combobox", { name: /^Seção/ }),
+			).toHaveTextContent("Cálculo de Demanda"),
+		);
+	});
+
 	it("catches up with the tab once the description is cleared", async () => {
 		signInAs("reviewer");
 		state.activeRoute = "/projetos/$id/dados";
