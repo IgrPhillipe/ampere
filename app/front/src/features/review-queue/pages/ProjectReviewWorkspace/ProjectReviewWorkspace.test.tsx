@@ -76,7 +76,11 @@ vi.mock("@services/project-review", async (importOriginal) => ({
 		}),
 	useGetFindingList: () =>
 		loadedQuery({ data: [makeFinding({ status: "DRAFT", version: 1 })] }),
-	useCreateFinding: () => idleMutation(),
+	useCreateFinding: () =>
+		idleMutation({
+			mutate: (_: unknown, options?: { onSuccess?: () => void }) =>
+				options?.onSuccess?.(),
+		}),
 	useUpdateFinding: () => idleMutation(),
 	useDeleteFinding: () => idleMutation(),
 	useResolveFinding: () => idleMutation(),
@@ -173,6 +177,78 @@ describe("ProjectReviewWorkspace", () => {
 
 		expect(screen.getByRole("combobox", { name: /^Seção/ })).toHaveTextContent(
 			"Unidades Consumidoras",
+		);
+	});
+
+	it("empties the section when the next tab has none", async () => {
+		signInAs("reviewer");
+		state.activeRoute = "/projetos/$id/dados";
+		const { rerender } = renderWorkspace();
+
+		state.activeRoute = "/projetos/$id/memorial";
+		rerender(workspace());
+
+		await waitFor(() =>
+			expect(
+				screen.getByRole("combobox", { name: /^Seção/ }),
+			).toHaveTextContent("Selecione uma opção"),
+		);
+	});
+
+	it("requires a section again on a tab without one", async () => {
+		signInAs("reviewer");
+		state.activeRoute = "/projetos/$id/dados";
+		const { rerender } = renderWorkspace();
+
+		state.activeRoute = "/projetos/$id/historico";
+		rerender(workspace());
+		fireEvent.click(
+			screen.getByRole("button", { name: "Registrar Apontamento" }),
+		);
+
+		expect(await screen.findByText("A seção é obrigatória.")).toBeVisible();
+	});
+
+	it("clears the reference when the tab changes the section", async () => {
+		signInAs("reviewer");
+		state.activeRoute = "/projetos/$id/unidades";
+		const { rerender } = renderWorkspace();
+		fireEvent.click(await screen.findByRole("combobox", { name: /^Grupo/ }));
+		await pickOption("Recarga veicular");
+
+		state.activeRoute = "/projetos/$id/dados";
+		rerender(workspace());
+		state.activeRoute = "/projetos/$id/unidades";
+		rerender(workspace());
+
+		expect(
+			await screen.findByRole("combobox", { name: /^Grupo/ }),
+		).not.toHaveTextContent("Recarga veicular");
+	});
+
+	it("starts the next finding on the open tab after saving", async () => {
+		signInAs("reviewer");
+		state.activeRoute = "/projetos/$id/dados";
+		const { rerender } = renderWorkspace();
+		fireEvent.click(screen.getByRole("combobox", { name: /^Gravidade/ }));
+		await pickOption("Ajuste");
+		fireEvent.change(screen.getByRole("textbox", { name: /^Descrição/ }), {
+			target: { value: "Ajustar os dados da edificação." },
+		});
+		state.activeRoute = "/projetos/$id/calculo";
+		rerender(workspace());
+
+		fireEvent.click(
+			screen.getByRole("button", { name: "Registrar Apontamento" }),
+		);
+
+		await waitFor(() =>
+			expect(screen.getByRole("textbox", { name: /^Descrição/ })).toHaveValue(
+				"",
+			),
+		);
+		expect(screen.getByRole("combobox", { name: /^Seção/ })).toHaveTextContent(
+			"Cálculo de Demanda",
 		);
 	});
 

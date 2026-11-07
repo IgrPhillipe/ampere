@@ -24,6 +24,8 @@ const EMPTY_VALUES: Partial<FindingFormValues> = {
 	standardItem: "",
 };
 
+const BLANK_STAGE = "" as FindingStage;
+
 interface FindingFormProps {
 	editor: FindingEditor;
 	currentStage?: FindingStage;
@@ -74,14 +76,8 @@ export const FindingForm = ({
 		syncedStage.current = currentStage;
 		if (isEditing || description !== "") return;
 
-		form.reset(
-			{
-				...form.getValues(),
-				stage: currentStage,
-				reference: "",
-			},
-			{ keepDefaultValues: true },
-		);
+		// An undefined value would fall back to the stage the field mounted with.
+		form.reset({ ...form.getValues(), stage: currentStage ?? BLANK_STAGE });
 	}, [currentStage, description, form, isEditing]);
 
 	return (
