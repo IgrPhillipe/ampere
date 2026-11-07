@@ -29,8 +29,8 @@ public class SubmissionService {
   private final FindingRepository findingRepository;
   private final ProjectEventService eventService;
   private final ReviewAssignmentService reviewAssignmentService;
-  private final NotificationService notificationService;
   private final ProjectVersionService versionService;
+  private final NotificationService notificationService;
 
   public SubmissionService(
       ProjectService projectService,
@@ -40,8 +40,8 @@ public class SubmissionService {
       FindingRepository findingRepository,
       ProjectEventService eventService,
       ReviewAssignmentService reviewAssignmentService,
-      NotificationService notificationService,
-      ProjectVersionService versionService) {
+      ProjectVersionService versionService,
+      NotificationService notificationService) {
     this.projectService = projectService;
     this.demandCalculationService = demandCalculationService;
     this.calculationRepository = calculationRepository;
@@ -49,8 +49,8 @@ public class SubmissionService {
     this.findingRepository = findingRepository;
     this.eventService = eventService;
     this.reviewAssignmentService = reviewAssignmentService;
-    this.notificationService = notificationService;
     this.versionService = versionService;
+    this.notificationService = notificationService;
   }
 
   @Transactional(readOnly = true)

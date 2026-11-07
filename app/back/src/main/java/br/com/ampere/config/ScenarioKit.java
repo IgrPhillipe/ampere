@@ -34,9 +34,9 @@ final class ScenarioKit {
   final ProjectDocumentRepository documents;
   final DemandCalculationService demand;
   final ProjectEventService events;
+  final ProjectVersionService versions;
   final NotificationService notifications;
   final NotificationRepository notices;
-  final ProjectVersionService versions;
   final SeedTimestamps timestamps;
   final User manager;
   private final Map<String, Standard> standards;
@@ -50,9 +50,9 @@ final class ScenarioKit {
       ProjectDocumentRepository documents,
       DemandCalculationService demand,
       ProjectEventService events,
+      ProjectVersionService versions,
       NotificationService notifications,
       NotificationRepository notices,
-      ProjectVersionService versions,
       SeedTimestamps timestamps,
       User manager,
       Map<String, Standard> standards,
@@ -64,9 +64,9 @@ final class ScenarioKit {
     this.documents = documents;
     this.demand = demand;
     this.events = events;
+    this.versions = versions;
     this.notifications = notifications;
     this.notices = notices;
-    this.versions = versions;
     this.timestamps = timestamps;
     this.manager = manager;
     this.standards = standards;

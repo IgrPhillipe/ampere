@@ -42,9 +42,9 @@ abstract class SeedIntegrationTestBase {
   @Autowired protected ReviewerMunicipalityRepository municipalityRepository;
   @Autowired protected DemandCalculationService demandCalculation;
   @Autowired protected ProjectEventService projectEventService;
+  @Autowired protected ProjectVersionService projectVersionService;
   @Autowired protected NotificationService notificationService;
   @Autowired protected NotificationRepository notificationRepository;
-  @Autowired protected ProjectVersionService projectVersionService;
   @Autowired protected PasswordEncoder passwordEncoder;
   @Autowired protected PlatformTransactionManager transactionManager;
   @Autowired protected EntityManager entityManager;
@@ -104,9 +104,9 @@ abstract class SeedIntegrationTestBase {
         municipalityRepository,
         demandCalculation,
         projectEventService,
+        projectVersionService,
         notificationService,
         notificationRepository,
-        projectVersionService,
         new SeedTimestamps(entityManager),
         transactionManager,
         resetScenarios);

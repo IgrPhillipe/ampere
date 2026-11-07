@@ -67,8 +67,8 @@ class SubmissionServiceTest {
             findingRepository,
             mock(ProjectEventService.class),
             mock(ReviewAssignmentService.class),
-            mock(NotificationService.class),
-            mock(ProjectVersionService.class));
+            mock(ProjectVersionService.class),
+            mock(NotificationService.class));
 
     SubmissionChecklist checklist = service.checklist(1L, DESIGNER);
     assertThat(checklist.canSubmit()).isFalse();
@@ -117,8 +117,8 @@ class SubmissionServiceTest {
             findingRepository,
             mock(ProjectEventService.class),
             mock(ReviewAssignmentService.class),
+            mock(ProjectVersionService.class),
             notifications);
-            mock(ProjectVersionService.class));
 
     assertThatThrownBy(() -> service.submit(1L, "   ", DESIGNER))
         .isInstanceOfSatisfying(
@@ -166,8 +166,8 @@ class SubmissionServiceTest {
             mock(FindingRepository.class),
             mock(ProjectEventService.class),
             mock(ReviewAssignmentService.class),
-            mock(NotificationService.class),
-            mock(ProjectVersionService.class));
+            mock(ProjectVersionService.class),
+            mock(NotificationService.class));
 
     assertThatThrownBy(() -> service.submit(1L, "Nova versão.", DESIGNER))
         .isInstanceOfSatisfying(

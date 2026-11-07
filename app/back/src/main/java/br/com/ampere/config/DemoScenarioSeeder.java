@@ -67,9 +67,9 @@ public class DemoScenarioSeeder {
   private final ReviewerMunicipalityRepository municipalityRepository;
   private final DemandCalculationService demandCalculation;
   private final ProjectEventService eventService;
+  private final ProjectVersionService versionService;
   private final NotificationService notificationService;
   private final NotificationRepository notificationRepository;
-  private final ProjectVersionService versionService;
   private final SeedTimestamps timestamps;
   private final PlatformTransactionManager transactionManager;
   private final boolean resetScenarios;
@@ -89,9 +89,9 @@ public class DemoScenarioSeeder {
       ReviewerMunicipalityRepository municipalityRepository,
       DemandCalculationService demandCalculation,
       ProjectEventService eventService,
+      ProjectVersionService versionService,
       NotificationService notificationService,
       NotificationRepository notificationRepository,
-      ProjectVersionService versionService,
       SeedTimestamps timestamps,
       PlatformTransactionManager transactionManager,
       @Value("${ampere.seed.reset-scenarios:false}") boolean resetScenarios) {
@@ -109,9 +109,9 @@ public class DemoScenarioSeeder {
     this.municipalityRepository = municipalityRepository;
     this.demandCalculation = demandCalculation;
     this.eventService = eventService;
+    this.versionService = versionService;
     this.notificationService = notificationService;
     this.notificationRepository = notificationRepository;
-    this.versionService = versionService;
     this.timestamps = timestamps;
     this.transactionManager = transactionManager;
     this.resetScenarios = resetScenarios;
@@ -145,9 +145,9 @@ public class DemoScenarioSeeder {
             documentRepository,
             demandCalculation,
             eventService,
+            versionService,
             notificationService,
             notificationRepository,
-            versionService,
             timestamps,
             users.get().admin(),
             standardRepository.findAll().stream()
