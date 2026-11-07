@@ -1,8 +1,10 @@
 package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasLength;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -22,6 +24,7 @@ import br.com.ampere.domain.LoadUsage;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.ProjectVersion;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
@@ -41,11 +44,15 @@ import br.com.ampere.utils.MemorialFingerprint;
 import br.com.ampere.utils.Timestamps;
 import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.parser.PdfTextExtractor;
+import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.hibernate.Hibernate;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,14 +64,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-/** US13: the immutable version of each submission, its memorial and the public verification. */
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
 class ProjectVersionIntegrationTest {
 
   private static final String PASSWORD = "senha@123";
@@ -100,25 +106,34 @@ class ProjectVersionIntegrationTest {
 
   @Autowired private ProjectVersionService versionService;
 
+  @Autowired private EntityManager entityManager;
+
+  @Autowired private PlatformTransactionManager transactionManager;
+
   private String token;
 
   private List<Standard> standards;
 
   private User owner;
 
-  @BeforeEach
-  void seed() throws Exception {
+  @AfterEach
+  void wipe() {
     versionDocumentRepository.deleteAll();
     versionRepository.deleteAll();
     eventRepository.deleteAll();
     documentRepository.deleteAll();
     calculationRepository.deleteAll();
-    groupRepository.deleteAll();
     findingRepository.deleteAll();
+    groupRepository.deleteAll();
     projectRepository.deleteAll();
     normativeTableRepository.deleteAll();
     standardRepository.deleteAll();
     userRepository.deleteAll();
+  }
+
+  @BeforeEach
+  void seed() throws Exception {
+    wipe();
 
     standards =
         standardRepository.saveAll(
@@ -152,7 +167,7 @@ class ProjectVersionIntegrationTest {
         .andExpect(jsonPath("$.data[0].changeSummary").value(nullValue()))
         .andExpect(jsonPath("$.data[0].demandKva").isNumber())
         .andExpect(jsonPath("$.data[0].documents", hasSize(3)))
-        .andExpect(jsonPath("$.data[0].memorialSha256").value(org.hamcrest.Matchers.hasLength(64)))
+        .andExpect(jsonPath("$.data[0].memorialSha256").value(hasLength(64)))
         .andExpect(jsonPath("$.data[0].verificationCode").isNotEmpty());
   }
 
@@ -188,6 +203,49 @@ class ProjectVersionIntegrationTest {
             jsonPath("$.data[1].changeSummary").value("Quantidade de apartamentos corrigida."))
         .andExpect(
             jsonPath("$.data[0].memorialSha256").value(MemorialFingerprint.sha256(versionOne)));
+  }
+
+  @Test
+  void theMemorialOfAVersionShowsTheGroupsAsSentAfterACorrection() throws Exception {
+    Project project = submittedProject("2026-4017");
+
+    reject(project);
+    ConsumerUnitGroup group = groupRepository.findAllByProjectIdOrderById(project.getId()).get(0);
+    group.update(residentialSpec("Apartamento tipo Z", 40));
+    groupRepository.save(group);
+    resubmitAfterEditing(project, "Grupo renomeado.");
+
+    String versionOne = textOf(bytes(perform(get(versionsOf(project) + "/1/memorial"))));
+    assertThat(versionOne)
+        .contains("Apartamento tipo A")
+        .doesNotContain("Apartamento tipo Z")
+        .containsIgnoringCase("protocolo 2026-4017")
+        .containsIgnoringCase("versão 1");
+    assertThat(textOf(bytes(perform(get(versionsOf(project) + "/2/memorial")))))
+        .contains("Apartamento tipo Z")
+        .containsIgnoringCase("versão 2");
+  }
+
+  @Test
+  void aRecordedVersionIgnoresAnyAttemptToChangeIt() throws Exception {
+    Project project = submittedProject("2026-4018");
+    byte[] memorial = bytes(perform(get(memorialOf(project))));
+    String sha256 = sha256Of(project, 1);
+    Long id = versionRepository.findByProjectIdAndNumber(project.getId(), 1).orElseThrow().getId();
+
+    new TransactionTemplate(transactionManager)
+        .executeWithoutResult(
+            status -> {
+              ProjectVersion version = entityManager.find(ProjectVersion.class, id);
+              setField(version, "memorialSha256", "0".repeat(64));
+              setField(version, "changeSummary", "Alterado depois do envio.");
+              setField(Hibernate.unproxy(version.getMemorial()), "data", PDF);
+            });
+
+    assertThat(sha256Of(project, 1)).isEqualTo(sha256);
+    assertThat(bytes(perform(get(memorialOf(project))))).isEqualTo(memorial);
+    perform(get(versionsOf(project)))
+        .andExpect(jsonPath("$.data[0].changeSummary").value(nullValue()));
   }
 
   @Test
@@ -317,7 +375,7 @@ class ProjectVersionIntegrationTest {
         .andExpect(jsonPath("$.data.verified").value(false))
         .andExpect(jsonPath("$.data.protocol").doesNotExist());
 
-    byte[] appended = java.util.Arrays.copyOf(memorial, memorial.length + 1);
+    byte[] appended = Arrays.copyOf(memorial, memorial.length + 1);
     verifyFile(appended).andExpect(jsonPath("$.data.verified").value(false));
   }
 
@@ -353,6 +411,7 @@ class ProjectVersionIntegrationTest {
     reject(project);
     groupRepository.delete(removed);
     kept.update(residentialSpec("Apartamento tipo A", 30));
+    groupRepository.save(kept);
     groupRepository.save(residentialGroup(project, "Apartamento tipo B", 6));
     resubmitAfterEditing(project, "Grupos revisados.");
 
