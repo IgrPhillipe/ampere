@@ -140,6 +140,11 @@ public class NotificationService {
   @Transactional
   public int issueTimeBasedNotifications(OffsetDateTime now) {
     LocalDate today = Timestamps.localDate(now);
+
+    return warnOfReviewDeadlines(today, now) + warnOfExpiringApprovals(today, now);
+  }
+
+  private int warnOfReviewDeadlines(LocalDate today, OffsetDateTime now) {
     int issued = 0;
     for (Project project :
         projectRepository.findAllByStatusOrderByIdAsc(ProjectStatus.UNDER_REVIEW)) {
@@ -162,11 +167,20 @@ public class NotificationService {
                 project.getReviewer(),
                 project,
                 NotificationType.REVIEW_DEADLINE_NEAR,
-                "Prazo de análise do projeto " + project.getProtocol() + " " + due(daysLeft),
+                "Prazo de análise do projeto "
+                    + project.getProtocol()
+                    + " vence "
+                    + inDays(daysLeft),
                 reviewerLink(project),
                 now);
       }
     }
+
+    return issued;
+  }
+
+  private int warnOfExpiringApprovals(LocalDate today, OffsetDateTime now) {
+    int issued = 0;
     OffsetDateTime expiringToday = now.minusMonths(Project.APPROVAL_VALIDITY_MONTHS);
     for (Project project :
         projectRepository.findAllByStatusAndReviewedAtBetweenOrderByIdAsc(
@@ -180,7 +194,7 @@ public class NotificationService {
                 project.getOwner(),
                 project,
                 NotificationType.APPROVAL_EXPIRING,
-                "A aprovação do projeto " + project.getProtocol() + " " + expiry(daysLeft),
+                "A aprovação do projeto " + project.getProtocol() + " expira " + inDays(daysLeft),
                 designerLink(project),
                 now);
       }
@@ -189,20 +203,12 @@ public class NotificationService {
     return issued;
   }
 
-  private static String due(long daysLeft) {
+  private static String inDays(long daysLeft) {
     if (daysLeft == 0) {
-      return "vence hoje";
+      return "hoje";
     }
 
-    return "vence em " + daysLeft + (daysLeft == 1 ? " dia" : " dias");
-  }
-
-  private static String expiry(long daysLeft) {
-    if (daysLeft == 0) {
-      return "expira hoje";
-    }
-
-    return "expira em " + daysLeft + (daysLeft == 1 ? " dia" : " dias");
+    return "em " + daysLeft + (daysLeft == 1 ? " dia" : " dias");
   }
 
   private static String designerLink(Project project) {
