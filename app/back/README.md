@@ -283,6 +283,7 @@ Cada envio grava uma versão imutável (`ProjectVersion`): número (o ciclo de a
 | `GET /api/memorial-verifications/{code}` | Público | Confere o código do rodapé |
 | `POST /api/memorial-verifications` | Público | Recebe o PDF (`multipart`, campo `file`) e confere se é idêntico ao emitido |
 
+- O `ProjectVersionGuard` instala, na inicialização, gatilhos que recusam `UPDATE` e `DELETE` nas três tabelas de versão, inclusive por SQL direto. Só o reset dos cenários passa, com `ampere.version_cleanup` ligado na própria transação. Quem tem acesso de dono ao banco ainda pode remover os gatilhos.
 - Regerar mudaria os bytes (o PDF leva a data de criação) e quebraria a verificação, por isso o PDF de uma versão só é lido, nunca refeito.
 - O rodapé traz protocolo, versão, data do envio e o código de verificação. Os metadados do arquivo trazem título, projetista, protocolo, versão e normas aplicadas.
 - O SHA-256 do arquivo fica na versão. O código (`XXXX-XXXX-XXXX-XXXX`) vem do SHA-256 de uma primeira renderização sem ele, pois o código impresso não pode entrar no próprio hash.

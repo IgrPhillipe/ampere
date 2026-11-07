@@ -267,6 +267,7 @@ public class DemoScenarioSeeder {
 
   private void delete(Project project) {
     Long id = project.getId();
+    versionRepository.allowCleanup();
     versionDocumentRepository.deleteAllByVersionProjectId(id);
     versionRepository.deleteAllByProjectId(id);
     calculationRepository.deleteAllByProjectId(id);

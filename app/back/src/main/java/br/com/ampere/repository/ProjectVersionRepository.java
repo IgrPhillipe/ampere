@@ -13,6 +13,10 @@ public interface ProjectVersionRepository extends JpaRepository<ProjectVersion, 
 
   void deleteAllByProjectId(Long projectId);
 
+  /** Lifts ProjectVersionGuard for the rest of the transaction, for the demo reset only. */
+  @Query(value = "SELECT set_config('ampere.version_cleanup', 'on', true)", nativeQuery = true)
+  String allowCleanup();
+
   @Query(
       """
       SELECT project.id FROM Project project

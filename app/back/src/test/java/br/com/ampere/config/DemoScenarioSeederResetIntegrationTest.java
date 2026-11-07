@@ -1,6 +1,7 @@
 package br.com.ampere.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.ConnectionType;
@@ -116,6 +117,30 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
     assertThat(projectRepository.findByProtocol("2026-2020").orElseThrow().getName())
         .isEqualTo("Projeto de outra pessoa");
     assertThat(scenarioSeeder(false).seed()).isZero();
+  }
+
+  @Test
+  void resetGetsPastTheGuardOfTheVersionsAndNothingElseDoes() {
+    scenarioSeeder(false).seed();
+    long versions = versionRepository.count();
+    ProjectVersionGuard guard = new ProjectVersionGuard(jdbcTemplate);
+    guard.install();
+    try {
+      assertThat(scenarioSeeder(true).seed()).isEqualTo(SCENARIOS);
+      assertThat(versionRepository.count()).isEqualTo(versions);
+
+      assertThatThrownBy(
+              () -> jdbcTemplate.update("UPDATE project_version SET change_summary = 'Alterado'"))
+          .hasMessageContaining("a version is immutable");
+      assertThatThrownBy(() -> jdbcTemplate.update("UPDATE project_version_memorial SET data = ''"))
+          .hasMessageContaining("a version is immutable");
+      assertThatThrownBy(() -> jdbcTemplate.update("DELETE FROM project_version_document"))
+          .hasMessageContaining("a version is immutable");
+      assertThatThrownBy(() -> jdbcTemplate.update("DELETE FROM project_version"))
+          .hasMessageContaining("a version is immutable");
+    } finally {
+      guard.uninstall();
+    }
   }
 
   @Test
