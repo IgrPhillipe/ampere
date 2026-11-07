@@ -1,6 +1,8 @@
 package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasLength;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
@@ -477,10 +479,32 @@ class ProjectVersionIntegrationTest {
     perform(get(versionsOf(project) + "/compare?from=1&to=2"))
         .andExpect(jsonPath("$.data.changed", hasSize(1)))
         .andExpect(jsonPath("$.data.changed[0].fields", hasSize(1)))
-        .andExpect(jsonPath("$.data.changed[0].fields[0].field").value("items[0].quantity"))
-        .andExpect(jsonPath("$.data.changed[0].fields[0].label").value("Item 1, quantidade"))
+        .andExpect(
+            jsonPath("$.data.changed[0].fields[0].field").value("items[MOTORS:Elevador].quantity"))
+        .andExpect(jsonPath("$.data.changed[0].fields[0].label").value("Elevador, quantidade"))
         .andExpect(jsonPath("$.data.changed[0].fields[0].from").value("1"))
         .andExpect(jsonPath("$.data.changed[0].fields[0].to").value("2"));
+  }
+
+  @Test
+  void removingALoadItemDoesNotMarkTheItemsAfterIt() throws Exception {
+    Project project = draft("2026-4020");
+    ConsumerUnitGroup load =
+        groupRepository.save(
+            GroupKind.LOAD.create(
+                project, loadSpec(motor("Elevador"), motor("Bomba"), motor("Portão"))));
+    submitCalculated(project);
+
+    reject(project);
+    load.update(loadSpec(motor("Elevador"), motor("Portão")));
+    groupRepository.save(load);
+    resubmitAfterEditing(project, "Bomba retirada.");
+
+    perform(get(versionsOf(project) + "/compare?from=1&to=2"))
+        .andExpect(jsonPath("$.data.changed", hasSize(1)))
+        .andExpect(
+            jsonPath("$.data.changed[0].fields[*].field", everyItem(containsString("Bomba"))))
+        .andExpect(jsonPath("$.data.changed[0].fields[0].label").value("Bomba, categoria"));
   }
 
   @Test
@@ -619,7 +643,17 @@ class ProjectVersionIntegrationTest {
         null);
   }
 
+  private static LoadItem motor(String description) {
+    return new LoadItem(
+        LoadCategory.MOTORS, description, 1, new BigDecimal("12.00"), PowerUnit.CV, null, false);
+  }
+
   private static GroupSpec loadSpec(int motors, BigDecimal power) {
+    return loadSpec(
+        new LoadItem(LoadCategory.MOTORS, "Elevador", motors, power, PowerUnit.CV, null, false));
+  }
+
+  private static GroupSpec loadSpec(LoadItem... items) {
     return new GroupSpec(
         "Área comum",
         1,
@@ -628,9 +662,7 @@ class ProjectVersionIntegrationTest {
         null,
         null,
         LoadUsage.COMMON_AREA,
-        List.of(
-            new LoadItem(
-                LoadCategory.MOTORS, "Elevador", motors, power, PowerUnit.CV, null, false)),
+        List.of(items),
         null,
         null,
         null,

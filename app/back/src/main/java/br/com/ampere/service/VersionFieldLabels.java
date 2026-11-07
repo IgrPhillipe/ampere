@@ -6,7 +6,8 @@ import java.util.regex.Pattern;
 
 final class VersionFieldLabels {
 
-  private static final Pattern LOAD_ITEM = Pattern.compile("items\\[(\\d+)]\\.(.+)");
+  private static final Pattern LOAD_ITEM =
+      Pattern.compile("items\\[[^:]*:(.+?)(?:#(\\d+))?]\\.(\\w+)");
 
   private static final Map<String, String> FIELDS =
       Map.ofEntries(
@@ -43,12 +44,9 @@ final class VersionFieldLabels {
   static String of(String field) {
     Matcher item = LOAD_ITEM.matcher(field);
     if (item.matches()) {
-      int position = Integer.parseInt(item.group(1)) + 1;
+      String name = item.group(2) == null ? item.group(1) : item.group(1) + " " + item.group(2);
 
-      return "Item "
-          + position
-          + ", "
-          + LOAD_ITEM_FIELDS.getOrDefault(item.group(2), item.group(2));
+      return name + ", " + LOAD_ITEM_FIELDS.getOrDefault(item.group(3), item.group(3));
     }
 
     return FIELDS.getOrDefault(field, field);

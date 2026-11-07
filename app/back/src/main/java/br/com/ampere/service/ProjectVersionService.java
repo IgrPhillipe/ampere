@@ -19,6 +19,7 @@ import br.com.ampere.repository.ProjectVersionDocumentRepository;
 import br.com.ampere.repository.ProjectVersionRepository;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -274,7 +275,7 @@ public class ProjectVersionService {
     return new FieldChange(field, VersionFieldLabels.of(field), from, to);
   }
 
-  /** Flattens objects and lists into paths such as items[0].quantity. */
+  /** Flattens objects and lists into paths such as items[MOTORS:Elevador].quantity. */
   private static Map<String, JsonNode> leaves(JsonNode node) {
     Map<String, JsonNode> leaves = new LinkedHashMap<>();
     collect("", node, leaves);
@@ -292,12 +293,21 @@ public class ProjectVersionService {
                       property.getValue(),
                       leaves));
     } else if (node.isArray()) {
-      for (int index = 0; index < node.size(); index++) {
-        collect(path + "[" + index + "]", node.get(index), leaves);
+      Map<String, Integer> occurrences = new HashMap<>();
+      for (JsonNode item : node) {
+        String key = itemKey(item);
+        int occurrence = occurrences.merge(key, 1, Integer::sum);
+        String id = occurrence == 1 ? key : key + "#" + occurrence;
+        collect(path + "[" + id + "]", item, leaves);
       }
     } else if (!node.isNull() && !node.isMissingNode()) {
       leaves.put(path, node);
     }
+  }
+
+  // Items have no id of their own, and the position shifts when one is removed.
+  private static String itemKey(JsonNode item) {
+    return item.path("category").asString("") + ":" + item.path("description").asString("");
   }
 
   private static boolean sameValue(JsonNode left, JsonNode right) {
