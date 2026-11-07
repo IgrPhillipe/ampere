@@ -47,7 +47,6 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,8 +90,8 @@ class ReviewerDistributionIntegrationTest {
   private User bruno;
   private User designer;
 
-  @AfterEach
-  void clearDatabase() {
+  @BeforeEach
+  void setUp() {
     municipalityRepository.deleteAll();
     eventRepository.deleteAll();
     documentRepository.deleteAll();
@@ -103,11 +102,6 @@ class ReviewerDistributionIntegrationTest {
     normativeTableRepository.deleteAll();
     standardRepository.deleteAll();
     userRepository.deleteAll();
-  }
-
-  @BeforeEach
-  void setUp() {
-    clearDatabase();
 
     standards =
         standardRepository.saveAll(
