@@ -81,11 +81,11 @@ public class ProjectVersionService {
       List<GroupChange> included,
       List<GroupChange> removed,
       List<GroupChange> changed,
-      List<FieldChange> project) {}
+      List<FieldChange> building) {}
 
   public record GroupChange(Long id, String name, List<FieldChange> fields) {}
 
-  public record FieldChange(String field, String from, String to) {}
+  public record FieldChange(String field, String label, String from, String to) {}
 
   /**
    * Called inside the submission, once the project is under review: the memorial is rendered here
@@ -184,7 +184,7 @@ public class ProjectVersionService {
           }
           List<FieldChange> fields = differences(specOf(previous), specOf(group));
           if (!kindOf(previous).equals(kindOf(group))) {
-            fields.add(0, new FieldChange("kind", kindOf(previous), kindOf(group)));
+            fields.add(0, fieldChange("kind", kindOf(previous), kindOf(group)));
           }
           if (!fields.isEmpty()) {
             changed.add(new GroupChange(id, nameOf(group), fields));
@@ -241,36 +241,67 @@ public class ProjectVersionService {
     return copy;
   }
 
-  /** Field by field, treating 60 and 60.00 as one value. */
   private static List<FieldChange> differences(JsonNode before, JsonNode after) {
-    Set<String> fields = new LinkedHashSet<>();
-    before.propertyNames().forEach(fields::add);
-    after.propertyNames().forEach(fields::add);
+    Map<String, JsonNode> previous = leaves(before);
+    Map<String, JsonNode> current = leaves(after);
+    Set<String> fields = new LinkedHashSet<>(previous.keySet());
+    fields.addAll(current.keySet());
 
     List<FieldChange> changes = new ArrayList<>();
     for (String field : fields) {
-      JsonNode previous = before.path(field);
-      JsonNode current = after.path(field);
-      if (!sameValue(previous, current)) {
-        changes.add(new FieldChange(field, display(previous), display(current)));
+      JsonNode left = previous.get(field);
+      JsonNode right = current.get(field);
+      if (!sameValue(left, right)) {
+        changes.add(fieldChange(field, display(left), display(right)));
       }
     }
 
     return changes;
   }
 
+  private static FieldChange fieldChange(String field, String from, String to) {
+    return new FieldChange(field, VersionFieldLabels.of(field), from, to);
+  }
+
+  /** Flattens objects and lists into paths such as items[0].quantity. */
+  private static Map<String, JsonNode> leaves(JsonNode node) {
+    Map<String, JsonNode> leaves = new LinkedHashMap<>();
+    collect("", node, leaves);
+
+    return leaves;
+  }
+
+  private static void collect(String path, JsonNode node, Map<String, JsonNode> leaves) {
+    if (node.isObject()) {
+      node.properties()
+          .forEach(
+              property ->
+                  collect(
+                      path.isEmpty() ? property.getKey() : path + "." + property.getKey(),
+                      property.getValue(),
+                      leaves));
+    } else if (node.isArray()) {
+      for (int index = 0; index < node.size(); index++) {
+        collect(path + "[" + index + "]", node.get(index), leaves);
+      }
+    } else if (!node.isNull() && !node.isMissingNode()) {
+      leaves.put(path, node);
+    }
+  }
+
   private static boolean sameValue(JsonNode left, JsonNode right) {
+    if (left == null || right == null) {
+      return left == right;
+    }
     if (left.isNumber() && right.isNumber()) {
       return left.decimalValue().compareTo(right.decimalValue()) == 0;
     }
 
-    return left.isMissingNode() || left.isNull()
-        ? right.isMissingNode() || right.isNull()
-        : left.equals(right);
+    return left.equals(right);
   }
 
   private static String display(JsonNode value) {
-    if (value.isMissingNode() || value.isNull()) {
+    if (value == null) {
       return null;
     }
 

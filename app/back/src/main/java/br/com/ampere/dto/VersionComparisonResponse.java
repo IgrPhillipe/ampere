@@ -14,7 +14,7 @@ public record VersionComparisonResponse(
     List<GroupChangeResponse> included,
     List<GroupChangeResponse> removed,
     List<GroupChangeResponse> changed,
-    List<FieldChangeResponse> project) {
+    List<FieldChangeResponse> building) {
 
   public record VersionDemand(int number, OffsetDateTime submittedAt, BigDecimal demandKva) {
 
@@ -36,10 +36,10 @@ public record VersionComparisonResponse(
     }
   }
 
-  public record FieldChangeResponse(String field, String from, String to) {
+  public record FieldChangeResponse(String field, String label, String from, String to) {
 
     static FieldChangeResponse from(ProjectVersionService.FieldChange change) {
-      return new FieldChangeResponse(change.field(), change.from(), change.to());
+      return new FieldChangeResponse(change.field(), change.label(), change.from(), change.to());
     }
   }
 
@@ -54,6 +54,6 @@ public record VersionComparisonResponse(
         comparison.included().stream().map(GroupChangeResponse::from).toList(),
         comparison.removed().stream().map(GroupChangeResponse::from).toList(),
         comparison.changed().stream().map(GroupChangeResponse::from).toList(),
-        comparison.project().stream().map(FieldChangeResponse::from).toList());
+        comparison.building().stream().map(FieldChangeResponse::from).toList());
   }
 }

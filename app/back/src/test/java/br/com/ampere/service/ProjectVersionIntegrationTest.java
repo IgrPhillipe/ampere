@@ -16,6 +16,10 @@ import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
+import br.com.ampere.domain.LoadCategory;
+import br.com.ampere.domain.LoadItem;
+import br.com.ampere.domain.LoadUsage;
+import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
@@ -342,6 +346,7 @@ class ProjectVersionIntegrationTest {
         .andExpect(jsonPath("$.data.changed", hasSize(1)))
         .andExpect(jsonPath("$.data.changed[0].name").value("Apartamento tipo A"))
         .andExpect(jsonPath("$.data.changed[0].fields[0].field").value("quantity"))
+        .andExpect(jsonPath("$.data.changed[0].fields[0].label").value("Quantidade de unidades"))
         .andExpect(jsonPath("$.data.changed[0].fields[0].from").value("24"))
         .andExpect(jsonPath("$.data.changed[0].fields[0].to").value("30"));
 
@@ -352,6 +357,27 @@ class ProjectVersionIntegrationTest {
     perform(get(versionsOf(project) + "/compare?from=2&to=1")).andExpect(status().isBadRequest());
     perform(get(versionsOf(project) + "/compare?from=1&to=9")).andExpect(status().isNotFound());
     perform(get(versionsOf(project) + "/9/memorial")).andExpect(status().isNotFound());
+  }
+
+  @Test
+  void theComparisonOpensTheLoadItemsFieldByField() throws Exception {
+    Project project = draft("2026-4015");
+    ConsumerUnitGroup load =
+        groupRepository.save(GroupKind.LOAD.create(project, loadSpec(1, new BigDecimal("12.00"))));
+    submitCalculated(project);
+
+    reject(project);
+    load.update(loadSpec(2, new BigDecimal("12")));
+    groupRepository.save(load);
+    resubmitAfterEditing(project, "Mais um motor.");
+
+    perform(get(versionsOf(project) + "/compare?from=1&to=2"))
+        .andExpect(jsonPath("$.data.changed", hasSize(1)))
+        .andExpect(jsonPath("$.data.changed[0].fields", hasSize(1)))
+        .andExpect(jsonPath("$.data.changed[0].fields[0].field").value("items[0].quantity"))
+        .andExpect(jsonPath("$.data.changed[0].fields[0].label").value("Item 1, quantidade"))
+        .andExpect(jsonPath("$.data.changed[0].fields[0].from").value("1"))
+        .andExpect(jsonPath("$.data.changed[0].fields[0].to").value("2"));
   }
 
   @Test
@@ -479,6 +505,24 @@ class ProjectVersionIntegrationTest {
         false,
         null,
         null,
+        null,
+        null,
+        null,
+        null);
+  }
+
+  private static GroupSpec loadSpec(int motors, BigDecimal power) {
+    return new GroupSpec(
+        "Área comum",
+        1,
+        null,
+        null,
+        null,
+        null,
+        LoadUsage.COMMON_AREA,
+        List.of(
+            new LoadItem(
+                LoadCategory.MOTORS, "Elevador", motors, power, PowerUnit.CV, null, false)),
         null,
         null,
         null,
