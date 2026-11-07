@@ -4,6 +4,7 @@ import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
+import br.com.ampere.repository.NotificationRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
@@ -11,6 +12,7 @@ import br.com.ampere.repository.ReviewerMunicipalityRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.DemandCalculationService;
+import br.com.ampere.service.NotificationService;
 import br.com.ampere.service.ProjectEventService;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,8 @@ abstract class SeedIntegrationTestBase {
   @Autowired protected ReviewerMunicipalityRepository municipalityRepository;
   @Autowired protected DemandCalculationService demandCalculation;
   @Autowired protected ProjectEventService projectEventService;
+  @Autowired protected NotificationService notificationService;
+  @Autowired protected NotificationRepository notificationRepository;
   @Autowired protected PasswordEncoder passwordEncoder;
   @Autowired protected PlatformTransactionManager transactionManager;
   @Autowired protected EntityManager entityManager;
@@ -90,6 +94,8 @@ abstract class SeedIntegrationTestBase {
         municipalityRepository,
         demandCalculation,
         projectEventService,
+        notificationService,
+        notificationRepository,
         new SeedTimestamps(entityManager),
         transactionManager,
         resetScenarios);

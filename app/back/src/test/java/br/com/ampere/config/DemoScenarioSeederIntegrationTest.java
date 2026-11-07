@@ -19,6 +19,7 @@ import br.com.ampere.domain.LampTechnology;
 import br.com.ampere.domain.LoadCategory;
 import br.com.ampere.domain.LoadGroup;
 import br.com.ampere.domain.LoadItem;
+import br.com.ampere.domain.NotificationType;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
@@ -66,6 +67,24 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
     assertThat(SCENARIO_PROTOCOLS)
         .hasSize(53)
         .contains("2026-1001", "2026-1008", "2026-2019", "2026-2044", "2026-2045");
+  }
+
+  @Test
+  void keepsOnlyTodaysNotificationsUnread() {
+    Project rejectedToday = projectRepository.findByProtocol("2026-1004").orElseThrow();
+    Project rejectedLongAgo = projectRepository.findByProtocol("2026-1005").orElseThrow();
+
+    assertThat(notificationRepository.findAllByProjectId(rejectedToday.getId()))
+        .singleElement()
+        .satisfies(
+            notification -> {
+              assertThat(notification.getType()).isEqualTo(NotificationType.PROJECT_REJECTED);
+              assertThat(notification.getText()).startsWith("Projeto 2026-1004 reprovado com");
+              assertThat(notification.isRead()).isFalse();
+            });
+    assertThat(notificationRepository.findAllByProjectId(rejectedLongAgo.getId()))
+        .singleElement()
+        .satisfies(notification -> assertThat(notification.isRead()).isTrue());
   }
 
   @Test

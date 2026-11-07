@@ -188,6 +188,7 @@ final class ScenarioCase {
     if (project.getReviewer() != null) {
       kit.events.assigned(project, null, cursor);
     }
+    kit.notifications.resubmitted(project, cursor);
 
     return this;
   }
@@ -199,6 +200,11 @@ final class ScenarioCase {
     OffsetDateTime reviewedAt = advance(daysAgo, 0);
     project.reject(reviewedAt, opinion);
     kit.events.decided(project, ReviewDecision.REJECT, analyst, findings, opinion, reviewedAt);
+    kit.notifications.decided(
+        project,
+        ReviewDecision.REJECT,
+        kit.findings.findAllByProjectIdOrderByCreatedAtAscIdAsc(project.getId()),
+        reviewedAt);
 
     return findings;
   }
@@ -208,6 +214,7 @@ final class ScenarioCase {
     project.approve(reviewedAt, opinion);
     kit.events.decided(
         project, ReviewDecision.APPROVE, project.getReviewer(), List.of(), opinion, reviewedAt);
+    kit.notifications.decided(project, ReviewDecision.APPROVE, List.of(), reviewedAt);
 
     return this;
   }
@@ -236,6 +243,10 @@ final class ScenarioCase {
   void finish() {
     kit.timestamps.project(project.getId(), createdAt, cursor);
     stamps.forEach(Runnable::run);
+    // Only today's events are news: an old story would fill the bell of every demo login.
+    kit.notices.findAllByProjectId(project.getId()).stream()
+        .filter(notice -> notice.getCreatedAt().isBefore(kit.now.minusDays(1)))
+        .forEach(notice -> notice.markRead(notice.getCreatedAt()));
   }
 
   private List<Finding> write(User author, OffsetDateTime at, FindingSpec[] specs) {
