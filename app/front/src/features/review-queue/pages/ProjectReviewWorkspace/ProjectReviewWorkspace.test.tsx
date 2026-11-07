@@ -46,10 +46,11 @@ const Section = () => {
 
 vi.mock("@tanstack/react-router", () => ({
 	useNavigate: () => vi.fn(),
-	useMatchRoute:
-		() =>
-		({ to }: { to: string }) =>
-			state.activeRoute === to,
+	useMatches: ({
+		select,
+	}: {
+		select: (matches: { routeId: string }[]) => unknown;
+	}) => select([{ routeId: state.activeRoute }]),
 	Outlet: () => <Section />,
 	Link: ({ children }: { children: ReactNode }) => <a href="/">{children}</a>,
 }));

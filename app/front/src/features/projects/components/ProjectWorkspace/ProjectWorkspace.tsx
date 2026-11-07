@@ -7,21 +7,16 @@ import { formatDate, padCount, useAuthStore } from "@features/shared";
 import { cn } from "@lib/utils";
 import { useDeleteProject } from "@services/projects";
 import { useSubmitProject } from "@services/submission";
-import {
-	Link,
-	Outlet,
-	useMatchRoute,
-	useNavigate,
-} from "@tanstack/react-router";
+import { Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { CircleAlert, Lock, RotateCcw, Send, Trash2 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
+import { getProjectsPageTitle, type ProjectSectionKey } from "../../constants";
 import {
-	getProjectsPageTitle,
-	PROJECT_SECTIONS,
-	type ProjectSectionKey,
-} from "../../constants";
-import { useProjectDetailActions, useProjectWorkspace } from "../../hooks";
+	useCurrentSection,
+	useProjectDetailActions,
+	useProjectWorkspace,
+} from "../../hooks";
 import { ChangeSummaryNotice } from "../ChangeSummaryNotice";
 import { ProjectDeleteDialog } from "../ProjectDeleteDialog";
 import { type HeaderMetric, ProjectDetailHeader } from "../ProjectDetailHeader";
@@ -35,17 +30,6 @@ import {
 } from "./workspace-context";
 
 const submitHintId = "envio-pendencias";
-
-/** The overview path also matches every section below it, so it is the fallback. */
-const useCurrentSection = (projectId: string) => {
-	const matchRoute = useMatchRoute();
-	const [overview, ...sections] = PROJECT_SECTIONS;
-
-	return (
-		sections.find(({ to }) => matchRoute({ to, params: { id: projectId } })) ??
-		overview
-	);
-};
 
 interface ProjectWorkspaceProps {
 	projectId: string;
@@ -82,7 +66,7 @@ export const ProjectWorkspace = ({
 	const role = useAuthStore((state) => state.user?.role);
 	const workspace = useProjectWorkspace(projectId);
 	const { project, projectQuery, permissions, checklist } = workspace;
-	const current = useCurrentSection(projectId);
+	const current = useCurrentSection();
 	const submitMutation = useSubmitProject();
 	const deleteMutation = useDeleteProject({
 		onDeleted: () => navigate({ to: "/projetos", replace: true }),
