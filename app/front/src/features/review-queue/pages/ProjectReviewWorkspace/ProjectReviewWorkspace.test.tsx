@@ -1,4 +1,5 @@
 import { useFindingRegistrar } from "@features/projects";
+import type { ConsumerUnitGroup } from "@services/consumer-units";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -29,18 +30,31 @@ const Section = () => {
 	const registrar = useFindingRegistrar();
 
 	return registrar.onCheck ? (
-		<button
-			type="button"
-			onClick={() =>
-				registrar.onCheck?.({
-					code: "EV_NETWORK_STUDY",
-					status: "WARNING",
-					message: "Recarga acima de 20 kW exige estudo da rede.",
-				})
-			}
-		>
-			Virar Apontamento
-		</button>
+		<>
+			<button
+				type="button"
+				onClick={() =>
+					registrar.onCheck?.({
+						code: "EV_NETWORK_STUDY",
+						status: "WARNING",
+						message: "Recarga acima de 20 kW exige estudo da rede.",
+					})
+				}
+			>
+				Virar Apontamento
+			</button>
+			<button
+				type="button"
+				onClick={() =>
+					registrar.onGroup?.({
+						id: "7",
+						name: "Recarga veicular",
+					} as ConsumerUnitGroup)
+				}
+			>
+				Apontar Grupo
+			</button>
+		</>
 	) : null;
 };
 
@@ -268,6 +282,24 @@ describe("ProjectReviewWorkspace", () => {
 		);
 		expect(screen.getByRole("textbox", { name: /^Descrição/ })).toHaveValue(
 			"Ajustar os dados da edificação.",
+		);
+	});
+
+	it("keeps a shortcut's section and reference when the tab changes", async () => {
+		signInAs("reviewer");
+		state.activeRoute = "/projetos/$id/unidades";
+		const { rerender } = renderWorkspace();
+		fireEvent.click(screen.getByRole("button", { name: "Apontar Grupo" }));
+		await screen.findByRole("button", { name: "Cancelar" });
+
+		state.activeRoute = "/projetos/$id/calculo";
+		rerender(workspace());
+
+		expect(screen.getByRole("combobox", { name: /^Seção/ })).toHaveTextContent(
+			"Unidades Consumidoras",
+		);
+		expect(screen.getByRole("combobox", { name: /^Grupo/ })).toHaveTextContent(
+			"Recarga veicular",
 		);
 	});
 

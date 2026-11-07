@@ -74,11 +74,11 @@ export const FindingForm = ({
 		if (syncedStage.current === currentStage) return;
 
 		syncedStage.current = currentStage;
-		if (isEditing || description !== "") return;
+		if (isEditing || autoFocus || description !== "") return;
 
 		// An undefined value would fall back to the stage the field mounted with.
 		form.reset({ ...form.getValues(), stage: currentStage ?? BLANK_STAGE });
-	}, [currentStage, description, form, isEditing]);
+	}, [autoFocus, currentStage, description, form, isEditing]);
 
 	return (
 		<form
