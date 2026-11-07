@@ -39,7 +39,8 @@ public class SubmissionController {
   @GetMapping(value = "/memorial", produces = MediaType.APPLICATION_PDF_VALUE)
   @Operation(
       operationId = "generateMemorial",
-      summary = "Gera o PDF do memorial a partir do último cálculo do projeto")
+      summary =
+          "Devolve o PDF gravado na versão do projeto enviado; em rascunho ou correção, gera a prévia")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
