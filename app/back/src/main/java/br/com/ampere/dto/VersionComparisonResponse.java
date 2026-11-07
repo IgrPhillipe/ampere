@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-/** The groups included, removed and changed from one version to another, and each one's demand. */
 public record VersionComparisonResponse(
     VersionDemand from,
     VersionDemand to,

@@ -38,7 +38,6 @@ public class SecurityConfig {
 
   private static final String[] PUBLIC_AUTH_PATHS = {"/auth/login", "/auth/register"};
 
-  // Anyone holding a printed or received memorial can check it, signed in or not.
   private static final String VERIFICATION_PATH = "/memorial-verifications";
 
   private static final String ADMIN = UserRole.ADMIN.name();

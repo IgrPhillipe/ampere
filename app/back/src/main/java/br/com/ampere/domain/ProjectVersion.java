@@ -16,11 +16,6 @@ import java.time.OffsetDateTime;
 import java.util.Objects;
 import org.hibernate.annotations.Immutable;
 
-/**
- * The immutable record of one submission: who sent it, when, what changed, the calculation it
- * carried, the documents attached and the memorial PDF issued with it. Nothing here is ever
- * updated, so the memorial a reviewer reads is the one the designer sent.
- */
 @Entity
 @Immutable
 @Table(
@@ -64,7 +59,6 @@ public class ProjectVersion {
   @JoinColumn(name = "memorial_id", nullable = false, updatable = false)
   private ProjectVersionMemorial memorial;
 
-  /** SHA-256 of the stored memorial file, in lowercase hex. */
   @Column(nullable = false, length = 64, updatable = false)
   private String memorialSha256;
 

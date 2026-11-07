@@ -3,7 +3,6 @@ package br.com.ampere.dto;
 import br.com.ampere.domain.ProjectVersion;
 import java.time.OffsetDateTime;
 
-/** Answer of the public verification: when it confirms, which submission the memorial is from. */
 public record MemorialVerificationResponse(
     boolean verified, String protocol, Integer version, OffsetDateTime submittedAt) {
 

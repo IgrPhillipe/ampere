@@ -9,10 +9,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Public check of a memorial: by the code in its footer or by the file itself. It answers only
- * which submission the memorial belongs to, never the project data.
- */
+/** Answers which submission a memorial belongs to, never the project data. */
 @Service
 public class MemorialVerificationService {
 
@@ -27,7 +24,6 @@ public class MemorialVerificationService {
     return MemorialFingerprint.normalize(code).flatMap(versionRepository::findByVerificationCode);
   }
 
-  /** Confirms only a file identical, byte for byte, to the one issued with a version. */
   @Transactional(readOnly = true)
   public Optional<ProjectVersion> byFile(byte[] content) {
     if (!ProjectDocument.isPdf(content)) {

@@ -50,11 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Builds the calculation memorial with the fonts, colors and rules of the front-end design system
  * (docs/tecnico/design-system-front.md).
- *
- * <p>A draft or a project in correction gets a preview, built on demand from the latest
- * calculation, marked "Prévia" and with no verification code. A submitted project gets the PDF
- * stored in its version, byte for byte: rendering again would change the bytes (the PDF carries its
- * creation date) and break the verification.
  */
 @Service
 public class MemorialPdfService {
@@ -119,10 +114,8 @@ public class MemorialPdfService {
 
   public record Memorial(String filename, byte[] content) {}
 
-  /** A memorial issued with a version: the file, its SHA-256 and the code printed in its footer. */
   public record Issued(String filename, byte[] content, String sha256, String verificationCode) {}
 
-  /** What a version prints in the footer. A preview has none of it. */
   private record Stamp(int version, OffsetDateTime issuedAt, String code) {}
 
   private record Column(String header, float width, boolean numeric) {}
@@ -130,6 +123,7 @@ public class MemorialPdfService {
   @Transactional(readOnly = true)
   public Memorial generate(Long projectId, AuthenticatedUser user) {
     Project project = projectService.findById(projectId, user);
+    // Rendering again changes the bytes (the PDF carries its creation date) and fails the check.
     if (!project.isEditable()) {
       Memorial stored = storedMemorial(projectId);
       if (stored != null) {
@@ -167,11 +161,7 @@ public class MemorialPdfService {
     return new Memorial(version.getMemorial().getFilename(), version.getMemorial().getData());
   }
 
-  /**
-   * Renders the memorial of a submission. The code in the footer comes from the SHA-256 of a first
-   * rendering without it; the second rendering carries the code and is the file that is stored,
-   * hashed and later verified.
-   */
+  /** The code comes from a first rendering: a printed code cannot be part of its own hash. */
   public Issued issue(
       Project project,
       Calculation calculation,
@@ -210,7 +200,6 @@ public class MemorialPdfService {
     return output.toByteArray();
   }
 
-  /** Title, designer, protocol, version and standards, for whoever opens the file's properties. */
   private static void describe(Document document, PdfWriter writer, Project project, Stamp stamp) {
     String protocol = project.getProtocol();
     String version = stamp == null ? "Prévia" : String.valueOf(stamp.version());
@@ -623,10 +612,7 @@ public class MemorialPdfService {
     }
   }
 
-  /**
-   * Green brand bar on top, and at the foot of every page the protocol, version, date and page
-   * number, then the verification code. A preview carries the "Prévia" mark and no code.
-   */
+  /** Green brand bar on top and the identification of the version at the foot of every page. */
   private static final class PageFrame extends PdfPageEventHelper {
 
     private final String protocol;

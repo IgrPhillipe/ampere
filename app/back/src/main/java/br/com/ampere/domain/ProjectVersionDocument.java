@@ -15,10 +15,7 @@ import java.time.OffsetDateTime;
 import java.util.Objects;
 import org.hibernate.annotations.Immutable;
 
-/**
- * A copy of an attachment as it was when the version was sent. The project's own document may be
- * replaced afterwards, while a rejected project is corrected.
- */
+/** A copy, since the project's own document may be replaced during a correction. */
 @Entity
 @Immutable
 @Table(name = "project_version_document")

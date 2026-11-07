@@ -30,7 +30,6 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 
-/** Records each submission as an immutable version and reads the versions back. */
 @Service
 public class ProjectVersionService {
 
@@ -73,12 +72,10 @@ public class ProjectVersionService {
     this.objectMapper = objectMapper;
   }
 
-  /** A version with the documents it carried, listed without their bytes. */
   public record Entry(ProjectVersion version, List<DocumentSummary> documents) {}
 
   public record DocumentSummary(DocumentType type, String filename, Long fileSize) {}
 
-  /** What the compared versions asked of the distributor, and what differs between them. */
   public record Comparison(
       ProjectVersion from,
       ProjectVersion to,
@@ -91,10 +88,7 @@ public class ProjectVersionService {
 
   public record FieldChange(String field, String label, String from, String to) {}
 
-  /**
-   * Called inside the submission, once the project is under review: the memorial is rendered here
-   * and never again, together with a copy of the documents and the calculation sent.
-   */
+  /** Runs inside the submission: the memorial is rendered here and never again. */
   public ProjectVersion register(
       Project project, Calculation calculation, OffsetDateTime submittedAt) {
     int number = project.getReviewCycle();

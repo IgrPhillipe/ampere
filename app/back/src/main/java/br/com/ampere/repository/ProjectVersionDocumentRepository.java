@@ -17,7 +17,6 @@ public interface ProjectVersionDocumentRepository
   Optional<ProjectVersionDocument> findByVersionProjectIdAndVersionNumberAndType(
       Long projectId, int number, DocumentType type);
 
-  /** Without the file bytes, which a listing never needs. */
   @Query(
       """
       SELECT document.version.id AS versionId, document.type AS type,
