@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-/** Daily sweep for the notifications that no user action triggers. */
 @Component
 public class NotificationScheduler {
 
@@ -18,7 +17,6 @@ public class NotificationScheduler {
     this.service = service;
   }
 
-  /** "-" disables it (the tests); the default is 06:00 in the concessionaire's calendar. */
   @Scheduled(cron = "${ampere.notifications.cron:0 0 6 * * *}", zone = "America/Recife")
   public void sweep() {
     int issued = service.issueTimeBasedNotifications(Timestamps.now());

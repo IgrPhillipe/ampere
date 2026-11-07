@@ -17,7 +17,6 @@ import java.util.Objects;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-/** A notice for one user about a project, shown in the header bell. */
 @Entity
 @Table(
     name = "notification",
@@ -45,20 +44,15 @@ public class Notification {
   @Column(nullable = false, updatable = false)
   private NotificationType type;
 
-  /** Kept on the notice: the protocol is what the panel shows next to the text. */
   @Column(nullable = false, updatable = false)
   private String protocol;
 
   @Column(nullable = false, updatable = false)
   private String text;
 
-  /** Front-end route the notification opens. */
   @Column(nullable = false, updatable = false)
   private String link;
 
-  /**
-   * Review cycle of the project when the notice was issued; a deadline notice is once per cycle.
-   */
   @Column(nullable = false, updatable = false)
   private int reviewCycle;
 
@@ -90,7 +84,6 @@ public class Notification {
     return readAt != null;
   }
 
-  /** Reading twice keeps the first reading. */
   public void markRead(OffsetDateTime at) {
     if (readAt == null) {
       readAt = Objects.requireNonNull(at, "at");

@@ -17,7 +17,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
   long countByRecipientIdAndReadAtIsNull(Long recipientId);
 
-  /** Whether the project already notified this recipient of the type in the review cycle. */
   boolean existsByRecipientIdAndProjectIdAndTypeAndReviewCycle(
       Long recipientId, Long projectId, NotificationType type, int reviewCycle);
 

@@ -1,6 +1,5 @@
 package br.com.ampere.domain;
 
-/** What happened to the project that the notification reports. */
 public enum NotificationType {
   PROJECT_APPROVED,
   PROJECT_REJECTED,

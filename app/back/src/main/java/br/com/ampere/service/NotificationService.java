@@ -19,19 +19,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Issues the notifications of the lifecycle events inside the transaction of the operation that
- * produced them, and reads them for the bell. No e-mail is sent.
- */
 @Service
 public class NotificationService {
 
   static final int PAGE_SIZE = 50;
 
-  /** An analyst is warned from this many days before the review deadline. */
   static final int DEADLINE_WARNING_DAYS = 3;
 
-  /** A designer is warned from this many days before the approval expires. */
   static final int EXPIRY_WARNING_DAYS = 30;
 
   private static final String NOT_FOUND = "Notificação não encontrada.";
@@ -53,7 +47,6 @@ public class NotificationService {
         notificationRepository.countByRecipientIdAndReadAtIsNull(user.id()));
   }
 
-  /** Somebody else's notification does not exist for the caller. */
   @Transactional
   public Notification markRead(Long id, AuthenticatedUser user) {
     Notification notification =
@@ -120,7 +113,6 @@ public class NotificationService {
         at);
   }
 
-  /** The analyst the project is assigned to learns that it came back. */
   public void resubmitted(Project project, OffsetDateTime at) {
     notify(
         project.getReviewer(),
@@ -131,12 +123,6 @@ public class NotificationService {
         at);
   }
 
-  /**
-   * Warns the analysts whose review deadline is within {@value #DEADLINE_WARNING_DAYS} days or
-   * already past, and the designers whose approval expires within {@value #EXPIRY_WARNING_DAYS}
-   * days. Each warning is issued once per project, type and review cycle, so running it twice never
-   * repeats one.
-   */
   @Transactional
   public int issueTimeBasedNotifications(OffsetDateTime now) {
     LocalDate today = Timestamps.localDate(now);
@@ -223,10 +209,6 @@ public class NotificationService {
     return "/fila-de-analise/" + project.getId();
   }
 
-  /**
-   * A project without the person (created before ownership, or not yet assigned) has nobody to
-   * notify. A time-based notice is not repeated within the same review cycle.
-   */
   private int notify(
       User recipient,
       Project project,

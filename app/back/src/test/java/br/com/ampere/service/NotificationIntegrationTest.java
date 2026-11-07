@@ -38,7 +38,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-/** The notifications of the review workflow, from the event to the bell. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional

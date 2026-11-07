@@ -27,7 +27,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
 
   long countByStatusAndReviewedAtGreaterThanEqual(ProjectStatus status, OffsetDateTime since);
 
-  /** Both people a notification can reach, loaded with the project. */
   @EntityGraph(attributePaths = {"owner", "reviewer"})
   List<Project> findAllByStatusOrderByIdAsc(ProjectStatus status);
 
