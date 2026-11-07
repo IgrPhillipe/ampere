@@ -26,11 +26,11 @@ public record VersionComparisonResponse(
     }
   }
 
-  public record GroupChangeResponse(Long id, String name, List<FieldChangeResponse> fields) {
+  public record GroupChangeResponse(String id, String name, List<FieldChangeResponse> fields) {
 
     static GroupChangeResponse from(ProjectVersionService.GroupChange change) {
       return new GroupChangeResponse(
-          change.id(),
+          String.valueOf(change.id()),
           change.name(),
           change.fields().stream().map(FieldChangeResponse::from).toList());
     }

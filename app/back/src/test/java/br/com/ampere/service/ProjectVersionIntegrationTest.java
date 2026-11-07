@@ -334,6 +334,7 @@ class ProjectVersionIntegrationTest {
         .andExpect(jsonPath("$.data.to.demandKva").isNumber())
         .andExpect(jsonPath("$.data.demandDifferenceKva").isNumber())
         .andExpect(jsonPath("$.data.included", hasSize(1)))
+        .andExpect(jsonPath("$.data.included[0].id").isString())
         .andExpect(jsonPath("$.data.included[0].name").value("Apartamento tipo B"))
         .andExpect(jsonPath("$.data.removed", hasSize(1)))
         .andExpect(jsonPath("$.data.removed[0].name").value("Apartamento tipo C"))
