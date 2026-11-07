@@ -409,6 +409,16 @@ class ProjectVersionIntegrationTest {
   }
 
   @Test
+  void aRouteAnswersMethodNotAllowedForAMethodItDoesNotServe() throws Exception {
+    Project project = draft("2026-4019");
+    Long group = groupRepository.findAllByProjectIdOrderById(project.getId()).get(0).getId();
+
+    perform(get("/projects/" + project.getId() + "/consumer-unit-groups/" + group))
+        .andExpect(status().isMethodNotAllowed())
+        .andExpect(jsonPath("$.detail").value("Esta rota não aceita o método GET."));
+  }
+
+  @Test
   void theComparisonListsIncludedRemovedAndChangedGroupsAndTheDemandOfEachVersion()
       throws Exception {
     Project project = draft("2026-4011");
