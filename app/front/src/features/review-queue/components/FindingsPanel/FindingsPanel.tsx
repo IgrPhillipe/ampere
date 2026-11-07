@@ -6,7 +6,7 @@ import {
 	FindingRow,
 } from "@features/projects";
 import { cn } from "@lib/utils";
-import type { Finding } from "@services/project-review";
+import type { Finding, FindingStage } from "@services/project-review";
 import { useState } from "react";
 
 import type { FindingFormValues } from "../../schemas";
@@ -21,6 +21,7 @@ interface FindingsPanelProps extends FindingCardActions {
 	editable: boolean;
 	underReview: boolean;
 	editor: FindingEditor;
+	currentStage?: FindingStage;
 	autoFocusForm?: boolean;
 	referenceOptions: FindingReferenceOptions;
 	isSaving: boolean;
@@ -36,6 +37,7 @@ export const FindingsPanel = ({
 	editable,
 	underReview,
 	editor,
+	currentStage,
 	autoFocusForm = false,
 	referenceOptions,
 	isSaving,
@@ -112,6 +114,7 @@ export const FindingsPanel = ({
 					<FindingForm
 						key={editor.key}
 						editor={editor}
+						currentStage={currentStage}
 						referenceOptions={referenceOptions}
 						isPending={isSaving}
 						autoFocus={autoFocusForm}

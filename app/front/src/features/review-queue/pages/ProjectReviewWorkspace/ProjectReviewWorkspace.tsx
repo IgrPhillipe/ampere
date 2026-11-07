@@ -2,6 +2,7 @@ import {
 	buildFindingReferenceOptions,
 	ProjectWorkspace,
 	projectStatusLabels,
+	sectionStage,
 	useProjectDetailActions,
 } from "@features/projects";
 import { padCount } from "@features/shared";
@@ -188,13 +189,14 @@ export const ProjectReviewWorkspace = ({
 					</p>
 				) : null
 			}
-			aside={
+			aside={(section) => (
 				<FindingsPanel
 					findings={findings}
 					isLoading={findingsQuery.isPending}
 					editable={actions.createFindings}
 					underReview={isUnderReview}
 					editor={editor}
+					currentStage={sectionStage(section)}
 					autoFocusForm={findingEditor.autoFocus}
 					referenceOptions={referenceOptions}
 					isSaving={createMutation.isPending || updateMutation.isPending}
@@ -205,7 +207,7 @@ export const ProjectReviewWorkspace = ({
 					onDelete={removeFinding}
 					onResolve={resolveFinding}
 				/>
-			}
+			)}
 			footer={
 				<DecisionFooter
 					availability={availability}

@@ -1,4 +1,7 @@
-import type { FindingStage } from "@services/project-review";
+import {
+	type FindingStage,
+	findingStageSchema,
+} from "@services/project-review";
 
 export type ProjectSectionKey =
 	| "overview"
@@ -40,6 +43,12 @@ export const stageSections = {
 	CALCULATION: "calculation",
 	DOCUMENTS: "documents",
 } as const satisfies Record<FindingStage, ProjectSectionKey>;
+
+/** The stage a finding opened from this section belongs to, when it has one. */
+export const sectionStage = (
+	key: ProjectSectionKey,
+): FindingStage | undefined =>
+	findingStageSchema.options.find((stage) => stageSections[stage] === key);
 
 export const sectionPath = (key: ProjectSectionKey): ProjectSectionPath =>
 	PROJECT_SECTIONS.find((section) => section.key === key)?.to ??
