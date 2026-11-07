@@ -487,6 +487,45 @@ class ProjectVersionIntegrationTest {
   }
 
   @Test
+  void theComparisonKeepsTheRawValueBesideItsLabel() throws Exception {
+    Project project = draft("2026-4021");
+    ConsumerUnitGroup load =
+        groupRepository.save(GroupKind.LOAD.create(project, loadSpec(motor("Elevador"))));
+    submitCalculated(project);
+
+    reject(project);
+    load.update(
+        loadSpec(
+            new LoadItem(
+                LoadCategory.MOTORS,
+                "Elevador",
+                1,
+                new BigDecimal("9"),
+                PowerUnit.KW,
+                null,
+                true)));
+    groupRepository.save(load);
+    resubmitAfterEditing(project, "Motor trocado.");
+
+    perform(get(versionsOf(project) + "/compare?from=1&to=2"))
+        .andExpect(
+            jsonPath("$.data.changed[0].fields[?(@.label == 'Elevador, unidade de potência')].from")
+                .value("CV"))
+        .andExpect(
+            jsonPath(
+                    "$.data.changed[0].fields[?(@.label == 'Elevador, unidade de potência')].toLabel")
+                .value("kW"))
+        .andExpect(
+            jsonPath(
+                    "$.data.changed[0].fields[?(@.label == 'Elevador, partida simultânea')].fromLabel")
+                .value("Não"))
+        .andExpect(
+            jsonPath(
+                    "$.data.changed[0].fields[?(@.label == 'Elevador, partida simultânea')].toLabel")
+                .value("Sim"));
+  }
+
+  @Test
   void removingALoadItemDoesNotMarkTheItemsAfterIt() throws Exception {
     Project project = draft("2026-4020");
     ConsumerUnitGroup load =

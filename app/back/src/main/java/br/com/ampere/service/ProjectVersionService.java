@@ -87,7 +87,8 @@ public class ProjectVersionService {
 
   public record GroupChange(Long id, String name, List<FieldChange> fields) {}
 
-  public record FieldChange(String field, String label, String from, String to) {}
+  public record FieldChange(
+      String field, String label, String from, String to, String fromLabel, String toLabel) {}
 
   /** Runs inside the submission: the memorial is rendered here and never again. */
   public ProjectVersion register(
@@ -272,7 +273,13 @@ public class ProjectVersionService {
   }
 
   private static FieldChange fieldChange(String field, String from, String to) {
-    return new FieldChange(field, VersionFieldLabels.of(field), from, to);
+    return new FieldChange(
+        field,
+        VersionFieldLabels.of(field),
+        from,
+        to,
+        VersionFieldLabels.ofValue(field, from),
+        VersionFieldLabels.ofValue(field, to));
   }
 
   /** Flattens objects and lists into paths such as items[MOTORS:Elevador].quantity. */

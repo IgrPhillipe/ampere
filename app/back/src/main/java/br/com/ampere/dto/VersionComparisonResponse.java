@@ -35,10 +35,17 @@ public record VersionComparisonResponse(
     }
   }
 
-  public record FieldChangeResponse(String field, String label, String from, String to) {
+  public record FieldChangeResponse(
+      String field, String label, String from, String to, String fromLabel, String toLabel) {
 
     static FieldChangeResponse from(ProjectVersionService.FieldChange change) {
-      return new FieldChangeResponse(change.field(), change.label(), change.from(), change.to());
+      return new FieldChangeResponse(
+          change.field(),
+          change.label(),
+          change.from(),
+          change.to(),
+          change.fromLabel(),
+          change.toLabel());
     }
   }
 
