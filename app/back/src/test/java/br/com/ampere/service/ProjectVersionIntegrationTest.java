@@ -400,6 +400,15 @@ class ProjectVersionIntegrationTest {
   }
 
   @Test
+  void theVerificationAsksForMultipartWhenTheFileComesInAnotherFormat() throws Exception {
+    mockMvc
+        .perform(
+            post("/memorial-verifications").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isUnsupportedMediaType())
+        .andExpect(jsonPath("$.detail").value("Envie o arquivo como multipart/form-data."));
+  }
+
+  @Test
   void theComparisonListsIncludedRemovedAndChangedGroupsAndTheDemandOfEachVersion()
       throws Exception {
     Project project = draft("2026-4011");
