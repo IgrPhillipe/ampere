@@ -34,8 +34,6 @@ public class NotificationService {
   /** A designer is warned from this many days before the approval expires. */
   static final int EXPIRY_WARNING_DAYS = 30;
 
-  static final int APPROVAL_VALIDITY_MONTHS = 36;
-
   private static final String NOT_FOUND = "Notificação não encontrada.";
 
   private final NotificationRepository notificationRepository;
@@ -173,9 +171,7 @@ public class NotificationService {
       if (project.getReviewedAt() == null) {
         continue;
       }
-      LocalDate expiresOn =
-          Timestamps.localDate(project.getReviewedAt()).plusMonths(APPROVAL_VALIDITY_MONTHS);
-      long daysLeft = ChronoUnit.DAYS.between(today, expiresOn);
+      long daysLeft = ChronoUnit.DAYS.between(today, project.approvalExpiresOn(Timestamps.ZONE));
       if (daysLeft >= 0 && daysLeft <= EXPIRY_WARNING_DAYS) {
         issued +=
             notify(

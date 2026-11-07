@@ -32,6 +32,16 @@ class ProjectDeadlineTest {
   }
 
   @Test
+  void anApprovalExpiresThirtySixMonthsAfterTheLocalDayOfTheDecision() {
+    Project project = submitted(NOON);
+
+    // 01:00 UTC is still the previous day in Recife.
+    project.approve(OffsetDateTime.parse("2026-10-03T01:00:00Z"));
+
+    assertThat(project.approvalExpiresOn(ZONE)).isEqualTo(TODAY.plusMonths(36));
+  }
+
+  @Test
   void isOverdueWhenSubmittedMoreThanThirtyDaysAgo() {
     Project project = submitted(NOON.minusDays(40));
 

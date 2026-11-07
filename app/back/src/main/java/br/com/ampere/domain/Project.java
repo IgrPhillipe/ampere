@@ -33,6 +33,9 @@ public class Project {
 
   public static final int REVIEW_PERIOD_DAYS = 30;
 
+  // DIS-NOR-053, item 6.27.6.
+  public static final int APPROVAL_VALIDITY_MONTHS = 36;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -277,6 +280,14 @@ public class Project {
     }
 
     return submittedAt.atZoneSameInstant(zone).toLocalDate().plusDays(REVIEW_PERIOD_DAYS);
+  }
+
+  public LocalDate approvalExpiresOn(ZoneId zone) {
+    if (reviewedAt == null) {
+      throw new IllegalStateException("Project has not been reviewed.");
+    }
+
+    return reviewedAt.atZoneSameInstant(zone).toLocalDate().plusMonths(APPROVAL_VALIDITY_MONTHS);
   }
 
   public DeadlineStatus deadlineStatus(LocalDate today, ZoneId zone) {
