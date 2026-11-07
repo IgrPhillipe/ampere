@@ -25,15 +25,11 @@ public class ProjectVersionMemorial {
   @Column(nullable = false, updatable = false, columnDefinition = "bytea")
   private byte[] data;
 
-  @Column(nullable = false, updatable = false, length = 64)
-  private String sha256;
-
   protected ProjectVersionMemorial() {}
 
-  public ProjectVersionMemorial(String filename, byte[] data, String sha256) {
+  public ProjectVersionMemorial(String filename, byte[] data) {
     this.filename = Objects.requireNonNull(filename, "filename");
     this.data = Objects.requireNonNull(data, "data").clone();
-    this.sha256 = Objects.requireNonNull(sha256, "sha256");
   }
 
   public Long getId() {
@@ -46,9 +42,5 @@ public class ProjectVersionMemorial {
 
   public byte[] getData() {
     return data.clone();
-  }
-
-  public String getSha256() {
-    return sha256;
   }
 }

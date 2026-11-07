@@ -110,7 +110,8 @@ public class ProjectVersionService {
                 project.getOwner(),
                 number > 1 ? project.getChangeSummary() : null,
                 calculation,
-                new ProjectVersionMemorial(issued.filename(), issued.content(), issued.sha256()),
+                new ProjectVersionMemorial(issued.filename(), issued.content()),
+                issued.sha256(),
                 issued.verificationCode()));
     for (ProjectDocument document :
         documentRepository.findAllByProjectIdOrderByType(project.getId())) {

@@ -27,7 +27,8 @@ import org.hibernate.annotations.Immutable;
     name = "project_version",
     uniqueConstraints = {
       @UniqueConstraint(columnNames = {"project_id", "number"}),
-      @UniqueConstraint(columnNames = {"verificationCode"})
+      @UniqueConstraint(columnNames = {"verificationCode"}),
+      @UniqueConstraint(columnNames = {"memorialSha256"})
     })
 public class ProjectVersion {
 
@@ -81,6 +82,7 @@ public class ProjectVersion {
       String changeSummary,
       Calculation calculation,
       ProjectVersionMemorial memorial,
+      String memorialSha256,
       String verificationCode) {
     this.project = Objects.requireNonNull(project, "project");
     this.number = number;
@@ -90,7 +92,7 @@ public class ProjectVersion {
         changeSummary == null || changeSummary.isBlank() ? null : changeSummary.trim();
     this.calculation = Objects.requireNonNull(calculation, "calculation");
     this.memorial = Objects.requireNonNull(memorial, "memorial");
-    this.memorialSha256 = memorial.getSha256();
+    this.memorialSha256 = Objects.requireNonNull(memorialSha256, "memorialSha256");
     this.verificationCode = Objects.requireNonNull(verificationCode, "verificationCode");
   }
 
