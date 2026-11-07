@@ -40,6 +40,8 @@ public class SecurityConfig {
 
   private static final String VERIFICATION_PATH = "/memorial-verifications";
 
+  private static final int VERIFICATIONS_PER_MINUTE = 20;
+
   private static final String ADMIN = UserRole.ADMIN.name();
 
   private static final String DESIGNER = UserRole.USER.name();
@@ -111,6 +113,10 @@ public class SecurityConfig {
                     .bearerTokenResolver(ignoringPublicAuthPaths()))
         .addFilterAfter(
             new PendingPasswordChangeFilter(handler), BearerTokenAuthenticationFilter.class)
+        .addFilterBefore(
+            new VerificationRateLimitFilter(
+                VERIFICATION_PATH, VERIFICATIONS_PER_MINUTE, handler, System::currentTimeMillis),
+            BearerTokenAuthenticationFilter.class)
         .exceptionHandling(
             exceptions -> exceptions.authenticationEntryPoint(handler).accessDeniedHandler(handler))
         .build();
