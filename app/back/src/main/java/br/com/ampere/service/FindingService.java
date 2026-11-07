@@ -29,21 +29,18 @@ public class FindingService {
   private final ProjectService projectService;
   private final ProjectReviewService reviewService;
   private final ProjectEventService eventService;
-  private final NotificationService notificationService;
 
   public FindingService(
       FindingRepository findingRepository,
       ConsumerUnitGroupRepository groupRepository,
       ProjectService projectService,
       ProjectReviewService reviewService,
-      ProjectEventService eventService,
-      NotificationService notificationService) {
+      ProjectEventService eventService) {
     this.findingRepository = findingRepository;
     this.groupRepository = groupRepository;
     this.projectService = projectService;
     this.reviewService = reviewService;
     this.eventService = eventService;
-    this.notificationService = notificationService;
   }
 
   /** The designer sees a finding only after the decision publishes it. */
@@ -108,12 +105,7 @@ public class FindingService {
           HttpStatus.CONFLICT);
     }
 
-    FindingStatus previous = finding.getStatus();
-    finding.resolve(resolution);
-    // Reopening a finding the designer has not answered again tells them nothing new.
-    if (resolution == FindingResolution.REOPEN && previous != FindingStatus.OPEN) {
-      notificationService.findingReopened(project, Timestamps.now());
-    }
+    finding.resolve(resolution, project.getReviewCycle());
 
     return finding;
   }

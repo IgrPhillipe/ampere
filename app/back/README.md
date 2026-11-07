@@ -283,13 +283,13 @@ Central do sino do cabeçalho, para projetista e analista. Sem e-mail. Cada noti
 | :--- | :--- | :--- | :--- |
 | Decisão de aprovar | `PROJECT_APPROVED` | Dono do projeto | `/projetos/{id}` |
 | Decisão de reprovar ("reprovado com N apontamentos") | `PROJECT_REJECTED` | Dono do projeto | `/projetos/{id}/apontamentos` |
-| Analista reabre um apontamento que o dono já respondeu | `FINDING_REOPENED` | Dono do projeto | `/projetos/{id}/apontamentos` |
+| Decisão de reprovar com apontamentos reabertos no ciclo ("N apontamentos reabertos") | `FINDING_REOPENED` | Dono do projeto | `/projetos/{id}/apontamentos` |
 | Reenvio de projeto reprovado | `PROJECT_RESUBMITTED` | Analista atribuído | `/fila-de-analise/{id}` |
 | Prazo de análise vence em até 3 dias (hoje inclusive) | `REVIEW_DEADLINE_NEAR` | Analista atribuído | `/fila-de-analise/{id}` |
 | Prazo de análise vencido | `REVIEW_OVERDUE` | Analista atribuído | `/fila-de-analise/{id}` |
 | Aprovação expira em até 30 dias (36 meses após a aprovação) | `APPROVAL_EXPIRING` | Dono do projeto | `/projetos/{id}` |
 
-- As quatro primeiras nascem na transação da operação que as causa (decisão, resolução do apontamento, envio). Sem destinatário (projeto sem dono, ou sem analista atribuído), nada é gerado.
+- As quatro primeiras nascem na transação da operação que as causa (decisão ou envio). A reabertura só avisa na reprovação: antes disso o projetista não pode responder, e o analista ainda pode aceitar o apontamento. Sem destinatário (projeto sem dono, ou sem analista atribuído), nada é gerado.
 - As três últimas não têm ação do usuário: `NotificationScheduler` varre os projetos todo dia às 06:00 (horário de Recife). `NOTIFICATIONS_CRON` troca o horário e `-` desliga a varredura. Cada aviso sai uma vez por projeto, tipo e ciclo de análise, então rodar a varredura de novo não repete nada. O prazo é o de `Project.reviewDeadline`, sem desconto de dias suspensos (US15).
 - O contador some quando as notificações são lidas, mas elas continuam na lista.
 

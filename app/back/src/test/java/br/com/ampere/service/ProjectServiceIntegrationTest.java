@@ -433,7 +433,7 @@ class ProjectServiceIntegrationTest {
     findingRepository.save(published(finding(adjusted, FindingSeverity.ADJUSTMENT)));
     findingRepository.save(finding(drafted, FindingSeverity.BLOCKING));
     Finding accepted = published(finding(resolved, FindingSeverity.BLOCKING));
-    accepted.resolve(FindingResolution.ACCEPT);
+    accepted.resolve(FindingResolution.ACCEPT, 1);
     findingRepository.save(accepted);
 
     assertThat(list(filtered(OpenFindingsFilter.BLOCKING_OPEN)).projects())

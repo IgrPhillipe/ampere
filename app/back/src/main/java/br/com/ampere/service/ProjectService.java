@@ -1,6 +1,7 @@
 package br.com.ampere.service;
 
 import br.com.ampere.domain.BuildingType;
+import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
@@ -46,6 +47,10 @@ public class ProjectService {
   /** What the designer still has to answer: drafts are hidden, an approval closes the rest. */
   static final List<FindingStatus> OPEN_FINDINGS =
       List.of(FindingStatus.OPEN, FindingStatus.CONTESTED);
+
+  static long countOpen(List<Finding> findings) {
+    return findings.stream().filter(finding -> OPEN_FINDINGS.contains(finding.getStatus())).count();
+  }
 
   private final ProjectRepository projectRepository;
   private final FindingRepository findingRepository;

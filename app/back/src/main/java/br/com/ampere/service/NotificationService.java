@@ -1,9 +1,11 @@
 package br.com.ampere.service;
 
+import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Notification;
 import br.com.ampere.domain.NotificationType;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.ReviewDecision;
 import br.com.ampere.domain.User;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.NotificationRepository;
@@ -12,6 +14,7 @@ import br.com.ampere.utils.Timestamps;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,8 +73,24 @@ public class NotificationService {
     notificationRepository.markAllRead(user.id(), Timestamps.now());
   }
 
-  /** The designer learns of the approval. */
-  public void approved(Project project, OffsetDateTime at) {
+  public void decided(
+      Project project, ReviewDecision decision, List<Finding> findings, OffsetDateTime at) {
+    if (decision == ReviewDecision.APPROVE) {
+      approved(project, at);
+      return;
+    }
+
+    long reopened =
+        findings.stream()
+            .filter(finding -> finding.wasReopenedIn(project.getReviewCycle()))
+            .count();
+    if (reopened > 0) {
+      findingsReopened(project, reopened, at);
+    }
+    rejected(project, ProjectService.countOpen(findings), at);
+  }
+
+  void approved(Project project, OffsetDateTime at) {
     notify(
         project.getOwner(),
         project,
@@ -81,8 +100,7 @@ public class NotificationService {
         at);
   }
 
-  /** The designer learns of the rejection and is taken to the findings. */
-  public void rejected(Project project, long findings, OffsetDateTime at) {
+  void rejected(Project project, long findings, OffsetDateTime at) {
     String noun = findings == 1 ? " apontamento" : " apontamentos";
     notify(
         project.getOwner(),
@@ -93,13 +111,13 @@ public class NotificationService {
         at);
   }
 
-  /** The analyst reopened a finding the designer had answered. */
-  public void findingReopened(Project project, OffsetDateTime at) {
+  void findingsReopened(Project project, long findings, OffsetDateTime at) {
+    String noun = findings == 1 ? " apontamento reaberto" : " apontamentos reabertos";
     notify(
         project.getOwner(),
         project,
         NotificationType.FINDING_REOPENED,
-        "Apontamento reaberto na reanálise do projeto " + project.getProtocol() + ".",
+        findings + noun + " na reanálise do projeto " + project.getProtocol() + ".",
         findingsLink(project),
         at);
   }

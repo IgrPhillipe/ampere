@@ -227,7 +227,7 @@ final class ScenarioCase {
 
   /** The analyst's call on an answer, made while the project is back in review. */
   ScenarioCase resolve(Finding finding, FindingResolution resolution) {
-    finding.resolve(resolution);
+    finding.resolve(resolution, project.getReviewCycle());
 
     return this;
   }

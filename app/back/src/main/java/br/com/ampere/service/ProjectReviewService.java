@@ -75,15 +75,7 @@ public class ProjectReviewService {
       project.reject(reviewedAt, opinion);
     }
     eventService.decided(project, decision, project.getReviewer(), findings, opinion, reviewedAt);
-    if (decision == ReviewDecision.APPROVE) {
-      notificationService.approved(project, reviewedAt);
-    } else {
-      long open =
-          findings.stream()
-              .filter(finding -> ProjectService.OPEN_FINDINGS.contains(finding.getStatus()))
-              .count();
-      notificationService.rejected(project, open, reviewedAt);
-    }
+    notificationService.decided(project, decision, findings, reviewedAt);
 
     return project;
   }

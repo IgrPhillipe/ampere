@@ -29,12 +29,12 @@ class FindingTest {
     finding.publish();
     assertThat(finding.isPending()).isTrue();
 
-    finding.resolve(FindingResolution.ACCEPT);
+    finding.resolve(FindingResolution.ACCEPT, 2);
     assertThat(finding.getStatus()).isEqualTo(FindingStatus.RESOLVED);
     assertThat(finding.isPending()).isFalse();
     assertThat(finding.isOpenBlocking()).isFalse();
 
-    finding.resolve(FindingResolution.REOPEN);
+    finding.resolve(FindingResolution.REOPEN, 2);
     assertThat(finding.getStatus()).isEqualTo(FindingStatus.OPEN);
   }
 
@@ -105,7 +105,7 @@ class FindingTest {
     assertThat(finding.getRespondedAt()).isEqualTo(firstTime);
     assertThat(finding.awaitsResponse()).isTrue();
 
-    finding.resolve(FindingResolution.REOPEN);
+    finding.resolve(FindingResolution.REOPEN, 2);
     assertThat(finding.getStatus()).isEqualTo(FindingStatus.OPEN);
     assertThat(finding.getResponse()).isEqualTo("A ART já traz a assinatura na página 2.");
     assertThat(finding.getRespondedAt()).isEqualTo(firstTime);
@@ -116,7 +116,7 @@ class FindingTest {
     assertThat(finding.getResponse()).isNull();
     assertThat(finding.getRespondedAt()).isEqualTo(secondTime);
 
-    finding.resolve(FindingResolution.ACCEPT);
+    finding.resolve(FindingResolution.ACCEPT, 2);
     assertThat(finding.awaitsResponse()).isFalse();
   }
 

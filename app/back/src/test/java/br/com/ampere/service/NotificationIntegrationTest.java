@@ -132,7 +132,7 @@ class NotificationIntegrationTest {
   }
 
   @Test
-  void reopeningAFindingNotifiesTheDesignerOnlyWhenItWasAnswered() throws Exception {
+  void aRejectionTellsTheDesignerOfTheFindingsReopenedInTheCycle() throws Exception {
     createFinding().andExpect(status().isCreated());
     decide("REJECT", "Corrigir.").andExpect(status().isOk());
     Long findingId = findingRepository.findAll().getFirst().getId();
@@ -142,21 +142,32 @@ class NotificationIntegrationTest {
 
     // Still open and unanswered: reopening it again says nothing new.
     resolve(findingId, "REOPEN").andExpect(status().isOk());
-    list(designer).andExpect(jsonPath("$.data.items", hasSize(0)));
+    decide("REJECT", "Corrigir.").andExpect(status().isOk());
+    list(designer).andExpect(jsonPath("$.data.items[*].type").value(contains("PROJECT_REJECTED")));
 
+    project.submit(OffsetDateTime.now());
+    projectRepository.flush();
+    notificationRepository.deleteAll();
     findingRepository
         .findAll()
         .getFirst()
         .respond(br.com.ampere.domain.FindingAnswer.FIXED, null, OffsetDateTime.now());
     findingRepository.flush();
     resolve(findingId, "REOPEN").andExpect(status().isOk());
+    resolve(findingId, "ACCEPT").andExpect(status().isOk());
+    resolve(findingId, "REOPEN").andExpect(status().isOk());
+    list(designer).andExpect(jsonPath("$.data.items", hasSize(0)));
+
+    decide("REJECT", "Corrigir.").andExpect(status().isOk());
 
     list(designer)
-        .andExpect(jsonPath("$.data.unreadCount").value(1))
-        .andExpect(jsonPath("$.data.items[0].type").value("FINDING_REOPENED"))
+        .andExpect(jsonPath("$.data.unreadCount").value(2))
         .andExpect(
-            jsonPath("$.data.items[0].link")
-                .value("/projetos/" + project.getId() + "/apontamentos"));
+            jsonPath("$.data.items[*].type")
+                .value(contains("PROJECT_REJECTED", "FINDING_REOPENED")))
+        .andExpect(
+            jsonPath("$.data.items[1].text")
+                .value("1 apontamento reaberto na reanálise do projeto 2026-1004."));
     list(analyst).andExpect(jsonPath("$.data.items", hasSize(0)));
   }
 

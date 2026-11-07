@@ -11,12 +11,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.ampere.domain.ConnectionType;
+import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EntranceStandard;
+import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingAnswer;
+import br.com.ampere.domain.FindingResolution;
+import br.com.ampere.domain.FindingSeverity;
+import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.Notification;
 import br.com.ampere.domain.NotificationType;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
+import br.com.ampere.domain.ReviewDecision;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
@@ -97,19 +104,39 @@ class NotificationServiceTest {
   }
 
   @Test
-  void reopenedFindingNotifiesOnlyTheDesigner() {
-    Project project = project(10L, designer, analyst);
+  void rejectionTellsTheDesignerHowManyFindingsWereReopenedInTheCycle() {
+    Project project = underReview(10L, designer, analyst, "2026-11-01T12:00:00Z");
+    project.reject(OffsetDateTime.parse("2026-11-02T12:00:00Z"));
+    project.submit(OffsetDateTime.parse("2026-11-03T12:00:00Z"));
 
-    service.findingReopened(project, NOW);
+    service.decided(
+        project,
+        ReviewDecision.REJECT,
+        List.of(answered(project), answered(project), reopened(project), reopened(project)),
+        NOW);
+
+    assertThat(saved).extracting(Notification::getRecipient).containsOnly(designer);
+    assertThat(saved)
+        .extracting(Notification::getType)
+        .containsExactly(NotificationType.FINDING_REOPENED, NotificationType.PROJECT_REJECTED);
+    assertThat(saved.getFirst().getText())
+        .isEqualTo("2 apontamentos reabertos na reanálise do projeto 2026-1004.");
+    assertThat(saved.getFirst().getLink()).isEqualTo("/projetos/10/apontamentos");
+  }
+
+  @Test
+  void aReopenedFindingAcceptedBeforeTheDecisionIsNotNotified() {
+    Project project = underReview(10L, designer, analyst, "2026-11-01T12:00:00Z");
+    project.reject(OffsetDateTime.parse("2026-11-02T12:00:00Z"));
+    project.submit(OffsetDateTime.parse("2026-11-03T12:00:00Z"));
+    Finding accepted = reopened(project);
+    accepted.resolve(FindingResolution.ACCEPT, project.getReviewCycle());
+
+    service.decided(project, ReviewDecision.APPROVE, List.of(accepted), NOW);
 
     assertThat(saved)
-        .singleElement()
-        .satisfies(
-            notification -> {
-              assertThat(notification.getRecipient()).isSameAs(designer);
-              assertThat(notification.getType()).isEqualTo(NotificationType.FINDING_REOPENED);
-              assertThat(notification.getLink()).isEqualTo("/projetos/10/apontamentos");
-            });
+        .extracting(Notification::getType)
+        .containsExactly(NotificationType.PROJECT_APPROVED);
   }
 
   @Test
@@ -136,7 +163,7 @@ class NotificationServiceTest {
     service.resubmitted(withoutAnalyst, NOW);
     service.approved(withoutOwner, NOW);
     service.rejected(withoutOwner, 2, NOW);
-    service.findingReopened(withoutOwner, NOW);
+    service.findingsReopened(withoutOwner, 1, NOW);
 
     assertThat(saved).isEmpty();
     verify(notificationRepository, never()).save(any());
@@ -261,6 +288,30 @@ class NotificationServiceTest {
     verify(notificationRepository, never())
         .existsByRecipientIdAndProjectIdAndTypeAndReviewCycle(
             anyLong(), anyLong(), any(), anyInt());
+  }
+
+  private static Finding answered(Project project) {
+    Finding finding =
+        new Finding(
+            project,
+            FindingSeverity.BLOCKING,
+            FindingStage.DOCUMENTS,
+            null,
+            null,
+            DocumentType.SITE_PLAN,
+            "Anexar a comprovação.",
+            null,
+            project.getReviewer(),
+            project.getReviewCycle() - 1);
+    finding.publish();
+    finding.respond(FindingAnswer.FIXED, null, NOW);
+    return finding;
+  }
+
+  private static Finding reopened(Project project) {
+    Finding finding = answered(project);
+    finding.resolve(FindingResolution.REOPEN, project.getReviewCycle());
+    return finding;
   }
 
   private static User user(Long id, String name, UserRole role) {
