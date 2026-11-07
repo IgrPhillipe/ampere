@@ -79,7 +79,7 @@ class NotificationServiceTest {
               assertThat(notification.getRecipient()).isSameAs(designer);
               assertThat(notification.getType()).isEqualTo(NotificationType.PROJECT_APPROVED);
               assertThat(notification.getProtocol()).isEqualTo("2026-1004");
-              assertThat(notification.getText()).isEqualTo("Projeto 2026-1004 aprovado.");
+              assertThat(notification.getText()).isEqualTo("Projeto 2026-1004 aprovado");
               assertThat(notification.getLink()).isEqualTo("/projetos/10");
               assertThat(notification.isRead()).isFalse();
               assertThat(notification.getCreatedAt()).isEqualTo(NOW);
@@ -120,7 +120,7 @@ class NotificationServiceTest {
         .extracting(Notification::getType)
         .containsExactly(NotificationType.FINDING_REOPENED, NotificationType.PROJECT_REJECTED);
     assertThat(saved.getFirst().getText())
-        .isEqualTo("2 apontamentos reabertos na reanálise do projeto 2026-1004.");
+        .isEqualTo("2 apontamentos reabertos na reanálise do projeto 2026-1004");
     assertThat(saved.getFirst().getLink()).isEqualTo("/projetos/10/apontamentos");
   }
 
@@ -189,7 +189,7 @@ class NotificationServiceTest {
               assertThat(notification.getRecipient()).isSameAs(analyst);
               assertThat(notification.getType()).isEqualTo(NotificationType.REVIEW_DEADLINE_NEAR);
               assertThat(notification.getText())
-                  .isEqualTo("Prazo de análise do projeto 2026-1004 vence em 3 dias.");
+                  .isEqualTo("Prazo de análise do projeto 2026-1004 vence em 3 dias");
               assertThat(notification.getLink()).isEqualTo("/fila-de-analise/10");
             });
   }
@@ -215,7 +215,7 @@ class NotificationServiceTest {
     assertThat(saved)
         .singleElement()
         .extracting(Notification::getText)
-        .isEqualTo("Prazo de análise do projeto 2026-1004 vence hoje.");
+        .isEqualTo("Prazo de análise do projeto 2026-1004 vence hoje");
   }
 
   @Test
@@ -235,7 +235,7 @@ class NotificationServiceTest {
               assertThat(notification.getRecipient()).isSameAs(analyst);
               assertThat(notification.getType()).isEqualTo(NotificationType.REVIEW_OVERDUE);
               assertThat(notification.getText())
-                  .isEqualTo("Prazo de análise do projeto 2026-1004 vencido.");
+                  .isEqualTo("Prazo de análise do projeto 2026-1004 vencido");
             });
   }
 
@@ -274,7 +274,7 @@ class NotificationServiceTest {
               assertThat(notification.getRecipient()).isSameAs(designer);
               assertThat(notification.getType()).isEqualTo(NotificationType.APPROVAL_EXPIRING);
               assertThat(notification.getText())
-                  .isEqualTo("A aprovação do projeto 2026-1004 expira em 20 dias.");
+                  .isEqualTo("A aprovação do projeto 2026-1004 expira em 20 dias");
               assertThat(notification.getLink()).isEqualTo("/projetos/10");
             });
   }

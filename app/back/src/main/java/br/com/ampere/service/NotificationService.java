@@ -93,7 +93,7 @@ public class NotificationService {
         project.getOwner(),
         project,
         NotificationType.PROJECT_APPROVED,
-        "Projeto " + project.getProtocol() + " aprovado.",
+        "Projeto " + project.getProtocol() + " aprovado",
         designerLink(project),
         at);
   }
@@ -115,7 +115,7 @@ public class NotificationService {
         project.getOwner(),
         project,
         NotificationType.FINDING_REOPENED,
-        findings + noun + " na reanálise do projeto " + project.getProtocol() + ".",
+        findings + noun + " na reanálise do projeto " + project.getProtocol(),
         findingsLink(project),
         at);
   }
@@ -126,7 +126,7 @@ public class NotificationService {
         project.getReviewer(),
         project,
         NotificationType.PROJECT_RESUBMITTED,
-        "Projeto " + project.getProtocol() + " reenviado para reanálise.",
+        "Projeto " + project.getProtocol() + " reenviado para reanálise",
         reviewerLink(project),
         at);
   }
@@ -153,7 +153,7 @@ public class NotificationService {
                 project.getReviewer(),
                 project,
                 NotificationType.REVIEW_OVERDUE,
-                "Prazo de análise do projeto " + project.getProtocol() + " vencido.",
+                "Prazo de análise do projeto " + project.getProtocol() + " vencido",
                 reviewerLink(project),
                 now);
       } else if (daysLeft <= DEADLINE_WARNING_DAYS) {
@@ -191,18 +191,18 @@ public class NotificationService {
 
   private static String due(long daysLeft) {
     if (daysLeft == 0) {
-      return "vence hoje.";
+      return "vence hoje";
     }
 
-    return "vence em " + daysLeft + (daysLeft == 1 ? " dia." : " dias.");
+    return "vence em " + daysLeft + (daysLeft == 1 ? " dia" : " dias");
   }
 
   private static String expiry(long daysLeft) {
     if (daysLeft == 0) {
-      return "expira hoje.";
+      return "expira hoje";
     }
 
-    return "expira em " + daysLeft + (daysLeft == 1 ? " dia." : " dias.");
+    return "expira em " + daysLeft + (daysLeft == 1 ? " dia" : " dias");
   }
 
   private static String designerLink(Project project) {

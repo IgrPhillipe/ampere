@@ -127,7 +127,7 @@ class NotificationIntegrationTest {
     list(designer)
         .andExpect(jsonPath("$.data.unreadCount").value(1))
         .andExpect(jsonPath("$.data.items[0].type").value("PROJECT_APPROVED"))
-        .andExpect(jsonPath("$.data.items[0].text").value("Projeto 2026-1004 aprovado."));
+        .andExpect(jsonPath("$.data.items[0].text").value("Projeto 2026-1004 aprovado"));
     list(analyst).andExpect(jsonPath("$.data.items", hasSize(0)));
   }
 
@@ -167,7 +167,7 @@ class NotificationIntegrationTest {
                 .value(contains("PROJECT_REJECTED", "FINDING_REOPENED")))
         .andExpect(
             jsonPath("$.data.items[1].text")
-                .value("1 apontamento reaberto na reanálise do projeto 2026-1004."));
+                .value("1 apontamento reaberto na reanálise do projeto 2026-1004"));
     list(analyst).andExpect(jsonPath("$.data.items", hasSize(0)));
   }
 
