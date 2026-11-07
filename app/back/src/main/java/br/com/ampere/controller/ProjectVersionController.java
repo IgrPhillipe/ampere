@@ -1,5 +1,7 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.DocumentType;
+import br.com.ampere.domain.ProjectVersionDocument;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.ProjectVersionResponse;
 import br.com.ampere.dto.VersionComparisonResponse;
@@ -72,6 +74,36 @@ public class ProjectVersionController {
             HttpHeaders.CONTENT_DISPOSITION,
             ContentDisposition.inline().filename(memorial.filename()).build().toString())
         .body(memorial.content());
+  }
+
+  @GetMapping(value = "/{number}/documents/{type}/file", produces = MediaType.APPLICATION_PDF_VALUE)
+  @Operation(
+      operationId = "getVersionDocument",
+      summary = "Devolve o PDF do documento como foi enviado nesta versão")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Conteúdo do PDF"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "Tipo de documento inválido"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "Projeto, versão ou documento não encontrados")
+  })
+  public ResponseEntity<byte[]> document(
+      @PathVariable Long projectId,
+      @PathVariable int number,
+      @PathVariable DocumentType type,
+      @AuthenticationPrincipal Jwt jwt) {
+    ProjectVersionDocument document = service.document(projectId, number, type, userOf(jwt));
+
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_PDF)
+        .header(
+            HttpHeaders.CONTENT_DISPOSITION,
+            ContentDisposition.inline().filename(document.getFilename()).build().toString())
+        .body(document.getData());
   }
 
   @GetMapping("/compare")

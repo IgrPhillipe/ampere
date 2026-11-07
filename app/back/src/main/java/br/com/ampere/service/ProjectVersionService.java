@@ -2,6 +2,7 @@ package br.com.ampere.service;
 
 import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.ConsumerUnitGroup;
+import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectStatus;
@@ -34,6 +35,8 @@ import tools.jackson.databind.node.ObjectNode;
 public class ProjectVersionService {
 
   private static final String NOT_FOUND = "Versão não encontrada.";
+
+  private static final String DOCUMENT_NOT_FOUND = "Documento não encontrado nesta versão.";
 
   // Locked since the submission, so they still hold the data that was sent.
   private static final List<ProjectStatus> FROZEN =
@@ -157,6 +160,16 @@ public class ProjectVersionService {
     projectService.findById(projectId, user);
 
     return MemorialPdfService.storedMemorial(find(projectId, number));
+  }
+
+  @Transactional(readOnly = true)
+  public ProjectVersionDocument document(
+      Long projectId, int number, DocumentType type, AuthenticatedUser user) {
+    projectService.findById(projectId, user);
+
+    return versionDocumentRepository
+        .findByVersionProjectIdAndVersionNumberAndType(projectId, number, type)
+        .orElseThrow(() -> new NotFoundException(DOCUMENT_NOT_FOUND));
   }
 
   @Transactional(readOnly = true)

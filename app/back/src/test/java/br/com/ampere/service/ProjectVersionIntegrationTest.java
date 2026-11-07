@@ -190,6 +190,30 @@ class ProjectVersionIntegrationTest {
   }
 
   @Test
+  void aVersionKeepsTheDocumentReplacedDuringTheCorrection() throws Exception {
+    Project project = submittedProject("2026-4016");
+    String art = versionsOf(project) + "/1/documents/ART/file";
+    byte[] sent = bytes(perform(get(art)));
+
+    reject(project);
+    byte[] replacement = "%PDF-1.7\n%nova ART".getBytes(StandardCharsets.UTF_8);
+    perform(
+            multipart("/projects/" + project.getId() + "/documents")
+                .file(
+                    new MockMultipartFile(
+                        "file", "nova-art.pdf", MediaType.APPLICATION_PDF_VALUE, replacement))
+                .param("type", DocumentType.ART.name()))
+        .andExpect(status().isCreated());
+    resubmitAfterEditing(project, "Nova ART.");
+
+    assertThat(bytes(perform(get(art)))).isEqualTo(sent).isEqualTo(PDF);
+    assertThat(bytes(perform(get(versionsOf(project) + "/2/documents/ART/file"))))
+        .isEqualTo(replacement);
+    perform(get(versionsOf(project) + "/9/documents/ART/file")).andExpect(status().isNotFound());
+    perform(get(versionsOf(project) + "/1/documents/XPTO/file")).andExpect(status().isBadRequest());
+  }
+
+  @Test
   void aDraftGetsAPreviewMarkedAsSuchAndWithoutVerificationCode() throws Exception {
     Project project = draft("2026-4004");
     perform(post("/projects/" + project.getId() + "/calculations")).andExpect(status().isCreated());
@@ -427,6 +451,11 @@ class ProjectVersionIntegrationTest {
     mockMvc
         .perform(
             get(versionsOf(project) + "/1/memorial").header("Authorization", "Bearer " + other))
+        .andExpect(status().isNotFound());
+    mockMvc
+        .perform(
+            get(versionsOf(project) + "/1/documents/ART/file")
+                .header("Authorization", "Bearer " + other))
         .andExpect(status().isNotFound());
   }
 
