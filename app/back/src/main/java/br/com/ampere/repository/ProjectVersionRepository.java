@@ -9,6 +9,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProjectVersionRepository extends JpaRepository<ProjectVersion, Long> {
 
+  void deleteAllByProjectId(Long projectId);
+
   @Query(
       """
       SELECT version FROM ProjectVersion version

@@ -25,6 +25,7 @@ import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.ProjectVersion;
 import br.com.ampere.domain.ResidentialGroup;
 import br.com.ampere.domain.ReviewerMunicipality;
 import br.com.ampere.domain.User;
@@ -39,6 +40,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -56,6 +58,12 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
     wipe();
     bootstrap();
     scenarioSeeder(false).seed();
+  }
+
+  /** The versions left here would block the wipe of the next class. */
+  @AfterAll
+  void wipeTheVersions() {
+    wipe();
   }
 
   @Test
@@ -86,6 +94,15 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
         .extracting(ProjectEvent::getDescription)
         .isEqualTo("Análise atribuída a Ana Analista pelo sistema.");
     assertThat(detail("2026-2045").getReviewer()).isNull();
+  }
+
+  @Test
+  void recordsAVersionOfEverySubmission() {
+    assertThat(versionRepository.findAllByProjectId(project("2026-2017").getId()))
+        .extracting(ProjectVersion::getNumber)
+        .containsExactly(1, 2, 3);
+    assertThat(versionRepository.findAllByProjectId(project("2026-1006").getId())).hasSize(1);
+    assertThat(versionRepository.findAllByProjectId(project("2026-2001").getId())).isEmpty();
   }
 
   @Test

@@ -177,6 +177,7 @@ final class ScenarioCase {
     Calculation calculation =
         kit.calculations.findFirstByProjectIdOrderByIdDesc(project.getId()).orElseThrow();
     project.submit(submittedAt);
+    kit.versions.register(project, calculation, submittedAt);
     kit.events.submitted(project, project.getOwner(), calculation, submittedAt);
 
     return this;

@@ -11,6 +11,8 @@ import org.springframework.data.repository.query.Param;
 public interface ProjectVersionDocumentRepository
     extends JpaRepository<ProjectVersionDocument, Long> {
 
+  void deleteAllByVersionProjectId(Long projectId);
+
   /** Without the file bytes, which a listing never needs. */
   @Query(
       """
