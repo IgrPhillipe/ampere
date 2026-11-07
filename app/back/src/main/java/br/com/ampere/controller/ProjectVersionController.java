@@ -85,7 +85,7 @@ public class ProjectVersionController {
         description = "Diferenças entre as versões"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
-        description = "Número de versão ausente ou inválido"),
+        description = "Número de versão ausente ou inválido, ou origem posterior ao destino"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Projeto ou versão não encontrados")

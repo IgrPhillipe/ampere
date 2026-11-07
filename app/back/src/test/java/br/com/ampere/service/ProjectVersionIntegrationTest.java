@@ -348,6 +348,7 @@ class ProjectVersionIntegrationTest {
         .andExpect(jsonPath("$.data.included", hasSize(0)))
         .andExpect(jsonPath("$.data.removed", hasSize(0)))
         .andExpect(jsonPath("$.data.changed", hasSize(0)));
+    perform(get(versionsOf(project) + "/compare?from=2&to=1")).andExpect(status().isBadRequest());
     perform(get(versionsOf(project) + "/compare?from=1&to=9")).andExpect(status().isNotFound());
     perform(get(versionsOf(project) + "/9/memorial")).andExpect(status().isNotFound());
   }

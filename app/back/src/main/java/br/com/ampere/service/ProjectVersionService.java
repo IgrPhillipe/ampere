@@ -8,6 +8,7 @@ import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ProjectVersion;
 import br.com.ampere.domain.ProjectVersionDocument;
 import br.com.ampere.domain.ProjectVersionMemorial;
+import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
@@ -163,6 +164,9 @@ public class ProjectVersionService {
   @Transactional(readOnly = true)
   public Comparison compare(Long projectId, int from, int to, AuthenticatedUser user) {
     projectService.findById(projectId, user);
+    if (from > to) {
+      throw new BusinessException("A versão de origem não pode ser posterior à de destino.");
+    }
     ProjectVersion older = find(projectId, from);
     ProjectVersion newer = find(projectId, to);
 
