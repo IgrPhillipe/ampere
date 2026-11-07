@@ -11,8 +11,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -57,12 +55,7 @@ public class SubmissionController {
       @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
     MemorialPdfService.Memorial memorial = memorialPdfService.generate(projectId, userOf(jwt));
 
-    return ResponseEntity.ok()
-        .contentType(MediaType.APPLICATION_PDF)
-        .header(
-            HttpHeaders.CONTENT_DISPOSITION,
-            ContentDisposition.inline().filename(memorial.filename()).build().toString())
-        .body(memorial.content());
+    return InlinePdf.of(memorial.filename(), memorial.content());
   }
 
   @GetMapping("/submission")

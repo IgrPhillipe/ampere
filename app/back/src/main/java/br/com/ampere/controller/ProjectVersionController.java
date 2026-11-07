@@ -13,8 +13,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -68,12 +66,7 @@ public class ProjectVersionController {
       @PathVariable Long projectId, @PathVariable int number, @AuthenticationPrincipal Jwt jwt) {
     MemorialPdfService.Memorial memorial = service.memorial(projectId, number, userOf(jwt));
 
-    return ResponseEntity.ok()
-        .contentType(MediaType.APPLICATION_PDF)
-        .header(
-            HttpHeaders.CONTENT_DISPOSITION,
-            ContentDisposition.inline().filename(memorial.filename()).build().toString())
-        .body(memorial.content());
+    return InlinePdf.of(memorial.filename(), memorial.content());
   }
 
   @GetMapping(value = "/{number}/documents/{type}/file", produces = MediaType.APPLICATION_PDF_VALUE)
@@ -98,12 +91,7 @@ public class ProjectVersionController {
       @AuthenticationPrincipal Jwt jwt) {
     ProjectVersionDocument document = service.document(projectId, number, type, userOf(jwt));
 
-    return ResponseEntity.ok()
-        .contentType(MediaType.APPLICATION_PDF)
-        .header(
-            HttpHeaders.CONTENT_DISPOSITION,
-            ContentDisposition.inline().filename(document.getFilename()).build().toString())
-        .body(document.getData());
+    return InlinePdf.of(document.getFilename(), document.getData());
   }
 
   @GetMapping("/compare")
