@@ -31,7 +31,12 @@ import br.com.ampere.domain.ReviewerMunicipality;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.service.GroupValidation;
+import br.com.ampere.utils.BrazilianDateFormat;
 import br.com.ampere.utils.Timestamps;
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.parser.PdfTextExtractor;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -103,6 +108,26 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
         .containsExactly(1, 2, 3);
     assertThat(versionRepository.findAllByProjectId(project("2026-1006").getId())).hasSize(1);
     assertThat(versionRepository.findAllByProjectId(project("2026-2001").getId())).isEmpty();
+  }
+
+  @Test
+  void printsTheDateOfTheCalculationInTheMemorialOfAVersion() {
+    transaction()
+        .executeWithoutResult(
+            status -> {
+              ProjectVersion version =
+                  versionRepository.findAllByProjectId(project("2026-1006").getId()).get(0);
+              Calculation calculation = version.getCalculation();
+              assertThat(calculation.getCalculatedAt()).isBefore(version.getSubmittedAt());
+              try {
+                assertThat(
+                        new PdfTextExtractor(new PdfReader(version.getMemorial().getData()))
+                            .getTextFromPage(1))
+                    .contains(BrazilianDateFormat.dateTime(calculation.getCalculatedAt()));
+              } catch (IOException failure) {
+                throw new UncheckedIOException(failure);
+              }
+            });
   }
 
   @Test

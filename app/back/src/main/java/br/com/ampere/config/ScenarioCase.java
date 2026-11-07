@@ -102,7 +102,7 @@ final class ScenarioCase {
     Calculation calculation =
         kit.calculations.save(
             kit.demand.compute(project, kit.groups.findAllByProjectIdOrderById(project.getId())));
-    stamps.add(() -> kit.timestamps.calculation(calculation.getId(), at));
+    kit.timestamps.calculation(calculation, at);
 
     return this;
   }
