@@ -122,6 +122,9 @@ repete os mesmos caminhos em `resolve.alias`.
 - Nunca leia `import.meta.env` fora de `src/config/config.ts`; importe `AppConfig` de `@config`.
 - Nunca instancie `ky` ou `QueryClient` fora de `src/lib`.
 - Rotas são só fiação: nada de regra de negócio em `src/routes`.
+- Rota atual se lê com seletor (`useMatches`, `useRouterState`). `useMatchRoute`
+  devolve callback estável, e o React Compiler memoiza o resultado na primeira
+  rota. Teste leitura de rota com router real: mock esconde esse caso.
 - Todo componente compartilhado aceita `className?: string` e funde com `cn()`
   **por último**, para que o consumidor consiga sobrescrever.
 - Resposta de API se valida com `.parse()` do schema Zod, nunca com
