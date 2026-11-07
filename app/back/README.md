@@ -290,7 +290,7 @@ Central do sino do cabeçalho, para projetista e analista. Sem e-mail. Cada noti
 | Aprovação expira em até 30 dias (36 meses após a aprovação) | `APPROVAL_EXPIRING` | Dono do projeto | `/projetos/{id}` |
 
 - As quatro primeiras nascem na transação da operação que as causa (decisão ou envio). A reabertura só avisa na reprovação: antes disso o projetista não pode responder, e o analista ainda pode aceitar o apontamento. Sem destinatário (projeto sem dono, ou sem analista atribuído), nada é gerado.
-- As três últimas não têm ação do usuário: `NotificationScheduler` varre os projetos todo dia às 06:00 (horário de Recife). `NOTIFICATIONS_CRON` troca o horário e `-` desliga a varredura. Cada aviso sai uma vez por projeto, tipo e ciclo de análise, então rodar a varredura de novo não repete nada. O prazo é o de `Project.reviewDeadline`, sem desconto de dias suspensos (US15).
+- As três últimas não têm ação do usuário: `NotificationScheduler` varre os projetos todo dia às 06:00 (horário de Recife) e a cada subida da API, para recuperar uma varredura perdida. `NOTIFICATIONS_CRON` troca o horário e `-` desliga as duas. Cada aviso sai uma vez por projeto, tipo e ciclo de análise, então rodar a varredura de novo não repete nada. O prazo é o de `Project.reviewDeadline`, sem desconto de dias suspensos (US15).
 - O contador some quando as notificações são lidas, mas elas continuam na lista.
 
 ---
@@ -307,7 +307,7 @@ Central do sino do cabeçalho, para projetista e analista. Sem e-mail. Cada noti
 | `JWT_EXPIRATION` | Não | `8h` | Validade do token |
 | `CORS_ALLOWED_ORIGINS` | Não | vazio | Origens externas que podem chamar a API, separadas por vírgula. Aceita padrão: `https://ampere-virid.vercel.app,https://*-igrph.vercel.app`. Vazio: apenas a mesma origem |
 | `CORS_PREVIEW_ORIGINS` | Não | `https://ampere-*-igrph.vercel.app` | Deploy previews do front na Vercel, somados a `CORS_ALLOWED_ORIGINS`. O padrão cobre `ampere-<hash>-igrph.vercel.app` e `ampere-git-<branch>-igrph.vercel.app` |
-| `NOTIFICATIONS_CRON` | Não | `0 0 6 * * *` | Horário da varredura diária de prazos e validade das notificações (cron do Spring, fuso de Recife). `-` desliga |
+| `NOTIFICATIONS_CRON` | Não | `0 0 6 * * *` | Horário da varredura diária de prazos e validade das notificações (cron do Spring, fuso de Recife). `-` desliga, inclusive a varredura ao subir |
 | `DDL_AUTO` | Não | `update` | Alavanca de recuperação de schema. `create` apaga e recria o schema a cada inicialização; use uma vez e **remova a variável** |
 
 Gerar um segredo:
