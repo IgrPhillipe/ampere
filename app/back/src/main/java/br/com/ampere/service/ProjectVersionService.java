@@ -4,12 +4,15 @@ import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
+import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ProjectVersion;
 import br.com.ampere.domain.ProjectVersionDocument;
 import br.com.ampere.domain.ProjectVersionMemorial;
 import br.com.ampere.error.NotFoundException;
+import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
+import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectVersionDocumentRepository;
 import br.com.ampere.repository.ProjectVersionRepository;
 import java.time.OffsetDateTime;
@@ -33,12 +36,18 @@ public class ProjectVersionService {
 
   private static final String NOT_FOUND = "Versão não encontrada.";
 
+  // Locked since the submission, so they still hold the data that was sent.
+  private static final List<ProjectStatus> FROZEN =
+      List.of(ProjectStatus.UNDER_REVIEW, ProjectStatus.APPROVED);
+
   private final ProjectService projectService;
   private final MemorialPdfService memorialPdfService;
   private final ProjectVersionRepository versionRepository;
   private final ProjectVersionDocumentRepository versionDocumentRepository;
   private final ProjectDocumentRepository documentRepository;
   private final ConsumerUnitGroupRepository groupRepository;
+  private final CalculationRepository calculationRepository;
+  private final ProjectRepository projectRepository;
   private final ObjectMapper objectMapper;
 
   public ProjectVersionService(
@@ -48,6 +57,8 @@ public class ProjectVersionService {
       ProjectVersionDocumentRepository versionDocumentRepository,
       ProjectDocumentRepository documentRepository,
       ConsumerUnitGroupRepository groupRepository,
+      CalculationRepository calculationRepository,
+      ProjectRepository projectRepository,
       ObjectMapper objectMapper) {
     this.projectService = projectService;
     this.memorialPdfService = memorialPdfService;
@@ -55,6 +66,8 @@ public class ProjectVersionService {
     this.versionDocumentRepository = versionDocumentRepository;
     this.documentRepository = documentRepository;
     this.groupRepository = groupRepository;
+    this.calculationRepository = calculationRepository;
+    this.projectRepository = projectRepository;
     this.objectMapper = objectMapper;
   }
 
@@ -103,6 +116,19 @@ public class ProjectVersionService {
     }
 
     return version;
+  }
+
+  @Transactional(readOnly = true)
+  public List<Long> projectsMissingVersion() {
+    return versionRepository.findProjectIdsWithoutVersion(FROZEN);
+  }
+
+  @Transactional
+  public void backfill(Long projectId) {
+    Project project = projectRepository.findDetailById(projectId).orElseThrow();
+    calculationRepository
+        .findFirstByProjectIdOrderByIdDesc(projectId)
+        .ifPresent(calculation -> register(project, calculation, project.getSubmittedAt()));
   }
 
   @Transactional(readOnly = true)

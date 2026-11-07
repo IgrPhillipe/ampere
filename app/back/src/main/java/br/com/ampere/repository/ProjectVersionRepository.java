@@ -1,6 +1,8 @@
 package br.com.ampere.repository;
 
+import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ProjectVersion;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +12,15 @@ import org.springframework.data.repository.query.Param;
 public interface ProjectVersionRepository extends JpaRepository<ProjectVersion, Long> {
 
   void deleteAllByProjectId(Long projectId);
+
+  @Query(
+      """
+      SELECT project.id FROM Project project
+      WHERE project.status IN :statuses AND project.submittedAt IS NOT NULL
+        AND NOT EXISTS (SELECT 1 FROM ProjectVersion version WHERE version.project = project)
+      ORDER BY project.id
+      """)
+  List<Long> findProjectIdsWithoutVersion(@Param("statuses") Collection<ProjectStatus> statuses);
 
   @Query(
       """

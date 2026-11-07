@@ -92,6 +92,8 @@ class ProjectVersionIntegrationTest {
 
   @Autowired private ProjectVersionDocumentRepository versionDocumentRepository;
 
+  @Autowired private ProjectVersionService versionService;
+
   private String token;
 
   private List<Standard> standards;
@@ -347,6 +349,33 @@ class ProjectVersionIntegrationTest {
         .andExpect(jsonPath("$.data.changed", hasSize(0)));
     perform(get(versionsOf(project) + "/compare?from=1&to=9")).andExpect(status().isNotFound());
     perform(get(versionsOf(project) + "/9/memorial")).andExpect(status().isNotFound());
+  }
+
+  @Test
+  void aProjectSubmittedBeforeTheVersionsExistedGetsOneFromTheBackfill() throws Exception {
+    Project project = draft("2026-4013");
+    perform(post("/projects/" + project.getId() + "/calculations")).andExpect(status().isCreated());
+    Project stored = projectRepository.findById(project.getId()).orElseThrow();
+    stored.submit(Timestamps.now());
+    projectRepository.save(stored);
+    assertThat(versionService.projectsMissingVersion()).containsExactly(project.getId());
+
+    versionService.backfill(project.getId());
+
+    assertThat(versionService.projectsMissingVersion()).isEmpty();
+    String text = textOf(bytes(perform(get(memorialOf(project)))));
+    assertThat(text).containsIgnoringCase("versão 1").doesNotContainIgnoringCase("prévia");
+  }
+
+  @Test
+  void theBackfillSkipsAProjectEditedAfterItsRejection() throws Exception {
+    Project project = draft("2026-4014");
+    Project stored = projectRepository.findById(project.getId()).orElseThrow();
+    stored.submit(Timestamps.now());
+    stored.reject(Timestamps.now());
+    projectRepository.save(stored);
+
+    assertThat(versionService.projectsMissingVersion()).isEmpty();
   }
 
   @Test
