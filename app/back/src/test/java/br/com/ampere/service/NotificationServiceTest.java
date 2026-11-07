@@ -175,7 +175,8 @@ class NotificationServiceTest {
     Project project = underReview(10L, designer, analyst, "2026-10-10T15:00:00Z");
     when(projectRepository.findAllByStatusOrderByIdAsc(ProjectStatus.UNDER_REVIEW))
         .thenReturn(List.of(project));
-    when(projectRepository.findAllByStatusOrderByIdAsc(ProjectStatus.APPROVED))
+    when(projectRepository.findAllByStatusAndReviewedAtBetweenOrderByIdAsc(
+            eq(ProjectStatus.APPROVED), any(), any()))
         .thenReturn(List.of());
 
     int issued = service.issueTimeBasedNotifications(NOW);
@@ -259,7 +260,8 @@ class NotificationServiceTest {
     Project expired = approved(12L, designer, analyst, "2023-10-01T15:00:00Z");
     when(projectRepository.findAllByStatusOrderByIdAsc(ProjectStatus.UNDER_REVIEW))
         .thenReturn(List.of());
-    when(projectRepository.findAllByStatusOrderByIdAsc(ProjectStatus.APPROVED))
+    when(projectRepository.findAllByStatusAndReviewedAtBetweenOrderByIdAsc(
+            eq(ProjectStatus.APPROVED), any(), any()))
         .thenReturn(List.of(expiring, far, expired));
 
     int issued = service.issueTimeBasedNotifications(NOW);

@@ -31,6 +31,10 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
   @EntityGraph(attributePaths = {"owner", "reviewer"})
   List<Project> findAllByStatusOrderByIdAsc(ProjectStatus status);
 
+  @EntityGraph(attributePaths = "owner")
+  List<Project> findAllByStatusAndReviewedAtBetweenOrderByIdAsc(
+      ProjectStatus status, OffsetDateTime from, OffsetDateTime to);
+
   List<Project> findAllByOwnerIdAndStatusOrderByReviewedAtAscIdAsc(
       Long ownerId, ProjectStatus status);
 

@@ -167,10 +167,12 @@ public class NotificationService {
                 now);
       }
     }
-    for (Project project : projectRepository.findAllByStatusOrderByIdAsc(ProjectStatus.APPROVED)) {
-      if (project.getReviewedAt() == null) {
-        continue;
-      }
+    OffsetDateTime expiringToday = now.minusMonths(Project.APPROVAL_VALIDITY_MONTHS);
+    for (Project project :
+        projectRepository.findAllByStatusAndReviewedAtBetweenOrderByIdAsc(
+            ProjectStatus.APPROVED,
+            expiringToday.minusDays(1),
+            expiringToday.plusDays(EXPIRY_WARNING_DAYS + 1))) {
       long daysLeft = ChronoUnit.DAYS.between(today, project.approvalExpiresOn(Timestamps.ZONE));
       if (daysLeft >= 0 && daysLeft <= EXPIRY_WARNING_DAYS) {
         issued +=
