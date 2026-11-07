@@ -38,6 +38,10 @@ public class SecurityConfig {
 
   private static final String[] PUBLIC_AUTH_PATHS = {"/auth/login", "/auth/register"};
 
+  private static final String VERIFICATION_PATH = "/memorial-verifications";
+
+  private static final int VERIFICATIONS_PER_MINUTE = 20;
+
   private static final String ADMIN = UserRole.ADMIN.name();
 
   private static final String DESIGNER = UserRole.USER.name();
@@ -63,6 +67,8 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(HttpMethod.POST, PUBLIC_AUTH_PATHS)
+                    .permitAll()
+                    .requestMatchers(VERIFICATION_PATH, VERIFICATION_PATH + "/*")
                     .permitAll()
                     .requestMatchers("/docs/**", "/swagger-ui/**", "/v3/api-docs/**")
                     .permitAll()
@@ -107,6 +113,10 @@ public class SecurityConfig {
                     .bearerTokenResolver(ignoringPublicAuthPaths()))
         .addFilterAfter(
             new PendingPasswordChangeFilter(handler), BearerTokenAuthenticationFilter.class)
+        .addFilterBefore(
+            new VerificationRateLimitFilter(
+                VERIFICATION_PATH, VERIFICATIONS_PER_MINUTE, handler, System::currentTimeMillis),
+            BearerTokenAuthenticationFilter.class)
         .exceptionHandling(
             exceptions -> exceptions.authenticationEntryPoint(handler).accessDeniedHandler(handler))
         .build();
@@ -119,7 +129,11 @@ public class SecurityConfig {
     DefaultBearerTokenResolver resolver = new DefaultBearerTokenResolver();
     return request -> {
       String path = request.getRequestURI().substring(request.getContextPath().length());
-      return Arrays.asList(PUBLIC_AUTH_PATHS).contains(path) ? null : resolver.resolve(request);
+      boolean isPublic =
+          Arrays.asList(PUBLIC_AUTH_PATHS).contains(path)
+              || path.equals(VERIFICATION_PATH)
+              || path.startsWith(VERIFICATION_PATH + "/");
+      return isPublic ? null : resolver.resolve(request);
     };
   }
 

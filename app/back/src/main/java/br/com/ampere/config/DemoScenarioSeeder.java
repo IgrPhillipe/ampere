@@ -12,12 +12,15 @@ import br.com.ampere.repository.NotificationRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.repository.ProjectVersionDocumentRepository;
+import br.com.ampere.repository.ProjectVersionRepository;
 import br.com.ampere.repository.ReviewerMunicipalityRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.DemandCalculationService;
 import br.com.ampere.service.NotificationService;
 import br.com.ampere.service.ProjectEventService;
+import br.com.ampere.service.ProjectVersionService;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -56,6 +59,8 @@ public class DemoScenarioSeeder {
   private final CalculationRepository calculationRepository;
   private final ProjectDocumentRepository documentRepository;
   private final ProjectEventRepository eventRepository;
+  private final ProjectVersionRepository versionRepository;
+  private final ProjectVersionDocumentRepository versionDocumentRepository;
   private final StandardRepository standardRepository;
   private final NormativeTableRepository normativeTableRepository;
   private final UserRepository userRepository;
@@ -64,6 +69,7 @@ public class DemoScenarioSeeder {
   private final ProjectEventService eventService;
   private final NotificationService notificationService;
   private final NotificationRepository notificationRepository;
+  private final ProjectVersionService versionService;
   private final SeedTimestamps timestamps;
   private final PlatformTransactionManager transactionManager;
   private final boolean resetScenarios;
@@ -75,6 +81,8 @@ public class DemoScenarioSeeder {
       CalculationRepository calculationRepository,
       ProjectDocumentRepository documentRepository,
       ProjectEventRepository eventRepository,
+      ProjectVersionRepository versionRepository,
+      ProjectVersionDocumentRepository versionDocumentRepository,
       StandardRepository standardRepository,
       NormativeTableRepository normativeTableRepository,
       UserRepository userRepository,
@@ -83,6 +91,7 @@ public class DemoScenarioSeeder {
       ProjectEventService eventService,
       NotificationService notificationService,
       NotificationRepository notificationRepository,
+      ProjectVersionService versionService,
       SeedTimestamps timestamps,
       PlatformTransactionManager transactionManager,
       @Value("${ampere.seed.reset-scenarios:false}") boolean resetScenarios) {
@@ -92,6 +101,8 @@ public class DemoScenarioSeeder {
     this.calculationRepository = calculationRepository;
     this.documentRepository = documentRepository;
     this.eventRepository = eventRepository;
+    this.versionRepository = versionRepository;
+    this.versionDocumentRepository = versionDocumentRepository;
     this.standardRepository = standardRepository;
     this.normativeTableRepository = normativeTableRepository;
     this.userRepository = userRepository;
@@ -100,6 +111,7 @@ public class DemoScenarioSeeder {
     this.eventService = eventService;
     this.notificationService = notificationService;
     this.notificationRepository = notificationRepository;
+    this.versionService = versionService;
     this.timestamps = timestamps;
     this.transactionManager = transactionManager;
     this.resetScenarios = resetScenarios;
@@ -135,6 +147,7 @@ public class DemoScenarioSeeder {
             eventService,
             notificationService,
             notificationRepository,
+            versionService,
             timestamps,
             users.get().admin(),
             standardRepository.findAll().stream()
@@ -266,6 +279,9 @@ public class DemoScenarioSeeder {
 
   private void delete(Project project) {
     Long id = project.getId();
+    versionRepository.allowCleanup();
+    versionDocumentRepository.deleteAllByVersionProjectId(id);
+    versionRepository.deleteAllByProjectId(id);
     calculationRepository.deleteAllByProjectId(id);
     findingRepository.deleteAllByProjectId(id);
     groupRepository.deleteAllByProjectId(id);

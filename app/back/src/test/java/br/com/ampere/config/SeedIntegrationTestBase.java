@@ -8,12 +8,15 @@ import br.com.ampere.repository.NotificationRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.repository.ProjectVersionDocumentRepository;
+import br.com.ampere.repository.ProjectVersionRepository;
 import br.com.ampere.repository.ReviewerMunicipalityRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.DemandCalculationService;
 import br.com.ampere.service.NotificationService;
 import br.com.ampere.service.ProjectEventService;
+import br.com.ampere.service.ProjectVersionService;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -31,6 +34,8 @@ abstract class SeedIntegrationTestBase {
   @Autowired protected CalculationRepository calculationRepository;
   @Autowired protected ProjectDocumentRepository documentRepository;
   @Autowired protected ProjectEventRepository eventRepository;
+  @Autowired protected ProjectVersionRepository versionRepository;
+  @Autowired protected ProjectVersionDocumentRepository versionDocumentRepository;
   @Autowired protected StandardRepository standardRepository;
   @Autowired protected NormativeTableRepository normativeTableRepository;
   @Autowired protected UserRepository userRepository;
@@ -39,6 +44,7 @@ abstract class SeedIntegrationTestBase {
   @Autowired protected ProjectEventService projectEventService;
   @Autowired protected NotificationService notificationService;
   @Autowired protected NotificationRepository notificationRepository;
+  @Autowired protected ProjectVersionService projectVersionService;
   @Autowired protected PasswordEncoder passwordEncoder;
   @Autowired protected PlatformTransactionManager transactionManager;
   @Autowired protected EntityManager entityManager;
@@ -51,6 +57,8 @@ abstract class SeedIntegrationTestBase {
   protected void wipe() {
     municipalityRepository.deleteAll();
     eventRepository.deleteAll();
+    versionDocumentRepository.deleteAll();
+    versionRepository.deleteAll();
     documentRepository.deleteAll();
     calculationRepository.deleteAll();
     findingRepository.deleteAll();
@@ -88,6 +96,8 @@ abstract class SeedIntegrationTestBase {
         calculationRepository,
         documentRepository,
         eventRepository,
+        versionRepository,
+        versionDocumentRepository,
         standardRepository,
         normativeTableRepository,
         userRepository,
@@ -96,6 +106,7 @@ abstract class SeedIntegrationTestBase {
         projectEventService,
         notificationService,
         notificationRepository,
+        projectVersionService,
         new SeedTimestamps(entityManager),
         transactionManager,
         resetScenarios);

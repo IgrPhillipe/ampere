@@ -30,6 +30,7 @@ public class SubmissionService {
   private final ProjectEventService eventService;
   private final ReviewAssignmentService reviewAssignmentService;
   private final NotificationService notificationService;
+  private final ProjectVersionService versionService;
 
   public SubmissionService(
       ProjectService projectService,
@@ -39,7 +40,8 @@ public class SubmissionService {
       FindingRepository findingRepository,
       ProjectEventService eventService,
       ReviewAssignmentService reviewAssignmentService,
-      NotificationService notificationService) {
+      NotificationService notificationService,
+      ProjectVersionService versionService) {
     this.projectService = projectService;
     this.demandCalculationService = demandCalculationService;
     this.calculationRepository = calculationRepository;
@@ -48,6 +50,7 @@ public class SubmissionService {
     this.eventService = eventService;
     this.reviewAssignmentService = reviewAssignmentService;
     this.notificationService = notificationService;
+    this.versionService = versionService;
   }
 
   @Transactional(readOnly = true)
@@ -97,6 +100,7 @@ public class SubmissionService {
         calculationRepository.findFirstByProjectIdOrderByIdDesc(projectId).orElseThrow();
     OffsetDateTime submittedAt = Timestamps.now();
     project.submit(submittedAt);
+    versionService.register(project, calculation, submittedAt);
     eventService.submitted(project, project.getOwner(), calculation, submittedAt);
     reviewAssignmentService.distribute(project, submittedAt);
     // After the distribution, which hands a resubmission back to whoever rejected it.

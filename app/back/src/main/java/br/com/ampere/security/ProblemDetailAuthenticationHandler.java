@@ -22,6 +22,8 @@ public class ProblemDetailAuthenticationHandler
   static final String FORBIDDEN_MESSAGE = "Você não tem permissão para acessar este recurso.";
   static final String PASSWORD_CHANGE_REQUIRED_MESSAGE =
       "Troque a senha temporária para continuar.";
+  static final String TOO_MANY_REQUESTS_MESSAGE =
+      "Muitas verificações em pouco tempo. Aguarde um minuto e tente novamente.";
 
   /** Lets the client tell this refusal from a missing permission and open the change. */
   static final String PASSWORD_CHANGE_REQUIRED_CODE = "PASSWORD_CHANGE_REQUIRED";
@@ -47,6 +49,11 @@ public class ProblemDetailAuthenticationHandler
       HttpServletRequest request, HttpServletResponse response, AccessDeniedException exception)
       throws IOException {
     write(request, response, HttpStatus.FORBIDDEN, FORBIDDEN_MESSAGE);
+  }
+
+  void refuseTooManyRequests(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    write(request, response, HttpStatus.TOO_MANY_REQUESTS, TOO_MANY_REQUESTS_MESSAGE);
   }
 
   void requirePasswordChange(HttpServletRequest request, HttpServletResponse response)

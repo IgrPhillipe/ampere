@@ -12,8 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.util.List;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -77,12 +75,7 @@ public class ProjectDocumentController {
       @AuthenticationPrincipal Jwt jwt) {
     ProjectDocument document = service.file(projectId, documentId, userOf(jwt));
 
-    return ResponseEntity.ok()
-        .contentType(MediaType.APPLICATION_PDF)
-        .header(
-            HttpHeaders.CONTENT_DISPOSITION,
-            ContentDisposition.inline().filename(document.getFilename()).build().toString())
-        .body(document.getData());
+    return InlinePdf.of(document.getFilename(), document.getData());
   }
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

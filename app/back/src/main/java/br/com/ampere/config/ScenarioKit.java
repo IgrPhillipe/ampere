@@ -14,6 +14,7 @@ import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.service.DemandCalculationService;
 import br.com.ampere.service.NotificationService;
 import br.com.ampere.service.ProjectEventService;
+import br.com.ampere.service.ProjectVersionService;
 import com.lowagie.text.Document;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
@@ -35,6 +36,7 @@ final class ScenarioKit {
   final ProjectEventService events;
   final NotificationService notifications;
   final NotificationRepository notices;
+  final ProjectVersionService versions;
   final SeedTimestamps timestamps;
   final User manager;
   private final Map<String, Standard> standards;
@@ -50,6 +52,7 @@ final class ScenarioKit {
       ProjectEventService events,
       NotificationService notifications,
       NotificationRepository notices,
+      ProjectVersionService versions,
       SeedTimestamps timestamps,
       User manager,
       Map<String, Standard> standards,
@@ -63,6 +66,7 @@ final class ScenarioKit {
     this.events = events;
     this.notifications = notifications;
     this.notices = notices;
+    this.versions = versions;
     this.timestamps = timestamps;
     this.manager = manager;
     this.standards = standards;

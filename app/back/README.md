@@ -295,6 +295,33 @@ Central do sino do cabeçalho, para projetista e analista. Sem e-mail. Cada noti
 
 ---
 
+---
+
+### Versões e Verificação do Memorial
+
+Cada envio grava uma versão imutável (`ProjectVersion`): número (o ciclo de análise), data, autor, resumo das alterações (vazio na primeira versão), o cálculo, uma cópia dos documentos e o memorial em PDF emitido naquele momento.
+
+| Rota | Acesso | O que faz |
+| :--- | :--- | :--- |
+| `GET /api/projects/{id}/memorial` | Dono, analista, admin | Projeto enviado: devolve o PDF gravado na última versão, sem regerar. Rascunho ou projeto em correção: prévia com a marca "Prévia" e sem código de verificação |
+| `GET /api/projects/{id}/versions` | Dono, analista, admin | Versões, da primeira à última, com demanda, documentos, SHA-256 e código |
+| `GET /api/projects/{id}/versions/{number}/memorial` | Dono, analista, admin | PDF gravado na versão |
+| `GET /api/projects/{id}/versions/{number}/documents/{type}/file` | Dono, analista, admin | PDF do documento como foi enviado na versão |
+| `GET /api/projects/{id}/versions/compare?from=&to=` | Dono, analista, admin | Grupos `included`, `removed` e `changed`, dados da edificação em `building` e a demanda de cada versão. `from` maior que `to` responde 400 |
+| `GET /api/memorial-verifications/{code}` | Público | Confere o código do rodapé |
+| `POST /api/memorial-verifications` | Público | Recebe o PDF (`multipart`, campo `file`) e confere se é idêntico ao emitido |
+
+- O `ProjectVersionGuard` instala, na inicialização, gatilhos que recusam `UPDATE` e `DELETE` nas três tabelas de versão, inclusive por SQL direto. Só o reset dos cenários passa, com `ampere.version_cleanup` ligado na própria transação. Quem tem acesso de dono ao banco ainda pode remover os gatilhos.
+- Regerar mudaria os bytes (o PDF leva a data de criação) e quebraria a verificação, por isso o PDF de uma versão só é lido, nunca refeito.
+- O rodapé traz protocolo, versão, data do envio e o código de verificação. Os metadados do arquivo trazem título, projetista, protocolo, versão e normas aplicadas.
+- O SHA-256 do arquivo fica na versão. O código (`XXXX-XXXX-XXXX-XXXX`) vem do SHA-256 de uma primeira renderização sem ele, pois o código impresso não pode entrar no próprio hash.
+- A verificação responde `200` com `verified` verdadeiro e protocolo, versão e data do envio, ou `verified` falso e nada mais. Um arquivo com qualquer byte alterado não confirma, e isso inclui o PDF salvo de novo por um leitor ou por "imprimir como PDF".
+- O `POST` aceita 20 envios por minuto por endereço. Acima disso, responde `429` com `Retry-After`. O contador fica em memória, por instância.
+- Pelo código, `verified` confirma a versão, não o arquivo em mãos: um PDF alterado mantém o código impresso. Só o envio do arquivo atesta a integridade.
+- Cada alteração da comparação traz `field`, com o caminho (`quantity`, `items[MOTORS:Elevador].power`, pois cada item é identificado pela categoria e pela descrição, e renomear um item conta como troca), `label` em português, os valores crus em `from` e `to` e os valores de tela em `fromLabel` e `toLabel`.
+- Na inicialização, projeto em análise ou aprovado sem versão recebe uma, com a data e o número do último envio, pois seus dados não mudaram desde então. Projeto reprovado antes das versões não recebe: seus dados podem já ter mudado, e o próximo reenvio grava a versão desse ciclo, sem as anteriores.
+- Depois de atualizar um banco com os dados de demonstração, `SEED_RESET_SCENARIOS=true` recria os cenários com o histórico completo de versões.
+
 ## Variáveis de Ambiente
 
 | Variável | Obrigatória | Padrão | Descrição |
