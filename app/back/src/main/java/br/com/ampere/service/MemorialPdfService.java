@@ -5,6 +5,7 @@ import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.CalculationStep;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
+import br.com.ampere.domain.DemandStep;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectVersion;
 import br.com.ampere.domain.User;
@@ -58,7 +59,6 @@ public class MemorialPdfService {
   private static final Locale PT_BR = Locale.of("pt", "BR");
   private static final String EMPTY = "Não informado";
   private static final String NOT_APPLICABLE = "Não se aplica";
-  private static final String INDIVIDUAL_STEP = "Dind";
 
   private static final float MARGIN = 48;
 
@@ -402,7 +402,7 @@ public class MemorialPdfService {
   /** DIS-NOR-053 item 6.22.3: each apartment on its own, apart from the building's demand. */
   private static void addIndividualDemand(Document document, List<CalculationStep> steps) {
     steps.stream()
-        .filter(step -> INDIVIDUAL_STEP.equals(step.getCode()))
+        .filter(step -> DemandStep.INDIVIDUAL.equals(step.getCode()))
         .findFirst()
         .ifPresent(
             step -> {

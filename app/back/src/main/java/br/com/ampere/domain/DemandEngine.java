@@ -16,7 +16,6 @@ public final class DemandEngine {
 
   private static final BigDecimal SIMPLIFIED_PROJECT_KVA = new BigDecimal("50");
   private static final BigDecimal NETWORK_STUDY_KW = new BigDecimal("20");
-  private static final String INDIVIDUAL = "Dind";
   private static final String INDIVIDUAL_TITLE = "Demanda Individual dos Apartamentos";
 
   private DemandEngine() {}
@@ -144,7 +143,7 @@ public final class DemandEngine {
   private static DemandStep individualStep(List<IndividualDemand> units) {
     if (units.isEmpty()) {
       return new DemandStep(
-          INDIVIDUAL,
+          DemandStep.INDIVIDUAL,
           INDIVIDUAL_TITLE,
           false,
           "Não se aplica: nenhum apartamento no projeto",
@@ -167,7 +166,7 @@ public final class DemandEngine {
         cited.stream().filter(reference -> reference.code() != null).toList();
 
     return new DemandStep(
-        INDIVIDUAL,
+        DemandStep.INDIVIDUAL,
         INDIVIDUAL_TITLE,
         true,
         largest
