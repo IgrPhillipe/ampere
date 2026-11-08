@@ -87,7 +87,7 @@ public class LoadItem {
     return powerUnit.toKilowatts(power).multiply(BigDecimal.valueOf(quantity));
   }
 
-  List<ValidationIssue> validate(String path, LoadUsage usage) {
+  List<ValidationIssue> validate(String path, LoadOccupancy usage) {
     if (!DeclaredValues.isPositive(power)) {
       return List.of(
           ValidationIssue.missing(

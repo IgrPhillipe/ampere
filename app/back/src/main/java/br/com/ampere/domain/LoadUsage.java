@@ -1,7 +1,7 @@
 package br.com.ampere.domain;
 
-/** Whom the loads serve: the condominium (Ds), a commercial unit (Dc) or one apartment. */
-public enum LoadUsage {
+/** Whether a load group serves the condominium (Ds) or a commercial unit (Dc). */
+public enum LoadUsage implements LoadOccupancy {
   COMMON_AREA(
       "Área comum",
       DemandComponent.CONDOMINIUM_SERVICES,
@@ -9,9 +9,7 @@ public enum LoadUsage {
       "COLLECTIVE_ADMINISTRATION_OUTLETS",
       "RESIDENTIAL"),
   COMMERCIAL(
-      "Carga comercial", DemandComponent.NON_RESIDENTIAL_UNITS, "STORES", "STORES", "COMMERCIAL"),
-  /** Loads of a three-phase apartment: parcel a reads Tabela 6, not Tabela 22. */
-  APARTMENT("Apartamento", DemandComponent.RESIDENTIAL_UNITS, null, null, "RESIDENTIAL");
+      "Carga comercial", DemandComponent.NON_RESIDENTIAL_UNITS, "STORES", "STORES", "COMMERCIAL");
 
   private final String label;
   private final DemandComponent component;
@@ -41,16 +39,19 @@ public enum LoadUsage {
   }
 
   /** Row of Tabela 22 for the lighting of this occupancy. */
+  @Override
   public String lightingKey() {
     return lightingKey;
   }
 
   /** Row of Tabela 22 for the general-use outlets of this occupancy. */
+  @Override
   public String outletsKey() {
     return outletsKey;
   }
 
   /** Column of Tabela 12. */
+  @Override
   public String airConditioningKey() {
     return airConditioningKey;
   }

@@ -144,12 +144,6 @@ class ConsumerUnitGroupTest {
   }
 
   @Test
-  void apartmentLoadsBelongToTheResidentialGroup() {
-    assertThat(GroupKind.LOAD.rejection(loads(LoadUsage.APARTMENT, List.of())))
-        .contains("Cargas do apartamento vão no grupo residencial.");
-  }
-
-  @Test
   void aUnitOfExactly75KwStaysInLowVoltage() {
     ConsumerUnitGroup group =
         GroupKind.RESIDENTIAL.create(

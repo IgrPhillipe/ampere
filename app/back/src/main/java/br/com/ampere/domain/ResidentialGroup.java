@@ -174,7 +174,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
           .forEach(
               index ->
                   issues.addAll(
-                      loads.get(index).validate("loads[" + index + "]", LoadUsage.APARTMENT)));
+                      loads.get(index).validate("loads[" + index + "]", LoadOccupancy.APARTMENT)));
     } else if (!DeclaredValues.isPositive(load)) {
       issues.add(
           ValidationIssue.missing(
@@ -273,7 +273,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
     // The apartment's motors follow its own connection, not the building's.
     DemandContext unit =
         new DemandContext(context.tables(), context.voltage(), ConnectionType.THREE_PHASE);
-    List<ParcelDemand> parcels = LoadCategory.parcels(loads, 1, LoadUsage.APARTMENT, unit);
+    List<ParcelDemand> parcels = LoadCategory.parcels(loads, 1, LoadOccupancy.APARTMENT, unit);
     BigDecimal demand =
         DeclaredValues.kva(
             parcels.stream().map(ParcelDemand::kva).reduce(BigDecimal.ZERO, BigDecimal::add));

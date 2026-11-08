@@ -42,7 +42,7 @@ class LoadCategoryDemandTest {
         LoadCategory.LIGHTING_AND_OUTLETS.demand(
             List.of(lighting("Tomadas", "3.0", null), lighting("Iluminação", "1.2", null)),
             1,
-            LoadUsage.APARTMENT,
+            LoadOccupancy.APARTMENT,
             THREE_PHASE);
 
     assertThat(lighting.kva()).isEqualByComparingTo("2.18");
