@@ -43,9 +43,9 @@ public final class DemandEngine {
         entrance == null ? calculated : calculated.max(entrance.consideredKva());
     boolean minimumApplied = considered.compareTo(calculated) > 0;
     steps.add(totalStep(steps, calculated, considered, entrance, context));
-    steps.add(
-        individualStep(
-            groups.stream().flatMap(group -> group.individualDemand(context).stream()).toList()));
+    List<IndividualDemand> units =
+        groups.stream().flatMap(group -> group.individualDemand(context).stream()).toList();
+    steps.add(individualStep(units));
 
     List<NormativeReference> applied = new ArrayList<>();
     steps.forEach(step -> applied.addAll(step.references()));
@@ -58,7 +58,8 @@ public final class DemandEngine {
         minimumApplied,
         entrance,
         context.connectionType().currentAmps(calculated, context.voltage()),
-        checks(steps, contributions, calculated, considered, minimumApplied, entrance, context),
+        checks(
+            steps, contributions, units, calculated, considered, minimumApplied, entrance, context),
         DemandComponent.distinct(applied));
   }
 
@@ -178,6 +179,7 @@ public final class DemandEngine {
   private static List<CalculationCheck> checks(
       List<DemandStep> steps,
       List<DemandContribution> contributions,
+      List<IndividualDemand> units,
       BigDecimal calculated,
       BigDecimal considered,
       boolean minimumApplied,
@@ -248,7 +250,28 @@ public final class DemandEngine {
                     + residential.safetyFactorBand()
                     + " (DIS-NOR-053 Anexo I, item 5)."));
 
+    checks.add(lowVoltageCheck(units));
+
     return checks;
+  }
+
+  /** Groups above the limit never reach the engine: the check records that each unit was within. */
+  private static CalculationCheck lowVoltageCheck(List<IndividualDemand> units) {
+    if (units.isEmpty()) {
+      return new CalculationCheck(
+          "LOW_VOLTAGE_LIMIT",
+          CheckStatus.SKIPPED,
+          "Sem apartamentos: o limite de 75 kW por unidade (DIS-NOR-030, item 6.2.1) não se"
+              + " aplica.");
+    }
+    BigDecimal largest =
+        units.stream().map(IndividualDemand::installedKw).max(Comparator.naturalOrder()).get();
+    return new CalculationCheck(
+        "LOW_VOLTAGE_LIMIT",
+        CheckStatus.PASSED,
+        "Maior carga instalada por apartamento de "
+            + DeclaredValues.fixed(largest, 2)
+            + " kW, dentro do limite de 75 kW da baixa tensão (DIS-NOR-030, item 6.2.1).");
   }
 
   /** Tabelas 1 and 2 size a three-phase entrance up to 300 kVA; outside that, a warning. */

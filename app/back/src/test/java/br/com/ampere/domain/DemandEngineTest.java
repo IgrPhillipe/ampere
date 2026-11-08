@@ -89,7 +89,7 @@ class DemandEngineTest {
   }
 
   @Test
-  void runsTheSameFiveChecksOnEveryCalculation() {
+  void runsTheSameSixChecksOnEveryCalculation() {
     DemandResult result =
         DemandEngine.run(
             prototypeH3(), context(SupplyVoltage.V380_220, ConnectionType.THREE_PHASE));
@@ -101,7 +101,8 @@ class DemandEngineTest {
             tuple("TRANSFORMER_LIMIT", CheckStatus.SKIPPED),
             tuple("NETWORK_STUDY", CheckStatus.WARNING),
             tuple("PROJECT_SIZE", CheckStatus.INFO),
-            tuple("SAFETY_FACTOR", CheckStatus.PASSED));
+            tuple("SAFETY_FACTOR", CheckStatus.PASSED),
+            tuple("LOW_VOLTAGE_LIMIT", CheckStatus.PASSED));
   }
 
   @Test

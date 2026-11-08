@@ -98,6 +98,28 @@ class IndividualDemandTest {
   }
 
   @Test
+  void theLowVoltageCheckRecordsTheLargestUnit() {
+    DemandResult result =
+        DemandEngine.run(
+            List.of(
+                apartments(PROJECT, 10, "70"),
+                threePhaseApartments(PROJECT, "Cobertura", 2, "180", exemplo3())),
+            CONTEXT);
+
+    assertThat(result.checks())
+        .filteredOn(check -> check.getCode().equals("LOW_VOLTAGE_LIMIT"))
+        .singleElement()
+        .satisfies(
+            check -> {
+              assertThat(check.getStatus()).isEqualTo(CheckStatus.PASSED);
+              assertThat(check.getMessage())
+                  .isEqualTo(
+                      "Maior carga instalada por apartamento de 35,87 kW, dentro do limite de 75 kW"
+                          + " da baixa tensão (DIS-NOR-030, item 6.2.1).");
+            });
+  }
+
+  @Test
   void withoutApartmentsTheIndividualStepDoesNotApply() {
     DemandResult result =
         DemandEngine.run(
@@ -107,5 +129,9 @@ class IndividualDemandTest {
     assertThat(individual.code()).isEqualTo("Dind");
     assertThat(individual.applies()).isFalse();
     assertThat(individual.valueKva()).isEqualByComparingTo("0");
+    assertThat(result.checks())
+        .filteredOn(check -> check.getCode().equals("LOW_VOLTAGE_LIMIT"))
+        .extracting(CalculationCheck::getStatus)
+        .containsExactly(CheckStatus.SKIPPED);
   }
 }

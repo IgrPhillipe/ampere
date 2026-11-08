@@ -23,6 +23,9 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   /** Last row of Quadro 35. */
   private static final BigDecimal LARGEST_TABULATED_AREA = new BigDecimal("1000");
 
+  /** DIS-NOR-030 item 6.2.1: secondary voltage up to 75 kW of installed load. */
+  static final BigDecimal LOW_VOLTAGE_LIMIT_KW = new BigDecimal("75");
+
   private BigDecimal usefulArea;
 
   private Integer bedrooms;
@@ -165,6 +168,15 @@ public class ResidentialGroup extends ConsumerUnitGroup {
               "unitLoadKw",
               "Informe a carga instalada por unidade, usada no cálculo individual do item"
                   + " 6.22.3."));
+    }
+    if (DeclaredValues.isPositive(unitLoadKw) && unitLoadKw.compareTo(LOW_VOLTAGE_LIMIT_KW) > 0) {
+      issues.add(
+          ValidationIssue.review(
+              isThreePhase() ? "loads" : "unitLoadKw",
+              "Carga instalada de "
+                  + DeclaredValues.decimal(unitLoadKw)
+                  + " kW por unidade passa do limite de 75 kW da baixa tensão (DIS-NOR-030, item"
+                  + " 6.2.1)."));
     }
     return issues;
   }

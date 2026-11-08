@@ -150,6 +150,43 @@ class ConsumerUnitGroupTest {
   }
 
   @Test
+  void aUnitUpTo75KwStaysInLowVoltage() {
+    assertThat(GroupKind.RESIDENTIAL.create(PROJECT, apartments(68, 75)).validate()).isEmpty();
+  }
+
+  @Test
+  void aUnitAbove75KwIsNotSuppliedInLowVoltage() {
+    ConsumerUnitGroup group = GroupKind.RESIDENTIAL.create(PROJECT, apartments(68, 75.01));
+
+    assertThat(group.validate())
+        .extracting(ValidationIssue::severity, ValidationIssue::field, ValidationIssue::message)
+        .containsExactly(
+            tuple(
+                IssueSeverity.REVIEW,
+                "unitLoadKw",
+                "Carga instalada de 75,01 kW por unidade passa do limite de 75 kW da baixa tensão"
+                    + " (DIS-NOR-030, item 6.2.1)."));
+  }
+
+  @Test
+  void theLimitOfAThreePhaseUnitIsOnTheSumOfItsLoads() {
+    ConsumerUnitGroup group =
+        GroupKind.RESIDENTIAL.create(
+            PROJECT,
+            threePhaseApartments(
+                new LoadItem(
+                    LoadCategory.SPECIAL_EQUIPMENT,
+                    "Sauna",
+                    2,
+                    new BigDecimal("40"),
+                    PowerUnit.KW,
+                    null,
+                    null)));
+
+    assertThat(group.validate()).extracting(ValidationIssue::field).containsExactly("loads");
+  }
+
+  @Test
   void anAreaBeyondQuadro35AsksForReview() {
     ConsumerUnitGroup group = GroupKind.RESIDENTIAL.create(PROJECT, apartments(1200, 20));
 

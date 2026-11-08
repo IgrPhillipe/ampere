@@ -177,6 +177,22 @@ class ConsumerUnitGroupServiceIntegrationTest {
   }
 
   @Test
+  void aUnitAboveTheLowVoltageLimitHoldsTheCalculation() {
+    Long projectId = draft().getId();
+    service.create(projectId, apartments(ConnectionType.SINGLE_PHASE, "80", null), designer);
+
+    GroupValidation validation = service.validation(projectId, designer);
+
+    assertThat(validation.canCalculate()).isFalse();
+    assertThat(validation.pendingIssues()).isEqualTo(1);
+    assertThat(service.list(projectId, designer).getFirst().validate())
+        .extracting(issue -> issue.message())
+        .containsExactly(
+            "Carga instalada de 80 kW por unidade passa do limite de 75 kW da baixa tensão"
+                + " (DIS-NOR-030, item 6.2.1).");
+  }
+
+  @Test
   void refusesToChangeTheKindOfAGroup() {
     Long projectId = draft().getId();
     Long groupId = service.create(projectId, charging(true), designer).getId();
