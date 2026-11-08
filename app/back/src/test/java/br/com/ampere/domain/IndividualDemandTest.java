@@ -31,11 +31,10 @@ class IndividualDemandTest {
             .individualDemand(CONTEXT)
             .orElseThrow();
 
-    assertThat(unit.formula())
-        .isEqualTo("a + b + d + e + f + g = 2,18 + 13,00 + 3,42 + 1,50 + 4,20 + 2,28 = 26,58 kVA");
+    assertThat(unit.lines().getFirst())
+        .contains("a + b + d + e + f + g = 2,18 + 13,00 + 3,42 + 1,50 + 4,20 + 2,28 = 26,58 kVA");
     assertThat(unit.demandKva()).isEqualByComparingTo("26.58");
     assertThat(unit.installedKw()).isEqualByComparingTo("35.871");
-    assertThat(unit.units()).isEqualTo(2);
     assertThat(unit.references())
         .extracting(NormativeReference::identification)
         .contains("Tabela 6", "Tabela 7", "Tabela 9", "Tabela 12", "Tabela 14", "Tabela 19");

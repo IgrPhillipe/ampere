@@ -244,11 +244,8 @@ public class ResidentialGroup extends ConsumerUnitGroup {
       return Optional.of(
           new IndividualDemand(
               getName(),
-              getQuantity(),
-              connectionType,
               load,
               demand,
-              "carga instalada de " + installed,
               List.of(
                   getName()
                       + " ("
@@ -280,11 +277,8 @@ public class ResidentialGroup extends ConsumerUnitGroup {
     return Optional.of(
         new IndividualDemand(
             getName(),
-            getQuantity(),
-            connectionType,
             load,
             demand,
-            formula,
             lines,
             DemandComponent.distinct(
                 parcels.stream().flatMap(parcel -> parcel.references().stream()).toList())));
