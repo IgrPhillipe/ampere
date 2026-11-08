@@ -47,7 +47,7 @@ export const isReopened = (finding: Pick<Finding, "status" | "respondedAt">) =>
 /** A reservation of an approved project keeps the `OPEN` status but reads as such. */
 export const findingStatusLabelOf = (
 	finding: Pick<Finding, "status" | "respondedAt">,
-	reservation = false,
+	{ reservation = false }: { reservation?: boolean } = {},
 ) =>
 	reservation
 		? "Ressalva"

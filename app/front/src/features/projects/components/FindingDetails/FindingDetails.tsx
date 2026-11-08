@@ -96,7 +96,7 @@ export const FindingSummary = ({
 					{findingSeverityLabels[finding.severity]}
 				</Badge>
 				<Badge variant={findingStatusBadgeVariants[finding.status]}>
-					{findingStatusLabelOf(finding, reservation)}
+					{findingStatusLabelOf(finding, { reservation })}
 				</Badge>
 			</div>
 
@@ -225,7 +225,7 @@ export const FindingRow = ({
 						{findingSeverityLabels[finding.severity]}
 					</Badge>
 					<Badge variant={findingStatusBadgeVariants[finding.status]}>
-						{findingStatusLabelOf(finding, reservation)}
+						{findingStatusLabelOf(finding, { reservation })}
 					</Badge>
 				</span>
 				{showVersion ? (
