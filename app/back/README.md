@@ -241,7 +241,8 @@ Toda atribuição grava um evento `ASSIGNED`, com o gestor como autor ou sem aut
 
 `POST /decision` recebe `{"decision": "APPROVE" | "REJECT", "opinion": "..."}`, com parecer obrigatório de até 2.000 caracteres.
 
-- `APPROVE` responde 422 se houver apontamento `BLOCKING` não resolvido.
+- `APPROVE` responde 422 se houver apontamento `BLOCKING` em `DRAFT` ou `OPEN`, ou resposta do projetista (`FIXED` ou `CONTESTED`) ainda não avaliada.
+- Ajuste não resolvido em projeto aprovado é ressalva: fica `OPEN`, sem status próprio, e o projetista não responde. O evento `APPROVED` e a notificação trazem o número de ressalvas.
 - `REJECT` responde 422 se não houver apontamento pendente: rascunho do ciclo atual ou apontamento reaberto.
 - A decisão grava `reviewedAt` e o parecer, e publica os rascunhos como `OPEN`.
 - A contagem de pendências da listagem do projetista ignora rascunhos e projetos aprovados.
@@ -283,7 +284,8 @@ Cada envio grava uma versão imutável (`ProjectVersion`): número (o ciclo de a
 | `GET /api/memorial-verifications/{code}` | Público | Confere o código do rodapé |
 | `POST /api/memorial-verifications` | Público | Recebe o PDF (`multipart`, campo `file`) e confere se é idêntico ao emitido |
 
-- O `ProjectVersionGuard` instala, na inicialização, gatilhos que recusam `UPDATE` e `DELETE` nas três tabelas de versão, inclusive por SQL direto. Só o reset dos cenários passa, com `ampere.version_cleanup` ligado na própria transação. Quem tem acesso de dono ao banco ainda pode remover os gatilhos.
+- Aprovação com ressalvas emite um segundo memorial da versão (`ApprovalMemorial`), com a seção "Ressalvas", SHA-256 e código próprios. O memorial do envio continua em `/versions/{number}/memorial`; `/memorial` do projeto aprovado devolve o da aprovação, e a verificação confirma os dois.
+- O `ProjectVersionGuard` instala, na inicialização, gatilhos que recusam `UPDATE` e `DELETE` nas tabelas de versão e na `approval_memorial`, inclusive por SQL direto. Só o reset dos cenários passa, com `ampere.version_cleanup` ligado na própria transação. Quem tem acesso de dono ao banco ainda pode remover os gatilhos.
 - Regerar mudaria os bytes (o PDF leva a data de criação) e quebraria a verificação, por isso o PDF de uma versão só é lido, nunca refeito.
 - O rodapé traz protocolo, versão, data do envio e o código de verificação. Os metadados do arquivo trazem título, projetista, protocolo, versão e normas aplicadas.
 - O SHA-256 do arquivo fica na versão. O código (`XXXX-XXXX-XXXX-XXXX`) vem do SHA-256 de uma primeira renderização sem ele, pois o código impresso não pode entrar no próprio hash.
