@@ -329,7 +329,8 @@ class SubmissionIntegrationTest {
     assertThat(text.toString())
         .containsSubsequence("Apartamento tipo A", "Monofásico", "24")
         .contains("Demanda Individual dos Apartamentos (DIS-NOR-053, item 6.22.3)")
-        .contains("Apartamento tipo A (monofásico): carga instalada de 6,50 kW");
+        .contains("Apartamento tipo A (monofásico): carga instalada de 6,50 kW")
+        .doesNotContain("Dind");
   }
 
   @Test

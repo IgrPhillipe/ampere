@@ -372,8 +372,10 @@ public class MemorialPdfService {
 
   private static void addCalculationSteps(Document document, Calculation calculation) {
     addSection(document, 3, "Memória de Cálculo");
-    List<CalculationStep> steps =
+    List<CalculationStep> applying =
         calculation.getSteps().stream().filter(CalculationStep::applies).toList();
+    List<CalculationStep> steps =
+        applying.stream().filter(step -> !DemandStep.INDIVIDUAL.equals(step.getCode())).toList();
     if (steps.isEmpty()) {
       document.add(note("Nenhuma parcela de demanda se aplica."));
       return;
@@ -396,7 +398,7 @@ public class MemorialPdfService {
           decimal(step.getValueKva()));
     }
     document.add(table);
-    addIndividualDemand(document, steps);
+    addIndividualDemand(document, applying);
   }
 
   /** DIS-NOR-053 item 6.22.3: each apartment on its own, apart from the building's demand. */
