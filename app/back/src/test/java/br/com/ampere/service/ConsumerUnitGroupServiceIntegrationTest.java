@@ -21,6 +21,7 @@ import br.com.ampere.domain.LoadUsage;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.ResidentialGroup;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
@@ -111,6 +112,84 @@ class ConsumerUnitGroupServiceIntegrationTest {
     service.update(projectId, charging.getId(), charging(true), designer);
 
     assertThat(service.validation(projectId, designer).canCalculate()).isTrue();
+  }
+
+  @Test
+  void refusesATwoPhaseApartment() {
+    Long projectId = draft().getId();
+
+    assertThatThrownBy(
+            () ->
+                service.create(
+                    projectId, apartments(ConnectionType.TWO_PHASE, "9", List.of()), designer))
+        .isInstanceOfSatisfying(
+            BusinessException.class,
+            error -> assertThat(error.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST))
+        .hasMessage("A ligação do apartamento é monofásica ou trifásica.");
+    assertThat(groupRepository.findAllByProjectIdOrderById(projectId)).isEmpty();
+  }
+
+  @Test
+  void refusesAThreePhaseApartmentWithoutLoads() {
+    Long projectId = draft().getId();
+
+    assertThatThrownBy(
+            () ->
+                service.create(
+                    projectId, apartments(ConnectionType.THREE_PHASE, null, List.of()), designer))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("Detalhe as cargas do apartamento trifásico.");
+  }
+
+  @Test
+  void keepsTheLoadsOfAThreePhaseApartment() {
+    Long projectId = draft().getId();
+    List<LoadItem> loads =
+        List.of(
+            new LoadItem(
+                LoadCategory.INSTANT_HEATING,
+                "Chuveiro",
+                2,
+                new BigDecimal("5.5"),
+                PowerUnit.KW,
+                null,
+                null),
+            new LoadItem(
+                LoadCategory.AIR_CONDITIONING,
+                "Ar-condicionado",
+                3,
+                new BigDecimal("1.4"),
+                PowerUnit.KW,
+                null,
+                null));
+
+    service.create(projectId, apartments(ConnectionType.THREE_PHASE, null, loads), designer);
+    entityManager.flush();
+    entityManager.clear();
+
+    ResidentialGroup group = (ResidentialGroup) service.list(projectId, designer).getFirst();
+    assertThat(group.getConnectionType()).isEqualTo(ConnectionType.THREE_PHASE);
+    assertThat(group.getLoads())
+        .extracting(LoadItem::getDescription)
+        .containsExactly("Chuveiro", "Ar-condicionado");
+    assertThat(group.getUnitLoadKw()).isEqualByComparingTo("15.2");
+    assertThat(group.status()).isEqualTo(GroupStatus.VALIDATED);
+  }
+
+  @Test
+  void aUnitAboveTheLowVoltageLimitHoldsTheCalculation() {
+    Long projectId = draft().getId();
+    service.create(projectId, apartments(ConnectionType.SINGLE_PHASE, "80", null), designer);
+
+    GroupValidation validation = service.validation(projectId, designer);
+
+    assertThat(validation.canCalculate()).isFalse();
+    assertThat(validation.pendingIssues()).isEqualTo(1);
+    assertThat(service.list(projectId, designer).getFirst().validate())
+        .extracting(issue -> issue.message())
+        .containsExactly(
+            "Carga instalada de 80 kW por unidade passa do limite de 75 kW da baixa tensão"
+                + " (DIS-NOR-030, item 6.2.1).");
   }
 
   @Test
@@ -276,12 +355,33 @@ class ConsumerUnitGroupServiceIntegrationTest {
         12, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE);
   }
 
+  private static GroupParameters apartments(
+      ConnectionType connectionType, String unitLoadKw, List<LoadItem> loads) {
+    return new GroupParameters(
+        GroupKind.RESIDENTIAL,
+        new GroupSpec(
+            "Apartamento tipo A",
+            8,
+            new BigDecimal("70"),
+            2,
+            unitLoadKw == null ? null : new BigDecimal(unitLoadKw),
+            false,
+            connectionType,
+            null,
+            loads,
+            null,
+            null,
+            null,
+            null));
+  }
+
   private static GroupParameters commonArea() {
     return new GroupParameters(
         GroupKind.LOAD,
         new GroupSpec(
             "Área comum",
             1,
+            null,
             null,
             null,
             null,
@@ -316,6 +416,7 @@ class ConsumerUnitGroupServiceIntegrationTest {
         new GroupSpec(
             "Recarga de veículo elétrico",
             6,
+            null,
             null,
             null,
             null,

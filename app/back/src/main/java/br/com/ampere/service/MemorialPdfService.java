@@ -3,7 +3,9 @@ package br.com.ampere.service;
 import br.com.ampere.domain.AppliedTable;
 import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.CalculationStep;
+import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
+import br.com.ampere.domain.DemandStep;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectVersion;
@@ -60,6 +62,7 @@ public class MemorialPdfService {
 
   private static final Locale PT_BR = Locale.of("pt", "BR");
   private static final String EMPTY = "Não informado";
+  private static final String NOT_APPLICABLE = "Não se aplica";
 
   private static final float MARGIN = 48;
 
@@ -377,16 +380,19 @@ public class MemorialPdfService {
     }
 
     Column[] columns = {
-      new Column("Grupo", 50, false),
-      new Column("Quantidade", 20, true),
-      new Column("Carga por unidade (kW)", 30, true)
+      new Column("Grupo", 40, false),
+      new Column("Ligação", 20, false),
+      new Column("Quantidade", 15, true),
+      new Column("Carga por unidade (kW)", 25, true)
     };
     PdfPTable table = dataTable(columns);
     for (ConsumerUnitGroup group : groups) {
+      ConnectionType connection = group.spec().connectionType();
       addRow(
           table,
           columns,
           group.getName(),
+          connection == null ? NOT_APPLICABLE : connection.label(),
           String.valueOf(group.getQuantity()),
           decimal(group.loadPerUnitKw()));
     }
@@ -395,8 +401,10 @@ public class MemorialPdfService {
 
   private static void addCalculationSteps(Document document, Calculation calculation) {
     addSection(document, 3, "Memória de Cálculo");
-    List<CalculationStep> steps =
+    List<CalculationStep> applying =
         calculation.getSteps().stream().filter(CalculationStep::applies).toList();
+    List<CalculationStep> steps =
+        applying.stream().filter(step -> !DemandStep.INDIVIDUAL.equals(step.getCode())).toList();
     if (steps.isEmpty()) {
       document.add(note("Nenhuma parcela de demanda se aplica."));
       return;
@@ -419,6 +427,25 @@ public class MemorialPdfService {
           decimal(step.getValueKva()));
     }
     document.add(table);
+    addIndividualDemand(document, applying);
+  }
+
+  /** DIS-NOR-053 item 6.22.3: each apartment on its own, apart from the building's demand. */
+  private static void addIndividualDemand(Document document, List<CalculationStep> steps) {
+    steps.stream()
+        .filter(step -> DemandStep.INDIVIDUAL.equals(step.getCode()))
+        .findFirst()
+        .ifPresent(
+            step -> {
+              Paragraph caption =
+                  new Paragraph(
+                      "Demanda Individual dos Apartamentos (DIS-NOR-053, item 6.22.3)",
+                      CAPTION_FONT);
+              caption.setSpacingBefore(16);
+              caption.setSpacingAfter(4);
+              document.add(caption);
+              step.getDetails().forEach(line -> document.add(note(line)));
+            });
   }
 
   private static void addDemandTotals(Document document, Calculation calculation) {

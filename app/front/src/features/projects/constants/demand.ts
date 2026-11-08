@@ -7,4 +7,5 @@ export const demandSeriesClassNames = {
 	Dc: "bg-chart-2",
 	Dve: "bg-chart-4",
 	Ded: "bg-transparent",
+	Dind: "bg-transparent",
 } as const satisfies Record<DemandCode, string>;

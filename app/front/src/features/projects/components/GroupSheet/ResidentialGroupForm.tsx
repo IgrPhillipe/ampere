@@ -43,6 +43,9 @@ export const ResidentialGroupForm = ({
 			bedrooms: values.bedrooms,
 			unitLoadKw: values.unitLoadKw,
 			compactUnit: toBoolean(values.compactUnit),
+			// The connection and the loads have no field yet: they go back as they came.
+			connectionType: group.connectionType ?? "SINGLE_PHASE",
+			loads: group.loads ?? null,
 		});
 
 	return (

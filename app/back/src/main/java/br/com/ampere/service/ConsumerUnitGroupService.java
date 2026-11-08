@@ -47,6 +47,7 @@ public class ConsumerUnitGroupService {
   @Transactional
   public ConsumerUnitGroup create(
       Long projectId, GroupParameters parameters, AuthenticatedUser user) {
+    rejectInvalid(parameters);
     Project project = projectService.editableOrFail(projectId, NOT_EDITABLE, user);
     project.touch();
 
@@ -56,6 +57,7 @@ public class ConsumerUnitGroupService {
   @Transactional
   public ConsumerUnitGroup update(
       Long projectId, Long groupId, GroupParameters parameters, AuthenticatedUser user) {
+    rejectInvalid(parameters);
     Project project = projectService.editableOrFail(projectId, NOT_EDITABLE, user);
     ConsumerUnitGroup group = findOrFail(projectId, groupId);
     if (group.kind() != parameters.kind()) {
@@ -78,6 +80,16 @@ public class ConsumerUnitGroupService {
     findingRepository.findAllByConsumerUnitGroupId(groupId).forEach(Finding::detachGroup);
     groupRepository.delete(group);
     project.touch();
+  }
+
+  private static void rejectInvalid(GroupParameters parameters) {
+    parameters
+        .kind()
+        .rejection(parameters.spec())
+        .ifPresent(
+            reason -> {
+              throw new BusinessException(reason);
+            });
   }
 
   private ConsumerUnitGroup findOrFail(Long projectId, Long groupId) {

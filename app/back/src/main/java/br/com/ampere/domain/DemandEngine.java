@@ -3,17 +3,20 @@ package br.com.ampere.domain;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Ded = Drf + Ds + Dc + Dve (DIS-NOR-053 Anexo I). Every group computes its own share through
- * {@link ConsumerUnitGroup#demand}; the engine never asks which kind a group is.
+ * Ded = Drf + Ds + Dc + Dve (DIS-NOR-053 Anexo I), followed by the demand of each apartment on its
+ * own (item 6.22.3). Every group computes its own share through {@link ConsumerUnitGroup#demand};
+ * the engine never asks which kind a group is.
  */
 public final class DemandEngine {
 
   private static final BigDecimal SIMPLIFIED_PROJECT_KVA = new BigDecimal("50");
   private static final BigDecimal NETWORK_STUDY_KW = new BigDecimal("20");
+  private static final String INDIVIDUAL_TITLE = "Demanda Individual dos Apartamentos";
 
   private DemandEngine() {}
 
@@ -39,6 +42,9 @@ public final class DemandEngine {
         entrance == null ? calculated : calculated.max(entrance.consideredKva());
     boolean minimumApplied = considered.compareTo(calculated) > 0;
     steps.add(totalStep(steps, calculated, considered, entrance, context));
+    List<IndividualDemand> units =
+        groups.stream().flatMap(group -> group.individualDemand(context).stream()).toList();
+    steps.add(individualStep(units));
 
     List<NormativeReference> applied = new ArrayList<>();
     steps.forEach(step -> applied.addAll(step.references()));
@@ -51,7 +57,8 @@ public final class DemandEngine {
         minimumApplied,
         entrance,
         context.connectionType().currentAmps(calculated, context.voltage()),
-        checks(steps, contributions, calculated, considered, minimumApplied, entrance, context),
+        checks(
+            steps, contributions, units, calculated, considered, minimumApplied, entrance, context),
         DemandComponent.distinct(applied));
   }
 
@@ -132,9 +139,58 @@ public final class DemandEngine {
         null);
   }
 
+  /** Item 6.22.3 of DIS-NOR-053: apart from Ded, never added to it. */
+  private static DemandStep individualStep(List<IndividualDemand> units) {
+    if (units.isEmpty()) {
+      return new DemandStep(
+          DemandStep.INDIVIDUAL,
+          INDIVIDUAL_TITLE,
+          false,
+          "Não se aplica: nenhum apartamento no projeto",
+          List.of(),
+          BigDecimal.ZERO.setScale(2),
+          null,
+          List.of(),
+          null);
+    }
+    // Only three-phase units have a demand in kVA; single-phase ones stay in installed kW.
+    Optional<IndividualDemand> largest =
+        units.stream()
+            .filter(unit -> unit.demandKva() != null)
+            .max(Comparator.comparing(IndividualDemand::demandKva));
+    List<NormativeReference> cited =
+        DemandComponent.distinct(
+            units.stream().flatMap(unit -> unit.references().stream()).toList());
+    // An item cited without a table is the step's reference, never an applied table.
+    List<NormativeReference> references =
+        cited.stream().filter(reference -> reference.code() != null).toList();
+
+    return new DemandStep(
+        DemandStep.INDIVIDUAL,
+        INDIVIDUAL_TITLE,
+        true,
+        largest
+            .map(
+                unit ->
+                    "Maior demanda individual trifásica: "
+                        + unit.groupName()
+                        + ", "
+                        + DeclaredValues.fixed(unit.demandKva(), 2)
+                        + " kVA")
+            .orElse(
+                "Só apartamentos monofásicos: a categoria sai da carga instalada (DIS-NOR-030,"
+                    + " item 6.28.1)"),
+        units.stream().flatMap(unit -> unit.lines().stream()).toList(),
+        largest.map(IndividualDemand::demandKva).orElse(BigDecimal.ZERO.setScale(2)),
+        references.isEmpty() ? cited.stream().findFirst().orElse(null) : references.get(0),
+        references,
+        null);
+  }
+
   private static List<CalculationCheck> checks(
       List<DemandStep> steps,
       List<DemandContribution> contributions,
+      List<IndividualDemand> units,
       BigDecimal calculated,
       BigDecimal considered,
       boolean minimumApplied,
@@ -205,7 +261,53 @@ public final class DemandEngine {
                     + residential.safetyFactorBand()
                     + " (DIS-NOR-053 Anexo I, item 5)."));
 
+    checks.add(lowVoltageCheck(units));
+    checks.add(unitConnectionCheck(units, context));
+
     return checks;
+  }
+
+  /** Groups above the limit never reach the engine: the check records that each unit was within. */
+  private static CalculationCheck lowVoltageCheck(List<IndividualDemand> units) {
+    if (units.isEmpty()) {
+      return new CalculationCheck(
+          "LOW_VOLTAGE_LIMIT",
+          CheckStatus.SKIPPED,
+          "Sem apartamentos: o limite de 75 kW por unidade (DIS-NOR-030, item 6.2.1) não se"
+              + " aplica.");
+    }
+    BigDecimal largest =
+        units.stream().map(IndividualDemand::installedKw).max(Comparator.naturalOrder()).get();
+    return new CalculationCheck(
+        "LOW_VOLTAGE_LIMIT",
+        CheckStatus.PASSED,
+        "Maior carga instalada por apartamento de "
+            + DeclaredValues.fixed(largest, 2)
+            + " kW, dentro do limite de 75 kW da baixa tensão (DIS-NOR-030, item 6.2.1).");
+  }
+
+  /** A three-phase apartment cannot be fed by a single-phase building entrance. */
+  private static CalculationCheck unitConnectionCheck(
+      List<IndividualDemand> units, DemandContext context) {
+    boolean threePhase = units.stream().anyMatch(unit -> unit.demandKva() != null);
+    if (!threePhase) {
+      return new CalculationCheck(
+          "UNIT_CONNECTION",
+          CheckStatus.SKIPPED,
+          "Sem apartamentos trifásicos: a ligação da edificação atende todas as unidades.");
+    }
+    if (context.connectionType() != ConnectionType.THREE_PHASE) {
+      return new CalculationCheck(
+          "UNIT_CONNECTION",
+          CheckStatus.WARNING,
+          "Há apartamento trifásico, mas o tipo de ligação da edificação é "
+              + context.connectionType().label().toLowerCase()
+              + ": confira a ligação da edificação ou a das unidades.");
+    }
+    return new CalculationCheck(
+        "UNIT_CONNECTION",
+        CheckStatus.PASSED,
+        "Ligação trifásica da edificação atende os apartamentos trifásicos.");
   }
 
   /** Tabelas 1 and 2 size a three-phase entrance up to 300 kVA; outside that, a warning. */

@@ -11,6 +11,9 @@ public interface NormativeTables {
 
   NormativeValue find(NormativeTableCode code, String key, BigDecimal argument);
 
+  /** The revision of a standard, as its published tables carry it; empty with none published. */
+  Optional<String> revisionOf(StandardName standard);
+
   default NormativeValue find(NormativeTableCode code, BigDecimal argument) {
     return find(code, null, argument);
   }

@@ -4,9 +4,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * The whole calculation: the five steps, the demand considered and what it sizes.
+ * The whole calculation: the six steps, the demand considered and what it sizes.
  *
- * @param steps Drf, Ds, Dc, Dve and Ded, always in this order
+ * @param steps Drf, Ds, Dc, Dve, Ded and Dind, always in this order
  */
 public record DemandResult(
     List<DemandStep> steps,

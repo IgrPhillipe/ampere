@@ -37,7 +37,7 @@ const newGroupLoad: Record<
 	GroupKind,
 	(load: number | null) => Partial<ConsumerUnitGroupPayload>
 > = {
-	RESIDENTIAL: (load) => ({ unitLoadKw: load }),
+	RESIDENTIAL: (load) => ({ unitLoadKw: load, connectionType: "SINGLE_PHASE" }),
 	LOAD: () => ({ items: [] }),
 	EV_CHARGING: (load) => ({ powerPerPointKw: load }),
 };

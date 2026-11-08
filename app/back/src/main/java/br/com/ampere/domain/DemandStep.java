@@ -15,6 +15,9 @@ public record DemandStep(
     List<NormativeReference> references,
     ResidentialTrace residential) {
 
+  /** Code of the demand of each apartment on its own, after Ded (DIS-NOR-053 item 6.22.3). */
+  public static final String INDIVIDUAL = "Dind";
+
   static DemandStep notApplicable(DemandComponent component) {
     return new DemandStep(
         component.symbol(),

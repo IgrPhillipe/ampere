@@ -960,6 +960,7 @@ class ProjectServiceIntegrationTest {
             2,
             new BigDecimal("6.5"),
             false,
+            ConnectionType.SINGLE_PHASE,
             null,
             null,
             null,

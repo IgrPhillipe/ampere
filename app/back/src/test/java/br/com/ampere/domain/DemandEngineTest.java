@@ -49,7 +49,8 @@ class DemandEngineTest {
             tuple("Ds", true, "41.23"),
             tuple("Dc", false, "0.00"),
             tuple("Dve", true, "44.40"),
-            tuple("Ded", true, "165.00"));
+            tuple("Ded", true, "165.00"),
+            tuple("Dind", true, "0.00"));
     assertThat(result.calculatedKva()).isEqualByComparingTo("163.07");
     assertThat(result.finalKva()).isEqualByComparingTo("165");
     assertThat(result.serviceEntrance().band()).isEqualTo("135 < De ≤ 165");
@@ -71,7 +72,8 @@ class DemandEngineTest {
             "a + g + i = 20,40 + 14,09 + 6,74",
             "Não se aplica: nenhum grupo deste tipo no projeto",
             "(6 × 7,40) kW × 1,00",
-            "Drf + Ds + Dc + Dve = 77,44 + 41,23 + 0,00 + 44,40 = 163,07 kVA");
+            "Drf + Ds + Dc + Dve = 77,44 + 41,23 + 0,00 + 44,40 = 163,07 kVA",
+            "Só apartamentos monofásicos: a categoria sai da carga instalada (DIS-NOR-030, item 6.28.1)");
     assertThat(result.steps().get(0).details())
         .contains(
             "Apartamento tipo A: 24 × 1,57 kVA (Quadro 35, 66 a 70 m²)",
@@ -87,7 +89,7 @@ class DemandEngineTest {
   }
 
   @Test
-  void runsTheSameFiveChecksOnEveryCalculation() {
+  void runsTheSameSevenChecksOnEveryCalculation() {
     DemandResult result =
         DemandEngine.run(
             prototypeH3(), context(SupplyVoltage.V380_220, ConnectionType.THREE_PHASE));
@@ -99,7 +101,9 @@ class DemandEngineTest {
             tuple("TRANSFORMER_LIMIT", CheckStatus.SKIPPED),
             tuple("NETWORK_STUDY", CheckStatus.WARNING),
             tuple("PROJECT_SIZE", CheckStatus.INFO),
-            tuple("SAFETY_FACTOR", CheckStatus.PASSED));
+            tuple("SAFETY_FACTOR", CheckStatus.PASSED),
+            tuple("LOW_VOLTAGE_LIMIT", CheckStatus.PASSED),
+            tuple("UNIT_CONNECTION", CheckStatus.SKIPPED));
   }
 
   @Test

@@ -1,5 +1,6 @@
 package br.com.ampere.dto;
 
+import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.LoadUsage;
@@ -29,6 +30,9 @@ public record ConsumerUnitGroupRequest(
         Integer bedrooms,
     @Positive(message = "A carga por unidade deve ser maior que zero.") BigDecimal unitLoadKw,
     Boolean compactUnit,
+    ConnectionType connectionType,
+    @Size(max = 100, message = "Informe no máximo {max} cargas por apartamento.")
+        List<@Valid LoadItemRequest> loads,
     LoadUsage usage,
     @Size(max = 100, message = "Informe no máximo {max} cargas por grupo.")
         List<@Valid LoadItemRequest> items,

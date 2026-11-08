@@ -671,6 +671,7 @@ class ReviewQueueIntegrationTest {
                     null,
                     null,
                     null,
+                    null,
                     LoadUsage.COMMON_AREA,
                     List.of(
                         new LoadItem(
@@ -690,6 +691,7 @@ class ReviewQueueIntegrationTest {
                 new GroupSpec(
                     "Recarga de veículo elétrico",
                     6,
+                    null,
                     null,
                     null,
                     null,
@@ -728,6 +730,7 @@ class ReviewQueueIntegrationTest {
             2,
             new BigDecimal("6.5"),
             false,
+            ConnectionType.SINGLE_PHASE,
             null,
             null,
             null,

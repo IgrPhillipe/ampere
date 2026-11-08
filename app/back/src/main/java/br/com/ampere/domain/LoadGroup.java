@@ -11,10 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OrderColumn;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /** Common areas or a commercial unit, by installed load (DIS-NOR-030 item 6.27). */
@@ -52,7 +49,19 @@ public class LoadGroup extends ConsumerUnitGroup {
   @Override
   public GroupSpec spec() {
     return new GroupSpec(
-        getName(), getQuantity(), null, null, null, null, usage, items, null, null, null, null);
+        getName(),
+        getQuantity(),
+        null,
+        null,
+        null,
+        null,
+        null,
+        usage,
+        items,
+        null,
+        null,
+        null,
+        null);
   }
 
   public LoadUsage getUsage() {
@@ -97,25 +106,9 @@ public class LoadGroup extends ConsumerUnitGroup {
   /** Each parcel of DIS-NOR-030 item 6.27 present in the group, summed. */
   @Override
   public DemandContribution demand(DemandContext context) {
-    Map<LoadCategory, List<LoadItem>> byParcel =
-        items.stream()
-            .collect(
-                Collectors.groupingBy(
-                    LoadItem::getCategory,
-                    () -> new EnumMap<>(LoadCategory.class),
-                    Collectors.toList()));
-    List<ParcelDemand> parcels =
-        byParcel.entrySet().stream()
-            .map(parcel -> parcel.getKey().demand(parcel.getValue(), getQuantity(), usage, context))
-            .toList();
+    List<ParcelDemand> parcels = LoadCategory.parcels(items, getQuantity(), usage, context);
     BigDecimal subtotal =
         parcels.stream().map(ParcelDemand::kva).reduce(BigDecimal.ZERO, BigDecimal::add);
-
-    String symbols =
-        String.join(" + ", parcels.stream().map(parcel -> parcel.category().parcel()).toList());
-    String values =
-        String.join(
-            " + ", parcels.stream().map(parcel -> DeclaredValues.fixed(parcel.kva(), 2)).toList());
 
     return new DemandContribution(
         usage.component(),
@@ -124,7 +117,7 @@ public class LoadGroup extends ConsumerUnitGroup {
         false,
         subtotal,
         DeclaredValues.fixed(subtotal, 2),
-        symbols + " = " + values,
+        LoadCategory.sum(parcels),
         parcels.stream().flatMap(parcel -> parcel.lines().stream()).toList(),
         DemandComponent.distinct(
             parcels.stream().flatMap(parcel -> parcel.references().stream()).toList()));
