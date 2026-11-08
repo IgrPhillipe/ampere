@@ -290,7 +290,7 @@ Cada envio grava uma versão imutável (`ProjectVersion`): número (o ciclo de a
 - Regerar mudaria os bytes (o PDF leva a data de criação) e quebraria a verificação, por isso o PDF de uma versão só é lido, nunca refeito.
 - O rodapé traz protocolo, versão, data do envio e o código de verificação. Os metadados do arquivo trazem título, projetista, protocolo, versão e normas aplicadas.
 - O SHA-256 do arquivo fica na versão. O código (`XXXX-XXXX-XXXX-XXXX`) vem do SHA-256 de uma primeira renderização sem ele, pois o código impresso não pode entrar no próprio hash.
-- A verificação responde `200` com `verified` verdadeiro e protocolo, versão e data do envio, ou `verified` falso e nada mais. Um arquivo com qualquer byte alterado não confirma, e isso inclui o PDF salvo de novo por um leitor ou por "imprimir como PDF".
+- A verificação responde `200` com `verified` verdadeiro e protocolo, versão e data do envio, mais `approvedAt` no memorial da aprovação com ressalvas (nulo no do envio), ou `verified` falso e nada mais. Um arquivo com qualquer byte alterado não confirma, e isso inclui o PDF salvo de novo por um leitor ou por "imprimir como PDF".
 - O `POST` aceita 20 envios por minuto por endereço. Acima disso, responde `429` com `Retry-After`. O contador fica em memória, por instância.
 - Pelo código, `verified` confirma a versão, não o arquivo em mãos: um PDF alterado mantém o código impresso. Só o envio do arquivo atesta a integridade.
 - Cada alteração da comparação traz `field`, com o caminho (`quantity`, `items[MOTORS:Elevador].power`, pois cada item é identificado pela categoria e pela descrição, e renomear um item conta como troca), `label` em português, os valores crus em `from` e `to` e os valores de tela em `fromLabel` e `toLabel`.

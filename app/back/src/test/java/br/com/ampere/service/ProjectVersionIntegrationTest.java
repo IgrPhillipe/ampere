@@ -297,9 +297,14 @@ class ProjectVersionIntegrationTest {
     mockMvc
         .perform(get("/memorial-verifications/" + approvedCode))
         .andExpect(jsonPath("$.data.verified").value(true))
-        .andExpect(jsonPath("$.data.version").value(1));
-    verifyFile(approved).andExpect(jsonPath("$.data.verified").value(true));
-    verifyFile(submitted).andExpect(jsonPath("$.data.verified").value(true));
+        .andExpect(jsonPath("$.data.version").value(1))
+        .andExpect(jsonPath("$.data.approvedAt").isNotEmpty());
+    verifyFile(approved)
+        .andExpect(jsonPath("$.data.verified").value(true))
+        .andExpect(jsonPath("$.data.approvedAt").isNotEmpty());
+    verifyFile(submitted)
+        .andExpect(jsonPath("$.data.verified").value(true))
+        .andExpect(jsonPath("$.data.approvedAt").value(nullValue()));
   }
 
   @Test
