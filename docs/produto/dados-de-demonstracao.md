@@ -111,6 +111,7 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 | 2026-2018 | Residencial Casa Amarela | U | Ana | Aprovado após contestação aceita, residencial |
 | 2026-2041 | Centro Comercial Caruaru Plaza | C | Ana | Aprovado após correção, não residencial |
 | 2026-2042 | Edifício Parque das Flores | B | Revisor | Projeto antigo do projetista inativo |
+| 2026-2046 | Edifício Mirante da Torre | U | Revisor | Aprovado com duas ressalvas: aparecem no parecer, na Visão Geral e no memorial da aprovação |
 
 ---
 

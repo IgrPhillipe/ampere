@@ -217,6 +217,20 @@ final class ScenarioCase {
     return this;
   }
 
+  /** Adjustments published with the approval as reservations, with the approval memorial. */
+  List<Finding> approveWithReservations(
+      int daysAgo, User analyst, String opinion, FindingSpec... specs) {
+    List<Finding> reservations = write(analyst, advance(daysAgo, FINDINGS), specs);
+    reservations.forEach(Finding::publish);
+    OffsetDateTime reviewedAt = advance(daysAgo, 0);
+    project.approve(reviewedAt, opinion);
+    kit.versions.issueApprovalMemorial(project, reservations, reviewedAt);
+    kit.events.approved(project, analyst, reservations.size(), opinion, reviewedAt);
+    kit.notifications.approved(project, reservations.size(), reviewedAt);
+
+    return reservations;
+  }
+
   /** Findings the analyst is still writing: the designer does not see them yet. */
   List<Finding> draftFindings(int daysAgo, User analyst, FindingSpec... specs) {
     return write(analyst, advance(daysAgo, FINDINGS), specs);

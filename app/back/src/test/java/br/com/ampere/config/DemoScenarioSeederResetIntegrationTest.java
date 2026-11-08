@@ -33,7 +33,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @SpringBootTest
 class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
 
-  private static final int SCENARIOS = 53;
+  private static final int SCENARIOS = 54;
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
@@ -123,11 +123,14 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
   void resetGetsPastTheGuardOfTheVersionsAndNothingElseDoes() {
     scenarioSeeder(false).seed();
     long versions = versionRepository.count();
+    long approvalMemorials = approvalMemorialRepository.count();
     ProjectVersionGuard guard = new ProjectVersionGuard(jdbcTemplate);
     guard.install();
     try {
       assertThat(scenarioSeeder(true).seed()).isEqualTo(SCENARIOS);
       assertThat(versionRepository.count()).isEqualTo(versions);
+      assertThat(approvalMemorials).isPositive();
+      assertThat(approvalMemorialRepository.count()).isEqualTo(approvalMemorials);
 
       assertThatThrownBy(
               () -> jdbcTemplate.update("UPDATE project_version SET change_summary = 'Alterado'"))
@@ -137,6 +140,8 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
       assertThatThrownBy(() -> jdbcTemplate.update("DELETE FROM project_version_document"))
           .hasMessageContaining("a version is immutable");
       assertThatThrownBy(() -> jdbcTemplate.update("DELETE FROM project_version"))
+          .hasMessageContaining("a version is immutable");
+      assertThatThrownBy(() -> jdbcTemplate.update("DELETE FROM approval_memorial"))
           .hasMessageContaining("a version is immutable");
     } finally {
       guard.uninstall();
@@ -152,6 +157,7 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
     long calculations = calculationRepository.count();
     long versions = versionRepository.count();
     long versionDocuments = versionDocumentRepository.count();
+    long approvalMemorials = approvalMemorialRepository.count();
     long notifications = notificationRepository.count();
 
     scenarioSeeder(true).seed();
@@ -168,7 +174,8 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
     assertThat(
             jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM project_version_memorial", Long.class))
-        .isEqualTo(versions);
+        .isEqualTo(versions + approvalMemorials);
+    assertThat(approvalMemorialRepository.count()).isEqualTo(approvalMemorials);
   }
 
   @Test
