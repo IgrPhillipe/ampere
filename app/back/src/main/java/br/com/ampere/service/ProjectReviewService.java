@@ -56,10 +56,10 @@ public class ProjectReviewService {
     Project project = assignedProject(projectId, user);
     List<Finding> findings =
         findingRepository.findAllByProjectIdOrderByCreatedAtAscIdAsc(projectId);
-    // One decision at a time: a pending finding asks for a rejection, a resolved set for approval.
-    if (decision == ReviewDecision.APPROVE && !findings.stream().allMatch(Finding::isResolved)) {
+    // Pending adjustments do not hold the approval back: they stay on the project as reservations.
+    if (decision == ReviewDecision.APPROVE && findings.stream().anyMatch(Finding::blocksApproval)) {
       throw new BusinessException(
-          "Para aprovar, todos os apontamentos precisam estar resolvidos.",
+          "Para aprovar, resolva os apontamentos bloqueantes e avalie as respostas do projetista.",
           HttpStatus.UNPROCESSABLE_CONTENT);
     }
     if (decision == ReviewDecision.REJECT && findings.stream().noneMatch(Finding::isPending)) {
