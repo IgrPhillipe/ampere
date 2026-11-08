@@ -10,6 +10,7 @@ import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
+import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.FindingRepository;
@@ -68,6 +69,9 @@ class ProjectHistoryServiceTest {
     assertThat(result.resolvedFindings()).isEqualTo(3);
     assertThat(result.openFindings()).isEqualTo(1);
     assertThat(result.redoneCalculationSteps()).isEqualTo(2);
+
+    when(project.getStatus()).thenReturn(ProjectStatus.APPROVED);
+    assertThat(service.rework(4L, DESIGNER).openFindings()).isZero();
   }
 
   private static ProjectEvent event(

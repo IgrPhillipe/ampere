@@ -44,9 +44,16 @@ export const findingStatusLabels = {
 export const isReopened = (finding: Pick<Finding, "status" | "respondedAt">) =>
 	finding.status === "OPEN" && Boolean(finding.respondedAt);
 
+/** A reservation of an approved project keeps the `OPEN` status but reads as such. */
 export const findingStatusLabelOf = (
 	finding: Pick<Finding, "status" | "respondedAt">,
-) => (isReopened(finding) ? "Reaberto" : findingStatusLabels[finding.status]);
+	{ reservation = false }: { reservation?: boolean } = {},
+) =>
+	reservation
+		? "Ressalva"
+		: isReopened(finding)
+			? "Reaberto"
+			: findingStatusLabels[finding.status];
 
 export const findingStatusBadgeVariants = {
 	DRAFT: "neutral",
@@ -104,6 +111,12 @@ export const awaitsDesignerResponse = (
 	finding: Finding,
 	project: Pick<ProjectDetail, "status">,
 ) => project.status === "REJECTED" && finding.status === "OPEN";
+
+/** Not resolved on an approved project: an adjustment the designer does not answer. */
+export const isReservation = (
+	finding: Finding,
+	project: Pick<ProjectDetail, "status">,
+) => project.status === "APPROVED" && finding.status !== "RESOLVED";
 
 /** The findings a stage marks while the designer corrects the project. */
 export const stageFindingsOf = (

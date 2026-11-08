@@ -1,5 +1,6 @@
 package br.com.ampere.config;
 
+import br.com.ampere.repository.ApprovalMemorialRepository;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
@@ -36,6 +37,7 @@ abstract class SeedIntegrationTestBase {
   @Autowired protected ProjectEventRepository eventRepository;
   @Autowired protected ProjectVersionRepository versionRepository;
   @Autowired protected ProjectVersionDocumentRepository versionDocumentRepository;
+  @Autowired protected ApprovalMemorialRepository approvalMemorialRepository;
   @Autowired protected StandardRepository standardRepository;
   @Autowired protected NormativeTableRepository normativeTableRepository;
   @Autowired protected UserRepository userRepository;
@@ -57,6 +59,7 @@ abstract class SeedIntegrationTestBase {
   protected void wipe() {
     municipalityRepository.deleteAll();
     eventRepository.deleteAll();
+    approvalMemorialRepository.deleteAll();
     versionDocumentRepository.deleteAll();
     versionRepository.deleteAll();
     documentRepository.deleteAll();
@@ -98,6 +101,7 @@ abstract class SeedIntegrationTestBase {
         eventRepository,
         versionRepository,
         versionDocumentRepository,
+        approvalMemorialRepository,
         standardRepository,
         normativeTableRepository,
         userRepository,

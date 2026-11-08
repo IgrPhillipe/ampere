@@ -80,8 +80,15 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
         .extracting(Project::getProtocol)
         .containsExactlyInAnyOrderElementsOf(SCENARIO_PROTOCOLS);
     assertThat(SCENARIO_PROTOCOLS)
-        .hasSize(54)
-        .contains("2026-1001", "2026-1008", "2026-2019", "2026-2044", "2026-2046");
+        .hasSize(55)
+        .contains(
+            "2026-1001",
+            "2026-1008",
+            "2026-2019",
+            "2026-2044",
+            "2026-2045",
+            "2026-2046",
+            "2026-2047");
   }
 
   @Test
@@ -323,14 +330,14 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
 
   @Test
   void showsApartmentsOfBothConnectionsWithTheirIndividualDemand() {
-    assertThat(groups("2026-2046"))
+    assertThat(groups("2026-2047"))
         .filteredOn(ResidentialGroup.class::isInstance)
         .map(ResidentialGroup.class::cast)
         .extracting(ResidentialGroup::getConnectionType)
         .containsExactly(ConnectionType.SINGLE_PHASE, ConnectionType.THREE_PHASE);
-    assertThat(isCurrent("2026-2046")).isTrue();
+    assertThat(isCurrent("2026-2047")).isTrue();
 
-    CalculationStep individual = calculation("2026-2046").orElseThrow().getSteps().getLast();
+    CalculationStep individual = calculation("2026-2047").orElseThrow().getSteps().getLast();
     assertThat(individual.getCode()).isEqualTo("Dind");
     assertThat(individual.getValueKva()).isEqualByComparingTo("26.58");
     assertThat(individual.getDetails())
@@ -495,7 +502,9 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
         assertThat(project.getReviewOpinion()).as(protocol).isNotBlank();
       }
       if (project.getStatus() == ProjectStatus.APPROVED) {
-        assertThat(findings).as(protocol).allMatch(Finding::isResolved);
+        assertThat(findings)
+            .as("%s approved with reservations only", protocol)
+            .noneMatch(finding -> finding.blocksApproval() || finding.awaitsAnalyst());
         assertThat(project.getReviewOpinion()).as(protocol).isNotBlank();
       }
       if (project.getReviewCycle() > 1) {

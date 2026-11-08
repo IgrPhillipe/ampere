@@ -467,7 +467,7 @@ final class DemoScenarios {
             8,
             c -> ready(c, 3, commercial("Padaria", 1), commercial("Mercearia", 1))),
         Scenario.of(
-            "2026-2046",
+            "2026-2047",
             "Residencial Torres do Pina",
             "Avenida Herculano Bandeira, 750",
             "Recife",
@@ -1342,6 +1342,26 @@ final class DemoScenarios {
               ready(c, 170, apartments("Apartamento padrão", 12, "60", 2, "5.60"));
               c.submit(165).assignTo(u.revisor());
               c.approve(150, "Projeto em conformidade com a DIS-NOR-053.");
+            }),
+        Scenario.of(
+            "2026-2046",
+            "Edifício Mirante da Torre",
+            "Rua José Bonifácio, 640",
+            "Recife",
+            "50710000",
+            residential(10, V380),
+            u.user(),
+            18,
+            // The adjustments do not hold the approval back: they stay as reservations.
+            c -> {
+              ready(c, 14, apartments("Apartamento padrão", 20, "65", 2, "6.10"), commonArea());
+              c.submit(12).assignTo(u.revisor());
+              c.approveWithReservations(
+                  4,
+                  u.revisor(),
+                  "Projeto em conformidade, com ressalvas a ajustar na execução.",
+                  projectData(ADJUSTMENT, "Informe o número do lote no endereço."),
+                  document(ADJUSTMENT, ART, "Atualize a data de validade da ART."));
             }));
   }
 

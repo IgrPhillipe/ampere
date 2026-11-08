@@ -669,6 +669,14 @@ class SubmissionIntegrationTest {
             .getResponse()
             .getContentAsString();
     String adjustmentId = objectMapper.readTree(adjustment).path("data").path("id").asString();
+    // The answer is weighed before any decision: reopened, it counts in the rejection.
+    mockMvc
+        .perform(
+            post(review + "/findings/" + findingId + "/resolution")
+                .header("Authorization", analystToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"resolution\":\"REOPEN\"}"))
+        .andExpect(status().isOk());
     mockMvc
         .perform(
             post(review + "/decision")
@@ -749,7 +757,7 @@ class SubmissionIntegrationTest {
             jsonPath("$.data[10].description")
                 .value("Análise atribuída a Revisor Teste pelo sistema."))
         .andExpect(jsonPath("$.data[10].authorRole").doesNotExist())
-        .andExpect(jsonPath("$.data[11].description").value("Reprovado com 1 apontamento."))
+        .andExpect(jsonPath("$.data[11].description").value("Reprovado com 2 apontamentos."))
         .andExpect(jsonPath("$.data[12].description").value("Apontamento de Documentos corrigido."))
         .andExpect(jsonPath("$.data[12].detail").value("ART assinada pelo responsável técnico."))
         .andExpect(
@@ -758,13 +766,19 @@ class SubmissionIntegrationTest {
         .andExpect(jsonPath("$.data[14].description").value("Versão 3 reenviada para análise."))
         .andExpect(jsonPath("$.data[17].description").value("Aprovado."));
 
-    // Each decision reaches the designer; each resubmission reaches the analyst who rejected it.
+    // Each decision reaches the designer, with the reopened finding of the second one; each
+    // resubmission reaches the analyst who rejected it.
     perform(get("/notifications"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.unreadCount").value(3))
+        .andExpect(jsonPath("$.data.unreadCount").value(4))
         .andExpect(
             jsonPath("$.data.items[*].type")
-                .value(contains("PROJECT_APPROVED", "PROJECT_REJECTED", "PROJECT_REJECTED")));
+                .value(
+                    contains(
+                        "PROJECT_APPROVED",
+                        "PROJECT_REJECTED",
+                        "FINDING_REOPENED",
+                        "PROJECT_REJECTED")));
     mockMvc
         .perform(get("/notifications").header("Authorization", analystToken))
         .andExpect(status().isOk())

@@ -45,6 +45,7 @@ import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -429,6 +430,11 @@ class ProjectServiceIntegrationTest {
     Project drafted = save("C", "Recife", "2026-0050");
     Project resolved = save("D", "Recife", "2026-0060");
     Project clean = save("E", "Recife", "2026-0070");
+    Project reserved = save("F", "Recife", "2026-0080");
+    reserved.submit(OffsetDateTime.now(ZoneOffset.UTC));
+    reserved.approve(OffsetDateTime.now(ZoneOffset.UTC));
+    projectRepository.save(reserved);
+    findingRepository.save(published(finding(reserved, FindingSeverity.ADJUSTMENT)));
     findingRepository.save(published(finding(blocked, FindingSeverity.BLOCKING)));
     findingRepository.save(published(finding(adjusted, FindingSeverity.ADJUSTMENT)));
     findingRepository.save(finding(drafted, FindingSeverity.BLOCKING));
@@ -441,8 +447,8 @@ class ProjectServiceIntegrationTest {
     assertThat(list(filtered(OpenFindingsFilter.ANY_OPEN)).projects())
         .containsExactlyInAnyOrder(blocked, adjusted);
     assertThat(list(filtered(OpenFindingsFilter.NONE_OPEN)).projects())
-        .containsExactlyInAnyOrder(drafted, resolved, clean);
-    assertThat(list(filtered((OpenFindingsFilter) null)).projects()).hasSize(5);
+        .containsExactlyInAnyOrder(drafted, resolved, clean, reserved);
+    assertThat(list(filtered((OpenFindingsFilter) null)).projects()).hasSize(6);
     assertThat(
             list(new ProjectListQuery(
                     null,
@@ -456,7 +462,7 @@ class ProjectServiceIntegrationTest {
                     Set.of(OpenFindingsFilter.BLOCKING_OPEN, OpenFindingsFilter.NONE_OPEN),
                     null))
                 .projects())
-        .containsExactlyInAnyOrder(blocked, drafted, resolved, clean);
+        .containsExactlyInAnyOrder(blocked, drafted, resolved, clean, reserved);
   }
 
   @Test

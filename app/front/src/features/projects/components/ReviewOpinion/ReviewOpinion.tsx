@@ -1,7 +1,11 @@
-import { formatDate } from "@features/shared";
+import { formatDate, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
+import type { Finding } from "@services/project-review";
 import type { ProjectDetail } from "@services/projects";
 import { CircleCheck, CircleX } from "lucide-react";
+
+import type { FindingReferenceOptions } from "../../constants";
+import { ReservationList } from "../ReservationList";
 
 const opinionStyles = {
 	REJECTED: {
@@ -27,14 +31,24 @@ interface ReviewOpinionProps {
 		ProjectDetail,
 		"status" | "reviewOpinion" | "reviewerName" | "reviewedAt"
 	>;
+	/** Adjustments left unresolved by the approval. */
+	reservations?: Finding[];
+	referenceOptions: FindingReferenceOptions;
 	className?: string;
 }
 
 /** The analyst's decision, once there is one. */
-export const ReviewOpinion = ({ project, className }: ReviewOpinionProps) => {
+export const ReviewOpinion = ({
+	project,
+	reservations = [],
+	referenceOptions,
+	className,
+}: ReviewOpinionProps) => {
 	if (!hasOpinion(project.status)) return null;
 
 	const opinion = opinionStyles[project.status];
+	const showReservations =
+		project.status === "APPROVED" && reservations.length > 0;
 
 	return (
 		<section
@@ -58,6 +72,30 @@ export const ReviewOpinion = ({ project, className }: ReviewOpinionProps) => {
 			<p className="text-base leading-relaxed whitespace-pre-line text-foreground">
 				{project.reviewOpinion || "O analista não registrou um parecer geral."}
 			</p>
+			{showReservations ? (
+				<div
+					aria-labelledby="review-reservations-title"
+					role="group"
+					className="flex flex-col gap-1 border-t border-border pt-4"
+				>
+					<h3
+						id="review-reservations-title"
+						className="flex items-baseline gap-2 text-base font-semibold text-foreground"
+					>
+						Ressalvas
+						<span className="font-mono text-sm font-normal text-muted-foreground">
+							{padCount(reservations.length)}
+						</span>
+					</h3>
+					<p className="text-sm text-muted-foreground">
+						Ajustes que o projeto aprovado mantém, sem nova análise.
+					</p>
+					<ReservationList
+						reservations={reservations}
+						referenceOptions={referenceOptions}
+					/>
+				</div>
+			) : null}
 			<dl className="-mx-5 -mb-5 mt-2 grid grid-cols-2 gap-px border-t border-border bg-border">
 				<div className="flex min-w-0 flex-col gap-1.5 bg-card px-5 py-3">
 					<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">

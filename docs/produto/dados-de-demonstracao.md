@@ -54,7 +54,7 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 | 2026-2033 | Residencial Bela Vista | J | Rascunho | Quatro apartamentos: vale a demanda mínima da primeira faixa |
 | 2026-2034 | Residencial Janga | C | Rascunho | Ligação bifásica e entrada individual |
 | 2026-2035 | Padaria Central | J | Rascunho | Ligação monofásica e entrada individual, não residencial |
-| 2026-2046 | Residencial Torres do Pina | U | Rascunho | Ligação por apartamento: tipos monofásicos e coberturas trifásicas com as cargas detalhadas. Calculado, com a demanda individual (`Dind`) de cada grupo |
+| 2026-2047 | Residencial Torres do Pina | U | Rascunho | Ligação por apartamento: tipos monofásicos e coberturas trifásicas com as cargas detalhadas. Calculado, com a demanda individual (`Dind`) de cada grupo |
 
 ### Legado
 
@@ -112,6 +112,7 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 | 2026-2018 | Residencial Casa Amarela | U | Ana | Aprovado após contestação aceita, residencial |
 | 2026-2041 | Centro Comercial Caruaru Plaza | C | Ana | Aprovado após correção, não residencial |
 | 2026-2042 | Edifício Parque das Flores | B | Revisor | Projeto antigo do projetista inativo |
+| 2026-2046 | Edifício Mirante da Torre | U | Revisor | Aprovado com duas ressalvas: aparecem no parecer, na Visão Geral e no memorial da aprovação |
 
 ---
 
