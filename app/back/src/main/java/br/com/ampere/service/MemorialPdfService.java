@@ -4,11 +4,14 @@ import br.com.ampere.domain.AppliedTable;
 import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.CalculationStep;
 import br.com.ampere.domain.ConsumerUnitGroup;
+import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectVersion;
+import br.com.ampere.domain.ProjectVersionMemorial;
 import br.com.ampere.domain.User;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
+import br.com.ampere.repository.ApprovalMemorialRepository;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.ProjectVersionRepository;
@@ -98,18 +101,21 @@ public class MemorialPdfService {
   private final ConsumerUnitGroupRepository groupRepository;
   private final DemandCalculationService demandCalculationService;
   private final ProjectVersionRepository versionRepository;
+  private final ApprovalMemorialRepository approvalMemorialRepository;
 
   public MemorialPdfService(
       ProjectService projectService,
       CalculationRepository calculationRepository,
       ConsumerUnitGroupRepository groupRepository,
       DemandCalculationService demandCalculationService,
-      ProjectVersionRepository versionRepository) {
+      ProjectVersionRepository versionRepository,
+      ApprovalMemorialRepository approvalMemorialRepository) {
     this.projectService = projectService;
     this.calculationRepository = calculationRepository;
     this.groupRepository = groupRepository;
     this.demandCalculationService = demandCalculationService;
     this.versionRepository = versionRepository;
+    this.approvalMemorialRepository = approvalMemorialRepository;
   }
 
   public record Memorial(String filename, byte[] content) {}
@@ -146,19 +152,32 @@ public class MemorialPdfService {
     List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(projectId);
 
     return new Memorial(
-        "memorial-" + project.getProtocol() + ".pdf", build(project, calculation, groups, null));
+        "memorial-" + project.getProtocol() + ".pdf",
+        build(project, calculation, groups, null, List.of()));
   }
 
-  /** The PDF of the latest version, as it was issued. Null for a project with no version. */
+  /**
+   * The PDF of the latest version as it was issued, or as approved with reservations. Null for a
+   * project with no version.
+   */
   private Memorial storedMemorial(Long projectId) {
     return versionRepository
         .findLatestByProjectId(projectId)
-        .map(MemorialPdfService::storedMemorial)
+        .map(
+            version ->
+                approvalMemorialRepository
+                    .findByVersionId(version.getId())
+                    .map(approval -> stored(approval.getMemorial()))
+                    .orElseGet(() -> storedMemorial(version)))
         .orElse(null);
   }
 
   public static Memorial storedMemorial(ProjectVersion version) {
-    return new Memorial(version.getMemorial().getFilename(), version.getMemorial().getData());
+    return stored(version.getMemorial());
+  }
+
+  private static Memorial stored(ProjectVersionMemorial memorial) {
+    return new Memorial(memorial.getFilename(), memorial.getData());
   }
 
   /** The code comes from a first rendering: a printed code cannot be part of its own hash. */
@@ -167,20 +186,28 @@ public class MemorialPdfService {
       Calculation calculation,
       List<ConsumerUnitGroup> groups,
       int version,
-      OffsetDateTime issuedAt) {
-    byte[] unstamped = build(project, calculation, groups, new Stamp(version, issuedAt, ""));
+      OffsetDateTime issuedAt,
+      List<Finding> reservations) {
+    byte[] unstamped =
+        build(project, calculation, groups, new Stamp(version, issuedAt, ""), reservations);
     String code = MemorialFingerprint.verificationCode(MemorialFingerprint.sha256(unstamped));
-    byte[] content = build(project, calculation, groups, new Stamp(version, issuedAt, code));
+    byte[] content =
+        build(project, calculation, groups, new Stamp(version, issuedAt, code), reservations);
 
+    String approval = reservations.isEmpty() ? "" : "-aprovado";
     return new Issued(
-        "memorial-" + project.getProtocol() + "-v" + version + ".pdf",
+        "memorial-" + project.getProtocol() + "-v" + version + approval + ".pdf",
         content,
         MemorialFingerprint.sha256(content),
         code);
   }
 
   private byte[] build(
-      Project project, Calculation calculation, List<ConsumerUnitGroup> groups, Stamp stamp) {
+      Project project,
+      Calculation calculation,
+      List<ConsumerUnitGroup> groups,
+      Stamp stamp,
+      List<Finding> reservations) {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
     Document document = new Document(PageSize.A4, MARGIN, MARGIN, 56, 64);
     PdfWriter writer = PdfWriter.getInstance(document, output);
@@ -195,6 +222,7 @@ public class MemorialPdfService {
     addCalculationSteps(document, calculation);
     addDemandTotals(document, calculation);
     addAppliedStandards(document, calculation);
+    addReservations(document, reservations);
 
     document.close();
     return output.toByteArray();
@@ -489,6 +517,33 @@ public class MemorialPdfService {
           standard(applied.getStandard(), applied.getRevision()),
           applied.getItem(),
           applied.getPage());
+    }
+    document.add(table);
+  }
+
+  /** Only an approval with reservations reissues the memorial with this section. */
+  private static void addReservations(Document document, List<Finding> reservations) {
+    if (reservations.isEmpty()) {
+      return;
+    }
+
+    addSection(document, 6, "Ressalvas");
+    document.add(note("Ajustes não resolvidos na aprovação. O projeto segue aprovado com eles."));
+
+    Column[] columns = {
+      new Column("Etapa", 22, false),
+      new Column("Apontamento", 53, false),
+      new Column("Item da Norma", 25, false)
+    };
+    PdfPTable table = dataTable(columns);
+    table.setSpacingBefore(8);
+    for (Finding reservation : reservations) {
+      addRow(
+          table,
+          columns,
+          reservation.getStage().label(),
+          reservation.getDescription(),
+          reservation.getStandardItem());
     }
     document.add(table);
   }

@@ -20,6 +20,9 @@ import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EntranceStandard;
+import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.FindingSeverity;
+import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.LoadCategory;
@@ -33,6 +36,7 @@ import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
+import br.com.ampere.repository.ApprovalMemorialRepository;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
@@ -108,6 +112,8 @@ class ProjectVersionIntegrationTest {
 
   @Autowired private ProjectVersionDocumentRepository versionDocumentRepository;
 
+  @Autowired private ApprovalMemorialRepository approvalMemorialRepository;
+
   @Autowired private ProjectVersionService versionService;
 
   @Autowired private EntityManager entityManager;
@@ -122,6 +128,7 @@ class ProjectVersionIntegrationTest {
 
   @AfterEach
   void wipe() {
+    approvalMemorialRepository.deleteAll();
     versionDocumentRepository.deleteAll();
     versionRepository.deleteAll();
     eventRepository.deleteAll();
@@ -250,6 +257,49 @@ class ProjectVersionIntegrationTest {
     assertThat(bytes(perform(get(memorialOf(project))))).isEqualTo(memorial);
     perform(get(versionsOf(project)))
         .andExpect(jsonPath("$.data[0].changeSummary").value(nullValue()));
+  }
+
+  @Test
+  void anApprovalWithReservationsIssuesAMemorialWithThemAndKeepsTheSubmittedOne() throws Exception {
+    Project project = submittedProject("2026-4030");
+    byte[] submitted = bytes(perform(get(memorialOf(project))));
+    String submittedCode = codeOf(project, 1);
+
+    new TransactionTemplate(transactionManager)
+        .executeWithoutResult(
+            status -> {
+              Project stored = projectRepository.findById(project.getId()).orElseThrow();
+              Finding reservation =
+                  new Finding(
+                      stored,
+                      FindingSeverity.ADJUSTMENT,
+                      FindingStage.DOCUMENTS,
+                      null,
+                      null,
+                      DocumentType.ART,
+                      "Atualizar a data da ART.",
+                      "DIS-NOR-053, item 6.17",
+                      owner,
+                      1);
+              reservation.publish();
+              findingRepository.save(reservation);
+              stored.approve(Timestamps.now(), "Aprovado com ressalva.");
+              versionService.issueApprovalMemorial(stored, List.of(reservation), Timestamps.now());
+            });
+
+    byte[] approved = bytes(perform(get(memorialOf(project))));
+    assertThat(textOf(approved)).contains("Ressalvas", "Atualizar a data da ART.");
+    assertThat(textOf(submitted)).doesNotContain("Ressalvas");
+    assertThat(bytes(perform(get(versionsOf(project) + "/1/memorial")))).isEqualTo(submitted);
+    String approvedCode = approvalMemorialRepository.findAll().getFirst().getVerificationCode();
+    assertThat(approvedCode).isNotEqualTo(submittedCode);
+    assertThat(textOf(approved)).contains(approvedCode);
+    mockMvc
+        .perform(get("/memorial-verifications/" + approvedCode))
+        .andExpect(jsonPath("$.data.verified").value(true))
+        .andExpect(jsonPath("$.data.version").value(1));
+    verifyFile(approved).andExpect(jsonPath("$.data.verified").value(true));
+    verifyFile(submitted).andExpect(jsonPath("$.data.verified").value(true));
   }
 
   @Test

@@ -21,16 +21,19 @@ public class ProjectReviewService {
   private final FindingRepository findingRepository;
   private final ProjectEventService eventService;
   private final NotificationService notificationService;
+  private final ProjectVersionService versionService;
 
   public ProjectReviewService(
       ProjectService projectService,
       FindingRepository findingRepository,
       ProjectEventService eventService,
-      NotificationService notificationService) {
+      NotificationService notificationService,
+      ProjectVersionService versionService) {
     this.projectService = projectService;
     this.findingRepository = findingRepository;
     this.eventService = eventService;
     this.notificationService = notificationService;
+    this.versionService = versionService;
   }
 
   /** Only the analyst assigned by the manager or by the distribution opens the review. */
@@ -71,6 +74,11 @@ public class ProjectReviewService {
     OffsetDateTime reviewedAt = Timestamps.now();
     if (decision == ReviewDecision.APPROVE) {
       project.approve(reviewedAt, opinion);
+      List<Finding> reservations =
+          findings.stream().filter(finding -> !finding.isResolved()).toList();
+      if (!reservations.isEmpty()) {
+        versionService.issueApprovalMemorial(project, reservations, reviewedAt);
+      }
     } else {
       project.reject(reviewedAt, opinion);
     }
