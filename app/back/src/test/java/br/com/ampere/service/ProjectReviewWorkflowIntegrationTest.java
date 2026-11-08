@@ -233,14 +233,12 @@ class ProjectReviewWorkflowIntegrationTest {
         .andExpect(status().isUnprocessableContent())
         .andExpect(
             jsonPath("$.detail")
-                .value(
-                    "Para aprovar, resolva os apontamentos bloqueantes e avalie as respostas do"
-                        + " projetista."));
+                .value("Resolva ou exclua os apontamentos bloqueantes para aprovar."));
     assertThat(findingRepository.findAll()).extracting("status").containsOnly(FindingStatus.DRAFT);
   }
 
   @Test
-  void refusesTheApprovalWhileAnAnswerAwaitsTheAnalyst() throws Exception {
+  void refusesAnyDecisionWhileAnAnswerAwaitsTheAnalyst() throws Exception {
     open(project, analyst).andExpect(status().isOk());
     createFinding(project, analyst, FINDING_BODY.replace("BLOCKING", "ADJUSTMENT"))
         .andExpect(status().isCreated());
@@ -251,6 +249,11 @@ class ProjectReviewWorkflowIntegrationTest {
     projectRepository.flush();
 
     decide(project, analyst, "APPROVE", "Projeto em conformidade.")
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Aceite ou reabra os apontamentos respondidos para concluir a análise."));
+    decide(project, analyst, "REJECT", "Ainda falta corrigir.")
         .andExpect(status().isUnprocessableContent());
     resolve(project, findingId, analyst, "ACCEPT").andExpect(status().isOk());
     decide(project, analyst, "APPROVE", "Projeto em conformidade.")

@@ -59,10 +59,15 @@ public class ProjectReviewService {
     Project project = assignedProject(projectId, user);
     List<Finding> findings =
         findingRepository.findAllByProjectIdOrderByCreatedAtAscIdAsc(projectId);
+    if (findings.stream().anyMatch(Finding::awaitsAnalyst)) {
+      throw new BusinessException(
+          "Aceite ou reabra os apontamentos respondidos para concluir a análise.",
+          HttpStatus.UNPROCESSABLE_CONTENT);
+    }
     // Pending adjustments do not hold the approval back: they stay on the project as reservations.
     if (decision == ReviewDecision.APPROVE && findings.stream().anyMatch(Finding::blocksApproval)) {
       throw new BusinessException(
-          "Para aprovar, resolva os apontamentos bloqueantes e avalie as respostas do projetista.",
+          "Resolva ou exclua os apontamentos bloqueantes para aprovar.",
           HttpStatus.UNPROCESSABLE_CONTENT);
     }
     if (decision == ReviewDecision.REJECT && findings.stream().noneMatch(Finding::isPending)) {

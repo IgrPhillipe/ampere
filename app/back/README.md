@@ -241,7 +241,8 @@ Toda atribuição grava um evento `ASSIGNED`, com o gestor como autor ou sem aut
 
 `POST /decision` recebe `{"decision": "APPROVE" | "REJECT", "opinion": "..."}`, com parecer obrigatório de até 2.000 caracteres.
 
-- `APPROVE` responde 422 se houver apontamento `BLOCKING` em `DRAFT` ou `OPEN`, ou resposta do projetista (`FIXED` ou `CONTESTED`) ainda não avaliada.
+- Qualquer decisão responde 422 enquanto houver resposta do projetista (`FIXED` ou `CONTESTED`) a avaliar: o analista aceita ou reabre antes.
+- `APPROVE` responde 422 se houver apontamento `BLOCKING` em `DRAFT` ou `OPEN`.
 - Ajuste não resolvido em projeto aprovado é ressalva: fica `OPEN`, sem status próprio, e o projetista não responde. O evento `APPROVED` e a notificação trazem o número de ressalvas.
 - `REJECT` responde 422 se não houver apontamento pendente: rascunho do ciclo atual ou apontamento reaberto.
 - A decisão grava `reviewedAt` e o parecer, e publica os rascunhos como `OPEN`.

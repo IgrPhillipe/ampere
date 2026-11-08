@@ -153,11 +153,14 @@ public class Finding {
     return status == FindingStatus.DRAFT || status == FindingStatus.OPEN;
   }
 
-  /** A blocking finding still waiting on the designer, or an answer the analyst must weigh. */
+  /** A blocking finding still waiting on the designer: only a rejection settles it. */
   public boolean blocksApproval() {
-    return (severity == FindingSeverity.BLOCKING && isPending())
-        || status == FindingStatus.FIXED
-        || status == FindingStatus.CONTESTED;
+    return severity == FindingSeverity.BLOCKING && isPending();
+  }
+
+  /** Answered by the designer: the analyst accepts or reopens it before any decision. */
+  public boolean awaitsAnalyst() {
+    return status == FindingStatus.FIXED || status == FindingStatus.CONTESTED;
   }
 
   /** Published and not yet accepted: the designer may answer it, again if reopened. */
