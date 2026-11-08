@@ -26,6 +26,9 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   /** DIS-NOR-030 item 6.2.1: secondary voltage up to 75 kW of installed load. */
   static final BigDecimal LOW_VOLTAGE_LIMIT_KW = new BigDecimal("75");
 
+  /** Ceiling of category M3, the largest single-phase one (DIS-NOR-030 Anexo I, Tabela 2). */
+  static final BigDecimal SINGLE_PHASE_LIMIT_KW = new BigDecimal("15");
+
   private BigDecimal usefulArea;
 
   private Integer bedrooms;
@@ -182,6 +185,16 @@ public class ResidentialGroup extends ConsumerUnitGroup {
                   + DeclaredValues.decimal(load)
                   + " kW por unidade passa do limite de 75 kW da baixa tensão (DIS-NOR-030, item"
                   + " 6.2.1)."));
+    } else if (connectionType == ConnectionType.SINGLE_PHASE
+        && DeclaredValues.isPositive(load)
+        && load.compareTo(SINGLE_PHASE_LIMIT_KW) > 0) {
+      issues.add(
+          ValidationIssue.review(
+              "unitLoadKw",
+              "Carga instalada de "
+                  + DeclaredValues.decimal(load)
+                  + " kW passa de 15 kW, teto da ligação monofásica (DIS-NOR-030, Anexo I, Tabela"
+                  + " 2, categoria M3): confirme a ligação do apartamento."));
     }
     return issues;
   }

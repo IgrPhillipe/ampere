@@ -150,8 +150,42 @@ class ConsumerUnitGroupTest {
   }
 
   @Test
-  void aUnitUpTo75KwStaysInLowVoltage() {
-    assertThat(GroupKind.RESIDENTIAL.create(PROJECT, apartments(68, 75)).validate()).isEmpty();
+  void aUnitOfExactly75KwStaysInLowVoltage() {
+    ConsumerUnitGroup group =
+        GroupKind.RESIDENTIAL.create(
+            PROJECT,
+            threePhaseApartments(
+                new LoadItem(
+                    LoadCategory.SPECIAL_EQUIPMENT,
+                    "Sauna",
+                    1,
+                    new BigDecimal("75.00"),
+                    PowerUnit.KW,
+                    null,
+                    null)));
+
+    assertThat(group.validate()).isEmpty();
+  }
+
+  @Test
+  void aSinglePhaseUnitUpTo15KwFitsCategoryM3() {
+    assertThat(GroupKind.RESIDENTIAL.create(PROJECT, apartments(68, 15)).validate()).isEmpty();
+  }
+
+  @Test
+  void aSinglePhaseUnitAbove15KwAsksForReview() {
+    ConsumerUnitGroup group = GroupKind.RESIDENTIAL.create(PROJECT, apartments(68, 15.5));
+
+    assertThat(group.validate())
+        .extracting(ValidationIssue::severity, ValidationIssue::field, ValidationIssue::message)
+        .containsExactly(
+            tuple(
+                IssueSeverity.REVIEW,
+                "unitLoadKw",
+                "Carga instalada de 15,5 kW passa de 15 kW, teto da ligação monofásica"
+                    + " (DIS-NOR-030, Anexo I, Tabela 2, categoria M3): confirme a ligação do"
+                    + " apartamento."));
+    assertThat(group.status()).isEqualTo(GroupStatus.REVIEW);
   }
 
   @Test
@@ -188,7 +222,7 @@ class ConsumerUnitGroupTest {
 
   @Test
   void anAreaBeyondQuadro35AsksForReview() {
-    ConsumerUnitGroup group = GroupKind.RESIDENTIAL.create(PROJECT, apartments(1200, 20));
+    ConsumerUnitGroup group = GroupKind.RESIDENTIAL.create(PROJECT, apartments(1200, 12));
 
     assertThat(group.validate())
         .extracting(ValidationIssue::severity, ValidationIssue::field)
