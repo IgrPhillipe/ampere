@@ -29,6 +29,11 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   /** Ceiling of category M3, the largest single-phase one (DIS-NOR-030 Anexo I, Tabela 2). */
   static final BigDecimal SINGLE_PHASE_LIMIT_KW = new BigDecimal("15");
 
+  /** DIS-NOR-030 item 6.28.1, p. 50: single-phase units are sized by their installed load. */
+  private static final String SIZING_ITEM = "6.28.1";
+
+  private static final String SIZING_PAGE = "50";
+
   private BigDecimal usefulArea;
 
   private Integer bedrooms;
@@ -252,7 +257,17 @@ public class ResidentialGroup extends ConsumerUnitGroup {
                       + "): carga instalada de "
                       + installed
                       + ", que define a categoria da unidade (DIS-NOR-030, item 6.28.1)"),
-              List.of()));
+              context.tables().revisionOf(StandardName.DIS_NOR_030).stream()
+                  .map(
+                      revision ->
+                          new NormativeReference(
+                              null,
+                              "Item 6.28.1",
+                              StandardName.DIS_NOR_030,
+                              revision,
+                              SIZING_ITEM,
+                              SIZING_PAGE))
+                  .toList()));
     }
 
     // The apartment's motors follow its own connection, not the building's.

@@ -159,9 +159,12 @@ public final class DemandEngine {
         units.stream()
             .filter(unit -> unit.demandKva() != null)
             .max(Comparator.comparing(IndividualDemand::demandKva));
-    List<NormativeReference> references =
+    List<NormativeReference> cited =
         DemandComponent.distinct(
             units.stream().flatMap(unit -> unit.references().stream()).toList());
+    // An item cited without a table is the step's reference, never an applied table.
+    List<NormativeReference> references =
+        cited.stream().filter(reference -> reference.code() != null).toList();
 
     return new DemandStep(
         INDIVIDUAL,
@@ -180,7 +183,7 @@ public final class DemandEngine {
                     + " item 6.28.1)"),
         units.stream().flatMap(unit -> unit.lines().stream()).toList(),
         largest.map(IndividualDemand::demandKva).orElse(BigDecimal.ZERO.setScale(2)),
-        references.isEmpty() ? null : references.get(0),
+        references.isEmpty() ? cited.stream().findFirst().orElse(null) : references.get(0),
         references,
         null);
   }

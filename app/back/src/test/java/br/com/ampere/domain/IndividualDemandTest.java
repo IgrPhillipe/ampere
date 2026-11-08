@@ -8,6 +8,7 @@ import static br.com.ampere.domain.DemandFixtures.motor;
 import static br.com.ampere.domain.DemandFixtures.project;
 import static br.com.ampere.domain.DemandFixtures.threePhaseApartments;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,9 @@ class IndividualDemandTest {
 
     assertThat(unit.demandKva()).isNull();
     assertThat(unit.installedKw()).isEqualByComparingTo("5");
+    assertThat(unit.references())
+        .extracting(NormativeReference::label, NormativeReference::item, NormativeReference::page)
+        .containsExactly(tuple("Item 6.28.1 (030)", "6.28.1", "50"));
     assertThat(unit.lines())
         .containsExactly(
             "Apartamento tipo (monofásico): carga instalada de 5,00 kW, que define a categoria da"
@@ -118,6 +122,18 @@ class IndividualDemandTest {
                       "Maior carga instalada por apartamento de 35,87 kW, dentro do limite de 75 kW"
                           + " da baixa tensão (DIS-NOR-030, item 6.2.1).");
             });
+  }
+
+  @Test
+  void onlySinglePhaseApartmentsCiteItem6281WithoutAnAppliedTable() {
+    DemandResult result = DemandEngine.run(List.of(apartments(PROJECT, 10, "70")), CONTEXT);
+
+    DemandStep individual = result.steps().getLast();
+    assertThat(individual.reference().label()).isEqualTo("Item 6.28.1 (030)");
+    assertThat(individual.references()).isEmpty();
+    assertThat(result.appliedTables())
+        .extracting(NormativeReference::identification)
+        .doesNotContain("Item 6.28.1");
   }
 
   @Test

@@ -30,6 +30,14 @@ public final class NormativeTableSet implements NormativeTables {
         .orElseThrow(() -> missingRow(published(code), key, argument));
   }
 
+  @Override
+  public Optional<String> revisionOf(StandardName standard) {
+    return tables.values().stream()
+        .filter(table -> table.getCode().standard() == standard)
+        .map(table -> table.reference().revision())
+        .findFirst();
+  }
+
   private NormativeTable published(NormativeTableCode code) {
     NormativeTable table = tables.get(code);
     if (table == null) {
