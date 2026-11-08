@@ -38,19 +38,16 @@ public enum LoadUsage implements LoadOccupancy {
     return component;
   }
 
-  /** Row of Tabela 22 for the lighting of this occupancy. */
   @Override
   public String lightingKey() {
     return lightingKey;
   }
 
-  /** Row of Tabela 22 for the general-use outlets of this occupancy. */
   @Override
   public String outletsKey() {
     return outletsKey;
   }
 
-  /** Column of Tabela 12. */
   @Override
   public String airConditioningKey() {
     return airConditioningKey;
