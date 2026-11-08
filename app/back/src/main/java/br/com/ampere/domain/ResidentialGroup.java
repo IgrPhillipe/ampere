@@ -1,13 +1,19 @@
 package br.com.ampere.domain;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OrderColumn;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 /** Apartments of the same useful area (DIS-NOR-053 Anexo I, Quadro 35). */
 @Entity
@@ -30,6 +36,13 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   @Enumerated(EnumType.STRING)
   private ConnectionType connectionType;
 
+  /** Three-phase only (DIS-NOR-030 item 6.27); a single-phase unit declares its total load. */
+  // Eager: the controller maps the response after the transaction, with open-in-view off.
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "residential_group_load", joinColumns = @JoinColumn(name = "group_id"))
+  @OrderColumn(name = "position")
+  private List<LoadItem> loads = new ArrayList<>();
+
   protected ResidentialGroup() {}
 
   public ResidentialGroup(Project project, GroupSpec spec) {
@@ -41,15 +54,28 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   protected void applySpec(GroupSpec spec) {
     this.usefulArea = spec.usefulArea();
     this.bedrooms = spec.bedrooms();
-    this.unitLoadKw = spec.unitLoadKw();
     this.compactUnit = Boolean.TRUE.equals(spec.compactUnit());
     this.connectionType = spec.connectionType();
+    this.loads.clear();
+    if (isThreePhase()) {
+      if (spec.items() != null) {
+        this.loads.addAll(spec.items());
+      }
+      this.unitLoadKw =
+          loads.stream().map(LoadItem::declaredLoadKw).reduce(BigDecimal.ZERO, BigDecimal::add);
+    } else {
+      this.unitLoadKw = spec.unitLoadKw();
+    }
   }
 
   /** What the request cannot carry at all, as opposed to data still missing. */
   static Optional<String> rejection(GroupSpec spec) {
     if (spec.connectionType() == ConnectionType.TWO_PHASE) {
       return Optional.of("A ligação do apartamento é monofásica ou trifásica.");
+    }
+    if (spec.connectionType() == ConnectionType.THREE_PHASE
+        && (spec.items() == null || spec.items().isEmpty())) {
+      return Optional.of("Detalhe as cargas do apartamento trifásico.");
     }
     return Optional.empty();
   }
@@ -65,7 +91,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
         compactUnit,
         connectionType,
         null,
-        null,
+        isThreePhase() ? loads : null,
         null,
         null,
         null,
@@ -86,6 +112,15 @@ public class ResidentialGroup extends ConsumerUnitGroup {
 
   public ConnectionType getConnectionType() {
     return connectionType;
+  }
+
+  /** Empty unless the apartment is three-phase. */
+  public List<LoadItem> getLoads() {
+    return List.copyOf(loads);
+  }
+
+  private boolean isThreePhase() {
+    return connectionType == ConnectionType.THREE_PHASE;
   }
 
   /** Smart, studio or home studio (item 6.25.1). */
@@ -118,7 +153,13 @@ public class ResidentialGroup extends ConsumerUnitGroup {
                   + DeclaredValues.decimal(usefulArea)
                   + " m² passa da última faixa do Quadro 35 (1.000 m²): confirme o valor."));
     }
-    if (!DeclaredValues.isPositive(unitLoadKw)) {
+    if (isThreePhase()) {
+      IntStream.range(0, loads.size())
+          .forEach(
+              index ->
+                  issues.addAll(
+                      loads.get(index).validate("loads[" + index + "]", LoadUsage.APARTMENT)));
+    } else if (!DeclaredValues.isPositive(unitLoadKw)) {
       issues.add(
           ValidationIssue.missing(
               "unitLoadKw",

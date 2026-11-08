@@ -80,6 +80,76 @@ class ConsumerUnitGroupTest {
   }
 
   @Test
+  void aThreePhaseApartmentDeclaresItsLoadsAndSumsThem() {
+    ResidentialGroup group =
+        (ResidentialGroup)
+            GroupKind.RESIDENTIAL.create(
+                PROJECT,
+                threePhaseApartments(
+                    new LoadItem(
+                        LoadCategory.LIGHTING_AND_OUTLETS,
+                        "Tomadas e iluminação",
+                        1,
+                        new BigDecimal("4.2"),
+                        PowerUnit.KW,
+                        null,
+                        null),
+                    new LoadItem(
+                        LoadCategory.INSTANT_HEATING,
+                        "Chuveiro",
+                        4,
+                        new BigDecimal("4"),
+                        PowerUnit.KW,
+                        null,
+                        null)));
+
+    assertThat(group.validate()).isEmpty();
+    assertThat(group.getUnitLoadKw()).isEqualByComparingTo("20.2");
+    assertThat(group.declaredLoadKw()).isEqualByComparingTo("40.4");
+    assertThat(group.spec().items())
+        .extracting(LoadItem::getDescription)
+        .containsExactly("Tomadas e iluminação", "Chuveiro");
+    assertThat(group.summary()).isEqualTo("180 m², 3 quartos, trifásico (DIS-NOR-053 Quadro 35)");
+  }
+
+  @Test
+  void aSinglePhaseApartmentKeepsNoLoads() {
+    ResidentialGroup group =
+        (ResidentialGroup)
+            GroupKind.RESIDENTIAL.create(
+                PROJECT, withConnection(threePhaseApartments(), ConnectionType.SINGLE_PHASE));
+
+    assertThat(group.getLoads()).isEmpty();
+    assertThat(group.spec().items()).isNull();
+  }
+
+  @Test
+  void aThreePhaseApartmentWithoutLoadsIsRefused() {
+    assertThat(GroupKind.RESIDENTIAL.rejection(threePhaseApartments()))
+        .contains("Detalhe as cargas do apartamento trifásico.");
+  }
+
+  @Test
+  void aThreePhaseApartmentLoadWithoutPowerIsMissingData() {
+    ConsumerUnitGroup group =
+        GroupKind.RESIDENTIAL.create(
+            PROJECT,
+            threePhaseApartments(
+                new LoadItem(
+                    LoadCategory.APPLIANCES, "Secadora", 1, null, PowerUnit.KW, null, null)));
+
+    assertThat(group.validate())
+        .extracting(ValidationIssue::severity, ValidationIssue::field)
+        .containsExactly(tuple(IssueSeverity.MISSING_DATA, "loads[0].power"));
+  }
+
+  @Test
+  void apartmentLoadsBelongToTheResidentialGroup() {
+    assertThat(GroupKind.LOAD.rejection(loads(LoadUsage.APARTMENT, List.of())))
+        .contains("Cargas do apartamento vão no grupo residencial.");
+  }
+
+  @Test
   void anAreaBeyondQuadro35AsksForReview() {
     ConsumerUnitGroup group = GroupKind.RESIDENTIAL.create(PROJECT, apartments(1200, 20));
 
@@ -276,6 +346,23 @@ class ConsumerUnitGroupTest {
         ConnectionType.SINGLE_PHASE,
         null,
         null,
+        null,
+        null,
+        null,
+        null);
+  }
+
+  private static GroupSpec threePhaseApartments(LoadItem... loads) {
+    return new GroupSpec(
+        "Cobertura",
+        2,
+        new BigDecimal("180"),
+        3,
+        null,
+        false,
+        ConnectionType.THREE_PHASE,
+        null,
+        List.of(loads),
         null,
         null,
         null,

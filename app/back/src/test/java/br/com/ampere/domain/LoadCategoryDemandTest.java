@@ -35,6 +35,23 @@ class LoadCategoryDemandTest {
         .isEqualByComparingTo("10.00");
   }
 
+  /** DIS-NOR-030 Exemplo 3, parcela a: 4,2 kW at 0,52 of Tabela 6, power factor 1,00. */
+  @Test
+  void anApartmentReadsTabela6OverItsLightingAndOutletsTogether() {
+    ParcelDemand lighting =
+        LoadCategory.LIGHTING_AND_OUTLETS.demand(
+            List.of(lighting("Tomadas", "3.0", null), lighting("Iluminação", "1.2", null)),
+            1,
+            LoadUsage.APARTMENT,
+            THREE_PHASE);
+
+    assertThat(lighting.kva()).isEqualByComparingTo("2.18");
+    assertThat(lighting.lines()).first().asString().contains("4,20 kW × 0,52");
+    assertThat(lighting.references())
+        .extracting(NormativeReference::identification)
+        .containsExactly("Tabela 6");
+  }
+
   @Test
   void ofTwoEqualLargestMotorsOnlyOneCountsAsTheLargest() {
     ParcelDemand motors = demand(LoadCategory.MOTORS, motor("Elevadores", 2, "15"));

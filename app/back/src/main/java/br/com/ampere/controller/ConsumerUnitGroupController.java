@@ -1,6 +1,8 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
+import br.com.ampere.domain.LoadItem;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.ConsumerUnitGroupRequest;
 import br.com.ampere.dto.ConsumerUnitGroupResponse;
@@ -180,13 +182,15 @@ public class ConsumerUnitGroupController {
             request.compactUnit(),
             request.connectionType(),
             request.usage(),
-            request.items() == null
-                ? null
-                : request.items().stream().map(LoadItemRequest::toLoadItem).toList(),
+            loadItems(request.kind() == GroupKind.RESIDENTIAL ? request.loads() : request.items()),
             request.powerPerPointKw(),
             request.incorporatedInVehicle(),
             request.loadManagement(),
             request.stationType()));
+  }
+
+  private static List<LoadItem> loadItems(List<LoadItemRequest> requests) {
+    return requests == null ? null : requests.stream().map(LoadItemRequest::toLoadItem).toList();
   }
 
   private static AuthenticatedUser userOf(Jwt jwt) {

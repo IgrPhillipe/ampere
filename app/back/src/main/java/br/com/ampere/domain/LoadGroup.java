@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -47,6 +48,13 @@ public class LoadGroup extends ConsumerUnitGroup {
     if (spec.items() != null) {
       this.items.addAll(spec.items());
     }
+  }
+
+  static Optional<String> rejection(GroupSpec spec) {
+    if (spec.usage() == LoadUsage.APARTMENT) {
+      return Optional.of("Cargas do apartamento vão no grupo residencial.");
+    }
+    return Optional.empty();
   }
 
   @Override

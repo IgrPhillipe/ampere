@@ -21,6 +21,7 @@ import br.com.ampere.domain.LoadUsage;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.ResidentialGroup;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
@@ -126,6 +127,53 @@ class ConsumerUnitGroupServiceIntegrationTest {
             error -> assertThat(error.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST))
         .hasMessage("A ligação do apartamento é monofásica ou trifásica.");
     assertThat(groupRepository.findAllByProjectIdOrderById(projectId)).isEmpty();
+  }
+
+  @Test
+  void refusesAThreePhaseApartmentWithoutLoads() {
+    Long projectId = draft().getId();
+
+    assertThatThrownBy(
+            () ->
+                service.create(
+                    projectId, apartments(ConnectionType.THREE_PHASE, null, List.of()), designer))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("Detalhe as cargas do apartamento trifásico.");
+  }
+
+  @Test
+  void keepsTheLoadsOfAThreePhaseApartment() {
+    Long projectId = draft().getId();
+    List<LoadItem> loads =
+        List.of(
+            new LoadItem(
+                LoadCategory.INSTANT_HEATING,
+                "Chuveiro",
+                2,
+                new BigDecimal("5.5"),
+                PowerUnit.KW,
+                null,
+                null),
+            new LoadItem(
+                LoadCategory.AIR_CONDITIONING,
+                "Ar-condicionado",
+                3,
+                new BigDecimal("1.4"),
+                PowerUnit.KW,
+                null,
+                null));
+
+    service.create(projectId, apartments(ConnectionType.THREE_PHASE, null, loads), designer);
+    entityManager.flush();
+    entityManager.clear();
+
+    ResidentialGroup group = (ResidentialGroup) service.list(projectId, designer).getFirst();
+    assertThat(group.getConnectionType()).isEqualTo(ConnectionType.THREE_PHASE);
+    assertThat(group.getLoads())
+        .extracting(LoadItem::getDescription)
+        .containsExactly("Chuveiro", "Ar-condicionado");
+    assertThat(group.getUnitLoadKw()).isEqualByComparingTo("15.2");
+    assertThat(group.status()).isEqualTo(GroupStatus.VALIDATED);
   }
 
   @Test

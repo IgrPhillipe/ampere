@@ -20,6 +20,11 @@ public enum GroupKind {
     public ConsumerUnitGroup create(Project project, GroupSpec spec) {
       return new LoadGroup(project, spec);
     }
+
+    @Override
+    public Optional<String> rejection(GroupSpec spec) {
+      return LoadGroup.rejection(spec);
+    }
   },
   EV_CHARGING("Recarga de veículo elétrico") {
     @Override

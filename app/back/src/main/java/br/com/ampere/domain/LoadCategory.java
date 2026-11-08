@@ -19,7 +19,7 @@ public enum LoadCategory {
     /** Lighting and outlets take different factors (6.27.1.2), so each item says which it is. */
     @Override
     List<ValidationIssue> issues(LoadItem item, String path, LoadUsage usage) {
-      if (item.getLampTechnology() == null) {
+      if (usage != LoadUsage.APARTMENT && item.getLampTechnology() == null) {
         return List.of(
             ValidationIssue.missing(
                 path + ".lampTechnology",
@@ -34,6 +34,9 @@ public enum LoadCategory {
     @Override
     ParcelDemand demand(
         List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
+      if (usage == LoadUsage.APARTMENT) {
+        return residential(items, groupQuantity, context);
+      }
       NormativeValue lighting =
           context
               .tables()
@@ -76,6 +79,29 @@ public enum LoadCategory {
           String.join(" + ", terms) + " = " + DeclaredValues.fixed(kva, 2) + " kVA",
           List.of(),
           lighting.reference());
+    }
+
+    /** Item 6.27.1.1 (a1): lighting and outlets together, Tabela 6 by the total, power factor 1. */
+    private ParcelDemand residential(
+        List<LoadItem> items, int groupQuantity, DemandContext context) {
+      BigDecimal kw =
+          items.stream()
+              .map(item -> installedKw(item, groupQuantity))
+              .reduce(BigDecimal.ZERO, BigDecimal::add);
+      NormativeValue factor =
+          context.tables().find(NormativeTableCode.T6_RESIDENTIAL_LIGHTING_OUTLETS, kw);
+      BigDecimal kva = DeclaredValues.kva(kw.multiply(factor.value()));
+
+      return parcel(
+          kva,
+          DeclaredValues.fixed(kw, 2)
+              + " kW × "
+              + DeclaredValues.fixed(factor.value(), 2)
+              + " = "
+              + DeclaredValues.fixed(kva, 2)
+              + " kVA",
+          List.of(),
+          factor.reference());
     }
   },
   INSTANT_HEATING("b", "Chuveiros, torneiras e aquecedores de passagem") {

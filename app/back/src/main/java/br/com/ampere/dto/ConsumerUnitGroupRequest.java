@@ -31,6 +31,8 @@ public record ConsumerUnitGroupRequest(
     @Positive(message = "A carga por unidade deve ser maior que zero.") BigDecimal unitLoadKw,
     Boolean compactUnit,
     ConnectionType connectionType,
+    @Size(max = 100, message = "Informe no máximo {max} cargas por apartamento.")
+        List<@Valid LoadItemRequest> loads,
     LoadUsage usage,
     @Size(max = 100, message = "Informe no máximo {max} cargas por grupo.")
         List<@Valid LoadItemRequest> items,

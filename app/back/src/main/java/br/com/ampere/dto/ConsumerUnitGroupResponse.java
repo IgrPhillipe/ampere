@@ -27,6 +27,7 @@ public record ConsumerUnitGroupResponse(
     BigDecimal unitLoadKw,
     Boolean compactUnit,
     ConnectionType connectionType,
+    List<LoadItemResponse> loads,
     LoadUsage usage,
     List<LoadItemResponse> items,
     BigDecimal powerPerPointKw,
@@ -52,11 +53,17 @@ public record ConsumerUnitGroupResponse(
         spec.unitLoadKw(),
         spec.compactUnit(),
         spec.connectionType(),
+        group.kind() == GroupKind.RESIDENTIAL ? items(spec) : null,
         spec.usage(),
-        spec.items() == null ? null : spec.items().stream().map(LoadItemResponse::from).toList(),
+        group.kind() == GroupKind.RESIDENTIAL ? null : items(spec),
         spec.powerPerPointKw(),
         spec.incorporatedInVehicle(),
         spec.loadManagement(),
         spec.stationType());
+  }
+
+  /** The residential group answers its items as loads, as the request sends them. */
+  private static List<LoadItemResponse> items(GroupSpec spec) {
+    return spec.items() == null ? null : spec.items().stream().map(LoadItemResponse::from).toList();
   }
 }

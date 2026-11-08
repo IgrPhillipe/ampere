@@ -1,6 +1,6 @@
 package br.com.ampere.domain;
 
-/** Whether a load group serves the condominium (Ds) or a commercial unit (Dc). */
+/** Whom the loads serve: the condominium (Ds), a commercial unit (Dc) or one apartment. */
 public enum LoadUsage {
   COMMON_AREA(
       "Área comum",
@@ -9,7 +9,9 @@ public enum LoadUsage {
       "COLLECTIVE_ADMINISTRATION_OUTLETS",
       "RESIDENTIAL"),
   COMMERCIAL(
-      "Carga comercial", DemandComponent.NON_RESIDENTIAL_UNITS, "STORES", "STORES", "COMMERCIAL");
+      "Carga comercial", DemandComponent.NON_RESIDENTIAL_UNITS, "STORES", "STORES", "COMMERCIAL"),
+  /** Loads of a three-phase apartment: parcel a reads Tabela 6, not Tabela 22. */
+  APARTMENT("Apartamento", DemandComponent.RESIDENTIAL_UNITS, null, null, "RESIDENTIAL");
 
   private final String label;
   private final DemandComponent component;
