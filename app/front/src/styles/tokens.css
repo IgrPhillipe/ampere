@@ -26,14 +26,12 @@
 	--neo-ink-muted: #60594b;
 	--neo-ink-faint: #857c6b;
 	--neo-index: #c6bca8;
-	--neo-desk: #e7e5e0;
 	--neo-border-strong: #d4cbba;
 	--neo-border-soft: #eae4d9;
 	--neo-danger: #9a5200;
 
 	/* Semantic colors. The Figma has no red: attention is orange, and state is
 	   carried by form (versalete, gutter bar, hollow button), not by color. */
-	--desk: var(--neo-desk);
 	--background: var(--neo-white);
 	--foreground: var(--neo-ink);
 	--card: var(--neo-white);
@@ -143,7 +141,6 @@
 	--font-heading: var(--ds-font-brand);
 	--font-mono: var(--ds-font-mono);
 
-	--color-desk: var(--desk);
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
 	--color-card: var(--card);

@@ -34,7 +34,7 @@
 		-moz-osx-font-smoothing: grayscale;
 	}
 	body {
-		@apply bg-desk text-foreground font-sans;
+		@apply bg-background text-foreground font-sans;
 		min-height: 100vh;
 		margin: 0;
 		font-size: var(--ds-text-sm);

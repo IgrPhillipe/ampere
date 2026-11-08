@@ -20,9 +20,9 @@ A comparação mais recente está em
 
 ### Metáfora e Regras
 
-A interface é um documento técnico: a **mesa** (`bg-desk`) fica fora e todo
-o conteúdo vive numa **folha** branca. A hierarquia vem de tipografia, peso,
-tom e espaço, não de cor.
+A interface é um documento técnico em página branca de largura total. A
+hierarquia vem de tipografia, peso, tom e espaço, não de cor. A mesa bege com
+a folha flutuante do Figma não é adotada: as telas ocupam a largura toda.
 
 - Texto em Geist; toda medição (valores, unidades, protocolos, índices,
   referências normativas e datas) em Geist Mono.
@@ -86,8 +86,7 @@ de `@features/shared`, nunca com um `format` solto do dayjs.
 
 | Papel | Valor | Tailwind |
 | :--- | :--- | :--- |
-| Mesa | `#E7E5E0` | `bg-desk` |
-| Folha | `#FFFFFF` | `bg-background` |
+| Fundo | `#FFFFFF` | `bg-background` |
 | Tinta | `#1E1A13` | `text-foreground` |
 | Texto médio | `#60594B` | `text-muted-foreground` |
 | Texto fraco | `#857C6B` | `text-faint-foreground` |
@@ -104,7 +103,7 @@ conclusão. Verde não aparece em texto, ícone ou borda sobre o papel.
 ## Espaçamento, Forma e Movimento
 
 Os passos do Figma são 6, 12, 20 e 38 px (`1.5`, `3`, `5` e `9.5` no
-Tailwind). O conteúdo da folha fica a 40 px das bordas.
+Tailwind). O conteúdo fica a 40 px das bordas da janela.
 
 Todos os raios valem zero e não há sombra, exceto a sombra discreta das
 camadas flutuantes (`--ds-shadow-md`).
@@ -278,7 +277,7 @@ desabilitado.
 
 O cabeçalho contém:
 
-- fundo da mesa, sem fio inferior;
+- fundo branco com fio inferior;
 - logo oficial e o nome “AMPERE” em versalete;
 - menu centralizado, com a rota ativa em tinta e Medium;
 - opções futuras visíveis, porém desabilitadas;

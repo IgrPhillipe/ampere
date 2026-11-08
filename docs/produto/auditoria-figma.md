@@ -2,6 +2,8 @@
 
 Comparação do front com o [Protótipo Hi-Fi](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI), feita em 08/11/2026 sobre a `main` (`2fbcc02d`).
 
+**Exceção decidida:** a mesa bege com a folha flutuante não é adotada. As telas seguem em página branca de largura total.
+
 **Regra:** o Figma é a fonte do estilo. O front se ajusta a ele, e o Figma não muda. Telas sem protótipo seguem o mesmo sistema, a partir do padrão mais próximo.
 
 **Método:** 22 frames exportados do Figma e 26 telas do sistema capturadas a 1440 px, com o seed do `DemoScenarios` e os perfis projetista, analista e admin. As regras de estilo vêm da página "Documentação: Hierarquia visual" e das variáveis do arquivo.
