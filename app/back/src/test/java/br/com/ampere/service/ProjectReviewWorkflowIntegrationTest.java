@@ -253,8 +253,14 @@ class ProjectReviewWorkflowIntegrationTest {
         .andExpect(
             jsonPath("$.detail")
                 .value("Aceite ou reabra os apontamentos respondidos para concluir a análise."));
+    // A draft of this cycle would allow the rejection: only the pending answer refuses it.
+    createFinding(project, analyst, FINDING_BODY.replace("BLOCKING", "ADJUSTMENT"))
+        .andExpect(status().isCreated());
     decide(project, analyst, "REJECT", "Ainda falta corrigir.")
-        .andExpect(status().isUnprocessableContent());
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Aceite ou reabra os apontamentos respondidos para concluir a análise."));
     resolve(project, findingId, analyst, "ACCEPT").andExpect(status().isOk());
     decide(project, analyst, "APPROVE", "Projeto em conformidade.")
         .andExpect(status().isOk())
