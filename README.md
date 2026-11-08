@@ -123,6 +123,8 @@ Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (
 | US06 | [Fila de análise técnica priorizada](docs/produto/user-stories.md#us06-fila-de-análise-técnica-priorizada) | Analista | [H6: Fila de análise](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2082-2) |
 | US07 | [Auditoria de memória e registro de apontamentos](docs/produto/user-stories.md#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos) | Analista | [H7: Análise do projeto](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2083-2)<br>[H8: Histórico do protocolo](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2085-2) |
 
+---
+
 ### Entrega 02
 
 - **Data:** 21/09/2026
@@ -175,6 +177,8 @@ Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (
 | Print do GitHub Issues | ![Print das GitHub Issues](docs/produto/Issues.png) |
 | Screencast do sistema | [YouTube, parte 1](https://youtu.be/YMnBWUuncdQ)<br>[YouTube, parte 2](https://youtu.be/6X58x5Wv9ho) |
 | Screencast da explicação do código | [YouTube, parte 1](https://youtu.be/_4FRXZAnfkg)<br>[YouTube, parte 2](https://youtu.be/_nDhOTqJTPY) |
+
+---
 
 ### Entrega 03
 
@@ -257,17 +261,108 @@ Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (
 | Screencast do sistema | [YouTube](https://youtu.be/0YldcnTvi8g) |
 | Screencast da explicação do código | [YouTube](https://youtu.be/EUo41qSNQ8I) |
 
+---
+
 ### Entrega 04
 
 - **Data:** 09/11/2026
 - **Escopo:** US07, US08, US09, US12, US18 e US20, nas Sprints 4 a 6 (04/10 a 01/11).
 - **Planejamento:** [`docs/produto/plano-entrega-04.md`](docs/produto/plano-entrega-04.md) e [milestone Entrega 04](https://github.com/IgrPhillipe/ampere/milestone/3).
 
+#### Histórias Implementadas
+
+##### US07: Auditoria de Memória e Registro Pontual de Apontamentos
+
+> **Como** analista da Neoenergia,  
+> **Quero** conferir a memória de cálculo pré-validada e registrar apontamentos vinculados diretamente à etapa do erro,  
+> **Para que** o projetista corrija apenas o item divergente sem necessitar de retrabalho total.
+
+| Item | Descrição |
+| :--- | :--- |
+| **Entregue** | "Analisar" atribui o projeto ao analista, e outro analista não assume o mesmo projeto<br>Análise com as abas Memória de Cálculo, Unidades Consumidoras, Documentos e Histórico, e visualizador dos PDFs anexados<br>Apontamentos com gravidade (bloqueante ou ajuste), etapa, referência ao grupo, à parcela ou ao documento, descrição e item da norma<br>Alerta da verificação automática vira apontamento com um clique<br>"Aprovar Projeto" só sem bloqueante aberto e "Reprovar com Apontamentos" só com apontamento, ambos com parecer<br>Na reanálise, "Aceitar Correção" ou "Reabrir" em cada apontamento |
+| **Back-end** | [`Finding`](app/back/src/main/java/br/com/ampere/domain/Finding.java), [`ProjectReviewService`](app/back/src/main/java/br/com/ampere/service/ProjectReviewService.java), [`FindingService`](app/back/src/main/java/br/com/ampere/service/FindingService.java), [`ProjectReviewController`](app/back/src/main/java/br/com/ampere/controller/ProjectReviewController.java), [`FindingController`](app/back/src/main/java/br/com/ampere/controller/FindingController.java) |
+| **Front-end** | [`ProjectReviewWorkspace`](app/front/src/features/review-queue/pages/ProjectReviewWorkspace), [`FindingsPanel`](app/front/src/features/review-queue/components/FindingsPanel) |
+| **Issues** | [#94](https://github.com/IgrPhillipe/ampere/issues/94), [#95](https://github.com/IgrPhillipe/ampere/issues/95), [#96](https://github.com/IgrPhillipe/ampere/issues/96), [#205](https://github.com/IgrPhillipe/ampere/issues/205) |
+
+##### US08: Linha do Tempo e Histórico do Protocolo
+
+> **Como** analista da Neoenergia,  
+> **Quero** consultar a linha do tempo e os indicadores de retrabalho do protocolo,  
+> **Para que** eu possa acompanhar o histórico de versões e pendências antes de emitir a decisão final.
+
+| Item | Descrição |
+| :--- | :--- |
+| **Entregue** | Eventos gravados na criação, no envio, na pré-validação, na atribuição, na decisão, nas respostas aos apontamentos e no reenvio<br>Linha do tempo com autor, papel (Projetista, Analista ou Sistema), versão e data, com a alternância "Mais Recente Primeiro"<br>Ciclo em dias e métricas de retrabalho do protocolo<br>Histórico visível ao analista e ao projetista dono do projeto |
+| **Back-end** | [`ProjectEvent`](app/back/src/main/java/br/com/ampere/domain/ProjectEvent.java), [`ProjectEventService`](app/back/src/main/java/br/com/ampere/service/ProjectEventService.java), [`ProjectHistoryService`](app/back/src/main/java/br/com/ampere/service/ProjectHistoryService.java), [`ProjectRework`](app/back/src/main/java/br/com/ampere/service/ProjectRework.java), [`ProjectHistoryController`](app/back/src/main/java/br/com/ampere/controller/ProjectHistoryController.java) |
+| **Front-end** | [`ProjectHistoryPage`](app/front/src/features/projects/pages/ProjectHistoryPage), [`ProjectTimeline`](app/front/src/features/projects/components/ProjectTimeline/ProjectTimeline.tsx), [`ReworkPanel`](app/front/src/features/projects/components/ReworkPanel/ReworkPanel.tsx) |
+| **Issues** | [#102](https://github.com/IgrPhillipe/ampere/issues/102), [#103](https://github.com/IgrPhillipe/ampere/issues/103), [#104](https://github.com/IgrPhillipe/ampere/issues/104) |
+
+##### US09: Correção de Apontamentos e Reenvio com Versionamento
+
+> **Como** projetista externo,  
+> **Quero** acessar a lista de apontamentos da reprovação, corrigir apenas as etapas indicadas e reenviar uma nova versão do projeto,  
+> **Para que** eu não precise refazer o processo do zero.
+
+| Item | Descrição |
+| :--- | :--- |
+| **Entregue** | "Corrigir", na listagem, abre os apontamentos e o parecer da reprovação<br>Lista por gravidade, com atalho para a etapa e o item apontado, e selo do apontamento dentro das etapas<br>Projeto reprovado volta a aceitar alteração de dados, unidades, cálculo e documentos<br>Resposta "Corrigido" ou "Contestar" em cada apontamento, com justificativa obrigatória na contestação<br>"Reenviar Projeto" exige o resumo das alterações e fica bloqueado com bloqueante sem resposta<br>O reenvio recalcula a demanda, incrementa a versão e devolve o projeto à fila como reanálise |
+| **Back-end** | [`Finding`](app/back/src/main/java/br/com/ampere/domain/Finding.java), [`SubmissionService`](app/back/src/main/java/br/com/ampere/service/SubmissionService.java), [`SubmissionChecklist`](app/back/src/main/java/br/com/ampere/service/SubmissionChecklist.java), [`FindingController`](app/back/src/main/java/br/com/ampere/controller/FindingController.java) |
+| **Front-end** | [`ProjectOverviewPage`](app/front/src/features/projects/pages/ProjectOverviewPage), [`ProjectFindingsOverview`](app/front/src/features/projects/components/ProjectFindingsOverview/ProjectFindingsOverview.tsx), [`StageFindingsNotice`](app/front/src/features/projects/components/StageFindingsNotice/StageFindingsNotice.tsx) |
+| **Issues** | [#97](https://github.com/IgrPhillipe/ampere/issues/97), [#98](https://github.com/IgrPhillipe/ampere/issues/98), [#99](https://github.com/IgrPhillipe/ampere/issues/99) |
+
+##### US12: Detalhe do Projeto e Histórico de Tratamento
+
+> **Como** projetista externo,  
+> **Quero** abrir qualquer projeto da minha listagem e ver o resumo e o histórico de tratamento,  
+> **Para que** eu entenda em que ponto o projeto está e o que aconteceu com ele sem alternar entre telas.
+
+| Item | Descrição |
+| :--- | :--- |
+| **Entregue** | "Ver Projeto" e "Corrigir" abrem a página única do projeto<br>Cabeçalho com responsável técnico, versão, apontamentos em aberto, unidades, demanda e última movimentação<br>Faixa "Projeto enviado em" com a data e o protocolo<br>Seções com URL própria, editáveis para o dono em rascunho ou reprovado e somente leitura para os demais<br>Seção "Histórico" com a linha do tempo da US08 |
+| **Back-end** | [`ProjectService`](app/back/src/main/java/br/com/ampere/service/ProjectService.java), [`ProjectSummary`](app/back/src/main/java/br/com/ampere/service/ProjectSummary.java), [`ProjectController`](app/back/src/main/java/br/com/ampere/controller/ProjectController.java) |
+| **Front-end** | [`ProjectWorkspace`](app/front/src/features/projects/components/ProjectWorkspace/ProjectWorkspace.tsx), [`ProjectDetailHeader`](app/front/src/features/projects/components/ProjectDetailHeader/ProjectDetailHeader.tsx), [`ProjectOverviewPage`](app/front/src/features/projects/pages/ProjectOverviewPage) |
+| **Issues** | [#105](https://github.com/IgrPhillipe/ampere/issues/105), [#106](https://github.com/IgrPhillipe/ampere/issues/106), [#107](https://github.com/IgrPhillipe/ampere/issues/107) |
+
+##### US18: Filtros e Ordenação das Listagens
+
+> **Como** projetista ou analista,  
+> **Quero** filtrar e ordenar as listagens pelos critérios que importam no meu trabalho,  
+> **Para que** eu encontre rapidamente os projetos que preciso tratar.
+
+| Item | Descrição |
+| :--- | :--- |
+| **Entregue** | "Meus Projetos" ordena por nome, demanda, criação e atualização, e filtra por município, período e apontamentos<br>Fila de análise ordena por prazo, envio, demanda e alertas, e filtra por analista e município<br>Ordenação pelo cabeçalho das colunas e filtros guardados na URL<br>Etiquetas removíveis dos filtros ativos e "Limpar Filtros"<br>Busca, situação e ordenação nas tabelas normativas<br>Endereço pelo CEP, limitado à área atendida pela Neoenergia Pernambuco, com filtros de UF e município |
+| **Back-end** | [`ProjectListing`](app/back/src/main/java/br/com/ampere/service/ProjectListing.java), [`ProjectListQuery`](app/back/src/main/java/br/com/ampere/service/ProjectListQuery.java), [`ReviewQueueListing`](app/back/src/main/java/br/com/ampere/service/ReviewQueueListing.java), [`ReviewQueueQuery`](app/back/src/main/java/br/com/ampere/service/ReviewQueueQuery.java), [`NormativeTableQuery`](app/back/src/main/java/br/com/ampere/service/NormativeTableQuery.java), [`ConcessionArea`](app/back/src/main/java/br/com/ampere/domain/ConcessionArea.java) |
+| **Front-end** | [`ProjectsPage`](app/front/src/features/projects/pages/ProjectsPage/ProjectsPage.tsx), [`ReviewQueuePage`](app/front/src/features/review-queue/pages/ReviewQueuePage/ReviewQueuePage.tsx), [`NormativeTablesPage`](app/front/src/features/normative-tables/pages/NormativeTablesPage/NormativeTablesPage.tsx) |
+| **Issues** | [#108](https://github.com/IgrPhillipe/ampere/issues/108), [#109](https://github.com/IgrPhillipe/ampere/issues/109), [#110](https://github.com/IgrPhillipe/ampere/issues/110), [#177](https://github.com/IgrPhillipe/ampere/issues/177), [#181](https://github.com/IgrPhillipe/ampere/issues/181) |
+
+##### US20: Exclusão de Projeto em Rascunho
+
+> **Como** projetista externo,  
+> **Quero** excluir projetos em rascunho que não vou mais enviar,  
+> **Para que** minha listagem mostre apenas o que está em andamento.
+
+| Item | Descrição |
+| :--- | :--- |
+| **Entregue** | "Excluir Projeto" só para rascunho, na listagem e no detalhe do projeto<br>Diálogo de confirmação com o nome e o protocolo<br>Listagem e contadores atualizados depois da exclusão<br>"Excluir Grupo" também pede confirmação |
+| **Back-end** | `DELETE /api/projects/{id}` já existente em [`ProjectController`](app/back/src/main/java/br/com/ampere/controller/ProjectController.java), que apaga em cascata |
+| **Front-end** | [`ProjectDeleteDialog`](app/front/src/features/projects/components/ProjectDeleteDialog/ProjectDeleteDialog.tsx), [`ProjectsPage`](app/front/src/features/projects/pages/ProjectsPage/ProjectsPage.tsx) |
+| **Issues** | [#100](https://github.com/IgrPhillipe/ampere/issues/100), [#101](https://github.com/IgrPhillipe/ampere/issues/101) |
+
+#### Requisitos de POO
+
+| Requisito | Onde é atendido |
+| :--- | :--- |
+| Classes de domínio persistidas | `Finding` e `ProjectEvent`, além das entregas anteriores |
+| Histórias que leem e escrevem no banco | US07 grava a atribuição, os apontamentos e a decisão; US08 grava e lê os eventos; US09 grava as respostas e a nova versão; US12 lê o resumo e o histórico; US18 lê as listagens filtradas; US20 apaga o rascunho |
+| **Encapsulamento** | `Project` muda de status somente por `submit`, `approve`, `reject` e `assignReviewer`, sem setter. `Finding` muda somente por `publish`, `respond` e `resolve`. `ProjectEvent` é imutável |
+| Sem geração automática de código | Lombok proibido. DTOs são `record` e as entidades têm getters escritos à mão |
+
 #### Artefatos
 
 | Artefato | Link |
 | :--- | :--- |
-| Histórias implementadas (POST-IT) | Pendente |
+| Histórias implementadas (POST-IT) | [Histórias implementadas](#histórias-implementadas-2) |
 | Print do GitHub Issues | Pendente |
 | Screencast final do sistema | Pendente |
 | Screencast da explicação do código | Pendente |
