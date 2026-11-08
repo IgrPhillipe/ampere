@@ -28,6 +28,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
@@ -36,6 +38,8 @@ import tools.jackson.databind.node.ObjectNode;
 
 @Service
 public class ProjectVersionService {
+
+  private static final Logger log = LoggerFactory.getLogger(ProjectVersionService.class);
 
   private static final String NOT_FOUND = "Versão não encontrada.";
 
@@ -129,7 +133,7 @@ public class ProjectVersionService {
       Project project, List<Finding> reservations, OffsetDateTime approvedAt) {
     versionRepository
         .findLatestByProjectId(project.getId())
-        .ifPresent(
+        .ifPresentOrElse(
             version -> {
               List<ConsumerUnitGroup> groups =
                   groupRepository.findAllByProjectIdOrderById(project.getId());
@@ -148,7 +152,10 @@ public class ProjectVersionService {
                       issued.sha256(),
                       issued.verificationCode(),
                       approvedAt));
-            });
+            },
+            () ->
+                log.warn(
+                    "Approval memorial not issued: project {} has no version", project.getId()));
   }
 
   @Transactional(readOnly = true)
