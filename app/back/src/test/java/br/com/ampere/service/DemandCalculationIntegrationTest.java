@@ -135,7 +135,7 @@ class DemandCalculationIntegrationTest {
         .andExpect(jsonPath("$.data.traceability.cableSectionMm2").value(150))
         .andExpect(jsonPath("$.data.composition", hasSize(4)))
         .andExpect(jsonPath("$.data.composition[0].percent").value(47.5))
-        .andExpect(jsonPath("$.data.checksCount").value(6))
+        .andExpect(jsonPath("$.data.checksCount").value(7))
         .andExpect(jsonPath("$.data.warningsCount").value(1))
         .andExpect(jsonPath("$.data.standards.main.revision").value("REV 06"))
         .andExpect(jsonPath("$.data.standards.secondary.revision").value("REV 07"));

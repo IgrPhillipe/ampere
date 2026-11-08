@@ -133,6 +133,38 @@ class IndividualDemandTest {
   }
 
   @Test
+  void aThreePhaseApartmentInASinglePhaseBuildingIsAWarning() {
+    DemandResult result =
+        DemandEngine.run(
+            List.of(threePhaseApartments(PROJECT, "Cobertura", 2, "180", exemplo3())),
+            context(SupplyVoltage.V220_127, ConnectionType.SINGLE_PHASE));
+
+    assertThat(result.checks())
+        .filteredOn(check -> check.getCode().equals("UNIT_CONNECTION"))
+        .singleElement()
+        .satisfies(
+            check -> {
+              assertThat(check.getStatus()).isEqualTo(CheckStatus.WARNING);
+              assertThat(check.getMessage())
+                  .isEqualTo(
+                      "Há apartamento trifásico, mas o tipo de ligação da edificação é monofásico:"
+                          + " confira a ligação da edificação ou a das unidades.");
+            });
+  }
+
+  @Test
+  void aThreePhaseBuildingFeedsItsThreePhaseApartments() {
+    DemandResult result =
+        DemandEngine.run(
+            List.of(threePhaseApartments(PROJECT, "Cobertura", 2, "180", exemplo3())), CONTEXT);
+
+    assertThat(result.checks())
+        .filteredOn(check -> check.getCode().equals("UNIT_CONNECTION"))
+        .extracting(CalculationCheck::getStatus)
+        .containsExactly(CheckStatus.PASSED);
+  }
+
+  @Test
   void withoutApartmentsTheIndividualStepDoesNotApply() {
     DemandResult result =
         DemandEngine.run(

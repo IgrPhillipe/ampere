@@ -262,6 +262,7 @@ public final class DemandEngine {
                     + " (DIS-NOR-053 Anexo I, item 5)."));
 
     checks.add(lowVoltageCheck(units));
+    checks.add(unitConnectionCheck(units, context));
 
     return checks;
   }
@@ -283,6 +284,30 @@ public final class DemandEngine {
         "Maior carga instalada por apartamento de "
             + DeclaredValues.fixed(largest, 2)
             + " kW, dentro do limite de 75 kW da baixa tensão (DIS-NOR-030, item 6.2.1).");
+  }
+
+  /** A three-phase apartment cannot be fed by a single-phase building entrance. */
+  private static CalculationCheck unitConnectionCheck(
+      List<IndividualDemand> units, DemandContext context) {
+    boolean threePhase = units.stream().anyMatch(unit -> unit.demandKva() != null);
+    if (!threePhase) {
+      return new CalculationCheck(
+          "UNIT_CONNECTION",
+          CheckStatus.SKIPPED,
+          "Sem apartamentos trifásicos: a ligação da edificação atende todas as unidades.");
+    }
+    if (context.connectionType() != ConnectionType.THREE_PHASE) {
+      return new CalculationCheck(
+          "UNIT_CONNECTION",
+          CheckStatus.WARNING,
+          "Há apartamento trifásico, mas o tipo de ligação da edificação é "
+              + context.connectionType().label().toLowerCase()
+              + ": confira a ligação da edificação ou a das unidades.");
+    }
+    return new CalculationCheck(
+        "UNIT_CONNECTION",
+        CheckStatus.PASSED,
+        "Ligação trifásica da edificação atende os apartamentos trifásicos.");
   }
 
   /** Tabelas 1 and 2 size a three-phase entrance up to 300 kVA; outside that, a warning. */
