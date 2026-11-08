@@ -1,7 +1,7 @@
 import { RowAction } from "@components/RowAction";
 
 interface AnalyzeButtonProps {
-	/** Overdue or due today: a filled button. Otherwise it can wait, so a link. */
+	/** Overdue or due today. The Figma draws every row action alike; kept for callers. */
 	urgent: boolean;
 	onAnalyze: () => void;
 	buttonClassName?: string;

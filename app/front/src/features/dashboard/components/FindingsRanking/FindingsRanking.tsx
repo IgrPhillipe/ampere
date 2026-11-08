@@ -39,20 +39,19 @@ export const FindingsRanking = ({ items, className }: FindingsRankingProps) => {
 					{items.map((item) => (
 						<li
 							key={`${item.stage}-${item.standardItem}`}
-							className="flex flex-col gap-3 border-b border-border py-4 last:border-b-0"
+							className="flex flex-col gap-3 border-b border-border py-5 last:border-b-0"
 						>
 							<div className="flex items-baseline justify-between gap-4">
-								<span className="text-sm">{describeItem(item)}</span>
+								<span className="text-sm text-muted-foreground">
+									{describeItem(item)}
+								</span>
 								<span className="font-mono text-sm font-semibold">
 									{padCount(item.total)}
 								</span>
 							</div>
-							<div
-								aria-hidden="true"
-								className="h-1.5 w-full max-w-md rounded-full bg-muted"
-							>
+							<div aria-hidden="true" className="h-1 w-full max-w-md bg-muted">
 								<div
-									className="h-full rounded-full bg-primary"
+									className="h-full bg-primary"
 									style={{ width: `${(item.total / max) * 100}%` }}
 								/>
 							</div>

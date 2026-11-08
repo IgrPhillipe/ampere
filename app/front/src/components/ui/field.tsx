@@ -20,7 +20,7 @@ const fieldLabelVariants = cva(
 				default: "text-sm font-medium",
 				/** Rotulo do campo `underline`: sobrescrita curta acima da linha. */
 				underline:
-					"text-xs font-normal tracking-wider text-muted-foreground uppercase",
+					"font-mono text-2xs font-normal tracking-[0.11em] text-faint-foreground uppercase",
 			},
 		},
 		defaultVariants: {
@@ -70,7 +70,7 @@ function FieldError({ className, ...props }: FieldPrimitive.Error.Props) {
 		<FieldPrimitive.Error
 			data-slot="field-error"
 			role="alert"
-			className={cn("text-sm font-medium text-destructive", className)}
+			className={cn("text-xs font-medium text-destructive", className)}
 			{...props}
 		/>
 	);

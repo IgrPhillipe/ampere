@@ -19,7 +19,7 @@ export const ChangePasswordForm = ({
 	currentPasswordLabel = "Senha atual",
 	children,
 }: ChangePasswordFormProps) => (
-	<form noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
+	<form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
 		<ControlledInput
 			control={form.control}
 			name="currentPassword"

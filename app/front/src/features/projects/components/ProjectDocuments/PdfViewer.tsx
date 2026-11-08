@@ -54,6 +54,7 @@ export const PdfViewer = ({
 					type="button"
 					variant="link"
 					size="xs"
+					className="px-0"
 					disabled={!fileQuery.data}
 					onClick={download}
 				>
@@ -81,7 +82,7 @@ export const PdfViewer = ({
 				<iframe
 					ref={frameRef}
 					title={`${document.typeLabel}: ${document.filename}`}
-					className="min-h-[32rem] w-full flex-1 rounded-xs border border-border bg-surface-hover"
+					className="min-h-[32rem] w-full flex-1 border border-border bg-muted"
 				/>
 			) : (
 				<Skeleton className="min-h-[32rem] w-full flex-1" />

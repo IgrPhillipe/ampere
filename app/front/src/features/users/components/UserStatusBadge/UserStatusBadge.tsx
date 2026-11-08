@@ -1,23 +1,32 @@
 import { Badge } from "@components/ui/badge";
 import { cn } from "@lib/utils";
-import type { ManagedUser } from "@services/users";
 
 import { userStatusLabels } from "../../constants";
+import {
+	getUserAttention,
+	hasTemporaryPassword,
+	type UserState,
+} from "./user-attention";
 
 interface UserStatusBadgeProps {
-	user: Pick<ManagedUser, "active" | "mustChangePassword">;
+	user: UserState;
 	className?: string;
 }
 
-/** A pending change only matters while the account can still sign in. */
-export const UserStatusBadge = ({ user, className }: UserStatusBadgeProps) => (
-	<div className={cn("flex flex-wrap items-center gap-1.5", className)}>
-		<Badge variant={user.active ? "success" : "neutral"}>
-			{userStatusLabels[user.active ? "active" : "inactive"]}
-		</Badge>
+/** Versalete without color: ink when it asks for action, faint when the account is fine. */
+export const UserStatusBadge = ({ user, className }: UserStatusBadgeProps) => {
+	const label = hasTemporaryPassword(user)
+		? "Senha Temporária"
+		: userStatusLabels[user.active ? "active" : "inactive"];
 
-		{user.active && user.mustChangePassword ? (
-			<Badge variant="warning">Troca Pendente</Badge>
-		) : null}
-	</div>
-);
+	return (
+		<Badge
+			className={cn(
+				getUserAttention(user) ? "text-foreground" : "text-faint-foreground",
+				className,
+			)}
+		>
+			{label}
+		</Badge>
+	);
+};

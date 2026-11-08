@@ -21,43 +21,51 @@ export const DecisionFooter = ({
 	className,
 }: DecisionFooterProps) => {
 	const { decisions, blockedReason, approvalBlockedReason } = availability;
-	const both = decisions.length > 1;
+	if (!closedMessage && !canDecide) return null;
+
+	// Both decisions stay visible, as in the Figma; the reason tells why one is off.
+	const reason = closedMessage
+		? null
+		: decisions.length === 0
+			? blockedReason
+			: approvalBlockedReason;
 
 	return (
-		<ProjectDetailFooter className={className}>
-			<div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
-				{closedMessage ? (
+		<ProjectDetailFooter
+			className={className}
+			summary={
+				closedMessage ? (
 					<p className="text-sm text-muted-foreground">{closedMessage}</p>
-				) : canDecide ? (
-					decisions.length > 0 ? (
-						<div className="flex flex-col-reverse gap-2 md:flex-row md:items-center">
-							{approvalBlockedReason ? (
-								<p className="text-sm text-muted-foreground md:mr-2 md:text-right">
-									{approvalBlockedReason}
-								</p>
-							) : null}
-							{decisions.includes("REJECT") ? (
-								<Button
-									type="button"
-									variant={both ? "outline" : "default"}
-									onClick={() => onDecide("REJECT")}
-								>
-									Reprovar com Apontamentos
-								</Button>
-							) : null}
-							{decisions.includes("APPROVE") ? (
-								<Button type="button" onClick={() => onDecide("APPROVE")}>
-									Aprovar Projeto
-								</Button>
-							) : null}
-						</div>
-					) : (
-						<p className="text-sm text-muted-foreground md:text-right">
-							{blockedReason}
-						</p>
-					)
-				) : null}
-			</div>
+				) : reason ? (
+					<p className="flex items-center gap-2 text-sm text-foreground">
+						<span
+							aria-hidden="true"
+							className="size-1.5 shrink-0 rounded-full bg-attention"
+						/>
+						{reason}
+					</p>
+				) : null
+			}
+		>
+			{closedMessage ? null : (
+				<div className="flex flex-col-reverse gap-3 sm:flex-row">
+					<Button
+						type="button"
+						variant="outline"
+						disabled={!decisions.includes("REJECT")}
+						onClick={() => onDecide("REJECT")}
+					>
+						Reprovar com Apontamentos
+					</Button>
+					<Button
+						type="button"
+						disabled={!decisions.includes("APPROVE")}
+						onClick={() => onDecide("APPROVE")}
+					>
+						Aprovar Projeto
+					</Button>
+				</div>
+			)}
 		</ProjectDetailFooter>
 	);
 };

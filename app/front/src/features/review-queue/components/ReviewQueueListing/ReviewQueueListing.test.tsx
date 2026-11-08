@@ -71,9 +71,9 @@ describe("ReviewQueueListing", () => {
 			/>,
 		);
 
-		expect(screen.getAllByText("Atrasado")[0]).toHaveAttribute(
-			"data-variant",
-			"destructive",
+		expect(screen.getAllByText("Atrasado 3 dias")[0]).toHaveAttribute(
+			"data-status",
+			"OVERDUE",
 		);
 		expect(screen.queryByText("3 dias de atraso")).not.toBeInTheDocument();
 		expect(screen.getAllByText("08/10/2026")).not.toHaveLength(0);
@@ -91,6 +91,20 @@ describe("ReviewQueueListing", () => {
 		expect(
 			screen.getAllByText("Jaboatão dos Guararapes/PE, João Projetista"),
 		).not.toHaveLength(0);
+		expect(screen.getAllByText("08/09/2026")).not.toHaveLength(0);
+	});
+
+	it("writes the pre-validation as a count, or says there is no alert", () => {
+		render(
+			<ReviewQueueListing
+				items={[item, { ...item, id: "2", warnings: 0, alerts: [] }]}
+				onAnalyze={vi.fn()}
+			/>,
+		);
+
+		expect(screen.getByText("01 alerta")).toBeInTheDocument();
+		expect(screen.getByText("Sem alerta")).toBeInTheDocument();
+		expect(screen.getAllByText("20 dias")).toHaveLength(2);
 	});
 });
 

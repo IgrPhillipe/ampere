@@ -1,3 +1,4 @@
+import { SectionHeading } from "@components/SectionHeading";
 import { Skeleton } from "@components/ui/skeleton";
 import { formatDecimal, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
@@ -24,14 +25,12 @@ export const CalculationSteps = ({
 	className,
 }: CalculationStepsProps) => (
 	<section aria-labelledby="etapas-titulo" className={className}>
-		<div className="flex items-baseline justify-between gap-4 border-b-2 border-foreground pb-3">
-			<h2 id="etapas-titulo" className="text-lg font-semibold text-foreground">
-				Decomposição do Cálculo
-			</h2>
-			<span className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-				{padCount(steps?.length ?? STEP_COUNT)} etapas
-			</span>
-		</div>
+		<SectionHeading
+			id="etapas-titulo"
+			meta={`${padCount(steps?.length ?? STEP_COUNT)} etapas`}
+		>
+			Decomposição do Cálculo
+		</SectionHeading>
 
 		{isLoading || !steps ? (
 			<ol aria-busy="true" className="flex flex-col">
@@ -81,18 +80,15 @@ const StepRow = ({
 	return (
 		<li
 			className={cn(
-				"grid grid-cols-[3.25rem_minmax(0,1fr)] gap-y-1 border-b border-border py-3 sm:grid-cols-[3.25rem_minmax(0,1fr)_8.75rem]",
+				"relative grid grid-cols-[3.25rem_minmax(0,1fr)] gap-y-1 border-b border-border py-3 sm:grid-cols-[3.25rem_minmax(0,1fr)_8.75rem]",
 				// The negative margin keeps the total's columns aligned with the steps above.
-				isTotal && "-mx-3 mt-3 rounded-xs border-b-0 bg-accent px-3",
+				isTotal && "-mx-3 bg-accent px-3",
 			)}
 		>
 			<span className="flex h-6 items-center gap-2.5">
 				<span
 					aria-hidden="true"
-					className={cn(
-						"size-2 rounded-[2px]",
-						demandSeriesClassNames[step.code],
-					)}
+					className={cn("size-2", demandSeriesClassNames[step.code])}
 				/>
 				<span
 					className={cn(
@@ -108,7 +104,7 @@ const StepRow = ({
 				<FindingBadge
 					findings={findings}
 					target={`parcela-${step.code}`}
-					className="mb-1"
+					className="absolute top-2 -left-3"
 				/>
 				<h3 className="text-base font-medium text-foreground">
 					{step.title}
@@ -152,14 +148,14 @@ const StepRow = ({
 
 			<div className="col-start-2 flex flex-col items-start gap-1 sm:col-start-3 sm:items-end">
 				<p className="flex items-baseline gap-1.5 whitespace-nowrap">
-					<span className="font-mono text-xl font-semibold tracking-tight text-foreground">
+					<span className="font-mono text-lg font-semibold tracking-[-0.02em] text-foreground">
 						{formatDecimal(step.valueKva)}
 					</span>
-					<span className="text-sm text-muted-foreground">kVA</span>
+					<span className="text-xs text-muted-foreground">kVA</span>
 				</p>
 				{step.reference ? (
 					<span
-						className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase"
+						className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase"
 						title={`${step.reference.standard} ${step.reference.revision}, ${step.reference.item}, p. ${step.reference.page}`}
 					>
 						{step.reference.label}

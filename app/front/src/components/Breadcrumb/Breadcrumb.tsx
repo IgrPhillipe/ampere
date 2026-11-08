@@ -1,6 +1,5 @@
 import { cn } from "@lib/utils";
 import { Link } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
 
 export interface BreadcrumbItem {
 	label: string;
@@ -13,16 +12,17 @@ interface BreadcrumbProps {
 	className?: string;
 }
 
+/** A quiet versalete line, read as the eyebrow above the page title. */
 export const Breadcrumb = ({ items, className }: BreadcrumbProps) => (
 	<nav aria-label="Navegação estrutural" className={className}>
-		<ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+		<ol className="flex flex-wrap items-center gap-2 font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 			{items.map((item, index) => {
 				const isLast = index === items.length - 1;
 
 				return (
 					<li
 						key={`${index}-${item.label}`}
-						className="flex min-w-0 items-center gap-1.5"
+						className="flex min-w-0 items-center gap-2"
 					>
 						{item.to && !isLast ? (
 							<Link
@@ -35,15 +35,13 @@ export const Breadcrumb = ({ items, className }: BreadcrumbProps) => (
 						) : (
 							<span
 								aria-current={isLast ? "page" : undefined}
-								className={cn("truncate", isLast && "text-foreground")}
+								className={cn("truncate", isLast && "text-muted-foreground")}
 							>
 								{item.label}
 							</span>
 						)}
 
-						{isLast ? null : (
-							<ChevronRight aria-hidden="true" className="size-3.5 shrink-0" />
-						)}
+						{isLast ? null : <span aria-hidden="true">/</span>}
 					</li>
 				);
 			})}

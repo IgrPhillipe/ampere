@@ -14,8 +14,8 @@ export const GroupStatusLabel = ({
 }: GroupStatusLabelProps) => (
 	<span
 		className={cn(
-			"font-mono text-xs tracking-[0.08em] uppercase",
-			status === "VALIDATED" ? "text-muted-foreground" : "text-foreground",
+			"font-mono text-2xs tracking-[0.11em] uppercase",
+			status === "VALIDATED" ? "text-faint-foreground" : "text-foreground",
 			className,
 		)}
 	>

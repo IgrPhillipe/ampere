@@ -1,3 +1,5 @@
+import { ConclusionField } from "@components/ConclusionField";
+import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { padCount } from "@features/shared";
@@ -9,7 +11,7 @@ import type {
 	ProjectDocument,
 	SubmissionChecklist,
 } from "@services/submission";
-import { Check, Eye, Paperclip, TriangleAlert, X } from "lucide-react";
+import { Check, Circle, Eye, Paperclip } from "lucide-react";
 import { type ChangeEvent, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -24,10 +26,12 @@ interface SubmissionChecklistPanelProps {
 	isLoading?: boolean;
 	findings?: Finding[];
 	editable: boolean;
+	/** Only the conferred items, without files or actions, as in the memorial. */
+	summary?: boolean;
 	uploadingType?: DocumentType;
 	removingId?: string;
-	onUpload: (type: DocumentType, file: File) => void;
-	onRemove: (document: ProjectDocument) => void;
+	onUpload?: (type: DocumentType, file: File) => void;
+	onRemove?: (document: ProjectDocument) => void;
 	className?: string;
 }
 
@@ -43,11 +47,12 @@ interface ItemProps {
 	item: ChecklistItem;
 	document?: ProjectDocument;
 	editable: boolean;
+	summary: boolean;
 	isUploading: boolean;
 	isRemoving: boolean;
 	findings: Finding[];
-	onUpload: (type: DocumentType, file: File) => void;
-	onRemove: (document: ProjectDocument) => void;
+	onUpload?: (type: DocumentType, file: File) => void;
+	onRemove?: (document: ProjectDocument) => void;
 	onView: (document: ProjectDocument) => void;
 }
 
@@ -55,6 +60,7 @@ const Item = ({
 	item,
 	document,
 	editable,
+	summary,
 	isUploading,
 	isRemoving,
 	findings,
@@ -79,57 +85,65 @@ const Item = ({
 			return;
 		}
 
-		onUpload(type, file);
+		onUpload?.(type, file);
 	};
 
+	const Icon = item.completed ? Check : Circle;
+
 	return (
-		<li className="flex items-start gap-3 border-b border-border py-3">
-			{item.completed ? (
-				<Check aria-hidden="true" className="mt-0.5 size-4 text-primary" />
-			) : (
-				<TriangleAlert
-					aria-hidden="true"
-					className="mt-0.5 size-4 text-destructive"
-				/>
+		<li
+			className={cn(
+				"flex items-start gap-3 border-b border-border-soft",
+				summary ? "py-2" : "py-3",
+				// The gutter marks only what still needs action.
+				!item.completed && "-ml-3 border-l-2 border-l-attention pl-2.5",
 			)}
+		>
+			<Icon
+				aria-hidden="true"
+				className={cn(
+					"mt-0.5 size-4 shrink-0",
+					item.completed ? "text-foreground" : "text-faint-foreground",
+				)}
+			/>
 
 			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-				<span
-					className={cn(
-						"text-sm",
-						item.completed ? "text-foreground" : "text-destructive",
-					)}
-				>
+				<span className="text-sm text-foreground">
 					{item.label}
 					<span className="sr-only">
 						{item.completed ? " (conferido)" : " (pendente)"}
 					</span>
 				</span>
-				<FindingBadge
-					findings={findings}
-					target={`documento-${item.key}`}
-					className="mt-1"
-				/>
-				{document ? (
-					<span className="truncate text-xs text-muted-foreground">
-						{document.filename} ({formatSize(document.fileSize)})
-					</span>
-				) : type ? (
-					<span className="text-xs text-destructive">
-						Anexe o arquivo em PDF
-					</span>
-				) : item.completed ? null : (
-					<span className="text-xs text-destructive">
-						Calcule a demanda na seção de cálculo
-					</span>
+				{summary ? null : (
+					<>
+						<FindingBadge
+							findings={findings}
+							target={`documento-${item.key}`}
+							className="mt-1"
+						/>
+						{document ? (
+							<span className="truncate font-mono text-xs text-muted-foreground">
+								{document.filename} ({formatSize(document.fileSize)})
+							</span>
+						) : type ? (
+							<span className="text-xs text-muted-foreground">
+								Anexe o arquivo em PDF
+							</span>
+						) : item.completed ? null : (
+							<span className="text-xs text-muted-foreground">
+								Calcule a demanda na seção de cálculo
+							</span>
+						)}
+					</>
 				)}
 			</div>
 
-			{document && !editable ? (
+			{document && !editable && !summary ? (
 				<Button
 					type="button"
-					variant="ghost"
+					variant="link"
 					size="xs"
+					className="h-auto px-0"
 					aria-label={`Ver ${item.label}`}
 					onClick={() => onView(document)}
 				>
@@ -138,17 +152,17 @@ const Item = ({
 				</Button>
 			) : null}
 
-			{type && editable ? (
-				<div className="flex shrink-0 items-center gap-1">
+			{type && editable && !summary ? (
+				<div className="flex shrink-0 items-center gap-3">
 					{document ? (
 						<Button
 							type="button"
-							variant="ghost"
+							variant="link"
 							size="xs"
+							className="h-auto px-0"
 							aria-label={`Ver ${item.label}`}
 							onClick={() => onView(document)}
 						>
-							<Eye aria-hidden="true" />
 							Ver
 						</Button>
 					) : null}
@@ -163,25 +177,27 @@ const Item = ({
 					/>
 					<Button
 						type="button"
-						variant={document ? "ghost" : "outline"}
+						variant={document ? "link" : "outline"}
 						size="xs"
+						className={document ? "h-auto px-0" : undefined}
 						disabled={isUploading}
 						aria-label={`${document ? "Substituir" : "Anexar"} ${item.label}`}
 						onClick={() => inputRef.current?.click()}
 					>
-						<Paperclip aria-hidden="true" />
+						{document ? null : <Paperclip aria-hidden="true" />}
 						{isUploading ? "Enviando" : document ? "Substituir" : "Anexar"}
 					</Button>
 					{document ? (
 						<Button
 							type="button"
 							variant="destructive-ghost"
-							size="icon-xs"
+							size="xs"
+							className="h-auto px-0"
 							disabled={isRemoving}
 							aria-label={`Remover ${item.label}`}
-							onClick={() => onRemove(document)}
+							onClick={() => onRemove?.(document)}
 						>
-							<X aria-hidden="true" />
+							Remover
 						</Button>
 					) : null}
 				</div>
@@ -196,6 +212,7 @@ export const SubmissionChecklistPanel = ({
 	isLoading = false,
 	findings = [],
 	editable,
+	summary = false,
 	uploadingType,
 	removingId,
 	onUpload,
@@ -209,47 +226,45 @@ export const SubmissionChecklistPanel = ({
 	return (
 		<aside
 			aria-labelledby="checagem-titulo"
-			className={cn("flex flex-col bg-card px-6 py-8 md:px-8", className)}
+			className={cn("flex flex-col px-6 py-8 md:px-9.5", className)}
 		>
-			<div className="rounded-xs bg-primary px-6 py-5 text-primary-foreground">
-				<h2
-					id="checagem-titulo"
-					className="border-b border-primary-foreground/85 pb-3 font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase"
-				>
-					Checagem Antes do Envio
-				</h2>
-
+			<ConclusionField
+				label={
+					<span id="checagem-titulo" role="heading" aria-level={2}>
+						Checagem Antes do Envio
+					</span>
+				}
+				value={
+					isLoading || !checklist ? undefined : (
+						<span aria-live="polite">
+							{padCount(done)}/{padCount(total)}
+						</span>
+					)
+				}
+				caption="Itens obrigatórios conferidos"
+			>
 				{isLoading || !checklist ? (
-					<Skeleton className="mt-6 h-14 w-36 bg-primary-foreground/20" />
-				) : (
-					<p
-						aria-live="polite"
-						className="mt-6 font-mono text-5xl font-medium tracking-tight"
-					>
-						{padCount(done)}/{padCount(total)}
-					</p>
-				)}
-
-				<p className="mt-2 font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase">
-					Itens obrigatórios conferidos
-				</p>
-			</div>
+					<Skeleton className="h-14 w-36 bg-primary-foreground/20" />
+				) : null}
+			</ConclusionField>
 
 			{isLoading || !checklist ? (
-				<div className="mt-6 flex flex-col gap-3">
+				<div className="mt-9.5 flex flex-col gap-3">
 					{Array.from({ length: 4 }, (_, index) => (
 						<Skeleton key={index} className="h-10 w-full" />
 					))}
 				</div>
 			) : (
 				<>
-					<FindingBadge
-						findings={findings.filter(
-							(finding) => finding.documentType === null,
-						)}
-						className="mt-6"
-					/>
-					<ul className="mt-6 flex flex-col">
+					{summary ? null : (
+						<FindingBadge
+							findings={findings.filter(
+								(finding) => finding.documentType === null,
+							)}
+							className="mt-5"
+						/>
+					)}
+					<ul className="mt-9.5 flex flex-col">
 						{checklist.items.map((item) => {
 							const document = checklist.documents.find(
 								({ type }) => type === item.key,
@@ -261,6 +276,7 @@ export const SubmissionChecklistPanel = ({
 									item={item}
 									document={document}
 									editable={editable}
+									summary={summary}
 									isUploading={uploadingType === item.key}
 									isRemoving={
 										document !== undefined && removingId === document.id
@@ -278,15 +294,15 @@ export const SubmissionChecklistPanel = ({
 				</>
 			)}
 
-			<div className="mt-10">
-				<h3 className="border-b-2 border-foreground pb-3 text-base font-semibold">
+			<section aria-labelledby="envio-segue-titulo" className="mt-9.5">
+				<SectionHeading as="h3" id="envio-segue-titulo">
 					O que Segue no Envio
-				</h3>
+				</SectionHeading>
 				<p className="mt-3 text-sm text-muted-foreground">
 					Memorial padronizado, memória de cálculo detalhada, ART, diagrama
 					unifilar e planta de situação.
 				</p>
-			</div>
+			</section>
 
 			<DocumentDialog
 				projectId={projectId}

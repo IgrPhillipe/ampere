@@ -70,13 +70,13 @@ export const FindingCard = ({
 			/>
 
 			{editable ? (
-				<div className="flex flex-wrap justify-end gap-2">
+				<div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2">
 					{isDraft ? (
 						<>
 							<Button
 								type="button"
-								size="xs"
 								variant="destructive-ghost"
+								className="h-auto px-0"
 								disabled={isPending}
 								onClick={() => onDelete(finding)}
 							>
@@ -84,8 +84,8 @@ export const FindingCard = ({
 							</Button>
 							<Button
 								type="button"
-								size="xs"
-								variant="outline"
+								variant="link"
+								className="h-auto px-0"
 								disabled={isPending}
 								onClick={() => onEdit(finding)}
 							>
@@ -97,8 +97,8 @@ export const FindingCard = ({
 							{finding.status === "OPEN" ? null : (
 								<Button
 									type="button"
-									size="xs"
-									variant="outline"
+									variant="link"
+									className="h-auto px-0"
 									disabled={isPending}
 									onClick={() => onResolve(finding, "REOPEN")}
 								>
@@ -108,7 +108,7 @@ export const FindingCard = ({
 							{finding.status === "RESOLVED" ? null : (
 								<Button
 									type="button"
-									size="xs"
+									size="sm"
 									disabled={isPending}
 									onClick={() => onResolve(finding, "ACCEPT")}
 								>

@@ -25,7 +25,7 @@ export const ReservationList = ({
 
 			return (
 				<li key={reservation.id} className="flex flex-col gap-1 py-3">
-					<p className="flex flex-wrap gap-x-3 font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+					<p className="flex flex-wrap gap-x-3 font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 						<span>{findingStageLabels[reservation.stage]}</span>
 						{reference ? <span>{reference}</span> : null}
 					</p>
@@ -33,7 +33,7 @@ export const ReservationList = ({
 						{reservation.description}
 					</p>
 					{reservation.standardItem ? (
-						<p className="text-xs text-muted-foreground">
+						<p className="font-mono text-xs text-faint-foreground">
 							{reservation.standardItem}
 						</p>
 					) : null}

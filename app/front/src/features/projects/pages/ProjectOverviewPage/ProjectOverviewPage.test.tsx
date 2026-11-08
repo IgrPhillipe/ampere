@@ -117,11 +117,11 @@ describe("ProjectOverviewPage", () => {
 		).toBeVisible();
 
 		fireEvent.click(screen.getByRole("button", { name: /A ART não traz/ }));
-		expect(screen.getByRole("button", { name: "Corrigido" })).toBeVisible();
-		expect(screen.getByRole("button", { name: "Contestar" })).toBeVisible();
 		expect(
-			screen.getByRole("button", { name: /Ir para a Seção/ }),
+			screen.getByRole("button", { name: "Marcar Corrigido" }),
 		).toBeVisible();
+		expect(screen.getByRole("button", { name: "Contestar" })).toBeVisible();
+		expect(screen.getByRole("button", { name: /Abrir Seção/ })).toBeVisible();
 	});
 
 	it("keeps the designer read only while the project is under review", () => {
@@ -132,7 +132,7 @@ describe("ProjectOverviewPage", () => {
 		expect(screen.getByText("O que Acontece Agora")).toBeVisible();
 		expect(screen.queryByText("Apontamentos")).not.toBeInTheDocument();
 		expect(
-			screen.queryByRole("button", { name: "Corrigido" }),
+			screen.queryByRole("button", { name: "Marcar Corrigido" }),
 		).not.toBeInTheDocument();
 	});
 

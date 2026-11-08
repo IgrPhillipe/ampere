@@ -21,7 +21,7 @@ export const HeaderNav = ({
 	const items = filterNavItemsByRole(APP_NAV_ITEMS, role);
 	const horizontal = orientation === "horizontal";
 	const itemClassName = horizontal
-		? "relative flex h-full items-center px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+		? "relative flex h-full items-center px-3 text-sm font-normal text-muted-foreground transition-colors hover:text-foreground [&.active]:font-medium"
 		: "flex min-h-11 w-full items-center rounded-sm px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground";
 
 	return (
@@ -56,8 +56,8 @@ export const HeaderNav = ({
 						className={itemClassName}
 						activeProps={{
 							className: horizontal
-								? "text-primary after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary"
-								: "bg-accent text-accent-foreground",
+								? "text-foreground"
+								: "bg-accent text-foreground",
 						}}
 					>
 						{item.label}

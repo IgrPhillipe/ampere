@@ -7,16 +7,34 @@ recrie cores, espaçamentos e componentes de forma diferente.
 
 Ordem de precedência:
 
-1. O [site oficial da Neoenergia Pernambuco](https://www.neoenergia.com/web/pernambuco)
-   define a linguagem visual da marca: paleta, tipografia, formas e ritmo.
-2. Os protótipos de alta fidelidade definem a estrutura e a hierarquia de cada
-   tela do AMPERE.
-3. A issue da história define comportamento, estados e conteúdo obrigatório.
-4. O contrato do back-end define quais dados podem ser exibidos.
+1. O [Protótipo Hi-Fi](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI)
+   define o estilo e a estrutura: tipografia, cores, fios, espaçamento e a
+   página "Documentação: Hierarquia visual", que explica cada regra. O front
+   se ajusta ao Figma, e não o contrário.
+2. A issue da história define comportamento, estados e conteúdo obrigatório.
+3. O contrato do back-end define quais dados podem ser exibidos.
 
-Quando duas fontes divergem, o AMPERE mantém a estrutura do protótipo e aplica
-a linguagem visual da Neoenergia aos próprios fluxos. A página institucional
-não é copiada.
+Telas sem protótipo seguem o mesmo sistema, a partir do padrão mais próximo.
+A comparação mais recente está em
+[`../produto/auditoria-figma.md`](../produto/auditoria-figma.md).
+
+### Metáfora e Regras
+
+A interface é um documento técnico em página branca de largura total. A
+hierarquia vem de tipografia, peso, tom e espaço, não de cor. A mesa bege com
+a folha flutuante do Figma não é adotada: as telas ocupam a largura toda.
+
+- Texto em Geist; toda medição (valores, unidades, protocolos, índices,
+  referências normativas e datas) em Geist Mono.
+- Regular para linguagem, Medium para rótulo e título, SemiBold só para
+  número.
+- Três tons: `text-foreground`, `text-muted-foreground` e
+  `text-faint-foreground`.
+- Um único campo de conclusão verde por tela (`ConclusionField`).
+- Situação em versalete mono, sem cor (`Badge`). A barra de 2 px na margem
+  (`AttentionIndicator`) marca só as linhas que pedem ação. Não há vermelho.
+- Título de seção com `SectionHeading`: 19 Medium sobre fio de 1,5 px.
+- Cantos retos e sem sombra.
 
 ## Arquivos Principais
 
@@ -30,23 +48,17 @@ não é copiada.
 
 ## Tipografia
 
-A fonte institucional da Neoenergia é a **IberPangea**. O arquivo não é
-distribuído neste repositório. Não copie a fonte de páginas públicas nem
-adicione um arquivo sem licença explícita.
+Fontes: `Geist Variable` e `Geist Mono Variable`, pelos pacotes
+`@fontsource-variable/geist` e `@fontsource-variable/geist-mono`.
 
-Pilha de fontes do AMPERE:
-
-```css
-"IberPangea", "IBM Plex Sans Variable", "Segoe UI", sans-serif
-```
-
-A fonte instalada e utilizada é `IBM Plex Sans Variable`. Se a Neoenergia
-fornecer o arquivo e a autorização da IberPangea, só é preciso registrá-lo: os
-componentes já referenciam `--ds-font-brand`.
-
-Os tamanhos seguem os tokens `--ds-text-xs` até `--ds-text-2xl`. Use as classes
-semânticas do Tailwind (`text-sm`, `text-lg`, `text-2xl`) em vez de números
-arbitrários, salvo quando o protótipo exigir um detalhe tipográfico específico.
+| Degrau | Classe | Uso |
+| :--- | :--- | :--- |
+| 60 mono Medium | `text-6xl font-mono` | número do campo de conclusão |
+| 40 Medium | `text-3xl` | título da tela |
+| 19 Medium | `text-lg` | título de seção |
+| 15,5 Medium | `text-base` | item e nome em lista |
+| 13,5 Regular | `text-sm` | corpo |
+| 10,5 mono versalete | `text-2xs font-mono uppercase tracking-[0.11em]` | eyebrow, cabeçalho de tabela, situação e metadado |
 
 ### Títulos e Separadores
 
@@ -72,68 +84,29 @@ de `@features/shared`, nunca com um `format` solto do dayjs.
 
 ## Cores
 
-### Paleta da Marca
-
-| Token | Valor | Uso |
+| Papel | Valor | Tailwind |
 | :--- | :--- | :--- |
-| `--neo-green` | `#00A443` | verde institucional, marca e elementos decorativos |
-| `--neo-green-dark` | `#00402A` | contraste forte e superfícies secundárias |
-| `--neo-green-strong` | `#007F33` | ações primárias com texto branco |
-| `--neo-green-accent` | `#26BF64` | destaques pontuais |
-| `--neo-sky` | `#0DA9FF` | apoio para gráficos e informação |
-| `--neo-sunset` | `#FF9C1A` | alerta, pendência e destaque |
-| `--neo-sand` | `#FFF5EC` | fundo geral da aplicação |
-| `--neo-ink` | `#002015` | texto principal |
+| Fundo | `#FFFFFF` | `bg-background` |
+| Tinta | `#1E1A13` | `text-foreground` |
+| Texto médio | `#60594B` | `text-muted-foreground` |
+| Texto fraco | `#857C6B` | `text-faint-foreground` |
+| Campo de conclusão | `#00702E` | `bg-primary` |
+| Realce do resultado oficial | `#F0F2EC` | `bg-accent` |
+| Bege claro | `#F3EFE7` | `bg-muted` |
+| Fios | `#DED7C9`, `#D4CBBA`, `#EAE4D9` | `border-border`, `border-border-strong`, `border-border-soft` |
+| Atenção | `#FF9C1A` | `bg-attention`, só na barra da margem ou num ponto |
+| Ação destrutiva | `#9A5200` | `text-destructive`, só em link de texto |
 
-O verde institucional `#00A443` permanece na identidade visual. Para botões
-com texto branco, `--primary` aponta para `#007F33`, que oferece contraste
-superior sem descaracterizar a marca.
-
-### Tokens Semânticos
-
-Componentes não consomem `--neo-*` diretamente. Use sempre o papel semântico
-correspondente:
-
-| Papel | CSS | Tailwind |
-| :--- | :--- | :--- |
-| Fundo da aplicação | `--background` | `bg-background` |
-| Superfície branca | `--card` | `bg-card` |
-| Texto principal | `--foreground` | `text-foreground` |
-| Texto secundário | `--muted-foreground` | `text-muted-foreground` |
-| Ação principal | `--primary` | `bg-primary`, `text-primary` |
-| Realce suave | `--accent` | `bg-accent` |
-| Hover de superfície | `--surface-hover` | `bg-surface-hover` |
-| Erro | `--destructive` | `text-destructive` |
-| Alerta | `--warning` | `bg-warning` |
-| Contorno e separador | `--border` | `border-border` |
-| Foco de teclado | `--ring` | `ring-ring` |
-| Controle desabilitado | `--disabled` | `bg-disabled` |
-| Texto desabilitado | `--disabled-foreground` | `text-disabled-foreground` |
-
-`--accent` é verde: serve para realçar, não para interações neutras. Linhas de
-tabela e controles neutros usam `--surface-hover`.
-
-Mudança de identidade altera os tokens, não cores fixas espalhadas pelos
-componentes.
+As cores da marca são acento e nunca preenchem superfície, salvo o campo de
+conclusão. Verde não aparece em texto, ícone ou borda sobre o papel.
 
 ## Espaçamento, Forma e Movimento
 
-O espaçamento usa base de **4 px**. Os tokens expõem 4, 8, 16, 24, 48, 72 e
-96 px. Antes de criar um valor arbitrário, use o passo existente mais próximo.
+Os passos do Figma são 6, 12, 20 e 38 px (`1.5`, `3`, `5` e `9.5` no
+Tailwind). O conteúdo fica a 40 px das bordas da janela.
 
-| Token | Valor | Uso típico |
-| :--- | :--- | :--- |
-| `--ds-radius-xs` | 4 px | botões e controles compactos |
-| `--ds-radius-sm` | 8 px | campos e itens internos |
-| `--ds-radius-md` | 16 px | cartões, tabelas e estados vazios |
-| `--ds-radius-lg` | 32 px | blocos de destaque |
-| `--ds-radius-pill` | circular | badges |
-| `--ds-shadow-sm` | elevação discreta | campos, cartões e tabelas |
-| `--ds-shadow-md` | elevação intermediária | menus e camadas flutuantes |
-
-> **Raio de botão.** Todos os botões herdam 4 px de `--ds-radius-xs`. A pílula
-> é exclusiva de badge. Mudança de desenho altera o token ou a primitiva
-> compartilhada, não cada chamada de `Button`.
+Todos os raios valem zero e não há sombra, exceto a sombra discreta das
+camadas flutuantes (`--ds-shadow-md`).
 
 Transições são curtas e funcionais. Conteúdo que precisa aparecer
 imediatamente não é animado.
@@ -145,26 +118,21 @@ para Base UI e ajustados ao design system.
 
 ### Botões
 
-- `default`: ação principal verde.
-- `secondary`: ação forte em verde escuro.
-- `outline`: ação secundária com contorno verde.
+- `default`: a única ação principal da tela, cheia em `#00702E`.
+- `secondary`: preenchido em tinta, usado no item selecionado de controles segmentados.
+- `outline`: ação secundária com contorno em tinta.
 - `ghost`: ação discreta em barras e menus.
-- `destructive`: operação perigosa em destaque.
-- `destructive-ghost`: excluir ou remover dentro de formulários e drawers. Texto
-  vermelho, com fundo vermelho claro no hover.
-- `link`: ação textual.
-- `neutral`: controle com contorno e hover cinza, usado em paginação e navegação.
+- `destructive`: operação perigosa em destaque, em laranja escuro.
+- `destructive-ghost`: excluir ou remover. Link de texto em laranja escuro.
+- `link`: ação textual em tinta.
+- `neutral`: controle com contorno, usado em paginação e navegação.
 
 Não crie botão com classes locais de cor, altura ou raio. Escolha `variant` e
 `size`; use `className` apenas para posicionamento ou largura.
 
-O design system define a aparência desabilitada, igual em todas as variantes:
-fundo cinza claro (`--disabled`), texto cinza (`--disabled-foreground`), sem
-contorno nem sombra e cursor `not-allowed`. `ghost` e `link` mantêm o fundo
-transparente e só ficam cinza. O componente consumidor define quando o controle
-fica desabilitado. Exemplo: a paginação, com botões `icon` do mesmo tamanho dos
-rodapés de formulário, bloqueia a seta anterior na primeira
-página e a seta seguinte na última.
+Desabilitado é vazado em todas as variantes: fundo transparente, contorno
+`border-border-strong` e texto `--disabled-foreground`. O componente consumidor
+define quando o controle fica desabilitado.
 
 ```tsx
 <Button>Novo Projeto</Button>
@@ -173,26 +141,22 @@ página e a seta seguinte na última.
 
 ### Badges
 
-Badge é só para status, sempre em caixa alta e mono (a primitiva já aplica). A
-cor diz quem precisa agir; quando ninguém precisa, o badge é neutro, para que
-os urgentes se destaquem.
+Badge é só para situação: texto mono em versalete, sem fundo e sem cor. O tom
+e o peso contam o estado; a barra de 2 px na margem marca a linha que pede
+ação.
 
-| Variante | Significado | Exemplos |
+| Variante | Aparência | Exemplos |
 | :--- | :--- | :--- |
-| `destructive` | bloqueia o fluxo | Reprovado, Atrasado |
-| `warning` | alguém precisa agir logo | Aguardando Envio, Vence Hoje, Rascunho de tabela |
-| `info` | em andamento com a Neoenergia | Em Análise |
-| `success` | resultado positivo final | Aprovado, Publicada |
-| `neutral` | nada a sinalizar | Rascunho, No Prazo, Substituída |
-| `tag` | marca que não é status, só com contorno | Reanálise |
+| `destructive`, `warning` | tinta, Medium | Reprovado, Atrasado, Aguardando Envio, Vence Hoje |
+| `default`, `info`, `success`, `outline`, `secondary` | tinta | Em Análise, Aprovado, Publicada |
+| `neutral` | tom fraco | Rascunho, No Prazo, Substituída |
+| `tag` | contorno de 1 px | Reanálise |
 
-Verde fica reservado ao sucesso: processo em andamento não é verde. Contagens
-(pendências, alertas, UCs) não viram badge: são números em mono na própria
-coluna, e o zero fica em branco.
+Contagens (pendências, alertas, UCs) não viram badge: são números em mono na
+própria coluna, e o zero fica em branco.
 
 ```tsx
-<Badge variant="success">Aprovado</Badge>
-<Badge variant="warning">Aguardando Envio</Badge>
+<Badge variant="neutral">Rascunho</Badge>
 <Badge variant="destructive">Reprovado</Badge>
 ```
 
@@ -313,10 +277,11 @@ desabilitado.
 
 O cabeçalho contém:
 
-- logo oficial e o nome “AMPERE”;
-- menu centralizado, com a rota ativa marcada pelo indicador verde;
+- fundo branco com fio inferior;
+- logo oficial e o nome “AMPERE” em versalete;
+- menu centralizado, com a rota ativa em tinta e Medium;
 - opções futuras visíveis, porém desabilitadas;
-- identificação do usuário e ação de logout;
+- nome e papel do usuário em mono versalete, com o menu de logout;
 - adaptação móvel sem mudar a ordem das opções.
 
 ## Uso da Logo
@@ -352,7 +317,9 @@ Requisitos para novos componentes:
 
 ## Checklist para Novas Telas
 
-- [ ] Usa `PageLayout` sob o `AppShell`.
+- [ ] Usa `PageLayout` sob o `AppShell`, com eyebrow e título 40.
+- [ ] Segue o frame do Figma ou o padrão mais próximo dele.
+- [ ] Tem no máximo um campo de conclusão e uma ação principal.
 - [ ] Usa tokens semânticos, sem hexadecimal no componente.
 - [ ] Reutiliza componentes de `components/ui` e compartilhados.
 - [ ] Mantém texto de interface em português.

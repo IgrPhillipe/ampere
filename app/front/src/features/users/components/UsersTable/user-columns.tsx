@@ -1,15 +1,17 @@
+import { AttentionIndicator } from "@components/AttentionIndicator";
 import { createDataTableColumnHelper } from "@components/DataTable";
 import type { ManagedUser } from "@services/users";
 
 import { UserRoleBadge } from "../UserRoleBadge";
 import { type UserRowActionHandlers, UserRowActions } from "../UserRowActions";
-import { UserStatusBadge } from "../UserStatusBadge";
+import { getUserAttention, UserStatusBadge } from "../UserStatusBadge";
 import { LastAccessCell } from "./LastAccessCell";
 import { UserIdentity } from "./UserIdentity";
 
 const columnHelper = createDataTableColumnHelper<ManagedUser>();
 
 export type UserColumnId =
+	| "attention"
 	| "name"
 	| "role"
 	| "status"
@@ -21,6 +23,15 @@ export const createUserColumns = (
 	actions: UserRowActionHandlers | undefined,
 ) =>
 	columnHelper.columns([
+		columnHelper.display({
+			id: "attention",
+			header: () => <span className="sr-only">Atenção</span>,
+			cell: ({ row }) => {
+				const message = getUserAttention(row.original);
+
+				return message ? <AttentionIndicator message={message} /> : null;
+			},
+		}),
 		columnHelper.accessor("name", {
 			header: "Usuário",
 			cell: ({ row }) => (
@@ -49,13 +60,11 @@ export const createUserColumns = (
 						id: "action",
 						header: () => <span className="sr-only">Ações</span>,
 						cell: ({ row }) => (
-							<div className="flex justify-end">
-								<UserRowActions
-									user={row.original}
-									isCurrentUser={row.original.id === currentUserId}
-									{...actions}
-								/>
-							</div>
+							<UserRowActions
+								user={row.original}
+								isCurrentUser={row.original.id === currentUserId}
+								{...actions}
+							/>
 						),
 					}),
 				]

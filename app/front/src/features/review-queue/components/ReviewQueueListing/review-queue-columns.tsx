@@ -1,7 +1,6 @@
 import { createDataTableColumnHelper } from "@components/DataTable";
 import { DateCell } from "@components/DateCell";
-import { DeadlineStatusBadge } from "@components/DeadlineStatusBadge";
-import { formatKva } from "@features/shared";
+import { formatDate, formatKva } from "@features/shared";
 import type { ReviewQueueItem } from "@services/review-queue";
 
 import { AlertsCell } from "./AlertsCell";
@@ -20,19 +19,20 @@ export type ReviewQueueColumnId =
 	| "attention"
 	| "protocol"
 	| "name"
-	| "status"
-	| "deadline"
-	| "submittedAt"
-	| "cycle"
 	| "units"
 	| "demand"
 	| "warnings"
-	| "action";
+	| "deadline"
+	| "status"
+	| "action"
+	// No column of its own, but still a sort key of the list.
+	| "submittedAt";
 
 export interface ReviewQueueRowActions {
 	onAnalyze: (item: ReviewQueueItem) => void;
 }
 
+/** The H06 set: receipt and submission cycle ride on the project's second line. */
 export const createReviewQueueColumns = ({
 	onAnalyze,
 }: ReviewQueueRowActions) =>
@@ -54,37 +54,22 @@ export const createReviewQueueColumns = ({
 			header: "Projeto",
 			cell: ({ row }) => (
 				<div className="flex flex-col gap-1 whitespace-normal">
-					<span className="font-semibold text-foreground">
+					<span className="text-base font-medium text-foreground">
 						{row.original.name}
 					</span>
-					<span className="text-xs text-muted-foreground">
-						{formatQueueItemOrigin(row.original)}
+					<span className="text-sm text-muted-foreground">
+						<span>{formatQueueItemOrigin(row.original)}</span>
+						{row.original.reviewCycle > 1 ? (
+							<>
+								, <span>{formatReviewCycle(row.original)}</span>
+							</>
+						) : null}
+						, recebido em{" "}
+						<time dateTime={row.original.submittedAt} className="font-mono">
+							{formatDate(row.original.submittedAt)}
+						</time>
 					</span>
 				</div>
-			),
-		}),
-		columnHelper.accessor("deadlineStatus", {
-			id: "status",
-			header: "Prazo",
-			cell: ({ row }) => (
-				<DeadlineStatusBadge deadlineStatus={row.original.deadlineStatus} />
-			),
-		}),
-		columnHelper.accessor("deadline", {
-			header: "Vencimento",
-			cell: ({ row }) => <DeadlineCell item={row.original} />,
-		}),
-		columnHelper.accessor("submittedAt", {
-			header: "Recebido",
-			cell: ({ row }) => <DateCell value={row.original.submittedAt} />,
-		}),
-		columnHelper.accessor("reviewCycle", {
-			id: "cycle",
-			header: "Envio",
-			cell: ({ row }) => (
-				<span className="font-mono text-sm text-foreground">
-					{formatReviewCycle(row.original)}
-				</span>
 			),
 		}),
 		columnHelper.accessor("consumerUnitsCount", {
@@ -109,20 +94,26 @@ export const createReviewQueueColumns = ({
 				),
 		}),
 		columnHelper.accessor("warnings", {
-			header: "Alertas",
+			header: "Pré-validação",
 			cell: ({ row }) => <AlertsCell item={row.original} />,
+		}),
+		columnHelper.accessor("deadline", {
+			header: "Vencimento",
+			cell: ({ row }) => <DateCell value={row.original.deadline} />,
+		}),
+		columnHelper.accessor("deadlineStatus", {
+			id: "status",
+			header: "Prazo",
+			cell: ({ row }) => <DeadlineCell item={row.original} />,
 		}),
 		columnHelper.display({
 			id: "action",
 			header: () => <span className="sr-only">Ação</span>,
 			cell: ({ row }) => (
-				<div className="flex justify-end">
-					<AnalyzeButton
-						urgent={isUrgent(row.original)}
-						onAnalyze={() => onAnalyze(row.original)}
-						buttonClassName="w-full"
-					/>
-				</div>
+				<AnalyzeButton
+					urgent={isUrgent(row.original)}
+					onAnalyze={() => onAnalyze(row.original)}
+				/>
 			),
 		}),
 	]);

@@ -12,10 +12,11 @@ import { UserCards } from "./UserCards";
 import { createUserColumns, type UserColumnId } from "./user-columns";
 
 const userColumnClassNames = {
+	attention: "w-5 px-0",
 	role: "w-36",
-	status: "w-48",
-	lastLoginAt: "w-44",
-	action: "w-16",
+	status: "w-40",
+	lastLoginAt: "w-40 text-right",
+	action: "w-72 pr-0 text-right",
 } satisfies Partial<Record<UserColumnId, string>>;
 
 interface UsersTableProps {

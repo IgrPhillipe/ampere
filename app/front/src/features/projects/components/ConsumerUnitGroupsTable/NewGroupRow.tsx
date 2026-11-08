@@ -12,12 +12,9 @@ interface NewGroupRowProps {
 }
 
 export const NewGroupRow = ({ control, usageType }: NewGroupRowProps) => (
-	<TableRow className="bg-muted/40 align-top hover:bg-muted/40">
+	<TableRow className="bg-muted align-top hover:bg-muted">
 		<TableCell className="whitespace-normal">
-			{/* Marker inside the cell: a `::before` on the `tr` becomes an extra cell. */}
-			<div className="relative before:absolute before:top-2 before:-left-4 before:h-6 before:w-0.5 before:bg-brand-sunset">
-				<NameAndUsageFields control={control} />
-			</div>
+			<NameAndUsageFields control={control} />
 		</TableCell>
 
 		<TableCell className="text-right whitespace-normal">
@@ -29,13 +26,13 @@ export const NewGroupRow = ({ control, usageType }: NewGroupRowProps) => (
 		</TableCell>
 
 		<TableCell className="text-right">
-			<span className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+			<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 				Auto
 			</span>
 		</TableCell>
 
 		<TableCell>
-			<span className="font-mono text-xs tracking-[0.08em] text-foreground uppercase">
+			<span className="font-mono text-2xs tracking-[0.11em] text-foreground uppercase">
 				{newGroupStatus(usageType)}
 			</span>
 		</TableCell>

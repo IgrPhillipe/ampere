@@ -6,7 +6,7 @@ import { managedUserOf } from "@/test/fixtures/users";
 
 import { UserRowActions } from "./UserRowActions";
 
-const openMenu = (user: ManagedUser, isCurrentUser = false) => {
+const renderActions = (user: ManagedUser, isCurrentUser = false) => {
 	const handlers = {
 		onEdit: vi.fn(),
 		onResetPassword: vi.fn(),
@@ -15,54 +15,48 @@ const openMenu = (user: ManagedUser, isCurrentUser = false) => {
 	render(
 		<UserRowActions user={user} isCurrentUser={isCurrentUser} {...handlers} />,
 	);
-	fireEvent.click(
-		screen.getByRole("button", { name: `Ações do usuário ${user.name}` }),
-	);
 
 	return handlers;
 };
 
 describe("UserRowActions", () => {
-	it("offers edit, password reset and deactivation for an active account", async () => {
+	it("offers edit, password reset and deactivation for an active account", () => {
 		const user = managedUserOf();
-		const handlers = openMenu(user);
+		const handlers = renderActions(user);
 
+		expect(screen.getByRole("button", { name: "Editar" })).toBeInTheDocument();
 		expect(
-			await screen.findByRole("menuitem", { name: "Editar" }),
+			screen.getByRole("button", { name: "Redefinir Senha" }),
 		).toBeInTheDocument();
 		expect(
-			screen.getByRole("menuitem", { name: "Redefinir Senha" }),
-		).toBeInTheDocument();
-		expect(
-			screen.queryByRole("menuitem", { name: "Reativar" }),
+			screen.queryByRole("button", { name: "Reativar" }),
 		).not.toBeInTheDocument();
 
-		fireEvent.click(screen.getByRole("menuitem", { name: "Desativar" }));
+		fireEvent.click(screen.getByRole("button", { name: "Desativar" }));
 		expect(handlers.onToggleActive).toHaveBeenCalledWith(user);
 	});
 
-	it("offers reactivation for an inactive account", async () => {
-		openMenu(managedUserOf({ active: false }));
+	it("offers reactivation for an inactive account", () => {
+		renderActions(managedUserOf({ active: false }));
 
 		expect(
-			await screen.findByRole("menuitem", { name: "Reativar" }),
+			screen.getByRole("button", { name: "Reativar" }),
 		).toBeInTheDocument();
 		expect(
-			screen.queryByRole("menuitem", { name: "Desativar" }),
+			screen.queryByRole("button", { name: "Desativar" }),
 		).not.toBeInTheDocument();
 	});
 
-	it("keeps the administrator from deactivating or resetting their own account", async () => {
-		openMenu(managedUserOf({ id: "1", role: "admin" }), true);
+	it("keeps the administrator from deactivating or resetting their own account", () => {
+		renderActions(managedUserOf({ id: "1", role: "admin" }), true);
 
+		expect(screen.getByRole("button", { name: "Editar" })).toBeInTheDocument();
+		expect(screen.getByText("Conta própria")).toBeInTheDocument();
 		expect(
-			await screen.findByRole("menuitem", { name: "Editar" }),
-		).toBeInTheDocument();
-		expect(
-			screen.queryByRole("menuitem", { name: "Desativar" }),
+			screen.queryByRole("button", { name: "Desativar" }),
 		).not.toBeInTheDocument();
 		expect(
-			screen.queryByRole("menuitem", { name: "Redefinir Senha" }),
+			screen.queryByRole("button", { name: "Redefinir Senha" }),
 		).not.toBeInTheDocument();
 	});
 });

@@ -7,7 +7,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@components/ui/dialog";
-import { formatDate } from "@features/shared";
+import { formatDate, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
 import { type CSSProperties, type ReactNode, useState } from "react";
@@ -34,7 +34,7 @@ const MetaCell = ({ label, children, className }: MetaCellProps) => (
 			className,
 		)}
 	>
-		<dt className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+		<dt className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 			{label}
 		</dt>
 		<dd className="font-mono text-sm break-words text-foreground">
@@ -102,7 +102,7 @@ export const FindingSummary = ({
 
 			<div className="flex flex-col gap-1.5">
 				{variant === "inline" ? (
-					<p className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+					<p className="text-sm text-faint-foreground">
 						{findingStageLabels[finding.stage]}
 						{reference ? `: ${reference}` : null}
 					</p>
@@ -169,7 +169,7 @@ export const FindingAnswer = ({
 			)}
 		>
 			<div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-				<h4 className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+				<h4 className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 					{title}
 				</h4>
 				{respondedAt ? (
@@ -193,58 +193,76 @@ export const FindingAnswer = ({
 interface FindingRowProps {
 	finding: Finding;
 	reference: string | null;
+	/** Position in the list, shown in mono like the Figma's numbered findings. */
+	index?: number;
 	/** A draft has no submission yet. */
 	showVersion?: boolean;
 	/** An adjustment the approval left unresolved. */
 	reservation?: boolean;
 	isSelected?: boolean;
 	onOpen: (finding: Finding) => void;
+	/** Text links under the finding, outside the button that opens it. */
+	actions?: ReactNode;
 }
 
 /** One line per finding in a list; the details and the actions open in a dialog. */
 export const FindingRow = ({
 	finding,
 	reference,
+	index,
 	showVersion = true,
 	reservation = false,
 	isSelected = false,
 	onOpen,
+	actions,
 }: FindingRowProps) => (
-	<li className="border-b border-border last:border-b-0">
-		<button
-			type="button"
-			onClick={() => onOpen(finding)}
-			className={cn(
-				"-mx-3 flex w-[calc(100%+1.5rem)] flex-col gap-2 rounded-xs px-3 py-4 text-left transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-				isSelected && "bg-surface-hover",
-			)}
-		>
-			<span className="flex w-full items-start justify-between gap-3">
-				<span className="flex flex-wrap items-center gap-2">
-					<Badge variant={findingSeverityBadgeVariants[finding.severity]}>
-						{findingSeverityLabels[finding.severity]}
-					</Badge>
-					<Badge variant={findingStatusBadgeVariants[finding.status]}>
-						{findingStatusLabelOf(finding, { reservation })}
-					</Badge>
-				</span>
-				{showVersion ? (
-					<span className="shrink-0 pt-1 font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-						{finding.version}º envio
+	<li className="flex gap-3 border-b border-border py-4">
+		{index === undefined ? null : (
+			<span
+				aria-hidden="true"
+				className="w-6 shrink-0 pt-px font-mono text-sm text-foreground"
+			>
+				{padCount(index)}
+			</span>
+		)}
+		<div className="flex min-w-0 flex-1 flex-col gap-3">
+			<button
+				type="button"
+				onClick={() => onOpen(finding)}
+				className={cn(
+					"group/finding -mx-2 -my-1 flex flex-col gap-2 px-2 py-1 text-left transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+					isSelected && "bg-surface-hover",
+				)}
+			>
+				<span className="flex w-full items-center justify-between gap-3">
+					<span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+						<Badge variant={findingSeverityBadgeVariants[finding.severity]}>
+							{findingSeverityLabels[finding.severity]}
+						</Badge>
+						<Badge variant="neutral">
+							{findingStatusLabelOf(finding, { reservation })}
+						</Badge>
 					</span>
-				) : null}
-			</span>
-			<span className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-				{findingStageLabels[finding.stage]}
-				{reference ? `: ${reference}` : null}
-			</span>
-			<span className="line-clamp-2 text-sm font-medium text-foreground">
-				{finding.description}
-			</span>
-			<span className="text-xs font-medium text-foreground underline decoration-current/40 underline-offset-4">
-				Ver Detalhes
-			</span>
-		</button>
+					{showVersion ? (
+						<span className="shrink-0 font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+							{finding.version}º envio
+						</span>
+					) : null}
+				</span>
+				<span className="line-clamp-3 text-sm text-foreground group-hover/finding:underline group-hover/finding:decoration-current/40 group-hover/finding:underline-offset-4">
+					{finding.description}
+				</span>
+				<span className="text-xs text-faint-foreground">
+					{findingStageLabels[finding.stage]}
+					{reference ? `: ${reference}` : null}
+				</span>
+			</button>
+			{actions ? (
+				<div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+					{actions}
+				</div>
+			) : null}
+		</div>
 	</li>
 );
 

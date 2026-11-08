@@ -10,7 +10,7 @@ interface StepFooterProps {
 	className?: string;
 }
 
-/** On small screens the actions stack full width, the next step on top. */
+/** The Figma's footer: a 40px square back arrow, the step's primary on the right. */
 export const StepFooter = ({
 	previous,
 	children,
@@ -18,7 +18,7 @@ export const StepFooter = ({
 }: StepFooterProps) => (
 	<div
 		className={cn(
-			"flex flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between md:px-8",
+			"flex items-center justify-between gap-3 border-t border-border px-6 py-4 md:px-10",
 			className,
 		)}
 	>
@@ -26,17 +26,19 @@ export const StepFooter = ({
 			<Button
 				type="button"
 				variant="outline"
-				className="w-full sm:w-auto"
+				size="icon"
+				aria-label={previous.label}
+				title={`Voltar para ${previous.label}`}
+				className="size-10 shrink-0 border-border-strong"
 				onClick={previous.onClick}
 			>
 				<ArrowLeft aria-hidden="true" />
-				{previous.label}
 			</Button>
 		) : (
-			<span aria-hidden="true" className="hidden sm:block" />
+			<span aria-hidden="true" />
 		)}
 
-		<div className="flex flex-col-reverse gap-2 *:w-full sm:flex-row sm:items-center sm:*:w-auto">
+		<div className="flex min-w-0 flex-wrap items-center justify-end gap-x-5 gap-y-2">
 			{children}
 		</div>
 	</div>

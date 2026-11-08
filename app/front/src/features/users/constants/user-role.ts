@@ -6,8 +6,9 @@ export const userRoleLabels = {
 	admin: "Administrador",
 } as const satisfies Record<UserRole, string>;
 
-export const userRoleBadgeVariants = {
-	user: "tag",
-	reviewer: "info",
-	admin: "outline",
+/** Plural labels of the role quick filters. */
+export const userRolePluralLabels = {
+	user: "Projetistas",
+	reviewer: "Analistas",
+	admin: "Administradores",
 } as const satisfies Record<UserRole, string>;

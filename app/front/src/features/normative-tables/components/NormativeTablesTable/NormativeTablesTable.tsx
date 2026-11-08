@@ -17,13 +17,14 @@ import {
 } from "./normative-table-columns";
 
 const normativeTableColumnClassNames = {
+	attention: "w-5 px-0",
 	standard: "w-32",
-	item: "hidden xl:table-cell xl:w-36",
-	rowCount: "w-20 text-center",
-	status: "w-52 text-center",
-	registeredAt: "hidden xl:table-cell xl:w-44",
-	verifiedAt: "hidden lg:table-cell lg:w-44",
-	action: "w-32",
+	item: "hidden xl:table-cell xl:w-32",
+	rowCount: "w-18 text-right",
+	status: "w-44",
+	registeredAt: "hidden xl:table-cell xl:w-48",
+	verifiedAt: "hidden lg:table-cell lg:w-48",
+	action: "w-28 pr-0 text-right",
 } satisfies Partial<Record<NormativeTableColumnId, string>>;
 
 const sortableColumns = [
@@ -53,9 +54,10 @@ export const NormativeTablesTable = ({
 	className,
 }: NormativeTablesTableProps) => {
 	const email = useAuthStore((state) => state.user?.email);
+	const canReview = useAuthStore((state) => state.user?.role === "admin");
 	const columns = useMemo(
-		() => createNormativeTableColumns(onOpen, email),
-		[onOpen, email],
+		() => createNormativeTableColumns(onOpen, email, canReview),
+		[onOpen, email, canReview],
 	);
 
 	if (isLoading) return <SkeletonTable columns={8} />;

@@ -1,6 +1,8 @@
 import { EmptyState } from "@components/EmptyState";
 import { ControlledInput, FormActions } from "@components/form";
+import { InlineActionButton } from "@components/InlineActionButton";
 import { PageLayout } from "@components/layout";
+import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import {
 	formatPhone,
@@ -13,7 +15,7 @@ import {
 	useGetProfile,
 	useUpdateProfile,
 } from "@services/users";
-import { ArrowRight, CircleAlert } from "lucide-react";
+import { CircleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFormState, useWatch } from "react-hook-form";
 
@@ -47,9 +49,6 @@ const technicalResponsibleOf = (
 
 	return `${person}, CREA ${state ? `${number}/${state}` : number}`;
 };
-
-const sectionTitleClassName =
-	"border-b border-foreground pb-3 text-lg font-semibold text-foreground";
 
 export const ProfilePage = () => {
 	const profileQuery = useGetProfile();
@@ -94,7 +93,7 @@ export const ProfilePage = () => {
 
 	if (profileQuery.isError) {
 		return (
-			<PageLayout title="Meu Perfil">
+			<PageLayout eyebrow="Minha conta" title="Meu Perfil">
 				<EmptyState
 					title="Não foi possível carregar o perfil"
 					description="Verifique sua conexão e tente novamente."
@@ -115,30 +114,27 @@ export const ProfilePage = () => {
 
 	return (
 		<PageLayout
+			bleed
+			eyebrow="Minha conta"
 			title="Meu Perfil"
-			description={
-				isDesigner
-					? "Seus dados e o registro profissional que identificam o responsável técnico dos seus projetos."
-					: "Seus dados de contato e a senha de acesso ao portal."
-			}
-			className="mx-auto w-full max-w-page"
+			className="mx-auto w-full max-w-page gap-9 pb-0 md:gap-9 md:pb-0"
 		>
-			<div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
-				<form
-					noValidate
-					onSubmit={form.handleSubmit(onSubmit)}
-					className="flex flex-col gap-10"
-				>
+			<form
+				noValidate
+				onSubmit={form.handleSubmit(onSubmit)}
+				className="flex flex-1 flex-col border-t border-border"
+			>
+				<div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_440px]">
 					<fieldset
 						disabled={profileQuery.isLoading || isUpdating}
-						className="flex min-w-0 flex-col gap-10"
+						className="flex min-w-0 flex-col gap-9.5 px-4 py-9 md:px-10"
 					>
 						<section aria-labelledby="dados-pessoais">
-							<h2 id="dados-pessoais" className={sectionTitleClassName}>
+							<SectionHeading id="dados-pessoais">
 								Dados Pessoais
-							</h2>
+							</SectionHeading>
 
-							<div className="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2">
+							<div className="mt-5 grid gap-x-6 gap-y-5 sm:grid-cols-2">
 								<ControlledInput
 									control={form.control}
 									name="name"
@@ -150,9 +146,8 @@ export const ProfilePage = () => {
 								<ControlledInput
 									control={form.control}
 									name="company"
-									label="Empresa"
+									label="Empresa (opcional)"
 									autoComplete="organization"
-									placeholder="Opcional"
 								/>
 
 								<ControlledInput
@@ -179,14 +174,11 @@ export const ProfilePage = () => {
 
 						{isDesigner ? (
 							<section aria-labelledby="registro-profissional">
-								<h2
-									id="registro-profissional"
-									className={sectionTitleClassName}
-								>
+								<SectionHeading id="registro-profissional">
 									Registro Profissional
-								</h2>
+								</SectionHeading>
 
-								<div className="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2">
+								<div className="mt-5 grid gap-x-6 gap-y-5 sm:grid-cols-2">
 									<ControlledInput
 										control={form.control}
 										name="crea"
@@ -206,12 +198,12 @@ export const ProfilePage = () => {
 									/>
 								</div>
 
-								<div className="mt-6 border-b border-border pb-4">
-									<p className="text-xs tracking-wider text-muted-foreground uppercase">
+								<div className="mt-5 flex flex-col gap-1.5 border-b border-border pb-3">
+									<p className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 										Responsável técnico no carimbo e no memorial
 									</p>
 
-									<p className="mt-1.5 font-medium text-foreground">
+									<p className="text-base text-muted-foreground">
 										{technicalResponsibleOf(name, crea, creaState)}
 									</p>
 								</div>
@@ -219,44 +211,39 @@ export const ProfilePage = () => {
 						) : null}
 					</fieldset>
 
-					<FormActions>
-						<Button
-							type="button"
-							variant="outline"
-							disabled={!isDirty || isUpdating}
-							onClick={onDiscard}
-						>
-							Descartar
-						</Button>
+					<aside className="border-t border-border px-4 py-9 md:px-10 lg:border-t-0 lg:border-l">
+						<section aria-labelledby="seguranca">
+							<SectionHeading id="seguranca">Segurança</SectionHeading>
 
-						<Button type="submit" disabled={!isDirty || isUpdating}>
-							{isUpdating ? "Salvando..." : "Salvar Alterações"}
-						</Button>
-					</FormActions>
-				</form>
+							<p className="mt-5 text-sm text-muted-foreground">
+								Sua senha protege o acesso ao portal e o envio de projetos.
+							</p>
 
-				<aside>
-					<section aria-labelledby="seguranca">
-						<h2 id="seguranca" className={sectionTitleClassName}>
-							Segurança
-						</h2>
+							<InlineActionButton
+								className="mt-3 underline"
+								onClick={() => setPasswordDialogOpen(true)}
+							>
+								Alterar Senha
+							</InlineActionButton>
+						</section>
+					</aside>
+				</div>
 
-						<p className="mt-4 text-sm text-muted-foreground">
-							Sua senha protege o acesso ao portal e o envio de projetos.
-						</p>
+				<FormActions className="border-t border-border px-4 py-4 md:px-10">
+					<Button
+						type="button"
+						variant="outline"
+						disabled={!isDirty || isUpdating}
+						onClick={onDiscard}
+					>
+						Descartar
+					</Button>
 
-						<Button
-							type="button"
-							variant="outline"
-							className="mt-4"
-							onClick={() => setPasswordDialogOpen(true)}
-						>
-							Alterar Senha
-							<ArrowRight aria-hidden="true" />
-						</Button>
-					</section>
-				</aside>
-			</div>
+					<Button type="submit" disabled={!isDirty || isUpdating}>
+						{isUpdating ? "Salvando..." : "Salvar Alterações"}
+					</Button>
+				</FormActions>
+			</form>
 
 			<ChangePasswordDialog
 				open={passwordDialogOpen}

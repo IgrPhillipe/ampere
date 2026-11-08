@@ -27,7 +27,7 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 
 	if (eventsQuery.isError || reworkQuery.isError) {
 		return (
-			<div className="flex-1 px-6 py-8 md:px-8">
+			<div className="flex-1 px-6 py-8 md:px-10">
 				<EmptyState
 					title="Não foi possível carregar o histórico"
 					description="Confira o aviso exibido e tente novamente."
@@ -50,7 +50,7 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 	}
 
 	return (
-		<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_360px]">
+		<div className="grid flex-1 content-start @5xl:grid-cols-[minmax(0,1fr)_400px]">
 			<ProjectTimeline
 				events={eventsQuery.data?.data}
 				direction={direction}
@@ -63,7 +63,7 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 						icon={History}
 					/>
 				}
-				className="min-w-0 px-6 py-8 md:px-8"
+				className="min-w-0 px-6 py-8 md:px-10"
 			/>
 
 			<ReworkPanel

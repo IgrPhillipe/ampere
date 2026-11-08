@@ -1,3 +1,5 @@
+import { ConclusionField } from "@components/ConclusionField";
+import { SectionHeading } from "@components/SectionHeading";
 import { Skeleton } from "@components/ui/skeleton";
 import {
 	describeFindingReference,
@@ -6,6 +8,7 @@ import {
 	FindingRow,
 	isReservation,
 } from "@features/projects";
+import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding, FindingStage } from "@services/project-review";
 import type { ProjectDetail } from "@services/projects";
@@ -32,6 +35,10 @@ interface FindingsPanelProps extends FindingCardActions {
 	pendingId?: string;
 	onSubmit: (values: FindingFormValues) => void;
 	onCancelEdit: () => void;
+	/** Warnings of the automatic checks; shown as the screen's conclusion when given. */
+	triageAlerts?: number;
+	/** `below` spreads the list and the form side by side under the section. */
+	placement?: "side" | "below";
 	className?: string;
 }
 
@@ -49,6 +56,8 @@ export const FindingsPanel = ({
 	pendingId,
 	onSubmit,
 	onCancelEdit,
+	triageAlerts,
+	placement = "side",
 	className,
 	...actions
 }: FindingsPanelProps) => {
@@ -77,10 +86,11 @@ export const FindingsPanel = ({
 
 	const renderList = (items: Finding[]) => (
 		<ul className="flex flex-col">
-			{items.map((finding) => (
+			{items.map((finding, position) => (
 				<FindingRow
 					key={finding.id}
 					finding={finding}
+					index={position + 1}
 					reference={describeFindingReference(finding, referenceOptions)}
 					showVersion={!isDraftFinding(finding)}
 					reservation={reservationOf(finding)}
@@ -91,17 +101,84 @@ export const FindingsPanel = ({
 		</ul>
 	);
 
+	const subheading =
+		"font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase";
+
+	const list =
+		isLoading || !findings ? (
+			<div aria-busy="true" className="flex flex-col gap-3 pt-4">
+				<Skeleton className="h-5 w-40" />
+				<Skeleton className="h-16 w-full" />
+			</div>
+		) : (
+			<>
+				<section
+					aria-labelledby="apontamentos-atuais-titulo"
+					className="flex flex-col pt-4"
+				>
+					<h3 id="apontamentos-atuais-titulo" className={subheading}>
+						Desta Análise
+					</h3>
+					{current.length === 0 ? (
+						<p className="border-b border-border py-4 text-sm text-muted-foreground">
+							Nenhum apontamento registrado nesta análise.
+						</p>
+					) : (
+						renderList(current)
+					)}
+				</section>
+
+				{previous.length > 0 ? (
+					<section
+						aria-labelledby="apontamentos-anteriores-titulo"
+						className="flex flex-col pt-6"
+					>
+						<h3 id="apontamentos-anteriores-titulo" className={subheading}>
+							{underReview ? "Da Análise Anterior" : "Enviados ao Projetista"}
+						</h3>
+						{underReview ? (
+							<p className="mt-1.5 text-sm text-muted-foreground">
+								Confira a resposta do projetista e aceite a correção ou reabra o
+								apontamento.
+							</p>
+						) : null}
+						{renderList(previous)}
+					</section>
+				) : null}
+			</>
+		);
+
 	return (
 		<aside
 			aria-labelledby="apontamentos-titulo"
-			className={cn("flex flex-col gap-8 px-6 py-8 md:px-8", className)}
+			className={cn(
+				"flex flex-col gap-9.5 px-6 py-8 md:px-10",
+				placement === "below" &&
+					"@container lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-12",
+				className,
+			)}
 		>
-			<h2
-				id="apontamentos-titulo"
-				className="border-b-2 border-foreground pb-3 text-lg font-semibold text-foreground"
-			>
-				Apontamentos
-			</h2>
+			{triageAlerts !== undefined && placement === "side" ? (
+				<ConclusionField
+					label="Triagem automática"
+					value={padCount(triageAlerts)}
+					caption={
+						triageAlerts === 1
+							? "Alerta para conferência humana"
+							: "Alertas para conferência humana"
+					}
+				/>
+			) : null}
+
+			<div className="flex flex-col">
+				<SectionHeading
+					id="apontamentos-titulo"
+					meta={findings ? padCount(findings.length) : undefined}
+				>
+					Apontamentos
+				</SectionHeading>
+				{list}
+			</div>
 
 			{editable ? (
 				// A new key replays the highlight each time another section fills the form.
@@ -109,13 +186,13 @@ export const FindingsPanel = ({
 					key={autoFocusForm ? editor.key : "idle"}
 					aria-labelledby="formulario-apontamento-titulo"
 					className={cn(
-						"-mx-3 rounded-xs px-3 py-3",
+						"-mx-3 px-3 py-3",
 						autoFocusForm && "motion-safe:animate-highlight",
 					)}
 				>
 					<h3
 						id="formulario-apontamento-titulo"
-						className="mb-4 text-base font-semibold text-foreground"
+						className="mb-4 text-base font-medium text-foreground"
 					>
 						{editor.mode === "edit" ? "Editar Apontamento" : "Novo Apontamento"}
 					</h3>
@@ -131,49 +208,6 @@ export const FindingsPanel = ({
 					/>
 				</section>
 			) : null}
-
-			{isLoading || !findings ? (
-				<div aria-busy="true" className="flex flex-col gap-3">
-					<Skeleton className="h-5 w-40" />
-					<Skeleton className="h-16 w-full" />
-				</div>
-			) : (
-				<>
-					<section aria-labelledby="apontamentos-atuais-titulo">
-						<h3
-							id="apontamentos-atuais-titulo"
-							className="text-base font-semibold text-foreground"
-						>
-							Desta Análise
-						</h3>
-						{current.length === 0 ? (
-							<p className="mt-2 text-sm text-muted-foreground">
-								Nenhum apontamento registrado nesta análise.
-							</p>
-						) : (
-							renderList(current)
-						)}
-					</section>
-
-					{previous.length > 0 ? (
-						<section aria-labelledby="apontamentos-anteriores-titulo">
-							<h3
-								id="apontamentos-anteriores-titulo"
-								className="text-base font-semibold text-foreground"
-							>
-								{underReview ? "Da Análise Anterior" : "Enviados ao Projetista"}
-							</h3>
-							{underReview ? (
-								<p className="mt-1 text-sm text-muted-foreground">
-									Confira a resposta do projetista e aceite a correção ou reabra
-									o apontamento.
-								</p>
-							) : null}
-							{renderList(previous)}
-						</section>
-					) : null}
-				</>
-			)}
 
 			<FindingDialog
 				finding={opened}

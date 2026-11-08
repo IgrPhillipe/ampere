@@ -128,7 +128,7 @@ const DecisionForm = ({
 			{withReservations ? (
 				<section
 					aria-label="Ressalvas"
-					className="max-h-60 overflow-y-auto rounded-xs border border-border px-4"
+					className="max-h-60 overflow-y-auto border-y border-border"
 				>
 					<ReservationList
 						reservations={reservations}
@@ -156,11 +156,7 @@ const DecisionForm = ({
 					Cancelar
 				</Button>
 
-				<Button
-					type="submit"
-					variant={decision === "REJECT" ? "destructive" : "default"}
-					disabled={isPending}
-				>
+				<Button type="submit" disabled={isPending}>
 					{isPending ? text.pending : text.confirm}
 				</Button>
 			</DialogFooter>

@@ -1,5 +1,4 @@
 import { DeadlineStatusBadge } from "@components/DeadlineStatusBadge";
-import { Badge } from "@components/ui/badge";
 import { Skeleton } from "@components/ui/skeleton";
 import { formatDate, padCount } from "@features/shared";
 import type { UnderReviewItem } from "@services/dashboard";
@@ -8,20 +7,10 @@ import { Link } from "@tanstack/react-router";
 
 import { DashboardSection, DashboardSectionEmpty } from "../DashboardSection";
 
-const days = (count: number) => (count === 1 ? "1 dia" : `${count} dias`);
-
 const toDeadlineStatus = (daysRemaining: number): DeadlineStatus => {
 	if (daysRemaining < 0) return "OVERDUE";
 
 	return daysRemaining === 0 ? "DUE_TODAY" : "ON_TIME";
-};
-
-/** The badge already says "Vence Hoje", so the day count only covers the other two. */
-const describeDays = (daysRemaining: number) => {
-	if (daysRemaining < 0) return `Há ${days(-daysRemaining)}`;
-	if (daysRemaining === 0) return null;
-
-	return `${days(daysRemaining)} ${daysRemaining === 1 ? "restante" : "restantes"}`;
 };
 
 interface UnderReviewListProps {
@@ -29,6 +18,7 @@ interface UnderReviewListProps {
 	className?: string;
 }
 
+/** One line per project, the time left in faint versalete on the right. */
 export const UnderReviewList = ({ items, className }: UnderReviewListProps) => (
 	<DashboardSection title="Em Análise" className={className}>
 		{!items ? (
@@ -42,47 +32,36 @@ export const UnderReviewList = ({ items, className }: UnderReviewListProps) => (
 			<ul className="flex flex-col">
 				{items.map(
 					({ id, name, protocol, version, deadline, daysRemaining }) => {
-						const dayCount = describeDays(daysRemaining);
+						const deadlineLabel = `${daysRemaining < 0 ? "Venceu" : "Vence"} em ${formatDate(deadline)}`;
 
 						return (
 							<li
 								key={id}
-								className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border py-3 last:border-b-0"
+								className="flex items-baseline justify-between gap-4 border-b border-border py-3 last:border-b-0"
 							>
-								<div className="flex flex-col gap-1">
-									<Link
-										to="/projetos/$id"
-										params={{ id }}
-										className="text-sm hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-									>
-										{name}
-										{protocol ? (
-											<span className="text-muted-foreground">
-												, {protocol}
-											</span>
-										) : null}
-									</Link>
-									<span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-										<span>
-											{daysRemaining < 0 ? "Venceu" : "Vence"} em{" "}
-											{formatDate(deadline)}
-										</span>
-										<span className="font-mono">v{padCount(version)}</span>
-										{version > 1 ? (
-											<Badge variant="tag">Reanálise</Badge>
-										) : null}
-									</span>
-								</div>
-								<div className="flex items-center gap-2">
+								<Link
+									to="/projetos/$id"
+									params={{ id }}
+									className="min-w-0 text-sm text-muted-foreground underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+								>
+									<span className="text-foreground">{name}</span>
+									{protocol ? (
+										<>
+											, <span className="font-mono">{protocol}</span>
+										</>
+									) : null}{" "}
+									<span className="font-mono">v{padCount(version)}</span>
+									{version > 1 ? ", reanálise" : null}
+								</Link>
+								<span title={deadlineLabel} className="shrink-0">
 									<DeadlineStatusBadge
 										deadlineStatus={toDeadlineStatus(daysRemaining)}
+										daysRemaining={daysRemaining}
+										withRemaining
+										className="font-normal uppercase"
 									/>
-									{dayCount ? (
-										<span className="font-mono text-xs text-muted-foreground">
-											{dayCount}
-										</span>
-									) : null}
-								</div>
+									<span className="sr-only">. {deadlineLabel}</span>
+								</span>
 							</li>
 						);
 					},

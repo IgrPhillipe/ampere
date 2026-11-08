@@ -1,3 +1,4 @@
+import { ConclusionField } from "@components/ConclusionField";
 import { InlineActionButton } from "@components/InlineActionButton";
 import { Skeleton } from "@components/ui/skeleton";
 import { padCount } from "@features/shared";
@@ -42,69 +43,69 @@ export const ValidationPanel = ({
 	return (
 		<aside
 			aria-labelledby="validacao-titulo"
-			className={cn(
-				"flex flex-col bg-primary px-6 py-8 text-primary-foreground md:px-8",
-				className,
-			)}
+			className={cn("flex flex-col px-6 py-8 md:px-9.5", className)}
 		>
-			<h2
-				id="validacao-titulo"
-				className="border-b border-primary-foreground pb-3 text-lg font-semibold"
-			>
-				Validação em Tempo Real
-			</h2>
-
-			{isLoading || !validation ? (
-				<Skeleton className="mt-8 h-16 w-24 bg-primary-foreground/20" />
-			) : (
-				<div className="mt-8" aria-live="polite">
-					<p className="font-mono text-6xl font-medium tracking-tight">
-						{padCount(validation.pendingCount)}
-					</p>
-
-					<p
-						id={counterId}
-						className="mt-2 font-mono text-xs tracking-[0.08em] uppercase"
+			<ConclusionField
+				label={
+					<span
+						id="validacao-titulo"
+						role="heading"
+						aria-level={2}
+						className="block font-sans text-lg font-medium tracking-[-0.018em] normal-case"
 					>
-						{validation.pendingCount === 1
-							? "Pendência impede o cálculo"
-							: "Pendências impedem o cálculo"}
-					</p>
-
-					{pending.length === 0 ? (
-						<p className="mt-8 text-sm">{summary}</p>
-					) : null}
-				</div>
-			)}
-
-			{pending.length > 0 ? (
-				<ol className="mt-8 flex flex-col">
-					{pending.map(({ group, issue }, index) => (
-						<li
-							key={`${group.id}-${issue.field}`}
-							className="grid grid-cols-[2rem_minmax(0,1fr)] gap-y-2 border-t border-primary-foreground/40 py-5 last:border-b"
-						>
-							<span className="font-mono text-sm">{padCount(index + 1)}</span>
-
-							<div className="flex items-baseline justify-between gap-4">
-								<span className="text-base font-medium">{group.name}</span>
-								<span className="font-mono text-xs tracking-[0.08em] uppercase">
-									Bloqueia
-								</span>
-							</div>
-
-							<p className="col-start-2 text-sm">{issue.message}</p>
-
-							<InlineActionButton
-								onClick={() => onOpenIssue(group, issue)}
-								className="col-start-2 justify-self-start text-sm font-medium text-primary-foreground focus-visible:ring-primary-foreground"
+						Validação em Tempo Real
+					</span>
+				}
+				value={
+					isLoading || !validation ? undefined : (
+						<span aria-live="polite">{padCount(validation.pendingCount)}</span>
+					)
+				}
+				caption={
+					isLoading || !validation ? undefined : (
+						<span id={counterId}>
+							{validation.pendingCount === 1
+								? "Pendência impede o cálculo"
+								: "Pendências impedem o cálculo"}
+						</span>
+					)
+				}
+			>
+				{isLoading || !validation ? (
+					<Skeleton className="h-16 w-24 bg-primary-foreground/20" />
+				) : pending.length === 0 ? (
+					<p className="text-sm">{summary}</p>
+				) : (
+					<ol className="flex flex-col">
+						{pending.map(({ group, issue }, index) => (
+							<li
+								key={`${group.id}-${issue.field}`}
+								className="grid grid-cols-[2rem_minmax(0,1fr)] gap-y-1.5 border-t border-primary-foreground/40 py-5 last:border-b"
 							>
-								{issueActionLabels[issue.severity]}
-							</InlineActionButton>
-						</li>
-					))}
-				</ol>
-			) : null}
+								<span className="font-mono text-sm">{padCount(index + 1)}</span>
+
+								<div className="flex items-baseline justify-between gap-3">
+									<span className="text-base font-medium">{group.name}</span>
+									<span className="font-mono text-2xs tracking-[0.11em] uppercase opacity-85">
+										Bloqueia
+									</span>
+								</div>
+
+								<p className="col-start-2 text-sm opacity-85">
+									{issue.message}
+								</p>
+
+								<InlineActionButton
+									onClick={() => onOpenIssue(group, issue)}
+									className="col-start-2 mt-1.5 justify-self-start text-primary-foreground focus-visible:ring-primary-foreground"
+								>
+									{issueActionLabels[issue.severity]}
+								</InlineActionButton>
+							</li>
+						))}
+					</ol>
+				)}
+			</ConclusionField>
 		</aside>
 	);
 };

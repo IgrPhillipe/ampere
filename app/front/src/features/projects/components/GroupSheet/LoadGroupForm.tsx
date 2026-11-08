@@ -1,4 +1,5 @@
 import { ControlledInput, ControlledSelect } from "@components/form";
+import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { padCount, useZodForm } from "@features/shared";
 import type { LoadGroup } from "@services/consumer-units";
@@ -126,23 +127,25 @@ export const LoadGroupForm = ({
 				</div>
 
 				<section className="flex flex-col gap-6">
-					<div className="flex items-center justify-between border-b border-foreground pb-3">
-						<h3 className="text-base font-semibold text-foreground">
-							Cargas Instaladas
-						</h3>
-
-						{readOnly ? null : (
-							<Button
-								type="button"
-								variant="link"
-								size="sm"
-								onClick={() => items.append(EMPTY_ITEM)}
-							>
-								<Plus aria-hidden="true" />
-								Adicionar Carga
-							</Button>
-						)}
-					</div>
+					<SectionHeading
+						as="h3"
+						actions={
+							readOnly ? null : (
+								<Button
+									type="button"
+									variant="link"
+									size="sm"
+									className="h-auto px-0"
+									onClick={() => items.append(EMPTY_ITEM)}
+								>
+									<Plus aria-hidden="true" />
+									Adicionar Carga
+								</Button>
+							)
+						}
+					>
+						Cargas Instaladas
+					</SectionHeading>
 
 					{items.fields.length === 0 ? (
 						<p className="text-sm text-muted-foreground">

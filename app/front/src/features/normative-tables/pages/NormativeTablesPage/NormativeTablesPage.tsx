@@ -1,6 +1,5 @@
 import { EmptyState } from "@components/EmptyState";
-import { FilterMenu } from "@components/FilterMenu";
-import { ListToolbar } from "@components/ListToolbar";
+import { FilterChips, ListToolbar } from "@components/ListToolbar";
 import { PageLayout } from "@components/layout";
 import { SearchInput } from "@components/SearchInput";
 import { SortMenu, type SortOption } from "@components/SortMenu";
@@ -32,10 +31,13 @@ const sortOptions: SortOption<NormativeTableSort>[] = [
 	{ value: "verifiedAt", label: "Revisão" },
 ];
 
-const statusOptions = normativeTableStatusSchema.options.map((value) => ({
-	value,
-	label: normativeTableStatusLabels[value],
-}));
+const statusChips = [
+	{ value: null, label: "Todas" },
+	...normativeTableStatusSchema.options.map((value) => ({
+		value,
+		label: normativeTableStatusLabels[value],
+	})),
+];
 
 export const NormativeTablesPage = () => {
 	const canManage = useAuthStore((state) => state.user?.role === "admin");
@@ -80,7 +82,7 @@ export const NormativeTablesPage = () => {
 						<SearchInput
 							value={filters.search}
 							onValueChange={filters.setSearch}
-							placeholder="Buscar por tabela, nome, item ou norma"
+							placeholder="Tabela, nome, item ou norma"
 							label="Buscar tabelas"
 						/>
 					}
@@ -93,10 +95,9 @@ export const NormativeTablesPage = () => {
 						/>
 					}
 					refinements={
-						<FilterMenu
-							label="Situação"
-							allLabel="Todas"
-							options={statusOptions}
+						<FilterChips
+							label="Filtrar por situação"
+							chips={statusChips}
 							value={filters.status}
 							onValueChange={filters.setStatus}
 						/>

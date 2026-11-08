@@ -20,6 +20,9 @@ export const Pagination = ({
 	itemLabel = "itens",
 	className,
 }: PaginationProps) => {
+	// The empty state already says there is nothing to page through.
+	if (total === 0) return null;
+
 	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 	const lastItem = Math.min(page * pageSize, total);
 	const firstItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -27,19 +30,19 @@ export const Pagination = ({
 	return (
 		<div
 			className={cn(
-				"mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-border bg-card px-gutter py-4 md:px-gutter-md",
+				"mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-border bg-card px-gutter py-3 md:px-gutter-md",
 				className,
 			)}
 		>
-			<p className="font-mono text-xs tracking-wider text-muted-foreground uppercase">
+			<p className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 				{firstItem} a {lastItem} de {total} {itemLabel}
 			</p>
 
-			<nav className="flex gap-2" aria-label={`Paginação de ${itemLabel}`}>
+			<nav className="flex gap-1.5" aria-label={`Paginação de ${itemLabel}`}>
 				<Button
 					type="button"
-					variant="neutral"
-					size="icon"
+					variant="outline"
+					size="icon-sm"
 					disabled={page <= 1}
 					onClick={() => onPageChange(page - 1)}
 					aria-label="Página anterior"
@@ -48,8 +51,8 @@ export const Pagination = ({
 				</Button>
 				<Button
 					type="button"
-					variant="neutral"
-					size="icon"
+					variant="outline"
+					size="icon-sm"
 					disabled={page >= totalPages}
 					onClick={() => onPageChange(page + 1)}
 					aria-label="Próxima página"

@@ -1,8 +1,11 @@
+import { SectionHeading } from "@components/SectionHeading";
+import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
 import type { ProjectDetail } from "@services/projects";
+import { ArrowRight } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import {
@@ -70,12 +73,58 @@ export const ProjectFindingsOverview = ({
 	const referenceOf = (finding: Finding) =>
 		describeFindingReference(finding, referenceOptions);
 
-	const renderCard = (finding: Finding) => (
+	const respondFrom = (
+		finding: Finding,
+		status: FindingResponseValues["status"],
+	) => {
+		setOpenedId(finding.id);
+		onStartResponse(finding, status);
+	};
+
+	const renderCard = (finding: Finding, position: number) => (
 		<FindingRow
 			key={finding.id}
 			finding={finding}
 			reference={referenceOf(finding)}
+			index={position + 1}
 			onOpen={() => setOpenedId(finding.id)}
+			actions={
+				onOpenStage || canRespond ? (
+					<>
+						{onOpenStage ? (
+							<Button
+								type="button"
+								variant="link"
+								className="h-auto px-0"
+								onClick={() => onOpenStage(finding)}
+							>
+								Abrir Seção
+								<ArrowRight aria-hidden="true" />
+							</Button>
+						) : null}
+						{canRespond ? (
+							<>
+								<Button
+									type="button"
+									variant="link"
+									className="h-auto px-0"
+									onClick={() => respondFrom(finding, "FIXED")}
+								>
+									Marcar Corrigido
+								</Button>
+								<Button
+									type="button"
+									variant="link"
+									className="h-auto px-0"
+									onClick={() => respondFrom(finding, "CONTESTED")}
+								>
+									Contestar
+								</Button>
+							</>
+						) : null}
+					</>
+				) : undefined
+			}
 		/>
 	);
 
@@ -85,7 +134,7 @@ export const ProjectFindingsOverview = ({
 	};
 
 	return (
-		<div className={cn("flex flex-col gap-8 px-6 py-8 md:px-8", className)}>
+		<div className={cn("flex flex-col gap-9.5 px-6 py-8 md:px-10", className)}>
 			{summary ? (
 				<div className="flex flex-col border border-border bg-background">
 					{summary}
@@ -93,19 +142,12 @@ export const ProjectFindingsOverview = ({
 			) : null}
 
 			<section aria-labelledby="findings-title">
-				<div className="flex items-end justify-between gap-4 border-b-2 border-foreground pb-3">
-					<div>
-						<p className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-							Correções solicitadas
-						</p>
-						<h2 id="findings-title" className="mt-1 text-lg font-semibold">
-							Apontamentos
-						</h2>
-					</div>
-					<span className="font-mono text-sm text-muted-foreground">
-						{padCount(current.length)}
-					</span>
-				</div>
+				<SectionHeading
+					id="findings-title"
+					meta={`${padCount(current.length)} ${current.length === 1 ? "aguarda resposta" : "aguardam resposta"}`}
+				>
+					Apontamentos
+				</SectionHeading>
 
 				{findings === undefined ? (
 					<div aria-busy="true" className="flex flex-col gap-3 py-5">

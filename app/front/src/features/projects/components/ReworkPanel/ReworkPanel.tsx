@@ -1,3 +1,5 @@
+import { ConclusionField } from "@components/ConclusionField";
+import { SectionHeading } from "@components/SectionHeading";
 import { Skeleton } from "@components/ui/skeleton";
 import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
@@ -73,38 +75,25 @@ export const ReworkPanel = ({
 	return (
 		<aside
 			aria-label="Ciclo e retrabalho do protocolo"
-			className={cn("flex flex-col gap-8 bg-card px-6 py-8 md:px-8", className)}
+			className={cn(
+				"flex flex-col gap-9.5 bg-card px-6 py-8 md:px-10",
+				className,
+			)}
 		>
-			<div className="rounded-xs bg-primary px-6 py-5 text-primary-foreground">
-				<h2 className="border-b border-primary-foreground/85 pb-3 font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase">
-					Ciclo de Aprovação
-				</h2>
-
-				{!loaded ? (
-					<Skeleton className="mt-6 h-14 w-24 bg-primary-foreground/20" />
-				) : loaded.cycleDays === null ? null : (
-					<p className="mt-6 font-mono text-5xl font-medium tracking-tight">
-						{loaded.cycleDays}
-					</p>
-				)}
-
-				<p
-					className={cn(
-						"font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase",
-						loaded?.cycleDays === null ? "mt-6" : "mt-2",
-					)}
-				>
-					{cycleCaption(loaded?.cycleDays, approved)}
-				</p>
-			</div>
+			<ConclusionField
+				label="Ciclo de aprovação"
+				value={
+					!loaded ? (
+						<span className="block h-15 w-24 animate-pulse bg-primary-foreground/20" />
+					) : loaded.cycleDays === null ? undefined : (
+						padCount(loaded.cycleDays)
+					)
+				}
+				caption={cycleCaption(loaded?.cycleDays, approved)}
+			/>
 
 			<section aria-labelledby={titleId} className="flex flex-col">
-				<h2
-					id={titleId}
-					className="border-b-2 border-foreground pb-3 text-lg font-semibold text-foreground"
-				>
-					Retrabalho do Protocolo
-				</h2>
+				<SectionHeading id={titleId}>Retrabalho do Protocolo</SectionHeading>
 
 				<dl className="flex flex-col">
 					{METRICS.map(({ key, label }) => (
@@ -113,7 +102,7 @@ export const ReworkPanel = ({
 							className="flex items-center justify-between gap-4 border-b border-border py-3"
 						>
 							<dt className="text-sm text-foreground">{label}</dt>
-							<dd className="font-mono text-sm font-medium text-foreground">
+							<dd className="font-mono text-sm font-semibold text-foreground">
 								{loaded ? (
 									padCount(loaded[key])
 								) : (
@@ -125,7 +114,7 @@ export const ReworkPanel = ({
 				</dl>
 
 				{notes.map((note) => (
-					<p key={note} className="mt-3 text-xs text-muted-foreground">
+					<p key={note} className="mt-3 text-xs text-faint-foreground">
 						{note}
 					</p>
 				))}

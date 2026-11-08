@@ -1,7 +1,7 @@
-import { attentionSeverityClassNames } from "@components/AttentionIndicator";
+import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import { Link } from "@tanstack/react-router";
-import { Check, TriangleAlert } from "lucide-react";
+import { Check } from "lucide-react";
 
 import { PROJECT_SECTIONS, type ProjectSectionKey } from "../../constants";
 
@@ -20,6 +20,13 @@ interface ProjectSectionNavProps {
 	className?: string;
 }
 
+const AttentionDot = () => (
+	<span
+		aria-hidden="true"
+		className="size-1.5 shrink-0 rounded-full bg-attention"
+	/>
+);
+
 const SectionIndicator = ({
 	done,
 	outdated,
@@ -27,13 +34,14 @@ const SectionIndicator = ({
 }: ProjectSectionState) => {
 	if (attention) {
 		return (
-			<span
-				className={cn(
-					"rounded-full px-1.5 font-mono text-xs",
-					attentionSeverityClassNames.warning,
-				)}
-			>
-				<span aria-hidden="true">{attention}</span>
+			<span className="flex items-center gap-1.5">
+				<AttentionDot />
+				<span
+					aria-hidden="true"
+					className="font-mono text-xs font-semibold text-foreground"
+				>
+					{padCount(attention)}
+				</span>
 				<span className="sr-only">
 					{` (${attention} ${attention === 1 ? "apontamento" : "apontamentos"})`}
 				</span>
@@ -44,10 +52,7 @@ const SectionIndicator = ({
 	if (outdated) {
 		return (
 			<>
-				<TriangleAlert
-					aria-hidden="true"
-					className="size-3.5 text-warning-foreground"
-				/>
+				<AttentionDot />
 				<span className="sr-only"> (desatualizado)</span>
 			</>
 		);
@@ -56,7 +61,10 @@ const SectionIndicator = ({
 	if (done) {
 		return (
 			<>
-				<Check aria-hidden="true" className="size-3.5" />
+				<Check
+					aria-hidden="true"
+					className="size-3.5 shrink-0 text-faint-foreground group-data-[status=active]/step:text-foreground"
+				/>
 				<span className="sr-only"> (concluído)</span>
 			</>
 		);
@@ -65,6 +73,7 @@ const SectionIndicator = ({
 	return null;
 };
 
+/** The Figma's step strip: equal cells, a mono index and a 2px rule under the open one. */
 export const ProjectSectionNav = ({
 	projectId,
 	sections = {},
@@ -72,20 +81,30 @@ export const ProjectSectionNav = ({
 }: ProjectSectionNavProps) => (
 	<nav
 		aria-label="Seções do projeto"
-		className={cn("border-b border-border px-6 md:px-8", className)}
+		className={cn("border-b border-border px-6 md:px-10", className)}
 	>
 		<ul className="flex overflow-x-auto">
-			{PROJECT_SECTIONS.map(({ key, label, to }) => (
+			{PROJECT_SECTIONS.map(({ key, index, label, to }, position) => (
 				<li
 					key={key}
-					className="group/section relative flex text-sm whitespace-nowrap not-first:before:absolute not-first:before:top-1/2 not-first:before:left-0 not-first:before:h-5 not-first:before:w-px not-first:before:-translate-y-1/2 not-first:before:bg-border"
+					className="relative flex min-w-max flex-1 basis-0 not-first:before:absolute not-first:before:top-1/2 not-first:before:left-0 not-first:before:h-5 not-first:before:w-px not-first:before:-translate-y-1/2 not-first:before:bg-border"
 				>
 					<Link
 						to={to}
 						params={{ id: projectId }}
 						activeOptions={{ exact: true, includeHash: false }}
-						className="-mb-px flex items-center gap-2 border-b-2 border-transparent px-3 py-3 text-muted-foreground transition-colors group-first/section:pl-1 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none data-[status=active]:border-foreground data-[status=active]:font-medium data-[status=active]:text-foreground"
+						title={sections[key]?.outdated ? "Desatualizado" : undefined}
+						className={cn(
+							"group/step -mb-px flex flex-1 items-center gap-2.5 border-b-2 border-transparent py-4 pr-5 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset data-[status=active]:border-foreground data-[status=active]:text-foreground",
+							position > 0 && "pl-5",
+						)}
 					>
+						<span
+							aria-hidden="true"
+							className="font-mono text-2xs font-normal text-faint-foreground group-data-[status=active]/step:text-foreground"
+						>
+							{index}
+						</span>
 						{label}
 						<SectionIndicator {...sections[key]} />
 					</Link>

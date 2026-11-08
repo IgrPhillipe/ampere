@@ -7,10 +7,12 @@ interface DateCellProps {
 	className?: string;
 }
 
+/** Inline, so the column's text alignment places it. */
 export const DateCell = ({ value, className }: DateCellProps) => (
-	<div className={cn("flex flex-col items-center gap-0.5", className)}>
-		<time dateTime={value} className="font-mono text-xs text-foreground">
-			{formatDate(value)}
-		</time>
-	</div>
+	<time
+		dateTime={value}
+		className={cn("font-mono text-xs text-foreground", className)}
+	>
+		{formatDate(value)}
+	</time>
 );

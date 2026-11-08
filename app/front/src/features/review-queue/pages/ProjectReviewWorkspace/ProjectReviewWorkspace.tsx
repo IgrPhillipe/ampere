@@ -1,5 +1,6 @@
 import {
 	buildFindingReferenceOptions,
+	type ProjectSectionKey,
 	ProjectWorkspace,
 	projectStatusLabels,
 	sectionStage,
@@ -38,6 +39,9 @@ import {
 import { checkToFindingValues } from "../../constants";
 import { useFindingEditor } from "../../hooks";
 import type { FindingFormValues } from "../../schemas";
+
+/** Sections without a conclusion of their own, where the triage takes the green field. */
+const TRIAGE_SECTIONS: ProjectSectionKey[] = ["overview", "documents"];
 
 interface ProjectReviewWorkspaceProps {
 	projectId: string;
@@ -176,9 +180,12 @@ export const ProjectReviewWorkspace = ({
 				isConsulting ? (
 					<p
 						role="status"
-						className="flex items-center gap-3 border-b border-border bg-surface-hover px-6 py-3 text-sm md:px-8"
+						className="flex items-center gap-3 border-b border-border px-6 py-3 text-sm md:px-10"
 					>
-						<Lock aria-hidden="true" className="size-4 shrink-0" />
+						<Lock
+							aria-hidden="true"
+							className="size-4 shrink-0 text-faint-foreground"
+						/>
 						<span>
 							{project?.reviewerName
 								? `Em análise por ${project.reviewerName}.`
@@ -189,8 +196,14 @@ export const ProjectReviewWorkspace = ({
 					</p>
 				) : null
 			}
-			aside={(section) => (
+			aside={(section, placement) => (
 				<FindingsPanel
+					placement={placement}
+					triageAlerts={
+						TRIAGE_SECTIONS.includes(section)
+							? calculation?.warningsCount
+							: undefined
+					}
 					findings={findings}
 					isLoading={findingsQuery.isPending}
 					editable={actions.createFindings}

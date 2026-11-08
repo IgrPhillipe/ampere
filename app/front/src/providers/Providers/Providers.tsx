@@ -15,7 +15,7 @@ export const Providers = ({ children }: ProvidersProps) => (
 			<QueryProvider>
 				{children}
 
-				<Toaster richColors closeButton position="top-right" />
+				<Toaster closeButton position="top-right" />
 			</QueryProvider>
 		</ThemeProvider>
 	</ErrorBoundary>

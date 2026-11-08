@@ -95,7 +95,7 @@ export const GroupSheet = ({
 					{group ? (
 						<>
 							<SheetHeader className="border-b border-border px-6 py-6">
-								<SheetTitle className="font-heading text-xl">
+								<SheetTitle className="font-heading text-lg font-medium">
 									{group.name}
 								</SheetTitle>
 								<SheetDescription>{group.summary}</SheetDescription>

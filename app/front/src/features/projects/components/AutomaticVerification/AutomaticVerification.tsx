@@ -3,33 +3,17 @@ import { Skeleton } from "@components/ui/skeleton";
 import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Calculation, CheckStatus } from "@services/calculation";
-import {
-	CircleCheck,
-	CircleMinus,
-	Info,
-	type LucideIcon,
-	TriangleAlert,
-} from "lucide-react";
+import { Check } from "lucide-react";
+import { useState } from "react";
 
 export type CalculationCheck = Calculation["checks"][number];
 
-const checkStatusPresentation = {
-	WARNING: {
-		label: "Alerta",
-		icon: TriangleAlert,
-		className: "text-brand-sunset",
-	},
-	INFO: { label: "Informativo", icon: Info, className: "text-info" },
-	PASSED: { label: "Conforme", icon: CircleCheck, className: "text-primary" },
-	SKIPPED: {
-		label: "Não Verificado",
-		icon: CircleMinus,
-		className: "text-muted-foreground",
-	},
-} as const satisfies Record<
-	CheckStatus,
-	{ label: string; icon: LucideIcon; className: string }
->;
+const checkStatusLabels = {
+	WARNING: "Alerta",
+	INFO: "Informativo",
+	PASSED: "Conforme",
+	SKIPPED: "Não Verificado",
+} as const satisfies Record<CheckStatus, string>;
 
 const STATUS_ORDER: CheckStatus[] = ["WARNING", "INFO", "SKIPPED", "PASSED"];
 
@@ -40,81 +24,98 @@ interface AutomaticVerificationProps {
 	className?: string;
 }
 
+const outcomeOf = (total: number, warnings: number) =>
+	[
+		`${padCount(total)} ${total === 1 ? "conferência" : "conferências"}`,
+		warnings === 0
+			? "nenhuma inconsistência"
+			: `${padCount(warnings)} ${warnings === 1 ? "alerta" : "alertas"}`,
+	].join(", ");
+
+/** Quiet summary of the normative checks; only what needs a look is listed. */
 export const AutomaticVerification = ({
 	checks,
 	isLoading = false,
 	onCreateFinding,
 	className,
 }: AutomaticVerificationProps) => {
+	const [showsAll, setShowsAll] = useState(false);
 	const sorted = [...(checks ?? [])].sort(
 		(a, b) => STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status),
 	);
 	const warnings = sorted.filter((check) => check.status === "WARNING").length;
+	const quiet = sorted.filter((check) => check.status !== "WARNING");
+	const listed = sorted.filter(
+		(check) => check.status === "WARNING" || showsAll,
+	);
 
 	return (
-		<section aria-labelledby="verificacao-titulo" className={className}>
-			<div className="flex items-baseline justify-between gap-4 border-b-2 border-foreground pb-3">
-				<h2
-					id="verificacao-titulo"
-					className="text-lg font-semibold text-foreground"
-				>
-					Verificação Automática
-				</h2>
-				<span className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-					{padCount(warnings)} {warnings === 1 ? "alerta" : "alertas"}
-				</span>
-			</div>
-
+		<section
+			aria-labelledby="verificacao-titulo"
+			className={cn("flex flex-col border border-border px-5 py-3", className)}
+		>
 			{isLoading || !checks ? (
-				<ul aria-busy="true" className="flex flex-col">
-					{Array.from({ length: 3 }, (_, index) => (
-						<li key={index} className="border-b border-border py-3">
-							<Skeleton className="h-4 w-80 max-w-full" />
+				<div aria-busy="true" className="flex flex-col gap-1.5 py-1.5">
+					<Skeleton className="h-4 w-56" />
+					<Skeleton className="h-3 w-40" />
+				</div>
+			) : (
+				<div className="flex items-start gap-3">
+					<Check aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+					<div className="flex min-w-0 flex-1 flex-col gap-0.5">
+						<h2
+							id="verificacao-titulo"
+							className="text-sm font-medium text-foreground"
+						>
+							Verificação Automática Concluída
+						</h2>
+						<p className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+							{sorted.length === 0
+								? "O cálculo não registrou verificações normativas"
+								: outcomeOf(sorted.length, warnings)}
+						</p>
+
+						{quiet.length > 0 ? (
+							<button
+								type="button"
+								aria-expanded={showsAll}
+								onClick={() => setShowsAll((shows) => !shows)}
+								className="mt-1.5 self-start text-xs font-medium text-foreground underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+							>
+								{showsAll ? "Ocultar Conferências" : "Ver Conferências"}
+							</button>
+						) : null}
+					</div>
+				</div>
+			)}
+
+			{listed.length > 0 ? (
+				<ul className="mt-3 flex flex-col border-t border-border-soft">
+					{listed.map((check) => (
+						<li
+							key={check.code}
+							className={cn(
+								"flex flex-col gap-1.5 border-b border-border-soft py-3 pl-3 last:border-b-0",
+								check.status === "WARNING" && "border-l-2 border-l-attention",
+							)}
+						>
+							<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+								{checkStatusLabels[check.status]}
+							</span>
+							<p className="text-sm text-foreground">{check.message}</p>
+
+							{check.status === "WARNING" && onCreateFinding ? (
+								<InlineActionButton
+									onClick={() => onCreateFinding(check)}
+									className="self-start"
+								>
+									Virar Apontamento
+								</InlineActionButton>
+							) : null}
 						</li>
 					))}
 				</ul>
-			) : sorted.length === 0 ? (
-				<p className="py-4 text-sm text-muted-foreground">
-					O cálculo não registrou verificações normativas.
-				</p>
-			) : (
-				<ul className="flex flex-col">
-					{sorted.map((check) => {
-						const {
-							label,
-							icon: Icon,
-							className: tone,
-						} = checkStatusPresentation[check.status];
-
-						return (
-							<li
-								key={check.code}
-								className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-x-2 gap-y-2 border-b border-border py-3"
-							>
-								<Icon
-									aria-hidden="true"
-									className={cn("mt-0.5 size-4", tone)}
-								/>
-								<div className="flex min-w-0 flex-col gap-1">
-									<span className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-										{label}
-									</span>
-									<p className="text-sm text-foreground">{check.message}</p>
-								</div>
-
-								{check.status === "WARNING" && onCreateFinding ? (
-									<InlineActionButton
-										onClick={() => onCreateFinding(check)}
-										className="col-start-2 justify-self-start"
-									>
-										Virar Apontamento
-									</InlineActionButton>
-								) : null}
-							</li>
-						);
-					})}
-				</ul>
-			)}
+			) : null}
 		</section>
 	);
 };

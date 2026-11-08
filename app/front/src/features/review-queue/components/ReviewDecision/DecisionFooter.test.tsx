@@ -50,12 +50,12 @@ describe("DecisionFooter", () => {
 		expect(onDecide).toHaveBeenNthCalledWith(2, "REJECT");
 	});
 
-	it("tells why the approval is not offered with a pending blocking finding", () => {
+	it("tells why the approval is blocked with a pending blocking finding", () => {
 		renderFooter([{ ...adjustment, severity: "BLOCKING" }]);
 
 		expect(
-			screen.queryByRole("button", { name: "Aprovar Projeto" }),
-		).not.toBeInTheDocument();
+			screen.getByRole("button", { name: "Aprovar Projeto" }),
+		).toBeDisabled();
 		expect(
 			screen.getByRole("button", { name: "Reprovar com Apontamentos" }),
 		).toBeInTheDocument();

@@ -13,7 +13,7 @@ interface SearchInputProps {
 }
 
 const inputClassName =
-	"rounded-none border-x-0 border-t-0 pr-11 pl-10 shadow-none [&::-webkit-search-cancel-button]:appearance-none";
+	"rounded-none border-x-0 border-t-0 pr-10 pl-7 shadow-none [&::-webkit-search-cancel-button]:appearance-none";
 
 export const SearchInput = ({
 	value,
@@ -29,7 +29,7 @@ export const SearchInput = ({
 	return (
 		<div className={cn("relative w-full max-w-xl", className)}>
 			<Search
-				className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground"
+				className="pointer-events-none absolute top-1/2 left-0 size-4 -translate-y-1/2 text-faint-foreground"
 				aria-hidden="true"
 			/>
 			<Input
@@ -45,7 +45,7 @@ export const SearchInput = ({
 					type="button"
 					onClick={() => onValueChange("")}
 					aria-label="Limpar busca"
-					className="absolute top-1/2 right-2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+					className="absolute top-1/2 right-0 flex size-8 -translate-y-1/2 items-center justify-center text-faint-foreground hover:bg-surface-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
 				>
 					<X className="size-4" aria-hidden="true" />
 				</button>

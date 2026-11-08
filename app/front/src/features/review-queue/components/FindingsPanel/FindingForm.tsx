@@ -139,7 +139,7 @@ export const FindingForm = ({
 					</Button>
 				) : null}
 
-				<Button type="submit" disabled={isPending}>
+				<Button type="submit" variant="outline" disabled={isPending}>
 					{isEditing ? "Salvar Apontamento" : "Registrar Apontamento"}
 				</Button>
 			</div>

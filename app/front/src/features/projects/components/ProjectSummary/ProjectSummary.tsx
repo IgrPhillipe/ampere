@@ -1,6 +1,6 @@
+import { SectionHeading } from "@components/SectionHeading";
 import { Skeleton } from "@components/ui/skeleton";
 import { formatDecimal, formatKva, padCount } from "@features/shared";
-import { cn } from "@lib/utils";
 import type { Calculation } from "@services/calculation";
 import type { GroupValidation } from "@services/consumer-units";
 import type { ProjectDetail } from "@services/projects";
@@ -29,6 +29,8 @@ interface SummaryCardProps {
 	state?: ProjectSectionState;
 	/** Shown while the project is edited and the section is not ready. */
 	pending?: string;
+	/** Language, not a measurement: the value stays proportional. */
+	textual?: boolean;
 }
 
 const SummaryCard = ({
@@ -39,28 +41,42 @@ const SummaryCard = ({
 	detail,
 	state = {},
 	pending,
+	textual = false,
 }: SummaryCardProps) => {
 	const status = state.attention
 		? plural(state.attention, "apontamento", "apontamentos")
 		: state.outdated
 			? "Desatualizado"
 			: pending;
+	const needsAction = Boolean(state.attention || state.outdated);
 
 	return (
 		<li className="flex">
 			<Link
 				to={sectionPath(section)}
 				params={{ id: projectId }}
-				className="group flex flex-1 flex-col gap-2 bg-card px-5 py-4 transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
+				className="group relative flex flex-1 flex-col gap-2 bg-card px-5 py-4 transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
 			>
-				<span className="flex items-center justify-between gap-2 font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+				{needsAction ? (
+					<span
+						aria-hidden="true"
+						className="absolute inset-y-4 left-0 w-0.5 bg-attention"
+					/>
+				) : null}
+				<span className="flex items-center justify-between gap-2 font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 					{label}
 					<ArrowRight
 						aria-hidden="true"
-						className="size-3.5 transition-transform group-hover:translate-x-0.5"
+						className="size-3.5 text-foreground transition-transform group-hover:translate-x-0.5"
 					/>
 				</span>
-				<span className="text-lg font-medium text-foreground">
+				<span
+					className={
+						textual
+							? "text-lg font-medium text-foreground"
+							: "font-mono text-lg font-medium text-foreground"
+					}
+				>
 					{value ?? <Skeleton className="h-7 w-32" />}
 				</span>
 				{detail ? (
@@ -68,12 +84,11 @@ const SummaryCard = ({
 				) : null}
 				{status ? (
 					<span
-						className={cn(
-							"mt-auto self-start rounded-xs px-1.5 py-0.5 font-mono text-xs",
-							state.attention || state.outdated
-								? "bg-brand-sunset/20 text-warning-foreground"
-								: "bg-muted text-muted-foreground",
-						)}
+						className={
+							needsAction
+								? "mt-auto font-mono text-2xs tracking-[0.11em] text-foreground uppercase"
+								: "mt-auto font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase"
+						}
 					>
 						{status}
 					</span>
@@ -114,18 +129,14 @@ export const ProjectSummary = ({
 
 	return (
 		<section aria-labelledby="resumo-titulo" className={className}>
-			<h2
-				id="resumo-titulo"
-				className="border-b-2 border-foreground pb-3 text-lg font-semibold text-foreground"
-			>
-				Resumo do Projeto
-			</h2>
+			<SectionHeading id="resumo-titulo">Resumo do Projeto</SectionHeading>
 
-			<ul className="mt-px grid gap-px border-b border-border bg-border @3xl:grid-cols-2 @6xl:grid-cols-4">
+			<ul className="grid gap-px border-b border-border bg-border @3xl:grid-cols-2 @6xl:grid-cols-4">
 				<SummaryCard
 					projectId={projectId}
 					section="data"
 					label="Dados da Edificação"
+					textual
 					value={project ? buildingTypeLabels[project.buildingType] : undefined}
 					detail={
 						project

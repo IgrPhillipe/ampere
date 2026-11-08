@@ -41,7 +41,7 @@ export const GroupFormFooter = ({
 			</Button>
 
 			<div className="ml-auto flex gap-2">
-				<Button type="button" variant="ghost" onClick={onCancel}>
+				<Button type="button" variant="link" onClick={onCancel}>
 					Cancelar
 				</Button>
 

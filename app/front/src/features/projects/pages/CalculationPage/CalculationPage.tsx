@@ -77,16 +77,21 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 			{outdated ? (
 				<div
 					role="status"
-					className="mx-6 mt-6 flex flex-col gap-3 rounded-xs border border-border border-l-4 border-l-brand-sunset px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:mx-8"
+					className="mx-6 mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 md:mx-10"
 				>
-					<p className="text-sm">
+					<span
+						aria-hidden="true"
+						className="size-1.5 shrink-0 rounded-full bg-attention"
+					/>
+					<p className="text-sm text-foreground">
 						Os dados do projeto mudaram depois deste cálculo. Recalcule para
 						atualizar a memória e o memorial.
 					</p>
 					<Button
 						type="button"
+						variant="link"
 						size="sm"
-						className="shrink-0"
+						className="h-auto px-0"
 						disabled={!canCalculate || run.isPending}
 						onClick={calculate}
 					>
@@ -162,12 +167,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 				</div>
 			) : (
 				<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_440px]">
-					<div className="flex flex-col gap-10 px-6 py-8 md:px-8">
-						<AutomaticVerification
-							checks={result?.checks}
-							isLoading={isLoading}
-							onCreateFinding={registrar.onCheck}
-						/>
+					<div className="flex min-w-0 flex-col gap-9.5 px-6 py-8 md:px-10">
 						<CalculationSteps
 							steps={result?.steps}
 							findings={stageFindings}
@@ -180,11 +180,15 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 						/>
 					</div>
 
-					<TraceabilityPanel
-						calculation={result}
-						isLoading={isLoading}
-						className="border-t border-border @5xl:border-t-0 @5xl:border-l"
-					/>
+					<div className="flex flex-col border-t border-border @5xl:border-t-0 @5xl:border-l">
+						<TraceabilityPanel calculation={result} isLoading={isLoading} />
+						<AutomaticVerification
+							checks={result?.checks}
+							isLoading={isLoading}
+							onCreateFinding={registrar.onCheck}
+							className="mx-6 mb-8 md:mx-9.5"
+						/>
+					</div>
 				</div>
 			)}
 

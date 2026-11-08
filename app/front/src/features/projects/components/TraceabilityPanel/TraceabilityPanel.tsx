@@ -1,3 +1,4 @@
+import { ConclusionField } from "@components/ConclusionField";
 import { Skeleton } from "@components/ui/skeleton";
 import { formatDecimal, formatKva } from "@features/shared";
 import { cn } from "@lib/utils";
@@ -45,47 +46,39 @@ export const TraceabilityPanel = ({
 				["Ramal de entrada", cable(calculation.traceability)],
 			]
 		: [];
-	const warnings =
-		calculation?.checks.filter((check) => check.status === "WARNING") ?? [];
-
 	return (
 		<aside
 			aria-labelledby="resultado-titulo"
-			className={cn("flex flex-col bg-card px-6 py-8 md:px-8", className)}
+			className={cn("flex flex-col px-6 py-8 md:px-9.5", className)}
 		>
-			<div className="rounded-xs bg-primary px-6 py-5 text-primary-foreground">
-				<h2
-					id="resultado-titulo"
-					className="border-b border-primary-foreground/85 pb-3 font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase"
-				>
-					Resultado
-				</h2>
-
-				{isLoading || !calculation ? (
-					<Skeleton className="mt-9 h-16 w-40 bg-primary-foreground/20" />
-				) : (
-					<p
-						aria-live="polite"
-						className="mt-9 flex items-baseline gap-2 whitespace-nowrap"
-					>
-						<span className="font-mono text-6xl font-medium tracking-tight">
+			<ConclusionField
+				label={<span id="resultado-titulo">Resultado</span>}
+				value={
+					isLoading || !calculation ? undefined : (
+						<span
+							aria-live="polite"
+							className="flex items-baseline gap-2 whitespace-nowrap"
+						>
 							{formatDecimal(calculation.totals.finalKva, 1)}
+							<span className="font-sans text-lg font-normal tracking-normal opacity-85">
+								kVA
+							</span>
 						</span>
-						<span className="text-xl text-primary-foreground/75">kVA</span>
-					</p>
-				)}
+					)
+				}
+				caption="Demanda total da edificação"
+			>
+				{isLoading || !calculation ? (
+					<Skeleton className="h-14 w-40 bg-primary-foreground/20" />
+				) : null}
+			</ConclusionField>
 
-				<p className="mt-2 font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase">
-					Demanda total da edificação
-				</p>
-			</div>
-
-			<dl className="mt-10 flex flex-col">
+			<dl className="mt-9.5 flex flex-col">
 				{isLoading || !calculation
 					? Array.from({ length: 7 }, (_, index) => (
 							<div
 								key={index}
-								className="flex justify-between gap-3 border-t border-border py-2.5 last:border-b"
+								className="flex justify-between gap-3 border-b border-border py-2.5"
 							>
 								<Skeleton className="h-5 w-32" />
 								<Skeleton className="h-5 w-20" />
@@ -94,7 +87,7 @@ export const TraceabilityPanel = ({
 					: rows.map(([label, value]) => (
 							<div
 								key={label}
-								className="flex items-baseline justify-between gap-3 border-t border-border py-2 last:border-b"
+								className="flex items-baseline justify-between gap-3 border-b border-border py-2.5"
 							>
 								<dt className="text-sm text-muted-foreground">{label}</dt>
 								<dd className="text-right font-mono text-sm font-medium text-foreground">
@@ -103,27 +96,6 @@ export const TraceabilityPanel = ({
 							</div>
 						))}
 			</dl>
-
-			{warnings.length > 0 ? (
-				<section aria-labelledby="alertas-titulo" className="mt-8">
-					<h3
-						id="alertas-titulo"
-						className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase"
-					>
-						Alertas Normativos
-					</h3>
-					<ul className="mt-3 flex flex-col gap-3">
-						{warnings.map((warning) => (
-							<li
-								key={warning.code}
-								className="relative pl-3 text-sm text-foreground before:absolute before:top-1 before:left-0 before:h-4 before:w-0.5 before:bg-brand-sunset"
-							>
-								{warning.message}
-							</li>
-						))}
-					</ul>
-				</section>
-			) : null}
 		</aside>
 	);
 };

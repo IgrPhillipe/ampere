@@ -20,7 +20,7 @@ export const DashboardPeriodPicker = ({
 	<div
 		role="group"
 		aria-label="Período dos indicadores"
-		className={cn("flex border border-border bg-card", className)}
+		className={cn("flex border border-border", className)}
 	>
 		{dashboardPeriodSchema.options.map((period) => (
 			<button
@@ -28,7 +28,7 @@ export const DashboardPeriodPicker = ({
 				type="button"
 				aria-pressed={value === period}
 				onClick={() => onValueChange(period)}
-				className="px-3 py-2 font-mono text-xs tracking-wider text-muted-foreground uppercase transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset aria-pressed:bg-foreground aria-pressed:text-background"
+				className="h-8 px-3 font-mono text-2xs tracking-[0.11em] text-muted-foreground uppercase transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset aria-pressed:bg-foreground aria-pressed:text-background"
 			>
 				{dashboardPeriodLabels[period]}
 			</button>

@@ -15,7 +15,7 @@ export const AppBrand = () => (
 
 		<span aria-hidden="true" className="hidden h-5 w-px bg-border sm:block" />
 
-		<span className="hidden text-sm font-semibold tracking-[0.12em] text-foreground sm:inline">
+		<span className="hidden font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase sm:inline">
 			AMPERE
 		</span>
 	</Link>

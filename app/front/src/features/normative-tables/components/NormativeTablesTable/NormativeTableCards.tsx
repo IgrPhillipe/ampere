@@ -24,10 +24,10 @@ export const NormativeTableCards = ({
 				>
 					<div className="flex w-full items-start justify-between gap-3">
 						<div className="flex min-w-0 flex-col gap-1">
-							<span className="font-semibold text-foreground">
+							<span className="text-base font-medium text-foreground">
 								{table.identification}
 							</span>
-							<span className="text-xs text-muted-foreground">
+							<span className="text-sm text-muted-foreground">
 								{table.title}
 							</span>
 						</div>

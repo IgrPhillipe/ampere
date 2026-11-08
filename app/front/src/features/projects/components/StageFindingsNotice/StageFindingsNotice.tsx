@@ -3,7 +3,6 @@ import { cn } from "@lib/utils";
 import { type Finding, useRespondFinding } from "@services/project-review";
 import { useGetProject } from "@services/projects";
 import type { ProjectDocument } from "@services/submission";
-import { Eye, MessageSquareWarning } from "lucide-react";
 import { useState } from "react";
 
 import { findingTarget, isReopened } from "../../constants";
@@ -81,16 +80,15 @@ export const StageFindingsNotice = ({
 		<section
 			aria-labelledby="apontamentos-etapa-titulo"
 			className={cn(
-				"mx-6 flex flex-col gap-4 rounded-xs border border-border border-l-4 border-l-brand-sunset bg-card px-5 py-4 md:mx-8",
+				"mx-6 flex flex-col gap-3 border-l-2 border-attention py-1 pl-5 md:mx-10",
 				className,
 			)}
 		>
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<h2
 					id="apontamentos-etapa-titulo"
-					className="flex items-center gap-2 text-base font-semibold text-foreground"
+					className="text-base font-medium text-foreground"
 				>
-					<MessageSquareWarning aria-hidden="true" className="size-4" />
 					{findings.length === 1
 						? "Apontamento Nesta Seção"
 						: `${findings.length} Apontamentos Nesta Seção`}
@@ -112,7 +110,7 @@ export const StageFindingsNotice = ({
 								"flex flex-col gap-3 border-t border-border py-4 first:border-t-0 first:pt-0 last:pb-0",
 								target &&
 									hash === `#${target}` &&
-									"-mx-3 rounded-xs px-3 first:pt-3 last:pb-3 motion-safe:animate-highlight",
+									"-mx-3 px-3 first:pt-3 last:pb-3 motion-safe:animate-highlight",
 							)}
 						>
 							<FindingSummary
@@ -139,15 +137,14 @@ export const StageFindingsNotice = ({
 									O analista reabriu o apontamento. Responda de novo.
 								</p>
 							) : null}
-							<div className="flex flex-wrap gap-2">
+							<div className="flex flex-wrap items-center gap-x-5 gap-y-2">
 								{documentOf(finding, documents) ? (
 									<Button
 										type="button"
-										variant="outline"
-										size="xs"
+										variant="link"
+										className="h-auto px-0"
 										onClick={() => setViewing(documentOf(finding, documents))}
 									>
-										<Eye aria-hidden="true" />
 										Ver Documento
 									</Button>
 								) : null}
@@ -155,8 +152,22 @@ export const StageFindingsNotice = ({
 									<>
 										<Button
 											type="button"
-											variant="outline"
-											size="xs"
+											variant="link"
+											className="h-auto px-0"
+											aria-expanded={status === "FIXED"}
+											onClick={() =>
+												setResponding({
+													findingId: finding.id,
+													status: "FIXED",
+												})
+											}
+										>
+											Marcar Corrigido
+										</Button>
+										<Button
+											type="button"
+											variant="link"
+											className="h-auto px-0"
 											aria-expanded={status === "CONTESTED"}
 											onClick={() =>
 												setResponding({
@@ -166,19 +177,6 @@ export const StageFindingsNotice = ({
 											}
 										>
 											Contestar
-										</Button>
-										<Button
-											type="button"
-											size="xs"
-											aria-expanded={status === "FIXED"}
-											onClick={() =>
-												setResponding({
-													findingId: finding.id,
-													status: "FIXED",
-												})
-											}
-										>
-											Corrigido
 										</Button>
 									</>
 								) : null}

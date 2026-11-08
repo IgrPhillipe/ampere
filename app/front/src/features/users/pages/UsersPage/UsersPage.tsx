@@ -1,6 +1,6 @@
 import { EmptyState } from "@components/EmptyState";
 import { FilterMenu } from "@components/FilterMenu";
-import { ListToolbar } from "@components/ListToolbar";
+import { FilterChips, ListToolbar } from "@components/ListToolbar";
 import { PageLayout } from "@components/layout";
 import { Pagination } from "@components/Pagination";
 import { SearchInput } from "@components/SearchInput";
@@ -27,15 +27,18 @@ import {
 } from "../../components";
 import {
 	USER_STATUSES,
-	userRoleLabels,
+	userRolePluralLabels,
 	userStatusLabels,
 } from "../../constants";
 import { useUserFilters } from "../../hooks";
 
-const roleOptions = userRoleSchema.options.map((value) => ({
-	value,
-	label: userRoleLabels[value],
-}));
+const roleChips = [
+	{ value: null, label: "Todos" },
+	...userRoleSchema.options.map((value) => ({
+		value,
+		label: userRolePluralLabels[value],
+	})),
+];
 
 const statusOptions = USER_STATUSES.map((value) => ({
 	value,
@@ -113,10 +116,9 @@ export const UsersPage = () => {
 					}
 					refinements={
 						<>
-							<FilterMenu
-								label="Papel"
-								allLabel="Todos"
-								options={roleOptions}
+							<FilterChips
+								label="Filtrar por papel"
+								chips={roleChips}
 								value={filters.role}
 								onValueChange={filters.setRole}
 							/>

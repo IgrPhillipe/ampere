@@ -32,7 +32,7 @@ export const createGroupColumns = ({
 					className={cn(
 						"relative",
 						isPendingGroup(row.original) &&
-							"before:absolute before:top-1/2 before:-left-4 before:h-6 before:w-0.5 before:-translate-y-1/2 before:bg-brand-sunset",
+							"before:absolute before:top-1/2 before:-left-4 before:h-6 before:w-0.5 before:-translate-y-1/2 before:bg-attention",
 					)}
 				>
 					<GroupIdentity
@@ -45,7 +45,8 @@ export const createGroupColumns = ({
 							(finding) => finding.consumerUnitGroupId === row.original.id,
 						)}
 						target={`grupo-${row.original.id}`}
-						className="mt-2"
+						// Sits on the row's gutter, where the pending bar goes.
+						className="absolute top-1/2 -left-4 -translate-y-1/2"
 					/>
 				</div>
 			),
@@ -53,7 +54,7 @@ export const createGroupColumns = ({
 		columnHelper.accessor("quantity", {
 			header: "Qtd",
 			cell: ({ row }) => (
-				<span className="font-mono text-sm text-foreground">
+				<span className="font-mono text-sm font-medium text-foreground">
 					{padCount(row.original.quantity)}
 				</span>
 			),
@@ -66,7 +67,7 @@ export const createGroupColumns = ({
 				</>
 			),
 			cell: ({ row }) => (
-				<span className="font-mono text-sm text-foreground">
+				<span className="font-mono text-sm font-medium text-foreground">
 					{row.original.loadPerUnitKw == null
 						? "Não informada"
 						: formatDecimal(row.original.loadPerUnitKw)}
@@ -77,7 +78,7 @@ export const createGroupColumns = ({
 			id: "factor",
 			header: "Fator",
 			cell: () => (
-				<span className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+				<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 					Auto
 				</span>
 			),

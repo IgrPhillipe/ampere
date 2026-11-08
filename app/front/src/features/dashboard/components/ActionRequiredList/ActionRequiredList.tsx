@@ -8,7 +8,6 @@ import {
 	stageSections,
 } from "@features/projects";
 import { formatDateTime, padCount } from "@features/shared";
-import { cn } from "@lib/utils";
 import type { ActionRequiredItem } from "@services/dashboard";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
@@ -64,7 +63,7 @@ const describeProject = ({
 	].filter((part): part is string => part !== null);
 
 const linkClassName =
-	"group inline-flex items-center gap-1.5 self-start text-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
+	"group mt-1 inline-flex items-center gap-1.5 self-start text-[0.8125rem] font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
 
 const linkArrow = (
 	<ArrowRight
@@ -84,7 +83,7 @@ export const ActionRequiredList = ({
 }: ActionRequiredListProps) => (
 	<DashboardSection title="Exige Ação" className={className}>
 		{!items ? (
-			<div className="flex flex-col gap-4 py-4">
+			<div className="flex flex-col gap-4 py-5">
 				<Skeleton className="h-16 w-full" />
 				<Skeleton className="h-16 w-full" />
 			</div>
@@ -93,42 +92,32 @@ export const ActionRequiredList = ({
 		) : (
 			<ul className="flex flex-col">
 				{items.map((item) => {
-					const isRejected = item.status === "REJECTED";
 					const detail = describeItem(item);
 					const shortcut = getShortcut(item);
 
 					return (
 						<li
 							key={item.id}
-							className="border-b border-border py-4 last:border-b-0"
+							className="border-b border-border py-5 last:border-b-0"
 						>
-							<div
-								className={cn(
-									"flex flex-col gap-2 border-l-4 pl-4",
-									isRejected ? "border-destructive" : "border-warning",
-								)}
-							>
-								<div className="flex flex-col gap-1">
-									<span className="font-medium">{item.name}</span>
+							<div className="flex flex-col gap-2 border-l-2 border-attention pl-4">
+								<div className="flex items-baseline justify-between gap-4">
+									<span className="text-base font-medium">{item.name}</span>
 									{detail ? (
-										<span
-											className={cn(
-												"font-mono text-xs tracking-wider uppercase",
-												isRejected
-													? "text-destructive"
-													: "text-muted-foreground",
-											)}
-										>
+										<span className="shrink-0 font-mono text-2xs tracking-[0.11em] whitespace-nowrap text-faint-foreground uppercase">
 											{detail}
 										</span>
 									) : null}
 								</div>
-								<div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-									<Badge variant={projectStatusBadgeVariants[item.status]}>
+								<div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+									<Badge
+										variant={projectStatusBadgeVariants[item.status]}
+										className="text-foreground"
+									>
 										{projectStatusLabels[item.status]}
 									</Badge>
 									{item.rejectedAt ? (
-										<span className="text-xs text-muted-foreground">
+										<span className="font-mono text-xs text-muted-foreground">
 											em {formatDateTime(item.rejectedAt).date}
 										</span>
 									) : null}
