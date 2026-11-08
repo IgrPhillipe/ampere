@@ -19,14 +19,17 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 	}, [pathname]);
 
 	return (
-		<div className="flex h-svh flex-col overflow-hidden bg-background">
+		<div className="flex h-svh flex-col overflow-hidden bg-desk">
 			<Header />
 
 			<main
 				ref={mainRef}
-				className="flex-1 overflow-y-auto [scrollbar-gutter:stable]"
+				className="flex-1 overflow-y-auto px-3 pb-8 [scrollbar-gutter:stable] md:px-8"
 			>
-				{children}
+				{/* The sheet: every screen lives on white paper over the desk. */}
+				<div className="mx-auto min-h-full w-full max-w-page border border-border bg-background">
+					{children}
+				</div>
 			</main>
 		</div>
 	);

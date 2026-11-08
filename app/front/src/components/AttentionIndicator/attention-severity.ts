@@ -5,7 +5,8 @@ export interface AttentionMessage extends TooltipMessage {
 	severity: "critical" | "warning";
 }
 
+/** State is told by form: ink text, never a colored fill. */
 export const attentionSeverityClassNames = {
-	critical: "bg-destructive/10 text-destructive",
-	warning: "bg-brand-sunset/20 text-warning-foreground",
+	critical: "text-foreground",
+	warning: "text-foreground",
 } as const satisfies Record<AttentionMessage["severity"], string>;

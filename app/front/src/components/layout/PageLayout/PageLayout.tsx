@@ -1,5 +1,15 @@
+import { useAuthStore } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ReactNode } from "react";
+
+import { Eyebrow } from "../Eyebrow";
+
+/** The portal each role sees, shown above the title when the page names none. */
+const PORTAL_EYEBROW = {
+	user: "Portal do projetista",
+	reviewer: "Análise técnica",
+	admin: "Administração do portal",
+} as const;
 
 interface PageLayoutProps {
 	/**
@@ -8,6 +18,8 @@ interface PageLayoutProps {
 	 * traz o `h1` dentro do cartao para o passo aparecer acima dele.
 	 */
 	title?: string;
+	/** Versalete line above the title; defaults to the portal of the role. */
+	eyebrow?: ReactNode;
 	description?: ReactNode;
 	/** Buttons in the top right corner (create, export, etc.). */
 	actions?: ReactNode;
@@ -19,20 +31,23 @@ interface PageLayoutProps {
 /** Standard page header. Use inside the routes under `AppShell`. */
 export const PageLayout = ({
 	title,
+	eyebrow,
 	description,
 	actions,
 	children,
 	className,
 	bleed = false,
 }: PageLayoutProps) => {
+	const role = useAuthStore((state) => state.user?.role);
 	const hasHeader = Boolean(title || description || actions);
+	const eyebrowText = eyebrow ?? (role ? PORTAL_EYEBROW[role] : null);
 
 	return (
 		<div
 			className={cn(
-				"flex flex-col py-4 md:py-7",
-				hasHeader && "gap-7",
-				!bleed && "px-4 md:px-7",
+				"flex flex-col py-6 md:py-9",
+				hasHeader && "gap-8",
+				!bleed && "px-4 md:px-10",
 				className,
 			)}
 		>
@@ -40,18 +55,22 @@ export const PageLayout = ({
 				<div
 					className={cn(
 						"flex flex-wrap items-start justify-between gap-3",
-						bleed && "px-gutter md:px-gutter-md",
+						bleed && "px-4 md:px-10",
 					)}
 				>
-					<div className="flex flex-col gap-2">
+					<div className="flex flex-col gap-3">
+						{title && eyebrowText ? <Eyebrow>{eyebrowText}</Eyebrow> : null}
+
 						{title ? (
-							<h1 className="font-heading text-3xl font-semibold tracking-tight">
+							<h1 className="font-heading text-3xl font-medium tracking-[-0.032em]">
 								{title}
 							</h1>
 						) : null}
 
 						{description ? (
-							<p className="text-sm text-muted-foreground">{description}</p>
+							<p className="max-w-2xl text-sm text-muted-foreground">
+								{description}
+							</p>
 						) : null}
 					</div>
 

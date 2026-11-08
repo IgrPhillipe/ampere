@@ -2,30 +2,38 @@
 :root {
 	color-scheme: light;
 
-	/* Neoenergia brand palette */
+	/* Neoenergia brand palette, as the Figma prototype uses it */
 	--neo-green: #00a443;
-	--neo-green-dark: #00402a;
-	--neo-green-deep: #002015;
-	--neo-green-strong: #007f33;
-	--neo-green-pressed: #005b3b;
-	--neo-green-accent: #26bf64;
-	--neo-green-hover: #008c39;
-	--neo-green-soft: #dcebe1;
+	--neo-green-dark: #004a1f;
+	--neo-green-deep: #003316;
+	--neo-green-strong: #00702e;
+	--neo-green-pressed: #004a1f;
+	--neo-green-accent: #00a443;
+	--neo-green-hover: #005c26;
+	--neo-green-soft: #f0f2ec;
 	--neo-green-muted: #a2bcb1;
 	--neo-sky: #0da9ff;
 	--neo-sunset: #ff9c1a;
-	--neo-sand: #fff5ec;
-	--neo-sand-soft: #fffaf6;
-	--neo-sand-strong: #d8cfc7;
+	--neo-sunset-ink: #9a5200;
+	--neo-sand: #f3efe7;
+	--neo-sand-soft: #f7f4ee;
+	--neo-sand-strong: #ded7c9;
 	--neo-white: #ffffff;
-	--neo-gray-soft: #f5f5f5;
-	--neo-gray-light: #ececec;
-	--neo-gray-medium: #8a8a8a;
-	--neo-ink: #002015;
-	--neo-ink-muted: #615d5a;
-	--neo-danger: #c00000;
+	--neo-gray-soft: #f3efe7;
+	--neo-gray-light: #eae4d9;
+	--neo-gray-medium: #857c6b;
+	--neo-ink: #1e1a13;
+	--neo-ink-muted: #60594b;
+	--neo-ink-faint: #857c6b;
+	--neo-index: #c6bca8;
+	--neo-desk: #e7e5e0;
+	--neo-border-strong: #d4cbba;
+	--neo-border-soft: #eae4d9;
+	--neo-danger: #9a5200;
 
-	/* Semantic colors */
+	/* Semantic colors. The Figma has no red: attention is orange, and state is
+	   carried by form (versalete, gutter bar, hollow button), not by color. */
+	--desk: var(--neo-desk);
 	--background: var(--neo-white);
 	--foreground: var(--neo-ink);
 	--card: var(--neo-white);
@@ -34,16 +42,16 @@
 	--popover-foreground: var(--neo-ink);
 	--primary: var(--neo-green-strong);
 	--primary-foreground: var(--neo-white);
-	--primary-hover: var(--neo-green-dark);
+	--primary-hover: var(--neo-green-hover);
 	--primary-active: var(--neo-green-pressed);
-	--secondary: var(--neo-green-dark);
+	--secondary: var(--neo-ink);
 	--secondary-foreground: var(--neo-white);
-	--muted: var(--neo-sand-soft);
+	--muted: var(--neo-sand);
 	--muted-foreground: var(--neo-ink-muted);
-	/* `accent` is green: not a neutral hover for a table row. */
-	--surface-hover: var(--neo-gray-soft);
+	--faint-foreground: var(--neo-ink-faint);
+	--surface-hover: var(--neo-sand-soft);
 	--accent: var(--neo-green-soft);
-	--accent-foreground: var(--neo-green-dark);
+	--accent-foreground: var(--neo-ink);
 	--destructive: var(--neo-danger);
 	--destructive-foreground: var(--neo-white);
 	--success: var(--neo-green-strong);
@@ -52,21 +60,24 @@
 	--warning-foreground: var(--neo-ink);
 	--info: var(--neo-sky);
 	--info-foreground: var(--neo-ink);
+	--attention: var(--neo-sunset);
 	--border: var(--neo-sand-strong);
-	--input: #b0a9a3;
-	--ring: #007f33;
-	--disabled: var(--neo-gray-light);
-	--disabled-foreground: var(--neo-gray-medium);
-	--overlay: rgb(0 32 21 / 48%);
-	--tooltip: rgb(38 38 38 / 88%);
+	--border-strong: var(--neo-border-strong);
+	--border-soft: var(--neo-border-soft);
+	--input: var(--neo-border-strong);
+	--ring: var(--neo-ink);
+	--disabled: var(--neo-white);
+	--disabled-foreground: var(--neo-index);
+	--overlay: rgb(30 26 19 / 40%);
+	--tooltip: rgb(30 26 19 / 92%);
 	--tooltip-foreground: var(--neo-white);
 
 	/* Data visualization */
-	--chart-1: var(--neo-green);
-	--chart-2: var(--neo-green-dark);
-	--chart-3: var(--neo-sky);
-	--chart-4: var(--neo-sunset);
-	--chart-5: #699282;
+	--chart-1: var(--neo-green-strong);
+	--chart-2: #1177c7;
+	--chart-3: #ce7c00;
+	--chart-4: var(--neo-ink);
+	--chart-5: var(--neo-index);
 
 	/* Application shell */
 	--sidebar: var(--neo-white);
@@ -76,24 +87,30 @@
 	--sidebar-accent: var(--neo-green-soft);
 	--sidebar-accent-foreground: var(--neo-green-dark);
 	--sidebar-border: var(--neo-sand-strong);
-	--sidebar-ring: #007f33;
+	--sidebar-ring: var(--neo-ink);
 
 	/* Typography */
-	--ds-font-brand:
-		"IberPangea", "IBM Plex Sans Variable", "Segoe UI", sans-serif;
-	--ds-font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+	--ds-font-brand: "Geist Variable", "Segoe UI", sans-serif;
+	--ds-font-mono: "Geist Mono Variable", "SFMono-Regular", Consolas, monospace;
+	/* The Figma's six steps: 10.5 label, 13.5 body, 15.5 item, 19 section,
+	   40 screen title, 60 result; 12 and 26 stay for micro text and figures. */
+	--ds-text-2xs: 0.65625rem;
 	--ds-text-xs: 0.75rem;
-	--ds-text-sm: 0.875rem;
-	--ds-text-base: 1rem;
-	--ds-text-lg: 1.25rem;
+	--ds-text-sm: 0.84375rem;
+	--ds-text-base: 0.96875rem;
+	--ds-text-lg: 1.1875rem;
 	--ds-text-xl: 1.375rem;
 	--ds-text-2xl: 1.625rem;
-	--ds-leading-xs: 1rem;
-	--ds-leading-sm: 1.25rem;
-	--ds-leading-body: 1.4375rem;
+	--ds-text-3xl: 2.5rem;
+	--ds-leading-2xs: 0.875rem;
+	--ds-leading-xs: 1.125rem;
+	--ds-leading-sm: 1.3125rem;
+	--ds-leading-body: 1.3125rem;
+	--ds-leading-base: 1.375rem;
 	--ds-leading-lg: 1.625rem;
-	--ds-leading-xl: 2.5rem;
-	--ds-leading-2xl: 2.875rem;
+	--ds-leading-xl: 1.875rem;
+	--ds-leading-2xl: 2.125rem;
+	--ds-leading-3xl: 2.875rem;
 
 	/* Spacing follows Neoenergia's 4px base rhythm */
 	--ds-space-1: 0.25rem;
@@ -108,13 +125,14 @@
 	--ds-space-gutter-md: 3rem;
 
 	/* Shape, elevation and motion */
-	--ds-radius-xs: 0.25rem;
-	--ds-radius-sm: 0.5rem;
-	--ds-radius-md: 1rem;
-	--ds-radius-lg: 2rem;
+	/* The sheet metaphor has square corners and no elevation. */
+	--ds-radius-xs: 0;
+	--ds-radius-sm: 0;
+	--ds-radius-md: 0;
+	--ds-radius-lg: 0;
 	--ds-radius-pill: 9999px;
-	--ds-shadow-sm: 0 1px 2px rgb(0 32 21 / 8%);
-	--ds-shadow-md: 0 8px 24px rgb(0 32 21 / 12%);
+	--ds-shadow-sm: none;
+	--ds-shadow-md: 0 8px 24px rgb(30 26 19 / 10%);
 	--ds-duration-fast: 150ms;
 	--ds-duration-default: 250ms;
 	--ds-ease-standard: cubic-bezier(0.2, 0, 0, 1);
@@ -125,6 +143,7 @@
 	--font-heading: var(--ds-font-brand);
 	--font-mono: var(--ds-font-mono);
 
+	--color-desk: var(--desk);
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
 	--color-card: var(--card);
@@ -139,6 +158,10 @@
 	--color-secondary-foreground: var(--secondary-foreground);
 	--color-muted: var(--muted);
 	--color-muted-foreground: var(--muted-foreground);
+	--color-faint-foreground: var(--faint-foreground);
+	--color-attention: var(--attention);
+	--color-border-strong: var(--border-strong);
+	--color-border-soft: var(--border-soft);
 	--color-accent: var(--accent);
 	--color-surface-hover: var(--surface-hover);
 	--color-accent-foreground: var(--accent-foreground);
@@ -165,6 +188,7 @@
 	--color-brand-green-accent: var(--neo-green-accent);
 	--color-brand-sky: var(--neo-sky);
 	--color-brand-sunset: var(--neo-sunset);
+	--color-brand-sunset-ink: var(--neo-sunset-ink);
 	--color-brand-sand: var(--neo-sand);
 
 	--color-chart-1: var(--chart-1);
@@ -182,18 +206,22 @@
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-ring: var(--sidebar-ring);
 
+	--text-2xs: var(--ds-text-2xs);
+	--text-2xs--line-height: var(--ds-leading-2xs);
 	--text-xs: var(--ds-text-xs);
 	--text-xs--line-height: var(--ds-leading-xs);
 	--text-sm: var(--ds-text-sm);
 	--text-sm--line-height: var(--ds-leading-sm);
 	--text-base: var(--ds-text-base);
-	--text-base--line-height: var(--ds-leading-body);
+	--text-base--line-height: var(--ds-leading-base);
 	--text-lg: var(--ds-text-lg);
 	--text-lg--line-height: var(--ds-leading-lg);
 	--text-xl: var(--ds-text-xl);
 	--text-xl--line-height: var(--ds-leading-xl);
 	--text-2xl: var(--ds-text-2xl);
 	--text-2xl--line-height: var(--ds-leading-2xl);
+	--text-3xl: var(--ds-text-3xl);
+	--text-3xl--line-height: var(--ds-leading-3xl);
 
 	--spacing: var(--ds-space-1);
 	--container-page: var(--ds-size-page);

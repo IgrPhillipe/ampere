@@ -6,12 +6,8 @@ import {
 	tooltipMessageText,
 } from "@components/ui/tooltip";
 import { cn } from "@lib/utils";
-import { CircleAlert } from "lucide-react";
 
-import {
-	type AttentionMessage,
-	attentionSeverityClassNames,
-} from "./attention-severity";
+import type { AttentionMessage } from "./attention-severity";
 
 interface AttentionIndicatorProps {
 	message: AttentionMessage;
@@ -27,12 +23,18 @@ export const AttentionIndicator = ({
 			render={<span />}
 			tabIndex={0}
 			className={cn(
-				"inline-flex size-6 items-center justify-center rounded-full focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-				attentionSeverityClassNames[message.severity],
+				// The Figma's gutter mark: a 2px bar flags only the rows that need action.
+				"inline-flex h-9 w-2 items-stretch justify-start focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
 				className,
 			)}
 		>
-			<CircleAlert className="size-3.5" aria-hidden="true" />
+			<span
+				aria-hidden="true"
+				className={cn(
+					"w-0.5 bg-attention",
+					message.severity === "warning" && "bg-attention/60",
+				)}
+			/>
 			<span className="sr-only">{tooltipMessageText(message)}</span>
 		</TooltipTrigger>
 		<TooltipContent>

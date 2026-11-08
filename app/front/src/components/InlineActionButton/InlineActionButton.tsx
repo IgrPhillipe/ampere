@@ -11,7 +11,7 @@ export const InlineActionButton = ({
 	<button
 		type="button"
 		className={cn(
-			"inline-flex items-center gap-2 text-xs font-medium text-foreground underline decoration-current/40 underline-offset-4 transition-colors hover:decoration-current focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+			"inline-flex items-center gap-2 text-[0.8125rem] font-medium whitespace-nowrap text-foreground underline-offset-4 transition-colors hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
 			className,
 		)}
 		{...props}

@@ -17,6 +17,7 @@ import { useState } from "react";
 
 import { AppBrand } from "./AppBrand";
 import { HeaderNav } from "./HeaderNav";
+import { ROLE_LABEL } from "./role-label";
 
 const initialsOf = (name: string) =>
 	name
@@ -33,8 +34,8 @@ export const Header = () => {
 
 	return (
 		// Same scrollbar gutter as `main`, so the logo lines up with the page title.
-		<header className="h-16 shrink-0 overflow-y-hidden border-b border-border bg-card [scrollbar-gutter:stable]">
-			<div className="relative mx-auto flex h-full w-full max-w-page items-center gap-3 px-gutter md:px-gutter-md">
+		<header className="h-16 shrink-0 overflow-y-hidden bg-desk [scrollbar-gutter:stable]">
+			<div className="relative mx-auto flex h-full w-full max-w-page items-center gap-3 px-3 md:px-8">
 				<Button
 					variant="ghost"
 					size="icon-sm"
@@ -56,25 +57,30 @@ export const Header = () => {
 								<Button
 									variant="ghost"
 									size="sm"
-									className="-mr-2 h-10 max-w-52 gap-2 px-2 sm:-mr-3 sm:px-3"
+									className="-mr-2 h-10 max-w-96 gap-2 px-2 sm:-mr-3 sm:px-3"
 								/>
 							}
 						>
-							<Avatar className="size-7">
+							<Avatar className="size-7 md:hidden">
 								{user?.avatarUrl ? (
 									<AvatarImage src={user.avatarUrl} alt={user.name} />
 								) : null}
 
-								<AvatarFallback className="bg-accent text-accent-foreground">
+								<AvatarFallback className="bg-background text-foreground">
 									{user ? initialsOf(user.name) : "?"}
 								</AvatarFallback>
 							</Avatar>
 
-							<span className="hidden truncate text-xs tracking-[0.08em] uppercase md:inline">
+							<span className="hidden truncate font-mono text-2xs font-normal tracking-[0.11em] uppercase md:inline">
 								{user?.name}
+								{user ? (
+									<span className="ml-2 text-faint-foreground">
+										{ROLE_LABEL[user.role]}
+									</span>
+								) : null}
 							</span>
 
-							<ChevronDownIcon className="hidden size-3.5 text-muted-foreground sm:block" />
+							<ChevronDownIcon className="hidden size-3.5 text-faint-foreground sm:block" />
 						</DropdownMenuTrigger>
 
 						<DropdownMenuContent align="end" className="min-w-52">
