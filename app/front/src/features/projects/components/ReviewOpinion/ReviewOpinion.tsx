@@ -33,7 +33,7 @@ interface ReviewOpinionProps {
 	>;
 	/** Adjustments left unresolved by the approval. */
 	reservations?: Finding[];
-	referenceOptions?: FindingReferenceOptions;
+	referenceOptions: FindingReferenceOptions;
 	className?: string;
 }
 
@@ -48,9 +48,7 @@ export const ReviewOpinion = ({
 
 	const opinion = opinionStyles[project.status];
 	const showReservations =
-		project.status === "APPROVED" &&
-		reservations.length > 0 &&
-		referenceOptions !== undefined;
+		project.status === "APPROVED" && reservations.length > 0;
 
 	return (
 		<section
