@@ -357,6 +357,7 @@ Na reprovação, o sistema notifica o projetista dentro do próprio sistema ([US
 - Ajuste não impede o andamento: o projeto pode ser aprovado com ajustes pendentes, que viram ressalvas no parecer, na Visão Geral e no memorial. O projetista não responde ressalva (validação com a cliente em 29/10).
 - Os anexos do projeto abrem em um visualizador de PDF na aba "Documentos".
 - Na reanálise, os apontamentos da versão anterior aparecem com a resposta do projetista. O analista aceita a correção, que fecha o apontamento, ou o reabre.
+- Enquanto houver resposta do projetista a avaliar, nenhuma decisão é liberada: o analista aceita ou reabre cada apontamento respondido antes de aprovar ou reprovar.
 
 ### Confirmação (Critérios de Aceite - BDD)
 
@@ -375,10 +376,16 @@ Na reprovação, o sistema notifica o projetista dentro do próprio sistema ([US
 #### Cenário 3 (Negativo): Aprovação Bloqueada por Apontamento Bloqueante Aberto
 - **Dado** que o analista registrou um apontamento bloqueante no projeto
 - **Quando** visualiza as ações do rodapé
-- **Então** o botão "Aprovar Projeto" permanece desabilitado
-- **E** o sistema indica que o apontamento bloqueante precisa ser excluído ou o projeto reprovado.
+- **Então** só o botão "Reprovar com Apontamentos" fica disponível
+- **E** o rodapé indica que o apontamento bloqueante precisa ser resolvido ou excluído para aprovar.
 
-#### Cenário 4 (Positivo): Reanálise de Apontamento Corrigido
+#### Cenário 4 (Positivo): Aprovação com Ressalvas
+- **Dado** que o analista registrou apenas apontamentos de ajuste no projeto
+- **Quando** clica em "Aprovar Projeto", confere as ressalvas listadas na confirmação e confirma a decisão
+- **Então** o projeto passa a "Aprovado" com os ajustes registrados como ressalvas
+- **E** as ressalvas aparecem no parecer, na Visão Geral e no memorial da aprovação, sem resposta do projetista.
+
+#### Cenário 5 (Positivo): Reanálise de Apontamento Corrigido
 - **Dado** que o projeto voltou à fila como "Reanálise" com a resposta do projetista a um apontamento
 - **Quando** o analista confere a correção e clica em "Aceitar Correção"
 - **Então** o apontamento passa a "Resolvido"
