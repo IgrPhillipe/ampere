@@ -29,6 +29,8 @@ export interface FindingCardActions {
 
 interface FindingCardProps extends FindingCardActions {
 	finding: Finding;
+	/** An adjustment the approval left unresolved: the designer does not answer it. */
+	reservation?: boolean;
 	referenceOptions: FindingReferenceOptions;
 	editable: boolean;
 	pendingId?: string;
@@ -36,6 +38,7 @@ interface FindingCardProps extends FindingCardActions {
 
 export const FindingCard = ({
 	finding,
+	reservation = false,
 	referenceOptions,
 	editable,
 	pendingId,
@@ -52,12 +55,17 @@ export const FindingCard = ({
 				finding={finding}
 				reference={reference}
 				showVersion={!isDraft}
+				reservation={reservation}
 			/>
 
 			<FindingAnswer
 				title="Resposta do Projetista"
 				text={finding.response}
-				fallback={designerAnswers[finding.status] ?? undefined}
+				fallback={
+					reservation
+						? "Ressalva da aprovação: o projetista não responde."
+						: (designerAnswers[finding.status] ?? undefined)
+				}
 				respondedAt={finding.respondedAt}
 			/>
 

@@ -44,9 +44,16 @@ export const findingStatusLabels = {
 export const isReopened = (finding: Pick<Finding, "status" | "respondedAt">) =>
 	finding.status === "OPEN" && Boolean(finding.respondedAt);
 
+/** A reservation of an approved project keeps the `OPEN` status but reads as such. */
 export const findingStatusLabelOf = (
 	finding: Pick<Finding, "status" | "respondedAt">,
-) => (isReopened(finding) ? "Reaberto" : findingStatusLabels[finding.status]);
+	reservation = false,
+) =>
+	reservation
+		? "Ressalva"
+		: isReopened(finding)
+			? "Reaberto"
+			: findingStatusLabels[finding.status];
 
 export const findingStatusBadgeVariants = {
 	DRAFT: "neutral",

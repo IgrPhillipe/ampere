@@ -31,10 +31,11 @@ const referenceOptions: FindingReferenceOptions = {
 	DOCUMENTS: { ART: "ART" },
 };
 
-const renderCard = (overrides: Partial<Finding>) =>
+const renderCard = (overrides: Partial<Finding>, reservation = false) =>
 	render(
 		<FindingCard
 			finding={{ ...finding, ...overrides }}
+			reservation={reservation}
 			referenceOptions={referenceOptions}
 			editable
 			onEdit={vi.fn()}
@@ -48,6 +49,16 @@ describe("FindingCard", () => {
 		renderCard({});
 
 		expect(screen.getByRole("button", { name: "Aceitar" })).toBeInTheDocument();
+	});
+
+	it("reads an unresolved finding of an approved project as a reservation", () => {
+		renderCard({}, true);
+
+		expect(screen.getByText("Ressalva")).toBeInTheDocument();
+		expect(
+			screen.getByText("Ressalva da aprovação: o projetista não responde."),
+		).toBeInTheDocument();
+		expect(screen.queryByText("Aberto")).not.toBeInTheDocument();
 	});
 
 	it("accepts the correction of an answered finding", () => {
