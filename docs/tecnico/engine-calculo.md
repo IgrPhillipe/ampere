@@ -157,7 +157,7 @@ O item 6.22.3 da DIS-NOR-053 pede a demanda de cada apartamento pelo método da 
 | Monofásica  | A própria carga instalada (kW): a categoria sai da carga instalada         | DIS-NOR-030, item 6.28.1 |
 | Trifásica   | `D = a + b + … + i` sobre as cargas de uma unidade, motores pela Tabela 19 | DIS-NOR-030, item 6.27   |
 
-- O valor da etapa é a maior demanda individual entre os grupos; os detalhes trazem cada grupo e as parcelas do trifásico.
+- O valor da etapa é a maior demanda individual entre os apartamentos trifásicos, em kVA; o monofásico aparece só com a carga instalada, em kW. Os detalhes trazem cada grupo e as parcelas do trifásico.
 - **Limite da baixa tensão:** unidade com carga instalada acima de **75 kW** não é atendida em tensão secundária (DIS-NOR-030, item 6.2.1). O grupo fica em Revisar e bloqueia o cálculo; a verificação `LOW_VOLTAGE_LIMIT` registra a maior carga por unidade.
 - A **DIS-NOR-030, Exemplo 3** (p. 52 a 55) chega a 25,90 kVA. O motor dá 26,58 kVA para as mesmas cargas: o exemplo põe o forno na parcela d, usa fator de potência 1,00 em d (o item 6.27.4 pede 0,92) e arredonda a e g para cima.
 

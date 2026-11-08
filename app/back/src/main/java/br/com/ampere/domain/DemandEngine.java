@@ -154,8 +154,11 @@ public final class DemandEngine {
           List.of(),
           null);
     }
-    IndividualDemand largest =
-        units.stream().max(Comparator.comparing(IndividualDemand::demandKva)).orElseThrow();
+    // Only three-phase units have a demand in kVA; single-phase ones stay in installed kW.
+    Optional<IndividualDemand> largest =
+        units.stream()
+            .filter(unit -> unit.demandKva() != null)
+            .max(Comparator.comparing(IndividualDemand::demandKva));
     List<NormativeReference> references =
         DemandComponent.distinct(
             units.stream().flatMap(unit -> unit.references().stream()).toList());
@@ -164,13 +167,19 @@ public final class DemandEngine {
         INDIVIDUAL,
         INDIVIDUAL_TITLE,
         true,
-        "Maior demanda individual: "
-            + largest.groupName()
-            + ", "
-            + DeclaredValues.fixed(largest.demandKva(), 2)
-            + " kVA",
+        largest
+            .map(
+                unit ->
+                    "Maior demanda individual trifásica: "
+                        + unit.groupName()
+                        + ", "
+                        + DeclaredValues.fixed(unit.demandKva(), 2)
+                        + " kVA")
+            .orElse(
+                "Só apartamentos monofásicos: a categoria sai da carga instalada (DIS-NOR-030,"
+                    + " item 6.28.1)"),
         units.stream().flatMap(unit -> unit.lines().stream()).toList(),
-        largest.demandKva(),
+        largest.map(IndividualDemand::demandKva).orElse(BigDecimal.ZERO.setScale(2)),
         references.isEmpty() ? null : references.get(0),
         references,
         null);

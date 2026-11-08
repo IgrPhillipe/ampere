@@ -240,12 +240,11 @@ public class ResidentialGroup extends ConsumerUnitGroup {
     BigDecimal load = getUnitLoadKw();
     String installed = DeclaredValues.fixed(load, 2) + " kW";
     if (!isThreePhase()) {
-      BigDecimal demand = DeclaredValues.kva(load);
       return Optional.of(
           new IndividualDemand(
               getName(),
               load,
-              demand,
+              null,
               List.of(
                   getName()
                       + " ("

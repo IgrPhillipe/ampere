@@ -50,7 +50,7 @@ class DemandEngineTest {
             tuple("Dc", false, "0.00"),
             tuple("Dve", true, "44.40"),
             tuple("Ded", true, "165.00"),
-            tuple("Dind", true, "5.00"));
+            tuple("Dind", true, "0.00"));
     assertThat(result.calculatedKva()).isEqualByComparingTo("163.07");
     assertThat(result.finalKva()).isEqualByComparingTo("165");
     assertThat(result.serviceEntrance().band()).isEqualTo("135 < De ≤ 165");
@@ -73,7 +73,7 @@ class DemandEngineTest {
             "Não se aplica: nenhum grupo deste tipo no projeto",
             "(6 × 7,40) kW × 1,00",
             "Drf + Ds + Dc + Dve = 77,44 + 41,23 + 0,00 + 44,40 = 163,07 kVA",
-            "Maior demanda individual: Apartamento tipo A, 5,00 kVA");
+            "Só apartamentos monofásicos: a categoria sai da carga instalada (DIS-NOR-030, item 6.28.1)");
     assertThat(result.steps().get(0).details())
         .contains(
             "Apartamento tipo A: 24 × 1,57 kVA (Quadro 35, 66 a 70 m²)",

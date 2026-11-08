@@ -57,7 +57,8 @@ class IndividualDemandTest {
   void aSinglePhaseApartmentIsSizedByItsInstalledLoad() {
     IndividualDemand unit = apartments(PROJECT, 10, "70").individualDemand(CONTEXT).orElseThrow();
 
-    assertThat(unit.demandKva()).isEqualByComparingTo("5.00");
+    assertThat(unit.demandKva()).isNull();
+    assertThat(unit.installedKw()).isEqualByComparingTo("5");
     assertThat(unit.lines())
         .containsExactly(
             "Apartamento tipo (monofásico): carga instalada de 5,00 kW, que define a categoria da"
@@ -85,7 +86,8 @@ class IndividualDemandTest {
     assertThat(individual.code()).isEqualTo("Dind");
     assertThat(individual.applies()).isTrue();
     assertThat(individual.valueKva()).isEqualByComparingTo("26.58");
-    assertThat(individual.formula()).isEqualTo("Maior demanda individual: Cobertura, 26,58 kVA");
+    assertThat(individual.formula())
+        .isEqualTo("Maior demanda individual trifásica: Cobertura, 26,58 kVA");
     assertThat(individual.details())
         .startsWith(
             "Apartamento tipo (monofásico): carga instalada de 5,00 kW, que define a categoria da"
