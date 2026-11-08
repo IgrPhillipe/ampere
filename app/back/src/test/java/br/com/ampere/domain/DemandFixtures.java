@@ -50,6 +50,7 @@ public final class DemandFixtures {
             1,
             new BigDecimal("5"),
             compact,
+            ConnectionType.SINGLE_PHASE,
             null,
             null,
             null,
@@ -73,6 +74,7 @@ public final class DemandFixtures {
             null,
             null,
             null,
+            null,
             usage,
             new ArrayList<>(List.of(items)),
             null,
@@ -87,6 +89,7 @@ public final class DemandFixtures {
         new GroupSpec(
             "Recarga",
             points,
+            null,
             null,
             null,
             null,

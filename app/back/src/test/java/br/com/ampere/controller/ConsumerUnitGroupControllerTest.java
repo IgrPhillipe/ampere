@@ -239,6 +239,7 @@ class ConsumerUnitGroupControllerTest {
             null,
             null,
             null,
+            null,
             new BigDecimal("7.4"),
             false,
             loadManagement,

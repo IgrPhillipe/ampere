@@ -178,6 +178,7 @@ public class ConsumerUnitGroupController {
             request.bedrooms(),
             request.unitLoadKw(),
             request.compactUnit(),
+            request.connectionType(),
             request.usage(),
             request.items() == null
                 ? null

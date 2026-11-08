@@ -2,9 +2,12 @@ package br.com.ampere.domain;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /** Apartments of the same useful area (DIS-NOR-053 Anexo I, Quadro 35). */
 @Entity
@@ -23,6 +26,10 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   // Nullable: SINGLE_TABLE shares the row with the other kinds.
   private Boolean compactUnit;
 
+  // Each apartment has its own connection; the building's one only sizes the entrance.
+  @Enumerated(EnumType.STRING)
+  private ConnectionType connectionType;
+
   protected ResidentialGroup() {}
 
   public ResidentialGroup(Project project, GroupSpec spec) {
@@ -36,6 +43,15 @@ public class ResidentialGroup extends ConsumerUnitGroup {
     this.bedrooms = spec.bedrooms();
     this.unitLoadKw = spec.unitLoadKw();
     this.compactUnit = Boolean.TRUE.equals(spec.compactUnit());
+    this.connectionType = spec.connectionType();
+  }
+
+  /** What the request cannot carry at all, as opposed to data still missing. */
+  static Optional<String> rejection(GroupSpec spec) {
+    if (spec.connectionType() == ConnectionType.TWO_PHASE) {
+      return Optional.of("A ligação do apartamento é monofásica ou trifásica.");
+    }
+    return Optional.empty();
   }
 
   @Override
@@ -47,6 +63,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
         bedrooms,
         unitLoadKw,
         compactUnit,
+        connectionType,
         null,
         null,
         null,
@@ -67,6 +84,10 @@ public class ResidentialGroup extends ConsumerUnitGroup {
     return unitLoadKw;
   }
 
+  public ConnectionType getConnectionType() {
+    return connectionType;
+  }
+
   /** Smart, studio or home studio (item 6.25.1). */
   public boolean isCompactUnit() {
     return Boolean.TRUE.equals(compactUnit);
@@ -80,6 +101,11 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   @Override
   public List<ValidationIssue> validate() {
     List<ValidationIssue> issues = new ArrayList<>();
+    if (connectionType == null) {
+      issues.add(
+          ValidationIssue.missing(
+              "connectionType", "Informe a ligação do apartamento: monofásica ou trifásica."));
+    }
     if (!DeclaredValues.isPositive(usefulArea)) {
       issues.add(
           ValidationIssue.missing(
@@ -142,6 +168,9 @@ public class ResidentialGroup extends ConsumerUnitGroup {
             : "Área útil não informada");
     if (bedrooms != null) {
       parts.add(bedrooms + (bedrooms == 1 ? " quarto" : " quartos"));
+    }
+    if (connectionType != null) {
+      parts.add(connectionType.label().toLowerCase());
     }
     return String.join(", ", parts) + " (DIS-NOR-053 Quadro 35)";
   }

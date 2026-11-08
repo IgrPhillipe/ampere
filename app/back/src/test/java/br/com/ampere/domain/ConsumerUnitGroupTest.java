@@ -35,7 +35,7 @@ class ConsumerUnitGroupTest {
 
     assertThat(group.validate()).isEmpty();
     assertThat(group.status()).isEqualTo(GroupStatus.VALIDATED);
-    assertThat(group.summary()).isEqualTo("68 m², 2 quartos (DIS-NOR-053 Quadro 35)");
+    assertThat(group.summary()).isEqualTo("68 m², 2 quartos, monofásico (DIS-NOR-053 Quadro 35)");
     assertThat(group.declaredLoadKw()).isEqualByComparingTo("156");
   }
 
@@ -56,16 +56,27 @@ class ConsumerUnitGroupTest {
                 null,
                 null,
                 null,
+                null,
                 null));
 
     assertThat(group.validate())
         .extracting(ValidationIssue::severity, ValidationIssue::field)
         .containsExactly(
+            tuple(IssueSeverity.MISSING_DATA, "connectionType"),
             tuple(IssueSeverity.MISSING_DATA, "usefulArea"),
             tuple(IssueSeverity.MISSING_DATA, "unitLoadKw"));
     assertThat(group.status()).isEqualTo(GroupStatus.MISSING_DATA);
     assertThat(group.declaredLoadKw()).isEqualByComparingTo("0");
     assertThat(group.summary()).isEqualTo("Área útil não informada (DIS-NOR-053 Quadro 35)");
+  }
+
+  @Test
+  void anApartmentIsSinglePhaseOrThreePhase() {
+    assertThat(GroupKind.RESIDENTIAL.rejection(apartments(68, 6.5))).isEmpty();
+    assertThat(
+            GroupKind.RESIDENTIAL.rejection(
+                withConnection(apartments(68, 6.5), ConnectionType.TWO_PHASE)))
+        .contains("A ligação do apartamento é monofásica ou trifásica.");
   }
 
   @Test
@@ -247,7 +258,7 @@ class ConsumerUnitGroupTest {
   @Test
   void requiresANameAndAQuantity() {
     GroupSpec withoutName =
-        new GroupSpec(null, 1, null, null, null, null, null, null, null, null, null, null);
+        new GroupSpec(null, 1, null, null, null, null, null, null, null, null, null, null, null);
 
     assertThatThrownBy(() -> GroupKind.RESIDENTIAL.create(PROJECT, withoutName))
         .isInstanceOf(NullPointerException.class)
@@ -262,6 +273,7 @@ class ConsumerUnitGroupTest {
         2,
         BigDecimal.valueOf(unitLoadKw),
         false,
+        ConnectionType.SINGLE_PHASE,
         null,
         null,
         null,
@@ -270,19 +282,37 @@ class ConsumerUnitGroupTest {
         null);
   }
 
+  private static GroupSpec withConnection(GroupSpec spec, ConnectionType connectionType) {
+    return new GroupSpec(
+        spec.name(),
+        spec.quantity(),
+        spec.usefulArea(),
+        spec.bedrooms(),
+        spec.unitLoadKw(),
+        spec.compactUnit(),
+        connectionType,
+        spec.usage(),
+        spec.items(),
+        spec.powerPerPointKw(),
+        spec.incorporatedInVehicle(),
+        spec.loadManagement(),
+        spec.stationType());
+  }
+
   private static GroupSpec commonArea(List<LoadItem> items) {
     return loads(LoadUsage.COMMON_AREA, items);
   }
 
   private static GroupSpec loads(LoadUsage usage, List<LoadItem> items) {
     return new GroupSpec(
-        "Área comum", 1, null, null, null, null, usage, items, null, null, null, null);
+        "Área comum", 1, null, null, null, null, null, usage, items, null, null, null, null);
   }
 
   private static GroupSpec charging(Double power, Boolean incorporated, Boolean loadManagement) {
     return new GroupSpec(
         "Recarga de veículo elétrico",
         6,
+        null,
         null,
         null,
         null,

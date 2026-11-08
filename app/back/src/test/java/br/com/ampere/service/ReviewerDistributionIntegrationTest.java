@@ -602,6 +602,7 @@ class ReviewerDistributionIntegrationTest {
                 2,
                 new BigDecimal("6.0"),
                 null,
+                ConnectionType.SINGLE_PHASE,
                 null,
                 null,
                 null,

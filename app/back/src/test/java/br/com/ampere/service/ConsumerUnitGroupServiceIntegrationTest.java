@@ -114,6 +114,21 @@ class ConsumerUnitGroupServiceIntegrationTest {
   }
 
   @Test
+  void refusesATwoPhaseApartment() {
+    Long projectId = draft().getId();
+
+    assertThatThrownBy(
+            () ->
+                service.create(
+                    projectId, apartments(ConnectionType.TWO_PHASE, "9", List.of()), designer))
+        .isInstanceOfSatisfying(
+            BusinessException.class,
+            error -> assertThat(error.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST))
+        .hasMessage("A ligação do apartamento é monofásica ou trifásica.");
+    assertThat(groupRepository.findAllByProjectIdOrderById(projectId)).isEmpty();
+  }
+
+  @Test
   void refusesToChangeTheKindOfAGroup() {
     Long projectId = draft().getId();
     Long groupId = service.create(projectId, charging(true), designer).getId();
@@ -276,12 +291,33 @@ class ConsumerUnitGroupServiceIntegrationTest {
         12, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE);
   }
 
+  private static GroupParameters apartments(
+      ConnectionType connectionType, String unitLoadKw, List<LoadItem> loads) {
+    return new GroupParameters(
+        GroupKind.RESIDENTIAL,
+        new GroupSpec(
+            "Apartamento tipo A",
+            8,
+            new BigDecimal("70"),
+            2,
+            unitLoadKw == null ? null : new BigDecimal(unitLoadKw),
+            false,
+            connectionType,
+            null,
+            loads,
+            null,
+            null,
+            null,
+            null));
+  }
+
   private static GroupParameters commonArea() {
     return new GroupParameters(
         GroupKind.LOAD,
         new GroupSpec(
             "Área comum",
             1,
+            null,
             null,
             null,
             null,
@@ -316,6 +352,7 @@ class ConsumerUnitGroupServiceIntegrationTest {
         new GroupSpec(
             "Recarga de veículo elétrico",
             6,
+            null,
             null,
             null,
             null,

@@ -1,5 +1,6 @@
 package br.com.ampere.config;
 
+import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
@@ -93,6 +94,7 @@ final class ScenarioGroups {
             null,
             null,
             null,
+            null,
             powerPerPointKw == null ? null : new BigDecimal(powerPerPointKw),
             incorporatedInVehicle,
             loadManagement,
@@ -103,7 +105,19 @@ final class ScenarioGroups {
     return new GroupDraft(
         GroupKind.LOAD,
         new GroupSpec(
-            name, quantity, null, null, null, null, usage, List.of(items), null, null, null, null));
+            name,
+            quantity,
+            null,
+            null,
+            null,
+            null,
+            null,
+            usage,
+            List.of(items),
+            null,
+            null,
+            null,
+            null));
   }
 
   static LoadItem item(
@@ -126,6 +140,7 @@ final class ScenarioGroups {
         spec.bedrooms(),
         spec.unitLoadKw(),
         spec.compactUnit(),
+        spec.connectionType(),
         spec.usage(),
         spec.items(),
         spec.powerPerPointKw(),
@@ -142,6 +157,7 @@ final class ScenarioGroups {
         spec.bedrooms(),
         spec.unitLoadKw(),
         spec.compactUnit(),
+        spec.connectionType(),
         spec.usage(),
         spec.items(),
         spec.powerPerPointKw(),
@@ -158,6 +174,7 @@ final class ScenarioGroups {
         spec.bedrooms(),
         spec.unitLoadKw(),
         spec.compactUnit(),
+        spec.connectionType(),
         spec.usage(),
         spec.items(),
         spec.powerPerPointKw(),
@@ -177,6 +194,7 @@ final class ScenarioGroups {
         spec.bedrooms(),
         spec.unitLoadKw(),
         spec.compactUnit(),
+        spec.connectionType(),
         spec.usage(),
         items,
         spec.powerPerPointKw(),
@@ -201,6 +219,7 @@ final class ScenarioGroups {
             bedrooms,
             new BigDecimal(unitLoadKw),
             compact,
+            ConnectionType.SINGLE_PHASE,
             null,
             null,
             null,

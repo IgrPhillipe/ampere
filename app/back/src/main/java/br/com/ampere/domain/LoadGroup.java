@@ -52,7 +52,19 @@ public class LoadGroup extends ConsumerUnitGroup {
   @Override
   public GroupSpec spec() {
     return new GroupSpec(
-        getName(), getQuantity(), null, null, null, null, usage, items, null, null, null, null);
+        getName(),
+        getQuantity(),
+        null,
+        null,
+        null,
+        null,
+        null,
+        usage,
+        items,
+        null,
+        null,
+        null,
+        null);
   }
 
   public LoadUsage getUsage() {

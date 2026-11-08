@@ -1,5 +1,6 @@
 package br.com.ampere.dto;
 
+import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.GroupKind;
@@ -25,6 +26,7 @@ public record ConsumerUnitGroupResponse(
     Integer bedrooms,
     BigDecimal unitLoadKw,
     Boolean compactUnit,
+    ConnectionType connectionType,
     LoadUsage usage,
     List<LoadItemResponse> items,
     BigDecimal powerPerPointKw,
@@ -49,6 +51,7 @@ public record ConsumerUnitGroupResponse(
         spec.bedrooms(),
         spec.unitLoadKw(),
         spec.compactUnit(),
+        spec.connectionType(),
         spec.usage(),
         spec.items() == null ? null : spec.items().stream().map(LoadItemResponse::from).toList(),
         spec.powerPerPointKw(),

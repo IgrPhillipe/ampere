@@ -296,6 +296,7 @@ class DemandCalculationIntegrationTest {
                     null,
                     null,
                     null,
+                    null,
                     new BigDecimal("7.40"),
                     false,
                     fixed ? true : null,
@@ -319,6 +320,7 @@ class DemandCalculationIntegrationTest {
             2,
             new BigDecimal("6.5"),
             false,
+            ConnectionType.SINGLE_PHASE,
             null,
             null,
             null,
@@ -329,7 +331,7 @@ class DemandCalculationIntegrationTest {
 
   private static GroupSpec spec(String name, int quantity, LoadUsage usage, List<LoadItem> items) {
     return new GroupSpec(
-        name, quantity, null, null, null, null, usage, items, null, null, null, null);
+        name, quantity, null, null, null, null, null, usage, items, null, null, null, null);
   }
 
   private static String calculationOf(Project project) {

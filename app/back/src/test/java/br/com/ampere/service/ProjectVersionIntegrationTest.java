@@ -686,6 +686,7 @@ class ProjectVersionIntegrationTest {
         2,
         new BigDecimal("6.5"),
         false,
+        ConnectionType.SINGLE_PHASE,
         null,
         null,
         null,
@@ -708,6 +709,7 @@ class ProjectVersionIntegrationTest {
     return new GroupSpec(
         "Área comum",
         1,
+        null,
         null,
         null,
         null,
