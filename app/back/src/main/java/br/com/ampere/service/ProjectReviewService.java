@@ -84,11 +84,14 @@ public class ProjectReviewService {
       if (!reservations.isEmpty()) {
         versionService.issueApprovalMemorial(project, reservations, reviewedAt);
       }
+      eventService.approved(
+          project, project.getReviewer(), reservations.size(), opinion, reviewedAt);
+      notificationService.approved(project, reservations.size(), reviewedAt);
     } else {
       project.reject(reviewedAt, opinion);
+      eventService.rejected(project, project.getReviewer(), findings, opinion, reviewedAt);
+      notificationService.rejected(project, findings, reviewedAt);
     }
-    eventService.decided(project, decision, project.getReviewer(), findings, opinion, reviewedAt);
-    notificationService.decided(project, decision, findings, reviewedAt);
 
     return project;
   }

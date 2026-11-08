@@ -23,7 +23,6 @@ import br.com.ampere.domain.NotificationType;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
-import br.com.ampere.domain.ReviewDecision;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
@@ -123,9 +122,8 @@ class NotificationServiceTest {
     project.reject(OffsetDateTime.parse("2026-11-02T12:00:00Z"));
     project.submit(OffsetDateTime.parse("2026-11-03T12:00:00Z"));
 
-    service.decided(
+    service.rejected(
         project,
-        ReviewDecision.REJECT,
         List.of(answered(project), answered(project), reopened(project), reopened(project)),
         NOW);
 
@@ -146,11 +144,11 @@ class NotificationServiceTest {
     Finding accepted = reopened(project);
     accepted.resolve(FindingResolution.ACCEPT, project.getReviewCycle());
 
-    service.decided(project, ReviewDecision.APPROVE, List.of(accepted), NOW);
+    service.rejected(project, List.of(accepted), NOW);
 
     assertThat(saved)
         .extracting(Notification::getType)
-        .containsExactly(NotificationType.PROJECT_APPROVED);
+        .containsExactly(NotificationType.PROJECT_REJECTED);
   }
 
   @Test

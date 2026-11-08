@@ -14,7 +14,6 @@ import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
-import br.com.ampere.domain.ReviewDecision;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.ProjectEventRepository;
@@ -61,32 +60,13 @@ class ProjectEventServiceTest {
     service.submitted(project, designer, calculation, at.minusDays(12));
     when(project.getReviewer()).thenReturn(analyst);
     service.assigned(project, analyst, at.minusDays(11));
-    service.decided(
-        project,
-        ReviewDecision.REJECT,
-        analyst,
-        List.of(open, contested, fixed),
-        "Corrija a ART.",
-        at);
+    service.rejected(project, analyst, List.of(open, contested, fixed), "Corrija a ART.", at);
     service.findingAnswered(project, designer, fixed, at.plusDays(2));
     when(project.getReviewCycle()).thenReturn(2);
     service.submitted(project, designer, calculation, at.plusDays(3));
-    service.decided(
-        project, ReviewDecision.APPROVE, analyst, List.of(), "Tudo certo.", at.plusDays(5));
-    service.decided(
-        project,
-        ReviewDecision.APPROVE,
-        analyst,
-        List.of(open, finding(FindingStatus.RESOLVED)),
-        "Aprovado com ajuste.",
-        at.plusDays(6));
-    service.decided(
-        project,
-        ReviewDecision.APPROVE,
-        analyst,
-        List.of(open, finding(FindingStatus.OPEN)),
-        "Aprovado com ajustes.",
-        at.plusDays(7));
+    service.approved(project, analyst, 0, "Tudo certo.", at.plusDays(5));
+    service.approved(project, analyst, 1, "Aprovado com ajuste.", at.plusDays(6));
+    service.approved(project, analyst, 2, "Aprovado com ajustes.", at.plusDays(7));
 
     assertThat(recorded)
         .extracting(ProjectEvent::getType)

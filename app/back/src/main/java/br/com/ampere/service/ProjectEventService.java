@@ -8,7 +8,6 @@ import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
-import br.com.ampere.domain.ReviewDecision;
 import br.com.ampere.domain.User;
 import br.com.ampere.repository.ProjectEventRepository;
 import java.time.OffsetDateTime;
@@ -56,25 +55,21 @@ public class ProjectEventService {
     record(project, ProjectEventType.ASSIGNED, author, description, null, occurredAt);
   }
 
-  public void decided(
+  public void approved(
+      Project project, User author, long reservations, String opinion, OffsetDateTime occurredAt) {
+    String description =
+        reservations == 0
+            ? "Aprovado."
+            : "Aprovado com " + ProjectService.reservationsLabel(reservations) + ".";
+    record(project, ProjectEventType.APPROVED, author, description, opinion, occurredAt);
+  }
+
+  public void rejected(
       Project project,
-      ReviewDecision decision,
       User author,
       List<Finding> findings,
       String opinion,
       OffsetDateTime occurredAt) {
-    if (decision == ReviewDecision.APPROVE) {
-      long reservations = ProjectService.countReservations(findings);
-      String description =
-          switch ((int) reservations) {
-            case 0 -> "Aprovado.";
-            case 1 -> "Aprovado com 1 ressalva.";
-            default -> "Aprovado com " + reservations + " ressalvas.";
-          };
-      record(project, ProjectEventType.APPROVED, author, description, opinion, occurredAt);
-      return;
-    }
-
     long count = ProjectService.countOpen(findings);
     String noun = count == 1 ? " apontamento." : " apontamentos.";
     record(

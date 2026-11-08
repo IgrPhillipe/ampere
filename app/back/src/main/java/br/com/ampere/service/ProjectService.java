@@ -52,11 +52,9 @@ public class ProjectService {
     return findings.stream().filter(finding -> OPEN_FINDINGS.contains(finding.getStatus())).count();
   }
 
-  /** Findings an approval leaves unresolved: adjustments the project carries as reservations. */
-  static long countReservations(List<Finding> findings) {
-    return findings.stream()
-        .filter(finding -> finding.getStatus() != FindingStatus.RESOLVED)
-        .count();
+  /** "1 ressalva" or "N ressalvas", as the event and the notification write it. */
+  static String reservationsLabel(long count) {
+    return count + (count == 1 ? " ressalva" : " ressalvas");
   }
 
   private final ProjectRepository projectRepository;

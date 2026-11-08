@@ -13,7 +13,6 @@ import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
-import br.com.ampere.domain.ReviewDecision;
 import br.com.ampere.domain.User;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -200,10 +199,9 @@ final class ScenarioCase {
     findings.forEach(Finding::publish);
     OffsetDateTime reviewedAt = advance(daysAgo, 0);
     project.reject(reviewedAt, opinion);
-    kit.events.decided(project, ReviewDecision.REJECT, analyst, findings, opinion, reviewedAt);
-    kit.notifications.decided(
+    kit.events.rejected(project, analyst, findings, opinion, reviewedAt);
+    kit.notifications.rejected(
         project,
-        ReviewDecision.REJECT,
         kit.findings.findAllByProjectIdOrderByCreatedAtAscIdAsc(project.getId()),
         reviewedAt);
 
@@ -213,9 +211,8 @@ final class ScenarioCase {
   ScenarioCase approve(int daysAgo, String opinion) {
     OffsetDateTime reviewedAt = advance(daysAgo, 0);
     project.approve(reviewedAt, opinion);
-    kit.events.decided(
-        project, ReviewDecision.APPROVE, project.getReviewer(), List.of(), opinion, reviewedAt);
-    kit.notifications.decided(project, ReviewDecision.APPROVE, List.of(), reviewedAt);
+    kit.events.approved(project, project.getReviewer(), 0, opinion, reviewedAt);
+    kit.notifications.approved(project, 0, reviewedAt);
 
     return this;
   }

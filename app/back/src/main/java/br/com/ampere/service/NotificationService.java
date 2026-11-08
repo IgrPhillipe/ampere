@@ -5,7 +5,6 @@ import br.com.ampere.domain.Notification;
 import br.com.ampere.domain.NotificationType;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
-import br.com.ampere.domain.ReviewDecision;
 import br.com.ampere.domain.User;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.NotificationRepository;
@@ -64,13 +63,8 @@ public class NotificationService {
     notificationRepository.markAllRead(user.id(), Timestamps.now());
   }
 
-  public void decided(
-      Project project, ReviewDecision decision, List<Finding> findings, OffsetDateTime at) {
-    if (decision == ReviewDecision.APPROVE) {
-      approved(project, ProjectService.countReservations(findings), at);
-      return;
-    }
-
+  /** The rejection, preceded by a notice of the findings reopened in this cycle. */
+  public void rejected(Project project, List<Finding> findings, OffsetDateTime at) {
     long reopened =
         findings.stream()
             .filter(finding -> finding.wasReopenedIn(project.getReviewCycle()))
@@ -81,11 +75,9 @@ public class NotificationService {
     rejected(project, ProjectService.countOpen(findings), at);
   }
 
-  void approved(Project project, long reservations, OffsetDateTime at) {
+  public void approved(Project project, long reservations, OffsetDateTime at) {
     String suffix =
-        reservations == 0
-            ? ""
-            : " com " + reservations + (reservations == 1 ? " ressalva" : " ressalvas");
+        reservations == 0 ? "" : " com " + ProjectService.reservationsLabel(reservations);
     notify(
         project.getOwner(),
         project,
