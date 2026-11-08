@@ -123,6 +123,8 @@ Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (
 | US06 | [Fila de análise técnica priorizada](docs/produto/user-stories.md#us06-fila-de-análise-técnica-priorizada) | Analista | [H6: Fila de análise](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2082-2) |
 | US07 | [Auditoria de memória e registro de apontamentos](docs/produto/user-stories.md#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos) | Analista | [H7: Análise do projeto](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2083-2)<br>[H8: Histórico do protocolo](https://www.figma.com/design/tbMeH3sx9YwDVb6oz7bCBG/Prot%C3%B3tipo-HI-FI?node-id=2085-2) |
 
+---
+
 ### Entrega 02
 
 - **Data:** 21/09/2026
@@ -175,6 +177,8 @@ Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (
 | Print do GitHub Issues | ![Print das GitHub Issues](docs/produto/Issues.png) |
 | Screencast do sistema | [YouTube, parte 1](https://youtu.be/YMnBWUuncdQ)<br>[YouTube, parte 2](https://youtu.be/6X58x5Wv9ho) |
 | Screencast da explicação do código | [YouTube, parte 1](https://youtu.be/_4FRXZAnfkg)<br>[YouTube, parte 2](https://youtu.be/_nDhOTqJTPY) |
+
+---
 
 ### Entrega 03
 
@@ -256,6 +260,8 @@ Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (
 | Print do GitHub Issues (Sprint 3) | ![Print das GitHub Issues](docs/produto/Issues-Sprint03.png) |
 | Screencast do sistema | [YouTube](https://youtu.be/0YldcnTvi8g) |
 | Screencast da explicação do código | [YouTube](https://youtu.be/EUo41qSNQ8I) |
+
+---
 
 ### Entrega 04
 
