@@ -22,7 +22,6 @@ import {
 	projectStatusSchema,
 } from "@services/projects";
 import {
-	debounce,
 	parseAsInteger,
 	parseAsNativeArrayOf,
 	parseAsString,
@@ -51,9 +50,7 @@ const toIsoDate = (value: string | null) =>
 export const useProjectFilters = () => {
 	const [query, setQuery] = useQueryStates({
 		status: parseAsStringLiteral(projectStatusSchema.options),
-		search: parseAsString
-			.withDefault("")
-			.withOptions({ limitUrlUpdates: debounce(SEARCH_DEBOUNCE_MS) }),
+		search: parseAsString.withDefault(""),
 		page: parseAsInteger.withDefault(1),
 		sort: parseAsStringLiteral(projectSortSchema.options).withDefault(
 			DEFAULT_SORT,
@@ -69,6 +66,7 @@ export const useProjectFilters = () => {
 		owner: parseAsString,
 	});
 	const { status, search, page, state, municipality, findings, owner } = query;
+	// The URL follows each keystroke; only the request waits, so no update fires after leaving the list.
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
 	const sort = useMemo<ListSort<ProjectSort>>(

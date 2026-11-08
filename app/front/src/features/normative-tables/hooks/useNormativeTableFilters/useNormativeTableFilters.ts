@@ -12,12 +12,7 @@ import {
 	normativeTableSortSchema,
 	normativeTableStatusSchema,
 } from "@services/normative-tables";
-import {
-	debounce,
-	parseAsString,
-	parseAsStringLiteral,
-	useQueryStates,
-} from "nuqs";
+import { parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs";
 import { useCallback, useMemo } from "react";
 
 const SEARCH_DEBOUNCE_MS = 350;
@@ -35,9 +30,7 @@ export type NormativeTableFilters = ReturnType<typeof useNormativeTableFilters>;
 
 export const useNormativeTableFilters = () => {
 	const [query, setQuery] = useQueryStates({
-		search: parseAsString
-			.withDefault("")
-			.withOptions({ limitUrlUpdates: debounce(SEARCH_DEBOUNCE_MS) }),
+		search: parseAsString.withDefault(""),
 		status: parseAsStringLiteral(normativeTableStatusSchema.options),
 		sort: parseAsStringLiteral(normativeTableSortSchema.options).withDefault(
 			DEFAULT_SORT,
@@ -45,6 +38,7 @@ export const useNormativeTableFilters = () => {
 		direction: parseAsStringLiteral(sortDirectionSchema.options),
 	});
 	const { search, status } = query;
+	// The URL follows each keystroke; only the request waits, so no update fires after leaving the list.
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
 	const sort = useMemo<ListSort<NormativeTableSort>>(

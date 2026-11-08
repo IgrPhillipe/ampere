@@ -2,7 +2,6 @@ import { useDebouncedValue } from "@features/shared";
 import { userRoleSchema } from "@services/auth";
 import type { ListUsersParams } from "@services/users";
 import {
-	debounce,
 	parseAsInteger,
 	parseAsString,
 	parseAsStringLiteral,
@@ -20,14 +19,13 @@ export type UserFilters = ReturnType<typeof useUserFilters>;
 
 export const useUserFilters = () => {
 	const [query, setQuery] = useQueryStates({
-		search: parseAsString
-			.withDefault("")
-			.withOptions({ limitUrlUpdates: debounce(SEARCH_DEBOUNCE_MS) }),
+		search: parseAsString.withDefault(""),
 		role: parseAsStringLiteral(userRoleSchema.options),
 		status: parseAsStringLiteral(USER_STATUSES),
 		page: parseAsInteger.withDefault(1),
 	});
 	const { search, role, status, page } = query;
+	// The URL follows each keystroke; only the request waits, so no update fires after leaving the list.
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
 	const params = useMemo<ListUsersParams>(

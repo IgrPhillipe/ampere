@@ -19,7 +19,6 @@ import {
 	UNASSIGNED_REVIEWER,
 } from "@services/review-queue";
 import {
-	debounce,
 	parseAsInteger,
 	parseAsNativeArrayOf,
 	parseAsString,
@@ -54,9 +53,7 @@ export const useReviewQueueFilters = () => {
 		filter: parseAsStringLiteral(reviewQueueFilterSchema.options).withDefault(
 			"ALL",
 		),
-		search: parseAsString
-			.withDefault("")
-			.withOptions({ limitUrlUpdates: debounce(SEARCH_DEBOUNCE_MS) }),
+		search: parseAsString.withDefault(""),
 		page: parseAsInteger.withDefault(1),
 		sort: parseAsStringLiteral(reviewQueueSortSchema.options).withDefault(
 			DEFAULT_SORT,
@@ -70,6 +67,7 @@ export const useReviewQueueFilters = () => {
 	const { filter, search, page, state, municipality } = query;
 	const reviewer = toReviewer(query.reviewer);
 	const owner = toOwner(query.owner);
+	// The URL follows each keystroke; only the request waits, so no update fires after leaving the list.
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
 	const sort = useMemo<ListSort<ReviewQueueSort>>(
