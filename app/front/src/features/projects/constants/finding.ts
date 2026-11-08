@@ -105,6 +105,12 @@ export const awaitsDesignerResponse = (
 	project: Pick<ProjectDetail, "status">,
 ) => project.status === "REJECTED" && finding.status === "OPEN";
 
+/** Not resolved on an approved project: an adjustment the designer does not answer. */
+export const isReservation = (
+	finding: Finding,
+	project: Pick<ProjectDetail, "status">,
+) => project.status === "APPROVED" && finding.status !== "RESOLVED";
+
 /** The findings a stage marks while the designer corrects the project. */
 export const stageFindingsOf = (
 	findings: Finding[] | undefined,

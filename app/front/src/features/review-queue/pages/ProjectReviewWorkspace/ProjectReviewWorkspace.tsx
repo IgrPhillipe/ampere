@@ -239,6 +239,8 @@ export const ProjectReviewWorkspace = ({
 			<DecisionDialog
 				decision={decision}
 				pendingCount={availability.pendingCount}
+				reservations={availability.reservations}
+				referenceOptions={referenceOptions}
 				isPending={decideMutation.isPending}
 				onOpenChange={(open) => {
 					if (!open) setDecision(null);
