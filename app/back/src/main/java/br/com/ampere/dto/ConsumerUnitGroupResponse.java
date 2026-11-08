@@ -1,5 +1,6 @@
 package br.com.ampere.dto;
 
+import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.GroupKind;
@@ -25,6 +26,8 @@ public record ConsumerUnitGroupResponse(
     Integer bedrooms,
     BigDecimal unitLoadKw,
     Boolean compactUnit,
+    ConnectionType connectionType,
+    List<LoadItemResponse> loads,
     LoadUsage usage,
     List<LoadItemResponse> items,
     BigDecimal powerPerPointKw,
@@ -49,11 +52,18 @@ public record ConsumerUnitGroupResponse(
         spec.bedrooms(),
         spec.unitLoadKw(),
         spec.compactUnit(),
+        spec.connectionType(),
+        group.kind() == GroupKind.RESIDENTIAL ? items(spec) : null,
         spec.usage(),
-        spec.items() == null ? null : spec.items().stream().map(LoadItemResponse::from).toList(),
+        group.kind() == GroupKind.RESIDENTIAL ? null : items(spec),
         spec.powerPerPointKw(),
         spec.incorporatedInVehicle(),
         spec.loadManagement(),
         spec.stationType());
+  }
+
+  /** The residential group answers its items as loads, as the request sends them. */
+  private static List<LoadItemResponse> items(GroupSpec spec) {
+    return spec.items() == null ? null : spec.items().stream().map(LoadItemResponse::from).toList();
   }
 }

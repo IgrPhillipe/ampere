@@ -47,6 +47,11 @@ export const powerUnitSchema = z.enum(["KW", "CV", "HP"]);
 
 export type PowerUnit = z.infer<typeof powerUnitSchema>;
 
+/** Each apartment is single-phase or three-phase; the building's connection is apart. */
+export const unitConnectionTypeSchema = z.enum(["SINGLE_PHASE", "THREE_PHASE"]);
+
+export type UnitConnectionType = z.infer<typeof unitConnectionTypeSchema>;
+
 export const evStationTypeSchema = z.enum(["INDIVIDUAL", "COLLECTIVE"]);
 
 export type EvStationType = z.infer<typeof evStationTypeSchema>;
@@ -89,6 +94,8 @@ export const residentialGroupSchema = groupBaseSchema.extend({
 	bedrooms: z.number().int().nonnegative().nullish(),
 	unitLoadKw: z.number().positive().nullish(),
 	compactUnit: z.boolean().nullish(),
+	connectionType: unitConnectionTypeSchema.nullish(),
+	loads: z.array(loadItemSchema).nullish(),
 });
 
 export const loadGroupSchema = groupBaseSchema.extend({

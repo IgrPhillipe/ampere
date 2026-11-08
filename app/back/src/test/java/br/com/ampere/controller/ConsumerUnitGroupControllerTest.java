@@ -137,6 +137,47 @@ class ConsumerUnitGroupControllerTest {
   }
 
   @Test
+  void takesTheConnectionAndTheLoadsOfAnApartment() throws Exception {
+    ConsumerUnitGroupService service = mock(ConsumerUnitGroupService.class);
+    when(service.create(eq(1L), any(), eq(DESIGNER)))
+        .thenAnswer(
+            invocation ->
+                GroupKind.RESIDENTIAL.create(
+                    PROJECT, invocation.<GroupParameters>getArgument(1).spec()));
+
+    mockMvc(service)
+        .perform(
+            post("/projects/1/consumer-unit-groups")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                      "kind": "RESIDENTIAL",
+                      "name": "Cobertura",
+                      "quantity": 2,
+                      "usefulArea": 180,
+                      "connectionType": "THREE_PHASE",
+                      "loads": [
+                        { "category": "INSTANT_HEATING", "description": "Chuveiro", "quantity": 4,
+                          "power": 4, "powerUnit": "KW" }
+                      ]
+                    }
+                    """))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.connectionType").value("THREE_PHASE"))
+        .andExpect(jsonPath("$.data.loads[0].description").value("Chuveiro"))
+        .andExpect(jsonPath("$.data.unitLoadKw").value(16))
+        .andExpect(jsonPath("$.data.items").doesNotExist());
+
+    ArgumentCaptor<GroupParameters> parameters = ArgumentCaptor.forClass(GroupParameters.class);
+    verify(service).create(eq(1L), parameters.capture(), eq(DESIGNER));
+    assertThat(parameters.getValue().spec().connectionType()).isEqualTo(ConnectionType.THREE_PHASE);
+    assertThat(parameters.getValue().spec().items())
+        .singleElement()
+        .satisfies(item -> assertThat(item.getDescription()).isEqualTo("Chuveiro"));
+  }
+
+  @Test
   void rejectsAGroupWithoutKindNameOrQuantity() throws Exception {
     mockMvc(mock(ConsumerUnitGroupService.class))
         .perform(
@@ -233,6 +274,7 @@ class ConsumerUnitGroupControllerTest {
         new GroupSpec(
             "Recarga de veículo elétrico",
             6,
+            null,
             null,
             null,
             null,

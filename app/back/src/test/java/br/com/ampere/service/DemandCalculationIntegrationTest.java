@@ -115,7 +115,7 @@ class DemandCalculationIntegrationTest {
         .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.data.projectId").value(String.valueOf(project.getId())))
-        .andExpect(jsonPath("$.data.steps", hasSize(5)))
+        .andExpect(jsonPath("$.data.steps", hasSize(6)))
         .andExpect(jsonPath("$.data.steps[0].code").value("Drf"))
         .andExpect(
             jsonPath("$.data.steps[0].formula")
@@ -125,6 +125,7 @@ class DemandCalculationIntegrationTest {
         .andExpect(jsonPath("$.data.steps[2].applies").value(false))
         .andExpect(jsonPath("$.data.steps[2].reference").doesNotExist())
         .andExpect(jsonPath("$.data.steps[4].code").value("Ded"))
+        .andExpect(jsonPath("$.data.steps[5].code").value("Dind"))
         .andExpect(jsonPath("$.data.totals.calculatedKva").value(163.07))
         .andExpect(jsonPath("$.data.totals.finalKva").value(165.00))
         .andExpect(jsonPath("$.data.totals.minimumApplied").value(true))
@@ -134,7 +135,7 @@ class DemandCalculationIntegrationTest {
         .andExpect(jsonPath("$.data.traceability.cableSectionMm2").value(150))
         .andExpect(jsonPath("$.data.composition", hasSize(4)))
         .andExpect(jsonPath("$.data.composition[0].percent").value(47.5))
-        .andExpect(jsonPath("$.data.checksCount").value(5))
+        .andExpect(jsonPath("$.data.checksCount").value(7))
         .andExpect(jsonPath("$.data.warningsCount").value(1))
         .andExpect(jsonPath("$.data.standards.main.revision").value("REV 06"))
         .andExpect(jsonPath("$.data.standards.secondary.revision").value("REV 07"));
@@ -296,6 +297,7 @@ class DemandCalculationIntegrationTest {
                     null,
                     null,
                     null,
+                    null,
                     new BigDecimal("7.40"),
                     false,
                     fixed ? true : null,
@@ -319,6 +321,7 @@ class DemandCalculationIntegrationTest {
             2,
             new BigDecimal("6.5"),
             false,
+            ConnectionType.SINGLE_PHASE,
             null,
             null,
             null,
@@ -329,7 +332,7 @@ class DemandCalculationIntegrationTest {
 
   private static GroupSpec spec(String name, int quantity, LoadUsage usage, List<LoadItem> items) {
     return new GroupSpec(
-        name, quantity, null, null, null, null, usage, items, null, null, null, null);
+        name, quantity, null, null, null, null, null, usage, items, null, null, null, null);
   }
 
   private static String calculationOf(Project project) {

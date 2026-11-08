@@ -5,6 +5,7 @@ import type {
 	LoadCategory,
 	LoadUsage,
 	PowerUnit,
+	UnitConnectionType,
 } from "./schemas";
 
 export interface LoadItemPayload {
@@ -25,6 +26,8 @@ export interface ConsumerUnitGroupPayload {
 	bedrooms?: number | null;
 	unitLoadKw?: number | null;
 	compactUnit?: boolean | null;
+	connectionType?: UnitConnectionType | null;
+	loads?: LoadItemPayload[] | null;
 	usage?: LoadUsage | null;
 	items?: LoadItemPayload[] | null;
 	powerPerPointKw?: number | null;

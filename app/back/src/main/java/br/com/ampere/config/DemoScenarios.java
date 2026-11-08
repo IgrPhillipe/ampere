@@ -11,6 +11,8 @@ import static br.com.ampere.config.ScenarioGroups.commonArea;
 import static br.com.ampere.config.ScenarioGroups.compactApartments;
 import static br.com.ampere.config.ScenarioGroups.item;
 import static br.com.ampere.config.ScenarioGroups.load;
+import static br.com.ampere.config.ScenarioGroups.penthouseLoads;
+import static br.com.ampere.config.ScenarioGroups.threePhaseApartments;
 import static br.com.ampere.config.ScenarioGroups.withItem;
 import static br.com.ampere.config.ScenarioGroups.withLoadManagement;
 import static br.com.ampere.config.ScenarioGroups.withQuantity;
@@ -463,7 +465,23 @@ final class DemoScenarios {
             nonResidential(1, V220, ConnectionType.SINGLE_PHASE, EntranceStandard.INDIVIDUAL),
             u.joao(),
             8,
-            c -> ready(c, 3, commercial("Padaria", 1), commercial("Mercearia", 1))));
+            c -> ready(c, 3, commercial("Padaria", 1), commercial("Mercearia", 1))),
+        Scenario.of(
+            "2026-2047",
+            "Residencial Torres do Pina",
+            "Avenida Herculano Bandeira, 750",
+            "Recife",
+            "51110130",
+            residential(14, V380),
+            u.user(),
+            4,
+            c ->
+                ready(
+                    c,
+                    2,
+                    apartments("Apartamento tipo", 24, "70", 2, "7.80"),
+                    threePhaseApartments("Cobertura", 2, "180", 3, penthouseLoads()),
+                    commonArea())));
   }
 
   /** Every rare input of the calculation in one project. */

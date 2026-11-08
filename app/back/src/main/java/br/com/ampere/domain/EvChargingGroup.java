@@ -51,6 +51,7 @@ public class EvChargingGroup extends ConsumerUnitGroup {
         null,
         null,
         null,
+        null,
         powerPerPointKw,
         incorporatedInVehicle,
         loadManagement,

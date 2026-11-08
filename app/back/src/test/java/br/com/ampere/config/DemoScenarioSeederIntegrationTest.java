@@ -3,8 +3,10 @@ package br.com.ampere.config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.ampere.domain.Calculation;
+import br.com.ampere.domain.CalculationStep;
 import br.com.ampere.domain.CheckStatus;
 import br.com.ampere.domain.ConcessionArea;
+import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.DocumentType;
@@ -78,8 +80,15 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
         .extracting(Project::getProtocol)
         .containsExactlyInAnyOrderElementsOf(SCENARIO_PROTOCOLS);
     assertThat(SCENARIO_PROTOCOLS)
-        .hasSize(54)
-        .contains("2026-1001", "2026-1008", "2026-2019", "2026-2044", "2026-2045", "2026-2046");
+        .hasSize(55)
+        .contains(
+            "2026-1001",
+            "2026-1008",
+            "2026-2019",
+            "2026-2044",
+            "2026-2045",
+            "2026-2046",
+            "2026-2047");
   }
 
   @Test
@@ -192,7 +201,7 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
     for (int sequence = 1; sequence <= 8; sequence++) {
       assertThat(SCENARIO_PROTOCOLS).contains("2026-100" + sequence);
     }
-    for (int sequence = 2001; sequence <= 2045; sequence++) {
+    for (int sequence = 2001; sequence <= 2046; sequence++) {
       assertThat(SCENARIO_PROTOCOLS).contains("2026-" + sequence);
     }
   }
@@ -317,6 +326,23 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
         .extracting(LoadItem::getLampTechnology)
         .contains(LampTechnology.FLUORESCENT_NEON_SODIUM);
     assertThat(groups).allSatisfy(group -> assertThat(group.validate()).isEmpty());
+  }
+
+  @Test
+  void showsApartmentsOfBothConnectionsWithTheirIndividualDemand() {
+    assertThat(groups("2026-2047"))
+        .filteredOn(ResidentialGroup.class::isInstance)
+        .map(ResidentialGroup.class::cast)
+        .extracting(ResidentialGroup::getConnectionType)
+        .containsExactly(ConnectionType.SINGLE_PHASE, ConnectionType.THREE_PHASE);
+    assertThat(isCurrent("2026-2047")).isTrue();
+
+    CalculationStep individual = calculation("2026-2047").orElseThrow().getSteps().getLast();
+    assertThat(individual.getCode()).isEqualTo("Dind");
+    assertThat(individual.getValueKva()).isEqualByComparingTo("26.58");
+    assertThat(individual.getDetails())
+        .anySatisfy(line -> assertThat(line).startsWith("Apartamento tipo (monofásico)"))
+        .anySatisfy(line -> assertThat(line).startsWith("Cobertura (trifásico"));
   }
 
   @Test

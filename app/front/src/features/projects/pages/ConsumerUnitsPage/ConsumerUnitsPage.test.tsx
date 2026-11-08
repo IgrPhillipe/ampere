@@ -163,6 +163,61 @@ describe("ConsumerUnitsPage", () => {
 		});
 	});
 
+	it("creates a new residential group as single-phase", async () => {
+		renderPage();
+		await submitNewGroup("Apartamentos Tipo", "Apartamento", "12");
+
+		await waitFor(() => {
+			expect(state.createGroup.mutate).toHaveBeenCalledTimes(1);
+		});
+		expect(state.createGroup.mutate.mock.calls[0][0]).toMatchObject({
+			payload: { kind: "RESIDENTIAL", connectionType: "SINGLE_PHASE" },
+		});
+	});
+
+	it("keeps the connection and the loads of a three-phase apartment on save", async () => {
+		const loads = [
+			{
+				category: "INSTANT_HEATING" as const,
+				description: "Chuveiro",
+				quantity: 4,
+				power: 4,
+				powerUnit: "KW" as const,
+			},
+		];
+		state.groups = [
+			{
+				id: "103",
+				name: "Cobertura",
+				kind: "RESIDENTIAL",
+				quantity: 2,
+				status: "VALIDATED",
+				issues: [],
+				declaredLoadKw: 32,
+				summary: "180 m², 3 quartos, trifásico (DIS-NOR-053 Quadro 35)",
+				usefulArea: 180,
+				bedrooms: 3,
+				unitLoadKw: 16,
+				compactUnit: false,
+				connectionType: "THREE_PHASE",
+				loads,
+			},
+		];
+
+		renderPage();
+		fireEvent.click(screen.getAllByRole("button", { name: "Cobertura" })[0]);
+		fireEvent.click(
+			await screen.findByRole("button", { name: /Salvar Grupo/i }),
+		);
+
+		await waitFor(() => {
+			expect(state.updateGroup.mutate).toHaveBeenCalledTimes(1);
+		});
+		expect(state.updateGroup.mutate.mock.calls[0][0]).toMatchObject({
+			payload: { connectionType: "THREE_PHASE", loads },
+		});
+	});
+
 	it("opens a new residential group on its first pending field", async () => {
 		state.createGroup = respondWith({
 			id: "101",

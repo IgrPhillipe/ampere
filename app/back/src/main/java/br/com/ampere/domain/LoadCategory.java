@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -18,8 +19,8 @@ public enum LoadCategory {
   LIGHTING_AND_OUTLETS("a", "Iluminação e tomadas") {
     /** Lighting and outlets take different factors (6.27.1.2), so each item says which it is. */
     @Override
-    List<ValidationIssue> issues(LoadItem item, String path, LoadUsage usage) {
-      if (item.getLampTechnology() == null) {
+    List<ValidationIssue> issues(LoadItem item, String path, LoadOccupancy usage) {
+      if (!usage.residential() && item.getLampTechnology() == null) {
         return List.of(
             ValidationIssue.missing(
                 path + ".lampTechnology",
@@ -33,7 +34,10 @@ public enum LoadCategory {
 
     @Override
     ParcelDemand demand(
-        List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
+        List<LoadItem> items, int groupQuantity, LoadOccupancy usage, DemandContext context) {
+      if (usage.residential()) {
+        return residential(items, groupQuantity, context);
+      }
       NormativeValue lighting =
           context
               .tables()
@@ -77,11 +81,34 @@ public enum LoadCategory {
           List.of(),
           lighting.reference());
     }
+
+    /** Item 6.27.1.1 (a1): lighting and outlets together, Tabela 6 by the total, power factor 1. */
+    private ParcelDemand residential(
+        List<LoadItem> items, int groupQuantity, DemandContext context) {
+      BigDecimal kw =
+          items.stream()
+              .map(item -> installedKw(item, groupQuantity))
+              .reduce(BigDecimal.ZERO, BigDecimal::add);
+      NormativeValue factor =
+          context.tables().find(NormativeTableCode.T6_RESIDENTIAL_LIGHTING_OUTLETS, kw);
+      BigDecimal kva = DeclaredValues.kva(kw.multiply(factor.value()));
+
+      return parcel(
+          kva,
+          DeclaredValues.fixed(kw, 2)
+              + " kW × "
+              + DeclaredValues.fixed(factor.value(), 2)
+              + " = "
+              + DeclaredValues.fixed(kva, 2)
+              + " kVA",
+          List.of(),
+          factor.reference());
+    }
   },
   INSTANT_HEATING("b", "Chuveiros, torneiras e aquecedores de passagem") {
     @Override
     ParcelDemand demand(
-        List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
+        List<LoadItem> items, int groupQuantity, LoadOccupancy usage, DemandContext context) {
       return byCount(
           items,
           groupQuantity,
@@ -94,7 +121,7 @@ public enum LoadCategory {
   STORAGE_HEATING("c", "Aquecedor central ou de acumulação") {
     @Override
     ParcelDemand demand(
-        List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
+        List<LoadItem> items, int groupQuantity, LoadOccupancy usage, DemandContext context) {
       return byCount(
           items,
           groupQuantity,
@@ -107,7 +134,7 @@ public enum LoadCategory {
   APPLIANCES("d", "Secadoras, lava-roupas, lava-louças e micro-ondas") {
     @Override
     ParcelDemand demand(
-        List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
+        List<LoadItem> items, int groupQuantity, LoadOccupancy usage, DemandContext context) {
       return byCount(
           items, groupQuantity, NormativeTableCode.T9_APPLIANCES, null, APPLIANCES_PF, context);
     }
@@ -115,7 +142,7 @@ public enum LoadCategory {
   COOKING("e", "Fornos e fogões elétricos") {
     @Override
     ParcelDemand demand(
-        List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
+        List<LoadItem> items, int groupQuantity, LoadOccupancy usage, DemandContext context) {
       return byCount(
           items, groupQuantity, NormativeTableCode.T9_APPLIANCES, null, BigDecimal.ONE, context);
     }
@@ -123,7 +150,7 @@ public enum LoadCategory {
   AIR_CONDITIONING("f", "Condicionadores de ar") {
     @Override
     ParcelDemand demand(
-        List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
+        List<LoadItem> items, int groupQuantity, LoadOccupancy usage, DemandContext context) {
       return byCount(
           items,
           groupQuantity,
@@ -136,7 +163,7 @@ public enum LoadCategory {
   MOTORS("g", "Motores e máquinas de solda a motor") {
     /** Above 5 CV the starting condition changes the demand of the parcel (Tabela 14). */
     @Override
-    List<ValidationIssue> issues(LoadItem item, String path, LoadUsage usage) {
+    List<ValidationIssue> issues(LoadItem item, String path, LoadOccupancy usage) {
       BigDecimal power = item.getPowerUnit().toCv(item.getPower());
       if (power.compareTo(LARGE_MOTOR_CV) > 0 && item.getSimultaneousStart() == null) {
         return List.of(
@@ -156,7 +183,7 @@ public enum LoadCategory {
     /** Motors that must start together count as one; of equal largest ones, only one is. */
     @Override
     ParcelDemand demand(
-        List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
+        List<LoadItem> items, int groupQuantity, LoadOccupancy usage, DemandContext context) {
       List<String> notes = new ArrayList<>();
       List<NormativeReference> references = new ArrayList<>();
       SortedMap<BigDecimal, Long> motors = units();
@@ -185,7 +212,7 @@ public enum LoadCategory {
   SPECIAL_EQUIPMENT("h", "Equipamentos especiais") {
     @Override
     ParcelDemand demand(
-        List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
+        List<LoadItem> items, int groupQuantity, LoadOccupancy usage, DemandContext context) {
       SortedMap<BigDecimal, Long> equipment = units();
       items.forEach(
           item ->
@@ -205,7 +232,7 @@ public enum LoadCategory {
     /** Pumps rated in CV or HP take their kVA from the motor table; in kW, power factor 1,00. */
     @Override
     ParcelDemand demand(
-        List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
+        List<LoadItem> items, int groupQuantity, LoadOccupancy usage, DemandContext context) {
       List<String> notes = new ArrayList<>();
       List<NormativeReference> references = new ArrayList<>();
       SortedMap<BigDecimal, Long> pumps = units();
@@ -264,14 +291,39 @@ public enum LoadCategory {
     return label;
   }
 
+  /** Each parcel present among the items, in the order of item 6.27 (a to i). */
+  static List<ParcelDemand> parcels(
+      List<LoadItem> items, int groupQuantity, LoadOccupancy usage, DemandContext context) {
+    Map<LoadCategory, List<LoadItem>> byParcel =
+        items.stream()
+            .collect(
+                Collectors.groupingBy(
+                    LoadItem::getCategory,
+                    () -> new EnumMap<>(LoadCategory.class),
+                    Collectors.toList()));
+    return byParcel.entrySet().stream()
+        .map(parcel -> parcel.getKey().demand(parcel.getValue(), groupQuantity, usage, context))
+        .toList();
+  }
+
+  /** "a + b = 2,18 + 13,00": the parcels as they add up. */
+  static String sum(List<ParcelDemand> parcels) {
+    String symbols =
+        String.join(" + ", parcels.stream().map(parcel -> parcel.category().parcel()).toList());
+    String values =
+        String.join(
+            " + ", parcels.stream().map(parcel -> DeclaredValues.fixed(parcel.kva(), 2)).toList());
+    return symbols + " = " + values;
+  }
+
   /** What this parcel asks of an item whose power is already informed. */
-  List<ValidationIssue> issues(LoadItem item, String path, LoadUsage usage) {
+  List<ValidationIssue> issues(LoadItem item, String path, LoadOccupancy usage) {
     return List.of();
   }
 
   /** Demand of this parcel over the items of one group, in kVA. */
   abstract ParcelDemand demand(
-      List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context);
+      List<LoadItem> items, int groupQuantity, LoadOccupancy usage, DemandContext context);
 
   /** Parcels whose factor depends only on how many appliances there are. */
   ParcelDemand byCount(

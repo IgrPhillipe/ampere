@@ -13,6 +13,7 @@ public record GroupSpec(
     Integer bedrooms,
     BigDecimal unitLoadKw,
     Boolean compactUnit,
+    ConnectionType connectionType,
     LoadUsage usage,
     List<LoadItem> items,
     BigDecimal powerPerPointKw,

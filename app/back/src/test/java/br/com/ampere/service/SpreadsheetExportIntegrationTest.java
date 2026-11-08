@@ -438,6 +438,7 @@ class SpreadsheetExportIntegrationTest {
                     null,
                     null,
                     null,
+                    null,
                     LoadUsage.COMMON_AREA,
                     List.of(
                         new LoadItem(
@@ -463,6 +464,7 @@ class SpreadsheetExportIntegrationTest {
                     null,
                     null,
                     null,
+                    null,
                     new BigDecimal("7.40"),
                     false,
                     true,
@@ -480,6 +482,7 @@ class SpreadsheetExportIntegrationTest {
             2,
             new BigDecimal("6.5"),
             false,
+            ConnectionType.SINGLE_PHASE,
             null,
             null,
             null,

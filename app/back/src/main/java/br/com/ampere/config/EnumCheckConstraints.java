@@ -23,6 +23,7 @@ public class EnumCheckConstraints {
           new Constraint("app_user", "role", UserRole.class),
           new Constraint("load_group_item", "lamp_technology", LampTechnology.class),
           new Constraint("notification", "type", NotificationType.class),
+          new Constraint("residential_group_load", "lamp_technology", LampTechnology.class),
           new Constraint("project", "state", BrazilianState.class));
 
   private final JdbcTemplate jdbcTemplate;
