@@ -314,6 +314,25 @@ class SubmissionIntegrationTest {
   }
 
   @Test
+  void theMemorialShowsTheConnectionAndTheIndividualDemandOfEachGroup() throws Exception {
+    Project project = calculatedDraft();
+
+    byte[] body =
+        perform(get(memorialOf(project))).andReturn().getResponse().getContentAsByteArray();
+
+    PdfReader reader = new PdfReader(body);
+    PdfTextExtractor extractor = new PdfTextExtractor(reader);
+    StringBuilder text = new StringBuilder();
+    for (int page = 1; page <= reader.getNumberOfPages(); page++) {
+      text.append(extractor.getTextFromPage(page)).append('\n');
+    }
+    assertThat(text.toString())
+        .containsSubsequence("Apartamento tipo A", "Monofásico", "24")
+        .contains("Demanda Individual dos Apartamentos (DIS-NOR-053, item 6.22.3)")
+        .contains("Apartamento tipo A (monofásico): carga instalada de 6,50 kW");
+  }
+
+  @Test
   void theMemorialAcceptsTheDataReadBackWithTheDatabaseScale() throws Exception {
     Project project = calculatedDraft();
     entityManager.flush();
