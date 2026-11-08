@@ -18,6 +18,7 @@ import br.com.ampere.repository.ProjectVersionRepository;
 import br.com.ampere.utils.BrazilianDateFormat;
 import br.com.ampere.utils.BrazilianNumberFormat;
 import br.com.ampere.utils.MemorialFingerprint;
+import br.com.ampere.utils.Timestamps;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.Element;
@@ -222,7 +223,7 @@ public class MemorialPdfService {
     addCalculationSteps(document, calculation);
     addDemandTotals(document, calculation);
     addAppliedStandards(document, calculation);
-    addReservations(document, reservations);
+    addReservations(document, project, reservations);
 
     document.close();
     return output.toByteArray();
@@ -522,13 +523,26 @@ public class MemorialPdfService {
   }
 
   /** Only an approval with reservations reissues the memorial with this section. */
-  private static void addReservations(Document document, List<Finding> reservations) {
+  private static void addReservations(
+      Document document, Project project, List<Finding> reservations) {
     if (reservations.isEmpty()) {
       return;
     }
 
     addSection(document, 6, "Ressalvas");
-    document.add(note("Ajustes não resolvidos na aprovação. O projeto segue aprovado com eles."));
+    String approvedAt =
+        project.getReviewedAt() == null
+            ? EMPTY
+            : BrazilianDateFormat.date(
+                project.getReviewedAt().atZoneSameInstant(Timestamps.ZONE).toLocalDate());
+    String reviewer = project.getReviewer() == null ? EMPTY : project.getReviewer().getName();
+    document.add(
+        note(
+            "Aprovado em "
+                + approvedAt
+                + " por "
+                + reviewer
+                + ". Os ajustes abaixo não foram resolvidos e o projeto segue aprovado com eles."));
 
     Column[] columns = {
       new Column("Etapa", 22, false),

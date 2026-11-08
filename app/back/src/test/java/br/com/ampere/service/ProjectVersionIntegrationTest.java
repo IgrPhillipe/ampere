@@ -288,7 +288,7 @@ class ProjectVersionIntegrationTest {
             });
 
     byte[] approved = bytes(perform(get(memorialOf(project))));
-    assertThat(textOf(approved)).contains("Ressalvas", "Atualizar a data da ART.");
+    assertThat(textOf(approved)).contains("Ressalvas", "Atualizar a data da ART.", "Aprovado em ");
     assertThat(textOf(submitted)).doesNotContain("Ressalvas");
     assertThat(bytes(perform(get(versionsOf(project) + "/1/memorial")))).isEqualTo(submitted);
     String approvedCode = approvalMemorialRepository.findAll().getFirst().getVerificationCode();
