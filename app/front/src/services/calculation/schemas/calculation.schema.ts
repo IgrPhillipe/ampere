@@ -1,7 +1,14 @@
 import { apiResponseSchema } from "@features/shared";
 import { z } from "zod";
 
-export const demandCodeSchema = z.enum(["Drf", "Ds", "Dc", "Dve", "Ded"]);
+export const demandCodeSchema = z.enum([
+	"Drf",
+	"Ds",
+	"Dc",
+	"Dve",
+	"Ded",
+	"Dind",
+]);
 
 export type DemandCode = z.infer<typeof demandCodeSchema>;
 
