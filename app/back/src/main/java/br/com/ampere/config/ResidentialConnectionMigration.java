@@ -9,11 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Apartment groups saved before each one had its own connection: they were single-phase, declared
- * by their total load, which stays as it was. Runs in every profile and changes nothing once the
- * data is clean.
- */
+/** Apartment groups saved before the connection per unit were single-phase. */
 @Component
 @Order(0)
 public class ResidentialConnectionMigration implements ApplicationRunner {

@@ -20,11 +20,7 @@ class IndividualDemandTest {
   private static final DemandContext CONTEXT =
       context(SupplyVoltage.V380_220, ConnectionType.THREE_PHASE);
 
-  /**
-   * DIS-NOR-030 Exemplo 3 reaches 25,90 kVA. The engine differs where the example simplifies: the
-   * oven goes to parcel e, parcel d keeps the power factor 0,92 of item 6.27.4, and a and g are not
-   * rounded up to 2,20 and 2,30.
-   */
+  // Exemplo 3 rounds to 25,90 kVA: oven in d, power factor 1,00 in d, a and g rounded up.
   @Test
   void aThreePhaseApartmentAddsTheParcelsOfItem627() {
     IndividualDemand unit =

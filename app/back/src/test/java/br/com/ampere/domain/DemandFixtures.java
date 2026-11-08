@@ -79,10 +79,7 @@ public final class DemandFixtures {
             null));
   }
 
-  /**
-   * The residence of DIS-NOR-030 Exemplo 3 (p. 52 to 55), with the electric oven filed under parcel
-   * e and the air conditioners at the VA of Tabela 11.
-   */
+  /** DIS-NOR-030 Exemplo 3 (p. 52 to 55), oven in parcel e and air conditioners in VA. */
   static List<LoadItem> exemplo3() {
     return List.of(
         item(LoadCategory.LIGHTING_AND_OUTLETS, "Tomadas", 1, "3.0", PowerUnit.KW),

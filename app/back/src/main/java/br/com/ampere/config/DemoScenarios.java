@@ -475,7 +475,6 @@ final class DemoScenarios {
             residential(14, V380),
             u.user(),
             4,
-            // Each unit has its own connection: the penthouses detail their loads.
             c ->
                 ready(
                     c,

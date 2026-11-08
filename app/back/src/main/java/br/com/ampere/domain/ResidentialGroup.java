@@ -79,7 +79,6 @@ public class ResidentialGroup extends ConsumerUnitGroup {
     }
   }
 
-  /** What the request cannot carry at all, as opposed to data still missing. */
   static Optional<String> rejection(GroupSpec spec) {
     if (spec.connectionType() == ConnectionType.TWO_PHASE) {
       return Optional.of("A ligação do apartamento é monofásica ou trifásica.");
@@ -236,10 +235,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
         List.of(quadro35.reference()));
   }
 
-  /**
-   * Item 6.27 is for three-phase units; a single-phase one is sized by its installed load
-   * (DIS-NOR-030 item 6.28.1).
-   */
+  /** Item 6.27 is three-phase only; a single-phase unit keeps its installed load (6.28.1). */
   @Override
   public Optional<IndividualDemand> individualDemand(DemandContext context) {
     BigDecimal load = getUnitLoadKw();
