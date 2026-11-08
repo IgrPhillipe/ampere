@@ -22,7 +22,10 @@ export interface DecisionAvailability {
 	decisions: ReviewDecision[];
 	/** Adjustments an approval leaves on the project as reservations. */
 	reservations: Finding[];
+	/** No decision is possible: answers await the analyst. */
 	blockedReason: string | null;
+	/** Only the rejection is possible: why the approval is not. */
+	approvalBlockedReason: string | null;
 }
 
 /** Same rules as the API: pending adjustments allow both decisions, a pending blocking one only rejects. */
@@ -49,6 +52,10 @@ export const getDecisionAvailability = (
 		blockedReason:
 			decisions.length === 0
 				? "Aceite ou reabra os apontamentos respondidos para concluir a análise."
+				: null,
+		approvalBlockedReason:
+			decisions.length > 0 && !decisions.includes("APPROVE")
+				? "Resolva ou exclua os apontamentos bloqueantes para aprovar."
 				: null,
 	};
 };

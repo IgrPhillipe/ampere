@@ -30,6 +30,7 @@ describe("getDecisionAvailability", () => {
 			decisions: ["APPROVE"],
 			reservations: [],
 			blockedReason: null,
+			approvalBlockedReason: null,
 		});
 	});
 
@@ -49,6 +50,9 @@ describe("getDecisionAvailability", () => {
 
 		expect(availability.decisions).toEqual(["REJECT"]);
 		expect(availability.reservations).toEqual([]);
+		expect(availability.approvalBlockedReason).toBe(
+			"Resolva ou exclua os apontamentos bloqueantes para aprovar.",
+		);
 	});
 
 	it("rejects a reanalysis on a reopened blocking finding, as the API does", () => {

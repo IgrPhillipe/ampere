@@ -20,7 +20,7 @@ export const DecisionFooter = ({
 	onDecide,
 	className,
 }: DecisionFooterProps) => {
-	const { decisions, blockedReason } = availability;
+	const { decisions, blockedReason, approvalBlockedReason } = availability;
 	const both = decisions.length > 1;
 
 	return (
@@ -30,7 +30,12 @@ export const DecisionFooter = ({
 					<p className="text-sm text-muted-foreground">{closedMessage}</p>
 				) : canDecide ? (
 					decisions.length > 0 ? (
-						<div className="flex flex-col-reverse gap-2 md:flex-row">
+						<div className="flex flex-col-reverse gap-2 md:flex-row md:items-center">
+							{approvalBlockedReason ? (
+								<p className="text-sm text-muted-foreground md:mr-2 md:text-right">
+									{approvalBlockedReason}
+								</p>
+							) : null}
 							{decisions.includes("REJECT") ? (
 								<Button
 									type="button"
