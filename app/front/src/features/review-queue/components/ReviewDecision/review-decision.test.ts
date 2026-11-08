@@ -27,32 +27,59 @@ describe("getDecisionAvailability", () => {
 		expect(getDecisionAvailability([])).toEqual({
 			pendingCount: 0,
 			blockingCount: 0,
-			decision: "APPROVE",
+			decisions: ["APPROVE"],
+			reservations: [],
 			blockedReason: null,
 		});
 	});
 
-	it("only rejects while a finding of this analysis is a draft", () => {
+	it("offers both decisions while only adjustments are pending", () => {
 		const availability = getDecisionAvailability([finding]);
 
-		expect(availability.decision).toBe("REJECT");
+		expect(availability.decisions).toEqual(["APPROVE", "REJECT"]);
+		expect(availability.reservations).toEqual([finding]);
 		expect(availability.pendingCount).toBe(1);
 	});
 
-	it("rejects a reanalysis on a reopened finding, as the API does", () => {
+	it("only rejects while a blocking finding is a draft", () => {
+		const availability = getDecisionAvailability([
+			finding,
+			{ ...finding, id: "2", severity: "BLOCKING" },
+		]);
+
+		expect(availability.decisions).toEqual(["REJECT"]);
+		expect(availability.reservations).toEqual([]);
+	});
+
+	it("rejects a reanalysis on a reopened blocking finding, as the API does", () => {
 		expect(
 			getDecisionAvailability([
 				{ ...finding, severity: "BLOCKING", status: "OPEN" },
 			]),
-		).toMatchObject({ decision: "REJECT", blockingCount: 1 });
+		).toMatchObject({ decisions: ["REJECT"], blockingCount: 1 });
+	});
+
+	it("keeps a reopened adjustment as a reservation of the approval", () => {
+		const reopened = { ...finding, status: "OPEN" } as const;
+
+		expect(
+			getDecisionAvailability([
+				reopened,
+				{ ...finding, id: "2", severity: "BLOCKING", status: "RESOLVED" },
+			]),
+		).toMatchObject({
+			decisions: ["APPROVE", "REJECT"],
+			reservations: [reopened],
+		});
 	});
 
 	it("waits for the analyst to accept or reopen an answered finding", () => {
 		const availability = getDecisionAvailability([
-			{ ...finding, severity: "BLOCKING", status: "FIXED" },
+			{ ...finding, status: "FIXED" },
 		]);
 
-		expect(availability.decision).toBeNull();
+		expect(availability.decisions).toEqual([]);
+		expect(availability.reservations).toEqual([]);
 		expect(availability.blockedReason).toBe(
 			"Aceite ou reabra os apontamentos respondidos para concluir a análise.",
 		);
@@ -66,7 +93,8 @@ describe("getDecisionAvailability", () => {
 		).toMatchObject({
 			pendingCount: 0,
 			blockingCount: 0,
-			decision: "APPROVE",
+			decisions: ["APPROVE"],
+			reservations: [],
 		});
 	});
 });
