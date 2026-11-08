@@ -7,7 +7,7 @@ export const NotFound = () => (
 			<p className="font-heading text-3xl font-semibold">404</p>
 
 			<p className="text-sm text-muted-foreground">
-				Esta pagina nao existe ou foi movida.
+				Esta página não existe ou foi movida.
 			</p>
 		</div>
 
