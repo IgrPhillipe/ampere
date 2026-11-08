@@ -102,8 +102,10 @@ const DecisionForm = ({
 		decision === "APPROVE"
 			? withReservations
 				? `O status passa a Aprovado com ${padCount(reservations.length)} ${
-						reservations.length === 1 ? "ressalva" : "ressalvas"
-					}, registradas no parecer e no memorial. O projetista não responde ressalvas.`
+						reservations.length === 1
+							? "ressalva, registrada"
+							: "ressalvas, registradas"
+					} no parecer e no memorial. O projetista não responde ressalvas.`
 				: "O status passa a Aprovado e o parecer fica registrado na análise."
 			: `O status passa a Reprovado com ${padCount(pendingCount)} ${
 					pendingCount === 1 ? "pendência" : "pendências"
