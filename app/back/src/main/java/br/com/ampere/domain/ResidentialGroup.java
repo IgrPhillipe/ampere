@@ -61,11 +61,11 @@ public class ResidentialGroup extends ConsumerUnitGroup {
     this.connectionType = spec.connectionType();
     this.loads.clear();
     if (isThreePhase()) {
+      // Not stored: the column keeps two decimals and the sum of CV loads has more.
+      this.unitLoadKw = null;
       if (spec.items() != null) {
         this.loads.addAll(spec.items());
       }
-      this.unitLoadKw =
-          loads.stream().map(LoadItem::declaredLoadKw).reduce(BigDecimal.ZERO, BigDecimal::add);
     } else {
       this.unitLoadKw = spec.unitLoadKw();
     }
@@ -90,7 +90,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
         getQuantity(),
         usefulArea,
         bedrooms,
-        unitLoadKw,
+        getUnitLoadKw(),
         compactUnit,
         connectionType,
         null,
@@ -109,7 +109,11 @@ public class ResidentialGroup extends ConsumerUnitGroup {
     return bedrooms;
   }
 
+  /** Declared for a single-phase unit; the sum of the loads for a three-phase one. */
   public BigDecimal getUnitLoadKw() {
+    if (isThreePhase()) {
+      return loads.stream().map(LoadItem::declaredLoadKw).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
     return unitLoadKw;
   }
 
@@ -138,6 +142,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
 
   @Override
   public List<ValidationIssue> validate() {
+    BigDecimal load = getUnitLoadKw();
     List<ValidationIssue> issues = new ArrayList<>();
     if (connectionType == null) {
       issues.add(
@@ -162,19 +167,19 @@ public class ResidentialGroup extends ConsumerUnitGroup {
               index ->
                   issues.addAll(
                       loads.get(index).validate("loads[" + index + "]", LoadUsage.APARTMENT)));
-    } else if (!DeclaredValues.isPositive(unitLoadKw)) {
+    } else if (!DeclaredValues.isPositive(load)) {
       issues.add(
           ValidationIssue.missing(
               "unitLoadKw",
               "Informe a carga instalada por unidade, usada no cálculo individual do item"
                   + " 6.22.3."));
     }
-    if (DeclaredValues.isPositive(unitLoadKw) && unitLoadKw.compareTo(LOW_VOLTAGE_LIMIT_KW) > 0) {
+    if (DeclaredValues.isPositive(load) && load.compareTo(LOW_VOLTAGE_LIMIT_KW) > 0) {
       issues.add(
           ValidationIssue.review(
               isThreePhase() ? "loads" : "unitLoadKw",
               "Carga instalada de "
-                  + DeclaredValues.decimal(unitLoadKw)
+                  + DeclaredValues.decimal(load)
                   + " kW por unidade passa do limite de 75 kW da baixa tensão (DIS-NOR-030, item"
                   + " 6.2.1)."));
     }
@@ -183,7 +188,8 @@ public class ResidentialGroup extends ConsumerUnitGroup {
 
   @Override
   public BigDecimal loadPerUnitKw() {
-    return DeclaredValues.isPositive(unitLoadKw) ? unitLoadKw : null;
+    BigDecimal load = getUnitLoadKw();
+    return DeclaredValues.isPositive(load) ? load : null;
   }
 
   @Override
@@ -218,15 +224,16 @@ public class ResidentialGroup extends ConsumerUnitGroup {
    */
   @Override
   public Optional<IndividualDemand> individualDemand(DemandContext context) {
-    String installed = DeclaredValues.fixed(unitLoadKw, 2) + " kW";
+    BigDecimal load = getUnitLoadKw();
+    String installed = DeclaredValues.fixed(load, 2) + " kW";
     if (!isThreePhase()) {
-      BigDecimal demand = DeclaredValues.kva(unitLoadKw);
+      BigDecimal demand = DeclaredValues.kva(load);
       return Optional.of(
           new IndividualDemand(
               getName(),
               getQuantity(),
               connectionType,
-              unitLoadKw,
+              load,
               demand,
               "carga instalada de " + installed,
               List.of(
@@ -262,7 +269,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
             getName(),
             getQuantity(),
             connectionType,
-            unitLoadKw,
+            load,
             demand,
             formula,
             lines,
