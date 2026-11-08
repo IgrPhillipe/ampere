@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -288,6 +289,31 @@ public enum LoadCategory {
 
   public String label() {
     return label;
+  }
+
+  /** Each parcel present among the items, in the order of item 6.27 (a to i). */
+  static List<ParcelDemand> parcels(
+      List<LoadItem> items, int groupQuantity, LoadUsage usage, DemandContext context) {
+    Map<LoadCategory, List<LoadItem>> byParcel =
+        items.stream()
+            .collect(
+                Collectors.groupingBy(
+                    LoadItem::getCategory,
+                    () -> new EnumMap<>(LoadCategory.class),
+                    Collectors.toList()));
+    return byParcel.entrySet().stream()
+        .map(parcel -> parcel.getKey().demand(parcel.getValue(), groupQuantity, usage, context))
+        .toList();
+  }
+
+  /** "a + b = 2,18 + 13,00": the parcels as they add up. */
+  static String sum(List<ParcelDemand> parcels) {
+    String symbols =
+        String.join(" + ", parcels.stream().map(parcel -> parcel.category().parcel()).toList());
+    String values =
+        String.join(
+            " + ", parcels.stream().map(parcel -> DeclaredValues.fixed(parcel.kva(), 2)).toList());
+    return symbols + " = " + values;
   }
 
   /** What this parcel asks of an item whose power is already informed. */

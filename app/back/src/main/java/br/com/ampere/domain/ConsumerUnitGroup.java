@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /** Consumer units of a project declared together under one kind. */
 @Entity
@@ -81,6 +82,11 @@ public abstract class ConsumerUnitGroup {
 
   /** This group's share of the demand. Only called once every group is validated. */
   public abstract DemandContribution demand(DemandContext context);
+
+  /** Demand of one unit on its own, for the groups whose units are supplied apart. */
+  public Optional<IndividualDemand> individualDemand(DemandContext context) {
+    return Optional.empty();
+  }
 
   public final GroupStatus status() {
     return validate().stream()

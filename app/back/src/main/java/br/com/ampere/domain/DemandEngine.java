@@ -3,17 +3,21 @@ package br.com.ampere.domain;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Ded = Drf + Ds + Dc + Dve (DIS-NOR-053 Anexo I). Every group computes its own share through
- * {@link ConsumerUnitGroup#demand}; the engine never asks which kind a group is.
+ * Ded = Drf + Ds + Dc + Dve (DIS-NOR-053 Anexo I), followed by the demand of each apartment on its
+ * own (item 6.22.3). Every group computes its own share through {@link ConsumerUnitGroup#demand};
+ * the engine never asks which kind a group is.
  */
 public final class DemandEngine {
 
   private static final BigDecimal SIMPLIFIED_PROJECT_KVA = new BigDecimal("50");
   private static final BigDecimal NETWORK_STUDY_KW = new BigDecimal("20");
+  private static final String INDIVIDUAL = "Dind";
+  private static final String INDIVIDUAL_TITLE = "Demanda Individual dos Apartamentos";
 
   private DemandEngine() {}
 
@@ -39,6 +43,9 @@ public final class DemandEngine {
         entrance == null ? calculated : calculated.max(entrance.consideredKva());
     boolean minimumApplied = considered.compareTo(calculated) > 0;
     steps.add(totalStep(steps, calculated, considered, entrance, context));
+    steps.add(
+        individualStep(
+            groups.stream().flatMap(group -> group.individualDemand(context).stream()).toList()));
 
     List<NormativeReference> applied = new ArrayList<>();
     steps.forEach(step -> applied.addAll(step.references()));
@@ -129,6 +136,42 @@ public final class DemandEngine {
         considered,
         table,
         List.of(table),
+        null);
+  }
+
+  /** Item 6.22.3 of DIS-NOR-053: apart from Ded, never added to it. */
+  private static DemandStep individualStep(List<IndividualDemand> units) {
+    if (units.isEmpty()) {
+      return new DemandStep(
+          INDIVIDUAL,
+          INDIVIDUAL_TITLE,
+          false,
+          "Não se aplica: nenhum apartamento no projeto",
+          List.of(),
+          BigDecimal.ZERO.setScale(2),
+          null,
+          List.of(),
+          null);
+    }
+    IndividualDemand largest =
+        units.stream().max(Comparator.comparing(IndividualDemand::demandKva)).orElseThrow();
+    List<NormativeReference> references =
+        DemandComponent.distinct(
+            units.stream().flatMap(unit -> unit.references().stream()).toList());
+
+    return new DemandStep(
+        INDIVIDUAL,
+        INDIVIDUAL_TITLE,
+        true,
+        "Maior demanda individual: "
+            + largest.groupName()
+            + ", "
+            + DeclaredValues.fixed(largest.demandKva(), 2)
+            + " kVA",
+        units.stream().flatMap(unit -> unit.lines().stream()).toList(),
+        largest.demandKva(),
+        references.isEmpty() ? null : references.get(0),
+        references,
         null);
   }
 

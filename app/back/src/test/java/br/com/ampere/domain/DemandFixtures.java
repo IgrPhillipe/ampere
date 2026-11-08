@@ -59,6 +59,44 @@ public final class DemandFixtures {
             null));
   }
 
+  static ConsumerUnitGroup threePhaseApartments(
+      Project project, String name, int quantity, String usefulArea, List<LoadItem> loads) {
+    return GroupKind.RESIDENTIAL.create(
+        project,
+        new GroupSpec(
+            name,
+            quantity,
+            new BigDecimal(usefulArea),
+            3,
+            null,
+            false,
+            ConnectionType.THREE_PHASE,
+            null,
+            loads,
+            null,
+            null,
+            null,
+            null));
+  }
+
+  /**
+   * The residence of DIS-NOR-030 Exemplo 3 (p. 52 to 55), with the electric oven filed under parcel
+   * e and the air conditioners at the VA of Tabela 11.
+   */
+  static List<LoadItem> exemplo3() {
+    return List.of(
+        item(LoadCategory.LIGHTING_AND_OUTLETS, "Tomadas", 1, "3.0", PowerUnit.KW),
+        item(LoadCategory.LIGHTING_AND_OUTLETS, "Iluminação", 1, "1.2", PowerUnit.KW),
+        item(LoadCategory.INSTANT_HEATING, "Chuveiro elétrico", 4, "4", PowerUnit.KW),
+        item(LoadCategory.INSTANT_HEATING, "Torneira elétrica", 1, "3", PowerUnit.KW),
+        item(LoadCategory.INSTANT_HEATING, "Ferro de passar", 1, "1", PowerUnit.KW),
+        item(LoadCategory.APPLIANCES, "Lava-louças", 1, "2", PowerUnit.KW),
+        item(LoadCategory.APPLIANCES, "Secadora de roupas", 1, "2.5", PowerUnit.KW),
+        item(LoadCategory.COOKING, "Forno elétrico", 1, "1.5", PowerUnit.KW),
+        item(LoadCategory.AIR_CONDITIONING, "Condicionador de ar", 2, "2.1", PowerUnit.KW),
+        motor("Motor trifásico", 2, "1"));
+  }
+
   static ConsumerUnitGroup loads(Project project, LoadUsage usage, LoadItem... items) {
     return loads(project, "Área comum", 1, usage, items);
   }

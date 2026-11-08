@@ -115,7 +115,7 @@ class DemandCalculationIntegrationTest {
         .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.data.projectId").value(String.valueOf(project.getId())))
-        .andExpect(jsonPath("$.data.steps", hasSize(5)))
+        .andExpect(jsonPath("$.data.steps", hasSize(6)))
         .andExpect(jsonPath("$.data.steps[0].code").value("Drf"))
         .andExpect(
             jsonPath("$.data.steps[0].formula")
@@ -125,6 +125,7 @@ class DemandCalculationIntegrationTest {
         .andExpect(jsonPath("$.data.steps[2].applies").value(false))
         .andExpect(jsonPath("$.data.steps[2].reference").doesNotExist())
         .andExpect(jsonPath("$.data.steps[4].code").value("Ded"))
+        .andExpect(jsonPath("$.data.steps[5].code").value("Dind"))
         .andExpect(jsonPath("$.data.totals.calculatedKva").value(163.07))
         .andExpect(jsonPath("$.data.totals.finalKva").value(165.00))
         .andExpect(jsonPath("$.data.totals.minimumApplied").value(true))

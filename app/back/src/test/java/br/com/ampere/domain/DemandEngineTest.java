@@ -49,7 +49,8 @@ class DemandEngineTest {
             tuple("Ds", true, "41.23"),
             tuple("Dc", false, "0.00"),
             tuple("Dve", true, "44.40"),
-            tuple("Ded", true, "165.00"));
+            tuple("Ded", true, "165.00"),
+            tuple("Dind", true, "5.00"));
     assertThat(result.calculatedKva()).isEqualByComparingTo("163.07");
     assertThat(result.finalKva()).isEqualByComparingTo("165");
     assertThat(result.serviceEntrance().band()).isEqualTo("135 < De ≤ 165");
@@ -71,7 +72,8 @@ class DemandEngineTest {
             "a + g + i = 20,40 + 14,09 + 6,74",
             "Não se aplica: nenhum grupo deste tipo no projeto",
             "(6 × 7,40) kW × 1,00",
-            "Drf + Ds + Dc + Dve = 77,44 + 41,23 + 0,00 + 44,40 = 163,07 kVA");
+            "Drf + Ds + Dc + Dve = 77,44 + 41,23 + 0,00 + 44,40 = 163,07 kVA",
+            "Maior demanda individual: Apartamento tipo A, 5,00 kVA");
     assertThat(result.steps().get(0).details())
         .contains(
             "Apartamento tipo A: 24 × 1,57 kVA (Quadro 35, 66 a 70 m²)",

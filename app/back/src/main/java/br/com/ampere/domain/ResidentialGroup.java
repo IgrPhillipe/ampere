@@ -200,6 +200,64 @@ public class ResidentialGroup extends ConsumerUnitGroup {
         List.of(quadro35.reference()));
   }
 
+  /**
+   * Item 6.27 is for three-phase units; a single-phase one is sized by its installed load
+   * (DIS-NOR-030 item 6.28.1).
+   */
+  @Override
+  public Optional<IndividualDemand> individualDemand(DemandContext context) {
+    String installed = DeclaredValues.fixed(unitLoadKw, 2) + " kW";
+    if (!isThreePhase()) {
+      BigDecimal demand = DeclaredValues.kva(unitLoadKw);
+      return Optional.of(
+          new IndividualDemand(
+              getName(),
+              getQuantity(),
+              connectionType,
+              unitLoadKw,
+              demand,
+              "carga instalada de " + installed,
+              List.of(
+                  getName()
+                      + " ("
+                      + connectionType.label().toLowerCase()
+                      + "): carga instalada de "
+                      + installed
+                      + ", que define a categoria da unidade (DIS-NOR-030, item 6.28.1)"),
+              List.of()));
+    }
+
+    // The apartment's motors follow its own connection, not the building's.
+    DemandContext unit =
+        new DemandContext(context.tables(), context.voltage(), ConnectionType.THREE_PHASE);
+    List<ParcelDemand> parcels = LoadCategory.parcels(loads, 1, LoadUsage.APARTMENT, unit);
+    BigDecimal demand =
+        DeclaredValues.kva(
+            parcels.stream().map(ParcelDemand::kva).reduce(BigDecimal.ZERO, BigDecimal::add));
+    String formula = LoadCategory.sum(parcels) + " = " + DeclaredValues.fixed(demand, 2) + " kVA";
+    List<String> lines = new ArrayList<>();
+    lines.add(
+        getName()
+            + " (trifásico, carga instalada de "
+            + installed
+            + "): "
+            + formula
+            + " (DIS-NOR-030, item 6.27)");
+    parcels.forEach(parcel -> lines.addAll(parcel.lines()));
+
+    return Optional.of(
+        new IndividualDemand(
+            getName(),
+            getQuantity(),
+            connectionType,
+            unitLoadKw,
+            demand,
+            formula,
+            lines,
+            DemandComponent.distinct(
+                parcels.stream().flatMap(parcel -> parcel.references().stream()).toList())));
+  }
+
   @Override
   public String summary() {
     List<String> parts = new ArrayList<>();
