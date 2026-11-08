@@ -4,9 +4,11 @@ import {
 	FindingDialog,
 	type FindingReferenceOptions,
 	FindingRow,
+	isReservation,
 } from "@features/projects";
 import { cn } from "@lib/utils";
 import type { Finding, FindingStage } from "@services/project-review";
+import type { ProjectDetail } from "@services/projects";
 import { useState } from "react";
 
 import type { FindingFormValues } from "../../schemas";
@@ -21,7 +23,7 @@ interface FindingsPanelProps extends FindingCardActions {
 	editable: boolean;
 	underReview: boolean;
 	/** On an approved project, the unresolved findings are reservations. */
-	approved?: boolean;
+	project?: Pick<ProjectDetail, "status">;
 	editor: FindingEditor;
 	currentStage?: FindingStage;
 	autoFocusForm?: boolean;
@@ -38,7 +40,7 @@ export const FindingsPanel = ({
 	isLoading = false,
 	editable,
 	underReview,
-	approved = false,
+	project,
 	editor,
 	currentStage,
 	autoFocusForm = false,
@@ -54,8 +56,8 @@ export const FindingsPanel = ({
 	const previous =
 		findings?.filter((finding) => !isDraftFinding(finding)) ?? [];
 	const editingId = editor.mode === "edit" ? editor.findingId : undefined;
-	const isReservation = (finding: Finding) =>
-		approved && finding.status !== "RESOLVED";
+	const reservationOf = (finding: Finding) =>
+		project ? isReservation(finding, project) : false;
 
 	const [openedId, setOpenedId] = useState<string | null>(null);
 	const opened = findings?.find((finding) => finding.id === openedId);
@@ -81,7 +83,7 @@ export const FindingsPanel = ({
 					finding={finding}
 					reference={describeFindingReference(finding, referenceOptions)}
 					showVersion={!isDraftFinding(finding)}
-					reservation={isReservation(finding)}
+					reservation={reservationOf(finding)}
 					isSelected={finding.id === editingId}
 					onOpen={() => setOpenedId(finding.id)}
 				/>
@@ -183,7 +185,7 @@ export const FindingsPanel = ({
 				{(finding) => (
 					<FindingCard
 						finding={finding}
-						reservation={isReservation(finding)}
+						reservation={reservationOf(finding)}
 						referenceOptions={referenceOptions}
 						editable={editable}
 						pendingId={pendingId}

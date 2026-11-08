@@ -195,7 +195,7 @@ export const ProjectReviewWorkspace = ({
 					isLoading={findingsQuery.isPending}
 					editable={actions.createFindings}
 					underReview={isUnderReview}
-					approved={project?.status === "APPROVED"}
+					project={project}
 					editor={editor}
 					currentStage={sectionStage(section)}
 					autoFocusForm={findingEditor.autoFocus}
