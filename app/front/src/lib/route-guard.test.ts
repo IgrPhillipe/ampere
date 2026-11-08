@@ -28,7 +28,11 @@ describe("role navigation", () => {
 	});
 
 	it("gives the designer the dashboard and their own projects", () => {
-		expect(labelsOf("user")).toEqual(["Painel", "Meus Projetos"]);
+		expect(labelsOf("user")).toEqual([
+			"Painel",
+			"Meus Projetos",
+			"Novo Projeto",
+		]);
 	});
 
 	it("gives the analyst the review queue and the normative tables", () => {
