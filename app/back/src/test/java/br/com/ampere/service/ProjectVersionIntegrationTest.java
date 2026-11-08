@@ -20,9 +20,6 @@ import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EntranceStandard;
-import br.com.ampere.domain.Finding;
-import br.com.ampere.domain.FindingSeverity;
-import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.LoadCategory;
@@ -36,11 +33,13 @@ import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.ApprovalMemorialRepository;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
+import br.com.ampere.repository.NotificationRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
@@ -114,6 +113,8 @@ class ProjectVersionIntegrationTest {
 
   @Autowired private ApprovalMemorialRepository approvalMemorialRepository;
 
+  @Autowired private NotificationRepository notificationRepository;
+
   @Autowired private ProjectVersionService versionService;
 
   @Autowired private EntityManager entityManager;
@@ -128,6 +129,7 @@ class ProjectVersionIntegrationTest {
 
   @AfterEach
   void wipe() {
+    notificationRepository.deleteAll();
     approvalMemorialRepository.deleteAll();
     versionDocumentRepository.deleteAll();
     versionRepository.deleteAll();
@@ -264,31 +266,30 @@ class ProjectVersionIntegrationTest {
     Project project = submittedProject("2026-4030");
     byte[] submitted = bytes(perform(get(memorialOf(project))));
     String submittedCode = codeOf(project, 1);
+    String analyst = assignedAnalyst(project);
 
-    new TransactionTemplate(transactionManager)
-        .executeWithoutResult(
-            status -> {
-              Project stored = projectRepository.findById(project.getId()).orElseThrow();
-              Finding reservation =
-                  new Finding(
-                      stored,
-                      FindingSeverity.ADJUSTMENT,
-                      FindingStage.DOCUMENTS,
-                      null,
-                      null,
-                      DocumentType.ART,
-                      "Atualizar a data da ART.",
-                      "DIS-NOR-053, item 6.17",
-                      owner,
-                      1);
-              reservation.publish();
-              findingRepository.save(reservation);
-              stored.approve(Timestamps.now(), "Aprovado com ressalva.");
-              versionService.issueApprovalMemorial(stored, List.of(reservation), Timestamps.now());
-            });
+    review(post("/projects/" + project.getId() + "/review"), analyst).andExpect(status().isOk());
+    review(
+            post("/projects/" + project.getId() + "/findings")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                      "severity": "ADJUSTMENT",
+                      "stage": "DOCUMENTS",
+                      "documentType": "ART",
+                      "description": "Atualizar a data da ART.",
+                      "standardItem": "DIS-NOR-053, item 6.17"
+                    }
+                    """),
+            analyst)
+        .andExpect(status().isCreated());
+    approve(project, analyst);
 
+    assertThat(approvalMemorialRepository.findAll()).hasSize(1);
     byte[] approved = bytes(perform(get(memorialOf(project))));
-    assertThat(textOf(approved)).contains("Ressalvas", "Atualizar a data da ART.", "Aprovado em ");
+    assertThat(textOf(approved))
+        .contains("Ressalvas", "Atualizar a data da ART.", "Aprovado em ", "por Alice Analista");
     assertThat(textOf(submitted)).doesNotContain("Ressalvas");
     assertThat(bytes(perform(get(versionsOf(project) + "/1/memorial")))).isEqualTo(submitted);
     String approvedCode = approvalMemorialRepository.findAll().getFirst().getVerificationCode();
@@ -305,6 +306,19 @@ class ProjectVersionIntegrationTest {
     verifyFile(submitted)
         .andExpect(jsonPath("$.data.verified").value(true))
         .andExpect(jsonPath("$.data.approvedAt").value(nullValue()));
+  }
+
+  @Test
+  void anApprovalWithoutReservationsKeepsTheSubmittedMemorialOnly() throws Exception {
+    Project project = submittedProject("2026-4031");
+    byte[] submitted = bytes(perform(get(memorialOf(project))));
+    String analyst = assignedAnalyst(project);
+
+    review(post("/projects/" + project.getId() + "/review"), analyst).andExpect(status().isOk());
+    approve(project, analyst);
+
+    assertThat(approvalMemorialRepository.findAll()).isEmpty();
+    assertThat(bytes(perform(get(memorialOf(project))))).isEqualTo(submitted);
   }
 
   @Test
@@ -691,6 +705,37 @@ class ProjectVersionIntegrationTest {
           .content("{\"changeSummary\":\"" + changeSummary + "\"}");
     }
     perform(request).andExpect(status().isOk());
+  }
+
+  /** Signs in an analyst assigned to the project and returns the token. */
+  private String assignedAnalyst(Project project) throws Exception {
+    User analyst =
+        userRepository.save(
+            new User(
+                "Alice Analista",
+                "alice@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.REVIEWER));
+    Project stored = projectRepository.findById(project.getId()).orElseThrow();
+    stored.assignReviewer(analyst);
+    projectRepository.save(stored);
+
+    return token("alice@ampere.com");
+  }
+
+  private void approve(Project project, String analyst) throws Exception {
+    review(
+            post("/projects/" + project.getId() + "/decision")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"decision\":\"APPROVE\",\"opinion\":\"Projeto em conformidade.\"}"),
+            analyst)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.status").value("APPROVED"));
+  }
+
+  private ResultActions review(AbstractMockHttpServletRequestBuilder<?> request, String analyst)
+      throws Exception {
+    return mockMvc.perform(request.header("Authorization", "Bearer " + analyst));
   }
 
   private void reject(Project project) {
