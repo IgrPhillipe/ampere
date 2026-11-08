@@ -32,6 +32,44 @@ final class ScenarioGroups {
     return residential(name, quantity, usefulArea, bedrooms, unitLoadKw, true);
   }
 
+  /** Each apartment three-phase, detailing its loads (DIS-NOR-030 item 6.27). */
+  static GroupDraft threePhaseApartments(
+      String name, int quantity, String usefulArea, int bedrooms, LoadItem... loads) {
+    return new GroupDraft(
+        GroupKind.RESIDENTIAL,
+        new GroupSpec(
+            name,
+            quantity,
+            new BigDecimal(usefulArea),
+            bedrooms,
+            null,
+            false,
+            ConnectionType.THREE_PHASE,
+            null,
+            List.of(loads),
+            null,
+            null,
+            null,
+            null));
+  }
+
+  /** The residence of DIS-NOR-030 Exemplo 3, as a penthouse. */
+  static LoadItem[] penthouseLoads() {
+    return new LoadItem[] {
+      item(LoadCategory.LIGHTING_AND_OUTLETS, "Tomadas", 1, "3.0", PowerUnit.KW, null, null),
+      item(LoadCategory.LIGHTING_AND_OUTLETS, "Iluminação", 1, "1.2", PowerUnit.KW, null, null),
+      item(LoadCategory.INSTANT_HEATING, "Chuveiro elétrico", 4, "4", PowerUnit.KW, null, null),
+      item(LoadCategory.INSTANT_HEATING, "Torneira elétrica", 1, "3", PowerUnit.KW, null, null),
+      item(LoadCategory.INSTANT_HEATING, "Ferro de passar", 1, "1", PowerUnit.KW, null, null),
+      item(LoadCategory.APPLIANCES, "Lava-louças", 1, "2", PowerUnit.KW, null, null),
+      item(LoadCategory.APPLIANCES, "Secadora de roupas", 1, "2.5", PowerUnit.KW, null, null),
+      item(LoadCategory.COOKING, "Forno elétrico", 1, "1.5", PowerUnit.KW, null, null),
+      item(
+          LoadCategory.AIR_CONDITIONING, "Condicionador de ar", 2, "2.1", PowerUnit.KW, null, null),
+      item(LoadCategory.MOTORS, "Motor trifásico", 2, "1", PowerUnit.CV, null, false)
+    };
+  }
+
   static GroupDraft commonArea() {
     return load(
         "Área comum",
