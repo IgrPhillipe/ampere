@@ -104,7 +104,7 @@ export const FindingCard = ({
 									disabled={isPending}
 									onClick={() => onResolve(finding, "ACCEPT")}
 								>
-									Aceitar Correção
+									{finding.respondedAt ? "Aceitar Correção" : "Aceitar"}
 								</Button>
 							)}
 						</>
