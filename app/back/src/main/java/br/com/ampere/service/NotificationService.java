@@ -67,7 +67,7 @@ public class NotificationService {
   public void decided(
       Project project, ReviewDecision decision, List<Finding> findings, OffsetDateTime at) {
     if (decision == ReviewDecision.APPROVE) {
-      approved(project, at);
+      approved(project, ProjectService.countReservations(findings), at);
       return;
     }
 
@@ -81,12 +81,16 @@ public class NotificationService {
     rejected(project, ProjectService.countOpen(findings), at);
   }
 
-  void approved(Project project, OffsetDateTime at) {
+  void approved(Project project, long reservations, OffsetDateTime at) {
+    String suffix =
+        reservations == 0
+            ? ""
+            : " com " + reservations + (reservations == 1 ? " ressalva" : " ressalvas");
     notify(
         project.getOwner(),
         project,
         NotificationType.PROJECT_APPROVED,
-        "Projeto " + project.getProtocol() + " aprovado",
+        "Projeto " + project.getProtocol() + " aprovado" + suffix,
         designerLink(project),
         at);
   }

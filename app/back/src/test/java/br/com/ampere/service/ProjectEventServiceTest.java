@@ -73,6 +73,20 @@ class ProjectEventServiceTest {
     service.submitted(project, designer, calculation, at.plusDays(3));
     service.decided(
         project, ReviewDecision.APPROVE, analyst, List.of(), "Tudo certo.", at.plusDays(5));
+    service.decided(
+        project,
+        ReviewDecision.APPROVE,
+        analyst,
+        List.of(open, finding(FindingStatus.RESOLVED)),
+        "Aprovado com ajuste.",
+        at.plusDays(6));
+    service.decided(
+        project,
+        ReviewDecision.APPROVE,
+        analyst,
+        List.of(open, finding(FindingStatus.OPEN)),
+        "Aprovado com ajustes.",
+        at.plusDays(7));
 
     assertThat(recorded)
         .extracting(ProjectEvent::getType)
@@ -85,10 +99,12 @@ class ProjectEventServiceTest {
             ProjectEventType.FINDING_ANSWERED,
             ProjectEventType.RESUBMITTED,
             ProjectEventType.PRE_VALIDATED,
+            ProjectEventType.APPROVED,
+            ProjectEventType.APPROVED,
             ProjectEventType.APPROVED);
     assertThat(recorded)
         .extracting(ProjectEvent::getVersion)
-        .containsExactly(0, 1, 1, 1, 1, 1, 2, 2, 2);
+        .containsExactly(0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2);
     assertThat(recorded.get(2).getDescription()).isEqualTo("Pré-validação com 2 alertas.");
     assertThat(recorded.get(2).getDetail()).isEqualTo("Primeiro alerta.\nSegundo alerta.");
     assertThat(recorded.get(3).getDescription())
@@ -98,6 +114,9 @@ class ProjectEventServiceTest {
     assertThat(recorded.get(5).getDetail()).isEqualTo("ART substituída.");
     assertThat(recorded.get(6).getDescription()).isEqualTo("Versão 2 reenviada para análise.");
     assertThat(recorded.get(6).getDetail()).isEqualTo("ART e área corrigidas.");
+    assertThat(recorded.subList(8, 11))
+        .extracting(ProjectEvent::getDescription)
+        .containsExactly("Aprovado.", "Aprovado com 1 ressalva.", "Aprovado com 2 ressalvas.");
     assertThat(recorded.get(2).getAuthor()).isNull();
     assertThat(recorded.get(4).getAuthorRole()).isEqualTo(UserRole.ADMIN);
   }

@@ -52,6 +52,13 @@ public class ProjectService {
     return findings.stream().filter(finding -> OPEN_FINDINGS.contains(finding.getStatus())).count();
   }
 
+  /** Findings an approval leaves unresolved: adjustments the project carries as reservations. */
+  static long countReservations(List<Finding> findings) {
+    return findings.stream()
+        .filter(finding -> finding.getStatus() != FindingStatus.RESOLVED)
+        .count();
+  }
+
   private final ProjectRepository projectRepository;
   private final FindingRepository findingRepository;
   private final ConsumerUnitGroupRepository groupRepository;

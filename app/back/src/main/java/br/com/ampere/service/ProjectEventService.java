@@ -65,7 +65,14 @@ public class ProjectEventService {
       String opinion,
       OffsetDateTime occurredAt) {
     if (decision == ReviewDecision.APPROVE) {
-      record(project, ProjectEventType.APPROVED, author, "Aprovado.", opinion, occurredAt);
+      long reservations = ProjectService.countReservations(findings);
+      String description =
+          switch ((int) reservations) {
+            case 0 -> "Aprovado.";
+            case 1 -> "Aprovado com 1 ressalva.";
+            default -> "Aprovado com " + reservations + " ressalvas.";
+          };
+      record(project, ProjectEventType.APPROVED, author, description, opinion, occurredAt);
       return;
     }
 

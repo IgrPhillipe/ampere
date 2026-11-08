@@ -70,7 +70,7 @@ class NotificationServiceTest {
   void approvalNotifiesOnlyTheDesigner() {
     Project project = project(10L, designer, analyst);
 
-    service.approved(project, NOW);
+    service.approved(project, 0, NOW);
 
     assertThat(saved)
         .singleElement()
@@ -84,6 +84,20 @@ class NotificationServiceTest {
               assertThat(notification.isRead()).isFalse();
               assertThat(notification.getCreatedAt()).isEqualTo(NOW);
             });
+  }
+
+  @Test
+  void approvalTellsTheDesignerHowManyReservationsRemain() {
+    Project project = project(10L, designer, analyst);
+
+    service.approved(project, 2, NOW);
+    service.approved(project, 1, NOW);
+
+    assertThat(saved)
+        .extracting(Notification::getText)
+        .containsExactly(
+            "Projeto 2026-1004 aprovado com 2 ressalvas",
+            "Projeto 2026-1004 aprovado com 1 ressalva");
   }
 
   @Test
@@ -161,7 +175,7 @@ class NotificationServiceTest {
     Project withoutOwner = project(11L, null, analyst);
 
     service.resubmitted(withoutAnalyst, NOW);
-    service.approved(withoutOwner, NOW);
+    service.approved(withoutOwner, 0, NOW);
     service.rejected(withoutOwner, 2, NOW);
     service.findingsReopened(withoutOwner, 1, NOW);
 
