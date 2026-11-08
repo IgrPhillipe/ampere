@@ -128,6 +128,9 @@ Dados inseridos por **grupo de unidades**, que reúne unidades de mesma área. A
 | **Área útil (m²)**                  | Determina a demanda unitária pelo Quadro 35                | DIS-NOR-053, Anexo I, Quadro 35, p. 107 |
 | **Quantidade de unidades do grupo** | Multiplica a demanda unitária                              | DIS-NOR-053, Anexo I, itens 1.3 e 2     |
 | **Tipo de unidade** (Smart/Studio?) | Acima de 15 unidades, força o fator de coincidência de 90% | DIS-NOR-053, item 6.25.1                |
+| **Ligação da unidade**              | Monofásica ou trifásica, de cada apartamento               | DIS-NOR-030, itens 6.27 e 6.28.1        |
+| **Carga instalada por unidade**     | Monofásico: carga total declarada                          | DIS-NOR-030, item 6.28.1                |
+| **Cargas da unidade**               | Trifásico: cargas por parcela (a a i); a carga instalada é a soma | DIS-NOR-030, item 6.27           |
 
 Sequência aplicada, na ordem do Anexo I:
 
@@ -140,9 +143,23 @@ Drf = Dr × Fr
 Pontos que afetam a implementação:
 
 - **`Fc` é da edificação inteira, não do grupo** (Anexo I, item 3). O agrupamento por área útil serve apenas para obter a demanda unitária de cada tipo. O fator de coincidência vem do total de apartamentos residenciais do prédio.
+- **A ligação da unidade não é a da edificação.** Um prédio pode ter apartamentos monofásicos e trifásicos. A ligação do prédio (seção 2) continua definindo a entrada: corrente projetada e Tabelas 1 e 2.
 - **`Fr` é recomendado, não fixo** (Anexo I, item 5). O Quadro 37 traz o valor recomendado por faixa de `Dr`, e a norma admite fator maior "desde que apresentada uma justificativa". É saída derivada por padrão e **entrada opcional acompanhada de justificativa**, registrada no memorial.
 
 Para empreendimentos com **mais de uma torre ou bloco**, vale o Anexo I, item 9: as cargas são agrupadas antes dos fatores, e o fator de coincidência sai do somatório dos apartamentos alimentados pelo mesmo transformador ou quadro geral, não bloco a bloco.
+
+#### Demanda Individual do Apartamento (Dind)
+
+O item 6.22.3 da DIS-NOR-053 pede a demanda de cada apartamento pelo método da carga instalada, para definir a categoria de fornecimento da unidade. O motor a calcula na etapa `Dind`, depois de `Ded` e fora da soma da edificação.
+
+| Ligação     | Demanda individual                                                        | Fonte                    |
+| :---------- | :------------------------------------------------------------------------ | :----------------------- |
+| Monofásica  | A própria carga instalada (kW): a categoria sai da carga instalada         | DIS-NOR-030, item 6.28.1 |
+| Trifásica   | `D = a + b + … + i` sobre as cargas de uma unidade, motores pela Tabela 19 | DIS-NOR-030, item 6.27   |
+
+- O valor da etapa é a maior demanda individual entre os grupos; os detalhes trazem cada grupo e as parcelas do trifásico.
+- **Limite da baixa tensão:** unidade com carga instalada acima de **75 kW** não é atendida em tensão secundária (DIS-NOR-030, item 6.2.1). O grupo fica em Revisar e bloqueia o cálculo; a verificação `LOW_VOLTAGE_LIMIT` registra a maior carga por unidade.
+- A **DIS-NOR-030, Exemplo 3** (p. 52 a 55) chega a 25,90 kVA. O motor dá 26,58 kVA para as mesmas cargas: o exemplo põe o forno na parcela d, usa fator de potência 1,00 em d (o item 6.27.4 pede 0,92) e arredonda a e g para cima.
 
 ---
 
@@ -156,7 +173,7 @@ D = a + b + c + d + e + f + g + h + i   [kVA]
 
 | Parcela | Categoria de carga                                    | Fator de demanda                                               | Fator de potência                                                                           |
 | :------ | :---------------------------------------------------- | :------------------------------------------------------------- | :------------------------------------------------------------------------------------------ |
-| **a**   | Iluminação e tomadas                                  | Tabela 6 (residencial); Tabela 22 (demais ocupações)           | Tomadas 1,00; fluorescente, néon ou vapor de sódio 0,95; fluorescente compacta e LED 0,80   |
+| **a**   | Iluminação e tomadas                                  | Tabela 6 (residencial, sobre o total); Tabela 22 (demais ocupações) | Residencial trifásico 1,00 (6.27.1.1); demais: tomadas 1,00; fluorescente, néon ou vapor de sódio 0,95; fluorescente compacta e LED 0,80 |
 | **b**   | Chuveiros, torneiras, aquecedores de passagem, ferros | Tabela 7; 1,00 em vestiários                                   | 1,00                                                                                        |
 | **c**   | Aquecedor central ou de acumulação                    | Tabela 8                                                       | 1,00                                                                                        |
 | **d**   | Secadora, lava-roupas, lava-louças, micro-ondas       | Tabela 9                                                       | **0,92** ou conforme fabricante                                                             |
