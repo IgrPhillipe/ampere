@@ -1,8 +1,10 @@
 package br.com.ampere.service;
 
+import br.com.ampere.domain.ApprovalMemorial;
 import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DocumentType;
+import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectStatus;
@@ -11,6 +13,7 @@ import br.com.ampere.domain.ProjectVersionDocument;
 import br.com.ampere.domain.ProjectVersionMemorial;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
+import br.com.ampere.repository.ApprovalMemorialRepository;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
@@ -25,6 +28,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
@@ -33,6 +38,8 @@ import tools.jackson.databind.node.ObjectNode;
 
 @Service
 public class ProjectVersionService {
+
+  private static final Logger log = LoggerFactory.getLogger(ProjectVersionService.class);
 
   private static final String NOT_FOUND = "Versão não encontrada.";
 
@@ -45,6 +52,7 @@ public class ProjectVersionService {
   private final ProjectService projectService;
   private final MemorialPdfService memorialPdfService;
   private final ProjectVersionRepository versionRepository;
+  private final ApprovalMemorialRepository approvalMemorialRepository;
   private final ProjectVersionDocumentRepository versionDocumentRepository;
   private final ProjectDocumentRepository documentRepository;
   private final ConsumerUnitGroupRepository groupRepository;
@@ -56,6 +64,7 @@ public class ProjectVersionService {
       ProjectService projectService,
       MemorialPdfService memorialPdfService,
       ProjectVersionRepository versionRepository,
+      ApprovalMemorialRepository approvalMemorialRepository,
       ProjectVersionDocumentRepository versionDocumentRepository,
       ProjectDocumentRepository documentRepository,
       ConsumerUnitGroupRepository groupRepository,
@@ -65,6 +74,7 @@ public class ProjectVersionService {
     this.projectService = projectService;
     this.memorialPdfService = memorialPdfService;
     this.versionRepository = versionRepository;
+    this.approvalMemorialRepository = approvalMemorialRepository;
     this.versionDocumentRepository = versionDocumentRepository;
     this.documentRepository = documentRepository;
     this.groupRepository = groupRepository;
@@ -96,7 +106,7 @@ public class ProjectVersionService {
     int number = project.getReviewCycle();
     List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(project.getId());
     MemorialPdfService.Issued issued =
-        memorialPdfService.issue(project, calculation, groups, number, submittedAt);
+        memorialPdfService.issue(project, calculation, groups, number, submittedAt, List.of());
 
     ProjectVersion version =
         versionRepository.save(
@@ -116,6 +126,36 @@ public class ProjectVersionService {
     }
 
     return version;
+  }
+
+  /** Runs inside the approval: the reservations go in a new memorial, the submitted one stays. */
+  public void issueApprovalMemorial(
+      Project project, List<Finding> reservations, OffsetDateTime approvedAt) {
+    versionRepository
+        .findLatestByProjectId(project.getId())
+        .ifPresentOrElse(
+            version -> {
+              List<ConsumerUnitGroup> groups =
+                  groupRepository.findAllByProjectIdOrderById(project.getId());
+              MemorialPdfService.Issued issued =
+                  memorialPdfService.issue(
+                      project,
+                      version.getCalculation(),
+                      groups,
+                      version.getNumber(),
+                      version.getSubmittedAt(),
+                      reservations);
+              approvalMemorialRepository.save(
+                  new ApprovalMemorial(
+                      version,
+                      new ProjectVersionMemorial(issued.filename(), issued.content()),
+                      issued.sha256(),
+                      issued.verificationCode(),
+                      approvedAt));
+            },
+            () ->
+                log.warn(
+                    "Approval memorial not issued: project {} has no version", project.getId()));
   }
 
   @Transactional(readOnly = true)

@@ -12,31 +12,50 @@ export const isOpenBlockingFinding = (finding: Finding) =>
 const supportsRejection = (finding: Finding) =>
 	finding.status === "DRAFT" || finding.status === "OPEN";
 
+const awaitsAnalyst = (finding: Finding) =>
+	finding.status === "FIXED" || finding.status === "CONTESTED";
+
 export interface DecisionAvailability {
 	pendingCount: number;
 	blockingCount: number;
-	/** The only decision the findings allow; `null` while answers await the analyst. */
-	decision: ReviewDecision | null;
+	/** The decisions the findings allow; empty while answers await the analyst. */
+	decisions: ReviewDecision[];
+	/** Adjustments an approval leaves on the project as reservations. */
+	reservations: Finding[];
+	/** No decision is possible: answers await the analyst. */
 	blockedReason: string | null;
+	/** Only the rejection is possible: why the approval is not. */
+	approvalBlockedReason: string | null;
 }
 
-/** Same rules as the API: pending findings reject, a fully resolved set approves. */
+/** Same rules as the API: pending adjustments allow both decisions, a pending blocking one only rejects. */
 export const getDecisionAvailability = (
 	findings: Finding[],
 ): DecisionAvailability => {
-	const decision: ReviewDecision | null = findings.some(supportsRejection)
-		? "REJECT"
-		: findings.every((finding) => finding.status === "RESOLVED")
-			? "APPROVE"
-			: null;
+	const pending = findings.filter(supportsRejection);
+	const reservations = pending.filter(
+		(finding) => finding.severity === "ADJUSTMENT",
+	);
+	const decisions: ReviewDecision[] = findings.some(awaitsAnalyst)
+		? []
+		: pending.length === 0
+			? ["APPROVE"]
+			: reservations.length === pending.length
+				? ["APPROVE", "REJECT"]
+				: ["REJECT"];
 
 	return {
 		pendingCount: findings.filter(isPendingFinding).length,
 		blockingCount: findings.filter(isOpenBlockingFinding).length,
-		decision,
+		decisions,
+		reservations: decisions.includes("APPROVE") ? reservations : [],
 		blockedReason:
-			decision === null
+			decisions.length === 0
 				? "Aceite ou reabra os apontamentos respondidos para concluir a análise."
+				: null,
+		approvalBlockedReason:
+			decisions.length > 0 && !decisions.includes("APPROVE")
+				? "Resolva ou exclua os apontamentos bloqueantes para aprovar."
 				: null,
 	};
 };

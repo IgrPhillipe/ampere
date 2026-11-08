@@ -34,7 +34,8 @@ public class MemorialVerificationController {
   @Operation(
       operationId = "verifyMemorialByCode",
       summary =
-          "Confere o código do rodapé do memorial e devolve protocolo, versão e data do envio")
+          "Confere o código do rodapé do memorial e devolve protocolo, versão, data do envio e,"
+              + " no memorial da aprovação com ressalvas, a data da aprovação")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -51,7 +52,8 @@ public class MemorialVerificationController {
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @Operation(
       operationId = "verifyMemorialByFile",
-      summary = "Confere se o PDF é idêntico ao memorial emitido no envio")
+      summary =
+          "Confere se o PDF é idêntico ao memorial emitido no envio ou na aprovação com ressalvas")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",

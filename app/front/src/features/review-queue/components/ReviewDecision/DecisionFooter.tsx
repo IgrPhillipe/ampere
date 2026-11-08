@@ -20,10 +20,15 @@ export const DecisionFooter = ({
 	onDecide,
 	className,
 }: DecisionFooterProps) => {
-	const { decision, blockedReason } = availability;
+	const { decisions, blockedReason, approvalBlockedReason } = availability;
 	if (!closedMessage && !canDecide) return null;
 
-	const reason = closedMessage ? null : blockedReason;
+	// Both decisions stay visible, as in the Figma; the reason tells why one is off.
+	const reason = closedMessage
+		? null
+		: decisions.length === 0
+			? blockedReason
+			: approvalBlockedReason;
 
 	return (
 		<ProjectDetailFooter
@@ -47,14 +52,14 @@ export const DecisionFooter = ({
 					<Button
 						type="button"
 						variant="outline"
-						disabled={decision !== "REJECT"}
+						disabled={!decisions.includes("REJECT")}
 						onClick={() => onDecide("REJECT")}
 					>
 						Reprovar com Apontamentos
 					</Button>
 					<Button
 						type="button"
-						disabled={decision !== "APPROVE"}
+						disabled={!decisions.includes("APPROVE")}
 						onClick={() => onDecide("APPROVE")}
 					>
 						Aprovar Projeto

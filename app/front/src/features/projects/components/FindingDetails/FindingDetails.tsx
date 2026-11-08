@@ -49,6 +49,8 @@ interface FindingSummaryProps {
 	/** A draft has no submission yet. */
 	showVersion?: boolean;
 	descriptionId?: string;
+	/** An adjustment the approval left unresolved. */
+	reservation?: boolean;
 	/** `dialog` leaves the item to the dialog header; `inline` shows it and boxes the squares. */
 	variant?: "dialog" | "inline";
 }
@@ -59,6 +61,7 @@ export const FindingSummary = ({
 	reference,
 	showVersion = true,
 	descriptionId,
+	reservation = false,
 	variant = "dialog",
 }: FindingSummaryProps) => {
 	const cells = [
@@ -93,7 +96,7 @@ export const FindingSummary = ({
 					{findingSeverityLabels[finding.severity]}
 				</Badge>
 				<Badge variant={findingStatusBadgeVariants[finding.status]}>
-					{findingStatusLabelOf(finding)}
+					{findingStatusLabelOf(finding, { reservation })}
 				</Badge>
 			</div>
 
@@ -194,6 +197,8 @@ interface FindingRowProps {
 	index?: number;
 	/** A draft has no submission yet. */
 	showVersion?: boolean;
+	/** An adjustment the approval left unresolved. */
+	reservation?: boolean;
 	isSelected?: boolean;
 	onOpen: (finding: Finding) => void;
 	/** Text links under the finding, outside the button that opens it. */
@@ -206,6 +211,7 @@ export const FindingRow = ({
 	reference,
 	index,
 	showVersion = true,
+	reservation = false,
 	isSelected = false,
 	onOpen,
 	actions,
@@ -233,7 +239,9 @@ export const FindingRow = ({
 						<Badge variant={findingSeverityBadgeVariants[finding.severity]}>
 							{findingSeverityLabels[finding.severity]}
 						</Badge>
-						<Badge variant="neutral">{findingStatusLabelOf(finding)}</Badge>
+						<Badge variant="neutral">
+							{findingStatusLabelOf(finding, { reservation })}
+						</Badge>
 					</span>
 					{showVersion ? (
 						<span className="shrink-0 font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">

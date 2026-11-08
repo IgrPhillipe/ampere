@@ -4,6 +4,7 @@ import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.User;
+import br.com.ampere.repository.ApprovalMemorialRepository;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
@@ -61,6 +62,7 @@ public class DemoScenarioSeeder {
   private final ProjectEventRepository eventRepository;
   private final ProjectVersionRepository versionRepository;
   private final ProjectVersionDocumentRepository versionDocumentRepository;
+  private final ApprovalMemorialRepository approvalMemorialRepository;
   private final StandardRepository standardRepository;
   private final NormativeTableRepository normativeTableRepository;
   private final UserRepository userRepository;
@@ -83,6 +85,7 @@ public class DemoScenarioSeeder {
       ProjectEventRepository eventRepository,
       ProjectVersionRepository versionRepository,
       ProjectVersionDocumentRepository versionDocumentRepository,
+      ApprovalMemorialRepository approvalMemorialRepository,
       StandardRepository standardRepository,
       NormativeTableRepository normativeTableRepository,
       UserRepository userRepository,
@@ -103,6 +106,7 @@ public class DemoScenarioSeeder {
     this.eventRepository = eventRepository;
     this.versionRepository = versionRepository;
     this.versionDocumentRepository = versionDocumentRepository;
+    this.approvalMemorialRepository = approvalMemorialRepository;
     this.standardRepository = standardRepository;
     this.normativeTableRepository = normativeTableRepository;
     this.userRepository = userRepository;
@@ -280,6 +284,7 @@ public class DemoScenarioSeeder {
   private void delete(Project project) {
     Long id = project.getId();
     versionRepository.allowCleanup();
+    approvalMemorialRepository.deleteAllByVersionProjectId(id);
     versionDocumentRepository.deleteAllByVersionProjectId(id);
     versionRepository.deleteAllByProjectId(id);
     calculationRepository.deleteAllByProjectId(id);

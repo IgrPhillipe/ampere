@@ -5,6 +5,7 @@ import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
+import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.FindingRepository;
@@ -66,7 +67,10 @@ public class ProjectHistoryService {
                         || event.getType() == ProjectEventType.APPROVED)
             .count(),
         findingRepository.countByProjectIdAndStatusIn(projectId, List.of(FindingStatus.RESOLVED)),
-        findingRepository.countByProjectIdAndStatusIn(projectId, ProjectService.OPEN_FINDINGS),
+        project.getStatus() == ProjectStatus.APPROVED
+            ? 0
+            : findingRepository.countByProjectIdAndStatusIn(
+                projectId, ProjectService.OPEN_FINDINGS),
         redoneCalculationSteps(project, firstSubmission));
   }
 

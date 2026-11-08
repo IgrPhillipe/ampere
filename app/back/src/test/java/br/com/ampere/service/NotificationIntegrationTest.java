@@ -251,7 +251,7 @@ class NotificationIntegrationTest {
 
   @Test
   void aUserNeitherReadsNorSeesSomebodyElsesNotification() throws Exception {
-    notificationService.approved(project, Timestamps.now());
+    notificationService.approved(project, 0, Timestamps.now());
     Long id = notificationRepository.findAll().getFirst().getId();
 
     mockMvc

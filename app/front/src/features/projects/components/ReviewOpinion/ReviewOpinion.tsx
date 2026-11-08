@@ -1,6 +1,10 @@
-import { formatDate } from "@features/shared";
+import { formatDate, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
+import type { Finding } from "@services/project-review";
 import type { ProjectDetail } from "@services/projects";
+
+import type { FindingReferenceOptions } from "../../constants";
+import { ReservationList } from "../ReservationList";
 
 const opinionTitles = {
 	REJECTED: "Parecer da Reprovação",
@@ -16,12 +20,23 @@ interface ReviewOpinionProps {
 		ProjectDetail,
 		"status" | "reviewOpinion" | "reviewerName" | "reviewedAt"
 	>;
+	/** Adjustments left unresolved by the approval. */
+	reservations?: Finding[];
+	referenceOptions: FindingReferenceOptions;
 	className?: string;
 }
 
 /** The analyst's decision, once there is one: ink text on a 2px ink bar. */
-export const ReviewOpinion = ({ project, className }: ReviewOpinionProps) => {
+export const ReviewOpinion = ({
+	project,
+	reservations = [],
+	referenceOptions,
+	className,
+}: ReviewOpinionProps) => {
 	if (!hasOpinion(project.status)) return null;
+
+	const showReservations =
+		project.status === "APPROVED" && reservations.length > 0;
 
 	return (
 		<section
@@ -40,6 +55,30 @@ export const ReviewOpinion = ({ project, className }: ReviewOpinionProps) => {
 			<p className="max-w-3xl text-base leading-relaxed whitespace-pre-line text-foreground">
 				{project.reviewOpinion || "O analista não registrou um parecer geral."}
 			</p>
+			{showReservations ? (
+				<div
+					aria-labelledby="review-reservations-title"
+					role="group"
+					className="flex flex-col gap-2 border-t border-border pt-4"
+				>
+					<h3
+						id="review-reservations-title"
+						className="flex items-baseline gap-2 text-base font-medium text-foreground"
+					>
+						Ressalvas
+						<span className="font-mono text-sm font-semibold">
+							{padCount(reservations.length)}
+						</span>
+					</h3>
+					<p className="text-sm text-muted-foreground">
+						Ajustes que o projeto aprovado mantém, sem nova análise.
+					</p>
+					<ReservationList
+						reservations={reservations}
+						referenceOptions={referenceOptions}
+					/>
+				</div>
+			) : null}
 			<p className="text-sm text-faint-foreground">
 				Decidido por{" "}
 				<span className="text-muted-foreground">

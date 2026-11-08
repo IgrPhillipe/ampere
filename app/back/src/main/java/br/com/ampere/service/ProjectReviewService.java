@@ -21,16 +21,19 @@ public class ProjectReviewService {
   private final FindingRepository findingRepository;
   private final ProjectEventService eventService;
   private final NotificationService notificationService;
+  private final ProjectVersionService versionService;
 
   public ProjectReviewService(
       ProjectService projectService,
       FindingRepository findingRepository,
       ProjectEventService eventService,
-      NotificationService notificationService) {
+      NotificationService notificationService,
+      ProjectVersionService versionService) {
     this.projectService = projectService;
     this.findingRepository = findingRepository;
     this.eventService = eventService;
     this.notificationService = notificationService;
+    this.versionService = versionService;
   }
 
   /** Only the analyst assigned by the manager or by the distribution opens the review. */
@@ -56,10 +59,15 @@ public class ProjectReviewService {
     Project project = assignedProject(projectId, user);
     List<Finding> findings =
         findingRepository.findAllByProjectIdOrderByCreatedAtAscIdAsc(projectId);
-    // One decision at a time: a pending finding asks for a rejection, a resolved set for approval.
-    if (decision == ReviewDecision.APPROVE && !findings.stream().allMatch(Finding::isResolved)) {
+    if (findings.stream().anyMatch(Finding::awaitsAnalyst)) {
       throw new BusinessException(
-          "Para aprovar, todos os apontamentos precisam estar resolvidos.",
+          "Aceite ou reabra os apontamentos respondidos para concluir a análise.",
+          HttpStatus.UNPROCESSABLE_CONTENT);
+    }
+    // Pending adjustments do not hold the approval back: they stay on the project as reservations.
+    if (decision == ReviewDecision.APPROVE && findings.stream().anyMatch(Finding::blocksApproval)) {
+      throw new BusinessException(
+          "Resolva ou exclua os apontamentos bloqueantes para aprovar.",
           HttpStatus.UNPROCESSABLE_CONTENT);
     }
     if (decision == ReviewDecision.REJECT && findings.stream().noneMatch(Finding::isPending)) {
@@ -71,11 +79,19 @@ public class ProjectReviewService {
     OffsetDateTime reviewedAt = Timestamps.now();
     if (decision == ReviewDecision.APPROVE) {
       project.approve(reviewedAt, opinion);
+      List<Finding> reservations =
+          findings.stream().filter(finding -> !finding.isResolved()).toList();
+      if (!reservations.isEmpty()) {
+        versionService.issueApprovalMemorial(project, reservations, reviewedAt);
+      }
+      eventService.approved(
+          project, project.getReviewer(), reservations.size(), opinion, reviewedAt);
+      notificationService.approved(project, reservations.size(), reviewedAt);
     } else {
       project.reject(reviewedAt, opinion);
+      eventService.rejected(project, project.getReviewer(), findings, opinion, reviewedAt);
+      notificationService.rejected(project, findings, reviewedAt);
     }
-    eventService.decided(project, decision, project.getReviewer(), findings, opinion, reviewedAt);
-    notificationService.decided(project, decision, findings, reviewedAt);
 
     return project;
   }

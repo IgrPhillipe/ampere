@@ -28,6 +28,7 @@ import {
 import {
 	buildFindingReferenceOptions,
 	findingTarget,
+	isReservation,
 	projectVersion,
 	sectionPath,
 	stageSections,
@@ -66,6 +67,11 @@ export const ProjectOverviewPage = ({
 		steps: calculation?.steps ?? [],
 		checklistItems: checklist?.items ?? [],
 	});
+
+	const reservations =
+		project && findings
+			? findings.filter((finding) => isReservation(finding, project))
+			: [];
 
 	const openSection = (finding: Finding) =>
 		void navigate({
@@ -153,7 +159,13 @@ export const ProjectOverviewPage = ({
 			)}
 		>
 			<div className="@container flex min-w-0 flex-col gap-9.5 px-6 py-8 md:px-10">
-				{project ? <ReviewOpinion project={project} /> : null}
+				{project ? (
+					<ReviewOpinion
+						project={project}
+						reservations={reservations}
+						referenceOptions={referenceOptions}
+					/>
+				) : null}
 
 				<ProjectSummary
 					projectId={projectId}

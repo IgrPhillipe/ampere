@@ -17,7 +17,11 @@ public class ProjectVersionGuard {
   private static final Logger log = LoggerFactory.getLogger(ProjectVersionGuard.class);
 
   private static final List<String> TABLES =
-      List.of("project_version", "project_version_document", "project_version_memorial");
+      List.of(
+          "project_version",
+          "project_version_document",
+          "project_version_memorial",
+          "approval_memorial");
 
   private static final String REFUSE_CHANGE =
       """

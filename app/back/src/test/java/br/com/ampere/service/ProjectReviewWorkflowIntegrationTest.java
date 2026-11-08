@@ -202,7 +202,7 @@ class ProjectReviewWorkflowIntegrationTest {
   }
 
   @Test
-  void approvesOnlyWhenEveryFindingIsResolved() throws Exception {
+  void approvesWithAPendingAdjustmentAsAReservation() throws Exception {
     Project approvable = submittedProject("2026-7002", owner);
     assignTo(approvable, analyst);
     open(approvable, analyst).andExpect(status().isOk());
@@ -210,18 +210,59 @@ class ProjectReviewWorkflowIntegrationTest {
     createFinding(approvable, analyst, adjustment).andExpect(status().isCreated());
 
     decide(approvable, analyst, "APPROVE", "Projeto em conformidade.")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.status").value("APPROVED"));
+
+    assertThat(findingRepository.findAll())
+        .singleElement()
+        .extracting("status")
+        .isEqualTo(FindingStatus.OPEN);
+    Long findingId = findingRepository.findAll().getFirst().getId();
+    respond(approvable, findingId, owner, "{\"status\":\"FIXED\"}")
+        .andExpect(status().isConflict());
+  }
+
+  @Test
+  void refusesTheApprovalWithAnOpenBlockingFinding() throws Exception {
+    open(project, analyst).andExpect(status().isOk());
+    createFinding(project, analyst, FINDING_BODY.replace("BLOCKING", "ADJUSTMENT"))
+        .andExpect(status().isCreated());
+    createFinding(project, analyst, FINDING_BODY).andExpect(status().isCreated());
+
+    decide(project, analyst, "APPROVE", "Projeto em conformidade.")
         .andExpect(status().isUnprocessableContent())
         .andExpect(
             jsonPath("$.detail")
-                .value("Para aprovar, todos os apontamentos precisam estar resolvidos."));
+                .value("Resolva ou exclua os apontamentos bloqueantes para aprovar."));
+    assertThat(findingRepository.findAll()).extracting("status").containsOnly(FindingStatus.DRAFT);
+  }
 
+  @Test
+  void refusesAnyDecisionWhileAnAnswerAwaitsTheAnalyst() throws Exception {
+    open(project, analyst).andExpect(status().isOk());
+    createFinding(project, analyst, FINDING_BODY.replace("BLOCKING", "ADJUSTMENT"))
+        .andExpect(status().isCreated());
+    decide(project, analyst, "REJECT", "Revisar a planta.").andExpect(status().isOk());
     Long findingId = findingRepository.findAll().getFirst().getId();
-    mockMvc
-        .perform(
-            delete("/projects/{projectId}/findings/{findingId}", approvable.getId(), findingId)
-                .header(HttpHeaders.AUTHORIZATION, bearer(analyst)))
-        .andExpect(status().isNoContent());
-    decide(approvable, analyst, "APPROVE", "Projeto em conformidade.")
+    respond(project, findingId, owner, "{\"status\":\"FIXED\"}").andExpect(status().isOk());
+    project.submit(OffsetDateTime.now(ZoneOffset.UTC));
+    projectRepository.flush();
+
+    decide(project, analyst, "APPROVE", "Projeto em conformidade.")
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Aceite ou reabra os apontamentos respondidos para concluir a análise."));
+    // A draft of this cycle would allow the rejection: only the pending answer refuses it.
+    createFinding(project, analyst, FINDING_BODY.replace("BLOCKING", "ADJUSTMENT"))
+        .andExpect(status().isCreated());
+    decide(project, analyst, "REJECT", "Ainda falta corrigir.")
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Aceite ou reabra os apontamentos respondidos para concluir a análise."));
+    resolve(project, findingId, analyst, "ACCEPT").andExpect(status().isOk());
+    decide(project, analyst, "APPROVE", "Projeto em conformidade.")
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.status").value("APPROVED"));
   }

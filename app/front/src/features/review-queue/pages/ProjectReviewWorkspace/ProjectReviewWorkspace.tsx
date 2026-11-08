@@ -208,6 +208,7 @@ export const ProjectReviewWorkspace = ({
 					isLoading={findingsQuery.isPending}
 					editable={actions.createFindings}
 					underReview={isUnderReview}
+					project={project}
 					editor={editor}
 					currentStage={sectionStage(section)}
 					autoFocusForm={findingEditor.autoFocus}
@@ -252,6 +253,8 @@ export const ProjectReviewWorkspace = ({
 			<DecisionDialog
 				decision={decision}
 				pendingCount={availability.pendingCount}
+				reservations={availability.reservations}
+				referenceOptions={referenceOptions}
 				isPending={decideMutation.isPending}
 				onOpenChange={(open) => {
 					if (!open) setDecision(null);
