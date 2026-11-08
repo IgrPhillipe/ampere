@@ -8,8 +8,12 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@components/ui/dialog";
+import {
+	type FindingReferenceOptions,
+	ReservationList,
+} from "@features/projects";
 import { padCount, useZodForm } from "@features/shared";
-import type { ReviewDecision } from "@services/project-review";
+import type { Finding, ReviewDecision } from "@services/project-review";
 
 import { type DecisionFormValues, decisionFormSchema } from "../../schemas";
 
@@ -31,6 +35,9 @@ const copy = {
 interface DecisionDialogProps {
 	decision: ReviewDecision | null;
 	pendingCount: number;
+	/** Adjustments the approval keeps as reservations. */
+	reservations: Finding[];
+	referenceOptions: FindingReferenceOptions;
 	isPending: boolean;
 	onOpenChange: (open: boolean) => void;
 	onConfirm: (decision: ReviewDecision, opinion: string) => void;
@@ -39,6 +46,8 @@ interface DecisionDialogProps {
 export const DecisionDialog = ({
 	decision,
 	pendingCount,
+	reservations,
+	referenceOptions,
 	isPending,
 	onOpenChange,
 	onConfirm,
@@ -55,6 +64,8 @@ export const DecisionDialog = ({
 					key={decision}
 					decision={decision}
 					pendingCount={pendingCount}
+					reservations={reservations}
+					referenceOptions={referenceOptions}
 					isPending={isPending}
 					onCancel={() => onOpenChange(false)}
 					onConfirm={onConfirm}
@@ -67,6 +78,8 @@ export const DecisionDialog = ({
 interface DecisionFormProps {
 	decision: ReviewDecision;
 	pendingCount: number;
+	reservations: Finding[];
+	referenceOptions: FindingReferenceOptions;
 	isPending: boolean;
 	onCancel: () => void;
 	onConfirm: (decision: ReviewDecision, opinion: string) => void;
@@ -75,6 +88,8 @@ interface DecisionFormProps {
 const DecisionForm = ({
 	decision,
 	pendingCount,
+	reservations,
+	referenceOptions,
 	isPending,
 	onCancel,
 	onConfirm,
@@ -82,9 +97,16 @@ const DecisionForm = ({
 	const form = useZodForm(decisionFormSchema, { opinion: "" });
 	const text = copy[decision];
 
+	const withReservations = decision === "APPROVE" && reservations.length > 0;
 	const description =
 		decision === "APPROVE"
-			? "O status passa a Aprovado e o parecer fica registrado na análise."
+			? withReservations
+				? `O status passa a Aprovado com ${padCount(reservations.length)} ${
+						reservations.length === 1
+							? "ressalva, registrada"
+							: "ressalvas, registradas"
+					} no parecer e no memorial. O projetista não responde ressalvas.`
+				: "O status passa a Aprovado e o parecer fica registrado na análise."
 			: `O status passa a Reprovado com ${padCount(pendingCount)} ${
 					pendingCount === 1 ? "pendência" : "pendências"
 				}, e o projetista recebe os apontamentos nas etapas indicadas.`;
@@ -102,6 +124,18 @@ const DecisionForm = ({
 				<DialogTitle className="font-heading text-xl">{text.title}</DialogTitle>
 				<DialogDescription>{description}</DialogDescription>
 			</DialogHeader>
+
+			{withReservations ? (
+				<section
+					aria-label="Ressalvas"
+					className="max-h-60 overflow-y-auto rounded-xs border border-border px-4"
+				>
+					<ReservationList
+						reservations={reservations}
+						referenceOptions={referenceOptions}
+					/>
+				</section>
+			) : null}
 
 			<ControlledTextarea
 				control={form.control}

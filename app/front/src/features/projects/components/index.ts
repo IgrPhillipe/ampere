@@ -23,6 +23,7 @@ export * from "./ProjectSummary";
 export * from "./ProjectsTable";
 export * from "./ProjectTimeline";
 export * from "./ProjectWorkspace";
+export * from "./ReservationList";
 export * from "./ResubmissionPanel";
 export * from "./ReviewOpinion";
 export * from "./ReworkPanel";

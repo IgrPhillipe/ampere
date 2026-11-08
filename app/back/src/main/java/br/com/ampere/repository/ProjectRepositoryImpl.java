@@ -198,8 +198,10 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
     };
   }
 
+  /** An approved project carries its open adjustments as reservations, not as open findings. */
   private static String openFindings(String condition) {
     return "(SELECT finding.id FROM Finding finding WHERE finding.project = project"
+        + " AND project.status <> br.com.ampere.domain.ProjectStatus.APPROVED"
         + " AND finding.status = br.com.ampere.domain.FindingStatus.OPEN"
         + condition
         + ")";

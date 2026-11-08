@@ -52,6 +52,11 @@ public class ProjectService {
     return findings.stream().filter(finding -> OPEN_FINDINGS.contains(finding.getStatus())).count();
   }
 
+  /** "1 ressalva" or "N ressalvas", as the event and the notification write it. */
+  static String reservationsLabel(long count) {
+    return count + (count == 1 ? " ressalva" : " ressalvas");
+  }
+
   private final ProjectRepository projectRepository;
   private final FindingRepository findingRepository;
   private final ConsumerUnitGroupRepository groupRepository;

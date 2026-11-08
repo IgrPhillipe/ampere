@@ -241,7 +241,9 @@ Toda atribuição grava um evento `ASSIGNED`, com o gestor como autor ou sem aut
 
 `POST /decision` recebe `{"decision": "APPROVE" | "REJECT", "opinion": "..."}`, com parecer obrigatório de até 2.000 caracteres.
 
-- `APPROVE` responde 422 se houver apontamento `BLOCKING` não resolvido.
+- Qualquer decisão responde 422 enquanto houver resposta do projetista (`FIXED` ou `CONTESTED`) a avaliar: o analista aceita ou reabre antes.
+- `APPROVE` responde 422 se houver apontamento `BLOCKING` em `DRAFT` ou `OPEN`.
+- Ajuste não resolvido em projeto aprovado é ressalva: fica `OPEN`, sem status próprio, e o projetista não responde. O evento `APPROVED` e a notificação trazem o número de ressalvas.
 - `REJECT` responde 422 se não houver apontamento pendente: rascunho do ciclo atual ou apontamento reaberto.
 - A decisão grava `reviewedAt` e o parecer, e publica os rascunhos como `OPEN`.
 - A contagem de pendências da listagem do projetista ignora rascunhos e projetos aprovados.
@@ -283,11 +285,12 @@ Cada envio grava uma versão imutável (`ProjectVersion`): número (o ciclo de a
 | `GET /api/memorial-verifications/{code}` | Público | Confere o código do rodapé |
 | `POST /api/memorial-verifications` | Público | Recebe o PDF (`multipart`, campo `file`) e confere se é idêntico ao emitido |
 
-- O `ProjectVersionGuard` instala, na inicialização, gatilhos que recusam `UPDATE` e `DELETE` nas três tabelas de versão, inclusive por SQL direto. Só o reset dos cenários passa, com `ampere.version_cleanup` ligado na própria transação. Quem tem acesso de dono ao banco ainda pode remover os gatilhos.
+- Aprovação com ressalvas emite um segundo memorial da versão (`ApprovalMemorial`), com a seção "Ressalvas" (data da aprovação, analista e ajustes), SHA-256 e código próprios. É a única renderização depois do envio: o PDF é refeito na aprovação com o código de renderização vigente, a partir do cálculo da versão e dos grupos do projeto, congelados desde o envio, e fica gravado como o do envio. O memorial do envio continua em `/versions/{number}/memorial`; `/memorial` do projeto aprovado devolve o da aprovação, e a verificação confirma os dois.
+- O `ProjectVersionGuard` instala, na inicialização, gatilhos que recusam `UPDATE` e `DELETE` nas tabelas de versão e na `approval_memorial`, inclusive por SQL direto. Só o reset dos cenários passa, com `ampere.version_cleanup` ligado na própria transação. Quem tem acesso de dono ao banco ainda pode remover os gatilhos.
 - Regerar mudaria os bytes (o PDF leva a data de criação) e quebraria a verificação, por isso o PDF de uma versão só é lido, nunca refeito.
 - O rodapé traz protocolo, versão, data do envio e o código de verificação. Os metadados do arquivo trazem título, projetista, protocolo, versão e normas aplicadas.
 - O SHA-256 do arquivo fica na versão. O código (`XXXX-XXXX-XXXX-XXXX`) vem do SHA-256 de uma primeira renderização sem ele, pois o código impresso não pode entrar no próprio hash.
-- A verificação responde `200` com `verified` verdadeiro e protocolo, versão e data do envio, ou `verified` falso e nada mais. Um arquivo com qualquer byte alterado não confirma, e isso inclui o PDF salvo de novo por um leitor ou por "imprimir como PDF".
+- A verificação responde `200` com `verified` verdadeiro e protocolo, versão e data do envio, mais `approvedAt` no memorial da aprovação com ressalvas (nulo no do envio), ou `verified` falso e nada mais. Um arquivo com qualquer byte alterado não confirma, e isso inclui o PDF salvo de novo por um leitor ou por "imprimir como PDF".
 - O `POST` aceita 20 envios por minuto por endereço. Acima disso, responde `429` com `Retry-After`. O contador fica em memória, por instância.
 - Pelo código, `verified` confirma a versão, não o arquivo em mãos: um PDF alterado mantém o código impresso. Só o envio do arquivo atesta a integridade.
 - Cada alteração da comparação traz `field`, com o caminho (`quantity`, `items[MOTORS:Elevador].power`, pois cada item é identificado pela categoria e pela descrição, e renomear um item conta como troca), `label` em português, os valores crus em `from` e `to` e os valores de tela em `fromLabel` e `toLabel`.

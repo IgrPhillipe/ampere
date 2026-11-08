@@ -4,12 +4,10 @@ import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.CalculationCheck;
 import br.com.ampere.domain.CheckStatus;
 import br.com.ampere.domain.Finding;
-import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
-import br.com.ampere.domain.ReviewDecision;
 import br.com.ampere.domain.User;
 import br.com.ampere.repository.ProjectEventRepository;
 import java.time.OffsetDateTime;
@@ -57,18 +55,21 @@ public class ProjectEventService {
     record(project, ProjectEventType.ASSIGNED, author, description, null, occurredAt);
   }
 
-  public void decided(
+  public void approved(
+      Project project, User author, long reservations, String opinion, OffsetDateTime occurredAt) {
+    String description =
+        reservations == 0
+            ? "Aprovado."
+            : "Aprovado com " + ProjectService.reservationsLabel(reservations) + ".";
+    record(project, ProjectEventType.APPROVED, author, description, opinion, occurredAt);
+  }
+
+  public void rejected(
       Project project,
-      ReviewDecision decision,
       User author,
       List<Finding> findings,
       String opinion,
       OffsetDateTime occurredAt) {
-    if (decision == ReviewDecision.APPROVE) {
-      record(project, ProjectEventType.APPROVED, author, "Aprovado.", opinion, occurredAt);
-      return;
-    }
-
     long count = ProjectService.countOpen(findings);
     String noun = count == 1 ? " apontamento." : " apontamentos.";
     record(
@@ -83,7 +84,7 @@ public class ProjectEventService {
   public void findingAnswered(
       Project project, User author, Finding finding, OffsetDateTime occurredAt) {
     String action = finding.getStatus() == FindingStatus.FIXED ? "corrigido" : "contestado";
-    String description = "Apontamento de " + stageLabel(finding.getStage()) + " " + action + ".";
+    String description = "Apontamento de " + finding.getStage().label() + " " + action + ".";
     record(
         project,
         ProjectEventType.FINDING_ANSWERED,
@@ -91,15 +92,6 @@ public class ProjectEventService {
         description,
         finding.getResponse(),
         occurredAt);
-  }
-
-  private static String stageLabel(FindingStage stage) {
-    return switch (stage) {
-      case PROJECT_DATA -> "Dados da Edificação";
-      case CONSUMER_UNITS -> "Unidades Consumidoras";
-      case CALCULATION -> "Cálculo de Demanda";
-      case DOCUMENTS -> "Documentos";
-    };
   }
 
   private void preValidated(Project project, Calculation calculation, OffsetDateTime occurredAt) {
