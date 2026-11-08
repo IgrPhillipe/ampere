@@ -20,7 +20,7 @@ export const formatQueueItemOrigin = ({
 }: ReviewQueueItem) =>
 	[formatPlace(municipality, state), ownerName].filter(Boolean).join(", ");
 
-/** What the analyst must know about the row, worst problem first. */
+/** Only a deadline that is due or gone asks for action; the alerts have their own column. */
 export const getQueueItemAttention = (
 	item: ReviewQueueItem,
 ): AttentionMessage | null => {
@@ -41,15 +41,6 @@ export const getQueueItemAttention = (
 			title: "Prazo vence hoje",
 			details: [`Enviado em ${formatDate(item.submittedAt)}`, ...warnings],
 			action: "Conclua a análise ainda hoje.",
-		};
-	}
-
-	if (warnings.length > 0) {
-		return {
-			severity: "warning",
-			title: warnings[0],
-			details: [`Prazo até ${formatDate(item.deadline)}`],
-			action: "Confira os alertas durante a análise.",
 		};
 	}
 

@@ -43,7 +43,7 @@ export const TemporaryPasswordDialog = ({
 		<Dialog open={access !== null}>
 			<DialogContent className="bg-card sm:max-w-md" showCloseButton={false}>
 				<DialogHeader>
-					<DialogTitle className="font-heading text-xl">
+					<DialogTitle className="text-lg font-medium">
 						Senha Temporária
 					</DialogTitle>
 
@@ -54,10 +54,10 @@ export const TemporaryPasswordDialog = ({
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="flex items-center justify-between gap-3 rounded-md border border-border bg-surface-hover px-4 py-3">
+				<div className="flex items-center justify-between gap-3 border-l-2 border-l-attention bg-muted px-4 py-3">
 					<p className="min-w-0">
 						<span className="sr-only">Senha temporária: </span>
-						<code className="font-mono text-lg font-semibold tracking-wide break-all text-foreground select-all">
+						<code className="font-mono text-lg font-medium tracking-wide break-all text-foreground select-all">
 							{shownAccess?.temporaryPassword}
 						</code>
 					</p>

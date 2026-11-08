@@ -1,9 +1,9 @@
-import { attentionSeverityClassNames } from "@components/AttentionIndicator";
 import { ControlledTextarea } from "@components/form";
+import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
-import { useZodForm } from "@features/shared";
+import { padCount, useZodForm } from "@features/shared";
 import { cn } from "@lib/utils";
-import { RotateCcw, TriangleAlert } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { type ResubmissionValues, resubmissionSchema } from "../../schemas";
 
@@ -13,6 +13,7 @@ interface ResubmissionPanelProps {
 	canSubmit: boolean;
 	isPending: boolean;
 	onSubmit: (values: ResubmissionValues) => void;
+	className?: string;
 }
 
 const blockingMessage = (count: number) =>
@@ -26,6 +27,7 @@ export const ResubmissionPanel = ({
 	canSubmit,
 	isPending,
 	onSubmit,
+	className,
 }: ResubmissionPanelProps) => {
 	const form = useZodForm(resubmissionSchema, { changeSummary: "" });
 	const alert =
@@ -39,34 +41,19 @@ export const ResubmissionPanel = ({
 		<form
 			noValidate
 			aria-labelledby="resubmission-title"
-			className="border-t border-border p-5"
+			className={cn("flex flex-col gap-5", className)}
 			onSubmit={form.handleSubmit(onSubmit)}
 		>
-			<div className="flex items-center gap-2">
-				<RotateCcw aria-hidden="true" className="size-4 text-primary" />
-				<h2 id="resubmission-title" className="text-base font-semibold">
-					Reenviar Projeto
-				</h2>
-			</div>
-			<p className="mt-2 text-sm text-muted-foreground">
-				O projeto volta à análise como Versão {nextVersion}.
+			<SectionHeading
+				id="resubmission-title"
+				meta={`v${padCount(nextVersion)}`}
+			>
+				Reenviar Projeto
+			</SectionHeading>
+			<p className="text-sm text-muted-foreground">
+				O projeto volta à análise como Versão {nextVersion}, com o mesmo
+				protocolo.
 			</p>
-
-			{alert ? (
-				<p
-					role="status"
-					className={cn(
-						"mt-4 flex gap-2 rounded-xs p-3 text-sm",
-						attentionSeverityClassNames.critical,
-					)}
-				>
-					<TriangleAlert
-						aria-hidden="true"
-						className="mt-0.5 size-4 shrink-0"
-					/>
-					{alert}
-				</p>
-			) : null}
 
 			<ControlledTextarea
 				control={form.control}
@@ -76,15 +63,25 @@ export const ResubmissionPanel = ({
 				placeholder="Ex.: Substituí a ART assinada e corrigi a área do apartamento tipo B."
 				maxLength={2000}
 				required
-				fieldClassName="mt-5"
 			/>
+
+			{alert ? (
+				<p role="status" className="flex gap-2.5 text-sm text-foreground">
+					<span
+						aria-hidden="true"
+						className="mt-1.5 size-1.5 shrink-0 rounded-full bg-attention"
+					/>
+					{alert}
+				</p>
+			) : null}
 
 			<Button
 				type="submit"
-				className="mt-5 w-full"
+				className="w-full"
 				disabled={!canSubmit || isPending}
 			>
 				{isPending ? "Reenviando..." : "Reenviar Projeto"}
+				<ArrowRight aria-hidden="true" />
 			</Button>
 		</form>
 	);

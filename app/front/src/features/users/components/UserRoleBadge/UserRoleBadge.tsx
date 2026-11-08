@@ -1,7 +1,8 @@
 import { Badge } from "@components/ui/badge";
 import type { UserRole } from "@features/shared";
+import { cn } from "@lib/utils";
 
-import { userRoleBadgeVariants, userRoleLabels } from "../../constants";
+import { userRoleLabels } from "../../constants";
 
 interface UserRoleBadgeProps {
 	role: UserRole;
@@ -9,7 +10,7 @@ interface UserRoleBadgeProps {
 }
 
 export const UserRoleBadge = ({ role, className }: UserRoleBadgeProps) => (
-	<Badge variant={userRoleBadgeVariants[role]} className={className}>
+	<Badge className={cn("text-muted-foreground", className)}>
 		{userRoleLabels[role]}
 	</Badge>
 );

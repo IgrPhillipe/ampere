@@ -3,11 +3,15 @@ import { Button } from "@components/ui/button";
 import { getHttpStatus } from "@lib/api-error";
 import { useGetLatestCalculation } from "@services/calculation";
 import { useGetProject } from "@services/projects";
-import { useGetMemorial } from "@services/submission";
+import { useGetMemorial, useGetSubmission } from "@services/submission";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Calculator, CircleAlert } from "lucide-react";
 
-import { MemorialPreview, StepFooter } from "../../components";
+import {
+	MemorialPreview,
+	StepFooter,
+	SubmissionChecklistPanel,
+} from "../../components";
 import { useProjectPermissions } from "../../hooks";
 
 interface MemorialPageProps {
@@ -22,6 +26,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const memorialQuery = useGetMemorial(projectId, {
 		enabled: calculation !== undefined,
 	});
+	const submissionQuery = useGetSubmission(projectId);
 
 	const project = projectQuery.data?.data;
 	const { canEdit } = useProjectPermissions(project);
@@ -105,7 +110,22 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 
 	return (
 		<div className="flex flex-1 flex-col">
-			<div className="flex-1 px-6 py-8 md:px-8">{content}</div>
+			{submissionQuery.isError ? (
+				<div className="flex-1 px-6 py-8 md:px-10">{content}</div>
+			) : (
+				<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_400px]">
+					<div className="min-w-0 px-6 py-8 md:px-10">{content}</div>
+
+					<SubmissionChecklistPanel
+						projectId={projectId}
+						checklist={submissionQuery.data?.data}
+						isLoading={submissionQuery.isPending}
+						editable={false}
+						summary
+						className="border-t border-border @5xl:border-t-0 @5xl:border-l"
+					/>
+				</div>
+			)}
 
 			{canEdit ? (
 				<StepFooter

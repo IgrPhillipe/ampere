@@ -21,28 +21,46 @@ export const DecisionFooter = ({
 	className,
 }: DecisionFooterProps) => {
 	const { decision, blockedReason } = availability;
+	if (!closedMessage && !canDecide) return null;
+
+	const reason = closedMessage ? null : blockedReason;
 
 	return (
-		<ProjectDetailFooter className={className}>
-			<div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
-				{closedMessage ? (
+		<ProjectDetailFooter
+			className={className}
+			summary={
+				closedMessage ? (
 					<p className="text-sm text-muted-foreground">{closedMessage}</p>
-				) : canDecide ? (
-					decision === "REJECT" ? (
-						<Button type="button" onClick={() => onDecide("REJECT")}>
-							Reprovar com Apontamentos
-						</Button>
-					) : decision === "APPROVE" ? (
-						<Button type="button" onClick={() => onDecide("APPROVE")}>
-							Aprovar Projeto
-						</Button>
-					) : (
-						<p className="text-sm text-muted-foreground md:text-right">
-							{blockedReason}
-						</p>
-					)
-				) : null}
-			</div>
+				) : reason ? (
+					<p className="flex items-center gap-2 text-sm text-foreground">
+						<span
+							aria-hidden="true"
+							className="size-1.5 shrink-0 rounded-full bg-attention"
+						/>
+						{reason}
+					</p>
+				) : null
+			}
+		>
+			{closedMessage ? null : (
+				<div className="flex flex-col-reverse gap-3 sm:flex-row">
+					<Button
+						type="button"
+						variant="outline"
+						disabled={decision !== "REJECT"}
+						onClick={() => onDecide("REJECT")}
+					>
+						Reprovar com Apontamentos
+					</Button>
+					<Button
+						type="button"
+						disabled={decision !== "APPROVE"}
+						onClick={() => onDecide("APPROVE")}
+					>
+						Aprovar Projeto
+					</Button>
+				</div>
+			)}
 		</ProjectDetailFooter>
 	);
 };

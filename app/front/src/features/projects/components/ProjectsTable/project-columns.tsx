@@ -1,4 +1,3 @@
-import { CountCell } from "@components/CountCell";
 import { createDataTableColumnHelper } from "@components/DataTable";
 import { DateCell } from "@components/DateCell";
 import { formatKva, formatPlace } from "@features/shared";
@@ -18,7 +17,6 @@ export type ProjectColumnId =
 	| "name"
 	| "owner"
 	| "status"
-	| "pending"
 	| "units"
 	| "demand"
 	| "createdAt"
@@ -52,10 +50,10 @@ export const createProjectColumns = (
 			// No `min-w`: the table is `table-fixed`, so the name wraps instead.
 			cell: ({ row }) => (
 				<div className="flex flex-col gap-1 whitespace-normal">
-					<span className="font-semibold text-foreground">
+					<span className="text-base font-medium text-foreground">
 						{row.original.name}
 					</span>
-					<span className="text-xs text-muted-foreground">
+					<span className="text-sm text-muted-foreground">
 						{row.original.address},{" "}
 						{formatPlace(row.original.municipality, row.original.state)}
 					</span>
@@ -68,7 +66,7 @@ export const createProjectColumns = (
 						id: "owner",
 						header: "Projetista",
 						cell: ({ row }) => (
-							<span className="text-sm whitespace-normal text-foreground">
+							<span className="text-sm whitespace-normal text-muted-foreground">
 								{row.original.ownerName ?? "Não informado"}
 							</span>
 						),
@@ -77,12 +75,10 @@ export const createProjectColumns = (
 			: []),
 		columnHelper.accessor("status", {
 			header: "Situação",
-			cell: ({ row }) => <ProjectStatusBadge project={row.original} />,
-		}),
-		columnHelper.accessor("pendingCount", {
-			id: "pending",
-			header: "Pendências",
-			cell: ({ row }) => <CountCell count={row.original.pendingCount} />,
+			// The open findings ride on the status, as in the Figma.
+			cell: ({ row }) => (
+				<ProjectStatusBadge project={row.original} showPending />
+			),
 		}),
 		columnHelper.accessor("consumerUnitsCount", {
 			id: "units",
@@ -117,13 +113,7 @@ export const createProjectColumns = (
 			id: "action",
 			header: () => <span className="sr-only">Ação</span>,
 			cell: ({ row }) => (
-				<div className="flex justify-end">
-					<ProjectRowActionButton
-						project={row.original}
-						{...actions}
-						buttonClassName="w-24"
-					/>
-				</div>
+				<ProjectRowActionButton project={row.original} {...actions} />
 			),
 		}),
 	]);

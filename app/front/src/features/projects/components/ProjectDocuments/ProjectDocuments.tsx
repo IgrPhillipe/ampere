@@ -71,18 +71,20 @@ export const ProjectDocuments = ({
 					return (
 						<li
 							key={document.id}
-							className="flex flex-col gap-2 border-b border-border py-3"
+							className={cn(
+								"flex flex-col gap-1.5 border-b border-border border-l-2 py-3 pl-3",
+								isSelected ? "border-l-foreground" : "border-l-transparent",
+							)}
 						>
 							<button
 								type="button"
 								aria-pressed={isSelected}
 								onClick={() => setSelectedId(document.id)}
 								className={cn(
-									"flex flex-col gap-1 rounded-xs px-2 py-1 text-left transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-									isSelected && "bg-surface-hover",
+									"flex flex-col gap-1 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
 								)}
 							>
-								<span className="text-sm font-medium text-foreground">
+								<span className="text-base font-medium text-foreground">
 									{document.typeLabel}
 								</span>
 								<span className="truncate font-mono text-xs text-muted-foreground">
@@ -99,7 +101,7 @@ export const ProjectDocuments = ({
 							{onCreateFinding ? (
 								<InlineActionButton
 									onClick={() => onCreateFinding(document)}
-									className="ml-2 self-start"
+									className="self-start"
 								>
 									Apontar Documento
 								</InlineActionButton>

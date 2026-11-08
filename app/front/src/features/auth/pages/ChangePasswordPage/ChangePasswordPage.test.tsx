@@ -1,5 +1,6 @@
 import { useAuthStore } from "@features/shared";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { httpErrorOf } from "@/test/fixtures/http-error";
@@ -21,6 +22,7 @@ vi.mock("@services/auth", () => ({
 
 vi.mock("@tanstack/react-router", () => ({
 	useNavigate: () => mockNavigate,
+	Link: ({ children }: { children: ReactNode }) => <a href="/">{children}</a>,
 }));
 
 const fill = (label: RegExp, value: string) =>

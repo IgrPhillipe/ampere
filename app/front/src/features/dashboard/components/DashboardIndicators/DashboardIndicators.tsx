@@ -51,7 +51,7 @@ const TILES: IndicatorTile[] = [
 	},
 ];
 
-/** Green band with the period's indicators, edge to edge like `FilterTiles`. */
+/** The screen's conclusion field: the period's indicators, sized like `FilterTiles`. */
 export const DashboardIndicators = ({
 	indicators,
 	hasSubmissions = true,
@@ -67,7 +67,7 @@ export const DashboardIndicators = ({
 		>
 			<h2
 				id={titleId}
-				className="px-gutter pt-5 font-mono text-xs tracking-wider uppercase opacity-80 md:px-gutter-md"
+				className="px-gutter pt-5 font-mono text-2xs tracking-[0.11em] uppercase opacity-85 md:px-gutter-md"
 			>
 				Indicadores do período, {periodLabel}
 			</h2>
@@ -80,12 +80,12 @@ export const DashboardIndicators = ({
 						return (
 							<div
 								key={label}
-								className="flex min-h-28 flex-col-reverse justify-center gap-2 border-primary-foreground/20 pr-5 pl-gutter odd:border-r md:pl-gutter-md lg:border-r lg:last:border-r-0"
+								className="relative flex min-h-26 flex-col-reverse justify-center gap-2 pr-5 pl-gutter odd:after:absolute odd:after:inset-y-5 odd:after:right-0 odd:after:w-px odd:after:bg-primary-foreground/25 md:pl-gutter-md lg:not-last:after:absolute lg:not-last:after:inset-y-5 lg:not-last:after:right-0 lg:not-last:after:w-px lg:not-last:after:bg-primary-foreground/25"
 							>
-								<dt className="font-mono text-xs tracking-wider uppercase opacity-80">
+								<dt className="font-mono text-2xs tracking-[0.11em] uppercase opacity-85">
 									{label}
 								</dt>
-								<dd className="font-mono text-3xl font-semibold whitespace-nowrap sm:text-4xl">
+								<dd className="font-mono text-[2.125rem] leading-none font-medium tracking-[-0.03em] whitespace-nowrap">
 									{value === undefined ? (
 										<Skeleton className="h-10 w-16 bg-primary-foreground/25" />
 									) : (

@@ -69,6 +69,8 @@ export const ConsumerUnitGroupsTable = ({
 				data={groups}
 				columnClassNames={groupColumnClassNames}
 				onRowClick={onOpenGroup}
+				// The section title already draws the ink rule above the header.
+				tableClassName="[&_thead_tr]:border-b [&_thead_tr]:border-border"
 				trailingRows={
 					newGroupControl ? (
 						<NewGroupRow
@@ -80,9 +82,9 @@ export const ConsumerUnitGroupsTable = ({
 				className="hidden md:block"
 			/>
 
-			<p className="mt-4 self-end font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+			<p className="mt-3 self-end font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 				Carga instalada declarada
-				<span className="ml-4 text-foreground">
+				<span className="ml-3 text-xs font-medium text-foreground">
 					{formatDecimal(totalLoadKw, 1)}{" "}
 					<span className="normal-case">kW</span>
 				</span>

@@ -3,7 +3,11 @@ import type { ReactNode } from "react";
 
 interface ConclusionFieldProps {
 	/** Versalete line on top, naming what the screen answers. */
-	label: ReactNode;
+	label?: ReactNode;
+	/** 19 Medium heading in place of the versalete label. */
+	title?: ReactNode;
+	/** Sizes the value, e.g. a long standard name in a narrow column. */
+	valueClassName?: string;
 	/** The answer itself, in mono 60. */
 	value?: ReactNode;
 	/** Versalete caption under the value. */
@@ -18,6 +22,8 @@ interface ConclusionFieldProps {
  */
 export const ConclusionField = ({
 	label,
+	title,
+	valueClassName,
 	value,
 	caption,
 	children,
@@ -30,12 +36,30 @@ export const ConclusionField = ({
 		)}
 	>
 		<div className="flex flex-col gap-3">
-			<p className="border-b-[1.5px] border-primary-foreground/80 pb-3 font-mono text-2xs tracking-[0.11em] uppercase">
-				{label}
-			</p>
+			{title ? (
+				<h2 className="border-b-[1.5px] border-primary-foreground/80 pb-3 text-lg font-medium tracking-[-0.018em]">
+					{title}
+				</h2>
+			) : null}
+
+			{label ? (
+				<p
+					className={cn(
+						"font-mono text-2xs tracking-[0.11em] uppercase",
+						!title && "border-b-[1.5px] border-primary-foreground/80 pb-3",
+					)}
+				>
+					{label}
+				</p>
+			) : null}
 
 			{value !== undefined ? (
-				<p className="font-mono text-6xl leading-none font-medium tracking-[-0.04em]">
+				<p
+					className={cn(
+						"font-mono text-6xl leading-none font-medium tracking-[-0.04em]",
+						valueClassName,
+					)}
+				>
 					{value}
 				</p>
 			) : null}

@@ -1,4 +1,5 @@
 import { EmptyState } from "@components/EmptyState";
+import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { useZodForm } from "@features/shared";
 import { useRunCalculation } from "@services/calculation";
@@ -66,6 +67,12 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 
 	// `form.watch` is memoized by the React Compiler.
 	const usageType = useWatch({ control: form.control, name: "usageType" });
+	const [newName, newQuantity] = useWatch({
+		control: form.control,
+		name: ["name", "quantity"],
+	});
+	const isNewGroupFilled =
+		newName.trim() !== "" && usageType !== undefined && Boolean(newQuantity);
 	const project = projectQuery.data?.data;
 	const findingsQuery = useGetFindingList(projectId, {
 		enabled: project?.status === "REJECTED",
@@ -158,35 +165,34 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 						/>
 					</div>
 				) : (
-					<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_380px]">
+					<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_400px]">
 						<section
 							aria-labelledby="grupos-titulo"
-							className="px-6 py-8 md:px-8"
+							className="min-w-0 px-6 py-8 md:px-10"
 						>
-							<div className="flex items-center justify-between gap-4 border-b border-foreground pb-3">
-								<h2
-									id="grupos-titulo"
-									className="text-lg font-semibold text-foreground"
-								>
-									Grupos de Unidades
-								</h2>
-
-								{isEditable ? (
-									<Button
-										type="button"
-										variant="link"
-										size="sm"
-										onClick={startAdding}
-										disabled={isAdding}
-									>
-										<Plus aria-hidden="true" />
-										Adicionar Grupo
-									</Button>
-								) : null}
-							</div>
+							<SectionHeading
+								id="grupos-titulo"
+								actions={
+									isEditable ? (
+										<Button
+											type="button"
+											variant="link"
+											size="sm"
+											className="h-auto px-0"
+											onClick={startAdding}
+											disabled={isAdding}
+										>
+											<Plus aria-hidden="true" />
+											Adicionar Grupo
+										</Button>
+									) : null
+								}
+							>
+								Grupos de Unidades
+							</SectionHeading>
 
 							{registrar.onGroup && groups.length > 0 ? (
-								<p className="mt-4 text-sm text-muted-foreground">
+								<p className="mt-3 text-sm text-muted-foreground">
 									Selecione um grupo para ver os dados e registrar um
 									apontamento vinculado a ele.
 								</p>
@@ -201,7 +207,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 								newGroupControl={isAdding ? form.control : undefined}
 								newGroupUsageType={usageType}
 								empty={
-									<div className="mt-6">
+									<div className="mt-5">
 										<EmptyState
 											title="Nenhum grupo cadastrado"
 											description={
@@ -233,7 +239,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 							validation={validation}
 							isLoading={validationQuery.isPending || groupsQuery.isPending}
 							counterId={pendingCounterId}
-							className="order-first @5xl:order-none"
+							className="order-first border-b border-border @5xl:order-none @5xl:border-b-0 @5xl:border-l"
 							onOpenIssue={(group, issue) =>
 								setOpened({ group, focusField: issue.field })
 							}
@@ -254,14 +260,13 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 					>
 						{isAdding ? (
 							<>
-								<Button type="button" variant="ghost" onClick={cancelAdding}>
+								<Button type="button" variant="link" onClick={cancelAdding}>
 									Cancelar
 								</Button>
 
 								<Button
 									type="submit"
-									variant="outline"
-									disabled={createGroup.isPending}
+									disabled={!isNewGroupFilled || createGroup.isPending}
 								>
 									{createGroup.isPending ? "Salvando..." : "Salvar Grupo"}
 									<ArrowRight aria-hidden="true" />
@@ -270,7 +275,6 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 						) : (
 							<Button
 								type="button"
-								variant="outline"
 								disabled={!canCalculate || run.isPending}
 								aria-describedby={canCalculate ? undefined : pendingCounterId}
 								onClick={() =>

@@ -65,48 +65,47 @@ export const ProjectFindingCard = ({
 					O analista reabriu o apontamento. Responda de novo.
 				</p>
 			) : null}
-			<div className="flex flex-col gap-3">
-				<div className="flex flex-wrap gap-2">
-					{onOpenStage ? (
+			<div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+				{onOpenStage ? (
+					<Button
+						type="button"
+						variant="link"
+						className="h-auto px-0"
+						aria-describedby={descriptionId}
+						onClick={() => onOpenStage(finding)}
+					>
+						Abrir Seção
+						<ArrowRight aria-hidden="true" />
+					</Button>
+				) : null}
+				{canRespond ? (
+					<>
 						<Button
 							type="button"
-							variant="outline"
-							size="xs"
+							variant="link"
+							className="h-auto px-0"
 							aria-describedby={descriptionId}
-							onClick={() => onOpenStage(finding)}
+							aria-expanded={responseStatus === "FIXED"}
+							aria-controls={responseStatus === "FIXED" ? formId : undefined}
+							onClick={() => onStartResponse(finding, "FIXED")}
 						>
-							Ir para a Seção
-							<ArrowRight aria-hidden="true" />
+							Marcar Corrigido
 						</Button>
-					) : null}
-					{canRespond ? (
-						<>
-							<Button
-								type="button"
-								variant="outline"
-								size="xs"
-								aria-describedby={descriptionId}
-								aria-expanded={responseStatus === "CONTESTED"}
-								aria-controls={
-									responseStatus === "CONTESTED" ? formId : undefined
-								}
-								onClick={() => onStartResponse(finding, "CONTESTED")}
-							>
-								Contestar
-							</Button>
-							<Button
-								type="button"
-								size="xs"
-								aria-describedby={descriptionId}
-								aria-expanded={responseStatus === "FIXED"}
-								aria-controls={responseStatus === "FIXED" ? formId : undefined}
-								onClick={() => onStartResponse(finding, "FIXED")}
-							>
-								Corrigido
-							</Button>
-						</>
-					) : null}
-				</div>
+						<Button
+							type="button"
+							variant="link"
+							className="h-auto px-0"
+							aria-describedby={descriptionId}
+							aria-expanded={responseStatus === "CONTESTED"}
+							aria-controls={
+								responseStatus === "CONTESTED" ? formId : undefined
+							}
+							onClick={() => onStartResponse(finding, "CONTESTED")}
+						>
+							Contestar
+						</Button>
+					</>
+				) : null}
 			</div>
 
 			{canRespond && responseStatus ? (

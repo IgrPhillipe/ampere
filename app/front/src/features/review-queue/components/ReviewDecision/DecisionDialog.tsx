@@ -122,11 +122,7 @@ const DecisionForm = ({
 					Cancelar
 				</Button>
 
-				<Button
-					type="submit"
-					variant={decision === "REJECT" ? "destructive" : "default"}
-					disabled={isPending}
-				>
+				<Button type="submit" disabled={isPending}>
 					{isPending ? text.pending : text.confirm}
 				</Button>
 			</DialogFooter>

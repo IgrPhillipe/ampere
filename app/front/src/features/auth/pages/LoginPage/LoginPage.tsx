@@ -1,16 +1,10 @@
 import { ControlledInput, FormActions } from "@components/form";
 import { Button } from "@components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@components/ui/card";
 import { useZodForm } from "@features/shared";
 import { useLogin } from "@services/auth";
 import { Link } from "@tanstack/react-router";
 
+import { AuthLayout } from "../../components/AuthLayout";
 import { type LoginFormValues, loginSchema } from "../../schemas";
 
 interface LoginPageProps {
@@ -25,57 +19,48 @@ export const LoginPage = ({ redirectTo }: LoginPageProps) => {
 	const onSubmit = (values: LoginFormValues) => signIn(values);
 
 	return (
-		<main className="flex min-h-svh items-center justify-center bg-muted/40 p-4">
-			<Card className="w-full max-w-sm">
-				<CardHeader>
-					<CardTitle className="text-2xl">Entrar</CardTitle>
+		<AuthLayout
+			title="Entrar"
+			description="Acesse com as credenciais cadastradas."
+			note="Projetistas criam a própria conta. Analistas e administradores recebem o acesso do administrador do portal."
+		>
+			<form
+				noValidate
+				onSubmit={form.handleSubmit(onSubmit)}
+				className="flex flex-col gap-5"
+			>
+				<ControlledInput
+					control={form.control}
+					name="email"
+					label="E-mail"
+					type="email"
+					autoComplete="email"
+					placeholder="voce@exemplo.com"
+				/>
 
-					<CardDescription>
-						Acesse com as credenciais cadastradas.
-					</CardDescription>
-				</CardHeader>
+				<ControlledInput
+					control={form.control}
+					name="password"
+					label="Senha"
+					type="password"
+					autoComplete="current-password"
+				/>
 
-				<CardContent>
-					<form
-						noValidate
-						onSubmit={form.handleSubmit(onSubmit)}
-						className="flex flex-col gap-4"
+				<FormActions align="start">
+					<Button type="submit" disabled={isPending}>
+						{isPending ? "Entrando..." : "Entrar"}
+					</Button>
+
+					<Button
+						variant="link"
+						nativeButton={false}
+						className="h-auto px-0 underline"
+						render={<Link to="/criar-conta" />}
 					>
-						<ControlledInput
-							control={form.control}
-							name="email"
-							label="E-mail"
-							type="email"
-							autoComplete="email"
-							placeholder="voce@exemplo.com"
-						/>
-
-						<ControlledInput
-							control={form.control}
-							name="password"
-							label="Senha"
-							type="password"
-							autoComplete="current-password"
-						/>
-
-						<FormActions>
-							<Button type="submit" disabled={isPending} className="w-full">
-								{isPending ? "Entrando..." : "Entrar"}
-							</Button>
-						</FormActions>
-
-						<div className="text-center text-sm text-muted-foreground mt-2">
-							Não tem uma conta?{" "}
-							<Link
-								to="/criar-conta"
-								className="text-primary hover:underline font-medium"
-							>
-								Criar Conta
-							</Link>
-						</div>
-					</form>
-				</CardContent>
-			</Card>
-		</main>
+						Criar Conta
+					</Button>
+				</FormActions>
+			</form>
+		</AuthLayout>
 	);
 };

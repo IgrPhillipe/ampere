@@ -27,7 +27,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 				className="flex-1 overflow-y-auto px-3 pb-8 [scrollbar-gutter:stable] md:px-8"
 			>
 				{/* The sheet: every screen lives on white paper over the desk. */}
-				<div className="mx-auto min-h-full w-full max-w-page border border-border bg-background">
+				<div className="mx-auto flex min-h-full w-full max-w-page flex-col border border-border bg-background">
 					{children}
 				</div>
 			</main>

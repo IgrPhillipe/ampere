@@ -1,4 +1,5 @@
 import { ExpandableText } from "@components/ExpandableText";
+import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { formatDateTime, type SortDirection } from "@features/shared";
@@ -21,27 +22,29 @@ const EventItem = ({ event, latest }: EventItemProps) => {
 	const role = eventAuthorRoleLabel(event);
 
 	return (
-		<li className="grid grid-cols-[5.5rem_auto_minmax(0,1fr)] gap-x-4 border-b border-border py-4 sm:gap-x-6">
+		<li className="grid grid-cols-[6.5rem_auto_minmax(0,1fr)] gap-x-5 border-b border-border py-4 sm:gap-x-6">
 			<time
 				dateTime={event.occurredAt}
-				className="flex flex-col gap-0.5 font-mono text-xs"
+				className="flex flex-col gap-1 font-mono"
 			>
-				<span className="font-medium text-foreground">{occurredAt.date}</span>
-				<span className="text-muted-foreground">{occurredAt.time}</span>
+				<span className="text-sm text-foreground">{occurredAt.date}</span>
+				<span className="text-2xs tracking-[0.11em] text-faint-foreground">
+					{occurredAt.time}
+				</span>
 			</time>
 
 			<span
 				aria-hidden="true"
 				className={cn(
-					"mt-1 size-2 rounded-full border",
+					"mt-1.5 size-1.5 rounded-full border",
 					latest
 						? "border-foreground bg-foreground"
-						: "border-muted-foreground bg-card",
+						: "border-faint-foreground bg-card",
 				)}
 			/>
 
 			<div className="flex min-w-0 flex-col gap-1">
-				<p className="font-mono text-xs tracking-[0.08em] text-foreground uppercase">
+				<p className="font-mono text-2xs tracking-[0.11em] text-foreground uppercase">
 					{eventLabel(event)}
 					{latest ? <span className="sr-only"> (mais recente)</span> : null}
 				</p>
@@ -52,7 +55,7 @@ const EventItem = ({ event, latest }: EventItemProps) => {
 						className="text-muted-foreground"
 					/>
 				) : null}
-				<p className="text-xs text-muted-foreground">
+				<p className="text-xs text-faint-foreground">
 					{event.authorName ? (
 						<>
 							{event.authorName}, <span className="lowercase">{role}</span>
@@ -92,23 +95,25 @@ export const ProjectTimeline = ({
 			aria-labelledby={titleId}
 			className={cn("flex flex-col", className)}
 		>
-			<div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-foreground pb-3">
-				<h2 id={titleId} className="text-lg font-semibold text-foreground">
-					Linha do Tempo do Protocolo
-				</h2>
-				<Button
-					type="button"
-					variant="outline"
-					size="xs"
-					aria-pressed={newestFirst}
-					disabled={isLoading || !events?.length}
-					onClick={() => onDirectionChange(newestFirst ? "ASC" : "DESC")}
-					className="font-mono tracking-[0.08em] uppercase aria-pressed:bg-accent aria-pressed:text-accent-foreground"
-				>
-					Mais Recente Primeiro
-					<DirectionIcon aria-hidden="true" />
-				</Button>
-			</div>
+			<SectionHeading
+				id={titleId}
+				actions={
+					<Button
+						type="button"
+						variant="outline"
+						size="xs"
+						aria-pressed={newestFirst}
+						disabled={isLoading || !events?.length}
+						onClick={() => onDirectionChange(newestFirst ? "ASC" : "DESC")}
+						className="border-border-strong font-mono text-2xs font-normal tracking-[0.11em] uppercase aria-pressed:bg-transparent aria-pressed:text-foreground"
+					>
+						Mais Recente Primeiro
+						<DirectionIcon aria-hidden="true" />
+					</Button>
+				}
+			>
+				Linha do Tempo do Protocolo
+			</SectionHeading>
 
 			{isLoading || !events ? (
 				<div className="mt-4 flex flex-col gap-3">

@@ -8,7 +8,7 @@ import { cn } from "@lib/utils";
 import { useDeleteProject } from "@services/projects";
 import { useSubmitProject } from "@services/submission";
 import { Link, Outlet, useNavigate } from "@tanstack/react-router";
-import { CircleAlert, Lock, RotateCcw, Send, Trash2 } from "lucide-react";
+import { ArrowRight, CircleAlert, Lock } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import { getProjectsPageTitle, type ProjectSectionKey } from "../../constants";
@@ -19,6 +19,7 @@ import {
 } from "../../hooks";
 import { ChangeSummaryNotice } from "../ChangeSummaryNotice";
 import { ProjectDeleteDialog } from "../ProjectDeleteDialog";
+import { ProjectDetailFooter } from "../ProjectDetailFooter";
 import { type HeaderMetric, ProjectDetailHeader } from "../ProjectDetailHeader";
 import {
 	ProjectSectionNav,
@@ -31,6 +32,25 @@ import {
 
 const submitHintId = "envio-pendencias";
 
+const STEP_SECTIONS: ProjectSectionKey[] = [
+	"data",
+	"units",
+	"calculation",
+	"memorial",
+	"documents",
+];
+
+/** Steps that close with their own footer; the others take the submission in the workspace's. */
+const STEPS_WITH_FOOTER: ProjectSectionKey[] = [
+	"data",
+	"units",
+	"calculation",
+	"memorial",
+];
+
+/** On the history the side panel would squeeze the timeline, so it goes below. */
+export type AsidePlacement = "side" | "below";
+
 interface ProjectWorkspaceProps {
 	projectId: string;
 	/** The analyst's view: their breadcrumb, notices and side panel replace the designer's, and the change summary shows. */
@@ -41,7 +61,7 @@ interface ProjectWorkspaceProps {
 	metrics?: HeaderMetric[];
 	/** Overrides the findings counted on each section. */
 	attention?: Partial<Record<ProjectSectionKey, number>>;
-	aside?: (section: ProjectSectionKey) => ReactNode;
+	aside?: (section: ProjectSectionKey, placement: AsidePlacement) => ReactNode;
 	footer?: ReactNode;
 	registrar?: FindingRegistrar;
 	/** Dialogs and sheets owned by whoever wraps the workspace. */
@@ -111,7 +131,10 @@ export const ProjectWorkspace = ({
 			{ projectId },
 			{
 				onSuccess: () =>
-					void navigate({ to: "/projetos/$id", params: { id: projectId } }),
+					void navigate({
+						to: "/projetos/$id/envio",
+						params: { id: projectId },
+					}),
 			},
 		);
 
@@ -120,42 +143,71 @@ export const ProjectWorkspace = ({
 			<Button
 				type="button"
 				variant="destructive-ghost"
+				className="h-auto px-0"
 				onClick={() => setDeleting(true)}
 			>
-				<Trash2 aria-hidden="true" />
 				Excluir Projeto
 			</Button>
 		) : null;
 
+	const canSendHere = permissions.isOwner && notSent;
+	const submitInFooter =
+		canSendHere && !STEPS_WITH_FOOTER.includes(current.key);
+	const submitButton = (variant: "default" | "link") => (
+		<Button
+			type="button"
+			variant={variant}
+			className={variant === "link" ? "h-auto px-0" : undefined}
+			disabled={!canSubmit || submitMutation.isPending}
+			aria-describedby={canSubmit ? undefined : submitHintId}
+			onClick={submit}
+		>
+			{submitMutation.isPending ? "Enviando..." : "Enviar para Análise"}
+			<ArrowRight aria-hidden="true" />
+		</Button>
+	);
+	const submitHint = canSubmit ? null : (
+		<p
+			id={submitHintId}
+			className="flex items-center gap-2 text-sm text-foreground"
+		>
+			<span
+				aria-hidden="true"
+				className="size-1.5 shrink-0 rounded-full bg-attention"
+			/>
+			Conclua as seções marcadas para enviar.
+		</p>
+	);
+
+	// The step's own footer holds its primary, so the submission stays a text link up here.
 	const submitAction =
-		permissions.isOwner && notSent ? (
+		canSendHere && !submitInFooter ? (
 			<div className="flex flex-col gap-1.5 lg:items-end">
-				<Button
-					type="button"
-					disabled={!canSubmit || submitMutation.isPending}
-					aria-describedby={canSubmit ? undefined : submitHintId}
-					onClick={submit}
-				>
-					<Send aria-hidden="true" />
-					{submitMutation.isPending ? "Enviando..." : "Enviar para Análise"}
-				</Button>
-				{canSubmit ? null : (
-					<p id={submitHintId} className="text-xs text-muted-foreground">
-						Conclua as seções marcadas para enviar.
-					</p>
-				)}
+				{submitButton("link")}
+				{submitHint}
 			</div>
 		) : detailActions.resubmit ? (
 			<Button
+				variant="link"
+				className="h-auto px-0"
 				nativeButton={false}
 				render={
 					<Link to="/projetos/$id" params={{ id: projectId }} hash="reenvio" />
 				}
 			>
-				<RotateCcw aria-hidden="true" />
 				Reenviar Projeto
+				<ArrowRight aria-hidden="true" />
 			</Button>
 		) : null;
+
+	const submitFooter = submitInFooter ? (
+		<ProjectDetailFooter
+			summary={submitHint}
+			className="border-t border-border"
+		>
+			{submitButton("default")}
+		</ProjectDetailFooter>
+	) : null;
 
 	const designerActions =
 		deleteAction || submitAction ? (
@@ -168,7 +220,7 @@ export const ProjectWorkspace = ({
 	if (projectQuery.isError) {
 		return (
 			<PageLayout bleed className="mx-auto w-full max-w-page">
-				<div className="px-6 md:px-8">
+				<div className="px-6 md:px-10">
 					<EmptyState
 						title="Não foi possível abrir o projeto"
 						description="Confira o aviso exibido e tente novamente."
@@ -197,26 +249,24 @@ export const ProjectWorkspace = ({
 		);
 	}
 
-	const breadcrumb: BreadcrumbItem[] = [root];
-	if (project) {
-		const isOverview = current.key === "overview";
-		breadcrumb.push(
-			isOverview
-				? { label: project.name }
-				: {
-						label: project.name,
-						to: "/projetos/$id",
-						params: { id: projectId },
-					},
-		);
-		if (!isOverview) breadcrumb.push({ label: current.label });
-	}
+	// The name is the title right below, so the trail names only the open section.
+	const breadcrumb: BreadcrumbItem[] = [
+		root,
+		{
+			label: STEP_SECTIONS.includes(current.key)
+				? `Etapa ${current.index}: ${current.label}`
+				: current.label,
+		},
+	];
+	const placement: AsidePlacement =
+		current.key === "history" ? "below" : "side";
+	const asideContent = aside?.(current.key, placement) ?? null;
 
 	return (
 		<ProjectWorkspaceContext value={{ reviewing, registrar }}>
 			<PageLayout
 				bleed
-				className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
+				className="mx-auto min-h-full w-full max-w-page py-0 md:py-0"
 			>
 				<div className="flex flex-1 flex-col bg-card">
 					<ProjectDetailHeader
@@ -224,6 +274,7 @@ export const ProjectWorkspace = ({
 						project={project}
 						isLoading={projectQuery.isPending}
 						reanalysis={reanalysis}
+						reviewing={reviewing}
 						correcting={detailActions.resubmit}
 						metrics={reviewing ? metrics : (metrics ?? designerMetrics)}
 						actions={reviewing ? actions : (actions ?? designerActions)}
@@ -232,9 +283,12 @@ export const ProjectWorkspace = ({
 					{!reviewing && project?.status === "UNDER_REVIEW" ? (
 						<p
 							role="status"
-							className="flex items-center gap-3 border-b border-border px-6 py-3 text-sm md:px-8"
+							className="flex items-center gap-3 border-b border-border px-6 py-3 text-sm md:px-10"
 						>
-							<Lock aria-hidden="true" className="size-4 shrink-0" />
+							<Lock
+								aria-hidden="true"
+								className="size-4 shrink-0 text-faint-foreground"
+							/>
 							<span>
 								{project.submittedAt ? (
 									<>
@@ -262,7 +316,9 @@ export const ProjectWorkspace = ({
 					<div
 						className={cn(
 							"flex flex-1 flex-col",
-							aside && "lg:grid lg:grid-cols-[minmax(0,1fr)_400px]",
+							asideContent &&
+								placement === "side" &&
+								"lg:grid lg:grid-cols-[minmax(0,1fr)_400px]",
 						)}
 					>
 						<div className="@container flex min-w-0 flex-1 flex-col">
@@ -280,14 +336,19 @@ export const ProjectWorkspace = ({
 							)}
 						</div>
 
-						{aside ? (
-							<div className="border-t border-border lg:border-t-0 lg:border-l">
-								{aside(current.key)}
+						{asideContent ? (
+							<div
+								className={cn(
+									"border-t border-border",
+									placement === "side" && "lg:border-t-0 lg:border-l",
+								)}
+							>
+								{asideContent}
 							</div>
 						) : null}
 					</div>
 
-					{footer}
+					{footer ?? submitFooter}
 				</div>
 			</PageLayout>
 

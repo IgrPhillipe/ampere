@@ -9,7 +9,7 @@ interface LastAccessCellProps {
 export const LastAccessCell = ({ value, className }: LastAccessCellProps) => {
 	if (!value) {
 		return (
-			<span className={cn("text-sm text-muted-foreground", className)}>
+			<span className={cn("text-sm text-faint-foreground", className)}>
 				Nunca acessou
 			</span>
 		);
@@ -20,7 +20,10 @@ export const LastAccessCell = ({ value, className }: LastAccessCellProps) => {
 	return (
 		<time
 			dateTime={value}
-			className={cn("font-mono text-xs text-foreground", className)}
+			className={cn(
+				"font-mono text-xs whitespace-nowrap text-muted-foreground",
+				className,
+			)}
 		>
 			{date} às {time}
 		</time>

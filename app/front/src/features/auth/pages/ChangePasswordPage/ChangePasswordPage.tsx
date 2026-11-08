@@ -1,17 +1,11 @@
 import { FormActions } from "@components/form";
 import { Button } from "@components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@components/ui/card";
 import { useAuthStore } from "@features/shared";
 import { getRoleHomePath } from "@lib/route-guard";
 import { useLogout } from "@services/auth";
 import { useNavigate } from "@tanstack/react-router";
 
+import { AuthLayout } from "../../components/AuthLayout";
 import {
 	ChangePasswordForm,
 	useChangePasswordForm,
@@ -38,40 +32,32 @@ export const ChangePasswordPage = ({ redirectTo }: ChangePasswordPageProps) => {
 	});
 
 	return (
-		<main className="flex min-h-svh items-center justify-center bg-muted/40 p-4">
-			<Card className="w-full max-w-sm">
-				<CardHeader>
-					<CardTitle className="text-2xl">Troca de Senha</CardTitle>
+		<AuthLayout
+			title="Troca de Senha"
+			description="Sua senha é temporária. Crie uma nova senha para continuar."
+			note="A nova senha precisa de ao menos 8 caracteres, com letra e número."
+		>
+			<ChangePasswordForm
+				form={form}
+				onSubmit={submit}
+				currentPasswordLabel="Senha temporária"
+			>
+				<FormActions align="start">
+					<Button type="submit" disabled={isPending}>
+						{isPending ? "Salvando..." : "Salvar Nova Senha"}
+					</Button>
 
-					<CardDescription>
-						Sua senha é temporária. Crie uma nova senha para continuar, com ao
-						menos 8 caracteres, letra e número.
-					</CardDescription>
-				</CardHeader>
-
-				<CardContent>
-					<ChangePasswordForm
-						form={form}
-						onSubmit={submit}
-						currentPasswordLabel="Senha temporária"
+					<Button
+						type="button"
+						variant="link"
+						className="h-auto px-0 underline"
+						disabled={isPending}
+						onClick={logout}
 					>
-						<FormActions>
-							<Button
-								type="button"
-								variant="outline"
-								disabled={isPending}
-								onClick={logout}
-							>
-								Sair
-							</Button>
-
-							<Button type="submit" disabled={isPending}>
-								{isPending ? "Salvando..." : "Salvar Nova Senha"}
-							</Button>
-						</FormActions>
-					</ChangePasswordForm>
-				</CardContent>
-			</Card>
-		</main>
+						Sair
+					</Button>
+				</FormActions>
+			</ChangePasswordForm>
+		</AuthLayout>
 	);
 };

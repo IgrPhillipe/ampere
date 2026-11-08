@@ -1,4 +1,5 @@
 import { EmptyState } from "@components/EmptyState";
+import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { useGetFindingList } from "@services/project-review";
 import { useGetProject } from "@services/projects";
@@ -74,13 +75,8 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 	}
 
 	const attached = (
-		<section aria-labelledby="anexos-titulo" className="flex flex-col gap-4">
-			<h2
-				id="anexos-titulo"
-				className="border-b-2 border-foreground pb-3 text-lg font-semibold text-foreground"
-			>
-				Documentos Anexados
-			</h2>
+		<section aria-labelledby="anexos-titulo" className="flex flex-col gap-5">
+			<SectionHeading id="anexos-titulo">Documentos Anexados</SectionHeading>
 			<ProjectDocuments
 				projectId={projectId}
 				documents={checklist?.documents}
@@ -108,7 +104,7 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 
 			{editable ? (
 				<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_400px]">
-					<div className="min-w-0 px-6 py-8 md:px-8">{attached}</div>
+					<div className="min-w-0 px-6 py-8 md:px-10">{attached}</div>
 
 					<SubmissionChecklistPanel
 						projectId={projectId}
@@ -132,7 +128,7 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 					/>
 				</div>
 			) : (
-				<div className="flex-1 px-6 py-8 md:px-8">{attached}</div>
+				<div className="flex-1 px-6 py-8 md:px-10">{attached}</div>
 			)}
 		</div>
 	);

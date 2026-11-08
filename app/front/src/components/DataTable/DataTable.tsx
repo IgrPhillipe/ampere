@@ -65,7 +65,13 @@ const SortIcon = ({ direction }: { direction: SortDirection | undefined }) => {
 	return (
 		<Icon
 			aria-hidden="true"
-			className={cn("size-3.5 shrink-0", !direction && "opacity-40")}
+			className={cn(
+				// Hung outside the label, so the header lines up with its cells.
+				"absolute top-1/2 left-full ml-1 size-3 -translate-y-1/2",
+				// The Figma header carries no sort marks: the idle one shows on hover only.
+				!direction &&
+					"opacity-0 group-hover/sort:opacity-40 group-focus-visible/sort:opacity-40",
+			)}
 		/>
 	);
 };
@@ -129,7 +135,7 @@ export const DataTable = <
 												type="button"
 												onClick={() => onSortChange(sortColumn)}
 												className={cn(
-													"-mx-1 inline-flex items-center gap-1.5 rounded-sm px-1 py-1 uppercase tracking-[inherit] transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+													"group/sort relative inline-flex items-center py-1 uppercase tracking-[inherit] transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
 													direction && "text-foreground",
 												)}
 											>

@@ -42,7 +42,7 @@ export const FindingResponseForm = ({
 			aria-label={
 				status === "FIXED" ? "Confirmar correção" : "Contestar apontamento"
 			}
-			className="space-y-4 border-l-2 border-primary bg-background p-4"
+			className="space-y-4 border-l-2 border-foreground bg-background py-1 pl-4"
 			onSubmit={form.handleSubmit(onSubmit)}
 		>
 			<ControlledTextarea

@@ -51,9 +51,7 @@ describe("getQueueItemAttention", () => {
 		});
 	});
 
-	it("flags an on-time project that carries alerts", () => {
-		expect(getQueueItemAttention({ ...item, warnings: 1 })?.title).toBe(
-			"1 alerta na pré-validação do cálculo",
-		);
+	it("leaves the alerts of an on-time project to their own column", () => {
+		expect(getQueueItemAttention({ ...item, warnings: 1 })).toBeNull();
 	});
 });

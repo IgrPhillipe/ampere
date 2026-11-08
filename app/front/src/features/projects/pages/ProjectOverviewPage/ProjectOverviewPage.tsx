@@ -1,6 +1,8 @@
+import { ConclusionField } from "@components/ConclusionField";
 import { EmptyState } from "@components/EmptyState";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
+import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import { calculationKeys } from "@services/calculation";
 import { useGetConsumerUnitGroupList } from "@services/consumer-units";
@@ -100,24 +102,39 @@ export const ProjectOverviewPage = ({
 							queryKey: calculationKeys.all(),
 						}),
 					]);
+					void navigate({
+						to: "/projetos/$id/envio",
+						params: { id: projectId },
+					});
 				},
 			},
 		);
 
 	const panel = reviewing ? null : actions.resubmit ? (
 		checklist?.requiresChangeSummary && project ? (
-			<ResubmissionPanel
-				nextVersion={projectVersion(project)}
-				unansweredBlocking={checklist.unansweredBlocking}
-				canSubmit={checklist.canSubmit}
-				isPending={submitMutation.isPending}
-				onSubmit={resubmit}
-			/>
+			<div className="flex flex-col gap-9.5 px-6 py-8 md:px-10">
+				<ConclusionField
+					label="Apontamentos do analista"
+					value={padCount(checklist.unansweredBlocking)}
+					caption={
+						checklist.unansweredBlocking === 1
+							? "Bloqueante sem tratamento"
+							: "Bloqueantes sem tratamento"
+					}
+				/>
+				<ResubmissionPanel
+					nextVersion={projectVersion(project)}
+					unansweredBlocking={checklist.unansweredBlocking}
+					canSubmit={checklist.canSubmit}
+					isPending={submitMutation.isPending}
+					onSubmit={resubmit}
+				/>
+			</div>
 		) : checklist ? null : (
 			<div
 				role="status"
 				aria-label="Carregando o reenvio"
-				className="space-y-3 p-5"
+				className="space-y-3 px-6 py-8 md:px-10"
 			>
 				<Skeleton className="h-5 w-40" />
 				<Skeleton className="h-24 w-full" />
@@ -135,7 +152,7 @@ export const ProjectOverviewPage = ({
 				panel && "@5xl:grid-cols-[minmax(0,1fr)_400px]",
 			)}
 		>
-			<div className="@container flex min-w-0 flex-col gap-10 px-6 py-8 md:px-8">
+			<div className="@container flex min-w-0 flex-col gap-9.5 px-6 py-8 md:px-10">
 				{project ? <ReviewOpinion project={project} /> : null}
 
 				<ProjectSummary

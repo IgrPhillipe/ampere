@@ -27,7 +27,7 @@ export const GroupIdentity = ({
 			{group.name}
 		</button>
 
-		<span className="text-xs text-muted-foreground">{group.summary}</span>
+		<span className="text-sm text-muted-foreground">{group.summary}</span>
 
 		<div
 			role="meter"

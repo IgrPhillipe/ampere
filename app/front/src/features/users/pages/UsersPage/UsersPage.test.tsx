@@ -1,6 +1,12 @@
 import type { ManagedUser } from "@services/users";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within,
+} from "@testing-library/react";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -32,9 +38,10 @@ const listOf = (...users: ManagedUser[]) => ({
 	},
 });
 
-const openRowMenu = (name: string) =>
+// The desktop table and the mobile cards both render the row actions.
+const clickRowAction = (name: string) =>
 	fireEvent.click(
-		screen.getAllByRole("button", { name: `Ações do usuário ${name}` })[0],
+		within(screen.getByRole("table")).getByRole("button", { name }),
 	);
 
 const renderPage = (searchParams = "") =>
@@ -90,17 +97,34 @@ describe("UsersPage", () => {
 		expect(screen.getByText("Situação: Inativo")).toBeInTheDocument();
 	});
 
+	it("filters by role from the quick filter chips", () => {
+		listQuery.current = listOf(managedUserOf());
+		renderPage("?role=reviewer");
+
+		expect(screen.getByRole("button", { name: "Analistas" })).toHaveAttribute(
+			"aria-pressed",
+			"true",
+		);
+		expect(screen.getByRole("button", { name: "Todos" })).toHaveAttribute(
+			"aria-pressed",
+			"false",
+		);
+	});
+
 	it("deactivates an account after the confirmation", async () => {
 		const user = managedUserOf();
 		listQuery.current = listOf(user);
 		mockToggle.mockImplementation((_user, options) => options.onSuccess());
 		renderPage();
 
-		openRowMenu("Ana Projetista");
-		fireEvent.click(await screen.findByRole("menuitem", { name: "Desativar" }));
+		clickRowAction("Desativar");
 
 		expect(await screen.findByText("Desativar Usuário")).toBeInTheDocument();
-		fireEvent.click(screen.getByRole("button", { name: "Desativar" }));
+		fireEvent.click(
+			within(screen.getByRole("dialog")).getByRole("button", {
+				name: "Desativar",
+			}),
+		);
 
 		expect(mockToggle).toHaveBeenCalledWith(user, expect.anything());
 		await waitFor(() =>
@@ -113,9 +137,12 @@ describe("UsersPage", () => {
 		listQuery.current = listOf(user);
 		renderPage();
 
-		openRowMenu("Ana Projetista");
-		fireEvent.click(await screen.findByRole("menuitem", { name: "Reativar" }));
-		fireEvent.click(await screen.findByRole("button", { name: "Reativar" }));
+		clickRowAction("Reativar");
+		fireEvent.click(
+			within(await screen.findByRole("dialog")).getByRole("button", {
+				name: "Reativar",
+			}),
+		);
 
 		expect(mockToggle).toHaveBeenCalledWith(user, expect.anything());
 	});
@@ -128,12 +155,11 @@ describe("UsersPage", () => {
 		);
 		renderPage();
 
-		openRowMenu("Ana Projetista");
+		clickRowAction("Redefinir Senha");
 		fireEvent.click(
-			await screen.findByRole("menuitem", { name: "Redefinir Senha" }),
-		);
-		fireEvent.click(
-			await screen.findByRole("button", { name: "Redefinir Senha" }),
+			within(await screen.findByRole("dialog")).getByRole("button", {
+				name: "Redefinir Senha",
+			}),
 		);
 
 		expect(mockReset).toHaveBeenCalledWith("2", expect.anything());

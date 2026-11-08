@@ -90,7 +90,7 @@ export const ReviewQueueToolbar = ({
 			<SearchInput
 				value={search}
 				onValueChange={onSearchChange}
-				placeholder="Buscar por protocolo, projetista ou município"
+				placeholder="Protocolo, projetista ou município"
 				label="Buscar na fila de análise"
 			/>
 		}

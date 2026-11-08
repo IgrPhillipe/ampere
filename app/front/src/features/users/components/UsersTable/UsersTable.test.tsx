@@ -53,7 +53,7 @@ describe("UsersTable", () => {
 			/>,
 		);
 
-		expect(desktopTable().getAllByText("Troca Pendente")).toHaveLength(1);
+		expect(desktopTable().getAllByText("Senha Temporária")).toHaveLength(1);
 	});
 
 	it("opens the edit from the row", () => {
@@ -65,16 +65,11 @@ describe("UsersTable", () => {
 		expect(handlers.onEdit).toHaveBeenCalledWith(managedUserOf());
 	});
 
-	it("does not open the edit from the row menu", async () => {
+	it("does not open the edit from the row actions", () => {
 		const handlers = actions();
 		render(<UsersTable users={[managedUserOf()]} actions={handlers} />);
 
-		fireEvent.click(
-			desktopTable().getByRole("button", {
-				name: "Ações do usuário Ana Projetista",
-			}),
-		);
-		fireEvent.click(await screen.findByRole("menuitem", { name: "Desativar" }));
+		fireEvent.click(desktopTable().getByRole("button", { name: "Desativar" }));
 
 		expect(handlers.onToggleActive).toHaveBeenCalledOnce();
 		expect(handlers.onEdit).not.toHaveBeenCalled();

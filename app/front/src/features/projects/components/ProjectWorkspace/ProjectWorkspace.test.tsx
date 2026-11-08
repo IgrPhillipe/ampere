@@ -92,7 +92,9 @@ describe("ProjectWorkspace", () => {
 		state.project = makeProjectDetail();
 		renderWorkspace();
 
-		expect(screen.getByText("Protocolo 2026-1004")).toBeVisible();
+		expect(screen.getByText("Protocolo").nextElementSibling).toHaveTextContent(
+			"2026-1004",
+		);
 		expect(screen.getByText("Conteúdo da seção")).toBeVisible();
 		for (const section of [
 			"Visão Geral",
@@ -183,8 +185,8 @@ describe("ProjectWorkspace", () => {
 		expect(
 			screen.getByRole("link", { name: "Reenviar Projeto" }),
 		).toBeVisible();
-		expect(screen.getByText("Versão").nextElementSibling).toHaveTextContent(
-			/^2$/,
+		expect(screen.getByText("Protocolo").nextElementSibling).toHaveTextContent(
+			/v02$/,
 		);
 		// The finding on the ART is counted on the section where it is fixed.
 		expect(

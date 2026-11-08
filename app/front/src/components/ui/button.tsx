@@ -36,6 +36,8 @@ const buttonVariants = cva(
 				"icon-lg": "size-12",
 			},
 		},
+		// Size padding would push a text link off its text.
+		compoundVariants: [{ variant: "link", class: "h-auto px-0" }],
 		defaultVariants: {
 			variant: "default",
 			size: "default",

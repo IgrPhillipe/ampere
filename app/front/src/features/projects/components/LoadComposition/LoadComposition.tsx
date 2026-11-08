@@ -1,3 +1,4 @@
+import { SectionHeading } from "@components/SectionHeading";
 import { Skeleton } from "@components/ui/skeleton";
 import { formatDecimal, formatKva } from "@features/shared";
 import { cn } from "@lib/utils";
@@ -25,36 +26,37 @@ export const LoadComposition = ({
 
 	return (
 		<section aria-labelledby="composicao-titulo" className={className}>
-			<div className="flex items-baseline justify-between gap-4 border-b-2 border-foreground pb-3">
-				<h2
-					id="composicao-titulo"
-					className="text-lg font-semibold text-foreground"
-				>
-					Composição das Cargas
-				</h2>
-				{calculatedKva === undefined ? null : (
-					<span className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
-						Soma das parcelas{" "}
-						<span className="normal-case">{formatKva(calculatedKva)}</span>
-					</span>
-				)}
-			</div>
+			<SectionHeading
+				id="composicao-titulo"
+				meta={
+					calculatedKva === undefined ? undefined : (
+						<>
+							Soma das parcelas{" "}
+							<span className="ml-1.5 text-foreground normal-case">
+								{formatKva(calculatedKva)}
+							</span>
+						</>
+					)
+				}
+			>
+				Composição das Cargas
+			</SectionHeading>
 
 			{isLoading || !composition ? (
-				<Skeleton className="mt-4 h-9 w-full rounded-xs" />
+				<Skeleton className="mt-5 h-9 w-full" />
 			) : (
 				<>
 					<div
 						role="img"
 						aria-label={`Participação de cada parcela na demanda calculada: ${description}`}
-						className="mt-4 flex h-9 gap-0.5"
+						className="mt-5 flex h-9 gap-0.5"
 					>
 						{shares.map((share) => (
 							<span
 								key={share.code}
 								style={{ flexGrow: share.percent }}
 								className={cn(
-									"min-w-px basis-0 first:rounded-l-xs last:rounded-r-xs",
+									"min-w-px basis-0",
 									demandSeriesClassNames[share.code],
 								)}
 							/>
@@ -65,7 +67,7 @@ export const LoadComposition = ({
 							<span
 								key={share.code}
 								style={{ flexGrow: share.percent }}
-								className="min-w-px basis-0 font-mono text-xs text-muted-foreground"
+								className="min-w-px basis-0 font-mono text-2xs tracking-[0.11em] text-faint-foreground"
 							>
 								{share.code} {formatDecimal(share.percent, 1)}%
 							</span>

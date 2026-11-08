@@ -411,16 +411,18 @@ describe("ProjectReviewWorkspace", () => {
 		signInAs("reviewer");
 		renderWorkspace();
 
-		expect(screen.getByText("Protocolo 2026-1004")).toBeVisible();
+		expect(screen.getByText("Protocolo").nextElementSibling).toHaveTextContent(
+			"2026-1004",
+		);
 		expect(screen.getByRole("link", { name: "Fila de Análise" })).toBeVisible();
 		expect(screen.getByText("Novo Apontamento")).toBeVisible();
 		// The draft finding leaves rejection as the only decision.
 		expect(
 			screen.getByRole("button", { name: "Reprovar com Apontamentos" }),
-		).toBeVisible();
+		).toBeEnabled();
 		expect(
-			screen.queryByRole("button", { name: "Aprovar Projeto" }),
-		).not.toBeInTheDocument();
+			screen.getByRole("button", { name: "Aprovar Projeto" }),
+		).toBeDisabled();
 		expect(
 			screen.getByRole("link", { name: /^Documentos.*1 apontamento/ }),
 		).toBeVisible();

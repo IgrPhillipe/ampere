@@ -1,3 +1,4 @@
+import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { formatDecimal, padCount } from "@features/shared";
@@ -68,21 +69,16 @@ export const MemorialPreview = ({
 	return (
 		<section
 			aria-labelledby="memorial-titulo"
-			className={cn("flex flex-col gap-6", className)}
+			className={cn("flex flex-col gap-5", className)}
 		>
-			<h2
-				id="memorial-titulo"
-				className="border-b-2 border-foreground pb-3 text-lg font-semibold text-foreground"
-			>
-				Memorial Gerado
-			</h2>
+			<SectionHeading id="memorial-titulo">Memorial Gerado</SectionHeading>
 
-			<div className="rounded-xs border border-border bg-background p-6">
-				<p className="font-mono text-xs tracking-[0.08em] text-foreground uppercase">
+			<div className="border border-border bg-background px-7 py-6">
+				<p className="font-mono text-2xs tracking-[0.11em] text-foreground uppercase">
 					Memorial descritivo de cálculo de demanda
 				</p>
 				{project ? (
-					<p className="mt-1 text-sm text-muted-foreground">
+					<p className="mt-1.5 text-sm text-muted-foreground">
 						{project.standards
 							.map(({ name, revision }) => `${name} ${revision}`)
 							.join(" e ")}
@@ -96,9 +92,9 @@ export const MemorialPreview = ({
 					{SECTIONS.map((section, index) => (
 						<li
 							key={section}
-							className="flex items-center gap-4 border-b border-border py-3 text-sm"
+							className="flex items-center gap-4 border-b border-border py-3 text-sm text-foreground"
 						>
-							<span className="font-mono text-xs text-muted-foreground">
+							<span className="font-mono text-xs text-faint-foreground">
 								{padCount(index + 1)}
 							</span>
 							{section}
@@ -107,11 +103,11 @@ export const MemorialPreview = ({
 				</ol>
 
 				<div className="mt-5 flex flex-wrap items-baseline justify-between gap-2">
-					<p className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+					<p className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 						Demanda total apurada
 					</p>
 					{calculation ? (
-						<p className="font-mono text-xl font-medium">
+						<p className="font-mono text-lg font-semibold">
 							{formatDecimal(calculation.totals.finalKva, 1)} kVA
 						</p>
 					) : (
@@ -131,14 +127,14 @@ export const MemorialPreview = ({
 				<iframe
 					title="Prévia do memorial em PDF"
 					src={url}
-					className="h-[36rem] w-full rounded-xs border border-border"
+					className="h-[36rem] w-full border border-border"
 				/>
 			)}
 
 			<Button
 				type="button"
-				variant="outline"
-				className="w-fit"
+				variant="link"
+				className="h-auto w-fit px-0"
 				disabled={!url}
 				onClick={download}
 			>

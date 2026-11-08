@@ -1,4 +1,4 @@
-import { DateCell } from "@components/DateCell";
+import { DeadlineStatusBadge } from "@components/DeadlineStatusBadge";
 import type { ReviewQueueItem } from "@services/review-queue";
 
 interface DeadlineCellProps {
@@ -6,5 +6,8 @@ interface DeadlineCellProps {
 }
 
 export const DeadlineCell = ({ item }: DeadlineCellProps) => (
-	<DateCell value={item.deadline} />
+	<DeadlineStatusBadge
+		deadlineStatus={item.deadlineStatus}
+		daysRemaining={item.daysRemaining}
+	/>
 );

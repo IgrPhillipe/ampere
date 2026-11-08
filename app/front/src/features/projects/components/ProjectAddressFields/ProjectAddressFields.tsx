@@ -82,6 +82,7 @@ export const ProjectAddressFields = ({ form }: ProjectAddressFieldsProps) => {
 				description={lookupHint(lookup)}
 				required
 				variant="underline"
+				className="font-mono"
 			/>
 
 			<ControlledSelect

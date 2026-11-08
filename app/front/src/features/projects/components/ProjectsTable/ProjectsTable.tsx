@@ -11,17 +11,15 @@ import type { ProjectRowActions } from "./project-row";
 
 /** `table-fixed`: these widths hold, and the name takes what is left. */
 const projectColumnClassNames = {
-	attention: "w-10 pr-0",
-	protocol: "w-28 text-center",
-	name: "w-72",
+	attention: "w-5 px-0",
+	protocol: "w-28",
 	owner: "w-36",
-	status: "w-36 text-center",
-	pending: "w-28 text-center",
-	units: "w-16 text-center",
-	demand: "w-28 text-center",
-	createdAt: "w-32 text-center",
-	updatedAt: "w-32 text-center",
-	action: "w-36",
+	status: "w-48",
+	units: "w-16 text-right",
+	demand: "w-28 text-right",
+	createdAt: "w-28 text-right",
+	updatedAt: "w-28 text-right",
+	action: "w-36 pr-0 text-right",
 } satisfies Partial<Record<ProjectColumnId, string>>;
 
 const sortableColumns = [
@@ -78,7 +76,7 @@ export const ProjectsTable = ({
 		[actions, showOwner],
 	);
 
-	if (isLoading) return <SkeletonTable columns={10} />;
+	if (isLoading) return <SkeletonTable columns={8} />;
 
 	if (projects.length === 0) {
 		return onClearFilters ? (
@@ -100,7 +98,6 @@ export const ProjectsTable = ({
 	}
 
 	return (
-		// Narrower than its columns, the table scrolls sideways.
 		<DataTable<Project, ProjectColumnId, ProjectSort>
 			columns={columns}
 			data={projects}

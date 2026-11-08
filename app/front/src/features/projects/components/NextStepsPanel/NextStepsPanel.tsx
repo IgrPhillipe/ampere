@@ -1,3 +1,4 @@
+import { SectionHeading } from "@components/SectionHeading";
 import { formatDate, padCount } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
@@ -34,26 +35,23 @@ export const NextStepsPanel = ({
 	return (
 		<section
 			aria-labelledby="next-steps-title"
-			className={cn("p-5", className)}
+			className={cn("px-6 py-8 md:px-10", className)}
 		>
-			<h2
-				id="next-steps-title"
-				className="border-b-2 border-foreground pb-3 text-base font-semibold"
-			>
+			<SectionHeading id="next-steps-title">
 				O que Acontece Agora
-			</h2>
+			</SectionHeading>
 			<ol className="flex flex-col">
 				{steps.map(({ title, status, description }, index) => (
 					<li
 						key={title}
-						className="grid grid-cols-[2rem_minmax(0,1fr)] gap-y-1 border-b border-border py-3 last:border-b-0"
+						className="grid grid-cols-[2rem_minmax(0,1fr)] gap-y-1.5 border-b border-border py-3.5"
 					>
-						<span className="font-mono text-xs text-muted-foreground">
+						<span className="pt-px font-mono text-sm text-foreground">
 							{padCount(index + 1)}
 						</span>
 						<div className="flex flex-wrap items-baseline justify-between gap-2">
-							<span className="text-sm font-medium">{title}</span>
-							<span className="font-mono text-xs tracking-[0.08em] text-muted-foreground uppercase">
+							<span className="text-base font-medium">{title}</span>
+							<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 								{status}
 							</span>
 						</div>

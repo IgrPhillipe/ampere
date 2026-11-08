@@ -13,23 +13,47 @@ export type ProjectSectionKey =
 	| "history";
 
 export const PROJECT_SECTIONS = [
-	{ key: "overview", label: "Visão Geral", to: "/projetos/$id" },
-	{ key: "data", label: "Dados da Edificação", to: "/projetos/$id/dados" },
+	{ key: "overview", index: "00", label: "Visão Geral", to: "/projetos/$id" },
+	{
+		key: "data",
+		index: "01",
+		label: "Dados da Edificação",
+		to: "/projetos/$id/dados",
+	},
 	{
 		key: "units",
+		index: "02",
 		label: "Unidades Consumidoras",
 		to: "/projetos/$id/unidades",
 	},
 	{
 		key: "calculation",
+		index: "03",
 		label: "Cálculo de Demanda",
 		to: "/projetos/$id/calculo",
 	},
-	{ key: "memorial", label: "Memorial", to: "/projetos/$id/memorial" },
-	{ key: "documents", label: "Documentos", to: "/projetos/$id/documentos" },
-	{ key: "history", label: "Histórico", to: "/projetos/$id/historico" },
+	{
+		key: "memorial",
+		index: "04",
+		label: "Memorial",
+		to: "/projetos/$id/memorial",
+	},
+	{
+		key: "documents",
+		index: "05",
+		label: "Documentos",
+		to: "/projetos/$id/documentos",
+	},
+	{
+		key: "history",
+		index: "06",
+		label: "Histórico",
+		to: "/projetos/$id/historico",
+	},
 ] as const satisfies readonly {
 	key: ProjectSectionKey;
+	/** Mono step number of the strip; the Figma's five steps keep 01 to 05. */
+	index: string;
 	label: string;
 	to: string;
 }[];

@@ -214,8 +214,7 @@ describe("DesignerDashboardPage", () => {
 		).toBeInTheDocument();
 		const underReview = screen.getByRole("region", { name: "Em Análise" });
 
-		expect(underReview).toHaveTextContent("Atrasado");
-		expect(underReview).toHaveTextContent("Há 3 dias");
+		expect(underReview).toHaveTextContent("Atrasado 3 dias");
 		expect(underReview).toHaveTextContent("Venceu em 30/10/2026");
 	});
 
@@ -248,16 +247,15 @@ describe("DesignerDashboardPage", () => {
 			screen.getByRole("region", { name: "Em Análise" }),
 		).getAllByRole("listitem");
 
-		expect(dueToday).toHaveTextContent("Vence Hoje");
+		expect(dueToday).toHaveTextContent("Vence hoje");
 		expect(dueToday).toHaveTextContent("Vence em 02/11/2026");
 		expect(dueToday).not.toHaveTextContent("restante");
-		expect(dueTomorrow).toHaveTextContent("No Prazo");
 		expect(dueTomorrow).toHaveTextContent("1 dia restante");
 		expect(dueTomorrow).toHaveTextContent("Vence em 03/11/2026");
 		expect(dueToday).toHaveTextContent("v01");
-		expect(dueToday).not.toHaveTextContent("Reanálise");
+		expect(dueToday).not.toHaveTextContent("reanálise");
 		expect(dueTomorrow).toHaveTextContent("v02");
-		expect(dueTomorrow).toHaveTextContent("Reanálise");
+		expect(dueTomorrow).toHaveTextContent("reanálise");
 	});
 
 	it("explains the indicators the period cannot measure yet", () => {

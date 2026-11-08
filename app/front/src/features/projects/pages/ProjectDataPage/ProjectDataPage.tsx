@@ -1,5 +1,7 @@
+import { ConclusionField } from "@components/ConclusionField";
 import { ControlledInput, ControlledSelect } from "@components/form";
-import { PageLayout } from "@components/layout";
+import { Eyebrow, PageLayout } from "@components/layout";
+import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { formatPostalCode, useAuthStore, useZodForm } from "@features/shared";
 import { calculationKeys } from "@services/calculation";
@@ -198,20 +200,19 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 				onSubmit={form.handleSubmit(onSubmit)}
 				className="flex flex-1 flex-col"
 			>
-				<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_320px]">
+				<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_400px]">
 					<fieldset
 						disabled={!isEditable || projectQuery.isLoading}
-						className="min-w-0 space-y-10 px-6 py-8 md:px-8"
+						className="min-w-0 space-y-9.5 px-6 py-8 md:px-10"
 					>
 						<section>
-							<div className="flex flex-wrap items-center justify-between gap-3 border-b border-foreground pb-3">
-								<h2 className="text-lg font-semibold text-foreground">
-									Identificação
-								</h2>
-								<FindingBadge findings={stageFindings} />
-							</div>
+							<SectionHeading
+								actions={<FindingBadge findings={stageFindings} />}
+							>
+								Identificação
+							</SectionHeading>
 
-							<div className="mt-6 grid gap-x-8 gap-y-6 md:grid-cols-2">
+							<div className="mt-5 grid gap-x-9.5 gap-y-5 md:grid-cols-2">
 								{isAdmin ? (
 									<ProjectOwnerField
 										control={form.control}
@@ -243,16 +244,15 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 									placeholder="Ex.: 8"
 									required
 									variant="underline"
+									className="font-mono"
 								/>
 							</div>
 						</section>
 
 						<section>
-							<h2 className="border-b border-foreground pb-3 text-lg font-semibold text-foreground">
-								Parâmetros Técnicos
-							</h2>
+							<SectionHeading>Parâmetros Técnicos</SectionHeading>
 
-							<div className="mt-6 grid gap-x-8 gap-y-6 md:grid-cols-2">
+							<div className="mt-5 grid gap-x-9.5 gap-y-5 md:grid-cols-2">
 								<ControlledSelect
 									control={form.control}
 									name="buildingType"
@@ -296,66 +296,71 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 						</section>
 					</fieldset>
 
-					<aside className="order-first flex flex-col border-b border-border @5xl:order-none @5xl:border-b-0 @5xl:border-l">
-						{/* The exact revision only exists after the POST (`ApplicableStandards`). */}
-						<div className="bg-primary px-6 pt-8 pb-6 text-primary-foreground">
-							<p className="border-b border-primary-foreground/85 pb-3 font-mono text-xs tracking-[0.08em] text-primary-foreground/75 uppercase">
-								Norma derivada
-							</p>
+					<aside className="order-first flex flex-col gap-9.5 border-b border-border px-6 py-8 md:px-9.5 @5xl:order-none @5xl:border-b-0 @5xl:border-l">
+						<div className="flex flex-col gap-5">
+							{/* The exact revision only exists after the POST (`ApplicableStandards`). */}
+							<ConclusionField
+								label="Norma derivada"
+								value={
+									<span className="text-3xl tracking-[-0.03em]">
+										{mainStandard?.name ?? "DIS-NOR-053"}
+									</span>
+								}
+								caption={
+									mainStandard
+										? `${mainStandard.revision} vigente`
+										: "Revisão vigente"
+								}
+							>
+								{mainStandard && otherStandards.length === 0 ? null : (
+									<p className="-mt-2 font-mono text-xs opacity-85">
+										{mainStandard
+											? otherStandards
+													.map(({ name, revision }) => `e ${name} ${revision}`)
+													.join(" ")
+											: "e DIS-NOR-030"}
+									</p>
+								)}
+							</ConclusionField>
 
-							<p className="mt-6 font-mono text-3xl font-medium tracking-tight">
-								{mainStandard?.name ?? "DIS-NOR-053"}
-							</p>
-
-							<p className="mt-2 text-sm text-primary-foreground/75">
-								{mainStandard
-									? [
-											mainStandard.revision,
-											...otherStandards.map(
-												({ name, revision }) => `${name} ${revision}`,
-											),
-										].join(" e ")
-									: "e DIS-NOR-030, revisões vigentes"}
-							</p>
-
-							<p className="mt-6 text-xs text-primary-foreground/75">
+							<p className="text-sm text-muted-foreground">
 								Selecionada automaticamente ao salvar, a partir do tipo de
 								edificação, da tensão e do padrão de entrada informados.
 							</p>
 						</div>
 
 						{isEditable ? (
-							<div className="px-6 py-8">
-								<h2 className="border-b border-foreground pb-3 text-base font-semibold text-foreground">
+							<section aria-labelledby="preenchimento-titulo">
+								<SectionHeading id="preenchimento-titulo">
 									Preenchimento
-								</h2>
+								</SectionHeading>
 
-								<p className="mt-4 flex items-center gap-2 text-3xl font-semibold text-foreground">
+								<p className="mt-5 flex items-center gap-3 font-mono text-3xl font-medium tracking-[-0.03em] text-foreground">
 									{pad(totalFilled)}/{pad(totalRequired)}
 									{isComplete ? (
-										<Check aria-hidden="true" className="size-5 text-primary" />
+										<Check aria-hidden="true" className="size-5" />
 									) : null}
 								</p>
 
 								<p
 									id={progressCounterId}
-									className="mt-1 text-xs tracking-wider text-muted-foreground uppercase"
+									className="mt-1.5 font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase"
 								>
 									Campos obrigatórios preenchidos
 								</p>
 
-								<ul className="mt-5 space-y-4">
+								<ul className="mt-9.5 flex flex-col gap-5">
 									{progress.map(({ title, filled, required }) => (
 										<li key={title}>
-											<div className="flex items-center justify-between text-xs text-foreground">
+											<div className="flex items-baseline justify-between border-b border-border-soft pb-1.5 text-sm text-foreground">
 												<span>{title}</span>
 
-												<span className="text-muted-foreground">
+												<span className="font-mono text-xs font-medium">
 													{pad(filled)}/{pad(required)}
 												</span>
 											</div>
 
-											<div className="mt-1.5 flex gap-1" aria-hidden="true">
+											<div className="mt-3 flex gap-1" aria-hidden="true">
 												{Array.from({ length: required }, (_, index) => (
 													<span
 														key={index}
@@ -368,7 +373,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 										</li>
 									))}
 								</ul>
-							</div>
+							</section>
 						) : null}
 					</aside>
 				</div>
@@ -402,15 +407,16 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
 			<div className="@container flex flex-1 flex-col bg-card">
-				<div className="border-b border-border px-6 py-4 md:px-8">
+				<div className="border-b border-border px-6 py-4 md:px-10">
 					<ProjectBreadcrumb current="Novo Projeto" />
 				</div>
 
-				<div className="border-b border-border px-6 pt-8 pb-6 md:px-8">
-					<h1 className="font-heading text-3xl font-semibold tracking-tight">
+				<div className="flex flex-col gap-3 border-b border-border px-6 pt-8 pb-6 md:px-10">
+					<Eyebrow>Etapa 01: identificação da obra</Eyebrow>
+					<h1 className="font-heading text-3xl font-medium tracking-[-0.032em]">
 						Novo Projeto
 					</h1>
-					<p className="mt-2 text-sm text-muted-foreground">
+					<p className="max-w-2xl text-sm text-muted-foreground">
 						Depois de salvar os dados da edificação, o projeto ganha um
 						protocolo e você segue para as unidades consumidoras.
 					</p>

@@ -12,23 +12,21 @@ import {
 	type ReviewQueueRowActions,
 } from "./review-queue-columns";
 
+/** `table-fixed`: these widths fit the sheet at 1440 px, and the name takes the rest. */
 const columnClassNames = {
-	attention: "w-10 pr-0",
-	protocol: "w-28 text-center",
-	name: "w-72",
-	status: "w-32 text-center",
-	deadline: "w-36 text-center",
-	submittedAt: "w-36 text-center",
-	cycle: "w-28 text-center",
-	units: "w-16 text-center",
-	demand: "w-28 text-center",
-	warnings: "w-24 text-center",
-	action: "w-36",
+	attention: "w-5 px-0",
+	protocol: "w-28",
+	units: "w-16 text-right",
+	demand: "w-28 text-right",
+	warnings: "w-32",
+	deadline: "w-28 text-right",
+	status: "w-32 text-right",
+	action: "w-28 pr-0 text-right",
 } satisfies Partial<Record<ReviewQueueColumnId, string>>;
 
+// Receipt still sorts from the sort menu.
 const sortableColumns = [
 	"deadline",
-	"submittedAt",
 	"demand",
 	"warnings",
 ] as const satisfies readonly ReviewQueueSort[];
@@ -54,7 +52,7 @@ export const ReviewQueueListing = ({
 		[onAnalyze],
 	);
 
-	if (isLoading) return <SkeletonTable columns={10} />;
+	if (isLoading) return <SkeletonTable columns={8} />;
 
 	if (items.length === 0) {
 		return onClearFilters ? (
@@ -76,7 +74,6 @@ export const ReviewQueueListing = ({
 	}
 
 	return (
-		// Narrower than its columns, the table scrolls sideways.
 		<DataTable<ReviewQueueItem, ReviewQueueColumnId, ReviewQueueSort>
 			columns={columns}
 			data={items}

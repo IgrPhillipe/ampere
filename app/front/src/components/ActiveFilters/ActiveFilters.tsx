@@ -26,12 +26,9 @@ export const ActiveFilters = ({
 		<div
 			role="group"
 			aria-label="Filtros ativos"
-			className={cn(
-				"flex flex-wrap items-center gap-2 border-t border-dashed border-border pt-4",
-				className,
-			)}
+			className={cn("flex flex-wrap items-center gap-1.5", className)}
 		>
-			<span className="mr-1 font-mono text-xs tracking-wider text-muted-foreground uppercase">
+			<span className="mr-1.5 font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 				Filtros ativos
 			</span>
 			{filters.map((filter) => (
@@ -41,7 +38,7 @@ export const ActiveFilters = ({
 						type="button"
 						onClick={filter.onRemove}
 						aria-label={`Remover filtro ${filter.label}`}
-						className="flex size-5 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+						className="flex size-5 shrink-0 items-center justify-center transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
 					>
 						<X className="size-3" aria-hidden="true" />
 					</button>

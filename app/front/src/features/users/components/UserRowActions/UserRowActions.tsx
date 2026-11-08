@@ -1,18 +1,6 @@
 import { Button } from "@components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu";
+import { cn } from "@lib/utils";
 import type { ManagedUser } from "@services/users";
-import {
-	EllipsisVertical,
-	KeyRound,
-	Pencil,
-	UserCheck,
-	UserX,
-} from "lucide-react";
 
 export interface UserRowActionHandlers {
 	onEdit: (user: ManagedUser) => void;
@@ -23,62 +11,69 @@ export interface UserRowActionHandlers {
 interface UserRowActionsProps extends UserRowActionHandlers {
 	user: ManagedUser;
 	isCurrentUser: boolean;
+	className?: string;
 }
 
+const linkClassName = "h-auto px-0 text-sm";
+
+/** Visible text links of the Figma; the destructive one in dark orange. */
 export const UserRowActions = ({
 	user,
 	isCurrentUser,
 	onEdit,
 	onResetPassword,
 	onToggleActive,
+	className,
 }: UserRowActionsProps) => (
-	// The row opens the edit on click, and the portaled menu still bubbles to it.
-	<div className="contents" onClick={(event) => event.stopPropagation()}>
-		<DropdownMenu>
-			<DropdownMenuTrigger
-				render={
-					<Button
-						type="button"
-						variant="ghost"
-						size="icon-xs"
-						aria-label={`Ações do usuário ${user.name}`}
-					/>
-				}
+	// The row opens the edit on click; the links handle their own.
+	<div
+		className={cn("flex items-center justify-end gap-x-4 gap-y-1", className)}
+		onClick={(event) => event.stopPropagation()}
+		onKeyDown={(event) => event.stopPropagation()}
+	>
+		<Button
+			type="button"
+			variant="link"
+			className={linkClassName}
+			onClick={() => onEdit(user)}
+		>
+			Editar
+		</Button>
+
+		{/* The administrator changes their own password in "Meu Perfil". */}
+		{isCurrentUser ? (
+			<span className="text-sm text-faint-foreground">Conta própria</span>
+		) : (
+			<Button
+				type="button"
+				variant="link"
+				className={linkClassName}
+				onClick={() => onResetPassword(user)}
 			>
-				<EllipsisVertical aria-hidden="true" />
-			</DropdownMenuTrigger>
+				Redefinir Senha
+			</Button>
+		)}
 
-			<DropdownMenuContent align="end">
-				<DropdownMenuItem onClick={() => onEdit(user)}>
-					<Pencil aria-hidden="true" />
-					Editar
-				</DropdownMenuItem>
+		{user.active && !isCurrentUser ? (
+			<Button
+				type="button"
+				variant="link"
+				className={cn(linkClassName, "text-destructive")}
+				onClick={() => onToggleActive(user)}
+			>
+				Desativar
+			</Button>
+		) : null}
 
-				{/* The administrator changes their own password in "Meu Perfil". */}
-				{isCurrentUser ? null : (
-					<DropdownMenuItem onClick={() => onResetPassword(user)}>
-						<KeyRound aria-hidden="true" />
-						Redefinir Senha
-					</DropdownMenuItem>
-				)}
-
-				{user.active && !isCurrentUser ? (
-					<DropdownMenuItem
-						variant="destructive"
-						onClick={() => onToggleActive(user)}
-					>
-						<UserX aria-hidden="true" />
-						Desativar
-					</DropdownMenuItem>
-				) : null}
-
-				{user.active ? null : (
-					<DropdownMenuItem onClick={() => onToggleActive(user)}>
-						<UserCheck aria-hidden="true" />
-						Reativar
-					</DropdownMenuItem>
-				)}
-			</DropdownMenuContent>
-		</DropdownMenu>
+		{user.active ? null : (
+			<Button
+				type="button"
+				variant="link"
+				className={linkClassName}
+				onClick={() => onToggleActive(user)}
+			>
+				Reativar
+			</Button>
+		)}
 	</div>
 );
