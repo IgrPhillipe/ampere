@@ -364,9 +364,9 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
   @Test
   void coversEveryConnectionAndEntranceStandard() {
     assertThat(detail("2026-1004").getBuildingType().getConnectionType().name())
-        .isEqualTo("TWO_PHASE");
+        .isEqualTo("THREE_PHASE");
     assertThat(detail("2026-2034").getBuildingType().getConnectionType().name())
-        .isEqualTo("TWO_PHASE");
+        .isEqualTo("THREE_PHASE");
     assertThat(detail("2026-1006").getBuildingType().getConnectionType().name())
         .isEqualTo("SINGLE_PHASE");
     assertThat(detail("2026-2035").getBuildingType().getConnectionType().name())
@@ -375,6 +375,8 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
         .isEqualTo("INDIVIDUAL");
     assertThat(detail("2026-2029").getBuildingType().getVoltage().name()).isEqualTo("V220_127");
     assertThat(detail("2026-2029").getBuildingType().category().name()).isEqualTo("MIXED");
+    assertThat(isCurrent("2026-1004")).isTrue();
+    assertThat(isCurrent("2026-2034")).isTrue();
   }
 
   @Test
