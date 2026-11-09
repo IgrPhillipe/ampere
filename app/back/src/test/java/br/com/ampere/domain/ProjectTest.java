@@ -169,6 +169,6 @@ class ProjectTest {
 
   private static BuildingType buildingType() {
     return new ResidentialMultifamily(
-        6, SupplyVoltage.V220_127, ConnectionType.TWO_PHASE, EntranceStandard.INDIVIDUAL);
+        6, SupplyVoltage.V220_127, ConnectionType.THREE_PHASE, EntranceStandard.INDIVIDUAL);
   }
 }

@@ -12,12 +12,6 @@ public enum ConnectionType {
       return voltage.phaseVolts();
     }
   },
-  TWO_PHASE("Bifásico", "bipolar", NormativeTableCode.T18_SINGLE_PHASE_MOTORS) {
-    @Override
-    BigDecimal volts(SupplyVoltage voltage) {
-      return voltage.phaseVolts().multiply(BigDecimal.TWO);
-    }
-  },
   THREE_PHASE("Trifásico", "tripolar", NormativeTableCode.T19_THREE_PHASE_MOTORS) {
     @Override
     BigDecimal volts(SupplyVoltage voltage) {

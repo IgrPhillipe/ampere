@@ -71,15 +71,6 @@ class ConsumerUnitGroupTest {
   }
 
   @Test
-  void anApartmentIsSinglePhaseOrThreePhase() {
-    assertThat(GroupKind.RESIDENTIAL.rejection(apartments(68, 6.5))).isEmpty();
-    assertThat(
-            GroupKind.RESIDENTIAL.rejection(
-                withConnection(apartments(68, 6.5), ConnectionType.TWO_PHASE)))
-        .contains("A ligação do apartamento é monofásica ou trifásica.");
-  }
-
-  @Test
   void aThreePhaseApartmentDeclaresItsLoadsAndSumsThem() {
     ResidentialGroup group =
         (ResidentialGroup)

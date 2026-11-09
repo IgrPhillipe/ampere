@@ -1,6 +1,7 @@
 package br.com.ampere.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -104,8 +105,7 @@ class ConsumerUnitGroupApiIntegrationTest {
   void refusesATwoPhaseApartment() throws Exception {
     perform(post(groups()), SINGLE_PHASE.replace("SINGLE_PHASE", "TWO_PHASE"))
         .andExpect(status().isBadRequest())
-        .andExpect(
-            jsonPath("$.detail").value("A ligação do apartamento é monofásica ou trifásica."));
+        .andExpect(jsonPath("$.detail").value(containsString("SINGLE_PHASE, THREE_PHASE")));
   }
 
   @Test

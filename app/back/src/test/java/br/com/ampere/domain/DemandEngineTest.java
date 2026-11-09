@@ -213,14 +213,14 @@ class DemandEngineTest {
     DemandResult result =
         DemandEngine.run(
             List.of(apartments(PROJECT, 20, "40")),
-            context(SupplyVoltage.V220_127, ConnectionType.TWO_PHASE));
+            context(SupplyVoltage.V220_127, ConnectionType.SINGLE_PHASE));
 
     assertThat(result.checks().get(0))
         .extracting(CalculationCheck::getStatus, CalculationCheck::getMessage)
         .containsExactly(
             CheckStatus.WARNING,
             "A Tabela 1 dimensiona a entrada trifásica de edificação coletiva. Com ligação"
-                + " bifásico, confira a entrada pela DIS-NOR-030, item 6.28.");
+                + " monofásico, confira a entrada pela DIS-NOR-030, item 6.28.");
   }
 
   @Test
