@@ -1,5 +1,6 @@
 package br.com.ampere.domain;
 
+import static br.com.ampere.utils.Timestamps.now;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.persistence.Column;
@@ -12,7 +13,7 @@ class ProjectTest {
 
   @Test
   void createsProjectWithListingFields() {
-    OffsetDateTime beforeCreation = OffsetDateTime.now(ZoneOffset.UTC);
+    OffsetDateTime beforeCreation = now();
 
     Project project =
         new Project(
