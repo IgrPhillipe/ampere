@@ -115,21 +115,6 @@ class ConsumerUnitGroupServiceIntegrationTest {
   }
 
   @Test
-  void refusesATwoPhaseApartment() {
-    Long projectId = draft().getId();
-
-    assertThatThrownBy(
-            () ->
-                service.create(
-                    projectId, apartments(ConnectionType.TWO_PHASE, "9", List.of()), designer))
-        .isInstanceOfSatisfying(
-            BusinessException.class,
-            error -> assertThat(error.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST))
-        .hasMessage("A ligação do apartamento é monofásica ou trifásica.");
-    assertThat(groupRepository.findAllByProjectIdOrderById(projectId)).isEmpty();
-  }
-
-  @Test
   void refusesAThreePhaseApartmentWithoutLoads() {
     Long projectId = draft().getId();
 

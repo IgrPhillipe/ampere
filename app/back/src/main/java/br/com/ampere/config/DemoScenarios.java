@@ -178,7 +178,7 @@ final class DemoScenarios {
             "Avenida Barreto de Menezes, 88",
             "Jaboatão dos Guararapes",
             "54410010",
-            residential(6, V220, ConnectionType.TWO_PHASE, EntranceStandard.INDIVIDUAL),
+            residential(6, V220, ConnectionType.THREE_PHASE, EntranceStandard.INDIVIDUAL),
             u.user(),
             20,
             c -> {
@@ -452,7 +452,7 @@ final class DemoScenarios {
             "Avenida Cláudio Gueiros Leite, 310",
             "Paulista",
             "53437000",
-            residential(3, V220, ConnectionType.TWO_PHASE, EntranceStandard.INDIVIDUAL),
+            residential(3, V220, ConnectionType.THREE_PHASE, EntranceStandard.INDIVIDUAL),
             u.carla(),
             12,
             c -> ready(c, 5, apartments("Apartamento padrão", 6, "50", 2, "4.80"))),

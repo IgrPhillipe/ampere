@@ -100,7 +100,7 @@ Tabelas a cadastrar:
 | :------------------------- | :--------------------------------------------------------------- | :----------------------------- |
 | **Tipo de edificação**     | Define o método de cálculo aplicável                             | DIS-NOR-053, itens 6.22 a 6.25 |
 | **Tensão de fornecimento** | Determina o valor mínimo normativo que pode sobrepor o resultado | DIS-NOR-053, Anexo I, item 8   |
-| **Tipo de ligação**        | Monofásico, bifásico ou trifásico                                | DIS-NOR-030, item 6.27         |
+| **Tipo de ligação**        | Monofásico ou trifásico                                          | DIS-NOR-030, itens 6.27 e 6.28 |
 | **Padrão de entrada**      | Medição coletiva agrupada ou individual por unidade              | DIS-NOR-053, item 6.17         |
 | **Nº de pavimentos**       | Caracterização do porte, usada nas validações                    |                                |
 
@@ -326,7 +326,7 @@ Pontos em que as normas são omissas e o motor da US04 adotou um critério. Cada
 | # | Critério | Justificativa |
 | :-- | :--- | :--- |
 | 1 | A demanda considerada é o teto da faixa das Tabelas 1 e 2 (Anexo II, p. 123) em que a calculada se enquadra; é o "mínimo por tensão". Acima da última faixa (300 kVA), o cálculo sai sem entrada de serviço e com alerta | Mesmo procedimento dos Exemplos 1 e 2: 32,37 kVA passa a 46 kVA, 196,73 kVA passa a 229 kVA |
-| 2 | Corrente projetada sobre a demanda calculada: `kVA × 1000 / (√3 × V linha)` no trifásico, `/ (2 × V fase)` no bifásico, `/ V fase` no monofásico. As Tabelas 1 e 2 são de entrada trifásica: ligação monofásica ou bifásica recebe alerta para conferir a entrada pela DIS-NOR-030, item 6.28 | As normas não trazem fórmula; sobre o teto da faixa, a corrente ultrapassaria o disjuntor da própria faixa |
+| 2 | Corrente projetada sobre a demanda calculada: `kVA × 1000 / (√3 × V linha)` no trifásico e `/ V fase` no monofásico. As Tabelas 1 e 2 são de entrada trifásica: a ligação monofásica recebe alerta para conferir a entrada pela DIS-NOR-030, item 6.28 | As normas não trazem fórmula; sobre o teto da faixa, a corrente ultrapassaria o disjuntor da própria faixa |
 | 3 | Os fatores de cada parcela valem sobre o grupo inteiro: itens × quantidade do grupo | Um grupo de 8 lojas iguais tem 8 vezes os aparelhos de uma |
 | 4 | Na parcela `a`, todo item informa se é iluminação (e com quais lâmpadas) ou tomadas de uso geral; sem isso o grupo fica com "Falta Dado" | A Tabela 22 separa as duas cargas e o fator de potência vem da lâmpada: supor tomada subdimensionaria a iluminação |
 | 5 | Área comum usa a linha "Administração de edifícios de uso coletivo" da Tabela 22 (1,00 iluminação, 0,50 tomadas); carga comercial usa "Bancos, lojas e semelhantes" (1,00) | O Exemplo 1 usa a primeira; o Exemplo 2 usa "Auditórios" (1,00) para a mesma área comum. O resultado final do Exemplo 2 não muda |

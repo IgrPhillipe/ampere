@@ -21,7 +21,6 @@ export const voltageLabels: Record<SupplyVoltage, string> = {
 
 export const connectionTypeLabels: Record<ConnectionType, string> = {
 	SINGLE_PHASE: "Monofásico",
-	TWO_PHASE: "Bifásico",
 	THREE_PHASE: "Trifásico",
 };
 

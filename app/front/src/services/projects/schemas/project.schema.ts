@@ -106,11 +106,7 @@ export const supplyVoltageSchema = z.enum(["V220_127", "V380_220"]);
 
 export type SupplyVoltage = z.infer<typeof supplyVoltageSchema>;
 
-export const connectionTypeSchema = z.enum([
-	"SINGLE_PHASE",
-	"TWO_PHASE",
-	"THREE_PHASE",
-]);
+export const connectionTypeSchema = z.enum(["SINGLE_PHASE", "THREE_PHASE"]);
 
 export type ConnectionType = z.infer<typeof connectionTypeSchema>;
 

@@ -80,9 +80,6 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   }
 
   static Optional<String> rejection(GroupSpec spec) {
-    if (spec.connectionType() == ConnectionType.TWO_PHASE) {
-      return Optional.of("A ligação do apartamento é monofásica ou trifásica.");
-    }
     if (spec.connectionType() == ConnectionType.THREE_PHASE
         && (spec.items() == null || spec.items().isEmpty())) {
       return Optional.of("Detalhe as cargas do apartamento trifásico.");

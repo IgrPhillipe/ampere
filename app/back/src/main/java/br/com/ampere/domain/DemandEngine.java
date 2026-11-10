@@ -335,9 +335,8 @@ public final class DemandEngine {
           CheckStatus.WARNING,
           "A "
               + table
-              + " dimensiona a entrada trifásica de edificação coletiva. Com ligação "
-              + context.connectionType().label().toLowerCase()
-              + ", confira a entrada pela DIS-NOR-030, item 6.28.");
+              + " dimensiona a entrada trifásica de edificação coletiva. Com ligação monofásica,"
+              + " confira a entrada pela DIS-NOR-030, item 6.28.");
     }
     return new CalculationCheck(
         "MINIMUM_BY_VOLTAGE",

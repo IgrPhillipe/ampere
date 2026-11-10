@@ -88,7 +88,7 @@ class BuildingTypeTest {
             () -> new NonResidential(8, SupplyVoltage.V220_127, null, EntranceStandard.INDIVIDUAL))
         .isInstanceOf(NullPointerException.class);
     assertThatThrownBy(
-            () -> new NonResidential(8, SupplyVoltage.V220_127, ConnectionType.TWO_PHASE, null))
+            () -> new NonResidential(8, SupplyVoltage.V220_127, ConnectionType.THREE_PHASE, null))
         .isInstanceOf(NullPointerException.class);
   }
 

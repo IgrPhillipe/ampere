@@ -25,6 +25,12 @@ describe("projectCreationSchema address", () => {
 		expect(issuesOf({})).toEqual([]);
 	});
 
+	it("refuses a two-phase project connection", () => {
+		expect(issuesOf({ connectionType: "TWO_PHASE" })).toEqual([
+			"connectionType: O tipo de ligação é obrigatório.",
+		]);
+	});
+
 	it("refuses a CEP outside the area even with a served municipality", () => {
 		expect(issuesOf({ postalCode: "01310-100" })).toEqual([
 			"postalCode: Fora da área atendida pela Neoenergia Pernambuco: Pernambuco ou Pedras de Fogo (PB).",

@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -216,6 +217,21 @@ class ProjectControllerTest {
         .perform(post("/projects").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.detail", containsString("state")));
+  }
+
+  @Test
+  void rejectsATwoPhaseProjectConnection() throws Exception {
+    ProjectService service = mock(ProjectService.class);
+    String body = validBody().replace("THREE_PHASE", "TWO_PHASE");
+
+    mockMvc(service)
+        .perform(post("/projects").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest());
+    mockMvc(service)
+        .perform(put("/projects/1").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest());
+
+    verifyNoInteractions(service);
   }
 
   @Test
