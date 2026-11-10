@@ -94,7 +94,7 @@ pnpm install && pnpm dev
 | [Entrega 01](#entrega-01) | 31/08/2026 | Finalizada |
 | [Entrega 02](#entrega-02) | 21/09/2026 | Finalizada |
 | [Entrega 03](#entrega-03) | 19/10/2026 | Finalizada |
-| [Entrega 04](#entrega-04) | 09/11/2026 | Em andamento |
+| [Entrega 04](#entrega-04) | 09/11/2026 | Finalizada |
 
 Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (POO) e [`docs/cronograma-projetos3.md`](docs/cronograma-projetos3.md) (Projetos 3).
 
