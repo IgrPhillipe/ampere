@@ -65,9 +65,9 @@ public class ProjectController {
   })
   public ApiResponse<List<ProjectResponse>> list(
       @Valid @ParameterObject PageQuery pagination,
-      @Parameter(description = "Situação usada para filtrar os projetos")
-          @RequestParam(required = false)
-          ProjectStatus status,
+      @Parameter(description = "Situações usadas para filtrar os projetos; repita o parâmetro")
+          @RequestParam(name = "status", required = false)
+          List<ProjectStatus> statuses,
       @Parameter(description = "Termo buscado no nome ou no protocolo")
           @RequestParam(required = false)
           String search,
@@ -104,7 +104,7 @@ public class ProjectController {
             pagination.page(),
             pagination.pageSize(),
             new ProjectListQuery(
-                status,
+                statuses,
                 search,
                 sort,
                 direction,

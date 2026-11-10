@@ -77,9 +77,9 @@ public class SpreadsheetExportController {
         description = "Parâmetros inválidos")
   })
   public ResponseEntity<byte[]> projects(
-      @Parameter(description = "Situação usada para filtrar os projetos")
-          @RequestParam(required = false)
-          ProjectStatus status,
+      @Parameter(description = "Situações usadas para filtrar os projetos; repita o parâmetro")
+          @RequestParam(name = "status", required = false)
+          List<ProjectStatus> statuses,
       @Parameter(description = "Termo buscado no nome ou no protocolo")
           @RequestParam(required = false)
           String search,
@@ -113,7 +113,7 @@ public class SpreadsheetExportController {
       @AuthenticationPrincipal Jwt jwt) {
     ProjectListQuery query =
         new ProjectListQuery(
-            status,
+            statuses,
             search,
             sort,
             direction,

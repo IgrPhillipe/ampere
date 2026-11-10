@@ -46,9 +46,9 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
   public Page<Project> searchAccessibleProjects(ProjectSearch search, Pageable pageable) {
     Map<String, Object> parameters = new HashMap<>();
     StringBuilder where = visibleTo(search.userId(), search.visibility(), parameters);
-    if (search.status() != null) {
-      where.append(" AND project.status = :status");
-      parameters.put("status", search.status());
+    if (!search.statuses().isEmpty()) {
+      where.append(" AND project.status IN :statuses");
+      parameters.put("statuses", search.statuses());
     }
     if (!search.search().isEmpty()) {
       where.append(" AND project.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'");

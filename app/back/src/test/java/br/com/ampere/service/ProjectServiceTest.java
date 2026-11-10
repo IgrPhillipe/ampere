@@ -63,7 +63,7 @@ class ProjectServiceTest {
             2,
             20,
             new ProjectListQuery(
-                ProjectStatus.DRAFT,
+                List.of(ProjectStatus.DRAFT),
                 " %_\\ ",
                 ProjectSort.NAME,
                 SortDirection.ASC,

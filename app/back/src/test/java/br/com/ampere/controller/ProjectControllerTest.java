@@ -244,7 +244,7 @@ class ProjectControllerTest {
             1,
             20,
             new ProjectListQuery(
-                ProjectStatus.REJECTED,
+                List.of(ProjectStatus.REJECTED),
                 "vila",
                 ProjectSort.UPDATED_AT,
                 SortDirection.ASC,
@@ -261,7 +261,7 @@ class ProjectControllerTest {
     ApiResponse<List<ProjectResponse>> response =
         controller.list(
             new PageQuery(1, 20),
-            ProjectStatus.REJECTED,
+            List.of(ProjectStatus.REJECTED),
             "vila",
             ProjectSort.UPDATED_AT,
             SortDirection.ASC,
