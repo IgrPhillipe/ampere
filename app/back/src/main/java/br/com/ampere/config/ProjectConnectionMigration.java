@@ -10,9 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Projects saved with the retired two-phase connection become three-phase before JPA reads them.
- */
+/** Retired two-phase projects become three-phase before the other startup runners read them. */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class ProjectConnectionMigration implements ApplicationRunner {
