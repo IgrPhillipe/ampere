@@ -38,7 +38,7 @@ public interface ProjectRepositoryCustom {
   record ProjectSearch(
       Long userId,
       ProjectVisibility visibility,
-      ProjectStatus status,
+      Collection<ProjectStatus> statuses,
       String search,
       Collection<BrazilianState> states,
       Collection<String> municipalities,

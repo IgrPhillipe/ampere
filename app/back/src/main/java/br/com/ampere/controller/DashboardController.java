@@ -1,8 +1,10 @@
 package br.com.ampere.controller;
 
 import br.com.ampere.domain.DashboardPeriod;
+import br.com.ampere.dto.AdminDashboardResponse;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.DesignerDashboardResponse;
+import br.com.ampere.service.AdminDashboardService;
 import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.DesignerDashboardService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,9 +24,30 @@ import org.springframework.web.bind.annotation.RestController;
 public class DashboardController {
 
   private final DesignerDashboardService designerService;
+  private final AdminDashboardService adminService;
 
-  public DashboardController(DesignerDashboardService designerService) {
+  public DashboardController(
+      DesignerDashboardService designerService, AdminDashboardService adminService) {
     this.designerService = designerService;
+    this.adminService = adminService;
+  }
+
+  @GetMapping("/admin")
+  @Operation(
+      operationId = "getAdminDashboard",
+      summary = "Painel do administrador: estado dos usuários, dos projetos ativos e da fila")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Painel do administrador"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "Apenas o administrador acessa o painel")
+  })
+  public ApiResponse<AdminDashboardResponse> admin(@AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(
+        adminService.dashboard(
+            AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role"))));
   }
 
   @GetMapping("/designer")

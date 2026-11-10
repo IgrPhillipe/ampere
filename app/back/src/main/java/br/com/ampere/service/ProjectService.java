@@ -117,7 +117,7 @@ public class ProjectService {
     return new ProjectSearch(
         user.id(),
         user.projectVisibility(),
-        query.status(),
+        query.statuses(),
         SearchTerms.normalize(query.search()),
         query.states(),
         query.municipalities(),

@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.ampere.controller.ProjectController;
 import br.com.ampere.domain.ProjectSort;
-import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.dto.PageQuery;
 import br.com.ampere.dto.ProjectRequest;
@@ -34,7 +33,7 @@ class OpenApiConfigTest {
             .getMethod(
                 "list",
                 PageQuery.class,
-                ProjectStatus.class,
+                List.class,
                 String.class,
                 ProjectSort.class,
                 SortDirection.class,

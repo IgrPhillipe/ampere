@@ -227,6 +227,33 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
+  void listsSeveralStatusesAtOnce() {
+    Project draft =
+        projectRepository.save(
+            project("A", "Rua A, 1", "Recife", "2026-9101", ProjectStatus.DRAFT));
+    Project rejected =
+        projectRepository.save(
+            project("B", "Rua B, 2", "Recife", "2026-9102", ProjectStatus.REJECTED));
+    projectRepository.save(project("C", "Rua C, 3", "Recife", "2026-9103", ProjectStatus.APPROVED));
+
+    ProjectListing listing =
+        list(
+            new ProjectListQuery(
+                List.of(ProjectStatus.DRAFT, ProjectStatus.REJECTED),
+                null,
+                ProjectSort.NAME,
+                SortDirection.ASC,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null));
+
+    assertThat(listing.projects()).containsExactly(draft, rejected);
+  }
+
+  @Test
   void countsProjectsPerStatusIgnoringTheListingFilters() {
     projectRepository.save(project("A", "Rua A, 1", "Recife", "2026-9001", ProjectStatus.REJECTED));
     projectRepository.save(project("B", "Rua B, 2", "Recife", "2026-9002", ProjectStatus.APPROVED));
@@ -500,7 +527,7 @@ class ProjectServiceIntegrationTest {
     ProjectListing listing =
         list(
             new ProjectListQuery(
-                ProjectStatus.UNDER_REVIEW,
+                List.of(ProjectStatus.UNDER_REVIEW),
                 null,
                 ProjectSort.NAME,
                 SortDirection.ASC,
@@ -820,7 +847,7 @@ class ProjectServiceIntegrationTest {
   private ProjectListing list(ProjectStatus status, String search) {
     return list(
         new ProjectListQuery(
-            status,
+            status == null ? null : List.of(status),
             search,
             ProjectSort.UPDATED_AT,
             SortDirection.DESC,

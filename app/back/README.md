@@ -98,7 +98,7 @@ curl -s -X POST http://localhost:8080/api/auth/login \
   -d '{"email":"user@ampere.com","password":"senha@123"}'
 ```
 
-As tabelas normativas (`/api/normative-tables/**`), a gestão de usuários (`/api/users/**`, exceto `/api/users/me`), os municípios dos analistas (`/api/reviewers/**`) e a atribuição em lote (`/api/review-queue/assignment`) exigem o papel `admin`; o resto da fila (`/api/review-queue/**`) aceita `reviewer` e `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`.
+As tabelas normativas (`/api/normative-tables/**`), a gestão de usuários (`/api/users/**`, exceto `/api/users/me`), os municípios dos analistas (`/api/reviewers/**`), a atribuição em lote (`/api/review-queue/assignment`) e o painel do administrador (`/api/dashboard/admin`) exigem o papel `admin`; o resto da fila (`/api/review-queue/**`) aceita `reviewer` e `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`.
 
 ### Cadastro e Perfil
 
@@ -137,7 +137,7 @@ Restrita ao papel `admin` pelo `SecurityConfig`, sem prefixo de papel no caminho
 
 | Método e caminho | O que faz |
 | :--- | :--- |
-| `GET /api/users` | Lista em ordem de nome, paginada; `search` busca no nome e no e-mail sem acentos, `role` filtra por `user`, `reviewer` ou `admin` e `active` pela situação |
+| `GET /api/users` | Lista em ordem de nome, paginada; `search` busca no nome e no e-mail sem acentos, `role` filtra por `user`, `reviewer` ou `admin`, `active` pela situação, `mustChangePassword` pela troca de senha pendente e `inactiveDays` (1 ou mais) por último login há mais de N dias ou nunca feito |
 | `POST /api/users` | Cria a conta com nome, e-mail e papel; devolve a senha temporária |
 | `PUT /api/users/{id}` | Substitui nome, papel e situação (`active`), os três obrigatórios; é por aqui que se desativa e reativa. O e-mail não muda |
 | `POST /api/users/{id}/password-reset` | Gera uma nova senha temporária |
@@ -185,6 +185,22 @@ Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/i
 - Cada item de `actionRequired` traz `version` (número do envio), `consumerUnits`, `rejectedAt` no reprovado e `pendingStage` no rascunho: a primeira etapa incompleta, na ordem unidades, cálculo atualizado e documentos; nula quando falta só enviar. Cada item de `underReview` traz `version`, e acima de 1 é reanálise.
 - "Sem alteração" do rascunho usa `Project.updatedAt`. Editar grupos, cargas ou documentos e calcular a demanda também atualizam a data (`Project.touch()`).
 - `hasSubmissions` diz se algum projeto do projetista já foi enviado (`submittedAt` preenchido), em qualquer data.
+
+---
+
+## Painel do Administrador
+
+`GET /api/dashboard/admin` responde só ao papel `admin`; `user` e `reviewer` recebem 403. Os números são globais e não têm período.
+
+| Bloco | Campos | Regra |
+| :--- | :--- | :--- |
+| `users` | `activeByRole`, `inactive`, `mustChangePassword`, `withoutAccess30Days` | `activeByRole` traz os três papéis, com 0 quando vazio. `withoutAccess30Days` conta só contas ativas sem login há mais de 30 dias ou nunca |
+| `projects` | `draft`, `awaitingSubmission`, `underReview`, `rejected` | Projetos de todos os projetistas; `underReview` conta só os enviados |
+| `queue` | `unassigned`, `dueIn3Days`, `overdue`, `byReviewer`, `municipalitiesWithoutReviewer` | Prazo pela regra da fila (`Project.deadlineStatus`); `dueIn3Days` vai de hoje a 3 dias e exclui os atrasados |
+
+- `byReviewer` lista os analistas e administradores ativos, mesmo sem carga, e também quem foi desativado com projetos ainda atribuídos, com `active: false`.
+- `municipalitiesWithoutReviewer` é o total da área de concessão menos os municípios de analistas ativos (US23).
+- Os atalhos do bloco `users` abrem `GET /api/users` com `mustChangePassword=true`, `active=false` ou `active=true&inactiveDays=30`. A tabela de projetos ativos usa `GET /api/projects?status=DRAFT&status=AWAITING_SUBMISSION&status=UNDER_REVIEW&status=REJECTED`, com `search` e `owner`.
 
 ---
 

@@ -10,7 +10,7 @@ import java.util.Collection;
 
 /** The filters and the sort of the project listing, already converted. */
 public record ProjectListQuery(
-    ProjectStatus status,
+    Collection<ProjectStatus> statuses,
     String search,
     ProjectSort sort,
     SortDirection direction,
@@ -22,6 +22,7 @@ public record ProjectListQuery(
     Long owner) {
 
   public ProjectListQuery {
+    statuses = FilterValues.setOf(statuses, "status");
     states = FilterValues.setOf(states, "state");
     municipalities = FilterValues.setOf(municipalities, "municipality");
     findings = FilterValues.setOf(findings, "findings");

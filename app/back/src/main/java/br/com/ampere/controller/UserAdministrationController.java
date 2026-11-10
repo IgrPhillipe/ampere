@@ -51,7 +51,7 @@ public class UserAdministrationController {
         description = "Página de usuários"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
-        description = "Paginação ou papel inválido"),
+        description = "Paginação, papel ou filtro inválido"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "403",
         description = "Apenas o papel ADMIN gerencia usuários")
@@ -68,9 +68,27 @@ public class UserAdministrationController {
                   "Situação da conta: true só ativas, false só inativas; ausente lista todas")
           @RequestParam(required = false)
           Boolean active,
+      @Parameter(
+              description =
+                  "Troca de senha pendente: true só com troca pendente, false só sem; ausente lista todas")
+          @RequestParam(required = false)
+          Boolean mustChangePassword,
+      @Parameter(
+              description =
+                  "Sem acesso há N dias (N >= 1): último login há mais de N dias ou nunca; combine com active=true para o atalho do painel")
+          @RequestParam(required = false)
+          Integer inactiveDays,
       @AuthenticationPrincipal Jwt jwt) {
     UserListing listing =
-        service.list(pagination.page(), pagination.pageSize(), search, role, active, userOf(jwt));
+        service.list(
+            pagination.page(),
+            pagination.pageSize(),
+            search,
+            role,
+            active,
+            mustChangePassword,
+            inactiveDays,
+            userOf(jwt));
     List<ManagedUserResponse> items =
         listing.users().stream().map(ManagedUserResponse::from).toList();
 
