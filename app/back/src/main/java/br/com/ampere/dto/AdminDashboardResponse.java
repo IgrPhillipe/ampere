@@ -12,7 +12,8 @@ public record AdminDashboardResponse(
       long mustChangePassword,
       long withoutAccess30Days) {}
 
-  public record ProjectsSummary(long draft, long underReview, long rejected) {}
+  public record ProjectsSummary(
+      long draft, long awaitingSubmission, long underReview, long rejected) {}
 
   public record QueueSummary(
       long unassigned,
@@ -21,5 +22,6 @@ public record AdminDashboardResponse(
       List<ReviewerLoad> byReviewer,
       long municipalitiesWithoutReviewer) {}
 
-  public record ReviewerLoad(String id, String name, long underReview) {}
+  /** {@code active} is false for a deactivated reviewer still holding projects in the queue. */
+  public record ReviewerLoad(String id, String name, boolean active, long underReview) {}
 }

@@ -16,17 +16,25 @@ import br.com.ampere.dto.AdminDashboardResponse.UsersSummary;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ReviewerMunicipalityRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.utils.Timestamps;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AdminDashboardService {
+
+  /** An account without a login for longer than this asks for the admin's attention. */
+  private static final int INACTIVE_ACCESS_DAYS = 30;
+
+  private static final int DUE_SOON_DAYS = 3;
 
   private final UserRepository userRepository;
   private final ProjectRepository projectRepository;
@@ -47,90 +55,85 @@ public class AdminDashboardService {
   @Transactional(readOnly = true)
   public AdminDashboardResponse dashboard(AuthenticatedUser caller) {
     caller.requireAdmin();
+    List<Project> queue =
+        projectRepository.findAllByStatusOrderByIdAsc(ProjectStatus.UNDER_REVIEW).stream()
+            .filter(project -> project.getSubmittedAt() != null)
+            .toList();
 
-    UsersSummary users = usersSummary();
-    ProjectsSummary projects = projectsSummary();
-    QueueSummary queue = queueSummary(caller);
-
-    return new AdminDashboardResponse(users, projects, queue);
+    return new AdminDashboardResponse(
+        usersSummary(), projectsSummary(queue), queueSummary(queue, caller));
   }
 
   private UsersSummary usersSummary() {
     Map<String, Long> activeByRole = new LinkedHashMap<>();
-    for (UserRole role : UserRole.values()) {
-      activeByRole.put(role.getValue(), 0L);
-    }
-    for (Object[] row : userRepository.countActiveByRole()) {
-      UserRole role = (UserRole) row[0];
-      Long count = (Long) row[1];
-      activeByRole.put(role.getValue(), count);
-    }
+    Arrays.stream(UserRole.values()).forEach(role -> activeByRole.put(role.getValue(), 0L));
+    userRepository
+        .countActiveByRole()
+        .forEach(count -> activeByRole.put(count.getRole().getValue(), count.getTotal()));
 
-    long inactive = userRepository.countByActiveFalse();
-    long mustChangePassword = userRepository.countByMustChangePasswordTrue();
-    OffsetDateTime thirtyDaysAgo = OffsetDateTime.now(ZoneOffset.UTC).minusDays(30);
-    long withoutAccess30Days = userRepository.countActiveWithoutAccessSince(thirtyDaysAgo);
-
-    return new UsersSummary(activeByRole, inactive, mustChangePassword, withoutAccess30Days);
+    return new UsersSummary(
+        activeByRole,
+        userRepository.countByActiveFalse(),
+        userRepository.countByMustChangePasswordTrue(),
+        userRepository.countActiveWithoutAccessSince(
+            Timestamps.now().minusDays(INACTIVE_ACCESS_DAYS)));
   }
 
-  private ProjectsSummary projectsSummary() {
-    long draft = projectRepository.countByStatus(ProjectStatus.DRAFT);
-    long underReview =
-        projectRepository.countByStatusAndSubmittedAtIsNotNull(ProjectStatus.UNDER_REVIEW);
-    long rejected = projectRepository.countByStatus(ProjectStatus.REJECTED);
-
-    return new ProjectsSummary(draft, underReview, rejected);
+  private ProjectsSummary projectsSummary(List<Project> queue) {
+    return new ProjectsSummary(
+        projectRepository.countByStatus(ProjectStatus.DRAFT),
+        projectRepository.countByStatus(ProjectStatus.AWAITING_SUBMISSION),
+        queue.size(),
+        projectRepository.countByStatus(ProjectStatus.REJECTED));
   }
 
-  private QueueSummary queueSummary(AuthenticatedUser caller) {
-    long unassigned =
-        projectRepository.countByStatusAndSubmittedAtIsNotNullAndReviewerIsNull(
-            ProjectStatus.UNDER_REVIEW);
-
+  private QueueSummary queueSummary(List<Project> queue, AuthenticatedUser caller) {
     LocalDate today = LocalDate.now(ZONE);
-    List<Project> queueProjects =
-        projectRepository.findAllByStatusOrderByIdAsc(ProjectStatus.UNDER_REVIEW).stream()
-            .filter(p -> p.getSubmittedAt() != null)
-            .toList();
-
-    long dueIn3Days = 0;
     long overdue = 0;
-    for (Project p : queueProjects) {
-      DeadlineStatus status = p.deadlineStatus(today, ZONE);
-      if (status == DeadlineStatus.OVERDUE) {
+    long dueSoon = 0;
+    for (Project project : queue) {
+      if (project.deadlineStatus(today, ZONE) == DeadlineStatus.OVERDUE) {
         overdue++;
-      } else {
-        LocalDate deadline = p.reviewDeadline(ZONE);
-        if (!deadline.isBefore(today) && !deadline.isAfter(today.plusDays(3))) {
-          dueIn3Days++;
-        }
+      } else if (!project.reviewDeadline(ZONE).isAfter(today.plusDays(DUE_SOON_DAYS))) {
+        dueSoon++;
       }
     }
-
-    Map<Long, Long> countsByReviewerId = new LinkedHashMap<>();
-    for (Project p : queueProjects) {
-      if (p.getReviewer() != null) {
-        countsByReviewerId.merge(p.getReviewer().getId(), 1L, Long::sum);
-      }
-    }
-
-    List<User> reviewers = reviewQueueService.reviewers(caller);
-    List<ReviewerLoad> byReviewer =
-        reviewers.stream()
-            .map(
-                reviewer ->
-                    new ReviewerLoad(
-                        String.valueOf(reviewer.getId()),
-                        reviewer.getName(),
-                        countsByReviewerId.getOrDefault(reviewer.getId(), 0L)))
-            .toList();
-
-    long covered = municipalityRepository.countDistinctServedMunicipalities();
-    long municipalitiesWithoutReviewer =
-        Math.max(0, ConcessionArea.totalMunicipalities() - covered);
 
     return new QueueSummary(
-        unassigned, dueIn3Days, overdue, byReviewer, municipalitiesWithoutReviewer);
+        queue.stream().filter(project -> project.getReviewer() == null).count(),
+        dueSoon,
+        overdue,
+        reviewerLoads(queue, caller),
+        municipalitiesWithoutReviewer());
+  }
+
+  private List<ReviewerLoad> reviewerLoads(List<Project> queue, AuthenticatedUser caller) {
+    List<User> assigned =
+        queue.stream().map(Project::getReviewer).filter(Objects::nonNull).toList();
+    Map<Long, Long> loadById =
+        assigned.stream().collect(Collectors.groupingBy(User::getId, Collectors.counting()));
+    Map<Long, User> reviewers = new LinkedHashMap<>();
+    reviewQueueService.reviewers(caller).forEach(user -> reviewers.put(user.getId(), user));
+    // A deactivated reviewer keeps the projects already assigned, so the load must still show.
+    assigned.forEach(user -> reviewers.putIfAbsent(user.getId(), user));
+
+    return reviewers.values().stream()
+        .sorted(Comparator.comparing(User::getName).thenComparing(User::getId))
+        .map(
+            user ->
+                new ReviewerLoad(
+                    String.valueOf(user.getId()),
+                    user.getName(),
+                    user.isActiveReviewer(),
+                    loadById.getOrDefault(user.getId(), 0L)))
+        .toList();
+  }
+
+  private long municipalitiesWithoutReviewer() {
+    long covered =
+        municipalityRepository.countByReviewerActiveTrueAndReviewerRoleIn(
+            Arrays.stream(UserRole.values()).filter(UserRole::canReview).toList());
+
+    return Math.max(0, ConcessionArea.totalMunicipalities() - covered);
   }
 }

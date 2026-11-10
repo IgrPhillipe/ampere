@@ -2,6 +2,8 @@ package br.com.ampere.repository;
 
 import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.ReviewerMunicipality;
+import br.com.ampere.domain.UserRole;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -16,13 +18,7 @@ public interface ReviewerMunicipalityRepository extends JpaRepository<ReviewerMu
   Optional<ReviewerMunicipality> findByStateAndMunicipality(
       BrazilianState state, String municipality);
 
-  @org.springframework.data.jpa.repository.Query(
-      """
-      SELECT COUNT(DISTINCT CONCAT(rm.state, ':', rm.municipality))
-      FROM ReviewerMunicipality rm
-      WHERE rm.reviewer.active = true
-      """)
-  long countDistinctServedMunicipalities();
+  long countByReviewerActiveTrueAndReviewerRoleIn(Collection<UserRole> roles);
 
   void deleteAllByReviewerId(Long reviewerId);
 }

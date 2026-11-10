@@ -25,8 +25,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
 
   long countByStatusAndSubmittedAtIsNotNull(ProjectStatus status);
 
-  long countByStatusAndSubmittedAtIsNotNullAndReviewerIsNull(ProjectStatus status);
-
   long countByReviewedAtGreaterThanEqual(OffsetDateTime since);
 
   long countByStatusAndReviewedAtGreaterThanEqual(ProjectStatus status, OffsetDateTime since);

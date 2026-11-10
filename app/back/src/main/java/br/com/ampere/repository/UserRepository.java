@@ -52,14 +52,21 @@ public interface UserRepository extends JpaRepository<User, Long> {
       @Param("search") String search,
       Pageable pageable);
 
+  interface RoleCount {
+
+    UserRole getRole();
+
+    long getTotal();
+  }
+
   @Query(
       """
-      SELECT account.role, COUNT(account)
+      SELECT account.role AS role, COUNT(account) AS total
       FROM User account
       WHERE account.active = true
       GROUP BY account.role
       """)
-  List<Object[]> countActiveByRole();
+  List<RoleCount> countActiveByRole();
 
   long countByActiveFalse();
 
