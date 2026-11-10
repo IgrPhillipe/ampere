@@ -22,6 +22,10 @@ public final class ConcessionArea {
 
   private ConcessionArea() {}
 
+  public static int totalMunicipalities() {
+    return ConcessionMunicipalities.BY_STATE.values().stream().mapToInt(List::size).sum();
+  }
+
   /** The municipality with the IBGE spelling, or empty when the place is outside the area. */
   public static Optional<String> municipalityOf(BrazilianState state, String municipality) {
     if (state == null || municipality == null) {

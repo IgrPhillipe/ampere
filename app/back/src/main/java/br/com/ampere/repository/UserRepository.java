@@ -34,6 +34,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
       FROM User account
       WHERE (:role IS NULL OR account.role = :role)
         AND (:active IS NULL OR account.active = :active)
+        AND (:mustChangePassword IS NULL OR account.mustChangePassword = :mustChangePassword)
+        AND (:inactiveSince IS NULL OR account.lastLoginAt IS NULL OR account.lastLoginAt < :inactiveSince)
         AND (
           :search = ''
           OR account.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
@@ -42,8 +44,32 @@ public interface UserRepository extends JpaRepository<User, Long> {
   Page<User> search(
       @Param("role") UserRole role,
       @Param("active") Boolean active,
+      @Param("mustChangePassword") Boolean mustChangePassword,
+      @Param("inactiveSince") java.time.OffsetDateTime inactiveSince,
       @Param("search") String search,
       Pageable pageable);
+
+  @Query(
+      """
+      SELECT account.role, COUNT(account)
+      FROM User account
+      WHERE account.active = true
+      GROUP BY account.role
+      """)
+  List<Object[]> countActiveByRole();
+
+  long countByActiveFalse();
+
+  long countByMustChangePasswordTrue();
+
+  @Query(
+      """
+      SELECT COUNT(account)
+      FROM User account
+      WHERE account.active = true
+        AND (account.lastLoginAt IS NULL OR account.lastLoginAt < :since)
+      """)
+  long countActiveWithoutAccessSince(@Param("since") java.time.OffsetDateTime since);
 
   List<User> findAllBySearchIndex(String searchIndex);
 

@@ -582,6 +582,52 @@ class UserAdministrationIntegrationTest {
         .andExpect(status().isNotFound());
   }
 
+  @Test
+  void filtersUsersByActiveMustChangePasswordAndInactiveDays() throws Exception {
+    String adminToken = token("admin@ampere.com", PASSWORD);
+
+    User inactiveUser =
+        userRepository.save(
+            new User(
+                "Carlos Inativo",
+                "carlos@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.USER));
+    inactiveUser.administer("Carlos Inativo", UserRole.USER, false);
+    userRepository.save(inactiveUser);
+
+    User tempPwdUser =
+        userRepository.save(
+            User.withTemporaryPassword(
+                "Beto Temporario",
+                "beto@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.REVIEWER));
+    userRepository.save(tempPwdUser);
+
+    mockMvc
+        .perform(authorized(get("/users").param("active", "false"), adminToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].email").value("carlos@ampere.com"));
+
+    mockMvc
+        .perform(authorized(get("/users").param("active", "true"), adminToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(3)));
+
+    mockMvc
+        .perform(authorized(get("/users").param("mustChangePassword", "true"), adminToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].email").value("beto@ampere.com"));
+
+    mockMvc
+        .perform(authorized(get("/users").param("inactiveDays", "30"), adminToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(4)));
+  }
+
   private String resetPassword(User user) throws Exception {
     return body(mockMvc
             .perform(

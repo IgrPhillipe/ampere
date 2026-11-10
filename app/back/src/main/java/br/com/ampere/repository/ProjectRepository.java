@@ -21,7 +21,11 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
 
   boolean existsByOwnerIdAndSubmittedAtIsNotNull(Long ownerId);
 
+  long countByStatus(ProjectStatus status);
+
   long countByStatusAndSubmittedAtIsNotNull(ProjectStatus status);
+
+  long countByStatusAndSubmittedAtIsNotNullAndReviewerIsNull(ProjectStatus status);
 
   long countByReviewedAtGreaterThanEqual(OffsetDateTime since);
 

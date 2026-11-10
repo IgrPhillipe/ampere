@@ -68,9 +68,27 @@ public class UserAdministrationController {
                   "Situação da conta: true só ativas, false só inativas; ausente lista todas")
           @RequestParam(required = false)
           Boolean active,
+      @Parameter(
+              description =
+                  "Troca de senha pendente: true lista apenas com troca pendente; ausente lista todas")
+          @RequestParam(required = false)
+          Boolean mustChangePassword,
+      @Parameter(
+              description =
+                  "Sem acesso há N dias: lista contas com último login há mais de N dias ou nunca acessadas")
+          @RequestParam(required = false)
+          Integer inactiveDays,
       @AuthenticationPrincipal Jwt jwt) {
     UserListing listing =
-        service.list(pagination.page(), pagination.pageSize(), search, role, active, userOf(jwt));
+        service.list(
+            pagination.page(),
+            pagination.pageSize(),
+            search,
+            role,
+            active,
+            mustChangePassword,
+            inactiveDays,
+            userOf(jwt));
     List<ManagedUserResponse> items =
         listing.users().stream().map(ManagedUserResponse::from).toList();
 

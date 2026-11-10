@@ -16,5 +16,13 @@ public interface ReviewerMunicipalityRepository extends JpaRepository<ReviewerMu
   Optional<ReviewerMunicipality> findByStateAndMunicipality(
       BrazilianState state, String municipality);
 
+  @org.springframework.data.jpa.repository.Query(
+      """
+      SELECT COUNT(DISTINCT CONCAT(rm.state, ':', rm.municipality))
+      FROM ReviewerMunicipality rm
+      WHERE rm.reviewer.active = true
+      """)
+  long countDistinctServedMunicipalities();
+
   void deleteAllByReviewerId(Long reviewerId);
 }
