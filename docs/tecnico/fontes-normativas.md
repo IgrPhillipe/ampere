@@ -220,7 +220,7 @@ No Exemplo 1 da norma, uma edificação com demanda calculada de 32,37 kVA em 38
 
 As Tabelas 1 e 2 estão no **Anexo II, p. 123/353**, e vão além do mínimo: cada faixa de demanda até 300 kVA define o número de circuitos, a seção do ramal subterrâneo e o disjuntor geral. Os exemplos tratam o teto da faixa como "o valor mínimo a ser considerado" (196,73 kVA em 220/127 V passa a 229 kVA, 3 × 185 mm² e 600 A). O motor dimensiona da mesma forma.
 
-> **Tabela 18 ou 19.** O item 6.27.7 da 030 cita apenas a Tabela 18, de motores **monofásicos**. Os valores dos exemplos da 053 (1 cv = 1,52 kVA, 3 cv = 4,04 kVA, 15 cv = 16,65 kVA) são os da **Tabela 19, motores trifásicos**, p. 70. O motor usa a 19 em ligação trifásica e a 18 nas demais.
+> **Tabela 18 ou 19.** O item 6.27.7 da 030 cita apenas a Tabela 18, de motores **monofásicos**. Os valores dos exemplos da 053 (1 cv = 1,52 kVA, 3 cv = 4,04 kVA, 15 cv = 16,65 kVA) são os da **Tabela 19, motores trifásicos**, p. 70. O motor usa a 19 em ligação trifásica e a 18 na monofásica.
 
 O **item 6.27.1 da 053** define ainda o corte de porte citado no desafio: edificações com demanda total **até 50 kVA**, ramal aéreo e um único centro de medição podem apresentar projeto simplificado. Acima de 50 kVA, exige-se projeto completo analisado pela distribuidora (item 6.27.3).
 

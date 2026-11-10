@@ -52,7 +52,7 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 | 2026-2030 | Complexo Multiuso Marco Zero | U | Rascunho | Vitrine das entradas raras: recarga individualizada e incorporada ao veículo, com gerenciamento; unidade compacta; as seis categorias de carga (ar-condicionado, aquecimento instantâneo e de acumulação, cocção, aparelhos, equipamento especial); potência em HP; lâmpada fluorescente/néon/sódio |
 | 2026-2032 | Complexo Reserva do Capibaribe | C | Rascunho | Mais de 300 kVA: alerta de entrada de serviço fora das faixas |
 | 2026-2033 | Residencial Bela Vista | J | Rascunho | Quatro apartamentos: vale a demanda mínima da primeira faixa |
-| 2026-2034 | Residencial Janga | C | Rascunho | Ligação bifásica e entrada individual |
+| 2026-2034 | Residencial Janga | C | Rascunho | Ligação trifásica e entrada individual |
 | 2026-2035 | Padaria Central | J | Rascunho | Ligação monofásica e entrada individual, não residencial |
 | 2026-2047 | Residencial Torres do Pina | U | Rascunho | Ligação por apartamento: tipos monofásicos e coberturas trifásicas com as cargas detalhadas. Calculado, com a demanda individual (`Dind`) de cada grupo |
 
@@ -90,7 +90,7 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 
 | Protocolo | Projeto | Proj. | Situação | O que demonstra |
 | :--- | :--- | :--- | :--- | :--- |
-| 2026-1004 | Condomínio Vila Nova | U | Reprovado hoje | Apontamentos abertos sem resposta; ligação bifásica, entrada individual; apontamento de unidades ligado ao grupo |
+| 2026-1004 | Condomínio Vila Nova | U | Reprovado hoje | Apontamentos abertos sem resposta; ligação trifásica, entrada individual; apontamento de unidades ligado ao grupo |
 | 2026-1005 | Centro Empresarial Recife | U | Reprovado há 35 dias | Apontamento aberto antigo; entrada individual |
 | 2026-2007 | Residencial Torre das Graças | U | Reprovado | Dois apontamentos abertos, um ligado ao grupo |
 | 2026-2008 | Edifício Madalena | U | Reprovado | Respondido pela metade: o bloqueante segue aberto e impede o reenvio |
