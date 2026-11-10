@@ -51,7 +51,7 @@ public class UserAdministrationController {
         description = "Página de usuários"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
-        description = "Paginação ou papel inválido"),
+        description = "Paginação, papel ou filtro inválido"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "403",
         description = "Apenas o papel ADMIN gerencia usuários")
@@ -70,12 +70,12 @@ public class UserAdministrationController {
           Boolean active,
       @Parameter(
               description =
-                  "Troca de senha pendente: true lista apenas com troca pendente; ausente lista todas")
+                  "Troca de senha pendente: true só com troca pendente, false só sem; ausente lista todas")
           @RequestParam(required = false)
           Boolean mustChangePassword,
       @Parameter(
               description =
-                  "Sem acesso há N dias: lista contas com último login há mais de N dias ou nunca acessadas")
+                  "Sem acesso há N dias (N >= 1): último login há mais de N dias ou nunca; combine com active=true para o atalho do painel")
           @RequestParam(required = false)
           Integer inactiveDays,
       @AuthenticationPrincipal Jwt jwt) {

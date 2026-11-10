@@ -2,6 +2,7 @@ package br.com.ampere.repository;
 
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +36,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
       WHERE (:role IS NULL OR account.role = :role)
         AND (:active IS NULL OR account.active = :active)
         AND (:mustChangePassword IS NULL OR account.mustChangePassword = :mustChangePassword)
-        AND (:inactiveSince IS NULL OR account.lastLoginAt IS NULL OR account.lastLoginAt < :inactiveSince)
+        AND (CAST(:inactiveSince AS OffsetDateTime) IS NULL
+          OR account.lastLoginAt IS NULL
+          OR account.lastLoginAt < :inactiveSince)
         AND (
           :search = ''
           OR account.searchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'
@@ -45,7 +48,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
       @Param("role") UserRole role,
       @Param("active") Boolean active,
       @Param("mustChangePassword") Boolean mustChangePassword,
-      @Param("inactiveSince") java.time.OffsetDateTime inactiveSince,
+      @Param("inactiveSince") OffsetDateTime inactiveSince,
       @Param("search") String search,
       Pageable pageable);
 
@@ -69,7 +72,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
       WHERE account.active = true
         AND (account.lastLoginAt IS NULL OR account.lastLoginAt < :since)
       """)
-  long countActiveWithoutAccessSince(@Param("since") java.time.OffsetDateTime since);
+  long countActiveWithoutAccessSince(@Param("since") OffsetDateTime since);
 
   List<User> findAllBySearchIndex(String searchIndex);
 

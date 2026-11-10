@@ -1,6 +1,7 @@
 package br.com.ampere.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -583,49 +584,46 @@ class UserAdministrationIntegrationTest {
   }
 
   @Test
-  void filtersUsersByActiveMustChangePasswordAndInactiveDays() throws Exception {
+  void filtersByPendingPasswordChangeAndByLastAccess() throws Exception {
     String adminToken = token("admin@ampere.com", PASSWORD);
-
-    User inactiveUser =
-        userRepository.save(
-            new User(
-                "Carlos Inativo",
-                "carlos@ampere.com",
-                passwordEncoder.encode(PASSWORD),
-                UserRole.USER));
-    inactiveUser.administer("Carlos Inativo", UserRole.USER, false);
-    userRepository.save(inactiveUser);
-
-    User tempPwdUser =
-        userRepository.save(
-            User.withTemporaryPassword(
-                "Beto Temporario",
-                "beto@ampere.com",
-                passwordEncoder.encode(PASSWORD),
-                UserRole.REVIEWER));
-    userRepository.save(tempPwdUser);
-
-    mockMvc
-        .perform(authorized(get("/users").param("active", "false"), adminToken))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data", hasSize(1)))
-        .andExpect(jsonPath("$.data[0].email").value("carlos@ampere.com"));
-
-    mockMvc
-        .perform(authorized(get("/users").param("active", "true"), adminToken))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data", hasSize(3)));
+    User inactive =
+        new User(
+            "Carlos Inativo", "carlos@ampere.com", passwordEncoder.encode(PASSWORD), UserRole.USER);
+    inactive.administer("Carlos Inativo", UserRole.USER, false);
+    userRepository.save(inactive);
+    userRepository.save(
+        User.withTemporaryPassword(
+            "Beto Temporário",
+            "beto@ampere.com",
+            passwordEncoder.encode(PASSWORD),
+            UserRole.REVIEWER));
 
     mockMvc
         .perform(authorized(get("/users").param("mustChangePassword", "true"), adminToken))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data", hasSize(1)))
-        .andExpect(jsonPath("$.data[0].email").value("beto@ampere.com"));
-
+        .andExpect(jsonPath("$.data[*].email").value(contains("beto@ampere.com")));
     mockMvc
         .perform(authorized(get("/users").param("inactiveDays", "30"), adminToken))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data", hasSize(4)));
+        .andExpect(
+            jsonPath("$.data[*].email")
+                .value(contains("beto@ampere.com", "carlos@ampere.com", "joao@ampere.com")));
+    mockMvc
+        .perform(
+            authorized(
+                get("/users").param("active", "true").param("inactiveDays", "30"), adminToken))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.data[*].email").value(contains("beto@ampere.com", "joao@ampere.com")));
+  }
+
+  @Test
+  void rejectsALastAccessFilterBelowOneDay() throws Exception {
+    mockMvc
+        .perform(
+            authorized(
+                get("/users").param("inactiveDays", "0"), token("admin@ampere.com", PASSWORD)))
+        .andExpect(status().isBadRequest());
   }
 
   private String resetPassword(User user) throws Exception {

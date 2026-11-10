@@ -9,6 +9,8 @@ import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.SearchTerms;
 import br.com.ampere.utils.TemporaryPasswords;
+import br.com.ampere.utils.Timestamps;
+import java.time.OffsetDateTime;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -48,10 +50,11 @@ public class UserAdministrationService {
     administrator.requireAdmin();
     PageRequest pageRequest =
         PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.ASC, "name").and(Sort.by("id")));
-    java.time.OffsetDateTime inactiveSince =
-        inactiveDays == null
-            ? null
-            : java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC).minusDays(inactiveDays);
+    if (inactiveDays != null && inactiveDays < 1) {
+      throw new BusinessException("O filtro 'inactiveDays' deve ser maior que zero.");
+    }
+    OffsetDateTime inactiveSince =
+        inactiveDays == null ? null : Timestamps.now().minusDays(inactiveDays);
     Page<User> users =
         userRepository.search(
             role,
