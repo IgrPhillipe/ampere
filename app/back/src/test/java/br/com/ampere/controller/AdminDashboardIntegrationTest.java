@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
-import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
@@ -59,13 +58,25 @@ class AdminDashboardIntegrationTest {
 
     admin =
         userRepository.save(
-            new User("Admin Gestor", "admin@ampere.com", passwordEncoder.encode(PASSWORD), UserRole.ADMIN));
+            new User(
+                "Admin Gestor",
+                "admin@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.ADMIN));
     designer =
         userRepository.save(
-            new User("João Projetista", "joao@ampere.com", passwordEncoder.encode(PASSWORD), UserRole.USER));
+            new User(
+                "João Projetista",
+                "joao@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.USER));
     reviewer =
         userRepository.save(
-            new User("Ana Analista", "ana@ampere.com", passwordEncoder.encode(PASSWORD), UserRole.REVIEWER));
+            new User(
+                "Ana Analista",
+                "ana@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.REVIEWER));
   }
 
   @Test

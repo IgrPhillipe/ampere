@@ -127,7 +127,8 @@ public class AdminDashboardService {
             .toList();
 
     long covered = municipalityRepository.countDistinctServedMunicipalities();
-    long municipalitiesWithoutReviewer = Math.max(0, ConcessionArea.totalMunicipalities() - covered);
+    long municipalitiesWithoutReviewer =
+        Math.max(0, ConcessionArea.totalMunicipalities() - covered);
 
     return new QueueSummary(
         unassigned, dueIn3Days, overdue, byReviewer, municipalitiesWithoutReviewer);

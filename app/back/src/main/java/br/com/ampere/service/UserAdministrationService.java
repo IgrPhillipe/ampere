@@ -49,7 +49,9 @@ public class UserAdministrationService {
     PageRequest pageRequest =
         PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.ASC, "name").and(Sort.by("id")));
     java.time.OffsetDateTime inactiveSince =
-        inactiveDays == null ? null : java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC).minusDays(inactiveDays);
+        inactiveDays == null
+            ? null
+            : java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC).minusDays(inactiveDays);
     Page<User> users =
         userRepository.search(
             role,

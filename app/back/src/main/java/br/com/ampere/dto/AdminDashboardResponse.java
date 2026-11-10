@@ -4,9 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 public record AdminDashboardResponse(
-    UsersSummary users,
-    ProjectsSummary projects,
-    QueueSummary queue) {
+    UsersSummary users, ProjectsSummary projects, QueueSummary queue) {
 
   public record UsersSummary(
       Map<String, Long> activeByRole,
@@ -14,10 +12,7 @@ public record AdminDashboardResponse(
       long mustChangePassword,
       long withoutAccess30Days) {}
 
-  public record ProjectsSummary(
-      long draft,
-      long underReview,
-      long rejected) {}
+  public record ProjectsSummary(long draft, long underReview, long rejected) {}
 
   public record QueueSummary(
       long unassigned,
@@ -26,8 +21,5 @@ public record AdminDashboardResponse(
       List<ReviewerLoad> byReviewer,
       long municipalitiesWithoutReviewer) {}
 
-  public record ReviewerLoad(
-      String id,
-      String name,
-      long underReview) {}
+  public record ReviewerLoad(String id, String name, long underReview) {}
 }
