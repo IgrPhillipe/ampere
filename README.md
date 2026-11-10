@@ -364,7 +364,7 @@ Critérios de cada entrega: [`docs/cronograma-poo.md`](docs/cronograma-poo.md) (
 | :--- | :--- |
 | Histórias implementadas (POST-IT) | [Histórias implementadas](#histórias-implementadas-2) |
 | Print do GitHub Issues | Pendente |
-| Screencast final do sistema | Pendente |
+| Screencast final do sistema | [Youtube](https://youtu.be/uo62ex86vuQ) |
 | Screencast da explicação do código | Pendente |
 
 ---
