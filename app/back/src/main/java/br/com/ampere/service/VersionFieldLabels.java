@@ -11,6 +11,7 @@ import br.com.ampere.domain.LoadUsage;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.SupplyVoltage;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -61,7 +62,7 @@ final class VersionFieldLabels {
           Map.entry("stationType", labels(EvStationType.values(), EvStationType::label)),
           Map.entry("buildingType", labels(BuildingCategory.values(), BuildingCategory::label)),
           Map.entry("voltage", labels(SupplyVoltage.values(), SupplyVoltage::label)),
-          Map.entry("connectionType", labels(ConnectionType.values(), ConnectionType::label)),
+          Map.entry("connectionType", connectionLabels()),
           Map.entry("entranceStandard", labels(EntranceStandard.values(), EntranceStandard::label)),
           Map.entry("category", labels(LoadCategory.values(), LoadCategory::label)),
           Map.entry("powerUnit", labels(PowerUnit.values(), PowerUnit::label)),
@@ -72,6 +73,14 @@ final class VersionFieldLabels {
           Map.entry("simultaneousStart", YES_NO));
 
   private VersionFieldLabels() {}
+
+  private static Map<String, String> connectionLabels() {
+    Map<String, String> labels =
+        new HashMap<>(labels(ConnectionType.values(), ConnectionType::label));
+    // Versions submitted before AT03-US02 keep the retired two-phase connection.
+    labels.put("TWO_PHASE", "Bifásico");
+    return Map.copyOf(labels);
+  }
 
   private static <E extends Enum<E>> Map<String, String> labels(
       E[] values, Function<E, String> label) {
