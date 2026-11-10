@@ -220,7 +220,7 @@ class DemandEngineTest {
         .containsExactly(
             CheckStatus.WARNING,
             "A Tabela 1 dimensiona a entrada trifásica de edificação coletiva. Com ligação"
-                + " monofásico, confira a entrada pela DIS-NOR-030, item 6.28.");
+                + " monofásica, confira a entrada pela DIS-NOR-030, item 6.28.");
   }
 
   @Test
