@@ -33,6 +33,8 @@ public record ProjectDetailResponse(
     OffsetDateTime submittedAt,
     String ownerId,
     String ownerName,
+    @Schema(description = "Analista responsável; nulo quando o projeto não tem analista")
+        String reviewerId,
     String reviewerName,
     OffsetDateTime reviewedAt,
     int reviewCycle,
@@ -77,6 +79,7 @@ public record ProjectDetailResponse(
         project.getSubmittedAt(),
         project.getOwner() == null ? null : String.valueOf(project.getOwner().getId()),
         nameOf(project.getOwner()),
+        idOf(project.getReviewer()),
         nameOf(project.getReviewer()),
         project.getReviewedAt(),
         project.getReviewCycle(),
@@ -95,6 +98,10 @@ public record ProjectDetailResponse(
         standards.stream().map(StandardResponse::label).collect(Collectors.joining(" e ")),
         buildingType.demandRules().stream().map(DemandRuleResponse::from).toList(),
         TechnicalResponsibleResponse.of(project.getOwner()));
+  }
+
+  private static String idOf(User user) {
+    return user == null ? null : String.valueOf(user.getId());
   }
 
   private static String nameOf(User user) {
