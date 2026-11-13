@@ -20,7 +20,7 @@ import { useState } from "react";
 
 import {
 	formatNotificationAge,
-	formatUnreadBadge,
+	formatUnreadCount,
 	formatUnreadLabel,
 	toAppPath,
 } from "./notification-format";
@@ -99,19 +99,19 @@ export const NotificationsMenu = () => {
 				render={
 					<Button
 						variant="ghost"
-						size="icon-sm"
-						className="relative"
+						size={unreadCount > 0 ? "sm" : "icon-sm"}
 						aria-label={formatUnreadLabel(unreadCount)}
 					/>
 				}
 			>
 				<BellIcon />
+				{/* The prototype has no colored counter: the count is a number in ink. */}
 				{unreadCount > 0 ? (
 					<span
 						aria-hidden="true"
-						className="absolute top-1 right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-attention px-1 font-mono text-[0.625rem] leading-none text-primary-foreground"
+						className="font-mono text-2xs font-medium text-foreground tabular-nums"
 					>
-						{formatUnreadBadge(unreadCount)}
+						{formatUnreadCount(unreadCount)}
 					</span>
 				) : null}
 			</PopoverTrigger>

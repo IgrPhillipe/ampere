@@ -75,7 +75,9 @@ describe("NotificationsMenu", () => {
 		const bell = screen.getByRole("button", {
 			name: "Notificações, 1 não lida",
 		});
-		expect(within(bell).getByText("1")).toBeInTheDocument();
+		const count = within(bell).getByText("01");
+		expect(count).toHaveClass("font-mono", "text-foreground");
+		expect(count).not.toHaveClass("bg-attention");
 	});
 
 	it("drops the count when nothing is unread", () => {
