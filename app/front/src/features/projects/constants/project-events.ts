@@ -22,17 +22,22 @@ const DESIGNER_EVENTS = new Set<ProjectEventType>([
 const ROLE_LABELS = {
 	user: "Projetista",
 	reviewer: "Analista",
-} as const satisfies Partial<Record<UserRole, string>>;
+	admin: "Gestor",
+} as const satisfies Record<UserRole, string>;
 
 export const SYSTEM_AUTHOR_LABEL = "Sistema";
 
-/** The admin acts as designer on their own projects and as analyst on the rest, so the event tells which. */
+/**
+ * The admin acts as designer on their own projects and as analyst on the rest,
+ * so the event tells which. Assigning is the manager's job alone (US23).
+ */
 export const eventAuthorRoleLabel = ({
 	type,
 	authorRole,
 }: Pick<ProjectEvent, "type" | "authorRole">) => {
 	if (authorRole === null) return SYSTEM_AUTHOR_LABEL;
 	if (authorRole !== "admin") return ROLE_LABELS[authorRole];
+	if (type === "ASSIGNED") return ROLE_LABELS.admin;
 
 	return DESIGNER_EVENTS.has(type) ? ROLE_LABELS.user : ROLE_LABELS.reviewer;
 };

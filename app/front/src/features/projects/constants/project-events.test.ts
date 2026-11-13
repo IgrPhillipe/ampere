@@ -7,7 +7,7 @@ describe("eventAuthorRoleLabel", () => {
 		["CREATED", "user", "Projetista"],
 		["REJECTED", "reviewer", "Analista"],
 		["APPROVED", "admin", "Analista"],
-		["ASSIGNED", "admin", "Analista"],
+		["ASSIGNED", "admin", "Gestor"],
 		["CREATED", "admin", "Projetista"],
 		["RESUBMITTED", "admin", "Projetista"],
 		["PRE_VALIDATED", null, "Sistema"],
