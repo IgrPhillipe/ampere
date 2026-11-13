@@ -277,7 +277,7 @@ describe("ProjectHistoryPage", () => {
 			}),
 		];
 
-		render(<ProjectHistoryPage projectId="4" />);
+		renderPage();
 		const items = within(screen.getByRole("list")).getAllByRole("listitem");
 
 		expect(items[0]).toHaveTextContent("Reenviado, Versão 2");
@@ -290,7 +290,7 @@ describe("ProjectHistoryPage", () => {
 		state.reviewCycle = 1;
 		state.reviewDeadline = null;
 
-		render(<ProjectHistoryPage projectId="4" />);
+		renderPage();
 
 		expect(screen.queryByText(/Retorno até/)).not.toBeInTheDocument();
 	});
