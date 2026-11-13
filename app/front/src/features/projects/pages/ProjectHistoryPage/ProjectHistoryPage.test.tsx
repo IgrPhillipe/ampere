@@ -422,6 +422,42 @@ describe("ProjectHistoryPage versions", () => {
 		);
 	});
 
+	it("offers the memorial of an approval with reservations beside the submitted one", () => {
+		state.status = "APPROVED";
+		state.versions = [
+			{
+				...versionOf(1, 230),
+				approvalMemorial: {
+					memorialSha256: "b".repeat(64),
+					verificationCode: "14AD-9894-877C-3C4A",
+					issuedAt: "2026-09-01T13:00:00Z",
+				},
+			},
+		];
+		renderPage();
+
+		expect(
+			screen.getByText("Aprovada com ressalvas em 01/09/2026"),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", {
+				name: "Verificar o código 14AD-9894-877C-3C4A",
+			}),
+		).toHaveAttribute(
+			"href",
+			"/verificar-autenticidade?codigo=14AD-9894-877C-3C4A",
+		);
+		fireEvent.click(
+			screen.getByRole("button", {
+				name: "Baixar o memorial da aprovação da v01",
+			}),
+		);
+		expect(state.download).toHaveBeenCalledWith(
+			{ projectId: "4", version: 1, file: { kind: "approval-memorial" } },
+			expect.anything(),
+		);
+	});
+
 	it("opens the comparison of the latest version against the one before", async () => {
 		const onUrlUpdate = vi.fn<OnUrlUpdateFunction>();
 		renderPage("", onUrlUpdate);

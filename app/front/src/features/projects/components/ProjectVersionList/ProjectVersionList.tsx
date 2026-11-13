@@ -26,6 +26,7 @@ interface ProjectVersionListProps {
 }
 
 const MEMORIAL: VersionFile = { kind: "memorial" };
+const APPROVAL_MEMORIAL: VersionFile = { kind: "approval-memorial" };
 
 interface FileButtonProps {
 	label: string;
@@ -175,6 +176,35 @@ export const ProjectVersionList = ({
 												/>
 											);
 										})}
+									</div>
+								) : null}
+								{version.approvalMemorial ? (
+									<div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs text-muted-foreground">
+										<span>
+											Aprovada com ressalvas em{" "}
+											{formatDate(version.approvalMemorial.issuedAt)}
+										</span>
+										<FileButton
+											label="Memorial da Aprovação"
+											ariaLabel={`Baixar o memorial da aprovação da ${label}`}
+											busy={isDownloading(version.number, APPROVAL_MEMORIAL)}
+											onClick={() =>
+												onDownload({
+													version: version.number,
+													file: APPROVAL_MEMORIAL,
+												})
+											}
+										/>
+										<Link
+											to="/verificar-autenticidade"
+											search={{
+												codigo: version.approvalMemorial.verificationCode,
+											}}
+											className="font-mono tracking-[0.11em] underline-offset-4 hover:text-foreground hover:underline"
+											aria-label={`Verificar o código ${version.approvalMemorial.verificationCode}`}
+										>
+											{version.approvalMemorial.verificationCode}
+										</Link>
 									</div>
 								) : null}
 							</li>
