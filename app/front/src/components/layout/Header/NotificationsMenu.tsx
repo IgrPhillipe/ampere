@@ -22,7 +22,7 @@ import {
 	formatUnreadBadge,
 	formatUnreadLabel,
 	isAppLink,
-} from "./notification-row";
+} from "./notification-format";
 
 interface NotificationItemProps {
 	notification: AppNotification;

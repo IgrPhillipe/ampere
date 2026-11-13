@@ -6,9 +6,9 @@ import {
 	formatUnreadBadge,
 	formatUnreadLabel,
 	isAppLink,
-} from "./notification-row";
+} from "./notification-format";
 
-describe("notification row", () => {
+describe("notification format", () => {
 	const now = dayjs("2026-11-13T15:00:00-03:00");
 
 	it("tells how long ago, in Portuguese", () => {
