@@ -12,10 +12,11 @@ import {
 	useGetNotifications,
 	useReadAllNotifications,
 	useReadNotification,
+	useRefreshNotificationsOnNavigation,
 } from "@services/notifications";
-import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { BellIcon, XIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import {
 	formatNotificationAge,
@@ -66,9 +67,6 @@ const NotificationItem = ({ notification, onOpen }: NotificationItemProps) => (
 export const NotificationsMenu = () => {
 	const [open, setOpen] = useState(false);
 	const navigate = useNavigate();
-	const pathname = useRouterState({
-		select: (state) => state.location.pathname,
-	});
 	// A temporary password makes the API refuse everything but its change.
 	const mustChangePassword = useAuthStore(
 		(state) => state.user?.mustChangePassword ?? false,
@@ -80,16 +78,7 @@ export const NotificationsMenu = () => {
 	const readAll = useReadAllNotifications();
 	const { refetch } = notificationsQuery;
 
-	// No push: each navigation brings the bell up to date. The first
-	// render already fetches, so only a change of route refetches.
-	const lastPathname = useRef(pathname);
-
-	useEffect(() => {
-		if (lastPathname.current === pathname) return;
-
-		lastPathname.current = pathname;
-		if (!mustChangePassword) void refetch();
-	}, [refetch, pathname, mustChangePassword]);
+	useRefreshNotificationsOnNavigation();
 
 	const list = notificationsQuery.data?.data;
 	const unreadCount = list?.unreadCount ?? 0;

@@ -10,7 +10,6 @@ const mockNavigate = vi.fn();
 const mockRead = vi.fn();
 const mockReadAll = vi.fn();
 const mockRefetch = vi.fn();
-const route = vi.hoisted(() => ({ pathname: "/fila-de-analise" }));
 const listQuery = vi.hoisted(() => ({
 	current: {} as Record<string, unknown>,
 	options: undefined as { enabled?: boolean } | undefined,
@@ -24,12 +23,12 @@ vi.mock("@services/notifications", async (importOriginal) => ({
 	},
 	useReadNotification: () => ({ mutate: mockRead }),
 	useReadAllNotifications: () => ({ mutate: mockReadAll, isPending: false }),
+	useRefreshNotificationsOnNavigation: vi.fn(),
 }));
 
 vi.mock("@tanstack/react-router", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@tanstack/react-router")>()),
 	useNavigate: () => mockNavigate,
-	useRouterState: () => route.pathname,
 }));
 
 const notificationOf = (
@@ -183,25 +182,10 @@ describe("NotificationsMenu", () => {
 		expect(mockRefetch).toHaveBeenCalledOnce();
 	});
 
-	it("refreshes on navigation only, not on the first render", () => {
-		route.pathname = "/fila-de-analise";
-		const { rerender } = render(<NotificationsMenu />);
-		expect(listQuery.options).toEqual({ enabled: true });
-		expect(mockRefetch).not.toHaveBeenCalled();
-
-		route.pathname = "/projetos/4";
-		rerender(<NotificationsMenu />);
-		expect(mockRefetch).toHaveBeenCalledOnce();
-	});
-
 	it("stays quiet while a password change is pending", () => {
 		signInAs("user", { mustChangePassword: true });
-		route.pathname = "/fila-de-analise";
-		const { rerender } = render(<NotificationsMenu />);
-		expect(listQuery.options).toEqual({ enabled: false });
+		render(<NotificationsMenu />);
 
-		route.pathname = "/projetos/4";
-		rerender(<NotificationsMenu />);
-		expect(mockRefetch).not.toHaveBeenCalled();
+		expect(listQuery.options).toEqual({ enabled: false });
 	});
 });

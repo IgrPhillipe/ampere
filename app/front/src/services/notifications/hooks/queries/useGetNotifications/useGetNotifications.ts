@@ -7,7 +7,7 @@ interface UseGetNotificationsOptions {
 	enabled?: boolean;
 }
 
-/** No push: the bell refreshes when the user navigates or comes back to the tab. */
+/** The bell list; `useRefreshNotificationsOnNavigation` keeps it current. */
 export const useGetNotifications = ({
 	enabled = true,
 }: UseGetNotificationsOptions = {}) =>
