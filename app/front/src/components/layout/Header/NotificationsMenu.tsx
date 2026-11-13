@@ -22,7 +22,7 @@ import {
 	formatNotificationAge,
 	formatUnreadBadge,
 	formatUnreadLabel,
-	isAppLink,
+	toAppPath,
 } from "./notification-format";
 
 interface NotificationItemProps {
@@ -88,9 +88,9 @@ export const NotificationsMenu = () => {
 
 		setOpen(false);
 
-		if (isAppLink(notification.link)) {
-			void navigate({ href: notification.link });
-		}
+		const path = toAppPath(notification.link);
+
+		if (path) void navigate({ href: path });
 	};
 
 	return (

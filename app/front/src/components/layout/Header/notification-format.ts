@@ -4,9 +4,21 @@ import dayjs from "@lib/dayjs";
 export const formatNotificationAge = (createdAt: string, now = dayjs()) =>
 	dayjs(createdAt).from(now);
 
-/** Only routes of the app: a link from the API never leaves it. */
-export const isAppLink = (link: string) =>
-	link.startsWith("/") && !link.startsWith("//");
+/**
+ * The route a notification opens, or null when its link would leave the app.
+ * The browser decides: `/\host` looks like a path and still names another host.
+ */
+export const toAppPath = (link: string, origin = window.location.origin) => {
+	try {
+		const url = new URL(link, origin);
+
+		return url.origin === origin
+			? `${url.pathname}${url.search}${url.hash}`
+			: null;
+	} catch {
+		return null;
+	}
+};
 
 export const formatUnreadLabel = (count: number) =>
 	count === 0
