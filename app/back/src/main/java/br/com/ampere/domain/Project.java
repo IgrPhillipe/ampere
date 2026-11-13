@@ -237,12 +237,15 @@ public class Project {
   /**
    * Starts a review cycle. A resubmission after a rejection resumes the 30-day period with the days
    * left at the rejection, and the days spent waiting for the fixes count as suspended.
+   *
+   * @return the days the period stood suspended until this submission; zero on the first one
    */
-  public void submit(OffsetDateTime submittedAt) {
+  public long submit(OffsetDateTime submittedAt) {
     Objects.requireNonNull(submittedAt, "submittedAt");
-    if (isRejected() && wasSubmitted() && reviewedAt != null) {
+    long waited = 0;
+    if (isReviewSuspended()) {
       long used = Timestamps.daysBetween(reviewClockStart(), reviewedAt);
-      long waited = Math.max(0, Timestamps.daysBetween(reviewedAt, submittedAt));
+      waited = Math.max(0, Timestamps.daysBetween(reviewedAt, submittedAt));
       this.suspendedReviewDays = Math.toIntExact(suspendedReviewDays + waited);
       this.reviewClockStartedAt = submittedAt.minusDays(used);
     } else {
@@ -253,6 +256,8 @@ public class Project {
     this.reviewedAt = null;
     this.reviewOpinion = null;
     this.reviewCycle++;
+
+    return waited;
   }
 
   public void recordChangeSummary(String changeSummary) {

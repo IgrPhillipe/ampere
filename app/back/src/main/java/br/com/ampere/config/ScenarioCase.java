@@ -176,9 +176,9 @@ final class ScenarioCase {
     OffsetDateTime submittedAt = advance(daysAgo, 0);
     Calculation calculation =
         kit.calculations.findFirstByProjectIdOrderByIdDesc(project.getId()).orElseThrow();
-    project.submit(submittedAt);
+    long suspendedDays = project.submit(submittedAt);
     kit.versions.register(project, calculation, submittedAt);
-    kit.events.submitted(project, project.getOwner(), calculation, submittedAt);
+    kit.events.submitted(project, project.getOwner(), calculation, suspendedDays, submittedAt);
 
     return this;
   }

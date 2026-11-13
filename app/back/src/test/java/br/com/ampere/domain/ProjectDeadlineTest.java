@@ -89,8 +89,9 @@ class ProjectDeadlineTest {
     Project project = submitted(NOON.minusDays(22));
     project.reject(NOON.minusDays(10));
 
-    project.submit(NOON);
+    long suspendedDays = project.submit(NOON);
 
+    assertThat(suspendedDays).isEqualTo(10);
     assertThat(project.remainingReviewDays(TODAY, ZONE)).isEqualTo(18);
     assertThat(project.reviewDeadline(ZONE)).isEqualTo(TODAY.plusDays(18));
     assertThat(project.elapsedReviewDays(TODAY, ZONE)).isEqualTo(12);

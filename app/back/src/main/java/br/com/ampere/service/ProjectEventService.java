@@ -34,8 +34,13 @@ public class ProjectEventService {
     record(project, ProjectEventType.CREATED, author, "Projeto criado.", null, occurredAt);
   }
 
+  /** {@code suspendedDays} is what {@link Project#submit} returned for this submission. */
   public void submitted(
-      Project project, User author, Calculation calculation, OffsetDateTime occurredAt) {
+      Project project,
+      User author,
+      Calculation calculation,
+      long suspendedDays,
+      OffsetDateTime occurredAt) {
     boolean resubmission = project.getReviewCycle() > 1;
     String action = resubmission ? "reenviada" : "enviada";
     ProjectEventType type =
@@ -45,7 +50,9 @@ public class ProjectEventService {
         project,
         type,
         author,
-        resubmission ? description + resumedDeadline(project, occurredAt) : description,
+        resubmission
+            ? description + resumedDeadline(project, suspendedDays, occurredAt)
+            : description,
         resubmission ? project.getChangeSummary() : null,
         occurredAt);
     preValidated(project, calculation, occurredAt);
@@ -65,24 +72,16 @@ public class ProjectEventService {
         occurredAt);
   }
 
-  // The rejection that opened the suspension is the last one recorded before this resubmission.
-  private String resumedDeadline(Project project, OffsetDateTime resubmittedAt) {
-    return eventRepository
-        .findFirstByProjectIdAndTypeOrderByOccurredAtDescIdDesc(
-            project.getId(), ProjectEventType.REJECTED)
-        .map(
-            rejection -> {
-              long suspended =
-                  Math.max(0, Timestamps.daysBetween(rejection.getOccurredAt(), resubmittedAt));
-              long remaining =
-                  project.remainingReviewDays(Timestamps.localDate(resubmittedAt), Timestamps.ZONE);
-              return " Prazo suspenso por "
-                  + daysLabel(suspended)
-                  + "; "
-                  + remainingLabel(remaining)
-                  + ".";
-            })
-        .orElse("");
+  private static String resumedDeadline(
+      Project project, long suspendedDays, OffsetDateTime resubmittedAt) {
+    long remaining =
+        project.remainingReviewDays(Timestamps.localDate(resubmittedAt), Timestamps.ZONE);
+
+    return " Prazo suspenso por "
+        + daysLabel(suspendedDays)
+        + "; "
+        + remainingLabel(remaining)
+        + ".";
   }
 
   private static String remainingLabel(long days) {

@@ -24,7 +24,6 @@ import br.com.ampere.repository.ProjectEventRepository;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class ProjectEventServiceTest {
@@ -62,13 +61,14 @@ class ProjectEventServiceTest {
     when(project.getReviewCycle()).thenReturn(0);
     service.created(project, designer);
     when(project.getReviewCycle()).thenReturn(1);
-    service.submitted(project, designer, calculation, at.minusDays(12));
+    service.submitted(project, designer, calculation, 0, at.minusDays(12));
     when(project.getReviewer()).thenReturn(analyst);
     service.assigned(project, analyst, at.minusDays(11));
     service.rejected(project, analyst, List.of(open, contested, fixed), "Corrija a ART.", at);
     service.findingAnswered(project, designer, fixed, at.plusDays(2));
     when(project.getReviewCycle()).thenReturn(2);
-    service.submitted(project, designer, calculation, at.plusDays(3));
+    when(project.remainingReviewDays(any(), any())).thenReturn(19L);
+    service.submitted(project, designer, calculation, 3, at.plusDays(3));
     service.approved(project, analyst, 0, "Tudo certo.", at.plusDays(5));
     service.approved(project, analyst, 1, "Aprovado com ajuste.", at.plusDays(6));
     service.approved(project, analyst, 2, "Aprovado com ajustes.", at.plusDays(7));
@@ -97,7 +97,8 @@ class ProjectEventServiceTest {
     assertThat(recorded.get(4).getDescription()).isEqualTo("Reprovado com 2 apontamentos.");
     assertThat(recorded.get(5).getDescription()).isEqualTo("Apontamento de Documentos corrigido.");
     assertThat(recorded.get(5).getDetail()).isEqualTo("ART substituída.");
-    assertThat(recorded.get(6).getDescription()).isEqualTo("Versão 2 reenviada para análise.");
+    assertThat(recorded.get(6).getDescription())
+        .isEqualTo("Versão 2 reenviada para análise. Prazo suspenso por 3 dias; restam 19 dias.");
     assertThat(recorded.get(6).getDetail()).isEqualTo("ART e área corrigidas.");
     assertThat(recorded.subList(8, 11))
         .extracting(ProjectEvent::getDescription)
@@ -114,19 +115,15 @@ class ProjectEventServiceTest {
     OffsetDateTime submittedAt = OffsetDateTime.parse("2026-10-01T15:00:00Z");
     Project project = project(submittedAt.minusDays(22));
     User designer = user("Usuário Teste", UserRole.USER);
-    User analyst = user("Revisor Teste", UserRole.REVIEWER);
-    service.rejected(project, analyst, List.of(), "Corrija a ART.", submittedAt.minusDays(10));
     project.reject(submittedAt.minusDays(10));
-    when(repository.findFirstByProjectIdAndTypeOrderByOccurredAtDescIdDesc(
-            null, ProjectEventType.REJECTED))
-        .thenReturn(Optional.of(recorded.getLast()));
-    project.submit(submittedAt);
+    long suspendedDays = project.submit(submittedAt);
     Calculation calculation = mock(Calculation.class);
 
-    service.submitted(project, designer, calculation, submittedAt);
+    // No rejection event to look up: the days come from the domain.
+    service.submitted(project, designer, calculation, suspendedDays, submittedAt);
 
-    assertThat(recorded.get(1).getType()).isEqualTo(ProjectEventType.RESUBMITTED);
-    assertThat(recorded.get(1).getDescription())
+    assertThat(recorded.getFirst().getType()).isEqualTo(ProjectEventType.RESUBMITTED);
+    assertThat(recorded.getFirst().getDescription())
         .isEqualTo("Versão 2 reenviada para análise. Prazo suspenso por 10 dias; restam 18 dias.");
   }
 
