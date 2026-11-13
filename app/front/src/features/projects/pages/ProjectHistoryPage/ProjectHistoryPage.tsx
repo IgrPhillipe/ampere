@@ -14,7 +14,7 @@ import {
 } from "@services/project-versions";
 import { useGetProject } from "@services/projects";
 import { CircleAlert, History } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
 	ProjectTimeline,
@@ -49,6 +49,11 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 		knownNumbers.has(compared.to)
 			? compared
 			: null;
+	const staleLink = versions !== undefined && compared !== null && !comparing;
+	// A link to a version this project lacks leaves the URL instead of lingering there.
+	useEffect(() => {
+		if (staleLink) close();
+	}, [staleLink, close]);
 	const comparisonQuery = useCompareProjectVersions(
 		{ projectId, from: comparing?.from ?? 0, to: comparing?.to ?? 0 },
 		{ enabled: comparing !== null },

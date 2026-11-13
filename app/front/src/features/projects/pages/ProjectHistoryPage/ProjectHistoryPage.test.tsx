@@ -458,11 +458,16 @@ describe("ProjectHistoryPage versions", () => {
 		);
 	});
 
-	it("ignores a pair naming a version the project does not have", () => {
-		renderPage("?from=2&to=9");
+	it("drops from the URL a pair naming a version the project does not have", async () => {
+		const onUrlUpdate = vi.fn<OnUrlUpdateFunction>();
+		renderPage("?from=2&to=9", onUrlUpdate);
 
 		expect(state.compared).toEqual([]);
 		expect(screen.getByText("Projeto criado.")).toBeInTheDocument();
+		await vi.waitFor(() => expect(onUrlUpdate).toHaveBeenCalled());
+		const { searchParams } = onUrlUpdate.mock.calls.at(-1)?.[0] ?? {};
+		expect(searchParams?.has("from")).toBe(false);
+		expect(searchParams?.has("to")).toBe(false);
 	});
 
 	it("tells in the changes field that the comparison failed", () => {
