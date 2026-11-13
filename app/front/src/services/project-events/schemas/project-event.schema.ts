@@ -26,7 +26,6 @@ export const projectEventSchema = z.object({
 	authorName: z.string().nullable(),
 	authorRole: userRoleSchema.nullable(),
 	occurredAt: z.iso.datetime({ offset: true }),
-	reviewDeadline: z.iso.date().nullish(),
 });
 
 export type ProjectEvent = z.infer<typeof projectEventSchema>;

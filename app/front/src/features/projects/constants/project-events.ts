@@ -37,10 +37,14 @@ export const eventAuthorRoleLabel = ({
 	return DESIGNER_EVENTS.has(type) ? ROLE_LABELS.user : ROLE_LABELS.reviewer;
 };
 
+/** The events that send a version to the analyst. */
+export const isSubmissionEvent = ({ type }: Pick<ProjectEvent, "type">) =>
+	type === "SUBMITTED" || type === "RESUBMITTED";
+
 export const eventLabel = ({
 	type,
 	version,
 }: Pick<ProjectEvent, "type" | "version">) =>
-	type === "SUBMITTED" || type === "RESUBMITTED"
+	isSubmissionEvent({ type })
 		? `${PROJECT_EVENT_LABELS[type]}, Versão ${version}`
 		: PROJECT_EVENT_LABELS[type];

@@ -12,16 +12,21 @@ import type { ProjectEvent } from "@services/project-events";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { eventAuthorRoleLabel, eventLabel } from "../../constants";
+import {
+	eventAuthorRoleLabel,
+	eventLabel,
+	isSubmissionEvent,
+} from "../../constants";
 
 const titleId = "linha-do-tempo-titulo";
 
 interface EventItemProps {
 	event: ProjectEvent;
 	latest: boolean;
+	reviewDeadline?: string;
 }
 
-const EventItem = ({ event, latest }: EventItemProps) => {
+const EventItem = ({ event, latest, reviewDeadline }: EventItemProps) => {
 	const occurredAt = formatDateTime(event.occurredAt);
 	const role = eventAuthorRoleLabel(event);
 
@@ -53,9 +58,10 @@ const EventItem = ({ event, latest }: EventItemProps) => {
 					{latest ? <span className="sr-only"> (mais recente)</span> : null}
 				</p>
 				<p className="text-sm text-foreground">{event.description}</p>
-				{event.reviewDeadline ? (
+				{reviewDeadline ? (
 					<p className="text-sm text-foreground">
-						Retorno até {formatDate(event.reviewDeadline)}
+						Retorno até{" "}
+						<time dateTime={reviewDeadline}>{formatDate(reviewDeadline)}</time>
 					</p>
 				) : null}
 				{event.detail ? (
@@ -78,8 +84,16 @@ const EventItem = ({ event, latest }: EventItemProps) => {
 	);
 };
 
+/** The version still under review and the deadline the analyst has to return it. */
+export interface PendingSubmission {
+	version: number;
+	reviewDeadline: string;
+}
+
 interface ProjectTimelineProps {
 	events?: ProjectEvent[];
+	/** Dates the return on the event that sent this version; past submissions show none. */
+	pendingSubmission?: PendingSubmission;
 	direction: SortDirection;
 	onDirectionChange: (direction: SortDirection) => void;
 	isLoading?: boolean;
@@ -89,6 +103,7 @@ interface ProjectTimelineProps {
 
 export const ProjectTimeline = ({
 	events,
+	pendingSubmission,
 	direction,
 	onDirectionChange,
 	isLoading = false,
@@ -139,6 +154,12 @@ export const ProjectTimeline = ({
 							key={event.id}
 							event={event}
 							latest={index === latestIndex}
+							reviewDeadline={
+								isSubmissionEvent(event) &&
+								event.version === pendingSubmission?.version
+									? pendingSubmission.reviewDeadline
+									: undefined
+							}
 						/>
 					))}
 				</ol>
