@@ -1,21 +1,21 @@
 import { parseAsInteger, useQueryStates } from "nuqs";
 
-/** The pair under comparison lives in the URL, so it can be shared and reloaded. */
+/** The pair under comparison lives in the URL, named as in the API, so it can be shared and reloaded. */
 export const useComparedVersions = () => {
 	const [query, setQuery] = useQueryStates({
-		de: parseAsInteger,
-		para: parseAsInteger,
+		from: parseAsInteger,
+		to: parseAsInteger,
 	});
 
 	const compared =
-		query.de !== null && query.para !== null && query.de !== query.para
-			? { from: query.de, to: query.para }
+		query.from !== null && query.to !== null && query.from !== query.to
+			? { from: query.from, to: query.to }
 			: null;
 
 	return {
 		compared,
 		compare: ({ from, to }: { from: number; to: number }) =>
-			void setQuery({ de: from, para: to }),
-		close: () => void setQuery({ de: null, para: null }),
+			void setQuery({ from, to }),
+		close: () => void setQuery({ from: null, to: null }),
 	};
 };

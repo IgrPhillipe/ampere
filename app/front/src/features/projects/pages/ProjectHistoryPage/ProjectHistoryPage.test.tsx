@@ -384,8 +384,8 @@ describe("ProjectHistoryPage versions", () => {
 
 		await vi.waitFor(() => expect(onUrlUpdate).toHaveBeenCalled());
 		const { searchParams } = onUrlUpdate.mock.calls.at(-1)?.[0] ?? {};
-		expect(searchParams?.get("de")).toBe("2");
-		expect(searchParams?.get("para")).toBe("3");
+		expect(searchParams?.get("from")).toBe("2");
+		expect(searchParams?.get("to")).toBe("3");
 	});
 
 	it("offers no comparison with a single version", () => {
@@ -398,7 +398,7 @@ describe("ProjectHistoryPage versions", () => {
 	});
 
 	it("shows what changed between the versions in the URL", () => {
-		renderPage("?de=2&para=3");
+		renderPage("?from=2&to=3");
 
 		expect(state.compared.at(-1)).toEqual({ from: 2, to: 3 });
 		expect(
@@ -429,7 +429,7 @@ describe("ProjectHistoryPage versions", () => {
 	});
 
 	it("ignores a pair naming a version the project does not have", () => {
-		renderPage("?de=2&para=9");
+		renderPage("?from=2&to=9");
 
 		expect(state.compared).toEqual([]);
 		expect(screen.getByText("Projeto criado.")).toBeInTheDocument();
