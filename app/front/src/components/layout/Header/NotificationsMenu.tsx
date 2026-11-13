@@ -16,7 +16,7 @@ import {
 } from "@services/notifications";
 import { useNavigate } from "@tanstack/react-router";
 import { BellIcon, XIcon } from "lucide-react";
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 
 import {
 	formatNotificationAge,
@@ -66,6 +66,8 @@ const NotificationItem = ({ notification, onOpen }: NotificationItemProps) => (
 /** The header bell: unread count, the latest notifications and their links. */
 export const NotificationsMenu = () => {
 	const [open, setOpen] = useState(false);
+	const titleId = useId();
+	const closeRef = useRef<HTMLButtonElement>(null);
 	const navigate = useNavigate();
 	// A temporary password makes the API refuse everything but its change.
 	const mustChangePassword = useAuthStore(
@@ -93,6 +95,10 @@ export const NotificationsMenu = () => {
 		if (path) void navigate({ href: path });
 	};
 
+	// The button leaves with the last unread one: focus stays in the panel.
+	const markAllRead = () =>
+		readAll.mutate(undefined, { onSuccess: () => closeRef.current?.focus() });
+
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger
@@ -119,10 +125,11 @@ export const NotificationsMenu = () => {
 			<PopoverContent
 				align="end"
 				sideOffset={8}
+				aria-labelledby={titleId}
 				className="z-50 flex w-[min(26rem,calc(100vw-2rem))] flex-col rounded-none p-0"
 			>
 				<div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
-					<h2 className="text-lg font-medium tracking-[-0.018em]">
+					<h2 id={titleId} className="text-lg font-medium tracking-[-0.018em]">
 						Notificações
 					</h2>
 					<div className="flex items-center gap-1">
@@ -132,12 +139,13 @@ export const NotificationsMenu = () => {
 								variant="link"
 								size="xs"
 								disabled={readAll.isPending}
-								onClick={() => readAll.mutate()}
+								onClick={markAllRead}
 							>
 								Marcar Todas como Lidas
 							</Button>
 						) : null}
 						<Button
+							ref={closeRef}
 							type="button"
 							variant="ghost"
 							size="icon-xs"

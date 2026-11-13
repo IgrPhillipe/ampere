@@ -153,11 +153,29 @@ describe("NotificationsMenu", () => {
 		render(<NotificationsMenu />);
 		openPanel(/Notificações, 4 não lidas/);
 
+		mockReadAll.mockImplementation(
+			(_: unknown, options?: { onSuccess?: () => void }) =>
+				options?.onSuccess?.(),
+		);
+
 		fireEvent.click(
 			screen.getByRole("button", { name: "Marcar Todas como Lidas" }),
 		);
 
 		expect(mockReadAll).toHaveBeenCalledOnce();
+		// The button goes away with the unread ones; focus must not fall to the page.
+		expect(
+			screen.getByRole("button", { name: "Fechar notificações" }),
+		).toHaveFocus();
+	});
+
+	it("names the panel after its title", () => {
+		render(<NotificationsMenu />);
+		openPanel(/Notificações, 1/);
+
+		expect(
+			screen.getByRole("dialog", { name: "Notificações" }),
+		).toBeInTheDocument();
 	});
 
 	it("says when there is nothing yet", () => {
