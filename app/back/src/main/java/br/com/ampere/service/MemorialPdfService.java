@@ -171,16 +171,16 @@ public class MemorialPdfService {
             version ->
                 approvalMemorialRepository
                     .findByVersionId(version.getId())
-                    .map(approval -> stored(approval.getMemorial()))
+                    .map(approval -> storedMemorial(approval.getMemorial()))
                     .orElseGet(() -> storedMemorial(version)))
         .orElse(null);
   }
 
   public static Memorial storedMemorial(ProjectVersion version) {
-    return stored(version.getMemorial());
+    return storedMemorial(version.getMemorial());
   }
 
-  private static Memorial stored(ProjectVersionMemorial memorial) {
+  public static Memorial storedMemorial(ProjectVersionMemorial memorial) {
     return new Memorial(memorial.getFilename(), memorial.getData());
   }
 

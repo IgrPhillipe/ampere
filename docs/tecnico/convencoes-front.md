@@ -265,6 +265,7 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 | `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id`, `/projetos/$id/<etapa>` | Meus Projetos (Projetos, para o admin), o detalhe e as etapas |
 | `review-queue` | `/fila-de-analise` | Fila de Análise |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
+| `memorial-verification` | `/verificar-autenticidade` | Verificar Autenticidade, pública |
 | `reviewer-distribution` | `/distribuicao` | Distribuição: os municípios de cada analista |
 | `users` | `/usuarios` | Usuários |
 
@@ -291,7 +292,8 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 
 ## Autenticação
 
-1. `__root.tsx` chama `requireAuth()` em tudo que não está em `PUBLIC_PATHS`.
+1. `__root.tsx` chama `requireAuth()` em tudo que `isStandalonePath` não reconhece
+   (`lib/route-guard.ts`): as páginas públicas e a troca de senha, com ou sem `/` no fim.
 2. `requireAuth` espera a re-hidratação do store e, sem sessão, redireciona
    para `/entrar?redirect=<origem>`.
 3. `useLogin` grava a sessão, navega para o `redirect` e mostra o toast.
@@ -704,6 +706,8 @@ porte usando a tabela de equivalências em `app/front/.migration/2026-09-base-ui
 | Filtros e ordenação de listagem | `@components/FilterMenu`, `@components/MultiFilterMenu`, `@components/SearchableFilterMenu`, `@components/DateRangeFilter`, `@components/SortMenu`, `@components/ActiveFilters` |
 | Ordenação pelo cabeçalho | `@components/DataTable` (`sortableColumns`, `sort`, `onSortChange`) |
 | Envelope de resposta | `@features/shared` (`apiResponseSchema`, `paginatedResponseSchema`) |
+| Nome do arquivo de um PDF da API | `@lib/http` (`filenameOf`) |
+| Baixar um arquivo já carregado | `@features/shared` (`downloadFile`) |
 | Variável de ambiente | `@config` (`AppConfig`) |
 
 ---

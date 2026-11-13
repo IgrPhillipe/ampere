@@ -33,6 +33,16 @@ export const getRoleHomePath = (role: UserRole) => ROLE_FALLBACK[role];
 /** A temporary password keeps the user here until they replace it. */
 export const PASSWORD_CHANGE_PATH = "/trocar-senha";
 
+/** Routes that need no session. Everything else goes through the guard. */
+const PUBLIC_PATHS = ["/criar-conta", "/entrar", "/verificar-autenticidade"];
+
+/** Rendered without the app shell; each one guards itself. */
+const STANDALONE_PATHS = [...PUBLIC_PATHS, PASSWORD_CHANGE_PATH];
+
+/** A trailing slash, as in a typed link, still names the same page. */
+export const isStandalonePath = (pathname: string) =>
+	STANDALONE_PATHS.includes(pathname.replace(/\/+$/, "") || "/");
+
 interface GuardContext {
 	/** The route being opened, which `window.location` still lags behind. */
 	location: { pathname: string };

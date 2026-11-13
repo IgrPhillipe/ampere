@@ -6,6 +6,7 @@ export * from "./normative-tables";
 export * from "./notifications";
 export * from "./project-events";
 export * from "./project-review";
+export * from "./project-versions";
 export * from "./projects";
 export * from "./review-queue";
 export * from "./reviewer-distribution";

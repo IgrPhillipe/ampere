@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.ampere.config.NormativeTableSeed;
+import br.com.ampere.domain.ApprovalMemorial;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DocumentType;
@@ -306,6 +307,59 @@ class ProjectVersionIntegrationTest {
     verifyFile(submitted)
         .andExpect(jsonPath("$.data.verified").value(true))
         .andExpect(jsonPath("$.data.approvedAt").value(nullValue()));
+  }
+
+  @Test
+  void theVersionListNamesTheApprovalMemorialAndServesItsPdf() throws Exception {
+    Project project = submittedProject("2026-4032");
+    String submittedCode = codeOf(project, 1);
+    String analyst = assignedAnalyst(project);
+
+    review(post("/projects/" + project.getId() + "/review"), analyst).andExpect(status().isOk());
+    review(
+            post("/projects/" + project.getId() + "/findings")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                      "severity": "ADJUSTMENT",
+                      "stage": "DOCUMENTS",
+                      "documentType": "ART",
+                      "description": "Atualizar a data da ART.",
+                      "standardItem": "DIS-NOR-053, item 6.17"
+                    }
+                    """),
+            analyst)
+        .andExpect(status().isCreated());
+    approve(project, analyst);
+
+    ApprovalMemorial approval = approvalMemorialRepository.findAll().getFirst();
+    perform(get(versionsOf(project)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].verificationCode").value(submittedCode))
+        .andExpect(
+            jsonPath("$.data[0].approvalMemorial.verificationCode")
+                .value(approval.getVerificationCode()))
+        .andExpect(
+            jsonPath("$.data[0].approvalMemorial.memorialSha256")
+                .value(approval.getMemorialSha256()))
+        .andExpect(jsonPath("$.data[0].approvalMemorial.issuedAt").isNotEmpty());
+    byte[] approved = bytes(perform(get(versionsOf(project) + "/1/approval-memorial")));
+    assertThat(approved).isEqualTo(bytes(perform(get(memorialOf(project)))));
+    assertThat(textOf(approved)).contains(approval.getVerificationCode());
+  }
+
+  @Test
+  void aVersionWithoutApprovalWithReservationsHasNoApprovalMemorial() throws Exception {
+    Project project = submittedProject("2026-4033");
+
+    perform(get(versionsOf(project)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].approvalMemorial").value(nullValue()));
+    perform(get(versionsOf(project) + "/1/approval-memorial"))
+        .andExpect(status().isNotFound())
+        .andExpect(
+            jsonPath("$.detail").value("Esta versão não tem memorial de aprovação com ressalvas."));
   }
 
   @Test

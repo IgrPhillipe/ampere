@@ -2,6 +2,7 @@ import { EmptyState } from "@components/EmptyState";
 import { Button } from "@components/ui/button";
 import { getHttpStatus } from "@lib/api-error";
 import { useGetLatestCalculation } from "@services/calculation";
+import { useGetProjectVersionList } from "@services/project-versions";
 import { useGetProject } from "@services/projects";
 import { useGetMemorial, useGetSubmission } from "@services/submission";
 import { useNavigate } from "@tanstack/react-router";
@@ -12,6 +13,7 @@ import {
 	StepFooter,
 	SubmissionChecklistPanel,
 } from "../../components";
+import { getMemorialStamp, mayHaveOfficialMemorial } from "../../constants";
 import { useProjectPermissions } from "../../hooks";
 
 interface MemorialPageProps {
@@ -30,11 +32,22 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 
 	const project = projectQuery.data?.data;
 	const { canEdit } = useProjectPermissions(project);
+	// Only a project out of edition can hold a stored memorial; the versions say which one.
+	const checksVersions =
+		project !== undefined && mayHaveOfficialMemorial(project.status);
+	const versionsQuery = useGetProjectVersionList(projectId, {
+		enabled: checksVersions,
+	});
+	const stamp =
+		project === undefined || (checksVersions && !versionsQuery.data)
+			? undefined
+			: getMemorialStamp(project.status, versionsQuery.data?.data ?? []);
 	const neverCalculated = calculationQuery.data === null;
 	const outdated = getHttpStatus(memorialQuery.error) === 409;
 	const hasError =
 		projectQuery.isError ||
 		calculationQuery.isError ||
+		versionsQuery.isError ||
 		(memorialQuery.isError && !outdated);
 
 	const goTo = (to: "/projetos/$id/calculo" | "/projetos/$id/documentos") =>
@@ -53,6 +66,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 						void projectQuery.refetch();
 						void calculationQuery.refetch();
 						void memorialQuery.refetch();
+						if (versionsQuery.isError) void versionsQuery.refetch();
 					}}
 				>
 					Tentar Novamente
@@ -102,6 +116,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	) : (
 		<MemorialPreview
 			project={project}
+			stamp={stamp}
 			calculation={calculation}
 			memorial={memorialQuery.data}
 			isLoading={memorialQuery.isPending}
