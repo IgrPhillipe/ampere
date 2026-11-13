@@ -102,6 +102,19 @@ class ProjectDeadlineTest {
   }
 
   @Test
+  void theSuspensionCountsTheDaysOfRecifeNotOfUtc() {
+    // 23:30 in Recife is already the next day in UTC, both at the rejection and the resubmission.
+    Project project = submitted(OffsetDateTime.parse("2026-09-01T12:00:00-03:00"));
+    project.reject(OffsetDateTime.parse("2026-09-13T23:30:00-03:00"));
+
+    long suspendedDays = project.submit(OffsetDateTime.parse("2026-09-23T23:30:00-03:00"));
+
+    assertThat(suspendedDays).isEqualTo(10);
+    assertThat(project.reviewDeadline(ZONE)).isEqualTo(LocalDate.of(2026, 10, 11));
+    assertThat(project.remainingReviewDays(LocalDate.of(2026, 9, 23), ZONE)).isEqualTo(18);
+  }
+
+  @Test
   void theDeadlineStandsStillWhileTheProjectWaitsForTheFixes() {
     Project project = submitted(NOON.minusDays(22));
     project.reject(NOON.minusDays(10));
