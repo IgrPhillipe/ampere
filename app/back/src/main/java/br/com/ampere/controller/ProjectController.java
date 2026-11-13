@@ -123,7 +123,8 @@ public class ProjectController {
                         project,
                         listing.pendingCountFor(project),
                         listing.unitCountFor(project),
-                        listing.demandFor(project)))
+                        listing.demandFor(project),
+                        listing.timelineFor(project)))
             .toList();
 
     return ApiResponse.of(

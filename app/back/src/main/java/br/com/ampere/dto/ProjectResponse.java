@@ -3,7 +3,7 @@ package br.com.ampere.dto;
 import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
-import br.com.ampere.service.ReviewTimeline;
+import br.com.ampere.domain.ReviewTimeline;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -33,9 +33,11 @@ public record ProjectResponse(
         LocalDate approvalValidUntil) {
 
   public static ProjectResponse from(
-      Project project, long pendingCount, long consumerUnitsCount, BigDecimal demandKva) {
-    ReviewTimeline timeline = ReviewTimeline.today(project);
-
+      Project project,
+      long pendingCount,
+      long consumerUnitsCount,
+      BigDecimal demandKva,
+      ReviewTimeline timeline) {
     return new ProjectResponse(
         String.valueOf(project.getId()),
         project.getName(),
@@ -51,8 +53,8 @@ public record ProjectResponse(
         pendingCount,
         consumerUnitsCount,
         demandKva,
-        timeline.reviewDeadline(),
-        timeline.reviewSuspended(),
+        timeline.deadline(),
+        timeline.suspended(),
         timeline.approvalValidUntil());
   }
 }

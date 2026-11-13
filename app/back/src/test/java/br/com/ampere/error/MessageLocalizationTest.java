@@ -12,6 +12,7 @@ import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ResidentialMultifamily;
+import br.com.ampere.domain.ReviewTimeline;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.service.ProjectService;
@@ -33,6 +34,9 @@ import org.springframework.web.context.WebApplicationContext;
 /** Exercises the HTTP path, not the messages file. */
 @SpringBootTest
 class MessageLocalizationTest {
+
+  private static final ReviewTimeline NO_TIMELINE =
+      new ReviewTimeline(null, null, null, null, null, false, null);
 
   @Autowired private WebApplicationContext context;
 
@@ -76,7 +80,7 @@ class MessageLocalizationTest {
   @Test
   void acceptsEnumValuesInAnyCaseInTheRequestBody() throws Exception {
     when(projectService.create(any(), any(), any()))
-        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null, null));
+        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null, NO_TIMELINE));
     Jwt jwt =
         Jwt.withTokenValue("token")
             .header("alg", "none")

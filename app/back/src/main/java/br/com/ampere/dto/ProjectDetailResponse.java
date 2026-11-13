@@ -8,12 +8,11 @@ import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
-import br.com.ampere.domain.ReviewDeadline;
+import br.com.ampere.domain.ReviewTimeline;
 import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.service.ProjectSummary;
-import br.com.ampere.service.ReviewTimeline;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -85,13 +84,12 @@ public record ProjectDetailResponse(
   public static ProjectDetailResponse from(ProjectSummary summary) {
     Project project = summary.project();
     BuildingType buildingType = project.getBuildingType();
-    ReviewTimeline timeline = ReviewTimeline.today(project);
     List<StandardResponse> standards =
         project.getStandards().stream()
             .map(StandardResponse::from)
             .sorted(Comparator.comparing(standard -> StandardName.of(standard.name())))
             .toList();
-    ReviewDeadline reviewDeadline = summary.reviewDeadline();
+    ReviewTimeline timeline = summary.timeline();
 
     return new ProjectDetailResponse(
         String.valueOf(project.getId()),
@@ -109,15 +107,15 @@ public record ProjectDetailResponse(
         nameOf(project.getOwner()),
         idOf(project.getReviewer()),
         nameOf(project.getReviewer()),
-        reviewDeadline == null ? null : reviewDeadline.date(),
-        reviewDeadline == null ? null : reviewDeadline.status(),
-        reviewDeadline == null ? null : reviewDeadline.daysRemaining(),
+        timeline.deadline(),
+        timeline.deadlineStatus(),
+        timeline.deadline() == null ? null : timeline.daysRemaining(),
         project.getReviewedAt(),
         project.getReviewCycle(),
-        timeline.elapsedReviewDays(),
-        timeline.suspendedReviewDays(),
-        timeline.remainingReviewDays(),
-        timeline.reviewSuspended(),
+        timeline.elapsedDays(),
+        timeline.suspendedDays(),
+        timeline.daysRemaining(),
+        timeline.suspended(),
         timeline.approvalValidUntil(),
         summary.openFindingsCount(),
         summary.consumerUnitsCount(),

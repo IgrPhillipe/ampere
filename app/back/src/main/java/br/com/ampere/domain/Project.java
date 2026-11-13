@@ -27,7 +27,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import org.hibernate.annotations.ColumnDefault;
 
 @Entity
@@ -384,16 +383,23 @@ public class Project {
     return deadline.isEqual(today) ? DeadlineStatus.DUE_TODAY : DeadlineStatus.ON_TIME;
   }
 
-  /** The deadline of the review in progress; empty while the project is not under review. */
-  public Optional<ReviewDeadline> pendingReviewDeadline(LocalDate today, ZoneId zone) {
-    if (!isUnderReview() || submittedAt == null) {
-      return Optional.empty();
+  /** The review period and the approval validity as they stand on {@code today}. */
+  public ReviewTimeline reviewTimeline(LocalDate today, ZoneId zone) {
+    LocalDate validUntil = wasApproved() && reviewedAt != null ? approvalExpiresOn(zone) : null;
+    if (!wasSubmitted()) {
+      return new ReviewTimeline(null, null, null, null, null, false, validUntil);
     }
+    boolean running = isUnderReview();
+    boolean suspended = isReviewSuspended();
 
-    LocalDate deadline = reviewDeadline(zone);
-    return Optional.of(
-        new ReviewDeadline(
-            deadline, deadlineStatus(today, zone), ChronoUnit.DAYS.between(today, deadline)));
+    return new ReviewTimeline(
+        running ? reviewDeadline(zone) : null,
+        running ? deadlineStatus(today, zone) : null,
+        running || suspended ? remainingReviewDays(today, zone) : null,
+        elapsedReviewDays(today, zone),
+        suspendedReviewDays(today, zone),
+        suspended,
+        validUntil);
   }
 
   public boolean isDraft() {

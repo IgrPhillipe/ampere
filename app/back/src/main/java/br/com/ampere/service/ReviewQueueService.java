@@ -6,6 +6,7 @@ import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ReviewQueueFilter;
 import br.com.ampere.domain.ReviewQueueSort;
+import br.com.ampere.domain.ReviewTimeline;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
@@ -19,7 +20,6 @@ import br.com.ampere.utils.SearchTerms;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -104,14 +104,14 @@ public class ReviewQueueService {
         projects.getContent().stream()
             .map(
                 project -> {
-                  LocalDate deadline = project.reviewDeadline(ZONE);
+                  ReviewTimeline timeline = project.reviewTimeline(today, ZONE);
                   return new ReviewQueueEntry(
                       project,
-                      deadline,
-                      project.deadlineStatus(today, ZONE),
-                      ChronoUnit.DAYS.between(today, deadline),
-                      project.elapsedReviewDays(today, ZONE),
-                      project.suspendedReviewDays(today, ZONE),
+                      timeline.deadline(),
+                      timeline.deadlineStatus(),
+                      timeline.daysRemaining(),
+                      timeline.elapsedDays(),
+                      timeline.suspendedDays(),
                       warnings.getOrDefault(project.getId(), List.of()),
                       consumerUnits.getOrDefault(project.getId(), 0L),
                       demands.get(project.getId()));

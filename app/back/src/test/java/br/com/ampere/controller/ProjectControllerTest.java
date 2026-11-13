@@ -27,6 +27,7 @@ import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectSort;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
+import br.com.ampere.domain.ReviewTimeline;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
@@ -43,6 +44,7 @@ import br.com.ampere.service.ProjectListQuery;
 import br.com.ampere.service.ProjectListing;
 import br.com.ampere.service.ProjectService;
 import br.com.ampere.service.ProjectSummary;
+import br.com.ampere.utils.Timestamps;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -66,6 +68,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 class ProjectControllerTest {
+
+  private static final ReviewTimeline NO_TIMELINE =
+      new ReviewTimeline(null, null, null, null, null, false, null);
 
   private static final AuthenticatedUser DESIGNER = new AuthenticatedUser(7L, UserRole.USER);
 
@@ -120,7 +125,8 @@ class ProjectControllerTest {
             Set.of(OpenFindingsFilter.BLOCKING_OPEN),
             null);
     when(service.list(1, 20, query, DESIGNER))
-        .thenReturn(new ProjectListing(List.of(), 0, Map.of(), Map.of(), Map.of()));
+        .thenReturn(
+            new ProjectListing(List.of(), 0, LocalDate.now(), Map.of(), Map.of(), Map.of()));
 
     mockMvc(service)
         .perform(
@@ -151,7 +157,8 @@ class ProjectControllerTest {
             Set.of(OpenFindingsFilter.BLOCKING_OPEN, OpenFindingsFilter.NONE_OPEN),
             null);
     when(service.list(1, 20, query, DESIGNER))
-        .thenReturn(new ProjectListing(List.of(), 0, Map.of(), Map.of(), Map.of()));
+        .thenReturn(
+            new ProjectListing(List.of(), 0, LocalDate.now(), Map.of(), Map.of(), Map.of()));
 
     mockMvc(service)
         .perform(
@@ -243,6 +250,8 @@ class ProjectControllerTest {
     when(project.getMunicipality()).thenReturn("Jaboatão dos Guararapes");
     when(project.getProtocol()).thenReturn("2026-8475");
     when(project.getStatus()).thenReturn(ProjectStatus.REJECTED);
+    when(project.reviewTimeline(LocalDate.parse("2026-09-20"), Timestamps.ZONE))
+        .thenReturn(NO_TIMELINE);
     when(project.getCreatedAt())
         .thenReturn(OffsetDateTime.of(2026, 9, 12, 0, 0, 0, 0, ZoneOffset.UTC));
     when(project.getUpdatedAt())
@@ -253,6 +262,7 @@ class ProjectControllerTest {
         new ProjectListing(
             List.of(project),
             1,
+            LocalDate.parse("2026-09-20"),
             Map.of(42L, 3L),
             Map.of(42L, 55L),
             Map.of(42L, new BigDecimal("165.00")));
@@ -319,7 +329,7 @@ class ProjectControllerTest {
   void createsProjectAndAnswersCreated() throws Exception {
     ProjectService service = mock(ProjectService.class);
     when(service.create(any(), any(), eq(DESIGNER)))
-        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null, null));
+        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null, NO_TIMELINE));
 
     mockMvc(service)
         .perform(post("/projects").contentType(MediaType.APPLICATION_JSON).content(validBody()))
@@ -337,7 +347,7 @@ class ProjectControllerTest {
   void passesTheOwnerIdOfTheBodyToTheService() throws Exception {
     ProjectService service = mock(ProjectService.class);
     when(service.create(any(), eq(5L), eq(DESIGNER)))
-        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null, null));
+        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null, NO_TIMELINE));
 
     mockMvc(service)
         .perform(
@@ -407,7 +417,7 @@ class ProjectControllerTest {
     OffsetDateTime lastActivityAt = OffsetDateTime.parse("2026-10-16T14:20:00Z");
     when(service.detail(4L, DESIGNER))
         .thenReturn(
-            new ProjectSummary(project, 3, 8, new BigDecimal("61.2"), lastActivityAt, null));
+            new ProjectSummary(project, 3, 8, new BigDecimal("61.2"), lastActivityAt, NO_TIMELINE));
 
     mockMvc(service)
         .perform(get("/projects/4"))
