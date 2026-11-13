@@ -17,8 +17,8 @@ Todos com a senha `senha@123`.
 | `joao@ampere.com` | Projetista | João Batista | CREA 223344/PB. Projetos em Pedras de Fogo, único município da Paraíba na área de concessão |
 | `novo@ampere.com` | Projetista | Diego Novato | Senha temporária: o primeiro login leva à troca de senha. Sem projetos |
 | `inativo@ampere.com` | Projetista | Bruno Inativo | Conta desativada: o login é recusado. Tem um projeto aprovado antigo |
-| `admin@ampere.com` | Administrador | Admin Teste | Cadastra tabelas normativas, gere usuários, tem projetos próprios e também analisa |
-| `conferente@ampere.com` | Administrador | Conferente Teste | Segunda leitura das tabelas normativas: publica o que o admin cadastra |
+| `admin@ampere.com` | Gestor | Admin Teste | Cadastra tabelas normativas, gere usuários, tem projetos próprios e também analisa |
+| `conferente@ampere.com` | Gestor | Conferente Teste | Segunda leitura das tabelas normativas: publica o que o admin cadastra |
 | `revisor@ampere.com` | Analista | Revisor Teste | Analista principal da fila |
 | `analista@ampere.com` | Analista | Ana Analista | Segunda analista, com projetos em análise, uma reprovação e duas aprovações. Responde por Caruaru, Garanhuns e Petrolina |
 
@@ -48,7 +48,7 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 | 2026-2026 | Residencial Bosque de Camaragibe | U | Rascunho | Cálculo desatualizado: um grupo mudou depois do cálculo. O memorial responde 409 |
 | 2026-2027 | Edifício Mirante de Ipojuca | C | Rascunho | Cálculo desatualizado: a tensão do projeto mudou depois do cálculo |
 | 2026-2028 | Mercado Pedras de Fogo | J | Rascunho | Não residencial, calculado, na Paraíba |
-| 2026-2029 | Edifício Misto Conde da Boa Vista | A | Rascunho | Misto em 220/127 V, com recarga, projeto de um administrador |
+| 2026-2029 | Edifício Misto Conde da Boa Vista | A | Rascunho | Misto em 220/127 V, com recarga, projeto de um gestor |
 | 2026-2030 | Complexo Multiuso Marco Zero | U | Rascunho | Vitrine das entradas raras: recarga individualizada e incorporada ao veículo, com gerenciamento; unidade compacta; as seis categorias de carga (ar-condicionado, aquecimento instantâneo e de acumulação, cocção, aparelhos, equipamento especial); potência em HP; lâmpada fluorescente/néon/sódio |
 | 2026-2032 | Complexo Reserva do Capibaribe | C | Rascunho | Mais de 300 kVA: alerta de entrada de serviço fora das faixas |
 | 2026-2033 | Residencial Bela Vista | J | Rascunho | Quatro apartamentos: vale a demanda mínima da primeira faixa |
@@ -70,12 +70,12 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 | 2026-2006 | Mix Casa Forte | U | Revisor | Atrasado (36 dias) | Misto atrasado, com analista |
 | 2026-1007 | Edifício Comercial Boa Vista | U | Sem analista | Vence hoje | Prazo no último dia, sem dono |
 | 2026-2005 | Empresarial Pina Office | U | Revisor | Vence hoje | Apontamentos em rascunho, ainda invisíveis ao projetista: um de cálculo ligado à etapa Dc |
-| 2026-2038 | Residencial Paraíso | J | Admin | Falta 1 dia | Administrador analisando projeto que não é dele; Paraíba na fila |
+| 2026-2038 | Residencial Paraíso | J | Admin | Falta 1 dia | Gestor analisando projeto que não é dele; Paraíba na fila |
 | 2026-2036 | Condomínio Jardim Atlântico | C | Sem analista | Faltam 2 dias | Quase vencendo, sem dono |
 | 2026-2037 | Edifício Comercial Santo Amaro | U | Ana | Faltam 3 dias | Com a segunda analista |
 | 2026-2013 | Residencial Olinda Alta | C | Sem analista | No prazo | Fila sem dono, no prazo |
 | 2026-2004 | Residencial Boa Viagem Prime | U | Sem analista | No prazo | Demanda acima de 50 kVA, no prazo |
-| 2026-2015 | Sede Regional Administrativa | A | Revisor | No prazo | Projeto do administrador analisado por outro |
+| 2026-2015 | Sede Regional Administrativa | A | Revisor | No prazo | Projeto do gestor analisado por outro |
 | 2026-2040 | Condomínio Pedras Norte | J | Sem analista | No prazo | Paraíba na fila |
 | 2026-2043 | Edifício Comercial Centro de Pedras | J | Ana | No prazo | Paraíba com a segunda analista |
 | 2026-2044 | Residencial Caruaru Prime | U | Ana | No prazo | Distribuído automaticamente para Ana no envio pela regra do município Caruaru |
