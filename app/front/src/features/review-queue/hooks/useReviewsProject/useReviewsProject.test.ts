@@ -37,6 +37,7 @@ describe("useReviewsProject", () => {
 		expect(reviews("UNDER_REVIEW")).toBe(true);
 		expect(reviews("APPROVED")).toBe(true);
 		expect(reviews("REJECTED")).toBe(true);
+		expect(reviews("EXPIRED")).toBe(true);
 	});
 
 	it("keeps the designer's view of a draft and of the admin's own project", () => {

@@ -58,6 +58,22 @@ describe("ProjectDetailHeader", () => {
 		expect(cell("Demanda")).toHaveTextContent("Sem cálculo");
 	});
 
+	it("mostra a data da aprovação de um projeto expirado", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({
+					status: "EXPIRED",
+					reviewedAt: "2023-11-09T15:00:00Z",
+					reviewDeadline: null,
+					deadlineStatus: null,
+					daysRemaining: null,
+				})}
+			/>,
+		);
+
+		expect(cell("Aprovado em")).toHaveTextContent("09/11/2023");
+	});
+
 	it("mostra a data da última movimentação", () => {
 		render(
 			<ProjectDetailHeader

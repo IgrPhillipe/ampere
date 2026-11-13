@@ -27,3 +27,7 @@ export const projectStatusBadgeVariants = {
 	APPROVED: "success",
 	EXPIRED: "neutral",
 } as const satisfies Record<ProjectStatus, BadgeProps["variant"]>;
+
+/** Approved at some point: an expired approval keeps what the approval froze. */
+export const wasApproved = (status: ProjectStatus) =>
+	status === "APPROVED" || status === "EXPIRED";

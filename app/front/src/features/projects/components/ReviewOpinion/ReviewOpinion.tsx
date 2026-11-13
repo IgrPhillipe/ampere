@@ -3,12 +3,13 @@ import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
 import type { ProjectDetail } from "@services/projects";
 
-import type { FindingReferenceOptions } from "../../constants";
+import { type FindingReferenceOptions, wasApproved } from "../../constants";
 import { ReservationList } from "../ReservationList";
 
 const opinionTitles = {
 	REJECTED: "Parecer da Reprovação",
 	APPROVED: "Parecer da Aprovação",
+	EXPIRED: "Parecer da Aprovação",
 } as const;
 
 const hasOpinion = (
@@ -36,7 +37,7 @@ export const ReviewOpinion = ({
 	if (!hasOpinion(project.status)) return null;
 
 	const showReservations =
-		project.status === "APPROVED" && reservations.length > 0;
+		wasApproved(project.status) && reservations.length > 0;
 
 	return (
 		<section

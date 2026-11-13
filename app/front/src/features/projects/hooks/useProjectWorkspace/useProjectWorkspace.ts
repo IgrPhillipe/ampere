@@ -9,6 +9,7 @@ import {
 	awaitsDesignerResponse,
 	type ProjectSectionKey,
 	stageSections,
+	wasApproved,
 } from "../../constants";
 import { useProjectPermissions } from "../useProjectPermissions";
 
@@ -58,7 +59,8 @@ export const useProjectWorkspace = (projectId: string) => {
 	const editing = permissions.canEdit;
 	// Everything was complete when the project was sent.
 	const sent =
-		project?.status === "UNDER_REVIEW" || project?.status === "APPROVED";
+		project?.status === "UNDER_REVIEW" ||
+		(project !== undefined && wasApproved(project.status));
 	const calculated = Boolean(calculation) && !outdated;
 
 	const sections: SectionStates = {

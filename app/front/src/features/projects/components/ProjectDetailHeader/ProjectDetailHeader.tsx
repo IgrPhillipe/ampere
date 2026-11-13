@@ -13,7 +13,11 @@ import { cn } from "@lib/utils";
 import type { ProjectDetail } from "@services/projects";
 import type { ReactNode } from "react";
 
-import { projectStatusLabels, projectVersion } from "../../constants";
+import {
+	projectStatusLabels,
+	projectVersion,
+	wasApproved,
+} from "../../constants";
 
 interface StripCellProps {
 	label: string;
@@ -63,7 +67,7 @@ const milestoneOf = (project: ProjectDetail, reviewing: boolean) => {
 		return { label: "Recebido em", value: project.submittedAt };
 	if (project.status === "REJECTED" && project.reviewedAt)
 		return { label: "Devolvido em", value: project.reviewedAt };
-	if (project.status === "APPROVED" && project.reviewedAt)
+	if (wasApproved(project.status) && project.reviewedAt)
 		return { label: "Aprovado em", value: project.reviewedAt };
 
 	return { label: "Última movimentação", value: project.lastActivityAt };
