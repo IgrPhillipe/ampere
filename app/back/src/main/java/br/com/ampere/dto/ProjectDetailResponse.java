@@ -45,20 +45,21 @@ public record ProjectDetailResponse(
         LocalDate reviewDeadline,
     @Schema(description = "Situação do prazo de análise; nula fora da análise")
         DeadlineStatus deadlineStatus,
-    @Schema(description = "Dias até o prazo de análise, negativo se vencido; nulo fora da análise")
+    @Schema(
+            description =
+                "Dias até o prazo de análise, negativo se vencido; congelado enquanto reprovado,"
+                    + " nulo nos demais")
         Long daysRemaining,
     OffsetDateTime reviewedAt,
     int reviewCycle,
     @Schema(
             description =
                 "Dias corridos de análise, sem os suspensos; nulo antes do primeiro envio")
-        Long elapsedReviewDays,
+        Long elapsedDays,
     @Schema(
             description =
                 "Dias de prazo suspenso aguardando correção; nulo antes do primeiro envio")
-        Long suspendedReviewDays,
-    @Schema(description = "Dias restantes em análise ou suspenso; negativo quando atrasado")
-        Long remainingReviewDays,
+        Long suspendedDays,
     @Schema(description = "Reprovado aguardando correção: o prazo não corre")
         boolean reviewSuspended,
     @Schema(description = "Último dia de validade da aprovação (36 meses); nulo se nunca aprovado")
@@ -109,12 +110,11 @@ public record ProjectDetailResponse(
         nameOf(project.getReviewer()),
         timeline.deadline(),
         timeline.deadlineStatus(),
-        timeline.deadline() == null ? null : timeline.daysRemaining(),
+        timeline.daysRemaining(),
         project.getReviewedAt(),
         project.getReviewCycle(),
         timeline.elapsedDays(),
         timeline.suspendedDays(),
-        timeline.daysRemaining(),
         timeline.suspended(),
         timeline.approvalValidUntil(),
         summary.openFindingsCount(),

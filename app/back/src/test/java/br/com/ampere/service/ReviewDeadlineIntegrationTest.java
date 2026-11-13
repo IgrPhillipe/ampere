@@ -99,9 +99,9 @@ class ReviewDeadlineIntegrationTest {
     as(designer, get("/projects/{id}", project.getId()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.reviewDeadline").value(today.plusDays(18).toString()))
-        .andExpect(jsonPath("$.data.elapsedReviewDays").value(12))
-        .andExpect(jsonPath("$.data.suspendedReviewDays").value(10))
-        .andExpect(jsonPath("$.data.remainingReviewDays").value(18))
+        .andExpect(jsonPath("$.data.daysRemaining").value(18))
+        .andExpect(jsonPath("$.data.elapsedDays").value(12))
+        .andExpect(jsonPath("$.data.suspendedDays").value(10))
         .andExpect(jsonPath("$.data.reviewSuspended").value(false))
         .andExpect(jsonPath("$.data.approvalValidUntil").doesNotExist());
   }
@@ -116,9 +116,11 @@ class ReviewDeadlineIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.reviewSuspended").value(true))
         .andExpect(jsonPath("$.data.reviewDeadline").doesNotExist())
-        .andExpect(jsonPath("$.data.elapsedReviewDays").value(12))
-        .andExpect(jsonPath("$.data.suspendedReviewDays").value(10))
-        .andExpect(jsonPath("$.data.remainingReviewDays").value(18));
+        .andExpect(jsonPath("$.data.deadlineStatus").doesNotExist())
+        .andExpect(jsonPath("$.data.daysRemaining").value(18))
+        .andExpect(jsonPath("$.data.elapsedDays").value(12))
+        .andExpect(jsonPath("$.data.suspendedDays").value(10))
+        .andExpect(jsonPath("$.data.remainingReviewDays").doesNotExist());
     as(analyst, get("/review-queue")).andExpect(jsonPath("$.data", hasSize(0)));
   }
 

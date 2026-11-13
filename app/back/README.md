@@ -129,9 +129,10 @@ Cada projeto pertence a quem o criou. O projetista vê só os próprios projetos
 | `demandKva` | Demanda do último cálculo; `null` enquanto não houver cálculo |
 | `lastActivityAt` | Data do evento mais recente do histórico; edição sem evento não conta. Sem eventos, usa `updatedAt` |
 | `reviewDeadline` | Último dia do prazo de análise, já somados os dias suspensos; `null` fora de `UNDER_REVIEW` |
-| `elapsedReviewDays` | Dias corridos de análise, sem os suspensos; para na decisão. `null` antes do primeiro envio |
-| `suspendedReviewDays` | Dias em que o prazo ficou suspenso, a espera atual inclusive; `null` antes do primeiro envio |
-| `remainingReviewDays` | Dias restantes em `UNDER_REVIEW` ou suspenso (congelado); negativo quando atrasado, `null` nos demais |
+| `deadlineStatus` | `ON_TIME`, `DUE_TODAY` ou `OVERDUE`; `null` fora de `UNDER_REVIEW` |
+| `daysRemaining` | Dias até o prazo, negativo quando atrasado. Em `UNDER_REVIEW` e enquanto reprovado (congelado: são os dias com que o reenvio volta à fila); `null` nos demais |
+| `elapsedDays` | Dias corridos de análise, sem os suspensos; para na decisão. `null` antes do primeiro envio |
+| `suspendedDays` | Dias em que o prazo ficou suspenso, a espera atual inclusive; `null` antes do primeiro envio |
 | `reviewSuspended` | `true` quando reprovado aguardando correção: o prazo não corre |
 | `approvalValidUntil` | Último dia de validade da aprovação (36 meses); continua preenchido em `EXPIRED`, `null` se nunca aprovado |
 
@@ -298,7 +299,7 @@ Projeto fora de `REJECTED` responde 409 no `/response`; apontamento em rascunho 
 Regras da US15, em `Project` (dias corridos no calendário de Recife):
 
 - **Prazo de análise:** 30 dias a partir do envio. A reprovação suspende o prazo; o reenvio retoma a contagem com os dias que restavam. Reprovado no 12º dia e reenviado 10 dias depois, o projeto volta à fila com 18 dias restantes e 10 dias suspensos.
-- O reenvio grava `reviewClockStartedAt`, o envio recuado dos dias já usados, e soma a espera em `suspendedReviewDays`. Ordenação e filtro `DUE_SOON` da fila usam esse início; linha anterior à US15, com a coluna nula, conta do `submittedAt`.
+- O reenvio grava `reviewClockStartedAt`, o envio recuado dos dias já usados, e soma a espera em `suspendedReviewDays`, a coluna por trás de `suspendedDays`. Ordenação e filtro `DUE_SOON` da fila usam esse início; linha anterior à US15, com a coluna nula, conta do `submittedAt`.
 - Reprovado com o prazo já estourado volta à fila atrasado (`daysRemaining` negativo).
 - O evento `RESUBMITTED` registra no histórico os dias suspensos e os restantes: *"Versão 2 reenviada para análise. Prazo suspenso por 10 dias; restam 18 dias."*
 - **Validade da aprovação:** 36 meses a partir da aprovação (DIS-NOR-053, item 6.27.6). `approvalValidUntil` é o último dia válido; no dia seguinte a varredura diária passa o projeto a `EXPIRED` e grava o evento `EXPIRED` (*"Validade da aprovação encerrada em dd/mm/aaaa."*), sem autor.
