@@ -78,6 +78,34 @@ describe("useReadNotification", () => {
 		).toBe(true);
 	});
 
+	it("rolls the bell back and tells when the API refuses", async () => {
+		vi.mocked(readNotification).mockRejectedValue(
+			await httpErrorOf(404, {
+				status: 404,
+				detail: "Notificação não encontrada.",
+			}),
+		);
+		const { queryClient, wrapper } = setup({
+			unreadCount: 2,
+			items: [notificationOf("1"), notificationOf("2")],
+		});
+		// The refresh after the failure does not reach the API either.
+		queryClient.setQueryDefaults(notificationKeys.list(), {
+			queryFn: () => Promise.reject(new TypeError("Failed to fetch")),
+		});
+
+		const { result } = renderHook(() => useReadNotification(), { wrapper });
+		act(() => result.current.mutate("1"));
+		await waitFor(() => expect(result.current.isError).toBe(true));
+
+		expect(cached(queryClient)?.unreadCount).toBe(2);
+		expect(cached(queryClient)?.items.map(({ read }) => read)).toEqual([
+			false,
+			false,
+		]);
+		expect(toast.error).toHaveBeenCalledWith("Notificação não encontrada.");
+	});
+
 	it("leaves the count alone for a notification already read", async () => {
 		vi.mocked(readNotification).mockResolvedValue({
 			data: notificationOf("1", true),
