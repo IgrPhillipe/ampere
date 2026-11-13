@@ -90,7 +90,7 @@ export const UsersPage = () => {
 	return (
 		<PageLayout
 			title="Usuários"
-			description="Contas de projetistas, analistas e administradores. O sistema não envia e-mail: repasse a senha temporária ao usuário."
+			description="Contas de projetistas, analistas e gestores. O sistema não envia e-mail: repasse a senha temporária ao usuário."
 			bleed
 			actions={
 				<Button type="button" size="sm" onClick={openNewUser}>

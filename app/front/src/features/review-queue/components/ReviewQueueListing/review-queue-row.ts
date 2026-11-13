@@ -10,6 +10,12 @@ export const formatWarnings = (warnings: number) =>
 export const formatReviewCycle = ({ reviewCycle }: ReviewQueueItem) =>
 	`${reviewCycle}º envio`;
 
+/** Only the responsible analyst reviews; everybody else consults the project. */
+export const isResponsible = (
+	{ reviewerId }: ReviewQueueItem,
+	userId: string | undefined,
+) => reviewerId !== null && reviewerId === userId;
+
 export const isUrgent = ({ deadlineStatus }: ReviewQueueItem) =>
 	deadlineStatus !== "ON_TIME";
 

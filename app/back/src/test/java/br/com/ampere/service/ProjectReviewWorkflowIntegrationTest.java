@@ -139,6 +139,12 @@ class ProjectReviewWorkflowIntegrationTest {
         .andExpect(status().isForbidden());
 
     open(unassigned, analyst).andExpect(status().isForbidden());
+    mockMvc
+        .perform(
+            get("/projects/{id}", unassigned.getId())
+                .header(HttpHeaders.AUTHORIZATION, bearer(analyst)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.reviewerId").value((Object) null));
 
     mockMvc
         .perform(
@@ -159,6 +165,7 @@ class ProjectReviewWorkflowIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, bearer(otherAnalyst)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.ownerName").value("Ana Projetista"))
+        .andExpect(jsonPath("$.data.reviewerId").value(String.valueOf(analyst.getId())))
         .andExpect(jsonPath("$.data.reviewerName").value("Alice Analista"));
 
     mockMvc

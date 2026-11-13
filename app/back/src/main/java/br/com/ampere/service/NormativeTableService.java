@@ -95,7 +95,7 @@ public class NormativeTableService {
     NormativeTable table = draftOrFail(id, "Esta tabela já foi publicada.", user);
     if (!table.isVerifiableBy(verifiedBy)) {
       throw new BusinessException(
-          "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por outro administrador.",
+          "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por outro gestor.",
           HttpStatus.CONFLICT);
     }
     rejectProblems(table);

@@ -15,6 +15,7 @@ import { Route as TabelasNormativasRouteImport } from './routes/tabelas-normativ
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as MeuPerfilRouteImport } from './routes/meu-perfil'
 import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as DistribuicaoRouteImport } from './routes/distribuicao'
 import { Route as CriarContaRouteImport } from './routes/criar-conta'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjetosIndexRouteImport } from './routes/projetos/index'
@@ -60,6 +61,11 @@ const MeuPerfilRoute = MeuPerfilRouteImport.update({
 const EntrarRoute = EntrarRouteImport.update({
   id: '/entrar',
   path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DistribuicaoRoute = DistribuicaoRouteImport.update({
+  id: '/distribuicao',
+  path: '/distribuicao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CriarContaRoute = CriarContaRouteImport.update({
@@ -146,6 +152,7 @@ const ProjetosIdApontamentosRoute = ProjetosIdApontamentosRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/criar-conta': typeof CriarContaRoute
+  '/distribuicao': typeof DistribuicaoRoute
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
   '/painel': typeof PainelRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/criar-conta': typeof CriarContaRoute
+  '/distribuicao': typeof DistribuicaoRoute
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
   '/painel': typeof PainelRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/criar-conta': typeof CriarContaRoute
+  '/distribuicao': typeof DistribuicaoRoute
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
   '/painel': typeof PainelRoute
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/criar-conta'
+    | '/distribuicao'
     | '/entrar'
     | '/meu-perfil'
     | '/painel'
@@ -244,6 +254,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/criar-conta'
+    | '/distribuicao'
     | '/entrar'
     | '/meu-perfil'
     | '/painel'
@@ -267,6 +278,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/criar-conta'
+    | '/distribuicao'
     | '/entrar'
     | '/meu-perfil'
     | '/painel'
@@ -292,6 +304,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CriarContaRoute: typeof CriarContaRoute
+  DistribuicaoRoute: typeof DistribuicaoRoute
   EntrarRoute: typeof EntrarRoute
   MeuPerfilRoute: typeof MeuPerfilRoute
   PainelRoute: typeof PainelRoute
@@ -348,6 +361,13 @@ declare module '@tanstack/react-router' {
       path: '/entrar'
       fullPath: '/entrar'
       preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/distribuicao': {
+      id: '/distribuicao'
+      path: '/distribuicao'
+      fullPath: '/distribuicao'
+      preLoaderRoute: typeof DistribuicaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/criar-conta': {
@@ -494,6 +514,7 @@ const ProjetosIdRouteRouteWithChildren = ProjetosIdRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CriarContaRoute: CriarContaRoute,
+  DistribuicaoRoute: DistribuicaoRoute,
   EntrarRoute: EntrarRoute,
   MeuPerfilRoute: MeuPerfilRoute,
   PainelRoute: PainelRoute,

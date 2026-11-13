@@ -22,7 +22,7 @@ export const LoginPage = ({ redirectTo }: LoginPageProps) => {
 		<AuthLayout
 			title="Entrar"
 			description="Acesse com as credenciais cadastradas."
-			note="Projetistas criam a própria conta. Analistas e administradores recebem o acesso do administrador do portal."
+			note="Projetistas criam a própria conta. Analistas e gestores recebem o acesso do gestor do portal."
 		>
 			<form
 				noValidate
