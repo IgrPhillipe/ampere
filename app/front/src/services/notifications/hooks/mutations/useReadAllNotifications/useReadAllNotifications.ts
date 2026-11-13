@@ -9,6 +9,7 @@ export const useReadAllNotifications = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
+		mutationKey: notificationKeys.readAll(),
 		mutationFn: readAllNotifications,
 		onSuccess: () =>
 			queryClient.invalidateQueries({ queryKey: notificationKeys.all() }),

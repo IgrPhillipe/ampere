@@ -19,6 +19,9 @@ export const useRefreshNotificationsOnNavigation = () => {
 		if (lastPathname.current === pathname) return;
 
 		lastPathname.current = pathname;
+		// A read in flight already refreshes the bell when it settles.
+		if (queryClient.isMutating({ mutationKey: notificationKeys.all() })) return;
+
 		void queryClient.refetchQueries({
 			queryKey: notificationKeys.list(),
 			type: "active",

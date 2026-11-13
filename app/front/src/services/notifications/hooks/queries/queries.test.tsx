@@ -10,15 +10,24 @@ import {
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getNotifications } from "../../requests";
+import { getNotifications, readNotification } from "../../requests";
+import { useReadNotification } from "../mutations";
 import { useGetNotifications } from "./useGetNotifications";
 import { useRefreshNotificationsOnNavigation } from "./useRefreshNotificationsOnNavigation";
 
-vi.mock("../../requests", () => ({ getNotifications: vi.fn() }));
+vi.mock("../../requests", () => ({
+	getNotifications: vi.fn(),
+	readNotification: vi.fn(),
+}));
+vi.mock("sonner", () => ({ toast: { error: vi.fn() } }));
+
+const bell: { read?: (id: string) => void } = {};
 
 const renderBell = async ({ enabled = true } = {}) => {
 	const Bell = () => {
 		const { data } = useGetNotifications({ enabled });
+		const { mutate } = useReadNotification();
+		bell.read = mutate;
 		useRefreshNotificationsOnNavigation();
 
 		return (
@@ -101,5 +110,29 @@ describe("useRefreshNotificationsOnNavigation", () => {
 		);
 
 		expect(getNotifications).not.toHaveBeenCalled();
+	});
+
+	// Opening a notification reads it and navigates: one refresh is enough.
+	it("lets the read refresh the bell instead of the route", async () => {
+		type Answer = Awaited<ReturnType<typeof readNotification>>;
+		const pending: { resolve?: (value: Answer) => void } = {};
+		vi.mocked(readNotification).mockReturnValue(
+			new Promise<Answer>((resolve) => {
+				pending.resolve = resolve;
+			}),
+		);
+		const router = await renderBell();
+		await waitFor(() => expect(getNotifications).toHaveBeenCalledOnce());
+
+		act(() => bell.read?.("1"));
+		await act(() =>
+			router.navigate({ to: "/projetos/$id", params: { id: "4" } }),
+		);
+		expect(getNotifications).toHaveBeenCalledOnce();
+
+		await act(async () => {
+			pending.resolve?.({ data: {} as Answer["data"] });
+		});
+		await waitFor(() => expect(getNotifications).toHaveBeenCalledTimes(2));
 	});
 });

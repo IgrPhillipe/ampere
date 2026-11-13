@@ -29,6 +29,7 @@ export const useReadNotification = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
+		mutationKey: notificationKeys.read(),
 		mutationFn: readNotification,
 		onMutate: async (id) => {
 			await queryClient.cancelQueries({ queryKey: notificationKeys.list() });
