@@ -5,6 +5,7 @@ import {
 	useGetReviewerList,
 } from "@services/review-queue";
 
+import { UNASSIGNED_REVIEWER_LABEL } from "../../constants";
 import type { ReviewQueueFilters } from "../../hooks";
 
 const filterLabels: Record<Exclude<ReviewQueueFilter, "ALL">, string> = {
@@ -46,7 +47,7 @@ export const ReviewQueueActiveFilters = ({
 	if (reviewer === UNASSIGNED_REVIEWER) {
 		active.push({
 			id: "reviewer",
-			label: "Sem analista",
+			label: UNASSIGNED_REVIEWER_LABEL,
 			onRemove: () => filters.setReviewer(null),
 		});
 	} else if (reviewer && !reviewersQuery.isPending) {

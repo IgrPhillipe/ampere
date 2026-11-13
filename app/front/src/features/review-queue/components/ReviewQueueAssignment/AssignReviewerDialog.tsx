@@ -21,6 +21,8 @@ import {
 } from "@services/review-queue";
 import { useId, useState } from "react";
 
+import { UNASSIGNED_REVIEWER_LABEL } from "../../constants";
+
 /** Up to this many protocols are listed; beyond it, only the count. */
 const LISTED_PROJECTS = 5;
 
@@ -68,7 +70,7 @@ const AssignReviewerForm = ({
 								{project.protocol}
 							</span>
 							<span className="truncate text-muted-foreground">
-								{project.reviewerName ?? "Não Atribuído"}
+								{project.reviewerName ?? UNASSIGNED_REVIEWER_LABEL}
 							</span>
 						</li>
 					))}

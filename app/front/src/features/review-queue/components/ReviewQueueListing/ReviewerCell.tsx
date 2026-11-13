@@ -1,6 +1,6 @@
 import type { ReviewQueueItem } from "@services/review-queue";
 
-import { UNASSIGNED_REVIEWER_LABEL } from "./review-queue-row";
+import { UNASSIGNED_REVIEWER_LABEL } from "../../constants";
 
 interface ReviewerCellProps {
 	item: ReviewQueueItem;
