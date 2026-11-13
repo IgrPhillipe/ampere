@@ -23,6 +23,7 @@ export const makeProjectDetail = (
 	reviewerName: "Admin Teste",
 	reviewDeadline: "2026-11-01",
 	deadlineStatus: "ON_TIME",
+	daysRemaining: 30,
 	reviewCycle: 1,
 	openFindingsCount: 0,
 	consumerUnitsCount: 8,

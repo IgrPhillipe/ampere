@@ -150,6 +150,7 @@ export const projectDetailSchema = z.object({
 	reviewerName: z.string().nullish(),
 	reviewDeadline: z.iso.date().nullish(),
 	deadlineStatus: deadlineStatusSchema.nullish(),
+	daysRemaining: z.number().int().nullish(),
 	reviewedAt: z.iso.datetime({ offset: true }).nullish(),
 	reviewCycle: z.number().int().nonnegative(),
 	openFindingsCount: z.number().int().nonnegative(),

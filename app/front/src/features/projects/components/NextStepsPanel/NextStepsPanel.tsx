@@ -1,16 +1,19 @@
+import { DeadlineStatusBadge } from "@components/DeadlineStatusBadge";
 import { SectionHeading } from "@components/SectionHeading";
 import { formatDate, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
+import type { ProjectDetail } from "@services/projects";
 
 interface NextStepsPanelProps {
-	reviewDeadline: string | null | undefined;
-	reviewerName: string | null | undefined;
+	project: Pick<
+		ProjectDetail,
+		"reviewDeadline" | "deadlineStatus" | "daysRemaining" | "reviewerName"
+	>;
 	className?: string;
 }
 
 export const NextStepsPanel = ({
-	reviewDeadline,
-	reviewerName,
+	project: { reviewDeadline, deadlineStatus, daysRemaining, reviewerName },
 	className,
 }: NextStepsPanelProps) => {
 	const steps = [
@@ -21,9 +24,23 @@ export const NextStepsPanel = ({
 		},
 		{
 			title: "Análise Técnica",
-			status: reviewDeadline
-				? `Retorno até ${formatDate(reviewDeadline)}`
-				: "Prazo indisponível",
+			status: reviewDeadline ? (
+				<>
+					Retorno até {formatDate(reviewDeadline)}
+					{deadlineStatus && daysRemaining != null ? (
+						<>
+							{" · "}
+							<DeadlineStatusBadge
+								deadlineStatus={deadlineStatus}
+								daysRemaining={daysRemaining}
+								withRemaining
+							/>
+						</>
+					) : null}
+				</>
+			) : (
+				"Prazo indisponível"
+			),
 			description: reviewerName
 				? `Analista: ${reviewerName}`
 				: "Aguardando atribuição",
