@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { eventAuthorRoleLabel, eventLabel } from "./project-events";
+import {
+	eventAuthorRoleLabel,
+	eventLabel,
+	isSubmissionEvent,
+} from "./project-events";
 
 describe("eventAuthorRoleLabel", () => {
 	it.each([
@@ -25,5 +29,16 @@ describe("eventLabel", () => {
 			"Enviado, Versão 1",
 		);
 		expect(eventLabel({ type: "REJECTED", version: 3 })).toBe("Reprovado");
+	});
+});
+
+describe("isSubmissionEvent", () => {
+	it.each([
+		["SUBMITTED", true],
+		["RESUBMITTED", true],
+		["ASSIGNED", false],
+		["REJECTED", false],
+	] as const)("tells whether %s sends a version", (type, expected) => {
+		expect(isSubmissionEvent({ type })).toBe(expected);
 	});
 });

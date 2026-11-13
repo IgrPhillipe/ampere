@@ -21,6 +21,11 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 	const eventsQuery = useGetProjectEventList(projectId, { direction });
 	const reworkQuery = useGetProjectRework(projectId);
 	const { data: project } = useGetProject(projectId);
+	const detail = project?.data;
+	const pendingSubmission =
+		detail?.status === "UNDER_REVIEW" && detail.reviewDeadline
+			? { version: detail.reviewCycle, reviewDeadline: detail.reviewDeadline }
+			: undefined;
 	const { data: findings } = useGetFindingList(projectId);
 	const awaitingFindings =
 		findings?.data.filter(({ status }) => status === "FIXED").length ?? 0;
@@ -53,6 +58,7 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 		<div className="grid flex-1 content-start @5xl:grid-cols-[minmax(0,1fr)_400px]">
 			<ProjectTimeline
 				events={eventsQuery.data?.data}
+				pendingSubmission={pendingSubmission}
 				direction={direction}
 				onDirectionChange={setDirection}
 				isLoading={eventsQuery.isPending}
@@ -68,7 +74,7 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 
 			<ReworkPanel
 				rework={reworkQuery.data?.data}
-				approved={project?.data.status === "APPROVED"}
+				approved={detail?.status === "APPROVED"}
 				awaitingFindings={awaitingFindings}
 				isLoading={reworkQuery.isPending}
 				className="border-t border-border @5xl:border-t-0 @5xl:border-l"

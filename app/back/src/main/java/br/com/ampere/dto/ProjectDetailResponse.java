@@ -4,15 +4,18 @@ import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.ConnectionType;
+import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.ReviewDeadline;
 import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.service.ProjectSummary;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -34,6 +37,12 @@ public record ProjectDetailResponse(
     String ownerId,
     String ownerName,
     String reviewerName,
+    @Schema(description = "Último dia do prazo de análise; nulo fora da análise")
+        LocalDate reviewDeadline,
+    @Schema(description = "Situação do prazo de análise; nula fora da análise")
+        DeadlineStatus deadlineStatus,
+    @Schema(description = "Dias até o prazo de análise, negativo se vencido; nulo fora da análise")
+        Long daysRemaining,
     OffsetDateTime reviewedAt,
     int reviewCycle,
     @Schema(description = "Apontamentos OPEN ou CONTESTED; zero em projeto aprovado")
@@ -62,6 +71,7 @@ public record ProjectDetailResponse(
             .map(StandardResponse::from)
             .sorted(Comparator.comparing(standard -> StandardName.of(standard.name())))
             .toList();
+    ReviewDeadline reviewDeadline = summary.reviewDeadline();
 
     return new ProjectDetailResponse(
         String.valueOf(project.getId()),
@@ -78,6 +88,9 @@ public record ProjectDetailResponse(
         project.getOwner() == null ? null : String.valueOf(project.getOwner().getId()),
         nameOf(project.getOwner()),
         nameOf(project.getReviewer()),
+        reviewDeadline == null ? null : reviewDeadline.date(),
+        reviewDeadline == null ? null : reviewDeadline.status(),
+        reviewDeadline == null ? null : reviewDeadline.daysRemaining(),
         project.getReviewedAt(),
         project.getReviewCycle(),
         summary.openFindingsCount(),
