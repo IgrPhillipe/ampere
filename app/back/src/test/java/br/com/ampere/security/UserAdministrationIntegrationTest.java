@@ -424,8 +424,7 @@ class UserAdministrationIntegrationTest {
                   .content("{\"name\":\"Admin Teste\",\"role\":\"" + role + "\",\"active\":true}"))
           .andExpect(status().isBadRequest())
           .andExpect(
-              jsonPath("$.detail")
-                  .value("Você não pode remover o próprio papel de administrador."));
+              jsonPath("$.detail").value("Você não pode remover o próprio papel de gestor."));
     }
   }
 

@@ -161,7 +161,7 @@ class AdminAccessIntegrationTest {
             jsonPath("$.detail")
                 .value(
                     "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por outro"
-                        + " administrador."));
+                        + " gestor."));
 
     mockMvc
         .perform(
