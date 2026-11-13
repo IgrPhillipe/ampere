@@ -8,7 +8,7 @@ import { Eyebrow } from "../Eyebrow";
 const PORTAL_EYEBROW = {
 	user: "Portal do projetista",
 	reviewer: "Análise técnica",
-	admin: "Administração do portal",
+	admin: "Gestão do portal",
 } as const;
 
 interface PageLayoutProps {

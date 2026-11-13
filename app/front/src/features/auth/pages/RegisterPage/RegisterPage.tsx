@@ -37,7 +37,7 @@ export const RegisterPage = () => {
 		<AuthLayout
 			title="Criar Conta"
 			description="A conta é criada com o papel de projetista. Seu nome e o CREA identificam o responsável técnico no carimbo do projeto e no memorial."
-			note="Campos com * são obrigatórios. A senha precisa de ao menos 8 caracteres, com letra e número. Analistas não se cadastram aqui: são criados pelo administrador."
+			note="Campos com * são obrigatórios. A senha precisa de ao menos 8 caracteres, com letra e número. Analistas não se cadastram aqui: são criados pelo gestor."
 		>
 			<form
 				noValidate

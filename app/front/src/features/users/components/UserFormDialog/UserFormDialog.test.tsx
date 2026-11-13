@@ -140,9 +140,7 @@ describe("UserFormDialog", () => {
 
 		expect(screen.getByRole("combobox", { name: /Papel/ })).toBeDisabled();
 		expect(
-			screen.getByText(
-				"Você não pode remover o próprio papel de administrador.",
-			),
+			screen.getByText("Você não pode remover o próprio papel de gestor."),
 		).toBeInTheDocument();
 	});
 });
