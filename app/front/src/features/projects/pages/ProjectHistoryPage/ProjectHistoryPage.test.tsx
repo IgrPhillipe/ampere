@@ -428,6 +428,32 @@ describe("ProjectHistoryPage versions", () => {
 		).toBeInTheDocument();
 	});
 
+	it("compares the older version to the newer one even from a reversed link", () => {
+		renderPage("?from=3&to=1");
+
+		expect(state.compared.at(-1)).toEqual({ from: 1, to: 3 });
+	});
+
+	it("offers as origin only the versions before the destination, and the reverse", async () => {
+		renderPage("?from=2&to=3");
+
+		fireEvent.click(
+			screen.getByRole("combobox", { name: "Versão de destino" }),
+		);
+		expect(await screen.findByRole("option", { name: "v01" })).toHaveAttribute(
+			"aria-disabled",
+			"true",
+		);
+		expect(screen.getByRole("option", { name: "v02" })).toHaveAttribute(
+			"aria-disabled",
+			"true",
+		);
+		expect(screen.getByRole("option", { name: "v03" })).not.toHaveAttribute(
+			"aria-disabled",
+			"true",
+		);
+	});
+
 	it("ignores a pair naming a version the project does not have", () => {
 		renderPage("?from=2&to=9");
 

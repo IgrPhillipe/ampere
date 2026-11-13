@@ -7,9 +7,13 @@ export const useComparedVersions = () => {
 		to: parseAsInteger,
 	});
 
+	// The API compares an older version to a newer one; a reversed link still opens.
 	const compared =
 		query.from !== null && query.to !== null && query.from !== query.to
-			? { from: query.from, to: query.to }
+			? {
+					from: Math.min(query.from, query.to),
+					to: Math.max(query.from, query.to),
+				}
 			: null;
 
 	return {

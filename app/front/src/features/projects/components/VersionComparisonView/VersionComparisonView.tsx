@@ -135,7 +135,8 @@ interface VersionPickerProps {
 	label: string;
 	value: number;
 	versions: ProjectVersion[];
-	disabledVersion: number;
+	/** The API compares an older version to a newer one, so the other side bounds this one. */
+	isAllowed: (number: number) => boolean;
 	onValueChange: (value: number) => void;
 }
 
@@ -143,7 +144,7 @@ const VersionPicker = ({
 	label,
 	value,
 	versions,
-	disabledVersion,
+	isAllowed,
 	onValueChange,
 }: VersionPickerProps) => {
 	const items = Object.fromEntries(
@@ -170,7 +171,7 @@ const VersionPicker = ({
 					<SelectItem
 						key={number}
 						value={String(number)}
-						disabled={number === disabledVersion}
+						disabled={!isAllowed(number)}
 					>
 						{formatVersion(number)}
 					</SelectItem>
@@ -265,7 +266,7 @@ export const VersionComparisonView = ({
 						label="Versão de origem"
 						value={compared.from}
 						versions={sorted}
-						disabledVersion={compared.to}
+						isAllowed={(number) => number < compared.to}
 						onValueChange={(from) => onComparedChange({ ...compared, from })}
 					/>
 					<span aria-hidden="true">→</span>
@@ -273,7 +274,7 @@ export const VersionComparisonView = ({
 						label="Versão de destino"
 						value={compared.to}
 						versions={sorted}
-						disabledVersion={compared.from}
+						isAllowed={(number) => number > compared.from}
 						onValueChange={(to) => onComparedChange({ ...compared, to })}
 					/>
 					{comparison ? (
