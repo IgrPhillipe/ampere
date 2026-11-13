@@ -20,6 +20,8 @@ export const makeProjectDetail = (
 	updatedAt: "2026-10-02T12:00:00Z",
 	submittedAt: "2026-10-02T12:00:00Z",
 	ownerName: "Projetista Teste",
+	// The user `signInAs` signs in, so the review is theirs by default.
+	reviewerId: "1",
 	reviewerName: "Admin Teste",
 	reviewCycle: 1,
 	openFindingsCount: 0,

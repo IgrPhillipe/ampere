@@ -146,6 +146,8 @@ export const projectDetailSchema = z.object({
 	submittedAt: z.iso.datetime({ offset: true }).nullish(),
 	ownerId: z.string().nullish(),
 	ownerName: z.string().nullish(),
+	/** Only this analyst reviews the project; everybody else consults it. */
+	reviewerId: z.string().nullish(),
 	reviewerName: z.string().nullish(),
 	reviewedAt: z.iso.datetime({ offset: true }).nullish(),
 	reviewCycle: z.number().int().nonnegative(),

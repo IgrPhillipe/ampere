@@ -20,6 +20,7 @@ import { ProjectReviewWorkspace } from "./ProjectReviewWorkspace";
 const state = vi.hoisted(() => ({
 	holdsReview: true,
 	ownerId: "2",
+	reviewerId: "1" as string | null,
 	reviewerName: null as string | null,
 	openError: null as unknown,
 	activeRoute: "/projetos/$id",
@@ -75,6 +76,7 @@ vi.mock("@services/projects", async (importOriginal) => ({
 		loadedQuery({
 			data: makeProjectDetail({
 				ownerId: state.ownerId,
+				reviewerId: state.reviewerId,
 				reviewerName: state.reviewerName,
 			}),
 		}),
@@ -145,6 +147,7 @@ describe("ProjectReviewWorkspace", () => {
 	beforeEach(() => {
 		state.holdsReview = true;
 		state.ownerId = "2";
+		state.reviewerId = "1";
 		state.openReview.mockClear();
 		state.reviewerName = null;
 		state.openError = null;
@@ -459,26 +462,40 @@ describe("ProjectReviewWorkspace", () => {
 		expect(state.openReview).toHaveBeenCalledWith("4");
 	});
 
-	it("names the responsible analyst to whoever only consults", async () => {
+	it("names the responsible analyst to whoever only consults", () => {
 		state.holdsReview = false;
+		state.reviewerId = "9";
 		state.reviewerName = "Ana Analista";
-		state.openError = await httpErrorOf(403, {});
 		signInAs("reviewer");
 		renderWorkspace();
 
+		expect(state.openReview).not.toHaveBeenCalled();
 		expect(screen.getByRole("status")).toHaveTextContent(
 			"Em análise por Ana Analista.",
 		);
 	});
 
-	it("tells when the project still has no analyst", async () => {
+	it("tells when the project still has no analyst", () => {
+		state.holdsReview = false;
+		state.reviewerId = null;
+		signInAs("reviewer");
+		renderWorkspace();
+
+		expect(state.openReview).not.toHaveBeenCalled();
+		expect(screen.getByRole("status")).toHaveTextContent(
+			"Projeto sem analista responsável.",
+		);
+	});
+
+	it("consults the project when the API refuses the review anyway", async () => {
 		state.holdsReview = false;
 		state.openError = await httpErrorOf(403, {});
 		signInAs("reviewer");
 		renderWorkspace();
 
+		expect(state.openReview).toHaveBeenCalledWith("4");
 		expect(screen.getByRole("status")).toHaveTextContent(
-			"Projeto sem analista responsável.",
+			"Você pode consultar o projeto",
 		);
 	});
 });
