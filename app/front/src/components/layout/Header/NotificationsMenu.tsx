@@ -125,8 +125,10 @@ export const NotificationsMenu = () => {
 			<PopoverContent
 				align="end"
 				sideOffset={8}
+				// The page gutter on a phone: the panel never touches the edge.
+				collisionPadding={16}
 				aria-labelledby={titleId}
-				className="z-50 flex w-[min(26rem,calc(100vw-2rem))] flex-col rounded-none p-0"
+				className="flex w-95 max-w-[calc(100vw-2rem)] flex-col p-0"
 			>
 				<div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
 					<h2 id={titleId} className="text-lg font-medium tracking-[-0.018em]">
