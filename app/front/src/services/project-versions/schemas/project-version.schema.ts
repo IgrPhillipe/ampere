@@ -1,8 +1,9 @@
 import { apiResponseSchema } from "@features/shared";
+import { documentTypeSchema } from "@services/submission";
 import { z } from "zod";
 
 export const versionDocumentSchema = z.object({
-	type: z.string(),
+	type: documentTypeSchema,
 	typeLabel: z.string(),
 	filename: z.string(),
 	fileSize: z.number().int().nonnegative().nullable(),

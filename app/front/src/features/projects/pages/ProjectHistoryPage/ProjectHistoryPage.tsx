@@ -7,9 +7,8 @@ import {
 } from "@services/project-events";
 import { useGetFindingList } from "@services/project-review";
 import {
-	type ProjectVersion,
 	useCompareProjectVersions,
-	useDownloadVersionMemorial,
+	useDownloadVersionFile,
 	useGetProjectVersionList,
 } from "@services/project-versions";
 import { useGetProject } from "@services/projects";
@@ -22,6 +21,7 @@ import {
 	ReworkPanel,
 	VersionChangesField,
 	VersionComparisonView,
+	type VersionDownload,
 } from "../../components";
 import { defaultComparedVersions } from "../../constants";
 import { useComparedVersions } from "../../hooks";
@@ -37,7 +37,7 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 	const versionsQuery = useGetProjectVersionList(projectId);
 	const { data: project } = useGetProject(projectId);
 	const { data: findings } = useGetFindingList(projectId);
-	const downloadMemorial = useDownloadVersionMemorial();
+	const downloadFileOfVersion = useDownloadVersionFile();
 	const { compared, compare, close } = useComparedVersions();
 
 	const versions = versionsQuery.data?.data;
@@ -62,9 +62,9 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 	const awaitingFindings =
 		findings?.data.filter(({ status }) => status === "FIXED").length ?? 0;
 
-	const download = (version: ProjectVersion) =>
-		downloadMemorial.mutate(
-			{ projectId, version: version.number },
+	const download = ({ version, file }: VersionDownload) =>
+		downloadFileOfVersion.mutate(
+			{ projectId, version, file },
 			{ onSuccess: ({ blob, filename }) => downloadFile(blob, filename) },
 		);
 
@@ -102,9 +102,9 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 			versions={versions}
 			isLoading={versionsQuery.isPending}
 			onDownload={download}
-			downloadingVersion={
-				downloadMemorial.isPending
-					? downloadMemorial.variables?.version
+			downloading={
+				downloadFileOfVersion.isPending
+					? downloadFileOfVersion.variables
 					: undefined
 			}
 			onCompare={comparing ? undefined : openComparison}

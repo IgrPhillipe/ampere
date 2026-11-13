@@ -96,7 +96,7 @@ vi.mock("@services/project-versions", async (importOriginal) => ({
 			? loadedQuery(state.comparison ? { data: state.comparison } : undefined)
 			: { ...loadedQuery(undefined), isPending: true };
 	},
-	useDownloadVersionMemorial: () => ({
+	useDownloadVersionFile: () => ({
 		mutate: state.download,
 		isPending: false,
 	}),
@@ -375,7 +375,49 @@ describe("ProjectHistoryPage versions", () => {
 			screen.getByRole("button", { name: "Baixar o memorial da v02" }),
 		);
 		expect(state.download).toHaveBeenCalledWith(
-			{ projectId: "4", version: 2 },
+			{ projectId: "4", version: 2, file: { kind: "memorial" } },
+			expect.anything(),
+		);
+	});
+
+	it("shows what each version sent: the change summary and the documents, to download", () => {
+		state.versions = [
+			versionOf(1, 230),
+			{
+				...versionOf(2, 236),
+				changeSummary: "Carga de ar-condicionado incluída nas lojas.",
+				documents: [
+					{
+						type: "ART",
+						typeLabel: "ART",
+						filename: "art.pdf",
+						fileSize: 1024,
+					},
+					{
+						type: "SINGLE_LINE_DIAGRAM",
+						typeLabel: "Diagrama unifilar",
+						filename: "unifilar.pdf",
+						fileSize: 2048,
+					},
+				],
+			},
+		];
+		renderPage();
+
+		expect(
+			screen.getByText(
+				"Resumo das alterações: Carga de ar-condicionado incluída nas lojas.",
+			),
+		).toBeInTheDocument();
+		fireEvent.click(
+			screen.getByRole("button", { name: "Baixar Diagrama unifilar da v02" }),
+		);
+		expect(state.download).toHaveBeenCalledWith(
+			{
+				projectId: "4",
+				version: 2,
+				file: { kind: "document", type: "SINGLE_LINE_DIAGRAM" },
+			},
 			expect.anything(),
 		);
 	});
