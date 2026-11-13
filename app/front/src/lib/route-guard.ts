@@ -18,6 +18,7 @@ export const ROLE_ACCESS = {
 	reviewQueue: ["reviewer", "admin"],
 	normativeTables: ["reviewer", "admin"],
 	users: ["admin"],
+	distribution: ["admin"],
 } as const satisfies Record<string, readonly UserRole[]>;
 
 /** Where to send each role when it lands on a route it cannot see. */

@@ -28,7 +28,9 @@ import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.utils.Timestamps;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -102,6 +104,32 @@ class ProjectReviewWorkflowIntegrationTest {
   }
 
   @Test
+  void showsTheDesignerTheDeadlineOfTheReviewInProgress() throws Exception {
+    LocalDate today = LocalDate.now(Timestamps.ZONE);
+    Project unassigned = submittedProject("2026-7098", owner);
+
+    detail(unassigned, owner)
+        .andExpect(jsonPath("$.data.reviewDeadline").value(today.plusDays(30).toString()))
+        .andExpect(jsonPath("$.data.deadlineStatus").value("ON_TIME"))
+        .andExpect(jsonPath("$.data.daysRemaining").value(30))
+        .andExpect(jsonPath("$.data.reviewerName").doesNotExist());
+    detail(project, owner).andExpect(jsonPath("$.data.reviewerName").value("Alice Analista"));
+  }
+
+  @Test
+  void flagsTheOverdueReviewInTheProjectDetail() throws Exception {
+    LocalDate today = LocalDate.now(Timestamps.ZONE);
+    Project late = submittedProject("2026-7097", owner);
+    late.submit(today.minusDays(31).atTime(12, 0).atZone(Timestamps.ZONE).toOffsetDateTime());
+    projectRepository.save(late);
+
+    detail(late, owner)
+        .andExpect(jsonPath("$.data.reviewDeadline").value(today.minusDays(1).toString()))
+        .andExpect(jsonPath("$.data.deadlineStatus").value("OVERDUE"))
+        .andExpect(jsonPath("$.data.daysRemaining").value(-1));
+  }
+
+  @Test
   void allowsOnlyAssignedAnalystToOpenReviewAndWriteFindings() throws Exception {
     Project unassigned = submittedProject("2026-7099", owner);
     mockMvc
@@ -111,6 +139,19 @@ class ProjectReviewWorkflowIntegrationTest {
         .andExpect(status().isForbidden());
 
     open(unassigned, analyst).andExpect(status().isForbidden());
+    mockMvc
+        .perform(
+            get("/projects/{id}", unassigned.getId())
+                .header(HttpHeaders.AUTHORIZATION, bearer(analyst)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.reviewerId").value((Object) null));
+
+    mockMvc
+        .perform(
+            get("/projects/{id}", unassigned.getId())
+                .header(HttpHeaders.AUTHORIZATION, bearer(owner)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.reviewerName").doesNotExist());
 
     assignTo(unassigned, analyst);
 
@@ -124,6 +165,7 @@ class ProjectReviewWorkflowIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, bearer(otherAnalyst)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.ownerName").value("Ana Projetista"))
+        .andExpect(jsonPath("$.data.reviewerId").value(String.valueOf(analyst.getId())))
         .andExpect(jsonPath("$.data.reviewerName").value("Alice Analista"));
 
     mockMvc
@@ -393,6 +435,9 @@ class ProjectReviewWorkflowIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.reviewCycle").value(1))
         .andExpect(jsonPath("$.data.reviewOpinion").value("Corrigir a planta de situação."))
+        .andExpect(jsonPath("$.data.reviewDeadline").doesNotExist())
+        .andExpect(jsonPath("$.data.deadlineStatus").doesNotExist())
+        .andExpect(jsonPath("$.data.daysRemaining").doesNotExist())
         .andExpect(jsonPath("$.data.changeSummary").doesNotExist());
 
     respond(project, findingId, analyst, "{\"status\":\"FIXED\"}")
@@ -525,6 +570,13 @@ class ProjectReviewWorkflowIntegrationTest {
     return mockMvc.perform(
         get("/projects/{projectId}/documents/{documentId}/file", target.getId(), document.getId())
             .header(HttpHeaders.AUTHORIZATION, bearer(actor)));
+  }
+
+  private ResultActions detail(Project target, User actor) throws Exception {
+    return mockMvc
+        .perform(
+            get("/projects/{id}", target.getId()).header(HttpHeaders.AUTHORIZATION, bearer(actor)))
+        .andExpect(status().isOk());
   }
 
   private Project submittedProject(String protocol, User projectOwner) {

@@ -74,6 +74,8 @@ const state = vi.hoisted(() => ({
 	failed: false,
 	refetches: [] as string[],
 	status: "UNDER_REVIEW",
+	reviewCycle: 2,
+	reviewDeadline: "2026-09-27" as string | null,
 	findings: [] as Pick<Finding, "id" | "status">[],
 	versions: [] as ProjectVersion[],
 	compared: [] as { from: number; to: number }[],
@@ -169,7 +171,14 @@ vi.mock("@services/project-events", async (importOriginal) => ({
 
 vi.mock("@services/projects", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/projects")>()),
-	useGetProject: () => loadedQuery({ data: { status: state.status } }),
+	useGetProject: () =>
+		loadedQuery({
+			data: {
+				status: state.status,
+				reviewCycle: state.reviewCycle,
+				reviewDeadline: state.reviewDeadline,
+			},
+		}),
 }));
 
 vi.mock("@services/project-review", async (importOriginal) => ({
@@ -199,6 +208,8 @@ describe("ProjectHistoryPage", () => {
 		state.failed = false;
 		state.refetches = [];
 		state.status = "UNDER_REVIEW";
+		state.reviewCycle = 2;
+		state.reviewDeadline = "2026-09-27";
 		state.findings = [];
 		state.versions = [];
 		state.compared = [];
@@ -252,6 +263,36 @@ describe("ProjectHistoryPage", () => {
 		expect(items[1]).toHaveTextContent("Sistema");
 		expect(items[2]).toHaveTextContent("Ana Lima, Projetista");
 		expect(items[2]).toHaveTextContent("Enviado, Versão 1");
+	});
+
+	it("dates the return only on the submission still under review", () => {
+		state.events = [
+			...EVENTS,
+			makeEvent({
+				id: "5",
+				type: "RESUBMITTED",
+				version: 2,
+				description: "Versão 2 reenviada para análise.",
+				occurredAt: "2026-08-28T10:00:00Z",
+			}),
+		];
+
+		render(<ProjectHistoryPage projectId="4" />);
+		const items = within(screen.getByRole("list")).getAllByRole("listitem");
+
+		expect(items[0]).toHaveTextContent("Reenviado, Versão 2");
+		expect(items[0]).toHaveTextContent("Retorno até 27/09/2026");
+		expect(screen.getAllByText(/Retorno até/)).toHaveLength(1);
+	});
+
+	it("dates no return once the analyst decided", () => {
+		state.status = "APPROVED";
+		state.reviewCycle = 1;
+		state.reviewDeadline = null;
+
+		render(<ProjectHistoryPage projectId="4" />);
+
+		expect(screen.queryByText(/Retorno até/)).not.toBeInTheDocument();
 	});
 
 	it("shows the empty state for a project without events", () => {

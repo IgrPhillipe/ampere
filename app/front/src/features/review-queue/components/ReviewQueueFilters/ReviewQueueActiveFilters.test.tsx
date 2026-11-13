@@ -72,7 +72,7 @@ describe("ReviewQueueActiveFilters", () => {
 	it("labels the unassigned filter without the list", () => {
 		renderChips("?reviewer=none");
 
-		expect(screen.getByText("Sem analista")).toBeInTheDocument();
+		expect(screen.getByText("Não Atribuído")).toBeInTheDocument();
 	});
 
 	it("names the designer and clears the filter from the tag", async () => {

@@ -36,6 +36,11 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 	const reworkQuery = useGetProjectRework(projectId);
 	const versionsQuery = useGetProjectVersionList(projectId);
 	const { data: project } = useGetProject(projectId);
+	const detail = project?.data;
+	const pendingSubmission =
+		detail?.status === "UNDER_REVIEW" && detail.reviewDeadline
+			? { version: detail.reviewCycle, reviewDeadline: detail.reviewDeadline }
+			: undefined;
 	const { data: findings } = useGetFindingList(projectId);
 	const downloadFileOfVersion = useDownloadVersionFile();
 	const { compared, compare, close } = useComparedVersions();
@@ -129,6 +134,7 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 			) : (
 				<ProjectTimeline
 					events={eventsQuery.data?.data}
+					pendingSubmission={pendingSubmission}
 					direction={direction}
 					onDirectionChange={setDirection}
 					isLoading={eventsQuery.isPending}
@@ -153,7 +159,7 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 				) : (
 					<ReworkPanel
 						rework={reworkQuery.data?.data}
-						approved={project?.data.status === "APPROVED"}
+						approved={detail?.status === "APPROVED"}
 						awaitingFindings={awaitingFindings}
 						isLoading={reworkQuery.isPending}
 					/>

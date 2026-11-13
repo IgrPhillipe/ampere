@@ -266,6 +266,8 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 | `review-queue` | `/fila-de-analise` | Fila de Análise |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
 | `memorial-verification` | `/verificar-autenticidade` | Verificar Autenticidade, pública |
+| `reviewer-distribution` | `/distribuicao` | Distribuição: os municípios de cada analista |
+| `users` | `/usuarios` | Usuários |
 
 - `/` não tem página: o `redirectToRoleHome` manda cada papel à sua página
   inicial (`getRoleHomePath`). O título da página, o item do menu e o `pageTitle`
@@ -308,7 +310,13 @@ O `ROLE_ACCESS` de `lib/route-guard.ts` é a fonte única de quem chega a cada
 | Painel | o próprio | não | não |
 | Projetos | os próprios | não | todos |
 | Fila de Análise | não | sim | sim |
-| Tabelas Normativas | não | não | sim |
+| Tabelas Normativas | não | sim | sim |
+| Distribuição | não | não | sim |
+| Usuários | não | não | sim |
+
+Na interface, o papel `admin` aparece como "Gestor". Na fila, só ele seleciona
+projetos e atribui o analista; "Analisar" aparece só para o analista
+responsável, e os demais abrem o projeto em consulta (US23).
 
 O que cada papel faz no detalhe do projeto sai de uma função só,
 `getProjectDetailActions` (`features/projects/constants/project-detail-actions.ts`).

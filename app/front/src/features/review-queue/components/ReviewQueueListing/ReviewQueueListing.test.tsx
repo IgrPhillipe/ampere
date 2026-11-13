@@ -122,10 +122,17 @@ describe("AnalyzeButton", () => {
 
 	it("hands the clicked item to the listing callback", () => {
 		const onAnalyze = vi.fn();
-		render(<ReviewQueueListing items={[item]} onAnalyze={onAnalyze} />);
+		const held = { ...item, reviewerId: "7", reviewerName: "Ana Analista" };
+		render(
+			<ReviewQueueListing
+				items={[held]}
+				currentUserId="7"
+				onAnalyze={onAnalyze}
+			/>,
+		);
 
 		fireEvent.click(screen.getAllByRole("button", { name: /analisar/i })[0]);
 
-		expect(onAnalyze).toHaveBeenCalledWith(item);
+		expect(onAnalyze).toHaveBeenCalledWith(held);
 	});
 });

@@ -69,4 +69,78 @@ describe("ProjectDetailHeader", () => {
 
 		expect(cell("Última movimentação")).toHaveTextContent("20/10/2026");
 	});
+
+	it("mostra o prazo de retorno e o analista responsável", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({
+					reviewDeadline: "2026-11-01",
+					reviewerName: "Alice Analista",
+				})}
+			/>,
+		);
+
+		expect(cell("Retorno até")).toHaveTextContent("01/11/2026");
+		expect(cell("Retorno até")).toHaveTextContent("30 dias restantes");
+		expect(cell("Analista")).toHaveTextContent("Alice Analista");
+	});
+
+	it("avisa quando o prazo de retorno venceu", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({
+					reviewDeadline: "2026-11-03",
+					deadlineStatus: "OVERDUE",
+					daysRemaining: -10,
+				})}
+			/>,
+		);
+
+		expect(cell("Retorno até")).toHaveTextContent("03/11/2026Atrasado 10 dias");
+		expect(cell("Retorno até")).toHaveAttribute(
+			"title",
+			"03/11/2026, Atrasado 10 dias",
+		);
+	});
+
+	it("avisa quando o prazo de retorno vence hoje", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({
+					reviewDeadline: "2026-11-13",
+					deadlineStatus: "DUE_TODAY",
+					daysRemaining: 0,
+				})}
+			/>,
+		);
+
+		expect(cell("Retorno até")).toHaveTextContent("Vence hoje");
+	});
+
+	it("não mostra prazo nem analista fora da análise", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({
+					status: "APPROVED",
+					reviewedAt: "2026-11-10T12:00:00Z",
+					reviewDeadline: null,
+					deadlineStatus: null,
+					daysRemaining: null,
+				})}
+			/>,
+		);
+
+		expect(screen.queryByText("Retorno até")).not.toBeInTheDocument();
+		expect(screen.queryByText("Analista")).not.toBeInTheDocument();
+	});
+
+	it("informa quando o projeto ainda aguarda atribuição", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({ reviewerName: null })}
+			/>,
+		);
+
+		expect(cell("Analista")).toHaveTextContent("Aguardando atribuição");
+	});
 });

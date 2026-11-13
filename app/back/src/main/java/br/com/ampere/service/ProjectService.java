@@ -189,7 +189,10 @@ public class ProjectService {
         countPendingFindings(projectIds).getOrDefault(projectId, 0L),
         groupRepository.unitsPerProject(projectIds).getOrDefault(projectId, 0L),
         latestDemands(projectIds).get(projectId),
-        eventRepository.findLastOccurredAt(projectId));
+        eventRepository.findLastOccurredAt(projectId),
+        project
+            .pendingReviewDeadline(LocalDate.now(Timestamps.ZONE), Timestamps.ZONE)
+            .orElse(null));
   }
 
   public ProjectSummary create(
