@@ -9,6 +9,7 @@ import { signInAs } from "@/test/fixtures/project-detail";
 
 import {
 	getRoleHomePath,
+	isStandalonePath,
 	ROLE_ACCESS,
 	redirectSignedIn,
 	redirectToRoleHome,
@@ -166,5 +167,25 @@ describe("pending password change", () => {
 
 		await expect(requireAuth()()).resolves.toBeUndefined();
 		await expect(requireRoles(ROLE_ACCESS.users)()).resolves.toBeUndefined();
+	});
+});
+
+describe("isStandalonePath", () => {
+	it("opens the public pages and the password change without the app shell", () => {
+		expect(isStandalonePath("/entrar")).toBe(true);
+		expect(isStandalonePath("/criar-conta")).toBe(true);
+		expect(isStandalonePath("/verificar-autenticidade")).toBe(true);
+		expect(isStandalonePath("/trocar-senha")).toBe(true);
+	});
+
+	it("takes a typed link with a trailing slash as the same page", () => {
+		expect(isStandalonePath("/verificar-autenticidade/")).toBe(true);
+		expect(isStandalonePath("/entrar//")).toBe(true);
+	});
+
+	it("keeps every other page behind the guard", () => {
+		expect(isStandalonePath("/")).toBe(false);
+		expect(isStandalonePath("/projetos")).toBe(false);
+		expect(isStandalonePath("/verificar-autenticidade-falsa")).toBe(false);
 	});
 });
