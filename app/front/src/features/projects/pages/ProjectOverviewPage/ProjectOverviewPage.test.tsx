@@ -126,14 +126,46 @@ describe("ProjectOverviewPage", () => {
 
 	it("keeps the designer read only while the project is under review", () => {
 		signInAs("user");
-		state.project = makeProjectDetail({ status: "UNDER_REVIEW" });
+		state.project = makeProjectDetail({
+			status: "UNDER_REVIEW",
+			reviewDeadline: "2026-11-01",
+			reviewerName: "Alice Analista",
+		});
 		renderPage();
 
 		expect(screen.getByText("O que Acontece Agora")).toBeVisible();
+		expect(
+			screen.getByText("Retorno até 01/11/2026", { exact: false }),
+		).toHaveTextContent("Retorno até 01/11/2026 · 30 dias restantes");
+		expect(screen.getByText("Analista: Alice Analista")).toBeVisible();
 		expect(screen.queryByText("Apontamentos")).not.toBeInTheDocument();
 		expect(
 			screen.queryByRole("button", { name: "Marcar Corrigido" }),
 		).not.toBeInTheDocument();
+	});
+
+	it("warns the designer that the review is overdue", () => {
+		signInAs("user");
+		state.project = makeProjectDetail({
+			status: "UNDER_REVIEW",
+			reviewDeadline: "2026-11-03",
+			deadlineStatus: "OVERDUE",
+			daysRemaining: -10,
+		});
+		renderPage();
+
+		expect(screen.getByText("Atrasado 10 dias")).toBeVisible();
+	});
+
+	it("shows that the project awaits analyst assignment", () => {
+		signInAs("user");
+		state.project = makeProjectDetail({
+			status: "UNDER_REVIEW",
+			reviewerName: null,
+		});
+		renderPage();
+
+		expect(screen.getByText("Aguardando atribuição")).toBeVisible();
 	});
 
 	it("leaves the findings to the review panel of the analyst", () => {

@@ -9,12 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerificarAutenticidadeRouteImport } from './routes/verificar-autenticidade'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as TrocarSenhaRouteImport } from './routes/trocar-senha'
 import { Route as TabelasNormativasRouteImport } from './routes/tabelas-normativas'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as MeuPerfilRouteImport } from './routes/meu-perfil'
 import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as DistribuicaoRouteImport } from './routes/distribuicao'
 import { Route as CriarContaRouteImport } from './routes/criar-conta'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjetosIndexRouteImport } from './routes/projetos/index'
@@ -32,6 +34,11 @@ import { Route as ProjetosIdDadosRouteImport } from './routes/projetos/$id/dados
 import { Route as ProjetosIdCalculoRouteImport } from './routes/projetos/$id/calculo'
 import { Route as ProjetosIdApontamentosRouteImport } from './routes/projetos/$id/apontamentos'
 
+const VerificarAutenticidadeRoute = VerificarAutenticidadeRouteImport.update({
+  id: '/verificar-autenticidade',
+  path: '/verificar-autenticidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UsuariosRoute = UsuariosRouteImport.update({
   id: '/usuarios',
   path: '/usuarios',
@@ -60,6 +67,11 @@ const MeuPerfilRoute = MeuPerfilRouteImport.update({
 const EntrarRoute = EntrarRouteImport.update({
   id: '/entrar',
   path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DistribuicaoRoute = DistribuicaoRouteImport.update({
+  id: '/distribuicao',
+  path: '/distribuicao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CriarContaRoute = CriarContaRouteImport.update({
@@ -146,12 +158,14 @@ const ProjetosIdApontamentosRoute = ProjetosIdApontamentosRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/criar-conta': typeof CriarContaRoute
+  '/distribuicao': typeof DistribuicaoRoute
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
   '/painel': typeof PainelRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
   '/usuarios': typeof UsuariosRoute
+  '/verificar-autenticidade': typeof VerificarAutenticidadeRoute
   '/projetos/$id': typeof ProjetosIdRouteRouteWithChildren
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
@@ -170,12 +184,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/criar-conta': typeof CriarContaRoute
+  '/distribuicao': typeof DistribuicaoRoute
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
   '/painel': typeof PainelRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
   '/usuarios': typeof UsuariosRoute
+  '/verificar-autenticidade': typeof VerificarAutenticidadeRoute
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
   '/fila-de-analise': typeof FilaDeAnaliseIndexRoute
@@ -194,12 +210,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/criar-conta': typeof CriarContaRoute
+  '/distribuicao': typeof DistribuicaoRoute
   '/entrar': typeof EntrarRoute
   '/meu-perfil': typeof MeuPerfilRoute
   '/painel': typeof PainelRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
   '/usuarios': typeof UsuariosRoute
+  '/verificar-autenticidade': typeof VerificarAutenticidadeRoute
   '/projetos/$id': typeof ProjetosIdRouteRouteWithChildren
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
@@ -220,12 +238,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/criar-conta'
+    | '/distribuicao'
     | '/entrar'
     | '/meu-perfil'
     | '/painel'
     | '/tabelas-normativas'
     | '/trocar-senha'
     | '/usuarios'
+    | '/verificar-autenticidade'
     | '/projetos/$id'
     | '/fila-de-analise/$id'
     | '/projetos/novo'
@@ -244,12 +264,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/criar-conta'
+    | '/distribuicao'
     | '/entrar'
     | '/meu-perfil'
     | '/painel'
     | '/tabelas-normativas'
     | '/trocar-senha'
     | '/usuarios'
+    | '/verificar-autenticidade'
     | '/fila-de-analise/$id'
     | '/projetos/novo'
     | '/fila-de-analise'
@@ -267,12 +289,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/criar-conta'
+    | '/distribuicao'
     | '/entrar'
     | '/meu-perfil'
     | '/painel'
     | '/tabelas-normativas'
     | '/trocar-senha'
     | '/usuarios'
+    | '/verificar-autenticidade'
     | '/projetos/$id'
     | '/fila-de-analise/$id'
     | '/projetos/novo'
@@ -292,12 +316,14 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CriarContaRoute: typeof CriarContaRoute
+  DistribuicaoRoute: typeof DistribuicaoRoute
   EntrarRoute: typeof EntrarRoute
   MeuPerfilRoute: typeof MeuPerfilRoute
   PainelRoute: typeof PainelRoute
   TabelasNormativasRoute: typeof TabelasNormativasRoute
   TrocarSenhaRoute: typeof TrocarSenhaRoute
   UsuariosRoute: typeof UsuariosRoute
+  VerificarAutenticidadeRoute: typeof VerificarAutenticidadeRoute
   ProjetosIdRouteRoute: typeof ProjetosIdRouteRouteWithChildren
   FilaDeAnaliseIdRoute: typeof FilaDeAnaliseIdRoute
   ProjetosNovoRoute: typeof ProjetosNovoRoute
@@ -308,6 +334,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verificar-autenticidade': {
+      id: '/verificar-autenticidade'
+      path: '/verificar-autenticidade'
+      fullPath: '/verificar-autenticidade'
+      preLoaderRoute: typeof VerificarAutenticidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/usuarios': {
       id: '/usuarios'
       path: '/usuarios'
@@ -348,6 +381,13 @@ declare module '@tanstack/react-router' {
       path: '/entrar'
       fullPath: '/entrar'
       preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/distribuicao': {
+      id: '/distribuicao'
+      path: '/distribuicao'
+      fullPath: '/distribuicao'
+      preLoaderRoute: typeof DistribuicaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/criar-conta': {
@@ -494,12 +534,14 @@ const ProjetosIdRouteRouteWithChildren = ProjetosIdRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CriarContaRoute: CriarContaRoute,
+  DistribuicaoRoute: DistribuicaoRoute,
   EntrarRoute: EntrarRoute,
   MeuPerfilRoute: MeuPerfilRoute,
   PainelRoute: PainelRoute,
   TabelasNormativasRoute: TabelasNormativasRoute,
   TrocarSenhaRoute: TrocarSenhaRoute,
   UsuariosRoute: UsuariosRoute,
+  VerificarAutenticidadeRoute: VerificarAutenticidadeRoute,
   ProjetosIdRouteRoute: ProjetosIdRouteRouteWithChildren,
   FilaDeAnaliseIdRoute: FilaDeAnaliseIdRoute,
   ProjetosNovoRoute: ProjetosNovoRoute,

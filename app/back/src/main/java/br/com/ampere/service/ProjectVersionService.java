@@ -45,6 +45,9 @@ public class ProjectVersionService {
 
   private static final String DOCUMENT_NOT_FOUND = "Documento não encontrado nesta versão.";
 
+  private static final String APPROVAL_MEMORIAL_NOT_FOUND =
+      "Esta versão não tem memorial de aprovação com ressalvas.";
+
   // Locked since the submission, so they still hold the data that was sent.
   private static final List<ProjectStatus> FROZEN =
       List.of(ProjectStatus.UNDER_REVIEW, ProjectStatus.APPROVED, ProjectStatus.EXPIRED);
@@ -83,7 +86,9 @@ public class ProjectVersionService {
     this.objectMapper = objectMapper;
   }
 
-  public record Entry(ProjectVersion version, List<DocumentSummary> documents) {}
+  /** {@code approval} is null unless the version was approved with reservations. */
+  public record Entry(
+      ProjectVersion version, List<DocumentSummary> documents, ApprovalMemorial approval) {}
 
   public record DocumentSummary(DocumentType type, String filename, Long fileSize) {}
 
@@ -190,8 +195,18 @@ public class ProjectVersionService {
                         new DocumentSummary(
                             document.getType(), document.getFilename(), document.getFileSize())));
 
+    Map<Long, ApprovalMemorial> approvals = new HashMap<>();
+    approvalMemorialRepository
+        .findAllByVersionIdIn(versions.stream().map(ProjectVersion::getId).toList())
+        .forEach(approval -> approvals.put(approval.getVersion().getId(), approval));
+
     return versions.stream()
-        .map(version -> new Entry(version, documents.getOrDefault(version.getId(), List.of())))
+        .map(
+            version ->
+                new Entry(
+                    version,
+                    documents.getOrDefault(version.getId(), List.of()),
+                    approvals.get(version.getId())))
         .toList();
   }
 
@@ -200,6 +215,19 @@ public class ProjectVersionService {
     projectService.findById(projectId, user);
 
     return MemorialPdfService.storedMemorial(find(projectId, number));
+  }
+
+  /** The memorial issued on an approval with reservations, beside the one of the submission. */
+  @Transactional(readOnly = true)
+  public MemorialPdfService.Memorial approvalMemorial(
+      Long projectId, int number, AuthenticatedUser user) {
+    projectService.findById(projectId, user);
+    ProjectVersion version = find(projectId, number);
+
+    return approvalMemorialRepository
+        .findByVersionId(version.getId())
+        .map(approval -> MemorialPdfService.storedMemorial(approval.getMemorial()))
+        .orElseThrow(() -> new NotFoundException(APPROVAL_MEMORIAL_NOT_FOUND));
   }
 
   @Transactional(readOnly = true)

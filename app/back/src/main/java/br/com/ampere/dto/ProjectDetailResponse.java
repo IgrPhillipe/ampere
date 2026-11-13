@@ -4,9 +4,11 @@ import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.ConnectionType;
+import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.ReviewDeadline;
 import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
@@ -35,13 +37,19 @@ public record ProjectDetailResponse(
     OffsetDateTime submittedAt,
     String ownerId,
     String ownerName,
+    @Schema(description = "Analista responsável; nulo quando o projeto não tem analista")
+        String reviewerId,
     String reviewerName,
-    OffsetDateTime reviewedAt,
-    int reviewCycle,
     @Schema(
             description =
-                "Último dia do prazo de análise, já somados os dias suspensos; nulo fora de análise")
+                "Último dia do prazo de análise, já somados os dias suspensos; nulo fora da análise")
         LocalDate reviewDeadline,
+    @Schema(description = "Situação do prazo de análise; nula fora da análise")
+        DeadlineStatus deadlineStatus,
+    @Schema(description = "Dias até o prazo de análise, negativo se vencido; nulo fora da análise")
+        Long daysRemaining,
+    OffsetDateTime reviewedAt,
+    int reviewCycle,
     @Schema(
             description =
                 "Dias corridos de análise, sem os suspensos; nulo antes do primeiro envio")
@@ -83,6 +91,7 @@ public record ProjectDetailResponse(
             .map(StandardResponse::from)
             .sorted(Comparator.comparing(standard -> StandardName.of(standard.name())))
             .toList();
+    ReviewDeadline reviewDeadline = summary.reviewDeadline();
 
     return new ProjectDetailResponse(
         String.valueOf(project.getId()),
@@ -98,10 +107,13 @@ public record ProjectDetailResponse(
         project.getSubmittedAt(),
         project.getOwner() == null ? null : String.valueOf(project.getOwner().getId()),
         nameOf(project.getOwner()),
+        idOf(project.getReviewer()),
         nameOf(project.getReviewer()),
+        reviewDeadline == null ? null : reviewDeadline.date(),
+        reviewDeadline == null ? null : reviewDeadline.status(),
+        reviewDeadline == null ? null : reviewDeadline.daysRemaining(),
         project.getReviewedAt(),
         project.getReviewCycle(),
-        timeline.reviewDeadline(),
         timeline.elapsedReviewDays(),
         timeline.suspendedReviewDays(),
         timeline.remainingReviewDays(),
@@ -122,6 +134,10 @@ public record ProjectDetailResponse(
         standards.stream().map(StandardResponse::label).collect(Collectors.joining(" e ")),
         buildingType.demandRules().stream().map(DemandRuleResponse::from).toList(),
         TechnicalResponsibleResponse.of(project.getOwner()));
+  }
+
+  private static String idOf(User user) {
+    return user == null ? null : String.valueOf(user.getId());
   }
 
   private static String nameOf(User user) {

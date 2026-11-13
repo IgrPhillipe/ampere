@@ -27,6 +27,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.hibernate.annotations.ColumnDefault;
 
 @Entity
@@ -381,6 +382,18 @@ public class Project {
     }
 
     return deadline.isEqual(today) ? DeadlineStatus.DUE_TODAY : DeadlineStatus.ON_TIME;
+  }
+
+  /** The deadline of the review in progress; empty while the project is not under review. */
+  public Optional<ReviewDeadline> pendingReviewDeadline(LocalDate today, ZoneId zone) {
+    if (!isUnderReview() || submittedAt == null) {
+      return Optional.empty();
+    }
+
+    LocalDate deadline = reviewDeadline(zone);
+    return Optional.of(
+        new ReviewDeadline(
+            deadline, deadlineStatus(today, zone), ChronoUnit.DAYS.between(today, deadline)));
   }
 
   public boolean isDraft() {

@@ -1,16 +1,26 @@
 import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDecimal, padCount } from "@features/shared";
+import {
+	downloadFile,
+	formatDate,
+	formatDecimal,
+	padCount,
+} from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Calculation } from "@services/calculation";
 import type { ProjectDetail } from "@services/projects";
 import type { Memorial } from "@services/submission";
+import { Link } from "@tanstack/react-router";
 import { Download } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
+import type { MemorialStamp } from "../../constants";
+
 interface MemorialPreviewProps {
 	project?: ProjectDetail;
+	/** Null for a preview; undefined while it is not known yet, so no label shows too early. */
+	stamp?: MemorialStamp | null;
 	calculation?: Calculation;
 	memorial?: Memorial;
 	isLoading?: boolean;
@@ -38,8 +48,25 @@ const protection = ({ traceability }: Calculation) =>
 		.filter(Boolean)
 		.join(", ");
 
+const stampTitle = (stamp: MemorialStamp | null | undefined) => {
+	if (stamp === undefined) return "Memorial";
+	if (stamp === null) return "Memorial Gerado";
+
+	return stamp.kind === "approval"
+		? "Memorial da Aprovação"
+		: "Memorial do Envio";
+};
+
+const stampMeta = (stamp: MemorialStamp | null | undefined) => {
+	if (stamp === undefined) return undefined;
+	if (stamp === null) return "Prévia";
+
+	return `Oficial · v${padCount(stamp.version)}${stamp.kind === "approval" ? " · com ressalvas" : ""}`;
+};
+
 export const MemorialPreview = ({
 	project,
+	stamp,
 	calculation,
 	memorial,
 	isLoading = false,
@@ -58,12 +85,7 @@ export const MemorialPreview = ({
 	);
 
 	const download = () => {
-		if (!url || !memorial) return;
-
-		const link = document.createElement("a");
-		link.href = url;
-		link.download = memorial.filename;
-		link.click();
+		if (memorial) downloadFile(memorial.blob, memorial.filename);
 	};
 
 	return (
@@ -71,7 +93,39 @@ export const MemorialPreview = ({
 			aria-labelledby="memorial-titulo"
 			className={cn("flex flex-col gap-5", className)}
 		>
-			<SectionHeading id="memorial-titulo">Memorial Gerado</SectionHeading>
+			<SectionHeading id="memorial-titulo" meta={stampMeta(stamp)}>
+				{stampTitle(stamp)}
+			</SectionHeading>
+
+			{stamp === undefined ? (
+				<Skeleton className="h-5 w-full max-w-md" />
+			) : stamp ? (
+				<p className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-muted-foreground">
+					<span>
+						{stamp.kind === "approval"
+							? `Este é o PDF emitido na aprovação com ressalvas da versão ${stamp.version}, em ${formatDate(stamp.approvedAt)}. O memorial do envio continua no Histórico.`
+							: `Este é o PDF gravado no envio da versão ${stamp.version}: não é gerado de novo.`}
+					</span>
+					{stamp.verificationCode ? (
+						<span>
+							Código de verificação{" "}
+							<Link
+								to="/verificar-autenticidade"
+								search={{ codigo: stamp.verificationCode }}
+								className="font-mono text-foreground underline-offset-4 hover:underline"
+							>
+								{stamp.verificationCode}
+							</Link>
+							.
+						</span>
+					) : null}
+				</p>
+			) : (
+				<p className="text-sm text-muted-foreground">
+					Prévia sem validade e sem código de verificação. O memorial oficial é
+					gravado no envio, com o protocolo, a versão e a data no rodapé.
+				</p>
+			)}
 
 			<div className="border border-border bg-background px-7 py-6">
 				<p className="font-mono text-2xs tracking-[0.11em] text-foreground uppercase">
@@ -125,7 +179,13 @@ export const MemorialPreview = ({
 				<Skeleton className="h-[36rem] w-full" />
 			) : (
 				<iframe
-					title="Prévia do memorial em PDF"
+					title={
+						stamp
+							? `Memorial oficial da versão ${stamp.version} em PDF`
+							: stamp === null
+								? "Prévia do memorial em PDF"
+								: "Memorial em PDF"
+					}
 					src={url}
 					className="h-[36rem] w-full border border-border"
 				/>

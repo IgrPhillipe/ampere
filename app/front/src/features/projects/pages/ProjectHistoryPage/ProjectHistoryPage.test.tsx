@@ -1,7 +1,16 @@
 import type { SortDirection } from "@features/shared";
 import type { ProjectEvent, ProjectRework } from "@services/project-events";
 import type { Finding } from "@services/project-review";
+import type {
+	ProjectVersion,
+	VersionComparison,
+} from "@services/project-versions";
 import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+	NuqsTestingAdapter,
+	type OnUrlUpdateFunction,
+} from "nuqs/adapters/testing";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { loadedQuery } from "@/test/fixtures/project-detail";
@@ -65,8 +74,72 @@ const state = vi.hoisted(() => ({
 	failed: false,
 	refetches: [] as string[],
 	status: "UNDER_REVIEW",
+	reviewCycle: 2,
+	reviewDeadline: "2026-09-27" as string | null,
 	findings: [] as Pick<Finding, "id" | "status">[],
+	versions: [] as ProjectVersion[],
+	compared: [] as { from: number; to: number }[],
+	comparison: undefined as VersionComparison | undefined,
+	comparisonFailed: false,
+	download: vi.fn(),
 }));
+
+vi.mock("@services/project-versions", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@services/project-versions")>()),
+	useGetProjectVersionList: () => loadedQuery({ data: state.versions }),
+	useCompareProjectVersions: (
+		params: { from: number; to: number },
+		{ enabled }: { enabled?: boolean } = {},
+	) => {
+		if (enabled) state.compared.push({ from: params.from, to: params.to });
+		if (enabled && state.comparisonFailed)
+			return { ...loadedQuery(undefined), isError: true };
+		return enabled
+			? loadedQuery(state.comparison ? { data: state.comparison } : undefined)
+			: { ...loadedQuery(undefined), isPending: true };
+	},
+	useDownloadVersionFile: () => ({
+		mutate: state.download,
+		isPending: false,
+	}),
+}));
+
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@tanstack/react-router")>()),
+	Link: ({
+		children,
+		to,
+		search,
+		className,
+		"aria-label": ariaLabel,
+	}: {
+		children: ReactNode;
+		to: string;
+		search?: Record<string, string>;
+		className?: string;
+		"aria-label"?: string;
+	}) => (
+		<a
+			href={`${to}${search ? `?${new URLSearchParams(search)}` : ""}`}
+			className={className}
+			aria-label={ariaLabel}
+		>
+			{children}
+		</a>
+	),
+}));
+
+const versionOf = (number: number, demandKva: number): ProjectVersion => ({
+	number,
+	submittedAt: `2026-08-2${number}T12:00:00Z`,
+	authorName: "Ana Lima",
+	changeSummary: null,
+	demandKva,
+	documents: [],
+	memorialSha256: "a".repeat(64),
+	verificationCode: `7F3A-91C2-04BD-2E7${number}`,
+	approvalMemorial: null,
+});
 
 /** Stands in for the API: it sorts by the direction it receives. */
 vi.mock("@services/project-events", async (importOriginal) => ({
@@ -98,7 +171,14 @@ vi.mock("@services/project-events", async (importOriginal) => ({
 
 vi.mock("@services/projects", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/projects")>()),
-	useGetProject: () => loadedQuery({ data: { status: state.status } }),
+	useGetProject: () =>
+		loadedQuery({
+			data: {
+				status: state.status,
+				reviewCycle: state.reviewCycle,
+				reviewDeadline: state.reviewDeadline,
+			},
+		}),
 }));
 
 vi.mock("@services/project-review", async (importOriginal) => ({
@@ -114,6 +194,13 @@ const timelineDescriptions = () =>
 			: -1,
 	);
 
+const renderPage = (searchParams = "", onUrlUpdate?: OnUrlUpdateFunction) =>
+	render(
+		<NuqsTestingAdapter searchParams={searchParams} onUrlUpdate={onUrlUpdate}>
+			<ProjectHistoryPage projectId="4" />
+		</NuqsTestingAdapter>,
+	);
+
 describe("ProjectHistoryPage", () => {
 	beforeEach(() => {
 		state.events = EVENTS;
@@ -121,11 +208,17 @@ describe("ProjectHistoryPage", () => {
 		state.failed = false;
 		state.refetches = [];
 		state.status = "UNDER_REVIEW";
+		state.reviewCycle = 2;
+		state.reviewDeadline = "2026-09-27";
 		state.findings = [];
+		state.versions = [];
+		state.compared = [];
+		state.comparison = undefined;
+		state.download.mockReset();
 	});
 
 	it("lists the most recent event first by default", () => {
-		render(<ProjectHistoryPage projectId="4" />);
+		renderPage();
 
 		expect(state.directions.at(-1)).toBe("DESC");
 		expect(timelineDescriptions()).toEqual([
@@ -140,7 +233,7 @@ describe("ProjectHistoryPage", () => {
 	});
 
 	it("asks the API for the oldest first when the toggle is turned off, and back", () => {
-		render(<ProjectHistoryPage projectId="4" />);
+		renderPage();
 		const toggle = screen.getByRole("button", {
 			name: /mais recente primeiro/i,
 		});
@@ -163,7 +256,7 @@ describe("ProjectHistoryPage", () => {
 	});
 
 	it("names the author's role as designer, analyst or system", () => {
-		render(<ProjectHistoryPage projectId="4" />);
+		renderPage();
 		const items = within(screen.getByRole("list")).getAllByRole("listitem");
 
 		expect(items[0]).toHaveTextContent("Lucas Gabriel, Analista");
@@ -172,10 +265,40 @@ describe("ProjectHistoryPage", () => {
 		expect(items[2]).toHaveTextContent("Enviado, Versão 1");
 	});
 
+	it("dates the return only on the submission still under review", () => {
+		state.events = [
+			...EVENTS,
+			makeEvent({
+				id: "5",
+				type: "RESUBMITTED",
+				version: 2,
+				description: "Versão 2 reenviada para análise.",
+				occurredAt: "2026-08-28T10:00:00Z",
+			}),
+		];
+
+		renderPage();
+		const items = within(screen.getByRole("list")).getAllByRole("listitem");
+
+		expect(items[0]).toHaveTextContent("Reenviado, Versão 2");
+		expect(items[0]).toHaveTextContent("Retorno até 27/09/2026");
+		expect(screen.getAllByText(/Retorno até/)).toHaveLength(1);
+	});
+
+	it("dates no return once the analyst decided", () => {
+		state.status = "APPROVED";
+		state.reviewCycle = 1;
+		state.reviewDeadline = null;
+
+		renderPage();
+
+		expect(screen.queryByText(/Retorno até/)).not.toBeInTheDocument();
+	});
+
 	it("shows the empty state for a project without events", () => {
 		state.events = [];
 
-		render(<ProjectHistoryPage projectId="4" />);
+		renderPage();
 
 		expect(screen.getByText("Nenhum evento registrado")).toBeInTheDocument();
 		expect(screen.queryByRole("list")).not.toBeInTheDocument();
@@ -185,7 +308,7 @@ describe("ProjectHistoryPage", () => {
 	});
 
 	it("shows the cycle in days and the rework metrics", () => {
-		render(<ProjectHistoryPage projectId="4" />);
+		renderPage();
 
 		expect(screen.getByText("10")).toBeInTheDocument();
 		expect(
@@ -200,7 +323,7 @@ describe("ProjectHistoryPage", () => {
 			{ id: "2", status: "RESOLVED" },
 		];
 
-		render(<ProjectHistoryPage projectId="4" />);
+		renderPage();
 
 		expect(
 			screen.getByText("Dias do primeiro envio à aprovação"),
@@ -215,7 +338,7 @@ describe("ProjectHistoryPage", () => {
 	it("offers to retry both requests when the history fails", () => {
 		state.failed = true;
 
-		render(<ProjectHistoryPage projectId="4" />);
+		renderPage();
 
 		expect(
 			screen.getByText("Não foi possível carregar o histórico"),
@@ -224,5 +347,269 @@ describe("ProjectHistoryPage", () => {
 		fireEvent.click(screen.getByRole("button", { name: "Tentar Novamente" }));
 
 		expect(state.refetches).toEqual(["events", "rework"]);
+	});
+});
+
+describe("ProjectHistoryPage versions", () => {
+	const COMPARISON: VersionComparison = {
+		from: { number: 2, submittedAt: "2026-08-22T12:00:00Z", demandKva: 236 },
+		to: { number: 3, submittedAt: "2026-08-23T12:00:00Z", demandKva: 238.4 },
+		demandDifferenceKva: 2.4,
+		included: [{ id: "9", name: "Recarga de veículo elétrico", fields: [] }],
+		removed: [],
+		changed: [
+			{
+				id: "5",
+				name: "Apartamento tipo A",
+				fields: [
+					{
+						field: "unitCount",
+						label: "Unidades",
+						from: "24",
+						to: "26",
+						fromLabel: null,
+						toLabel: null,
+					},
+				],
+			},
+		],
+		building: [],
+	};
+
+	beforeEach(() => {
+		state.events = EVENTS;
+		state.directions = [];
+		state.failed = false;
+		state.status = "UNDER_REVIEW";
+		state.findings = [];
+		state.versions = [
+			versionOf(1, 230),
+			versionOf(2, 236),
+			versionOf(3, 238.4),
+		];
+		state.compared = [];
+		state.comparison = COMPARISON;
+		state.comparisonFailed = false;
+		state.download.mockReset();
+	});
+
+	it("lists the versions newest first, each with its memorial and code", () => {
+		renderPage();
+
+		const list = screen.getByRole("list", { name: "Versões enviadas" });
+		const items = within(list).getAllByRole("listitem");
+		expect(items.map((item) => item.textContent?.slice(0, 3))).toEqual([
+			"v03",
+			"v02",
+			"v01",
+		]);
+		expect(
+			within(items[0]).getByRole("link", {
+				name: "Verificar o código 7F3A-91C2-04BD-2E73",
+			}),
+		).toHaveAttribute(
+			"href",
+			"/verificar-autenticidade?codigo=7F3A-91C2-04BD-2E73",
+		);
+
+		fireEvent.click(
+			screen.getByRole("button", { name: "Baixar o memorial da v02" }),
+		);
+		expect(state.download).toHaveBeenCalledWith(
+			{ projectId: "4", version: 2, file: { kind: "memorial" } },
+			expect.anything(),
+		);
+	});
+
+	it("shows what each version sent: the change summary and the documents, to download", () => {
+		state.versions = [
+			versionOf(1, 230),
+			{
+				...versionOf(2, 236),
+				changeSummary: "Carga de ar-condicionado incluída nas lojas.",
+				documents: [
+					{
+						type: "ART",
+						typeLabel: "ART",
+						filename: "art.pdf",
+						fileSize: 1024,
+					},
+					{
+						type: "SINGLE_LINE_DIAGRAM",
+						typeLabel: "Diagrama unifilar",
+						filename: "unifilar.pdf",
+						fileSize: 2048,
+					},
+				],
+			},
+		];
+		renderPage();
+
+		expect(
+			screen.getByText(
+				"Resumo das alterações: Carga de ar-condicionado incluída nas lojas.",
+			),
+		).toBeInTheDocument();
+		fireEvent.click(
+			screen.getByRole("button", { name: "Baixar Diagrama unifilar da v02" }),
+		);
+		expect(state.download).toHaveBeenCalledWith(
+			{
+				projectId: "4",
+				version: 2,
+				file: { kind: "document", type: "SINGLE_LINE_DIAGRAM" },
+			},
+			expect.anything(),
+		);
+	});
+
+	it("offers the memorial of an approval with reservations beside the submitted one", () => {
+		state.status = "APPROVED";
+		state.versions = [
+			{
+				...versionOf(1, 230),
+				approvalMemorial: {
+					memorialSha256: "b".repeat(64),
+					verificationCode: "14AD-9894-877C-3C4A",
+					issuedAt: "2026-09-01T13:00:00Z",
+				},
+			},
+		];
+		renderPage();
+
+		expect(
+			screen.getByText("Aprovada com ressalvas em 01/09/2026"),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", {
+				name: "Verificar o código 14AD-9894-877C-3C4A",
+			}),
+		).toHaveAttribute(
+			"href",
+			"/verificar-autenticidade?codigo=14AD-9894-877C-3C4A",
+		);
+		fireEvent.click(
+			screen.getByRole("button", {
+				name: "Baixar o memorial da aprovação da v01",
+			}),
+		);
+		expect(state.download).toHaveBeenCalledWith(
+			{ projectId: "4", version: 1, file: { kind: "approval-memorial" } },
+			expect.anything(),
+		);
+	});
+
+	it("opens the comparison of the latest version against the one before", async () => {
+		const onUrlUpdate = vi.fn<OnUrlUpdateFunction>();
+		renderPage("", onUrlUpdate);
+
+		fireEvent.click(screen.getByRole("button", { name: "Comparar Versões" }));
+
+		await vi.waitFor(() => expect(onUrlUpdate).toHaveBeenCalled());
+		const { searchParams } = onUrlUpdate.mock.calls.at(-1)?.[0] ?? {};
+		expect(searchParams?.get("from")).toBe("2");
+		expect(searchParams?.get("to")).toBe("3");
+	});
+
+	it("offers no comparison with a single version", () => {
+		state.versions = [versionOf(1, 230)];
+		renderPage();
+
+		expect(
+			screen.queryByRole("button", { name: "Comparar Versões" }),
+		).not.toBeInTheDocument();
+	});
+
+	it("shows what changed between the versions in the URL", () => {
+		renderPage("?from=2&to=3");
+
+		expect(state.compared.at(-1)).toEqual({ from: 2, to: 3 });
+		expect(
+			screen.getByRole("heading", { name: "Comparativo de Versões" }),
+		).toBeInTheDocument();
+		expect(screen.queryByText("Projeto criado.")).not.toBeInTheDocument();
+
+		const demandRow = screen
+			.getByText("Demanda total da edificação")
+			.closest("tr");
+		expect(demandRow).toHaveAttribute("data-changed", "true");
+		expect(demandRow).toHaveTextContent("236,0 kVA");
+		expect(demandRow).toHaveTextContent("238,4 kVA");
+		expect(demandRow).toHaveTextContent("+2,4");
+
+		const groups = screen.getAllByRole("table")[1];
+		expect(within(groups).getByText("Unidades: 24 → 26")).toBeInTheDocument();
+		expect(within(groups).getByText("Incluído")).toBeInTheDocument();
+		expect(within(groups).getByText("Alterado")).toBeInTheDocument();
+
+		const field = screen.getByRole("heading", { name: "O que mudou" })
+			.parentElement?.parentElement as HTMLElement;
+		expect(within(field).getByText("Alterações na v03")).toBeInTheDocument();
+		expect(within(field).getAllByRole("listitem")).toHaveLength(3);
+		expect(
+			within(field).getByText("Grupo incluído: Recarga de veículo elétrico"),
+		).toBeInTheDocument();
+	});
+
+	it("lets each table scroll sideways on a narrow screen, by keyboard too", () => {
+		renderPage("?from=2&to=3");
+
+		for (const name of ["Memória de cálculo", "Grupos de UCs"]) {
+			const region = screen.getByRole("region", { name });
+			expect(region).toHaveClass("overflow-x-auto");
+			expect(region).toHaveAttribute("tabindex", "0");
+			expect(within(region).getByRole("table")).toHaveClass("min-w-[32rem]");
+		}
+	});
+
+	it("compares the older version to the newer one even from a reversed link", () => {
+		renderPage("?from=3&to=1");
+
+		expect(state.compared.at(-1)).toEqual({ from: 1, to: 3 });
+	});
+
+	it("offers as origin only the versions before the destination, and the reverse", async () => {
+		renderPage("?from=2&to=3");
+
+		fireEvent.click(
+			screen.getByRole("combobox", { name: "Versão de destino" }),
+		);
+		expect(await screen.findByRole("option", { name: "v01" })).toHaveAttribute(
+			"aria-disabled",
+			"true",
+		);
+		expect(screen.getByRole("option", { name: "v02" })).toHaveAttribute(
+			"aria-disabled",
+			"true",
+		);
+		expect(screen.getByRole("option", { name: "v03" })).not.toHaveAttribute(
+			"aria-disabled",
+			"true",
+		);
+	});
+
+	it("drops from the URL a pair naming a version the project does not have", async () => {
+		const onUrlUpdate = vi.fn<OnUrlUpdateFunction>();
+		renderPage("?from=2&to=9", onUrlUpdate);
+
+		expect(state.compared).toEqual([]);
+		expect(screen.getByText("Projeto criado.")).toBeInTheDocument();
+		await vi.waitFor(() => expect(onUrlUpdate).toHaveBeenCalled());
+		const { searchParams } = onUrlUpdate.mock.calls.at(-1)?.[0] ?? {};
+		expect(searchParams?.has("from")).toBe(false);
+		expect(searchParams?.has("to")).toBe(false);
+	});
+
+	it("tells in the changes field that the comparison failed", () => {
+		state.comparisonFailed = true;
+		renderPage("?from=2&to=3");
+
+		expect(
+			screen.getByText("Não foi possível comparar as versões"),
+		).toBeInTheDocument();
+		expect(screen.getByText("Comparativo indisponível")).toBeInTheDocument();
+		expect(
+			screen.queryByText("Carregando o comparativo"),
+		).not.toBeInTheDocument();
 	});
 });

@@ -17,6 +17,7 @@ import { useState } from "react";
 
 import { AppBrand } from "./AppBrand";
 import { HeaderNav } from "./HeaderNav";
+import { NotificationsMenu } from "./NotificationsMenu";
 import { ROLE_LABEL } from "./role-label";
 
 const initialsOf = (name: string) =>
@@ -50,7 +51,9 @@ export const Header = () => {
 
 				<HeaderNav className="absolute inset-y-0 left-1/2 hidden -translate-x-1/2 lg:flex" />
 
-				<div className="ml-auto flex items-center">
+				<div className="ml-auto flex items-center gap-1 sm:gap-2">
+					{user ? <NotificationsMenu /> : null}
+
 					<DropdownMenu>
 						<DropdownMenuTrigger
 							render={

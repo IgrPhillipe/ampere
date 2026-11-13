@@ -138,7 +138,7 @@ export const UserFormDialog = ({
 						disabled={isCurrentUser}
 						description={
 							isCurrentUser
-								? "Você não pode remover o próprio papel de administrador."
+								? "Você não pode remover o próprio papel de gestor."
 								: undefined
 						}
 					/>

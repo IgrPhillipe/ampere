@@ -1,3 +1,4 @@
+export * from "./useComparedVersions";
 export * from "./useCurrentSection";
 export * from "./useProjectDetailActions";
 export * from "./useProjectFilters";

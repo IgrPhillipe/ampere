@@ -314,8 +314,9 @@ Cada envio grava uma versão imutável (`ProjectVersion`): número (o ciclo de a
 | Rota | Acesso | O que faz |
 | :--- | :--- | :--- |
 | `GET /api/projects/{id}/memorial` | Dono, analista, admin | Projeto enviado: devolve o PDF gravado na última versão, sem regerar. Rascunho ou projeto em correção: prévia com a marca "Prévia" e sem código de verificação |
-| `GET /api/projects/{id}/versions` | Dono, analista, admin | Versões, da primeira à última, com demanda, documentos, SHA-256 e código |
+| `GET /api/projects/{id}/versions` | Dono, analista, admin | Versões, da primeira à última, com demanda, documentos, SHA-256 e código. `approvalMemorial` traz o SHA-256, o código e a data do memorial da aprovação com ressalvas, ou `null` |
 | `GET /api/projects/{id}/versions/{number}/memorial` | Dono, analista, admin | PDF gravado na versão |
+| `GET /api/projects/{id}/versions/{number}/approval-memorial` | Dono, analista, admin | PDF do memorial da aprovação com ressalvas da versão. Versão sem ele responde 404 |
 | `GET /api/projects/{id}/versions/{number}/documents/{type}/file` | Dono, analista, admin | PDF do documento como foi enviado na versão |
 | `GET /api/projects/{id}/versions/compare?from=&to=` | Dono, analista, admin | Grupos `included`, `removed` e `changed`, dados da edificação em `building` e a demanda de cada versão. `from` maior que `to` responde 400 |
 | `GET /api/memorial-verifications/{code}` | Público | Confere o código do rodapé |

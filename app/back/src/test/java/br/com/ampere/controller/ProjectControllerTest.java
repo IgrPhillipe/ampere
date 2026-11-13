@@ -319,7 +319,7 @@ class ProjectControllerTest {
   void createsProjectAndAnswersCreated() throws Exception {
     ProjectService service = mock(ProjectService.class);
     when(service.create(any(), any(), eq(DESIGNER)))
-        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null));
+        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null, null));
 
     mockMvc(service)
         .perform(post("/projects").contentType(MediaType.APPLICATION_JSON).content(validBody()))
@@ -337,7 +337,7 @@ class ProjectControllerTest {
   void passesTheOwnerIdOfTheBodyToTheService() throws Exception {
     ProjectService service = mock(ProjectService.class);
     when(service.create(any(), eq(5L), eq(DESIGNER)))
-        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null));
+        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null, null));
 
     mockMvc(service)
         .perform(
@@ -406,7 +406,8 @@ class ProjectControllerTest {
     Project project = draft();
     OffsetDateTime lastActivityAt = OffsetDateTime.parse("2026-10-16T14:20:00Z");
     when(service.detail(4L, DESIGNER))
-        .thenReturn(new ProjectSummary(project, 3, 8, new BigDecimal("61.2"), lastActivityAt));
+        .thenReturn(
+            new ProjectSummary(project, 3, 8, new BigDecimal("61.2"), lastActivityAt, null));
 
     mockMvc(service)
         .perform(get("/projects/4"))

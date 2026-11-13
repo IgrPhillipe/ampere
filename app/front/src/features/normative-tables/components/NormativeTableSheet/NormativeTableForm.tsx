@@ -268,7 +268,7 @@ export const NormativeTableForm = ({
 			<ConfirmDialog
 				open={pendingCreation !== null}
 				title="Enviar a tabela para revisão?"
-				description="A tabela fica pendente até a aprovação de outro administrador. Os valores só entram no cálculo de demanda depois de aprovados."
+				description="A tabela fica pendente até a aprovação de outro gestor. Os valores só entram no cálculo de demanda depois de aprovados."
 				confirmLabel="Enviar para Revisão"
 				pendingLabel="Enviando..."
 				isPending={createTable.isPending}

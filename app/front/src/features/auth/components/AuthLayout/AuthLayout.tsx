@@ -2,6 +2,8 @@ import { AppBrand, Eyebrow } from "@components/layout";
 import type { ReactNode } from "react";
 
 interface AuthLayoutProps {
+	/** Versalete line above the title. */
+	eyebrow?: ReactNode;
 	title: string;
 	description: ReactNode;
 	/** Requirements note closing the column, after the actions. */
@@ -11,6 +13,7 @@ interface AuthLayoutProps {
 
 /** Access screens: the brand on top and the form in a single column. */
 export const AuthLayout = ({
+	eyebrow = "Acesso ao portal",
 	title,
 	description,
 	note,
@@ -27,7 +30,7 @@ export const AuthLayout = ({
 			<div className="flex w-full flex-1 px-4 py-9 md:px-10 md:py-24">
 				<div className="m-auto flex w-full max-w-[516px] flex-col gap-5">
 					<div className="flex flex-col gap-3 border-b-[1.5px] border-foreground pb-5">
-						<Eyebrow>Acesso ao portal</Eyebrow>
+						<Eyebrow>{eyebrow}</Eyebrow>
 
 						<h1 className="font-heading text-3xl font-medium tracking-[-0.032em]">
 							{title}

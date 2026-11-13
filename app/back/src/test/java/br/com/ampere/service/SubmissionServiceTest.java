@@ -130,7 +130,7 @@ class SubmissionServiceTest {
             });
 
     when(projectService.summarize(project))
-        .thenReturn(new ProjectSummary(project, 0, 0, null, null));
+        .thenReturn(new ProjectSummary(project, 0, 0, null, null, null));
     Project resubmitted =
         service
             .submit(

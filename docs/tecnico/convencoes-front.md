@@ -265,6 +265,9 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 | `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id`, `/projetos/$id/<etapa>` | Meus Projetos (Projetos, para o admin), o detalhe e as etapas |
 | `review-queue` | `/fila-de-analise` | Fila de Análise |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
+| `memorial-verification` | `/verificar-autenticidade` | Verificar Autenticidade, pública |
+| `reviewer-distribution` | `/distribuicao` | Distribuição: os municípios de cada analista |
+| `users` | `/usuarios` | Usuários |
 
 - `/` não tem página: o `redirectToRoleHome` manda cada papel à sua página
   inicial (`getRoleHomePath`). O título da página, o item do menu e o `pageTitle`
@@ -289,7 +292,8 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 
 ## Autenticação
 
-1. `__root.tsx` chama `requireAuth()` em tudo que não está em `PUBLIC_PATHS`.
+1. `__root.tsx` chama `requireAuth()` em tudo que `isStandalonePath` não reconhece
+   (`lib/route-guard.ts`): as páginas públicas e a troca de senha, com ou sem `/` no fim.
 2. `requireAuth` espera a re-hidratação do store e, sem sessão, redireciona
    para `/entrar?redirect=<origem>`.
 3. `useLogin` grava a sessão, navega para o `redirect` e mostra o toast.
@@ -306,7 +310,13 @@ O `ROLE_ACCESS` de `lib/route-guard.ts` é a fonte única de quem chega a cada
 | Painel | o próprio | não | não |
 | Projetos | os próprios | não | todos |
 | Fila de Análise | não | sim | sim |
-| Tabelas Normativas | não | não | sim |
+| Tabelas Normativas | não | sim | sim |
+| Distribuição | não | não | sim |
+| Usuários | não | não | sim |
+
+Na interface, o papel `admin` aparece como "Gestor". Na fila, só ele seleciona
+projetos e atribui o analista; "Analisar" aparece só para o analista
+responsável, e os demais abrem o projeto em consulta (US23).
 
 O que cada papel faz no detalhe do projeto sai de uma função só,
 `getProjectDetailActions` (`features/projects/constants/project-detail-actions.ts`).
@@ -696,6 +706,8 @@ porte usando a tabela de equivalências em `app/front/.migration/2026-09-base-ui
 | Filtros e ordenação de listagem | `@components/FilterMenu`, `@components/MultiFilterMenu`, `@components/SearchableFilterMenu`, `@components/DateRangeFilter`, `@components/SortMenu`, `@components/ActiveFilters` |
 | Ordenação pelo cabeçalho | `@components/DataTable` (`sortableColumns`, `sort`, `onSortChange`) |
 | Envelope de resposta | `@features/shared` (`apiResponseSchema`, `paginatedResponseSchema`) |
+| Nome do arquivo de um PDF da API | `@lib/http` (`filenameOf`) |
+| Baixar um arquivo já carregado | `@features/shared` (`downloadFile`) |
 | Variável de ambiente | `@config` (`AppConfig`) |
 
 ---

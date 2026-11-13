@@ -69,6 +69,25 @@ public class ProjectVersionController {
     return InlinePdf.of(memorial.filename(), memorial.content());
   }
 
+  @GetMapping(value = "/{number}/approval-memorial", produces = MediaType.APPLICATION_PDF_VALUE)
+  @Operation(
+      operationId = "getVersionApprovalMemorial",
+      summary = "Devolve o PDF do memorial emitido na aprovação com ressalvas da versão")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "PDF do memorial da aprovação"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "Projeto ou versão não encontrados, ou versão sem aprovação com ressalvas")
+  })
+  public ResponseEntity<byte[]> approvalMemorial(
+      @PathVariable Long projectId, @PathVariable int number, @AuthenticationPrincipal Jwt jwt) {
+    MemorialPdfService.Memorial memorial = service.approvalMemorial(projectId, number, userOf(jwt));
+
+    return InlinePdf.of(memorial.filename(), memorial.content());
+  }
+
   @GetMapping(value = "/{number}/documents/{type}/file", produces = MediaType.APPLICATION_PDF_VALUE)
   @Operation(
       operationId = "getVersionDocument",

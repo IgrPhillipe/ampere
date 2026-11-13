@@ -100,7 +100,7 @@ public class UserAdministrationService {
       }
 
       if (parameters.role() != UserRole.ADMIN) {
-        throw new BusinessException("Você não pode remover o próprio papel de administrador.");
+        throw new BusinessException("Você não pode remover o próprio papel de gestor.");
       }
     }
 
