@@ -1,5 +1,6 @@
 import { apiResponseSchema, paginatedResponseSchema } from "@features/shared";
 import { brazilianStateSchema } from "@services/locations";
+import { deadlineStatusSchema } from "@services/review-queue";
 import { z } from "zod";
 
 export const projectStatusSchema = z.enum([
@@ -148,7 +149,7 @@ export const projectDetailSchema = z.object({
 	ownerName: z.string().nullish(),
 	reviewerName: z.string().nullish(),
 	reviewDeadline: z.iso.date().nullish(),
-	deadlineStatus: z.enum(["OVERDUE", "DUE_TODAY", "ON_TIME"]).nullish(),
+	deadlineStatus: deadlineStatusSchema.nullish(),
 	reviewedAt: z.iso.datetime({ offset: true }).nullish(),
 	reviewCycle: z.number().int().nonnegative(),
 	openFindingsCount: z.number().int().nonnegative(),
