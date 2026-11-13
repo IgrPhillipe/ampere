@@ -1,7 +1,12 @@
 import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDate, formatDecimal, padCount } from "@features/shared";
+import {
+	downloadFile,
+	formatDate,
+	formatDecimal,
+	padCount,
+} from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Calculation } from "@services/calculation";
 import type { ProjectDetail } from "@services/projects";
@@ -80,12 +85,7 @@ export const MemorialPreview = ({
 	);
 
 	const download = () => {
-		if (!url || !memorial) return;
-
-		const link = document.createElement("a");
-		link.href = url;
-		link.download = memorial.filename;
-		link.click();
+		if (memorial) downloadFile(memorial.blob, memorial.filename);
 	};
 
 	return (

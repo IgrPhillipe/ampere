@@ -1,4 +1,4 @@
-import { http } from "@lib/http";
+import { filenameOf, http } from "@lib/http";
 import type { Memorial } from "@services/submission";
 
 import { ProjectVersionEndpoints as e } from "./endpoints";
@@ -12,8 +12,6 @@ import type {
 	VersionMemorialParams,
 } from "./types";
 
-const FILENAME = /filename="?([^";]+)"?/;
-
 export const getProjectVersionList = async (projectId: string) => {
 	const response = await http.get(e.list(projectId)).json<unknown>();
 
@@ -26,10 +24,9 @@ export const getVersionMemorial = async ({
 	version,
 }: VersionMemorialParams): Promise<Memorial> => {
 	const response = await http.get(e.memorial(projectId, version));
-	const disposition = response.headers.get("Content-Disposition") ?? "";
 
 	return {
-		filename: FILENAME.exec(disposition)?.[1] ?? `memorial-v${version}.pdf`,
+		filename: filenameOf(response, `memorial-v${version}.pdf`),
 		blob: await response.blob(),
 	};
 };

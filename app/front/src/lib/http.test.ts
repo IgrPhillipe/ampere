@@ -2,7 +2,7 @@ import { useAuthStore } from "@features/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { isPasswordChangeRequired } from "./api-error";
-import { http } from "./http";
+import { filenameOf, http } from "./http";
 
 const fetchMock = vi.fn(async () => Response.json({ data: {} }));
 
@@ -72,5 +72,28 @@ describe("http", () => {
 
 		expect(useAuthStore.getState().user?.mustChangePassword).toBe(false);
 		expect(useAuthStore.getState().isAuthenticated).toBe(true);
+	});
+});
+
+describe("filenameOf", () => {
+	const withDisposition = (value?: string) =>
+		new Response(null, {
+			headers: value ? { "Content-Disposition": value } : {},
+		});
+
+	it("reads the name with or without quotes", () => {
+		expect(
+			filenameOf(
+				withDisposition('inline; filename="memorial-2026-2017-v3.pdf"'),
+				"memorial.pdf",
+			),
+		).toBe("memorial-2026-2017-v3.pdf");
+		expect(
+			filenameOf(withDisposition("attachment; filename=art.pdf"), "x.pdf"),
+		).toBe("art.pdf");
+	});
+
+	it("falls back when the header is missing", () => {
+		expect(filenameOf(withDisposition(), "memorial.pdf")).toBe("memorial.pdf");
 	});
 });
