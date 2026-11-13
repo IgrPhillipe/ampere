@@ -133,6 +133,7 @@ const versionOf = (number: number, demandKva: number): ProjectVersion => ({
 	documents: [],
 	memorialSha256: "a".repeat(64),
 	verificationCode: `7F3A-91C2-04BD-2E7${number}`,
+	approvalMemorial: null,
 });
 
 /** Stands in for the API: it sorts by the direction it receives. */
