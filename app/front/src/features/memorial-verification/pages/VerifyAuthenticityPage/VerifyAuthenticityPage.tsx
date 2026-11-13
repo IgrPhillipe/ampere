@@ -3,12 +3,11 @@ import { Button } from "@components/ui/button";
 import { AuthLayout } from "@features/auth";
 import { useZodForm } from "@features/shared";
 import {
-	type MemorialVerification,
 	useVerifyMemorial,
 	type VerifyMemorialInput,
 } from "@services/project-versions";
 import { FileUp } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { VerificationResult } from "../../components";
 import {
@@ -22,6 +21,9 @@ interface VerifyAuthenticityPageProps {
 	initialCode?: string;
 }
 
+const checkedLabel = (input: VerifyMemorialInput) =>
+	input.by === "code" ? `Código ${input.code}` : `Arquivo ${input.file.name}`;
+
 /** Public: anyone holding a memorial checks it against the registered versions. */
 export const VerifyAuthenticityPage = ({
 	initialCode = "",
@@ -29,28 +31,17 @@ export const VerifyAuthenticityPage = ({
 	const form = useZodForm(verificationCodeSchema, { code: initialCode });
 	const fileInput = useRef<HTMLInputElement>(null);
 	const verify = useVerifyMemorial();
-	const [result, setResult] = useState<MemorialVerification | null>(null);
-	const [checked, setChecked] = useState<string | null>(null);
 
-	const run = (input: VerifyMemorialInput, label: string) => {
-		setResult(null);
-		verify.mutate(input, {
-			onSuccess: ({ data }) => {
-				setResult(data);
-				setChecked(label);
-			},
-		});
-	};
+	const verifyCode = ({ code }: VerificationCodeValues) =>
+		verify.mutate({ by: "code", code: normalizeVerificationCode(code) });
 
-	const verifyCode = ({ code }: VerificationCodeValues) => {
-		const normalized = normalizeVerificationCode(code);
-		run({ by: "code", code: normalized }, `Código ${normalized}`);
-	};
+	// A code that fails validation hides the answer about the previous one.
+	const submitCode = form.handleSubmit(verifyCode, () => verify.reset());
 
 	const verifyFile = (file: File | undefined) => {
 		if (!file) return;
 
-		run({ by: "file", file }, `Arquivo ${file.name}`);
+		verify.mutate({ by: "file", file });
 		// The same file can be picked again after it changes on disk.
 		if (fileInput.current) fileInput.current.value = "";
 	};
@@ -60,8 +51,8 @@ export const VerifyAuthenticityPage = ({
 	useEffect(() => {
 		if (autoChecked.current || !initialCode) return;
 		autoChecked.current = true;
-		void form.handleSubmit(verifyCode)();
-	});
+		void submitCode();
+	}, [initialCode, submitCode]);
 
 	return (
 		<AuthLayout
@@ -70,11 +61,7 @@ export const VerifyAuthenticityPage = ({
 			description="Confira se um memorial é o mesmo emitido no envio do projeto, pelo código do rodapé ou pelo próprio PDF."
 			note="Qualquer alteração no arquivo muda a impressão digital do PDF, e a verificação falha. Não é preciso entrar no portal."
 		>
-			<form
-				noValidate
-				onSubmit={form.handleSubmit(verifyCode)}
-				className="flex flex-col gap-5"
-			>
+			<form noValidate onSubmit={submitCode} className="flex flex-col gap-5">
 				<ControlledInput
 					control={form.control}
 					name="code"
@@ -111,12 +98,12 @@ export const VerifyAuthenticityPage = ({
 				</FormActions>
 			</form>
 
-			{result && checked ? (
+			{verify.data && verify.variables ? (
 				<div className="flex flex-col gap-2">
 					<p className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
-						{checked}
+						{checkedLabel(verify.variables)}
 					</p>
-					<VerificationResult result={result} />
+					<VerificationResult result={verify.data.data} />
 				</div>
 			) : null}
 		</AuthLayout>

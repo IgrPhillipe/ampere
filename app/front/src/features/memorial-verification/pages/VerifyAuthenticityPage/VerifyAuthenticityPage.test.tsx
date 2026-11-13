@@ -1,16 +1,32 @@
 import type { MemorialVerification } from "@services/project-versions";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { ReactNode } from "react";
+import {
+	verifyMemorialByCode,
+	verifyMemorialByFile,
+} from "@services/project-versions/requests";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+	fireEvent,
+	render as renderTree,
+	screen,
+	waitFor,
+} from "@testing-library/react";
+import type { ReactElement, ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { VerifyAuthenticityPage } from "./VerifyAuthenticityPage";
 
-const mockVerify = vi.fn();
-
-vi.mock("@services/project-versions", async (importOriginal) => ({
-	...(await importOriginal<typeof import("@services/project-versions")>()),
-	useVerifyMemorial: () => ({ mutate: mockVerify, isPending: false }),
+vi.mock("@services/project-versions/requests", () => ({
+	verifyMemorialByCode: vi.fn(),
+	verifyMemorialByFile: vi.fn(),
 }));
+
+const byCode = vi.mocked(verifyMemorialByCode);
+const byFile = vi.mocked(verifyMemorialByFile);
+
+const render = (ui: ReactElement) =>
+	renderTree(
+		<QueryClientProvider client={new QueryClient()}>{ui}</QueryClientProvider>,
+	);
 
 vi.mock("@tanstack/react-router", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@tanstack/react-router")>()),
@@ -43,10 +59,10 @@ const NOT_VERIFIED: MemorialVerification = {
 	approvedAt: null,
 };
 
-const answerWith = (result: MemorialVerification) =>
-	mockVerify.mockImplementation((_input, options) =>
-		options.onSuccess({ data: result }),
-	);
+const answerWith = (result: MemorialVerification) => {
+	byCode.mockResolvedValue({ data: result });
+	byFile.mockResolvedValue({ data: result });
+};
 
 const typeCode = (code: string) =>
 	fireEvent.change(screen.getByLabelText(/Código de Verificação/), {
@@ -55,7 +71,8 @@ const typeCode = (code: string) =>
 
 describe("VerifyAuthenticityPage", () => {
 	beforeEach(() => {
-		mockVerify.mockReset();
+		byCode.mockReset();
+		byFile.mockReset();
 	});
 
 	it("refuses a code that cannot be one", async () => {
@@ -66,7 +83,7 @@ describe("VerifyAuthenticityPage", () => {
 		expect(
 			await screen.findByText(/O código tem 16 caracteres/),
 		).toBeInTheDocument();
-		expect(mockVerify).not.toHaveBeenCalled();
+		expect(byCode).not.toHaveBeenCalled();
 	});
 
 	it("checks a code typed any way and names the registered version", async () => {
@@ -76,12 +93,9 @@ describe("VerifyAuthenticityPage", () => {
 		fireEvent.click(screen.getByRole("button", { name: "Verificar Código" }));
 
 		await waitFor(() =>
-			expect(mockVerify).toHaveBeenCalledWith(
-				{ by: "code", code: "7F3A-91C2-04BD-2E77" },
-				expect.anything(),
-			),
+			expect(byCode).toHaveBeenCalledWith("7F3A-91C2-04BD-2E77"),
 		);
-		expect(screen.getByText("Memorial autêntico")).toBeInTheDocument();
+		expect(await screen.findByText("Memorial autêntico")).toBeInTheDocument();
 		expect(screen.getByText("2026-0481")).toBeInTheDocument();
 		expect(screen.getByText("22/08/2026 às 14:30")).toBeInTheDocument();
 		expect(screen.getByText("Código 7F3A-91C2-04BD-2E77")).toBeInTheDocument();
@@ -98,10 +112,7 @@ describe("VerifyAuthenticityPage", () => {
 			target: { files: [file] },
 		});
 
-		expect(mockVerify).toHaveBeenCalledWith(
-			{ by: "file", file },
-			expect.anything(),
-		);
+		await waitFor(() => expect(byFile).toHaveBeenCalledWith(file));
 		expect(
 			await screen.findByText("Documento não reconhecido"),
 		).toBeInTheDocument();
@@ -114,7 +125,7 @@ describe("VerifyAuthenticityPage", () => {
 		answerWith(VERIFIED);
 		render(<VerifyAuthenticityPage initialCode="7F3A-91C2-04BD-2E77" />);
 
-		await waitFor(() => expect(mockVerify).toHaveBeenCalledOnce());
+		await waitFor(() => expect(byCode).toHaveBeenCalledOnce());
 		expect(screen.getByLabelText(/Código de Verificação/)).toHaveValue(
 			"7F3A-91C2-04BD-2E77",
 		);
@@ -129,5 +140,20 @@ describe("VerifyAuthenticityPage", () => {
 			await screen.findByText("Aprovado com ressalvas em"),
 		).toBeInTheDocument();
 		expect(screen.getByText("01/09/2026 às 10:00")).toBeInTheDocument();
+	});
+
+	it("hides the answer about a code once the next one fails validation", async () => {
+		answerWith(VERIFIED);
+		render(<VerifyAuthenticityPage initialCode="7F3A-91C2-04BD-2E77" />);
+		expect(await screen.findByText("Memorial autêntico")).toBeInTheDocument();
+
+		typeCode("ZZZZ-1234");
+		fireEvent.click(screen.getByRole("button", { name: "Verificar Código" }));
+
+		expect(
+			await screen.findByText(/O código tem 16 caracteres/),
+		).toBeInTheDocument();
+		expect(screen.queryByText("Memorial autêntico")).not.toBeInTheDocument();
+		expect(byCode).toHaveBeenCalledOnce();
 	});
 });
