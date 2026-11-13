@@ -118,6 +118,44 @@ describe("ReviewQueueListing batch selection", () => {
 		expect(onSelectedIdsChange).toHaveBeenLastCalledWith(["2"]);
 	});
 
+	it("keeps the checkbox and its focus when the selection changes", () => {
+		const onAnalyze = vi.fn();
+		const onSelectedIdsChange = vi.fn();
+		const { rerender } = render(
+			<ReviewQueueListing
+				items={items}
+				onAnalyze={onAnalyze}
+				selection={{ selectedIds: [], onSelectedIdsChange }}
+			/>,
+		);
+		const checkbox = screen.getByRole("checkbox", {
+			name: "Selecionar o projeto 2026-0002",
+		});
+		const analyze = rowOf("2026-0002").getByRole("button", {
+			name: "Consultar",
+		});
+		checkbox.focus();
+		fireEvent.click(checkbox);
+
+		// The page hands a new selection object on every change.
+		rerender(
+			<ReviewQueueListing
+				items={items}
+				onAnalyze={onAnalyze}
+				selection={{ selectedIds: ["2"], onSelectedIdsChange }}
+			/>,
+		);
+
+		expect(
+			screen.getByRole("checkbox", { name: "Selecionar o projeto 2026-0002" }),
+		).toBe(checkbox);
+		expect(checkbox).toHaveAttribute("aria-checked", "true");
+		expect(checkbox).toHaveFocus();
+		expect(rowOf("2026-0002").getByRole("button", { name: "Consultar" })).toBe(
+			analyze,
+		);
+	});
+
 	it("selects the whole page from the header and clears it again", () => {
 		const onSelectedIdsChange = vi.fn();
 		const { rerender } = render(

@@ -1,6 +1,5 @@
 import { createDataTableColumnHelper } from "@components/DataTable";
 import { DateCell } from "@components/DateCell";
-import { Checkbox } from "@components/ui/checkbox";
 import { formatDate, formatKva } from "@features/shared";
 import type { ReviewQueueItem } from "@services/review-queue";
 
@@ -15,6 +14,7 @@ import {
 	isResponsible,
 	isUrgent,
 } from "./review-queue-row";
+import { SelectPageCheckbox, SelectRowCheckbox } from "./SelectionCheckbox";
 
 const columnHelper = createDataTableColumnHelper<ReviewQueueItem>();
 
@@ -38,74 +38,27 @@ export interface ReviewQueueRowActions {
 	onAnalyze: (item: ReviewQueueItem) => void;
 }
 
-/** Row selection of the batch assignment, offered to the manager only. */
-export interface ReviewQueueSelection {
-	selectedIds: readonly string[];
-	onSelectedIdsChange: (ids: string[]) => void;
-}
-
 interface ReviewQueueColumnOptions extends ReviewQueueRowActions {
 	/** Only the analyst responsible for a project reviews it. */
 	currentUserId?: string;
-	selection?: ReviewQueueSelection;
-	/** The ids on the page, which the header checkbox selects at once. */
-	pageIds?: readonly string[];
+	/** Adds the checkbox column; the selection itself comes from `ReviewQueueSelectionContext`. */
+	selectable?: boolean;
 }
 
-const selectColumn = (
-	{ selectedIds, onSelectedIdsChange }: ReviewQueueSelection,
-	pageIds: readonly string[],
-) =>
-	columnHelper.display({
-		id: "select",
-		header: () => {
-			const selectedOnPage = pageIds.filter((id) => selectedIds.includes(id));
-			const all =
-				pageIds.length > 0 && selectedOnPage.length === pageIds.length;
-
-			return (
-				<Checkbox
-					aria-label="Selecionar todos os projetos da página"
-					checked={all}
-					indeterminate={selectedOnPage.length > 0 && !all}
-					onCheckedChange={(checked) =>
-						onSelectedIdsChange(
-							checked
-								? [...new Set([...selectedIds, ...pageIds])]
-								: selectedIds.filter((id) => !pageIds.includes(id)),
-						)
-					}
-				/>
-			);
-		},
-		cell: ({ row }) => {
-			const { id, protocol } = row.original;
-
-			return (
-				<Checkbox
-					aria-label={`Selecionar o projeto ${protocol}`}
-					checked={selectedIds.includes(id)}
-					onCheckedChange={(checked) =>
-						onSelectedIdsChange(
-							checked
-								? [...selectedIds, id]
-								: selectedIds.filter((selected) => selected !== id),
-						)
-					}
-				/>
-			);
-		},
-	});
+const selectColumn = columnHelper.display({
+	id: "select",
+	header: () => <SelectPageCheckbox />,
+	cell: ({ row }) => <SelectRowCheckbox item={row.original} />,
+});
 
 /** The H06 set: receipt and submission cycle ride on the project's second line. */
 export const createReviewQueueColumns = ({
 	onAnalyze,
 	currentUserId,
-	selection,
-	pageIds = [],
+	selectable = false,
 }: ReviewQueueColumnOptions) =>
 	columnHelper.columns([
-		...(selection ? [selectColumn(selection, pageIds)] : []),
+		...(selectable ? [selectColumn] : []),
 		columnHelper.display({
 			id: "attention",
 			header: () => <span className="sr-only">Atenção</span>,

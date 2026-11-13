@@ -10,8 +10,11 @@ import {
 	createReviewQueueColumns,
 	type ReviewQueueColumnId,
 	type ReviewQueueRowActions,
-	type ReviewQueueSelection,
 } from "./review-queue-columns";
+import {
+	type ReviewQueueSelection,
+	ReviewQueueSelectionContext,
+} from "./selection-context";
 
 /** `table-fixed`: these widths fit the sheet at 1440 px, and the name takes the rest. */
 const columnClassNames = {
@@ -56,15 +59,11 @@ export const ReviewQueueListing = ({
 	onSortChange,
 	onClearFilters,
 }: ReviewQueueListingProps) => {
+	const selectable = selection !== undefined;
+	// Only what changes the column set: a new definition remounts every cell.
 	const columns = useMemo(
-		() =>
-			createReviewQueueColumns({
-				onAnalyze,
-				currentUserId,
-				selection,
-				pageIds: items.map(({ id }) => id),
-			}),
-		[onAnalyze, currentUserId, selection, items],
+		() => createReviewQueueColumns({ onAnalyze, currentUserId, selectable }),
+		[onAnalyze, currentUserId, selectable],
 	);
 
 	if (isLoading) return <SkeletonTable columns={selection ? 10 : 9} />;
@@ -88,7 +87,7 @@ export const ReviewQueueListing = ({
 		);
 	}
 
-	return (
+	const table = (
 		<DataTable<ReviewQueueItem, ReviewQueueColumnId, ReviewQueueSort>
 			columns={columns}
 			data={items}
@@ -98,5 +97,15 @@ export const ReviewQueueListing = ({
 			sort={sort}
 			onSortChange={onSortChange}
 		/>
+	);
+
+	return selection ? (
+		<ReviewQueueSelectionContext
+			value={{ ...selection, pageIds: items.map(({ id }) => id) }}
+		>
+			{table}
+		</ReviewQueueSelectionContext>
+	) : (
+		table
 	);
 };
