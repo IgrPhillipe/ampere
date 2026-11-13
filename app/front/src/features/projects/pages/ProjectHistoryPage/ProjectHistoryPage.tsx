@@ -142,6 +142,7 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 				{comparing ? (
 					<VersionChangesField
 						comparison={comparisonQuery.data?.data}
+						isError={comparisonQuery.isError}
 						className="m-6 md:mx-10 @5xl:mx-6"
 					/>
 				) : (

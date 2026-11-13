@@ -78,6 +78,7 @@ const state = vi.hoisted(() => ({
 	versions: [] as ProjectVersion[],
 	compared: [] as { from: number; to: number }[],
 	comparison: undefined as VersionComparison | undefined,
+	comparisonFailed: false,
 	download: vi.fn(),
 }));
 
@@ -89,6 +90,8 @@ vi.mock("@services/project-versions", async (importOriginal) => ({
 		{ enabled }: { enabled?: boolean } = {},
 	) => {
 		if (enabled) state.compared.push({ from: params.from, to: params.to });
+		if (enabled && state.comparisonFailed)
+			return { ...loadedQuery(undefined), isError: true };
 		return enabled
 			? loadedQuery(state.comparison ? { data: state.comparison } : undefined)
 			: { ...loadedQuery(undefined), isPending: true };
@@ -345,6 +348,7 @@ describe("ProjectHistoryPage versions", () => {
 		];
 		state.compared = [];
 		state.comparison = COMPARISON;
+		state.comparisonFailed = false;
 		state.download.mockReset();
 	});
 
@@ -459,5 +463,18 @@ describe("ProjectHistoryPage versions", () => {
 
 		expect(state.compared).toEqual([]);
 		expect(screen.getByText("Projeto criado.")).toBeInTheDocument();
+	});
+
+	it("tells in the changes field that the comparison failed", () => {
+		state.comparisonFailed = true;
+		renderPage("?from=2&to=3");
+
+		expect(
+			screen.getByText("Não foi possível comparar as versões"),
+		).toBeInTheDocument();
+		expect(screen.getByText("Comparativo indisponível")).toBeInTheDocument();
+		expect(
+			screen.queryByText("Carregando o comparativo"),
+		).not.toBeInTheDocument();
 	});
 });
