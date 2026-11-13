@@ -172,7 +172,7 @@ describe("ReviewQueueListing batch selection", () => {
 
 		expect(selectAll()).toHaveAttribute("aria-checked", "mixed");
 		fireEvent.click(selectAll());
-		expect(onSelectedIdsChange).toHaveBeenLastCalledWith(["2", "1", "3"]);
+		expect(onSelectedIdsChange).toHaveBeenLastCalledWith(["1", "2", "3"]);
 
 		rerender(
 			<ReviewQueueListing

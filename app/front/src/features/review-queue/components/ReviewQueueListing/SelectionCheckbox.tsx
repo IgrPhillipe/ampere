@@ -15,12 +15,9 @@ export const SelectPageCheckbox = () => {
 			aria-label="Selecionar todos os projetos da página"
 			checked={all}
 			indeterminate={selectedOnPage.length > 0 && !all}
+			// The selection lives on one page: a new page or filter drops it.
 			onCheckedChange={(checked) =>
-				onSelectedIdsChange(
-					checked
-						? [...new Set([...selectedIds, ...pageIds])]
-						: selectedIds.filter((id) => !pageIds.includes(id)),
-				)
+				onSelectedIdsChange(checked ? [...pageIds] : [])
 			}
 		/>
 	);
