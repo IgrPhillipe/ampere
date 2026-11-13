@@ -104,6 +104,30 @@ class ProjectReviewWorkflowIntegrationTest {
   }
 
   @Test
+  void showsTheDesignerTheDeadlineOfTheReviewInProgress() throws Exception {
+    LocalDate today = LocalDate.now(Timestamps.ZONE);
+    Project unassigned = submittedProject("2026-7098", owner);
+
+    detail(unassigned, owner)
+        .andExpect(jsonPath("$.data.reviewDeadline").value(today.plusDays(30).toString()))
+        .andExpect(jsonPath("$.data.deadlineStatus").value("ON_TIME"))
+        .andExpect(jsonPath("$.data.reviewerName").doesNotExist());
+    detail(project, owner).andExpect(jsonPath("$.data.reviewerName").value("Alice Analista"));
+  }
+
+  @Test
+  void flagsTheOverdueReviewInTheProjectDetail() throws Exception {
+    LocalDate today = LocalDate.now(Timestamps.ZONE);
+    Project late = submittedProject("2026-7097", owner);
+    late.submit(today.minusDays(31).atTime(12, 0).atZone(Timestamps.ZONE).toOffsetDateTime());
+    projectRepository.save(late);
+
+    detail(late, owner)
+        .andExpect(jsonPath("$.data.reviewDeadline").value(today.minusDays(1).toString()))
+        .andExpect(jsonPath("$.data.deadlineStatus").value("OVERDUE"));
+  }
+
+  @Test
   void allowsOnlyAssignedAnalystToOpenReviewAndWriteFindings() throws Exception {
     Project unassigned = submittedProject("2026-7099", owner);
     mockMvc
@@ -119,15 +143,6 @@ class ProjectReviewWorkflowIntegrationTest {
             get("/projects/{id}", unassigned.getId())
                 .header(HttpHeaders.AUTHORIZATION, bearer(owner)))
         .andExpect(status().isOk())
-        .andExpect(
-            jsonPath("$.data.reviewDeadline")
-                .value(unassigned.reviewDeadline(Timestamps.ZONE).toString()))
-        .andExpect(
-            jsonPath("$.data.deadlineStatus")
-                .value(
-                    unassigned
-                        .deadlineStatus(LocalDate.now(Timestamps.ZONE), Timestamps.ZONE)
-                        .name()))
         .andExpect(jsonPath("$.data.reviewerName").doesNotExist());
 
     assignTo(unassigned, analyst);
@@ -142,16 +157,7 @@ class ProjectReviewWorkflowIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, bearer(otherAnalyst)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.ownerName").value("Ana Projetista"))
-        .andExpect(jsonPath("$.data.reviewerName").value("Alice Analista"))
-        .andExpect(
-            jsonPath("$.data.reviewDeadline")
-                .value(unassigned.reviewDeadline(Timestamps.ZONE).toString()))
-        .andExpect(
-            jsonPath("$.data.deadlineStatus")
-                .value(
-                    unassigned
-                        .deadlineStatus(LocalDate.now(Timestamps.ZONE), Timestamps.ZONE)
-                        .name()));
+        .andExpect(jsonPath("$.data.reviewerName").value("Alice Analista"));
 
     mockMvc
         .perform(
@@ -554,6 +560,13 @@ class ProjectReviewWorkflowIntegrationTest {
     return mockMvc.perform(
         get("/projects/{projectId}/documents/{documentId}/file", target.getId(), document.getId())
             .header(HttpHeaders.AUTHORIZATION, bearer(actor)));
+  }
+
+  private ResultActions detail(Project target, User actor) throws Exception {
+    return mockMvc
+        .perform(
+            get("/projects/{id}", target.getId()).header(HttpHeaders.AUTHORIZATION, bearer(actor)))
+        .andExpect(status().isOk());
   }
 
   private Project submittedProject(String protocol, User projectOwner) {
