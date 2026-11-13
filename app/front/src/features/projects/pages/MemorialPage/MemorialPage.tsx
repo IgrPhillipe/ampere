@@ -3,7 +3,7 @@ import { Button } from "@components/ui/button";
 import { getHttpStatus } from "@lib/api-error";
 import { useGetLatestCalculation } from "@services/calculation";
 import { useGetProjectVersionList } from "@services/project-versions";
-import { type ProjectStatus, useGetProject } from "@services/projects";
+import { useGetProject } from "@services/projects";
 import { useGetMemorial, useGetSubmission } from "@services/submission";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Calculator, CircleAlert } from "lucide-react";
@@ -13,14 +13,8 @@ import {
 	StepFooter,
 	SubmissionChecklistPanel,
 } from "../../components";
+import { getMemorialStamp, mayHaveOfficialMemorial } from "../../constants";
 import { useProjectPermissions } from "../../hooks";
-
-/** The API regenerates the memorial only while the project can still change. */
-const PREVIEW_STATUSES = new Set<ProjectStatus>([
-	"DRAFT",
-	"AWAITING_SUBMISSION",
-	"REJECTED",
-]);
 
 interface MemorialPageProps {
 	projectId: string;
@@ -38,28 +32,22 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 
 	const project = projectQuery.data?.data;
 	const { canEdit } = useProjectPermissions(project);
-	const official =
-		project !== undefined && !PREVIEW_STATUSES.has(project.status);
-	const versionsQuery = useGetProjectVersionList(projectId);
-	const latestVersion = versionsQuery.data?.data.reduce<
-		(typeof versionsQuery.data.data)[number] | undefined
-	>(
-		(latest, version) =>
-			!latest || version.number > latest.number ? version : latest,
-		undefined,
-	);
+	// Only a project out of edition can hold a stored memorial; the versions say which one.
+	const checksVersions =
+		project !== undefined && mayHaveOfficialMemorial(project.status);
+	const versionsQuery = useGetProjectVersionList(projectId, {
+		enabled: checksVersions,
+	});
 	const stamp =
-		official && latestVersion
-			? {
-					version: latestVersion.number,
-					verificationCode: latestVersion.verificationCode,
-				}
-			: null;
+		project === undefined || (checksVersions && !versionsQuery.data)
+			? undefined
+			: getMemorialStamp(project.status, versionsQuery.data?.data ?? []);
 	const neverCalculated = calculationQuery.data === null;
 	const outdated = getHttpStatus(memorialQuery.error) === 409;
 	const hasError =
 		projectQuery.isError ||
 		calculationQuery.isError ||
+		versionsQuery.isError ||
 		(memorialQuery.isError && !outdated);
 
 	const goTo = (to: "/projetos/$id/calculo" | "/projetos/$id/documentos") =>
@@ -78,6 +66,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 						void projectQuery.refetch();
 						void calculationQuery.refetch();
 						void memorialQuery.refetch();
+						if (versionsQuery.isError) void versionsQuery.refetch();
 					}}
 				>
 					Tentar Novamente
