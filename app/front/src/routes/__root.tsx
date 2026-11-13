@@ -10,7 +10,7 @@ import {
 import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
 
 /** Routes that need no session. Everything else goes through the guard. */
-const PUBLIC_PATHS = ["/criar-conta", "/entrar"];
+const PUBLIC_PATHS = ["/criar-conta", "/entrar", "/verificar-autenticidade"];
 
 /** Rendered without the app shell; each one guards itself. */
 const STANDALONE_PATHS = [...PUBLIC_PATHS, PASSWORD_CHANGE_PATH];

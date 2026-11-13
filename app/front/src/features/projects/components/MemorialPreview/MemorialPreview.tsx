@@ -6,11 +6,20 @@ import { cn } from "@lib/utils";
 import type { Calculation } from "@services/calculation";
 import type { ProjectDetail } from "@services/projects";
 import type { Memorial } from "@services/submission";
+import { Link } from "@tanstack/react-router";
 import { Download } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
+/** The submission the official memorial was frozen in. */
+export interface MemorialStamp {
+	version: number;
+	verificationCode: string | null;
+}
+
 interface MemorialPreviewProps {
 	project?: ProjectDetail;
+	/** Absent while the project is a draft or under correction: the PDF is a preview. */
+	stamp?: MemorialStamp | null;
 	calculation?: Calculation;
 	memorial?: Memorial;
 	isLoading?: boolean;
@@ -40,6 +49,7 @@ const protection = ({ traceability }: Calculation) =>
 
 export const MemorialPreview = ({
 	project,
+	stamp,
 	calculation,
 	memorial,
 	isLoading = false,
@@ -71,7 +81,39 @@ export const MemorialPreview = ({
 			aria-labelledby="memorial-titulo"
 			className={cn("flex flex-col gap-5", className)}
 		>
-			<SectionHeading id="memorial-titulo">Memorial Gerado</SectionHeading>
+			<SectionHeading
+				id="memorial-titulo"
+				meta={stamp ? `Oficial · v${padCount(stamp.version)}` : "Prévia"}
+			>
+				{stamp ? "Memorial do Envio" : "Memorial Gerado"}
+			</SectionHeading>
+
+			{stamp ? (
+				<p className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-muted-foreground">
+					<span>
+						Este é o PDF gravado no envio da versão {stamp.version}: não é
+						gerado de novo.
+					</span>
+					{stamp.verificationCode ? (
+						<span>
+							Código de verificação{" "}
+							<Link
+								to="/verificar-autenticidade"
+								search={{ codigo: stamp.verificationCode }}
+								className="font-mono text-foreground underline-offset-4 hover:underline"
+							>
+								{stamp.verificationCode}
+							</Link>
+							.
+						</span>
+					) : null}
+				</p>
+			) : (
+				<p className="text-sm text-muted-foreground">
+					Prévia sem validade e sem código de verificação. O memorial oficial é
+					gravado no envio, com o protocolo, a versão e a data no rodapé.
+				</p>
+			)}
 
 			<div className="border border-border bg-background px-7 py-6">
 				<p className="font-mono text-2xs tracking-[0.11em] text-foreground uppercase">
@@ -125,7 +167,11 @@ export const MemorialPreview = ({
 				<Skeleton className="h-[36rem] w-full" />
 			) : (
 				<iframe
-					title="Prévia do memorial em PDF"
+					title={
+						stamp
+							? `Memorial oficial da versão ${stamp.version} em PDF`
+							: "Prévia do memorial em PDF"
+					}
 					src={url}
 					className="h-[36rem] w-full border border-border"
 				/>

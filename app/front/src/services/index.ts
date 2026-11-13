@@ -5,6 +5,7 @@ export * from "./dashboard";
 export * from "./normative-tables";
 export * from "./project-events";
 export * from "./project-review";
+export * from "./project-versions";
 export * from "./projects";
 export * from "./review-queue";
 export * from "./submission";

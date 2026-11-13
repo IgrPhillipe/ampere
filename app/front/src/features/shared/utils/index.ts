@@ -1,3 +1,4 @@
+export * from "./download";
 export * from "./formatters";
 export * from "./forms";
 export * from "./pagination";

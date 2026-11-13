@@ -8,3 +8,4 @@ export * from "./project-findings";
 export * from "./project-sections";
 export * from "./project-status";
 export * from "./projects-page";
+export * from "./version-changes";

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerificarAutenticidadeRouteImport } from './routes/verificar-autenticidade'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as TrocarSenhaRouteImport } from './routes/trocar-senha'
 import { Route as TabelasNormativasRouteImport } from './routes/tabelas-normativas'
@@ -32,6 +33,11 @@ import { Route as ProjetosIdDadosRouteImport } from './routes/projetos/$id/dados
 import { Route as ProjetosIdCalculoRouteImport } from './routes/projetos/$id/calculo'
 import { Route as ProjetosIdApontamentosRouteImport } from './routes/projetos/$id/apontamentos'
 
+const VerificarAutenticidadeRoute = VerificarAutenticidadeRouteImport.update({
+  id: '/verificar-autenticidade',
+  path: '/verificar-autenticidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UsuariosRoute = UsuariosRouteImport.update({
   id: '/usuarios',
   path: '/usuarios',
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
   '/usuarios': typeof UsuariosRoute
+  '/verificar-autenticidade': typeof VerificarAutenticidadeRoute
   '/projetos/$id': typeof ProjetosIdRouteRouteWithChildren
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
@@ -176,6 +183,7 @@ export interface FileRoutesByTo {
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
   '/usuarios': typeof UsuariosRoute
+  '/verificar-autenticidade': typeof VerificarAutenticidadeRoute
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
   '/fila-de-analise': typeof FilaDeAnaliseIndexRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
   '/usuarios': typeof UsuariosRoute
+  '/verificar-autenticidade': typeof VerificarAutenticidadeRoute
   '/projetos/$id': typeof ProjetosIdRouteRouteWithChildren
   '/fila-de-analise/$id': typeof FilaDeAnaliseIdRoute
   '/projetos/novo': typeof ProjetosNovoRoute
@@ -226,6 +235,7 @@ export interface FileRouteTypes {
     | '/tabelas-normativas'
     | '/trocar-senha'
     | '/usuarios'
+    | '/verificar-autenticidade'
     | '/projetos/$id'
     | '/fila-de-analise/$id'
     | '/projetos/novo'
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/tabelas-normativas'
     | '/trocar-senha'
     | '/usuarios'
+    | '/verificar-autenticidade'
     | '/fila-de-analise/$id'
     | '/projetos/novo'
     | '/fila-de-analise'
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | '/tabelas-normativas'
     | '/trocar-senha'
     | '/usuarios'
+    | '/verificar-autenticidade'
     | '/projetos/$id'
     | '/fila-de-analise/$id'
     | '/projetos/novo'
@@ -298,6 +310,7 @@ export interface RootRouteChildren {
   TabelasNormativasRoute: typeof TabelasNormativasRoute
   TrocarSenhaRoute: typeof TrocarSenhaRoute
   UsuariosRoute: typeof UsuariosRoute
+  VerificarAutenticidadeRoute: typeof VerificarAutenticidadeRoute
   ProjetosIdRouteRoute: typeof ProjetosIdRouteRouteWithChildren
   FilaDeAnaliseIdRoute: typeof FilaDeAnaliseIdRoute
   ProjetosNovoRoute: typeof ProjetosNovoRoute
@@ -308,6 +321,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verificar-autenticidade': {
+      id: '/verificar-autenticidade'
+      path: '/verificar-autenticidade'
+      fullPath: '/verificar-autenticidade'
+      preLoaderRoute: typeof VerificarAutenticidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/usuarios': {
       id: '/usuarios'
       path: '/usuarios'
@@ -500,6 +520,7 @@ const rootRouteChildren: RootRouteChildren = {
   TabelasNormativasRoute: TabelasNormativasRoute,
   TrocarSenhaRoute: TrocarSenhaRoute,
   UsuariosRoute: UsuariosRoute,
+  VerificarAutenticidadeRoute: VerificarAutenticidadeRoute,
   ProjetosIdRouteRoute: ProjetosIdRouteRouteWithChildren,
   FilaDeAnaliseIdRoute: FilaDeAnaliseIdRoute,
   ProjetosNovoRoute: ProjetosNovoRoute,

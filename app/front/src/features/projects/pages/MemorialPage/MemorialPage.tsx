@@ -2,7 +2,8 @@ import { EmptyState } from "@components/EmptyState";
 import { Button } from "@components/ui/button";
 import { getHttpStatus } from "@lib/api-error";
 import { useGetLatestCalculation } from "@services/calculation";
-import { useGetProject } from "@services/projects";
+import { useGetProjectVersionList } from "@services/project-versions";
+import { type ProjectStatus, useGetProject } from "@services/projects";
 import { useGetMemorial, useGetSubmission } from "@services/submission";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Calculator, CircleAlert } from "lucide-react";
@@ -13,6 +14,13 @@ import {
 	SubmissionChecklistPanel,
 } from "../../components";
 import { useProjectPermissions } from "../../hooks";
+
+/** The API regenerates the memorial only while the project can still change. */
+const PREVIEW_STATUSES = new Set<ProjectStatus>([
+	"DRAFT",
+	"AWAITING_SUBMISSION",
+	"REJECTED",
+]);
 
 interface MemorialPageProps {
 	projectId: string;
@@ -30,6 +38,23 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 
 	const project = projectQuery.data?.data;
 	const { canEdit } = useProjectPermissions(project);
+	const official =
+		project !== undefined && !PREVIEW_STATUSES.has(project.status);
+	const versionsQuery = useGetProjectVersionList(projectId);
+	const latestVersion = versionsQuery.data?.data.reduce<
+		(typeof versionsQuery.data.data)[number] | undefined
+	>(
+		(latest, version) =>
+			!latest || version.number > latest.number ? version : latest,
+		undefined,
+	);
+	const stamp =
+		official && latestVersion
+			? {
+					version: latestVersion.number,
+					verificationCode: latestVersion.verificationCode,
+				}
+			: null;
 	const neverCalculated = calculationQuery.data === null;
 	const outdated = getHttpStatus(memorialQuery.error) === 409;
 	const hasError =
@@ -102,6 +127,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	) : (
 		<MemorialPreview
 			project={project}
+			stamp={stamp}
 			calculation={calculation}
 			memorial={memorialQuery.data}
 			isLoading={memorialQuery.isPending}
