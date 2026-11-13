@@ -11,6 +11,7 @@ export const projectEventTypeSchema = z.enum([
 	"APPROVED",
 	"FINDING_ANSWERED",
 	"RESUBMITTED",
+	"EXPIRED",
 ]);
 
 export type ProjectEventType = z.infer<typeof projectEventTypeSchema>;
