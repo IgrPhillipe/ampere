@@ -432,6 +432,17 @@ describe("ProjectHistoryPage versions", () => {
 		).toBeInTheDocument();
 	});
 
+	it("lets each table scroll sideways on a narrow screen, by keyboard too", () => {
+		renderPage("?from=2&to=3");
+
+		for (const name of ["Memória de cálculo", "Grupos de UCs"]) {
+			const region = screen.getByRole("region", { name });
+			expect(region).toHaveClass("overflow-x-auto");
+			expect(region).toHaveAttribute("tabindex", "0");
+			expect(within(region).getByRole("table")).toHaveClass("min-w-[32rem]");
+		}
+	});
+
 	it("compares the older version to the newer one even from a reversed link", () => {
 		renderPage("?from=3&to=1");
 
