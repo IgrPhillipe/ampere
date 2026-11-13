@@ -225,6 +225,24 @@ class ReviewDeadlineIntegrationTest {
         .satisfies(notice -> assertThat(notice.getProject().getProtocol()).isEqualTo("2026-5011"));
   }
 
+  @Test
+  void theSweepOnALeapDayExpiresTheApprovalWhoseLastDayWasTheDayBefore() {
+    OffsetDateTime leapDay = OffsetDateTime.parse("2028-02-29T09:00:00-03:00");
+    Project endedYesterday = submitted("2026-5012", leapDay.minusMonths(37));
+    endedYesterday.approve(OffsetDateTime.parse("2025-02-28T15:00:00-03:00"));
+    Project endsToday = submitted("2026-5013", leapDay.minusMonths(37));
+    endsToday.approve(OffsetDateTime.parse("2025-03-01T15:00:00-03:00"));
+    projectRepository.saveAllAndFlush(List.of(endedYesterday, endsToday));
+
+    assertThat(expiryService.expireApprovals(leapDay)).isEqualTo(1);
+    projectRepository.flush();
+
+    assertThat(projectRepository.findByProtocol("2026-5012").orElseThrow().getStatus())
+        .isEqualTo(ProjectStatus.EXPIRED);
+    assertThat(projectRepository.findByProtocol("2026-5013").orElseThrow().getStatus())
+        .isEqualTo(ProjectStatus.APPROVED);
+  }
+
   private Project submitted(String protocol, OffsetDateTime submittedAt) {
     Project project =
         Project.draft(

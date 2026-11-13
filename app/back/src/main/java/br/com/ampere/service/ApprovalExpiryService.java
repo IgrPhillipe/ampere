@@ -22,13 +22,17 @@ public class ApprovalExpiryService {
     this.eventService = eventService;
   }
 
-  /** Approved before the start of this day, 36 months ago, means the last valid day has passed. */
+  /**
+   * The query takes one day more than 36 months back and the domain decides: on 29/02/2028, 36
+   * months back is 28/02/2025, whose approval ended on 28/02/2028 and so expires that day.
+   */
   @Transactional
   public int expireApprovals(OffsetDateTime now) {
     LocalDate today = Timestamps.localDate(now);
     OffsetDateTime approvedBefore =
         today
             .minusMonths(Project.APPROVAL_VALIDITY_MONTHS)
+            .plusDays(1)
             .atStartOfDay(Timestamps.ZONE)
             .toOffsetDateTime();
     int expired = 0;
