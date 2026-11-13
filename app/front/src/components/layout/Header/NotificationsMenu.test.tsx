@@ -182,6 +182,20 @@ describe("NotificationsMenu", () => {
 		expect(mockRefetch).toHaveBeenCalledOnce();
 	});
 
+	it("keeps the list it has when a refresh fails", () => {
+		listQuery.current = {
+			...loaded(1, [notificationOf("4")]),
+			isError: true,
+		};
+		render(<NotificationsMenu />);
+		const list = openPanel(/Notificações, 1/);
+
+		expect(within(list).getByRole("button")).toHaveTextContent("2026-1004");
+		expect(
+			screen.queryByText("Não foi possível carregar as notificações."),
+		).not.toBeInTheDocument();
+	});
+
 	it("stays quiet while a password change is pending", () => {
 		signInAs("user", { mustChangePassword: true });
 		render(<NotificationsMenu />);

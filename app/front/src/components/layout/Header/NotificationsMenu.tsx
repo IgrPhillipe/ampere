@@ -149,25 +149,28 @@ export const NotificationsMenu = () => {
 					</div>
 				</div>
 
-				{notificationsQuery.isPending ? (
-					<div className="flex flex-col gap-3 px-5 py-4" aria-busy="true">
-						<Skeleton className="h-4 w-full" />
-						<Skeleton className="h-4 w-2/3" />
-						<Skeleton className="h-4 w-full" />
-					</div>
-				) : notificationsQuery.isError ? (
-					<div className="flex flex-col items-start gap-2 px-5 py-6 text-sm text-muted-foreground">
-						<p>Não foi possível carregar as notificações.</p>
-						<Button
-							type="button"
-							variant="link"
-							size="xs"
-							onClick={() => void refetch()}
-						>
-							Tentar Novamente
-						</Button>
-					</div>
-				) : list && list.items.length > 0 ? (
+				{/* A failed refresh keeps the list it already has; the error shows only without one. */}
+				{!list ? (
+					notificationsQuery.isError ? (
+						<div className="flex flex-col items-start gap-2 px-5 py-6 text-sm text-muted-foreground">
+							<p>Não foi possível carregar as notificações.</p>
+							<Button
+								type="button"
+								variant="link"
+								size="xs"
+								onClick={() => void refetch()}
+							>
+								Tentar Novamente
+							</Button>
+						</div>
+					) : (
+						<div className="flex flex-col gap-3 px-5 py-4" aria-busy="true">
+							<Skeleton className="h-4 w-full" />
+							<Skeleton className="h-4 w-2/3" />
+							<Skeleton className="h-4 w-full" />
+						</div>
+					)
+				) : list.items.length > 0 ? (
 					<ul
 						aria-label="Notificações recentes"
 						className="max-h-[min(28rem,70vh)] overflow-y-auto overscroll-contain"
