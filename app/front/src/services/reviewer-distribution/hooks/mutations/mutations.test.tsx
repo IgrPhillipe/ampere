@@ -69,8 +69,7 @@ describe("useAssignReviewQueue", () => {
 			await httpErrorOf(422, { status: 422, detail: "Analista inativo." }),
 		);
 		const { queryClient, wrapper } = setup();
-		const queueKey = reviewQueueKeys.list({ page: 1 });
-		queryClient.setQueryData(queueKey, { data: [] });
+		queryClient.setQueryData(reviewQueueKeys.reviewers(), { data: [] });
 
 		const { result } = renderHook(() => useAssignReviewQueue(), { wrapper });
 		act(() =>
@@ -80,6 +79,24 @@ describe("useAssignReviewQueue", () => {
 
 		expect(toast.error).toHaveBeenCalledWith("Analista inativo.");
 		expect(toast.success).not.toHaveBeenCalled();
+		// Refetched, so the inactive analyst leaves the list of choices.
+		expect(
+			queryClient.getQueryState(reviewQueueKeys.reviewers())?.isInvalidated,
+		).toBe(true);
+	});
+
+	it("keeps the lists when the API fails for another reason", async () => {
+		vi.mocked(assignReviewQueue).mockRejectedValue(
+			await httpErrorOf(500, { status: 500 }),
+		);
+		const { queryClient, wrapper } = setup();
+		const queueKey = reviewQueueKeys.list({ page: 1 });
+		queryClient.setQueryData(queueKey, { data: [] });
+
+		const { result } = renderHook(() => useAssignReviewQueue(), { wrapper });
+		act(() => result.current.mutate({ projectIds: ["12"], reviewerId: "7" }));
+		await waitFor(() => expect(result.current.isError).toBe(true));
+
 		expect(queryClient.getQueryState(queueKey)?.isInvalidated).toBe(false);
 	});
 
@@ -148,6 +165,7 @@ describe("useUpdateReviewerMunicipalities", () => {
 		await waitFor(() => expect(result.current.isError).toBe(true));
 
 		expect(toast.error).toHaveBeenCalledWith(detail);
-		expect(queryClient.getQueryState(listKey)?.isInvalidated).toBe(false);
+		// Refetched, so the picker shows who holds it now.
+		expect(queryClient.getQueryState(listKey)?.isInvalidated).toBe(true);
 	});
 });

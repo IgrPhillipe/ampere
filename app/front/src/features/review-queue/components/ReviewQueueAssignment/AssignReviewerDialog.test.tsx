@@ -4,18 +4,20 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AssignReviewerDialog } from "./AssignReviewerDialog";
 
+const reviewers = vi.hoisted(() => ({
+	list: [
+		{ id: "7", name: "Ana Analista" },
+		{ id: "8", name: "Bruno Analista" },
+		// A smaller id last: the list keeps the API's order by name.
+		{ id: "2", name: "Carla Gestora" },
+	],
+}));
+
 vi.mock("@services/review-queue", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/review-queue")>()),
 	useGetReviewerList: () => ({
 		isPending: false,
-		data: {
-			data: [
-				{ id: "7", name: "Ana Analista" },
-				{ id: "8", name: "Bruno Analista" },
-				// A smaller id last: the list keeps the API's order by name.
-				{ id: "2", name: "Carla Gestora" },
-			],
-		},
+		data: { data: reviewers.list },
 	}),
 }));
 
@@ -98,6 +100,32 @@ describe("AssignReviewerDialog", () => {
 			"Bruno Analista",
 			"Carla Gestora",
 		]);
+	});
+
+	it("drops an analyst who left the refreshed list", async () => {
+		const initial = reviewers.list;
+		const props = {
+			open: true,
+			projects: [projectOf("1")],
+			isPending: false,
+			onOpenChange: vi.fn(),
+			onConfirm: vi.fn(),
+		};
+		const { rerender } = render(<AssignReviewerDialog {...props} />);
+		await pick("Bruno Analista");
+		const assign = screen.getByRole("button", { name: "Atribuir" });
+		expect(assign).toBeEnabled();
+
+		// The API refused an inactive analyst, and the list came back without him.
+		reviewers.list = initial.filter(({ id }) => id !== "8");
+		// A new selection array stands for the re-render the query triggers.
+		rerender(<AssignReviewerDialog {...props} projects={[projectOf("1")]} />);
+
+		expect(assign).toBeDisabled();
+		expect(
+			screen.getByRole("combobox", { name: "Analista" }),
+		).toHaveTextContent("Selecione o analista");
+		reviewers.list = initial;
 	});
 
 	it("cannot be dismissed while the assignment runs", () => {
