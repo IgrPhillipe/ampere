@@ -12,6 +12,8 @@ vi.mock("@services/review-queue", async (importOriginal) => ({
 			data: [
 				{ id: "7", name: "Ana Analista" },
 				{ id: "8", name: "Bruno Analista" },
+				// A smaller id last: the list keeps the API's order by name.
+				{ id: "2", name: "Carla Gestora" },
 			],
 		},
 	}),
@@ -83,6 +85,19 @@ describe("AssignReviewerDialog", () => {
 		fireEvent.click(assign);
 
 		expect(onConfirm).toHaveBeenCalledWith("8");
+	});
+
+	it("lists the analysts in the order the API sends, by name", async () => {
+		renderDialog([projectOf("1")]);
+
+		fireEvent.click(screen.getByRole("combobox", { name: "Analista" }));
+		const options = await screen.findAllByRole("option");
+
+		expect(options.map((option) => option.textContent)).toEqual([
+			"Ana Analista",
+			"Bruno Analista",
+			"Carla Gestora",
+		]);
 	});
 
 	it("cannot be dismissed while the assignment runs", () => {

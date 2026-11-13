@@ -49,8 +49,11 @@ const AssignReviewerForm = ({
 	const fieldId = useId();
 	const reviewersQuery = useGetReviewerList();
 	const [reviewerId, setReviewerId] = useState<string | null>(null);
+	// The API sends them by name; the record only resolves the chosen label,
+	// since numeric-like keys would reorder it by id.
+	const reviewerList = reviewersQuery.data?.data ?? [];
 	const reviewers = Object.fromEntries(
-		(reviewersQuery.data?.data ?? []).map(({ id, name }) => [id, name]),
+		reviewerList.map(({ id, name }) => [id, name]),
 	);
 	const listed = projects.slice(0, LISTED_PROJECTS);
 	const hidden = projects.length - listed.length;
@@ -91,7 +94,7 @@ const AssignReviewerForm = ({
 							/>
 						</SelectTrigger>
 						<SelectContent>
-							{Object.entries(reviewers).map(([id, name]) => (
+							{reviewerList.map(({ id, name }) => (
 								<SelectItem key={id} value={id}>
 									{name}
 								</SelectItem>
