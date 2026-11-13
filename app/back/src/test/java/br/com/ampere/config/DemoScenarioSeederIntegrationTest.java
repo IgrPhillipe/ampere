@@ -80,7 +80,7 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
         .extracting(Project::getProtocol)
         .containsExactlyInAnyOrderElementsOf(SCENARIO_PROTOCOLS);
     assertThat(SCENARIO_PROTOCOLS)
-        .hasSize(55)
+        .hasSize(56)
         .contains(
             "2026-1001",
             "2026-1008",
@@ -88,7 +88,8 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
             "2026-2044",
             "2026-2045",
             "2026-2046",
-            "2026-2047");
+            "2026-2047",
+            "2026-2048");
   }
 
   @Test
@@ -241,8 +242,8 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
             "admin@ampere.com",
             "inativo@ampere.com");
     assertThat(userRepository.findByEmail("novo@ampere.com")).isPresent();
-    assertThat(projectRepository.existsByOwnerIdAndStatusNot(id("novo@ampere.com"), null))
-        .isFalse();
+    assertThat(projectRepository.findAll())
+        .noneMatch(project -> project.isOwnedBy(id("novo@ampere.com")));
   }
 
   @Test

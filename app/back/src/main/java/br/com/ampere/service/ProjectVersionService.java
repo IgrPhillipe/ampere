@@ -47,7 +47,7 @@ public class ProjectVersionService {
 
   // Locked since the submission, so they still hold the data that was sent.
   private static final List<ProjectStatus> FROZEN =
-      List.of(ProjectStatus.UNDER_REVIEW, ProjectStatus.APPROVED);
+      List.of(ProjectStatus.UNDER_REVIEW, ProjectStatus.APPROVED, ProjectStatus.EXPIRED);
 
   private final ProjectService projectService;
   private final MemorialPdfService memorialPdfService;

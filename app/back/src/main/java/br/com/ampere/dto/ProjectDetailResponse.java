@@ -11,8 +11,10 @@ import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.service.ProjectSummary;
+import br.com.ampere.service.ReviewTimeline;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -36,6 +38,24 @@ public record ProjectDetailResponse(
     String reviewerName,
     OffsetDateTime reviewedAt,
     int reviewCycle,
+    @Schema(
+            description =
+                "Último dia do prazo de análise, já somados os dias suspensos; nulo fora de análise")
+        LocalDate reviewDeadline,
+    @Schema(
+            description =
+                "Dias corridos de análise, sem os suspensos; nulo antes do primeiro envio")
+        Long elapsedReviewDays,
+    @Schema(
+            description =
+                "Dias de prazo suspenso aguardando correção; nulo antes do primeiro envio")
+        Long suspendedReviewDays,
+    @Schema(description = "Dias restantes em análise ou suspenso; negativo quando atrasado")
+        Long remainingReviewDays,
+    @Schema(description = "Reprovado aguardando correção: o prazo não corre")
+        boolean reviewSuspended,
+    @Schema(description = "Último dia de validade da aprovação (36 meses); nulo se nunca aprovado")
+        LocalDate approvalValidUntil,
     @Schema(description = "Apontamentos OPEN ou CONTESTED; zero em projeto aprovado")
         long openFindingsCount,
     long consumerUnitsCount,
@@ -57,6 +77,7 @@ public record ProjectDetailResponse(
   public static ProjectDetailResponse from(ProjectSummary summary) {
     Project project = summary.project();
     BuildingType buildingType = project.getBuildingType();
+    ReviewTimeline timeline = ReviewTimeline.today(project);
     List<StandardResponse> standards =
         project.getStandards().stream()
             .map(StandardResponse::from)
@@ -80,6 +101,12 @@ public record ProjectDetailResponse(
         nameOf(project.getReviewer()),
         project.getReviewedAt(),
         project.getReviewCycle(),
+        timeline.reviewDeadline(),
+        timeline.elapsedReviewDays(),
+        timeline.suspendedReviewDays(),
+        timeline.remainingReviewDays(),
+        timeline.reviewSuspended(),
+        timeline.approvalValidUntil(),
         summary.openFindingsCount(),
         summary.consumerUnitsCount(),
         summary.demandKva(),

@@ -5,6 +5,7 @@ import br.com.ampere.domain.ProjectEventType;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -23,6 +24,9 @@ public interface ProjectEventRepository extends JpaRepository<ProjectEvent, Long
   List<ProjectEvent> findAllByProjectIdOrderByOccurredAtDescIdDesc(Long projectId);
 
   boolean existsByProjectId(Long projectId);
+
+  Optional<ProjectEvent> findFirstByProjectIdAndTypeOrderByOccurredAtDescIdDesc(
+      Long projectId, ProjectEventType type);
 
   @Query(
       """

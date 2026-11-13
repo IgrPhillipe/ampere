@@ -128,6 +128,14 @@ Cada projeto pertence a quem o criou. O projetista vê só os próprios projetos
 | `consumerUnitsCount` | Soma das quantidades dos grupos de unidades consumidoras |
 | `demandKva` | Demanda do último cálculo; `null` enquanto não houver cálculo |
 | `lastActivityAt` | Data do evento mais recente do histórico; edição sem evento não conta. Sem eventos, usa `updatedAt` |
+| `reviewDeadline` | Último dia do prazo de análise, já somados os dias suspensos; `null` fora de `UNDER_REVIEW` |
+| `elapsedReviewDays` | Dias corridos de análise, sem os suspensos; para na decisão. `null` antes do primeiro envio |
+| `suspendedReviewDays` | Dias em que o prazo ficou suspenso, a espera atual inclusive; `null` antes do primeiro envio |
+| `remainingReviewDays` | Dias restantes em `UNDER_REVIEW` ou suspenso (congelado); negativo quando atrasado, `null` nos demais |
+| `reviewSuspended` | `true` quando reprovado aguardando correção: o prazo não corre |
+| `approvalValidUntil` | Último dia de validade da aprovação (36 meses); continua preenchido em `EXPIRED`, `null` se nunca aprovado |
+
+A listagem `GET /api/projects` traz `reviewDeadline`, `reviewSuspended` e `approvalValidUntil` com as mesmas regras, e `GET /api/projects/status-counts` conta `expired` à parte de `approved`.
 
 O dono consulta o histórico do próprio projeto em `GET /api/projects/{id}/events?direction=DESC`. Analistas acessam o histórico dos projetos enviados; administradores, o de qualquer projeto. A regra é a mesma do detalhe. Outro projetista recebe 404, sem revelar a existência do projeto.
 
@@ -153,13 +161,13 @@ Restrita ao papel `admin` pelo `SecurityConfig`, sem prefixo de papel no caminho
 
 ## Fila de Análise
 
-`GET /api/review-queue` lista os projetos `UNDER_REVIEW`, com prazo de 30 dias corridos a partir do envio. O contrato completo está no Swagger; os critérios que ele não explica:
+`GET /api/review-queue` lista os projetos `UNDER_REVIEW`, com prazo de 30 dias corridos a partir do envio, suspenso enquanto o projeto fica reprovado (ver [Prazos e Validade](#prazos-e-validade)). Cada item traz `deadline`, `daysRemaining`, `elapsedDays` (dias corridos sem os suspensos) e `suspendedDays`. O contrato completo está no Swagger; os critérios que ele não explica:
 
 | Parâmetro | Padrão | Valores |
 | :--- | :--- | :--- |
 | `search` | vazio | protocolo, projetista ou município, sem diferenciar maiúsculas ou acentos |
 | `filter` | `ALL` | `DUE_SOON` (vence hoje ou atrasado), `HIGH_DEMAND` (último cálculo acima de 50 kVA), `REANALYSIS` (dois ou mais envios) |
-| `sort` | `deadline` | `deadline` ou `submittedAt` (data de envio, que define o prazo), `demand` (último cálculo) ou `warnings` (alertas do último cálculo) |
+| `sort` | `deadline` | `deadline` (prazo final, com a suspensão), `submittedAt` (data do último envio), `demand` (último cálculo) ou `warnings` (alertas do último cálculo) |
 | `direction` | `ASC` | `ASC` ou `DESC`; o empate é desfeito pelo ID crescente |
 | `reviewer` | vazio | ID do analista, ou `none` para os projetos sem analista |
 | `state`, `municipality` | vazio | UFs e municípios; repita o parâmetro para mais de um |
@@ -285,6 +293,18 @@ O projeto `REJECTED` volta a ser editável pelo dono: dados, grupos, cálculo e 
 
 Projeto fora de `REJECTED` responde 409 no `/response`; apontamento em rascunho ou aceito, também 409.
 
+### Prazos e Validade
+
+Regras da US15, em `Project` (dias corridos no calendário de Recife):
+
+- **Prazo de análise:** 30 dias a partir do envio. A reprovação suspende o prazo; o reenvio retoma a contagem com os dias que restavam. Reprovado no 12º dia e reenviado 10 dias depois, o projeto volta à fila com 18 dias restantes e 10 dias suspensos.
+- O reenvio grava `reviewClockStartedAt`, o envio recuado dos dias já usados, e soma a espera em `suspendedReviewDays`. Ordenação e filtro `DUE_SOON` da fila usam esse início; linha anterior à US15, com a coluna nula, conta do `submittedAt`.
+- Reprovado com o prazo já estourado volta à fila atrasado (`daysRemaining` negativo).
+- O evento `RESUBMITTED` registra no histórico os dias suspensos e os restantes: *"Versão 2 reenviada para análise. Prazo suspenso por 10 dias; restam 18 dias."*
+- **Validade da aprovação:** 36 meses a partir da aprovação (DIS-NOR-053, item 6.27.6). `approvalValidUntil` é o último dia válido; no dia seguinte a varredura diária passa o projeto a `EXPIRED` e grava o evento `EXPIRED` (*"Validade da aprovação encerrada em dd/mm/aaaa."*), sem autor.
+- `EXPIRED` mantém tudo o que a aprovação congelou: versões, memorial, ressalvas e a regra de troca de papel do projetista tratam o projeto como aprovado.
+- O `CHECK` de `project.status` e de `project_event.type` é reescrito a cada subida pelo `EnumCheckConstraints`, então o `ddl-auto=update` aceita `EXPIRED` em banco já populado.
+
 ---
 
 ### Versões e Verificação do Memorial
@@ -336,7 +356,7 @@ Central do sino do cabeçalho, para projetista e analista. Sem e-mail. Cada noti
 | Aprovação expira em até 30 dias (36 meses após a aprovação) | `APPROVAL_EXPIRING` | Dono do projeto | `/projetos/{id}` |
 
 - As quatro primeiras nascem na transação da operação que as causa (decisão ou envio). A reabertura só avisa na reprovação: antes disso o projetista não pode responder, e o analista ainda pode aceitar o apontamento. Sem destinatário (projeto sem dono, ou sem analista atribuído), nada é gerado.
-- As três últimas não têm ação do usuário: `NotificationScheduler` varre os projetos todo dia às 06:00 (horário de Recife) e a cada subida da API, para recuperar uma varredura perdida. `NOTIFICATIONS_CRON` troca o horário e `-` desliga as duas. Cada aviso sai uma vez por projeto, tipo e ciclo de análise, então rodar a varredura de novo não repete nada. O prazo é o de `Project.reviewDeadline`, sem desconto de dias suspensos (US15).
+- As três últimas não têm ação do usuário: `NotificationScheduler` varre os projetos todo dia às 06:00 (horário de Recife) e a cada subida da API, para recuperar uma varredura perdida. A varredura primeiro expira as aprovações vencidas (`ApprovalExpiryService`) e depois gera os avisos, então projeto `EXPIRED` não recebe `APPROVAL_EXPIRING`. `NOTIFICATIONS_CRON` troca o horário e `-` desliga as duas. Cada aviso sai uma vez por projeto, tipo e ciclo de análise, então rodar a varredura de novo não repete nada. O prazo é o de `Project.reviewDeadline`, com a suspensão da US15.
 - O contador some quando as notificações são lidas, mas elas continuam na lista.
 
 ---

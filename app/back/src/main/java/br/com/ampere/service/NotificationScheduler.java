@@ -1,6 +1,7 @@
 package br.com.ampere.service;
 
 import br.com.ampere.utils.Timestamps;
+import java.time.OffsetDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,17 +17,25 @@ public class NotificationScheduler {
   private static final String DISABLED = "-";
 
   private final NotificationService service;
+  private final ApprovalExpiryService expiry;
   private final String cron;
 
   public NotificationScheduler(
-      NotificationService service, @Value("${ampere.notifications.cron}") String cron) {
+      NotificationService service,
+      ApprovalExpiryService expiry,
+      @Value("${ampere.notifications.cron}") String cron) {
     this.service = service;
+    this.expiry = expiry;
     this.cron = cron;
   }
 
+  /** The daily sweep: expires the approvals past their validity, then issues the warnings. */
   @Scheduled(cron = "${ampere.notifications.cron}", zone = Timestamps.ZONE_ID)
   public void sweep() {
-    int issued = service.issueTimeBasedNotifications(Timestamps.now());
+    OffsetDateTime now = Timestamps.now();
+    int expired = expiry.expireApprovals(now);
+    LOGGER.info("Approvals expired: {}", expired);
+    int issued = service.issueTimeBasedNotifications(now);
     LOGGER.info("Deadline and validity notifications issued: {}", issued);
   }
 

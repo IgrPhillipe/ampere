@@ -19,9 +19,13 @@ public record ReviewQueueItemResponse(
     String municipality,
     BrazilianState state,
     OffsetDateTime submittedAt,
-    LocalDate deadline,
+    @Schema(description = "Último dia do prazo de 30 dias, já somados os dias suspensos")
+        LocalDate deadline,
     DeadlineStatus deadlineStatus,
-    long daysRemaining,
+    @Schema(description = "Dias restantes do prazo; negativo quando atrasado") long daysRemaining,
+    @Schema(description = "Dias corridos de análise, sem os dias suspensos") long elapsedDays,
+    @Schema(description = "Dias em que o prazo ficou suspenso aguardando correção")
+        long suspendedDays,
     long warnings,
     @Schema(description = "Mensagens dos alertas da pré-validação do último cálculo")
         List<String> alerts,
@@ -47,6 +51,8 @@ public record ReviewQueueItemResponse(
         entry.deadline(),
         entry.deadlineStatus(),
         entry.daysRemaining(),
+        entry.elapsedDays(),
+        entry.suspendedDays(),
         entry.warnings().size(),
         entry.warnings(),
         project.getOwner() == null ? null : project.getOwner().getName(),

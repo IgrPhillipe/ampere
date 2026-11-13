@@ -67,7 +67,7 @@ public class ProjectHistoryService {
                         || event.getType() == ProjectEventType.APPROVED)
             .count(),
         findingRepository.countByProjectIdAndStatusIn(projectId, List.of(FindingStatus.RESOLVED)),
-        project.getStatus() == ProjectStatus.APPROVED
+        ProjectStatus.approvals().contains(project.getStatus())
             ? 0
             : findingRepository.countByProjectIdAndStatusIn(
                 projectId, ProjectService.OPEN_FINDINGS),

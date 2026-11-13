@@ -43,7 +43,8 @@ class ProjectTest {
             ProjectStatus.AWAITING_SUBMISSION,
             ProjectStatus.UNDER_REVIEW,
             ProjectStatus.REJECTED,
-            ProjectStatus.APPROVED);
+            ProjectStatus.APPROVED,
+            ProjectStatus.EXPIRED);
   }
 
   @Test

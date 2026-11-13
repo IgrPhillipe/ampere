@@ -110,6 +110,8 @@ public class ReviewQueueService {
                       deadline,
                       project.deadlineStatus(today, ZONE),
                       ChronoUnit.DAYS.between(today, deadline),
+                      project.elapsedReviewDays(today, ZONE),
+                      project.suspendedReviewDays(today, ZONE),
                       warnings.getOrDefault(project.getId(), List.of()),
                       consumerUnits.getOrDefault(project.getId(), 0L),
                       demands.get(project.getId()));
@@ -156,7 +158,7 @@ public class ReviewQueueService {
             ProjectStatus.REJECTED, startOfMonth));
   }
 
-  /** Submitted before this instant means the deadline is today or already past. */
+  /** A review clock started before this instant means the deadline is today or already past. */
   private static OffsetDateTime dueSoonCutoff(LocalDate today) {
     return today
         .plusDays(1)
@@ -166,12 +168,12 @@ public class ReviewQueueService {
   }
 
   private long filteredCount(
-      boolean dueSoon, boolean highDemand, boolean reanalysis, OffsetDateTime submittedBefore) {
+      boolean dueSoon, boolean highDemand, boolean reanalysis, OffsetDateTime clockStartedBefore) {
     return projectRepository
         .searchReviewQueue(
             new ReviewQueueSearch(
                 "",
-                dueSoon ? submittedBefore : null,
+                dueSoon ? clockStartedBefore : null,
                 highDemand ? HIGH_DEMAND_THRESHOLD : null,
                 reanalysis,
                 Set.of(),

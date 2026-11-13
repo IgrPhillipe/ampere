@@ -40,6 +40,10 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
       "WHERE project.status = br.com.ampere.domain.ProjectStatus.UNDER_REVIEW"
           + " AND project.submittedAt IS NOT NULL";
 
+  /** Where the deadline counts from: the submission, moved back by the days used before. */
+  private static final String REVIEW_CLOCK_START =
+      "COALESCE(project.reviewClockStartedAt, project.submittedAt)";
+
   @PersistenceContext private EntityManager entityManager;
 
   @Override
@@ -114,9 +118,9 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
       where.append(" AND project.reviewSearchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'");
       parameters.put("search", search.search());
     }
-    if (search.submittedBefore() != null) {
-      where.append(" AND project.submittedAt < :submittedBefore");
-      parameters.put("submittedBefore", search.submittedBefore());
+    if (search.clockStartedBefore() != null) {
+      where.append(" AND ").append(REVIEW_CLOCK_START).append(" < :clockStartedBefore");
+      parameters.put("clockStartedBefore", search.clockStartedBefore());
     }
     if (search.demandAbove() != null) {
       where.append(" AND ").append(LATEST_DEMAND).append(" > :demandAbove");
@@ -140,8 +144,9 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
     String direction = search.direction().name();
     String column =
         switch (search.sort()) {
-          // The deadline is the submission plus a fixed period, so both give the same order.
-          case DEADLINE, SUBMITTED_AT -> "project.submittedAt " + direction;
+          // The deadline is the clock start plus a fixed period, so the clock start orders it.
+          case DEADLINE -> REVIEW_CLOCK_START + " " + direction;
+          case SUBMITTED_AT -> "project.submittedAt " + direction;
           case DEMAND -> LATEST_DEMAND + " " + direction;
           case WARNINGS -> LATEST_WARNING_COUNT + " " + direction;
         };
@@ -198,10 +203,14 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
     };
   }
 
-  /** An approved project carries its open adjustments as reservations, not as open findings. */
+  /**
+   * An approved project, expired or not, carries its open adjustments as reservations, not as open
+   * findings.
+   */
   private static String openFindings(String condition) {
     return "(SELECT finding.id FROM Finding finding WHERE finding.project = project"
-        + " AND project.status <> br.com.ampere.domain.ProjectStatus.APPROVED"
+        + " AND project.status NOT IN (br.com.ampere.domain.ProjectStatus.APPROVED,"
+        + " br.com.ampere.domain.ProjectStatus.EXPIRED)"
         + " AND finding.status = br.com.ampere.domain.FindingStatus.OPEN"
         + condition
         + ")";

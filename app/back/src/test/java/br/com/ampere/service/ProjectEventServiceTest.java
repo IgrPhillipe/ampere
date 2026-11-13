@@ -8,18 +8,23 @@ import static org.mockito.Mockito.when;
 import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.CalculationCheck;
 import br.com.ampere.domain.CheckStatus;
+import br.com.ampere.domain.ConnectionType;
+import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
+import br.com.ampere.domain.ResidentialMultifamily;
+import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.ProjectEventRepository;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class ProjectEventServiceTest {
@@ -99,6 +104,76 @@ class ProjectEventServiceTest {
         .containsExactly("Aprovado.", "Aprovado com 1 ressalva.", "Aprovado com 2 ressalvas.");
     assertThat(recorded.get(2).getAuthor()).isNull();
     assertThat(recorded.get(4).getAuthorRole()).isEqualTo(UserRole.ADMIN);
+  }
+
+  @Test
+  void aResubmissionRecordsTheDaysSuspendedAndTheDaysLeft() {
+    ProjectEventRepository repository = mock(ProjectEventRepository.class);
+    List<ProjectEvent> recorded = recordInto(repository);
+    ProjectEventService service = new ProjectEventService(repository);
+    OffsetDateTime submittedAt = OffsetDateTime.parse("2026-10-01T15:00:00Z");
+    Project project = project(submittedAt.minusDays(22));
+    User designer = user("Usuário Teste", UserRole.USER);
+    User analyst = user("Revisor Teste", UserRole.REVIEWER);
+    service.rejected(project, analyst, List.of(), "Corrija a ART.", submittedAt.minusDays(10));
+    project.reject(submittedAt.minusDays(10));
+    when(repository.findFirstByProjectIdAndTypeOrderByOccurredAtDescIdDesc(
+            null, ProjectEventType.REJECTED))
+        .thenReturn(Optional.of(recorded.getLast()));
+    project.submit(submittedAt);
+    Calculation calculation = mock(Calculation.class);
+
+    service.submitted(project, designer, calculation, submittedAt);
+
+    assertThat(recorded.get(1).getType()).isEqualTo(ProjectEventType.RESUBMITTED);
+    assertThat(recorded.get(1).getDescription())
+        .isEqualTo("Versão 2 reenviada para análise. Prazo suspenso por 10 dias; restam 18 dias.");
+  }
+
+  @Test
+  void anExpiryRecordsTheLastDayOfTheApproval() {
+    ProjectEventRepository repository = mock(ProjectEventRepository.class);
+    List<ProjectEvent> recorded = recordInto(repository);
+    ProjectEventService service = new ProjectEventService(repository);
+    OffsetDateTime approvedAt = OffsetDateTime.parse("2023-10-02T15:00:00Z");
+    Project project = project(approvedAt.minusDays(10));
+    project.approve(approvedAt);
+    project.expire();
+
+    service.expired(project, approvedAt.plusMonths(36).plusDays(1));
+
+    assertThat(recorded.getFirst().getType()).isEqualTo(ProjectEventType.EXPIRED);
+    assertThat(recorded.getFirst().getAuthor()).isNull();
+    assertThat(recorded.getFirst().getDescription())
+        .isEqualTo("Validade da aprovação encerrada em 02/10/2026.");
+    assertThat(recorded.getFirst().getDetail())
+        .isEqualTo("Aprovação válida por 36 meses (DIS-NOR-053, item 6.27.6).");
+  }
+
+  private static List<ProjectEvent> recordInto(ProjectEventRepository repository) {
+    List<ProjectEvent> recorded = new ArrayList<>();
+    when(repository.save(any(ProjectEvent.class)))
+        .thenAnswer(
+            invocation -> {
+              ProjectEvent event = invocation.getArgument(0);
+              recorded.add(event);
+              return event;
+            });
+    return recorded;
+  }
+
+  private static Project project(OffsetDateTime submittedAt) {
+    Project project =
+        Project.draft(
+            "Residencial Teste",
+            "Rua A, 1",
+            "Recife",
+            "2026-9999",
+            new ResidentialMultifamily(
+                6, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
+            List.of());
+    project.submit(submittedAt);
+    return project;
   }
 
   private static Finding finding(FindingStatus status) {

@@ -289,7 +289,7 @@ public class ProjectService {
     }
 
     return findingRepository
-        .countPerProject(projectIds, OPEN_FINDINGS, ProjectStatus.APPROVED)
+        .countPerProject(projectIds, OPEN_FINDINGS, ProjectStatus.approvals())
         .stream()
         .collect(
             Collectors.toUnmodifiableMap(
