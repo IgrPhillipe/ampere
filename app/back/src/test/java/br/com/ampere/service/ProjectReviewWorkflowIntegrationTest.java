@@ -28,7 +28,9 @@ import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.utils.Timestamps;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -112,6 +114,22 @@ class ProjectReviewWorkflowIntegrationTest {
 
     open(unassigned, analyst).andExpect(status().isForbidden());
 
+    mockMvc
+        .perform(
+            get("/projects/{id}", unassigned.getId())
+                .header(HttpHeaders.AUTHORIZATION, bearer(owner)))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.data.reviewDeadline")
+                .value(unassigned.reviewDeadline(Timestamps.ZONE).toString()))
+        .andExpect(
+            jsonPath("$.data.deadlineStatus")
+                .value(
+                    unassigned
+                        .deadlineStatus(LocalDate.now(Timestamps.ZONE), Timestamps.ZONE)
+                        .name()))
+        .andExpect(jsonPath("$.data.reviewerName").doesNotExist());
+
     assignTo(unassigned, analyst);
 
     open(unassigned, analyst)
@@ -124,7 +142,16 @@ class ProjectReviewWorkflowIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, bearer(otherAnalyst)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.ownerName").value("Ana Projetista"))
-        .andExpect(jsonPath("$.data.reviewerName").value("Alice Analista"));
+        .andExpect(jsonPath("$.data.reviewerName").value("Alice Analista"))
+        .andExpect(
+            jsonPath("$.data.reviewDeadline")
+                .value(unassigned.reviewDeadline(Timestamps.ZONE).toString()))
+        .andExpect(
+            jsonPath("$.data.deadlineStatus")
+                .value(
+                    unassigned
+                        .deadlineStatus(LocalDate.now(Timestamps.ZONE), Timestamps.ZONE)
+                        .name()));
 
     mockMvc
         .perform(
@@ -393,6 +420,8 @@ class ProjectReviewWorkflowIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.reviewCycle").value(1))
         .andExpect(jsonPath("$.data.reviewOpinion").value("Corrigir a planta de situação."))
+        .andExpect(jsonPath("$.data.reviewDeadline").doesNotExist())
+        .andExpect(jsonPath("$.data.deadlineStatus").doesNotExist())
         .andExpect(jsonPath("$.data.changeSummary").doesNotExist());
 
     respond(project, findingId, analyst, "{\"status\":\"FIXED\"}")

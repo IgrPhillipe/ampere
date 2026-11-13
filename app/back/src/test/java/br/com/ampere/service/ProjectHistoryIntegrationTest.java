@@ -90,6 +90,7 @@ class ProjectHistoryIntegrationTest {
         .andExpect(jsonPath("$.data[0].id").isString())
         .andExpect(jsonPath("$.data[0].type").value("PRE_VALIDATED"))
         .andExpect(jsonPath("$.data[1].type").value("SUBMITTED"))
+        .andExpect(jsonPath("$.data[1].reviewDeadline").value("2026-11-03"))
         .andExpect(jsonPath("$.data[2].type").value("CREATED"))
         .andExpect(jsonPath("$.data[2].authorName").value("Ana Projetista"))
         .andExpect(jsonPath("$.data[2].authorRole").value("user"));

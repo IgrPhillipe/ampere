@@ -4,6 +4,7 @@ import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.ConnectionType;
+import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
@@ -11,8 +12,10 @@ import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.service.ProjectSummary;
+import br.com.ampere.utils.Timestamps;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -34,6 +37,8 @@ public record ProjectDetailResponse(
     String ownerId,
     String ownerName,
     String reviewerName,
+    LocalDate reviewDeadline,
+    DeadlineStatus deadlineStatus,
     OffsetDateTime reviewedAt,
     int reviewCycle,
     @Schema(description = "Apontamentos OPEN ou CONTESTED; zero em projeto aprovado")
@@ -62,6 +67,10 @@ public record ProjectDetailResponse(
             .map(StandardResponse::from)
             .sorted(Comparator.comparing(standard -> StandardName.of(standard.name())))
             .toList();
+    LocalDate reviewDeadline =
+        project.isUnderReview() && project.getSubmittedAt() != null
+            ? project.reviewDeadline(Timestamps.ZONE)
+            : null;
 
     return new ProjectDetailResponse(
         String.valueOf(project.getId()),
@@ -78,6 +87,10 @@ public record ProjectDetailResponse(
         project.getOwner() == null ? null : String.valueOf(project.getOwner().getId()),
         nameOf(project.getOwner()),
         nameOf(project.getReviewer()),
+        reviewDeadline,
+        reviewDeadline == null
+            ? null
+            : project.deadlineStatus(LocalDate.now(Timestamps.ZONE), Timestamps.ZONE),
         project.getReviewedAt(),
         project.getReviewCycle(),
         summary.openFindingsCount(),

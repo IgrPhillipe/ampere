@@ -69,4 +69,28 @@ describe("ProjectDetailHeader", () => {
 
 		expect(cell("Última movimentação")).toHaveTextContent("20/10/2026");
 	});
+
+	it("mostra o prazo de retorno e o analista responsável", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({
+					reviewDeadline: "2026-11-01",
+					reviewerName: "Alice Analista",
+				})}
+			/>,
+		);
+
+		expect(cell("Retorno até")).toHaveTextContent("01/11/2026");
+		expect(cell("Analista")).toHaveTextContent("Alice Analista");
+	});
+
+	it("informa quando o projeto ainda aguarda atribuição", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({ reviewerName: null })}
+			/>,
+		);
+
+		expect(cell("Analista")).toHaveTextContent("Aguardando atribuição");
+	});
 });

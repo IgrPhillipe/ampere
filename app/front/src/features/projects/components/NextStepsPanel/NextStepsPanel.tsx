@@ -1,17 +1,16 @@
 import { SectionHeading } from "@components/SectionHeading";
 import { formatDate, padCount } from "@features/shared";
-import dayjs from "@lib/dayjs";
 import { cn } from "@lib/utils";
 
-const REVIEW_PERIOD_DAYS = 30;
-
 interface NextStepsPanelProps {
-	submittedAt: string;
+	reviewDeadline: string | null | undefined;
+	reviewerName: string | null | undefined;
 	className?: string;
 }
 
 export const NextStepsPanel = ({
-	submittedAt,
+	reviewDeadline,
+	reviewerName,
 	className,
 }: NextStepsPanelProps) => {
 	const steps = [
@@ -22,8 +21,12 @@ export const NextStepsPanel = ({
 		},
 		{
 			title: "Análise Técnica",
-			status: `Até ${formatDate(dayjs(submittedAt).add(REVIEW_PERIOD_DAYS, "day").toISOString())}`,
-			description: "Um analista confere a memória de cálculo enviada.",
+			status: reviewDeadline
+				? `Retorno até ${formatDate(reviewDeadline)}`
+				: "Prazo indisponível",
+			description: reviewerName
+				? `Analista: ${reviewerName}`
+				: "Aguardando atribuição",
 		},
 		{
 			title: "Parecer",

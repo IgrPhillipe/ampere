@@ -17,6 +17,7 @@ const makeEvent = (overrides: Partial<ProjectEvent> = {}): ProjectEvent => ({
 	authorName: "Ana Lima",
 	authorRole: "user",
 	occurredAt: "2026-08-22T12:00:00Z",
+	reviewDeadline: null,
 	...overrides,
 });
 
@@ -27,6 +28,7 @@ const EVENTS = [
 		type: "SUBMITTED",
 		version: 1,
 		description: "Versão 1 enviada para análise.",
+		reviewDeadline: "2026-09-21",
 		occurredAt: "2026-08-22T12:30:00Z",
 	}),
 	makeEvent({
@@ -170,6 +172,7 @@ describe("ProjectHistoryPage", () => {
 		expect(items[1]).toHaveTextContent("Sistema");
 		expect(items[2]).toHaveTextContent("Ana Lima, Projetista");
 		expect(items[2]).toHaveTextContent("Enviado, Versão 1");
+		expect(items[2]).toHaveTextContent("Retorno até 21/09/2026");
 	});
 
 	it("shows the empty state for a project without events", () => {

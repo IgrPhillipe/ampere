@@ -21,6 +21,8 @@ export const makeProjectDetail = (
 	submittedAt: "2026-10-02T12:00:00Z",
 	ownerName: "Projetista Teste",
 	reviewerName: "Admin Teste",
+	reviewDeadline: "2026-11-01",
+	deadlineStatus: "ON_TIME",
 	reviewCycle: 1,
 	openFindingsCount: 0,
 	consumerUnitsCount: 8,

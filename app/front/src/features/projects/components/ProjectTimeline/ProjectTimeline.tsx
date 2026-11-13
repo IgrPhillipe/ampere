@@ -2,7 +2,11 @@ import { ExpandableText } from "@components/ExpandableText";
 import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDateTime, type SortDirection } from "@features/shared";
+import {
+	formatDate,
+	formatDateTime,
+	type SortDirection,
+} from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ProjectEvent } from "@services/project-events";
 import { ArrowDown, ArrowUp } from "lucide-react";
@@ -49,6 +53,11 @@ const EventItem = ({ event, latest }: EventItemProps) => {
 					{latest ? <span className="sr-only"> (mais recente)</span> : null}
 				</p>
 				<p className="text-sm text-foreground">{event.description}</p>
+				{event.reviewDeadline ? (
+					<p className="text-sm text-foreground">
+						Retorno até {formatDate(event.reviewDeadline)}
+					</p>
+				) : null}
 				{event.detail ? (
 					<ExpandableText
 						text={event.detail}

@@ -9,6 +9,8 @@ COPY mvnw pom.xml ./
 RUN ./mvnw -B -q dependency:go-offline
 
 COPY src/ src/
+# Spotless requires UNIX line endings; Windows checkouts can bring CRLF into the image.
+RUN find src -type f -name '*.java' -exec sed -i 's/\r$//' {} +
 RUN ./mvnw -B -q clean package -DskipTests
 
 # Final stage: the JRE and the jar, nothing else.

@@ -159,6 +159,21 @@ export const ProjectDetailHeader = ({
 						: undefined}
 				</StripCell>
 
+				{project?.status === "UNDER_REVIEW" ? (
+					<>
+						<StripCell isLoading={isLoading} label="Retorno até">
+							{project.reviewDeadline ? (
+								<StripDate value={project.reviewDeadline} />
+							) : (
+								"Prazo indisponível"
+							)}
+						</StripCell>
+						<StripCell isLoading={isLoading} label="Analista">
+							{project.reviewerName ?? "Aguardando atribuição"}
+						</StripCell>
+					</>
+				) : null}
+
 				<StripCell
 					isLoading={isLoading}
 					label={milestone?.label ?? "Última movimentação"}

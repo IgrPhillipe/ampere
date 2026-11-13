@@ -147,6 +147,8 @@ export const projectDetailSchema = z.object({
 	ownerId: z.string().nullish(),
 	ownerName: z.string().nullish(),
 	reviewerName: z.string().nullish(),
+	reviewDeadline: z.iso.date().nullish(),
+	deadlineStatus: z.enum(["OVERDUE", "DUE_TODAY", "ON_TIME"]).nullish(),
 	reviewedAt: z.iso.datetime({ offset: true }).nullish(),
 	reviewCycle: z.number().int().nonnegative(),
 	openFindingsCount: z.number().int().nonnegative(),
