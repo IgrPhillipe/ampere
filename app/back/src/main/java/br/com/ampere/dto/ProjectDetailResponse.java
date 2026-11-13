@@ -41,6 +41,8 @@ public record ProjectDetailResponse(
         LocalDate reviewDeadline,
     @Schema(description = "Situação do prazo de análise; nula fora da análise")
         DeadlineStatus deadlineStatus,
+    @Schema(description = "Dias até o prazo de análise, negativo se vencido; nulo fora da análise")
+        Long daysRemaining,
     OffsetDateTime reviewedAt,
     int reviewCycle,
     @Schema(description = "Apontamentos OPEN ou CONTESTED; zero em projeto aprovado")
@@ -88,6 +90,7 @@ public record ProjectDetailResponse(
         nameOf(project.getReviewer()),
         reviewDeadline == null ? null : reviewDeadline.date(),
         reviewDeadline == null ? null : reviewDeadline.status(),
+        reviewDeadline == null ? null : reviewDeadline.daysRemaining(),
         project.getReviewedAt(),
         project.getReviewCycle(),
         summary.openFindingsCount(),

@@ -111,6 +111,7 @@ class ProjectReviewWorkflowIntegrationTest {
     detail(unassigned, owner)
         .andExpect(jsonPath("$.data.reviewDeadline").value(today.plusDays(30).toString()))
         .andExpect(jsonPath("$.data.deadlineStatus").value("ON_TIME"))
+        .andExpect(jsonPath("$.data.daysRemaining").value(30))
         .andExpect(jsonPath("$.data.reviewerName").doesNotExist());
     detail(project, owner).andExpect(jsonPath("$.data.reviewerName").value("Alice Analista"));
   }
@@ -124,7 +125,8 @@ class ProjectReviewWorkflowIntegrationTest {
 
     detail(late, owner)
         .andExpect(jsonPath("$.data.reviewDeadline").value(today.minusDays(1).toString()))
-        .andExpect(jsonPath("$.data.deadlineStatus").value("OVERDUE"));
+        .andExpect(jsonPath("$.data.deadlineStatus").value("OVERDUE"))
+        .andExpect(jsonPath("$.data.daysRemaining").value(-1));
   }
 
   @Test
@@ -428,6 +430,7 @@ class ProjectReviewWorkflowIntegrationTest {
         .andExpect(jsonPath("$.data.reviewOpinion").value("Corrigir a planta de situação."))
         .andExpect(jsonPath("$.data.reviewDeadline").doesNotExist())
         .andExpect(jsonPath("$.data.deadlineStatus").doesNotExist())
+        .andExpect(jsonPath("$.data.daysRemaining").doesNotExist())
         .andExpect(jsonPath("$.data.changeSummary").doesNotExist());
 
     respond(project, findingId, analyst, "{\"status\":\"FIXED\"}")
