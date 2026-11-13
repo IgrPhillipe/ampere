@@ -103,7 +103,9 @@ describe("useReadNotification", () => {
 			false,
 			false,
 		]);
-		expect(toast.error).toHaveBeenCalledWith("Notificação não encontrada.");
+		expect(toast.error).toHaveBeenCalledWith("Notificação não encontrada.", {
+			id: "Notificação não encontrada.",
+		});
 	});
 
 	it("leaves the count alone for a notification already read", async () => {

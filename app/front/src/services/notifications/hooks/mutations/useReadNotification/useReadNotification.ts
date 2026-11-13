@@ -47,11 +47,12 @@ export const useReadNotification = () => {
 		onError: (error, _id, context) => {
 			queryClient.setQueryData(notificationKeys.list(), context?.previous);
 
-			toast.error(
-				getToastErrorMessage(error, {
-					fallback: "Não foi possível marcar a notificação como lida.",
-				}),
-			);
+			const message = getToastErrorMessage(error, {
+				fallback: "Não foi possível marcar a notificação como lida.",
+			});
+
+			// Offline, the refresh that follows fails with the same message: one toast.
+			toast.error(message, { id: message });
 		},
 		onSettled: () =>
 			queryClient.invalidateQueries({ queryKey: notificationKeys.all() }),
