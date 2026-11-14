@@ -135,6 +135,7 @@ public class ProjectService {
     return new ProjectListing(
         projects.getContent(),
         projects.getTotalElements(),
+        LocalDate.now(Timestamps.ZONE),
         countPendingFindings(projectIds),
         groupRepository.unitsPerProject(projectIds),
         latestDemands(projectIds));
@@ -190,9 +191,7 @@ public class ProjectService {
         groupRepository.unitsPerProject(projectIds).getOrDefault(projectId, 0L),
         latestDemands(projectIds).get(projectId),
         eventRepository.findLastOccurredAt(projectId),
-        project
-            .pendingReviewDeadline(LocalDate.now(Timestamps.ZONE), Timestamps.ZONE)
-            .orElse(null));
+        project.reviewTimeline(LocalDate.now(Timestamps.ZONE), Timestamps.ZONE));
   }
 
   public ProjectSummary create(
@@ -292,7 +291,7 @@ public class ProjectService {
     }
 
     return findingRepository
-        .countPerProject(projectIds, OPEN_FINDINGS, ProjectStatus.APPROVED)
+        .countPerProject(projectIds, OPEN_FINDINGS, ProjectStatus.approvals())
         .stream()
         .collect(
             Collectors.toUnmodifiableMap(

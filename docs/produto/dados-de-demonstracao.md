@@ -12,7 +12,7 @@ Todos com a senha `senha@123`.
 
 | E-mail | Perfil | Nome | Observação |
 | :--- | :--- | :--- | :--- |
-| `user@ampere.com` | Projetista | Usuário Teste | CREA 123456/PE. Dono da maioria dos projetos |
+| `user@ampere.com` | Projetista | Usuário Teste | CREA 123456/PE. Dono da maioria dos projetos. Conta de 1.200 dias, mais antiga que o projeto expirado |
 | `projetista@ampere.com` | Projetista | Carla Projetista | CREA 654321/PE. Projetos em Pernambuco e um em Pedras de Fogo |
 | `joao@ampere.com` | Projetista | João Batista | CREA 223344/PB. Projetos em Pedras de Fogo, único município da Paraíba na área de concessão |
 | `novo@ampere.com` | Projetista | Diego Novato | Senha temporária: o primeiro login leva à troca de senha. Sem projetos |
@@ -26,7 +26,7 @@ Todos com a senha `senha@123`.
 
 ## Projetos
 
-Os prazos e as datas são relativos ao momento do seed: um projeto enviado há 30 dias vence hoje, e assim por diante. O histórico segue a ordem real: criação, documentos e cálculo, envio, apontamentos, resposta, reenvio. Com o tempo os prazos envelhecem; para renová-los, veja [Como Reiniciar](#como-reiniciar).
+Os prazos e as datas são relativos ao momento do seed: um projeto enviado há 30 dias vence hoje, e assim por diante. Nos reenviados, o prazo desconta os dias em que o projeto ficou reprovado (US15): retoma com os dias que restavam na reprovação. O histórico segue a ordem real: criação, documentos e cálculo, envio, apontamentos, resposta, reenvio. Com o tempo os prazos envelhecem; para renová-los, veja [Como Reiniciar](#como-reiniciar).
 
 Cada cenário também grava a linha do tempo do protocolo: criação, envio ou reenvio, pré-validação, atribuição, decisão e respostas aos apontamentos, sempre com as datas da própria história. Os projetos de reanálise, especialmente `2026-2009` (ciclo 2) e `2026-2017` (ciclo 3), exercitam as métricas de versões enviadas, decisões, apontamentos e passos de cálculo refeitos.
 
@@ -113,6 +113,12 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 | 2026-2041 | Centro Comercial Caruaru Plaza | C | Ana | Aprovado após correção, não residencial |
 | 2026-2042 | Edifício Parque das Flores | B | Revisor | Projeto antigo do projetista inativo |
 | 2026-2046 | Edifício Mirante da Torre | U | Revisor | Aprovado com duas ressalvas: aparecem no parecer, na Visão Geral e no memorial da aprovação |
+
+### Expirado
+
+| Protocolo | Projeto | Proj. | Analista | O que demonstra |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-2048 | Residencial Antigo Casarão | U | Revisor | Aprovado há 1.100 dias: passou dos 36 meses de validade (DIS-NOR-053, item 6.27.6) e está `EXPIRED`, com a data em que a validade terminou e o evento de expiração no histórico |
 
 ---
 

@@ -8,7 +8,7 @@ import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
-import br.com.ampere.domain.ReviewDeadline;
+import br.com.ampere.domain.ReviewTimeline;
 import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
@@ -39,14 +39,31 @@ public record ProjectDetailResponse(
     @Schema(description = "Analista responsável; nulo quando o projeto não tem analista")
         String reviewerId,
     String reviewerName,
-    @Schema(description = "Último dia do prazo de análise; nulo fora da análise")
+    @Schema(
+            description =
+                "Último dia do prazo de análise, já somados os dias suspensos; nulo fora da análise")
         LocalDate reviewDeadline,
     @Schema(description = "Situação do prazo de análise; nula fora da análise")
         DeadlineStatus deadlineStatus,
-    @Schema(description = "Dias até o prazo de análise, negativo se vencido; nulo fora da análise")
+    @Schema(
+            description =
+                "Dias até o prazo de análise, negativo se vencido; congelado enquanto reprovado,"
+                    + " nulo nos demais")
         Long daysRemaining,
     OffsetDateTime reviewedAt,
     int reviewCycle,
+    @Schema(
+            description =
+                "Dias corridos de análise, sem os suspensos; nulo antes do primeiro envio")
+        Long elapsedDays,
+    @Schema(
+            description =
+                "Dias de prazo suspenso aguardando correção; nulo antes do primeiro envio")
+        Long suspendedDays,
+    @Schema(description = "Reprovado aguardando correção: o prazo não corre")
+        boolean reviewSuspended,
+    @Schema(description = "Último dia de validade da aprovação (36 meses); nulo se nunca aprovado")
+        LocalDate approvalValidUntil,
     @Schema(description = "Apontamentos OPEN ou CONTESTED; zero em projeto aprovado")
         long openFindingsCount,
     long consumerUnitsCount,
@@ -73,7 +90,7 @@ public record ProjectDetailResponse(
             .map(StandardResponse::from)
             .sorted(Comparator.comparing(standard -> StandardName.of(standard.name())))
             .toList();
-    ReviewDeadline reviewDeadline = summary.reviewDeadline();
+    ReviewTimeline timeline = summary.timeline();
 
     return new ProjectDetailResponse(
         String.valueOf(project.getId()),
@@ -91,11 +108,15 @@ public record ProjectDetailResponse(
         nameOf(project.getOwner()),
         idOf(project.getReviewer()),
         nameOf(project.getReviewer()),
-        reviewDeadline == null ? null : reviewDeadline.date(),
-        reviewDeadline == null ? null : reviewDeadline.status(),
-        reviewDeadline == null ? null : reviewDeadline.daysRemaining(),
+        timeline.deadline(),
+        timeline.deadlineStatus(),
+        timeline.daysRemaining(),
         project.getReviewedAt(),
         project.getReviewCycle(),
+        timeline.elapsedDays(),
+        timeline.suspendedDays(),
+        timeline.suspended(),
+        timeline.approvalValidUntil(),
         summary.openFindingsCount(),
         summary.consumerUnitsCount(),
         summary.demandKva(),

@@ -126,7 +126,8 @@ public class UserAdministrationService {
   /** A new role would orphan the projects the designer still owns or the reviews in progress. */
   private void ongoingWorkOrFail(User user, UserRole role) {
     if (user.getRole() == UserRole.USER
-        && projectRepository.existsByOwnerIdAndStatusNot(user.getId(), ProjectStatus.APPROVED)) {
+        && projectRepository.existsByOwnerIdAndStatusNotIn(
+            user.getId(), ProjectStatus.approvals())) {
       throw new BusinessException(
           "Este projetista tem projetos em andamento. Conclua-os antes de mudar o papel.",
           HttpStatus.CONFLICT);

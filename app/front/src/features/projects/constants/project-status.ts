@@ -7,6 +7,7 @@ export const projectStatusLabels = {
 	UNDER_REVIEW: "Em Análise",
 	REJECTED: "Reprovado",
 	APPROVED: "Aprovado",
+	EXPIRED: "Expirado",
 } as const satisfies Record<ProjectStatus, string>;
 
 export const projectStatusCountKeys = {
@@ -15,6 +16,7 @@ export const projectStatusCountKeys = {
 	UNDER_REVIEW: "underReview",
 	REJECTED: "rejected",
 	APPROVED: "approved",
+	EXPIRED: "expired",
 } as const satisfies Record<ProjectStatus, keyof ProjectStatusCounts>;
 
 export const projectStatusBadgeVariants = {
@@ -23,4 +25,9 @@ export const projectStatusBadgeVariants = {
 	UNDER_REVIEW: "info",
 	REJECTED: "destructive",
 	APPROVED: "success",
+	EXPIRED: "neutral",
 } as const satisfies Record<ProjectStatus, BadgeProps["variant"]>;
+
+/** Approved at some point: an expired approval keeps what the approval froze. */
+export const wasApproved = (status: ProjectStatus) =>
+	status === "APPROVED" || status === "EXPIRED";

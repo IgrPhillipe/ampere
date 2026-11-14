@@ -437,7 +437,9 @@ class ProjectReviewWorkflowIntegrationTest {
         .andExpect(jsonPath("$.data.reviewOpinion").value("Corrigir a planta de situação."))
         .andExpect(jsonPath("$.data.reviewDeadline").doesNotExist())
         .andExpect(jsonPath("$.data.deadlineStatus").doesNotExist())
-        .andExpect(jsonPath("$.data.daysRemaining").doesNotExist())
+        // Suspended on the day of the submission: the resubmission resumes with all 30 days.
+        .andExpect(jsonPath("$.data.daysRemaining").value(30))
+        .andExpect(jsonPath("$.data.reviewSuspended").value(true))
         .andExpect(jsonPath("$.data.changeSummary").doesNotExist());
 
     respond(project, findingId, analyst, "{\"status\":\"FIXED\"}")

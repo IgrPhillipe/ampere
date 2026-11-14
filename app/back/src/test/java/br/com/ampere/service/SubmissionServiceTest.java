@@ -19,6 +19,7 @@ import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
+import br.com.ampere.domain.ReviewTimeline;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
@@ -36,6 +37,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 class SubmissionServiceTest {
+
+  private static final ReviewTimeline NO_TIMELINE =
+      new ReviewTimeline(null, null, null, null, null, false, null);
 
   private static final AuthenticatedUser DESIGNER = new AuthenticatedUser(7L, UserRole.USER);
   private static final byte[] PDF = "%PDF-1.7\n%test".getBytes(StandardCharsets.US_ASCII);
@@ -130,7 +134,7 @@ class SubmissionServiceTest {
             });
 
     when(projectService.summarize(project))
-        .thenReturn(new ProjectSummary(project, 0, 0, null, null, null));
+        .thenReturn(new ProjectSummary(project, 0, 0, null, null, NO_TIMELINE));
     Project resubmitted =
         service
             .submit(

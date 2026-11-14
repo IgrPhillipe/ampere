@@ -23,13 +23,13 @@ public interface FindingRepository extends JpaRepository<Finding, Long> {
       FROM Finding finding
       WHERE finding.project.id IN :projectIds
         AND finding.status IN :statuses
-        AND finding.project.status <> :closed
+        AND finding.project.status NOT IN :closed
       GROUP BY finding.project.id
       """)
   List<FindingCount> countPerProject(
       @Param("projectIds") Collection<Long> projectIds,
       @Param("statuses") Collection<FindingStatus> statuses,
-      @Param("closed") ProjectStatus closed);
+      @Param("closed") Collection<ProjectStatus> closed);
 
   @Query(
       """

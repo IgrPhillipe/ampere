@@ -23,7 +23,7 @@ import {
 	VersionComparisonView,
 	type VersionDownload,
 } from "../../components";
-import { defaultComparedVersions } from "../../constants";
+import { defaultComparedVersions, wasApproved } from "../../constants";
 import { useComparedVersions } from "../../hooks";
 
 interface ProjectHistoryPageProps {
@@ -159,7 +159,7 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 				) : (
 					<ReworkPanel
 						rework={reworkQuery.data?.data}
-						approved={detail?.status === "APPROVED"}
+						approved={detail !== undefined && wasApproved(detail.status)}
 						awaitingFindings={awaitingFindings}
 						isLoading={reworkQuery.isPending}
 					/>

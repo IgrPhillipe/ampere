@@ -27,7 +27,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import org.hibernate.annotations.ColumnDefault;
 
 @Entity
@@ -103,6 +102,16 @@ public class Project {
   private OffsetDateTime updatedAt;
 
   private OffsetDateTime submittedAt;
+
+  /**
+   * The submission moved back by the review days already used before a rejection, so the deadline
+   * resumes with the days that were left. Null before this was recorded: the submission itself.
+   */
+  private OffsetDateTime reviewClockStartedAt;
+
+  /** Days the review period stood still while the project waited for the designer's fixes. */
+  @Column(nullable = false, columnDefinition = "integer default 0")
+  private int suspendedReviewDays;
 
   private OffsetDateTime reviewedAt;
 
@@ -225,12 +234,30 @@ public class Project {
     this.standards.addAll(standards);
   }
 
-  public void submit(OffsetDateTime submittedAt) {
+  /**
+   * Starts a review cycle. A resubmission after a rejection resumes the 30-day period with the days
+   * left at the rejection, and the days spent waiting for the fixes count as suspended.
+   *
+   * @return the days the period stood suspended until this submission; zero on the first one
+   */
+  public long submit(OffsetDateTime submittedAt) {
+    Objects.requireNonNull(submittedAt, "submittedAt");
+    long waited = 0;
+    if (isReviewSuspended()) {
+      long used = Timestamps.daysBetween(reviewClockStart(), reviewedAt);
+      waited = Math.max(0, Timestamps.daysBetween(reviewedAt, submittedAt));
+      this.suspendedReviewDays = Math.toIntExact(suspendedReviewDays + waited);
+      this.reviewClockStartedAt = submittedAt.minusDays(used);
+    } else {
+      this.reviewClockStartedAt = submittedAt;
+    }
     this.status = ProjectStatus.UNDER_REVIEW;
-    this.submittedAt = Objects.requireNonNull(submittedAt, "submittedAt");
+    this.submittedAt = submittedAt;
     this.reviewedAt = null;
     this.reviewOpinion = null;
     this.reviewCycle++;
+
+    return waited;
   }
 
   public void recordChangeSummary(String changeSummary) {
@@ -277,21 +304,79 @@ public class Project {
     this.reviewOpinion = opinion == null || opinion.isBlank() ? null : opinion.trim();
   }
 
-  /** Last day of the review period: 30 calendar days after the day of submission. */
+  /**
+   * Last day of the review period: 30 calendar days after the day of submission, plus the days it
+   * stood suspended in earlier cycles.
+   */
   public LocalDate reviewDeadline(ZoneId zone) {
     if (submittedAt == null) {
       throw new IllegalStateException("Project has not been submitted.");
     }
 
-    return submittedAt.atZoneSameInstant(zone).toLocalDate().plusDays(REVIEW_PERIOD_DAYS);
+    return reviewClockStart().atZoneSameInstant(zone).toLocalDate().plusDays(REVIEW_PERIOD_DAYS);
   }
 
+  /**
+   * Calendar days of the review period already used, suspended days excluded. Counts up to today
+   * while under review and stops at the decision otherwise.
+   */
+  public long elapsedReviewDays(LocalDate today, ZoneId zone) {
+    if (submittedAt == null) {
+      return 0;
+    }
+    LocalDate end =
+        isUnderReview() || reviewedAt == null
+            ? today
+            : reviewedAt.atZoneSameInstant(zone).toLocalDate();
+
+    return Math.max(
+        0, ChronoUnit.DAYS.between(reviewClockStart().atZoneSameInstant(zone).toLocalDate(), end));
+  }
+
+  /** Days the period stood suspended, the current wait for the designer's fixes included. */
+  public long suspendedReviewDays(LocalDate today, ZoneId zone) {
+    if (!isReviewSuspended()) {
+      return suspendedReviewDays;
+    }
+
+    return suspendedReviewDays
+        + Math.max(
+            0, ChronoUnit.DAYS.between(reviewedAt.atZoneSameInstant(zone).toLocalDate(), today));
+  }
+
+  /** Days left in the review period; negative once overdue. Frozen while suspended. */
+  public long remainingReviewDays(LocalDate today, ZoneId zone) {
+    return REVIEW_PERIOD_DAYS - elapsedReviewDays(today, zone);
+  }
+
+  /** A rejected project waits for the designer, and the review period waits with it. */
+  public boolean isReviewSuspended() {
+    return isRejected() && wasSubmitted() && reviewedAt != null;
+  }
+
+  /** The last day the approval is valid; from the next day on the project is expired. */
   public LocalDate approvalExpiresOn(ZoneId zone) {
     if (reviewedAt == null) {
       throw new IllegalStateException("Project has not been reviewed.");
     }
 
     return reviewedAt.atZoneSameInstant(zone).toLocalDate().plusMonths(APPROVAL_VALIDITY_MONTHS);
+  }
+
+  public boolean isApprovalExpired(LocalDate today, ZoneId zone) {
+    return status == ProjectStatus.APPROVED && today.isAfter(approvalExpiresOn(zone));
+  }
+
+  /** The approval date stays: it is where the validity counted from. */
+  public void expire() {
+    if (status != ProjectStatus.APPROVED) {
+      throw new IllegalStateException("Only an approved project expires.");
+    }
+    this.status = ProjectStatus.EXPIRED;
+  }
+
+  private OffsetDateTime reviewClockStart() {
+    return reviewClockStartedAt == null ? submittedAt : reviewClockStartedAt;
   }
 
   public DeadlineStatus deadlineStatus(LocalDate today, ZoneId zone) {
@@ -303,16 +388,23 @@ public class Project {
     return deadline.isEqual(today) ? DeadlineStatus.DUE_TODAY : DeadlineStatus.ON_TIME;
   }
 
-  /** The deadline of the review in progress; empty while the project is not under review. */
-  public Optional<ReviewDeadline> pendingReviewDeadline(LocalDate today, ZoneId zone) {
-    if (!isUnderReview() || submittedAt == null) {
-      return Optional.empty();
+  /** The review period and the approval validity as they stand on {@code today}. */
+  public ReviewTimeline reviewTimeline(LocalDate today, ZoneId zone) {
+    LocalDate validUntil = wasApproved() && reviewedAt != null ? approvalExpiresOn(zone) : null;
+    if (!wasSubmitted()) {
+      return new ReviewTimeline(null, null, null, null, null, false, validUntil);
     }
+    boolean running = isUnderReview();
+    boolean suspended = isReviewSuspended();
 
-    LocalDate deadline = reviewDeadline(zone);
-    return Optional.of(
-        new ReviewDeadline(
-            deadline, deadlineStatus(today, zone), ChronoUnit.DAYS.between(today, deadline)));
+    return new ReviewTimeline(
+        running ? reviewDeadline(zone) : null,
+        running ? deadlineStatus(today, zone) : null,
+        running || suspended ? remainingReviewDays(today, zone) : null,
+        elapsedReviewDays(today, zone),
+        suspendedReviewDays(today, zone),
+        suspended,
+        validUntil);
   }
 
   public boolean isDraft() {
@@ -329,6 +421,10 @@ public class Project {
 
   public boolean isUnderReview() {
     return status == ProjectStatus.UNDER_REVIEW;
+  }
+
+  public boolean wasApproved() {
+    return status.wasApproved();
   }
 
   public boolean canBeSubmitted() {
@@ -412,6 +508,14 @@ public class Project {
 
   public OffsetDateTime getSubmittedAt() {
     return submittedAt;
+  }
+
+  public OffsetDateTime getReviewClockStartedAt() {
+    return reviewClockStartedAt;
+  }
+
+  public int getSuspendedReviewDays() {
+    return suspendedReviewDays;
   }
 
   public OffsetDateTime getReviewedAt() {

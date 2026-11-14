@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -170,17 +171,19 @@ public class DesignerDashboardService {
                 FindingRepository.FindingCount::getTotal));
   }
 
-  /** Ordered by submission, which is the same as the shortest deadline first. */
+  /**
+   * Shortest deadline first. Not the submission order: a resubmission resumes the deadline of the
+   * cycle it was rejected in.
+   */
   private List<ReviewItem> underReview(Long ownerId, LocalDate today) {
     return projectRepository
         .findAllByOwnerIdAndStatusAndSubmittedAtIsNotNullOrderBySubmittedAtAscIdAsc(
             ownerId, ProjectStatus.UNDER_REVIEW)
         .stream()
-        .map(
-            project -> {
-              LocalDate deadline = project.reviewDeadline(ZONE);
-              return new ReviewItem(project, deadline, ChronoUnit.DAYS.between(today, deadline));
-            })
+        .map(project -> ReviewItem.of(project, project.reviewTimeline(today, ZONE)))
+        .sorted(
+            Comparator.comparing(ReviewItem::deadline)
+                .thenComparing(item -> item.project().getId()))
         .toList();
   }
 

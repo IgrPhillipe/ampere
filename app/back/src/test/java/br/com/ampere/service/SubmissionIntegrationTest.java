@@ -750,7 +750,10 @@ class SubmissionIntegrationTest {
         .andExpect(jsonPath("$.data[6].description").value("Apontamento de Documentos contestado."))
         .andExpect(jsonPath("$.data[6].detail").value("A ART já estava assinada."))
         .andExpect(jsonPath("$.data[7].detail").value("ART reenviada com a assinatura."))
-        .andExpect(jsonPath("$.data[8].description").value("Versão 2 reenviada para análise."))
+        .andExpect(
+            jsonPath("$.data[8].description")
+                .value(
+                    "Versão 2 reenviada para análise. Prazo suspenso por 0 dias; restam 30 dias."))
         .andExpect(jsonPath("$.data[8].detail").value("ART assinada e tipo B incluído."))
         .andExpect(jsonPath("$.data[9].authorRole").doesNotExist())
         .andExpect(
@@ -763,7 +766,10 @@ class SubmissionIntegrationTest {
         .andExpect(
             jsonPath("$.data[13].description")
                 .value("Apontamento de Dados da Edificação corrigido."))
-        .andExpect(jsonPath("$.data[14].description").value("Versão 3 reenviada para análise."))
+        .andExpect(
+            jsonPath("$.data[14].description")
+                .value(
+                    "Versão 3 reenviada para análise. Prazo suspenso por 0 dias; restam 30 dias."))
         .andExpect(jsonPath("$.data[17].description").value("Aprovado."));
 
     // Each decision reaches the designer, with the reopened finding of the second one; each

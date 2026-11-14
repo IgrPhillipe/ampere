@@ -3,6 +3,8 @@ package br.com.ampere.config;
 import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.LampTechnology;
 import br.com.ampere.domain.NotificationType;
+import br.com.ampere.domain.ProjectEventType;
+import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.UserRole;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManagerFactory;
@@ -24,7 +26,9 @@ public class EnumCheckConstraints {
           new Constraint("load_group_item", "lamp_technology", LampTechnology.class),
           new Constraint("notification", "type", NotificationType.class),
           new Constraint("residential_group_load", "lamp_technology", LampTechnology.class),
-          new Constraint("project", "state", BrazilianState.class));
+          new Constraint("project", "state", BrazilianState.class),
+          new Constraint("project", "status", ProjectStatus.class),
+          new Constraint("project_event", "type", ProjectEventType.class));
 
   private final JdbcTemplate jdbcTemplate;
 

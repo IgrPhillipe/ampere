@@ -10,6 +10,8 @@ import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.User;
 import br.com.ampere.repository.ProjectEventRepository;
+import br.com.ampere.utils.BrazilianDateFormat;
+import br.com.ampere.utils.Timestamps;
 import java.time.OffsetDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -32,20 +34,66 @@ public class ProjectEventService {
     record(project, ProjectEventType.CREATED, author, "Projeto criado.", null, occurredAt);
   }
 
+  /** {@code suspendedDays} is what {@link Project#submit} returned for this submission. */
   public void submitted(
-      Project project, User author, Calculation calculation, OffsetDateTime occurredAt) {
+      Project project,
+      User author,
+      Calculation calculation,
+      long suspendedDays,
+      OffsetDateTime occurredAt) {
     boolean resubmission = project.getReviewCycle() > 1;
     String action = resubmission ? "reenviada" : "enviada";
     ProjectEventType type =
         resubmission ? ProjectEventType.RESUBMITTED : ProjectEventType.SUBMITTED;
+    String description = "Versão " + project.getReviewCycle() + " " + action + " para análise.";
     record(
         project,
         type,
         author,
-        "Versão " + project.getReviewCycle() + " " + action + " para análise.",
+        resubmission
+            ? description + resumedDeadline(project, suspendedDays, occurredAt)
+            : description,
         resubmission ? project.getChangeSummary() : null,
         occurredAt);
     preValidated(project, calculation, occurredAt);
+  }
+
+  /** Called after the project was approved and its validity ran out. */
+  public void expired(Project project, OffsetDateTime occurredAt) {
+    String endedOn = BrazilianDateFormat.date(project.approvalExpiresOn(Timestamps.ZONE));
+    record(
+        project,
+        ProjectEventType.EXPIRED,
+        null,
+        "Validade da aprovação encerrada em " + endedOn + ".",
+        "Aprovação válida por "
+            + Project.APPROVAL_VALIDITY_MONTHS
+            + " meses (DIS-NOR-053, item 6.27.6).",
+        occurredAt);
+  }
+
+  private static String resumedDeadline(
+      Project project, long suspendedDays, OffsetDateTime resubmittedAt) {
+    long remaining =
+        project.remainingReviewDays(Timestamps.localDate(resubmittedAt), Timestamps.ZONE);
+
+    return " Prazo suspenso por "
+        + daysLabel(suspendedDays)
+        + "; "
+        + remainingLabel(remaining)
+        + ".";
+  }
+
+  private static String remainingLabel(long days) {
+    if (days < 0) {
+      return "prazo de análise já vencido";
+    }
+
+    return (days == 1 ? "resta " : "restam ") + daysLabel(days);
+  }
+
+  private static String daysLabel(long days) {
+    return days + (days == 1 ? " dia" : " dias");
   }
 
   public void assigned(Project project, User author, OffsetDateTime occurredAt) {

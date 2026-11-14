@@ -99,9 +99,9 @@ public class SubmissionService {
     Calculation calculation =
         calculationRepository.findFirstByProjectIdOrderByIdDesc(projectId).orElseThrow();
     OffsetDateTime submittedAt = Timestamps.now();
-    project.submit(submittedAt);
+    long suspendedDays = project.submit(submittedAt);
     versionService.register(project, calculation, submittedAt);
-    eventService.submitted(project, project.getOwner(), calculation, submittedAt);
+    eventService.submitted(project, project.getOwner(), calculation, suspendedDays, submittedAt);
     reviewAssignmentService.distribute(project, submittedAt);
     // After the distribution, which hands a resubmission back to whoever rejected it.
     if (project.isReanalysis()) {

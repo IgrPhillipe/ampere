@@ -10,6 +10,7 @@ export const PROJECT_EVENT_LABELS = {
 	APPROVED: "Aprovado",
 	FINDING_ANSWERED: "Apontamento Respondido",
 	RESUBMITTED: "Reenviado",
+	EXPIRED: "Expirado",
 } as const satisfies Record<ProjectEventType, string>;
 
 const DESIGNER_EVENTS = new Set<ProjectEventType>([

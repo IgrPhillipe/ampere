@@ -9,6 +9,7 @@ export const projectStatusSchema = z.enum([
 	"UNDER_REVIEW",
 	"REJECTED",
 	"APPROVED",
+	"EXPIRED",
 ]);
 
 export type ProjectStatus = z.infer<typeof projectStatusSchema>;
@@ -57,6 +58,7 @@ export const projectStatusCountsSchema = z.object({
 	underReview: z.number().int().nonnegative(),
 	rejected: z.number().int().nonnegative(),
 	approved: z.number().int().nonnegative(),
+	expired: z.number().int().nonnegative(),
 });
 
 export type ProjectStatusCounts = z.infer<typeof projectStatusCountsSchema>;

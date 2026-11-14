@@ -8,5 +8,6 @@ public enum ProjectEventType {
   REJECTED,
   APPROVED,
   FINDING_ANSWERED,
-  RESUBMITTED
+  RESUBMITTED,
+  EXPIRED
 }

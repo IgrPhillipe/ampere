@@ -53,6 +53,7 @@ const emptyStatusCounts: ProjectStatusCounts = {
 	underReview: 0,
 	rejected: 0,
 	approved: 0,
+	expired: 0,
 };
 
 export const ProjectsPage = () => {

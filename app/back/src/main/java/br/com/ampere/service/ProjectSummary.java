@@ -1,13 +1,13 @@
 package br.com.ampere.service;
 
 import br.com.ampere.domain.Project;
-import br.com.ampere.domain.ReviewDeadline;
+import br.com.ampere.domain.ReviewTimeline;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 /**
- * A project and the aggregated values displayed in its summary. {@code reviewDeadline} is null
- * while the project is not under review.
+ * A project and the aggregated values displayed in its summary, with its review timeline as of the
+ * day it was read.
  */
 public record ProjectSummary(
     Project project,
@@ -15,7 +15,7 @@ public record ProjectSummary(
     long consumerUnitsCount,
     BigDecimal demandKva,
     OffsetDateTime lastEventAt,
-    ReviewDeadline reviewDeadline) {
+    ReviewTimeline timeline) {
 
   /** Read after the commit, so the fallback sees the update the request just made. */
   public OffsetDateTime lastActivityAt() {

@@ -6,6 +6,7 @@ import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ReviewQueueFilter;
 import br.com.ampere.domain.ReviewQueueSort;
+import br.com.ampere.domain.ReviewTimeline;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
@@ -19,7 +20,6 @@ import br.com.ampere.utils.SearchTerms;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -104,12 +104,14 @@ public class ReviewQueueService {
         projects.getContent().stream()
             .map(
                 project -> {
-                  LocalDate deadline = project.reviewDeadline(ZONE);
+                  ReviewTimeline timeline = project.reviewTimeline(today, ZONE);
                   return new ReviewQueueEntry(
                       project,
-                      deadline,
-                      project.deadlineStatus(today, ZONE),
-                      ChronoUnit.DAYS.between(today, deadline),
+                      timeline.deadline(),
+                      timeline.deadlineStatus(),
+                      timeline.daysRemaining(),
+                      timeline.elapsedDays(),
+                      timeline.suspendedDays(),
                       warnings.getOrDefault(project.getId(), List.of()),
                       consumerUnits.getOrDefault(project.getId(), 0L),
                       demands.get(project.getId()));
@@ -156,7 +158,7 @@ public class ReviewQueueService {
             ProjectStatus.REJECTED, startOfMonth));
   }
 
-  /** Submitted before this instant means the deadline is today or already past. */
+  /** A review clock started before this instant means the deadline is today or already past. */
   private static OffsetDateTime dueSoonCutoff(LocalDate today) {
     return today
         .plusDays(1)
@@ -166,12 +168,12 @@ public class ReviewQueueService {
   }
 
   private long filteredCount(
-      boolean dueSoon, boolean highDemand, boolean reanalysis, OffsetDateTime submittedBefore) {
+      boolean dueSoon, boolean highDemand, boolean reanalysis, OffsetDateTime clockStartedBefore) {
     return projectRepository
         .searchReviewQueue(
             new ReviewQueueSearch(
                 "",
-                dueSoon ? submittedBefore : null,
+                dueSoon ? clockStartedBefore : null,
                 highDemand ? HIGH_DEMAND_THRESHOLD : null,
                 reanalysis,
                 Set.of(),

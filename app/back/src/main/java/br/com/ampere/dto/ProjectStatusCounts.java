@@ -10,7 +10,8 @@ public record ProjectStatusCounts(
     long awaitingSubmission,
     long underReview,
     long rejected,
-    long approved) {
+    long approved,
+    long expired) {
 
   public static ProjectStatusCounts from(Map<ProjectStatus, Long> counts) {
     long draft = counts.getOrDefault(ProjectStatus.DRAFT, 0L);
@@ -18,9 +19,10 @@ public record ProjectStatusCounts(
     long underReview = counts.getOrDefault(ProjectStatus.UNDER_REVIEW, 0L);
     long rejected = counts.getOrDefault(ProjectStatus.REJECTED, 0L);
     long approved = counts.getOrDefault(ProjectStatus.APPROVED, 0L);
-    long total = draft + awaitingSubmission + underReview + rejected + approved;
+    long expired = counts.getOrDefault(ProjectStatus.EXPIRED, 0L);
+    long total = draft + awaitingSubmission + underReview + rejected + approved + expired;
 
     return new ProjectStatusCounts(
-        total, draft, awaitingSubmission, underReview, rejected, approved);
+        total, draft, awaitingSubmission, underReview, rejected, approved, expired);
   }
 }
