@@ -141,6 +141,8 @@ As 18 tabelas entram publicadas, digitadas pelo admin e conferidas pelo conferen
 
 Cada tabela tem no máximo uma revisão pendente: uma nova revisão do Quadro 37 ou da Tabela 2 só entra depois que a pendente for aprovada ou excluída. Exclui quem a cadastrou ou o admin.
 
+A aba "Histórico" de cada uma mostra essa diferença no comparativo.
+
 ---
 
 ## Como Reiniciar

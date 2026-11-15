@@ -62,6 +62,7 @@ Regras da área administrativa:
 - **Uma revisão pendente por tabela.** Outra revisão da mesma tabela só entra depois que a pendente for aprovada ou excluída. O banco garante a regra também para dois cadastros no mesmo instante.
 - **Os cinco exemplos do Anexo I são o portão de publicação.** Antes de publicar uma revisão, o sistema executa os cinco exemplos resolvidos da norma com os parâmetros recém-cadastrados. Se algum deixar de fechar, a revisão não é publicada, o que barra erro de digitação nos parâmetros.
 - **Revisão publicada não é editada.** Norma nova gera revisão nova, e a anterior passa a substituída. Cálculo antigo continua apontando para a revisão sob a qual foi feito.
+- **Histórico das revisões.** A tabela lista as revisões do mesmo código, as aguardando revisão primeiro e as publicadas da mais recente à mais antiga, com quem cadastrou e quem aprovou, e compara as linhas de duas delas: incluídas, removidas e alteradas.
 
 Tabelas a cadastrar:
 
