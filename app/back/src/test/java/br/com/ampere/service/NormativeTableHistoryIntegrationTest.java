@@ -118,6 +118,7 @@ class NormativeTableHistoryIntegrationTest {
         List.of(
             new User("Ana Gestora", "admin@ampere.com", hash, UserRole.ADMIN),
             new User("Bruno Conferente", "conferente@ampere.com", hash, UserRole.ADMIN),
+            new User("Carla Analista", "analista@ampere.com", hash, UserRole.REVIEWER),
             new User("Usuário", "user@ampere.com", hash, UserRole.USER)));
 
     admin = bearer("admin@ampere.com");
@@ -167,6 +168,17 @@ class NormativeTableHistoryIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.from.id").value(third));
     mockMvc.perform(compare(first, second, third)).andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void keepsTheEmailOfWhoHasNoAccount() throws Exception {
+    userRepository.delete(userRepository.findByEmail("conferente@ampere.com").orElseThrow());
+
+    mockMvc
+        .perform(get("/normative-tables/" + first + "/revisions").header("Authorization", admin))
+        .andExpect(jsonPath("$.data[1].verifiedBy").value("conferente@ampere.com"))
+        .andExpect(jsonPath("$.data[1].verifiedByName").value("conferente@ampere.com"))
+        .andExpect(jsonPath("$.data[1].registeredByName").value("Ana Gestora"));
   }
 
   @Test
@@ -228,6 +240,33 @@ class NormativeTableHistoryIntegrationTest {
                 .header("Authorization", admin))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.detail").value("Revisão não encontrada no histórico desta tabela."));
+  }
+
+  @Test
+  void aRevisionComparedWithItselfHasNoChanges() throws Exception {
+    mockMvc
+        .perform(compare(first, first, first))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.included.length()").value(0))
+        .andExpect(jsonPath("$.data.removed.length()").value(0))
+        .andExpect(jsonPath("$.data.changed.length()").value(0));
+  }
+
+  @Test
+  void aReviewerReadsTheHistoryAndTheComparison() throws Exception {
+    String reviewer = bearer("analista@ampere.com");
+
+    mockMvc
+        .perform(get("/normative-tables/" + first + "/revisions").header("Authorization", reviewer))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.length()").value(2));
+    mockMvc
+        .perform(
+            get("/normative-tables/" + first + "/revisions/compare")
+                .param("from", first)
+                .param("to", second)
+                .header("Authorization", reviewer))
+        .andExpect(status().isOk());
   }
 
   @Test
