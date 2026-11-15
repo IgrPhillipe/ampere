@@ -28,7 +28,7 @@ import {
 const sortOptions: SortOption<NormativeTableSort>[] = [
 	{ value: "code", label: "Tabela" },
 	{ value: "registeredAt", label: "Cadastro" },
-	{ value: "verifiedAt", label: "Revisão" },
+	{ value: "verifiedAt", label: "Aprovação" },
 ];
 
 const statusChips = [

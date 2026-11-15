@@ -1,24 +1,32 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.NormativeTable;
+import br.com.ampere.domain.NormativeTableComparison;
 import br.com.ampere.domain.NormativeTableSort;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.NormativeTableCodeResponse;
+import br.com.ampere.dto.NormativeTableComparisonResponse;
 import br.com.ampere.dto.NormativeTablePublicationRequest;
 import br.com.ampere.dto.NormativeTableRequest;
 import br.com.ampere.dto.NormativeTableResponse;
 import br.com.ampere.dto.NormativeTableRowRequest;
 import br.com.ampere.service.AuthenticatedUser;
+import br.com.ampere.service.NormativeTableHistoryService;
 import br.com.ampere.service.NormativeTableParameters;
 import br.com.ampere.service.NormativeTableQuery;
 import br.com.ampere.service.NormativeTableService;
+import br.com.ampere.service.PersonDirectory;
+import br.com.ampere.service.PersonNames;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -42,9 +50,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class NormativeTableController {
 
   private final NormativeTableService service;
+  private final NormativeTableHistoryService historyService;
+  private final PersonDirectory people;
 
-  public NormativeTableController(NormativeTableService service) {
+  public NormativeTableController(
+      NormativeTableService service,
+      NormativeTableHistoryService historyService,
+      PersonDirectory people) {
     this.service = service;
+    this.historyService = historyService;
+    this.people = people;
   }
 
   @GetMapping("/codes")
@@ -88,8 +103,7 @@ public class NormativeTableController {
       @AuthenticationPrincipal Jwt jwt) {
     NormativeTableQuery query = new NormativeTableQuery(search, statuses, sort, direction);
 
-    return ApiResponse.of(
-        service.list(query, userOf(jwt)).stream().map(NormativeTableResponse::summary).toList());
+    return ApiResponse.of(summaries(service.list(query, userOf(jwt))));
   }
 
   @GetMapping("/{id}")
@@ -104,7 +118,54 @@ public class NormativeTableController {
   })
   public ApiResponse<NormativeTableResponse> detail(
       @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(NormativeTableResponse.from(service.findById(id, userOf(jwt))));
+    return ApiResponse.of(detailOf(service.findById(id, userOf(jwt))));
+  }
+
+  @GetMapping("/{id}/revisions")
+  @Operation(
+      operationId = "listNormativeTableRevisions",
+      summary =
+          "Histórico das revisões da mesma tabela: as aguardando revisão e, depois, as"
+              + " publicadas, da publicação mais recente à mais antiga")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Revisões cadastradas, sem as linhas"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "Tabela não encontrada")
+  })
+  public ApiResponse<List<NormativeTableResponse>> revisions(
+      @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(summaries(historyService.revisions(id, userOf(jwt))));
+  }
+
+  @GetMapping("/{id}/revisions/compare")
+  @Operation(
+      operationId = "compareNormativeTableRevisions",
+      summary = "Compara duas revisões: linhas incluídas, removidas e alteradas")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Diferenças entre as revisões"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "Revisão ausente ou inválida, ou origem posterior ao destino"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "Tabela não encontrada, ou revisão fora do histórico dela")
+  })
+  public ApiResponse<NormativeTableComparisonResponse> compare(
+      @PathVariable Long id,
+      @Parameter(description = "Identificador da revisão de origem, a mais antiga") @RequestParam
+          Long from,
+      @Parameter(description = "Identificador da revisão de destino") @RequestParam Long to,
+      @AuthenticationPrincipal Jwt jwt) {
+    NormativeTableComparison comparison = historyService.compare(id, from, to, userOf(jwt));
+
+    return ApiResponse.of(
+        NormativeTableComparisonResponse.from(
+            comparison, namesOf(List.of(comparison.from(), comparison.to()))));
   }
 
   @PostMapping
@@ -121,8 +182,7 @@ public class NormativeTableController {
   public ApiResponse<NormativeTableResponse> create(
       @Valid @RequestBody NormativeTableRequest request, @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        NormativeTableResponse.from(
-            service.create(parametersOf(request), emailOf(jwt), userOf(jwt))));
+        detailOf(service.create(parametersOf(request), emailOf(jwt), userOf(jwt))));
   }
 
   @PutMapping("/{id}")
@@ -149,8 +209,7 @@ public class NormativeTableController {
       @Valid @RequestBody NormativeTableRequest request,
       @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        NormativeTableResponse.from(
-            service.update(id, parametersOf(request), emailOf(jwt), userOf(jwt))));
+        detailOf(service.update(id, parametersOf(request), emailOf(jwt), userOf(jwt))));
   }
 
   @PostMapping("/{id}/publication")
@@ -173,8 +232,7 @@ public class NormativeTableController {
       @Valid @RequestBody NormativeTablePublicationRequest request,
       @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        NormativeTableResponse.from(
-            service.publish(id, request.version(), emailOf(jwt), userOf(jwt))));
+        detailOf(service.publish(id, request.version(), emailOf(jwt), userOf(jwt))));
   }
 
   @DeleteMapping("/{id}")
@@ -196,6 +254,23 @@ public class NormativeTableController {
   })
   public void delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
     service.delete(id, emailOf(jwt), userOf(jwt));
+  }
+
+  private List<NormativeTableResponse> summaries(List<NormativeTable> tables) {
+    PersonNames names = namesOf(tables);
+
+    return tables.stream().map(table -> NormativeTableResponse.summary(table, names)).toList();
+  }
+
+  private NormativeTableResponse detailOf(NormativeTable table) {
+    return NormativeTableResponse.from(table, namesOf(List.of(table)));
+  }
+
+  private PersonNames namesOf(Collection<NormativeTable> tables) {
+    return people.namesOf(
+        tables.stream()
+            .flatMap(table -> Stream.of(table.getRegisteredBy(), table.getVerifiedBy()))
+            .toList());
   }
 
   private static NormativeTableParameters parametersOf(NormativeTableRequest request) {

@@ -66,14 +66,43 @@ export const normativeTableSchema = z.object({
 	version: z.number().int().nonnegative(),
 	status: normativeTableStatusSchema,
 	rowCount: z.number().int().nonnegative(),
+	// The e-mails tell who may publish; the names are what the screen shows.
 	registeredBy: z.string(),
+	registeredByName: z.string(),
 	registeredAt: z.string(),
 	verifiedBy: z.string().nullish(),
+	verifiedByName: z.string().nullish(),
 	verifiedAt: z.string().nullish(),
 	rows: z.array(normativeTableRowSchema).optional(),
 });
 
 export type NormativeTable = z.infer<typeof normativeTableSchema>;
+
+export const normativeTableRowChangeSchema = z.object({
+	before: normativeTableRowSchema,
+	after: normativeTableRowSchema,
+});
+
+export type NormativeTableRowChange = z.infer<
+	typeof normativeTableRowChangeSchema
+>;
+
+/** Rows paired by key and band: a band that moved is one removed and one included. */
+export const normativeTableComparisonSchema = z.object({
+	from: normativeTableSchema,
+	to: normativeTableSchema,
+	included: z.array(normativeTableRowSchema),
+	removed: z.array(normativeTableRowSchema),
+	changed: z.array(normativeTableRowChangeSchema),
+});
+
+export type NormativeTableComparison = z.infer<
+	typeof normativeTableComparisonSchema
+>;
+
+export const normativeTableComparisonResponseSchema = apiResponseSchema(
+	normativeTableComparisonSchema,
+);
 
 export const normativeTableCodeListResponseSchema = apiResponseSchema(
 	z.array(normativeTableCodeSchema),

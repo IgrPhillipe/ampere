@@ -4,10 +4,15 @@ import { http } from "@lib/http";
 import { NormativeTableEndpoints as e } from "./endpoints";
 import {
 	normativeTableCodeListResponseSchema,
+	normativeTableComparisonResponseSchema,
 	normativeTableListResponseSchema,
 	normativeTableResponseSchema,
 } from "./schemas";
-import type { ListNormativeTablesParams, NormativeTablePayload } from "./types";
+import type {
+	CompareNormativeTableRevisionsParams,
+	ListNormativeTablesParams,
+	NormativeTablePayload,
+} from "./types";
 
 export const getNormativeTableCodes = async () => {
 	const response = await http.get(e.codes).json<unknown>();
@@ -29,6 +34,24 @@ export const getNormativeTable = async (id: string) => {
 	const response = await http.get(e.detail(id)).json<unknown>();
 
 	return normativeTableResponseSchema.parse(response);
+};
+
+export const getNormativeTableRevisions = async (id: string) => {
+	const response = await http.get(e.revisions(id)).json<unknown>();
+
+	return normativeTableListResponseSchema.parse(response);
+};
+
+export const compareNormativeTableRevisions = async ({
+	id,
+	from,
+	to,
+}: CompareNormativeTableRevisionsParams) => {
+	const response = await http
+		.get(e.compare(id), { searchParams: { from, to } })
+		.json<unknown>();
+
+	return normativeTableComparisonResponseSchema.parse(response);
 };
 
 export const createNormativeTable = async (payload: NormativeTablePayload) => {

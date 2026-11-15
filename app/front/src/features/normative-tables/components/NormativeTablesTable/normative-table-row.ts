@@ -25,7 +25,7 @@ export const getNormativeTableAttention = (
 		? {
 				severity: "warning",
 				title: "Aguardando sua revisão",
-				details: [`Cadastrada por ${table.registeredBy}`],
+				details: [`Cadastrada por ${table.registeredByName}`],
 				action: "Confira a revisão para aprová-la.",
 			}
 		: null;

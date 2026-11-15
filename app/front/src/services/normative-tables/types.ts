@@ -9,6 +9,13 @@ export interface ListNormativeTablesParams {
 	direction?: SortDirection;
 }
 
+export interface CompareNormativeTableRevisionsParams {
+	/** The table whose history holds both revisions. */
+	id: string;
+	from: string;
+	to: string;
+}
+
 export interface NormativeTableRowPayload {
 	key?: string | null;
 	lowerBound?: number | null;

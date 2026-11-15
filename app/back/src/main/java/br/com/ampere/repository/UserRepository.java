@@ -26,6 +26,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean isMustChangePassword();
   }
 
+  interface PersonName {
+
+    String getEmail();
+
+    String getName();
+  }
+
+  /** The e-mails must be folded with {@link User#normalizeEmail}. */
+  List<PersonName> findAllByEmailIn(Collection<String> emails);
+
   /** Read on every request, without loading the whole account. */
   Optional<AccountStatus> findStatusById(Long id);
 
