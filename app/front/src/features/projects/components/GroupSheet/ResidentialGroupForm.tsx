@@ -215,6 +215,7 @@ export const ResidentialGroupForm = ({
 							</>
 						}
 						emptyHint="Nenhuma carga informada. Adicione chuveiros, condicionadores de ar e demais cargas de uma unidade."
+						descriptionPlaceholder="Ex.: Chuveiro"
 						error={itemsError}
 					/>
 				) : null}

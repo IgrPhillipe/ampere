@@ -30,6 +30,7 @@ interface LoadItemsSectionProps<T extends WithLoadItems> {
 	readOnly: boolean;
 	title: ReactNode;
 	emptyHint: string;
+	descriptionPlaceholder: string;
 	/** Error of the whole list, such as a three-phase apartment without loads. */
 	error?: string;
 	meta?: ReactNode;
@@ -40,6 +41,7 @@ export const LoadItemsSection = <T extends WithLoadItems>({
 	readOnly,
 	title,
 	emptyHint,
+	descriptionPlaceholder,
 	error,
 	meta,
 }: LoadItemsSectionProps<T>) => {
@@ -116,7 +118,7 @@ export const LoadItemsSection = <T extends WithLoadItems>({
 								control={control}
 								name={field(index, "description")}
 								label="Descrição"
-								placeholder="Ex.: Elevador"
+								placeholder={descriptionPlaceholder}
 								required
 								variant="underline"
 								fieldClassName="sm:col-span-2"

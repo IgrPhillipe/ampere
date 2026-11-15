@@ -219,7 +219,9 @@ describe("ResidentialGroupForm", () => {
 		await pickConnection("Trifásico");
 
 		expect(unitLoadField()).not.toBeInTheDocument();
-		expect(screen.getByRole("textbox", { name: /Descrição/i })).toHaveValue("");
+		const description = screen.getByRole("textbox", { name: /Descrição/i });
+		expect(description).toHaveValue("");
+		expect(description).toHaveAttribute("placeholder", "Ex.: Chuveiro");
 	});
 
 	it("drops the total load when switching to three-phase", async () => {

@@ -95,6 +95,7 @@ export const LoadGroupForm = ({
 					readOnly={readOnly}
 					title="Cargas Instaladas"
 					emptyHint="Nenhuma carga informada. Adicione iluminação, motores, bombas e demais cargas do grupo."
+					descriptionPlaceholder="Ex.: Elevador"
 				/>
 			</fieldset>
 
