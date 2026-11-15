@@ -149,9 +149,21 @@ class NormativeTableTest {
 
     assertThat(table.getStatus()).isEqualTo(NormativeTableStatus.PUBLISHED);
     assertThat(table.getVerifiedBy()).isEqualTo("revisor@ampere.com");
-    assertThatThrownBy(() -> table.revise("Quadro 37", "item 5", "108", List.of()))
+    assertThatThrownBy(
+            () -> table.revise("admin@ampere.com", "Quadro 37", "item 5", "108", List.of()))
         .isInstanceOf(IllegalStateException.class);
     assertThatThrownBy(() -> table.publish("revisor@ampere.com"))
+        .isInstanceOf(IllegalStateException.class);
+  }
+
+  @Test
+  void onlyWhoTypedADraftRevisesIt() {
+    NormativeTable table = quadro37(List.of(band(null, "25", "1.5")));
+
+    assertThat(table.isEditableBy("ADMIN@ampere.com")).isTrue();
+    assertThat(table.isEditableBy("revisor@ampere.com")).isFalse();
+    assertThatThrownBy(
+            () -> table.revise("revisor@ampere.com", "Quadro 37", "item 5", "108", List.of()))
         .isInstanceOf(IllegalStateException.class);
   }
 

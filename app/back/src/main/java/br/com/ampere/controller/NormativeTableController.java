@@ -134,6 +134,9 @@ public class NormativeTableController {
         responseCode = "400",
         description = "Linhas inválidas"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "A revisão foi cadastrada por outra pessoa"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Tabela não encontrada"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -145,7 +148,8 @@ public class NormativeTableController {
       @Valid @RequestBody NormativeTableRequest request,
       @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        NormativeTableResponse.from(service.update(id, parametersOf(request), userOf(jwt))));
+        NormativeTableResponse.from(
+            service.update(id, parametersOf(request), emailOf(jwt), userOf(jwt))));
   }
 
   @PostMapping("/{id}/publication")
@@ -177,6 +181,9 @@ public class NormativeTableController {
         responseCode = "204",
         description = "Tabela excluída"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "A revisão foi cadastrada por outra pessoa, e quem exclui não é gestor"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Tabela não encontrada"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -184,7 +191,7 @@ public class NormativeTableController {
         description = "A tabela já foi publicada")
   })
   public void delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-    service.delete(id, userOf(jwt));
+    service.delete(id, emailOf(jwt), userOf(jwt));
   }
 
   private static NormativeTableParameters parametersOf(NormativeTableRequest request) {

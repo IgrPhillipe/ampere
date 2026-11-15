@@ -149,11 +149,15 @@ public class NormativeTable {
     return status == NormativeTableStatus.PUBLISHED;
   }
 
-  /** Replaces what was typed. Only a draft changes; the service refuses the others before. */
+  /** Replaces what was typed. Only its author changes a draft; the service refuses the others. */
   public void revise(
-      String identification, String item, String page, List<NormativeTableRow> rows) {
-    if (!isDraft()) {
-      throw new IllegalStateException("Only a draft table is revised.");
+      String editor,
+      String identification,
+      String item,
+      String page,
+      List<NormativeTableRow> rows) {
+    if (!isEditableBy(editor)) {
+      throw new IllegalStateException("Only the author of a draft table revises it.");
     }
     describe(identification, item, page, rows);
   }
@@ -171,8 +175,13 @@ public class NormativeTable {
     this.status = NormativeTableStatus.SUPERSEDED;
   }
 
+  /** Whoever verifies reads what the author typed, so nobody else changes the draft. */
+  public boolean isEditableBy(String person) {
+    return isDraft() && isRegisteredBy(person);
+  }
+
   public boolean isVerifiableBy(String person) {
-    return !registeredBy.equalsIgnoreCase(person);
+    return !isRegisteredBy(person);
   }
 
   public NormativeReference reference() {
@@ -248,6 +257,10 @@ public class NormativeTable {
       }
     }
     return problems;
+  }
+
+  private boolean isRegisteredBy(String person) {
+    return registeredBy.equalsIgnoreCase(person);
   }
 
   private void describe(

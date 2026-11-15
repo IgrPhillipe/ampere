@@ -89,7 +89,8 @@ class AdminAccessIntegrationTest {
             new User("Usuário", "user@ampere.com", hash, UserRole.USER),
             new User("Admin", "admin@ampere.com", hash, UserRole.ADMIN),
             new User("Conferente", "conferente@ampere.com", hash, UserRole.ADMIN),
-            new User("Revisor", "revisor@ampere.com", hash, UserRole.REVIEWER)));
+            new User("Revisor", "revisor@ampere.com", hash, UserRole.REVIEWER),
+            new User("Analista", "analista@ampere.com", hash, UserRole.REVIEWER)));
   }
 
   @Test
@@ -173,6 +174,68 @@ class AdminAccessIntegrationTest {
         .andExpect(status().isOk());
     mockMvc
         .perform(delete("/normative-tables/" + id).header("Authorization", reviewer))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void aReviewerApprovesARevisionAnotherReviewerRegistered() throws Exception {
+    String id = create(bearer("revisor@ampere.com"));
+
+    mockMvc
+        .perform(
+            post("/normative-tables/" + id + "/publication")
+                .header("Authorization", bearer("analista@ampere.com")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.registeredBy").value("revisor@ampere.com"))
+        .andExpect(jsonPath("$.data.verifiedBy").value("analista@ampere.com"));
+  }
+
+  @Test
+  void onlyWhoRegisteredADraftEditsOrDeletesIt() throws Exception {
+    String id = create(bearer("admin@ampere.com"));
+    String reviewer = bearer("revisor@ampere.com");
+
+    mockMvc
+        .perform(
+            put("/normative-tables/" + id)
+                .header("Authorization", reviewer)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(QUADRO_37))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.detail").value("Só quem cadastrou a revisão pode alterá-la."));
+    mockMvc
+        .perform(delete("/normative-tables/" + id).header("Authorization", reviewer))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            jsonPath("$.detail").value("Só quem cadastrou a revisão ou um gestor pode excluí-la."));
+  }
+
+  @Test
+  void whoApprovesADraftCannotRewriteItFirst() throws Exception {
+    String id = create(bearer("revisor@ampere.com"));
+    String verifier = bearer("analista@ampere.com");
+
+    mockMvc
+        .perform(
+            put("/normative-tables/" + id)
+                .header("Authorization", verifier)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(QUADRO_37.replace("\"value\": 1.5", "\"value\": 9.9")))
+        .andExpect(status().isForbidden());
+    mockMvc
+        .perform(post("/normative-tables/" + id + "/publication").header("Authorization", verifier))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.registeredBy").value("revisor@ampere.com"))
+        .andExpect(jsonPath("$.data.rows[0].value").value(1.5));
+  }
+
+  @Test
+  void anAdminDeletesADraftSomeoneElseRegistered() throws Exception {
+    String id = create(bearer("revisor@ampere.com"));
+
+    mockMvc
+        .perform(
+            delete("/normative-tables/" + id).header("Authorization", bearer("admin@ampere.com")))
         .andExpect(status().isNoContent());
   }
 

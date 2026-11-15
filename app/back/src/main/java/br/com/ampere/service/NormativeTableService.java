@@ -75,15 +75,23 @@ public class NormativeTableService {
 
   @Transactional
   public NormativeTable update(
-      Long id, NormativeTableParameters parameters, AuthenticatedUser user) {
+      Long id, NormativeTableParameters parameters, String editedBy, AuthenticatedUser user) {
     NormativeTable table = draftOrFail(id, NOT_DRAFT, user);
+    if (!table.isEditableBy(editedBy)) {
+      throw new BusinessException(
+          "Só quem cadastrou a revisão pode alterá-la.", HttpStatus.FORBIDDEN);
+    }
     if (table.getCode() != parameters.code()) {
       throw new BusinessException(
           "A tabela de uma revisão não muda. Cadastre outra tabela.", HttpStatus.CONFLICT);
     }
 
     table.revise(
-        parameters.identification(), parameters.item(), parameters.page(), parameters.rows());
+        editedBy,
+        parameters.identification(),
+        parameters.item(),
+        parameters.page(),
+        parameters.rows());
     rejectProblems(table);
 
     return table;
@@ -108,10 +116,17 @@ public class NormativeTableService {
     return table;
   }
 
+  /** The admin also deletes someone else's draft, so an abandoned one does not linger. */
   @Transactional
-  public void delete(Long id, AuthenticatedUser user) {
-    tableRepository.delete(
-        draftOrFail(id, "Só é possível excluir uma tabela aguardando revisão.", user));
+  public void delete(Long id, String deletedBy, AuthenticatedUser user) {
+    NormativeTable table =
+        draftOrFail(id, "Só é possível excluir uma tabela aguardando revisão.", user);
+    if (!user.isAdmin() && !table.isEditableBy(deletedBy)) {
+      throw new BusinessException(
+          "Só quem cadastrou a revisão ou um gestor pode excluí-la.", HttpStatus.FORBIDDEN);
+    }
+
+    tableRepository.delete(table);
   }
 
   private NormativeTable draftOrFail(Long id, String message, AuthenticatedUser user) {
