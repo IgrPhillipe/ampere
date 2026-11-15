@@ -127,6 +127,8 @@ const Absent = () => <span className="text-faint-foreground">Não consta</span>;
 interface ChangeLine {
 	key: string;
 	entry: string;
+	/** How the origin printed the row, when only that changed. */
+	previousEntry?: string;
 	before?: NormativeTableRow;
 	after?: NormativeTableRow;
 	status: "Alterada" | "Incluída" | "Removida";
@@ -160,13 +162,19 @@ export const NormativeTableRevisionComparison = ({
 
 	const lines: ChangeLine[] = comparison
 		? [
-				...comparison.changed.map(({ before, after }, index) => ({
-					key: `changed-${index}`,
-					entry: formatRowEntry(after, definition),
-					before,
-					after,
-					status: "Alterada" as const,
-				})),
+				...comparison.changed.map(({ before, after }, index) => {
+					const entry = formatRowEntry(after, definition);
+					const previousEntry = formatRowEntry(before, definition);
+
+					return {
+						key: `changed-${index}`,
+						entry,
+						previousEntry: previousEntry === entry ? undefined : previousEntry,
+						before,
+						after,
+						status: "Alterada" as const,
+					};
+				}),
 				...comparison.included.map((row, index) => ({
 					key: `included-${index}`,
 					entry: formatRowEntry(row, definition),
@@ -283,36 +291,43 @@ export const NormativeTableRevisionComparison = ({
 							</tr>
 						</thead>
 						<tbody>
-							{lines.map(({ key, entry, before, after, status }) => (
-								<tr key={key} className="border-b border-border align-top">
-									<td className="py-3.5 pr-4 text-sm break-words text-foreground">
-										{entry}
-									</td>
-									<td className="py-3.5 pr-3 text-right font-mono text-sm break-words text-muted-foreground">
-										{before ? (
-											<Values
-												values={rowValues(before, definition)}
-												other={after && rowValues(after, definition)}
-											/>
-										) : (
-											<Absent />
-										)}
-									</td>
-									<td className="py-3.5 pr-3 text-right font-mono text-sm break-words text-foreground">
-										{after ? (
-											<Values
-												values={rowValues(after, definition)}
-												other={before && rowValues(before, definition)}
-											/>
-										) : (
-											<Absent />
-										)}
-									</td>
-									<td className="py-3.5 text-right">
-										<Badge variant={statusVariants[status]}>{status}</Badge>
-									</td>
-								</tr>
-							))}
+							{lines.map(
+								({ key, entry, previousEntry, before, after, status }) => (
+									<tr key={key} className="border-b border-border align-top">
+										<td className="py-3.5 pr-4 text-sm break-words text-foreground">
+											{entry}
+											{previousEntry ? (
+												<span className="block text-xs text-muted-foreground">
+													Antes: {previousEntry}
+												</span>
+											) : null}
+										</td>
+										<td className="py-3.5 pr-3 text-right font-mono text-sm break-words text-muted-foreground">
+											{before ? (
+												<Values
+													values={rowValues(before, definition)}
+													other={after && rowValues(after, definition)}
+												/>
+											) : (
+												<Absent />
+											)}
+										</td>
+										<td className="py-3.5 pr-3 text-right font-mono text-sm break-words text-foreground">
+											{after ? (
+												<Values
+													values={rowValues(after, definition)}
+													other={before && rowValues(before, definition)}
+												/>
+											) : (
+												<Absent />
+											)}
+										</td>
+										<td className="py-3.5 text-right">
+											<Badge variant={statusVariants[status]}>{status}</Badge>
+										</td>
+									</tr>
+								),
+							)}
 						</tbody>
 					</table>
 				</div>

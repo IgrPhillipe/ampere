@@ -152,6 +152,32 @@ describe("NormativeTableHistory", () => {
 		expect(hooks.compare).toHaveBeenCalledWith({ id: "2", from: "3", to: "2" });
 	});
 
+	it("shows how the origin printed a row whose label changed", () => {
+		hooks.compare.mockReturnValue({
+			isError: false,
+			data: {
+				data: {
+					...comparison,
+					changed: [
+						{
+							before: { upperBound: 25, value: 1.4, label: "Até 25 kVA" },
+							after: { upperBound: 25, value: 1.4, label: "Dr ≤ 25 kVA" },
+						},
+					],
+					included: [],
+					removed: [],
+				},
+			},
+		});
+
+		render(<NormativeTableHistory table={newer} definition={quadro37} />);
+
+		const [, changed] = within(screen.getByRole("table")).getAllByRole("row");
+
+		expect(within(changed).getByText("Dr ≤ 25 kVA")).toBeVisible();
+		expect(within(changed).getByText("Antes: Até 25 kVA")).toBeVisible();
+	});
+
 	it("says when nothing changed between the revisions", () => {
 		hooks.compare.mockReturnValue({
 			isError: false,
