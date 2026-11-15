@@ -129,6 +129,24 @@ describe("NormativeTableHistory", () => {
 		expect(hooks.compare).toHaveBeenCalledWith({ id: "1", from: "1", to: "2" });
 	});
 
+	it("follows the publication order of the API, not the registration date", () => {
+		const replaced = revision("3", "2026-11-14T12:00:00Z", {
+			status: "SUPERSEDED",
+			verifiedAt: "2026-11-14T13:00:00Z",
+		});
+		const current = revision("2", "2026-11-12T12:00:00Z", {
+			status: "PUBLISHED",
+			verifiedAt: "2026-11-15T12:00:00Z",
+		});
+		hooks.revisions.mockReturnValue(
+			revisionsReturn([current, replaced, older]),
+		);
+
+		render(<NormativeTableHistory table={current} definition={quadro37} />);
+
+		expect(hooks.compare).toHaveBeenCalledWith({ id: "2", from: "3", to: "2" });
+	});
+
 	it("says when nothing changed between the revisions", () => {
 		hooks.compare.mockReturnValue({
 			isError: false,

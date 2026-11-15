@@ -60,8 +60,3 @@ export const rowValues = (
 					},
 				],
 	);
-
-/** Older revisions first: the API compares an older origin to a newer destination. */
-export const byRegistration = (left: NormativeTable, right: NormativeTable) =>
-	left.registeredAt.localeCompare(right.registeredAt) ||
-	Number(left.id) - Number(right.id);

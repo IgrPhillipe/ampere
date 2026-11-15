@@ -12,7 +12,7 @@ import {
 import { CircleAlert } from "lucide-react";
 import { useState } from "react";
 
-import { byRegistration, formatRevision } from "../../constants";
+import { formatRevision } from "../../constants";
 import { NormativeTableStatusBadge } from "../NormativeTableStatusBadge";
 import {
 	type ComparedRevisions,
@@ -29,14 +29,14 @@ const defaultComparison = (
 	revisions: NormativeTable[],
 	openId: string,
 ): ComparedRevisions | null => {
-	const sorted = [...revisions].sort(byRegistration);
-	const index = sorted.findIndex(({ id }) => id === openId);
+	// Newest first, as the API orders them.
+	const index = revisions.findIndex(({ id }) => id === openId);
 
-	if (sorted.length < 2 || index < 0) return null;
+	if (revisions.length < 2 || index < 0) return null;
 
-	return index > 0
-		? { from: sorted[index - 1].id, to: openId }
-		: { from: openId, to: sorted[1].id };
+	return index < revisions.length - 1
+		? { from: revisions[index + 1].id, to: openId }
+		: { from: openId, to: revisions[index - 1].id };
 };
 
 const PersonLine = ({

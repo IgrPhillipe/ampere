@@ -21,7 +21,6 @@ import {
 import { CircleAlert } from "lucide-react";
 
 import {
-	byRegistration,
 	formatRevision,
 	formatRowEntry,
 	type RowValue,
@@ -148,10 +147,12 @@ export const NormativeTableRevisionComparison = ({
 		...compared,
 	});
 	const comparison = comparisonQuery.data?.data;
-	const sorted = [...revisions].sort(byRegistration);
-	const find = (id: string) => sorted.find((revision) => revision.id === id);
-	const from = find(compared.from);
-	const to = find(compared.to);
+	// The API lists newest first; the pickers read from the oldest.
+	const oldestFirst = [...revisions].reverse();
+	const position = (id: string) =>
+		oldestFirst.findIndex((revision) => revision.id === id);
+	const from = position(compared.from);
+	const to = position(compared.to);
 
 	const lines: ChangeLine[] = comparison
 		? [
@@ -199,10 +200,8 @@ export const NormativeTableRevisionComparison = ({
 				<RevisionPicker
 					label="Revisão de origem"
 					value={compared.from}
-					revisions={sorted}
-					isAllowed={(revision) =>
-						to !== undefined && byRegistration(revision, to) < 0
-					}
+					revisions={oldestFirst}
+					isAllowed={(revision) => position(revision.id) < to}
 					onValueChange={(next) =>
 						onComparedChange({ ...compared, from: next })
 					}
@@ -211,10 +210,8 @@ export const NormativeTableRevisionComparison = ({
 				<RevisionPicker
 					label="Revisão de destino"
 					value={compared.to}
-					revisions={sorted}
-					isAllowed={(revision) =>
-						from !== undefined && byRegistration(revision, from) > 0
-					}
+					revisions={oldestFirst}
+					isAllowed={(revision) => from >= 0 && position(revision.id) > from}
 					onValueChange={(next) => onComparedChange({ ...compared, to: next })}
 				/>
 			</div>
