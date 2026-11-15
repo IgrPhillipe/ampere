@@ -105,13 +105,22 @@ public class NormativeTableService {
     return table;
   }
 
-  /** The verifier must not be who typed it; the previous published revision is superseded. */
+  /**
+   * The verifier must not be who typed it, and approves the version they read; the previous
+   * published revision is superseded.
+   */
   @Transactional
-  public NormativeTable publish(Long id, String verifiedBy, AuthenticatedUser user) {
+  public NormativeTable publish(
+      Long id, long readVersion, String verifiedBy, AuthenticatedUser user) {
     NormativeTable table = draftOrFail(id, "Esta tabela já foi publicada.", user);
     if (!table.isVerifiableBy(verifiedBy)) {
       throw new BusinessException(
           "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por outra pessoa.",
+          HttpStatus.CONFLICT);
+    }
+    if (table.getVersion() != readVersion) {
+      throw new BusinessException(
+          "A revisão mudou depois que você a abriu. Confira os valores de novo antes de aprovar.",
           HttpStatus.CONFLICT);
     }
     rejectProblems(table);

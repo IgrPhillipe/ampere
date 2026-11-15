@@ -5,6 +5,7 @@ import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.NormativeTableCodeResponse;
+import br.com.ampere.dto.NormativeTablePublicationRequest;
 import br.com.ampere.dto.NormativeTableRequest;
 import br.com.ampere.dto.NormativeTableResponse;
 import br.com.ampere.dto.NormativeTableRowRequest;
@@ -165,12 +166,15 @@ public class NormativeTableController {
         description = "Tabela não encontrada"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "409",
-        description = "Já publicada, ou conferida por quem cadastrou")
+        description = "Já publicada, conferida por quem cadastrou ou alterada depois de lida")
   })
   public ApiResponse<NormativeTableResponse> publish(
-      @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+      @PathVariable Long id,
+      @Valid @RequestBody NormativeTablePublicationRequest request,
+      @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        NormativeTableResponse.from(service.publish(id, emailOf(jwt), userOf(jwt))));
+        NormativeTableResponse.from(
+            service.publish(id, request.version(), emailOf(jwt), userOf(jwt))));
   }
 
   @DeleteMapping("/{id}")

@@ -25,6 +25,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
@@ -122,7 +123,7 @@ class AdminAccessIntegrationTest {
                 .content(QUADRO_37))
         .andExpect(status().isForbidden());
     mockMvc
-        .perform(post("/normative-tables/" + id + "/publication").header("Authorization", designer))
+        .perform(publication(id).header("Authorization", designer))
         .andExpect(status().isForbidden());
     mockMvc
         .perform(delete("/normative-tables/" + id).header("Authorization", designer))
@@ -135,13 +136,11 @@ class AdminAccessIntegrationTest {
     String id = create(reviewer);
 
     mockMvc
-        .perform(post("/normative-tables/" + id + "/publication").header("Authorization", reviewer))
+        .perform(publication(id).header("Authorization", reviewer))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.detail").value(SELF_APPROVAL));
     mockMvc
-        .perform(
-            post("/normative-tables/" + id + "/publication")
-                .header("Authorization", bearer("admin@ampere.com")))
+        .perform(publication(id).header("Authorization", bearer("admin@ampere.com")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.registeredBy").value("revisor@ampere.com"))
         .andExpect(jsonPath("$.data.verifiedBy").value("admin@ampere.com"));
@@ -152,9 +151,7 @@ class AdminAccessIntegrationTest {
     String id = create(bearer("admin@ampere.com"));
 
     mockMvc
-        .perform(
-            post("/normative-tables/" + id + "/publication")
-                .header("Authorization", bearer("revisor@ampere.com")))
+        .perform(publication(id).header("Authorization", bearer("revisor@ampere.com")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.status").value("PUBLISHED"))
         .andExpect(jsonPath("$.data.verifiedBy").value("revisor@ampere.com"));
@@ -182,9 +179,7 @@ class AdminAccessIntegrationTest {
     String id = create(bearer("revisor@ampere.com"));
 
     mockMvc
-        .perform(
-            post("/normative-tables/" + id + "/publication")
-                .header("Authorization", bearer("analista@ampere.com")))
+        .perform(publication(id).header("Authorization", bearer("analista@ampere.com")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.registeredBy").value("revisor@ampere.com"))
         .andExpect(jsonPath("$.data.verifiedBy").value("analista@ampere.com"));
@@ -223,10 +218,40 @@ class AdminAccessIntegrationTest {
                 .content(QUADRO_37.replace("\"value\": 1.5", "\"value\": 9.9")))
         .andExpect(status().isForbidden());
     mockMvc
-        .perform(post("/normative-tables/" + id + "/publication").header("Authorization", verifier))
+        .perform(publication(id).header("Authorization", verifier))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.registeredBy").value("revisor@ampere.com"))
         .andExpect(jsonPath("$.data.rows[0].value").value(1.5));
+  }
+
+  @Test
+  void refusesApprovingARevisionChangedAfterItWasRead() throws Exception {
+    String author = bearer("revisor@ampere.com");
+    String verifier = bearer("analista@ampere.com");
+    String id = create(author);
+    mockMvc
+        .perform(
+            put("/normative-tables/" + id)
+                .header("Authorization", author)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(QUADRO_37.replace("\"value\": 1.5", "\"value\": 9.9")))
+        .andExpect(status().isOk());
+
+    mockMvc
+        .perform(publication(id, 0).header("Authorization", verifier))
+        .andExpect(status().isConflict())
+        .andExpect(
+            jsonPath("$.detail")
+                .value(
+                    "A revisão mudou depois que você a abriu. Confira os valores de novo antes de"
+                        + " aprovar."));
+    mockMvc
+        .perform(post("/normative-tables/" + id + "/publication").header("Authorization", verifier))
+        .andExpect(status().isBadRequest());
+    mockMvc
+        .perform(publication(id, 1).header("Authorization", verifier))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.rows[0].value").value(9.9));
   }
 
   @Test
@@ -244,8 +269,7 @@ class AdminAccessIntegrationTest {
     String admin = bearer("admin@ampere.com");
     String published = create(admin);
     mockMvc.perform(
-        post("/normative-tables/" + published + "/publication")
-            .header("Authorization", bearer("conferente@ampere.com")));
+        publication(published).header("Authorization", bearer("conferente@ampere.com")));
     String draft = create(admin);
 
     mockMvc
@@ -274,8 +298,7 @@ class AdminAccessIntegrationTest {
                     "Quadro 37 já tem uma revisão aguardando aprovação. Aprove ou exclua essa"
                         + " revisão antes de cadastrar outra."));
 
-    mockMvc.perform(
-        post("/normative-tables/" + id + "/publication").header("Authorization", reviewer));
+    mockMvc.perform(publication(id).header("Authorization", reviewer));
     create(reviewer);
   }
 
@@ -300,14 +323,12 @@ class AdminAccessIntegrationTest {
     String id = create(admin);
 
     mockMvc
-        .perform(post("/normative-tables/" + id + "/publication").header("Authorization", admin))
+        .perform(publication(id).header("Authorization", admin))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.detail").value(SELF_APPROVAL));
 
     mockMvc
-        .perform(
-            post("/normative-tables/" + id + "/publication")
-                .header("Authorization", bearer("conferente@ampere.com")))
+        .perform(publication(id).header("Authorization", bearer("conferente@ampere.com")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.status").value("PUBLISHED"))
         .andExpect(jsonPath("$.data.verifiedBy").value("conferente@ampere.com"));
@@ -326,13 +347,11 @@ class AdminAccessIntegrationTest {
     String admin = bearer("admin@ampere.com");
     String reviewer = bearer("conferente@ampere.com");
     String first = create(admin);
-    mockMvc.perform(
-        post("/normative-tables/" + first + "/publication").header("Authorization", reviewer));
+    mockMvc.perform(publication(first).header("Authorization", reviewer));
     String second = create(admin);
 
     mockMvc
-        .perform(
-            post("/normative-tables/" + second + "/publication").header("Authorization", reviewer))
+        .perform(publication(second).header("Authorization", reviewer))
         .andExpect(status().isOk());
 
     mockMvc
@@ -363,6 +382,17 @@ class AdminAccessIntegrationTest {
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.detail").value("Linha 2: as faixas precisam estar em ordem crescente."));
+  }
+
+  /** A draft nobody changed since it was created is at version 0. */
+  private static MockHttpServletRequestBuilder publication(String id) {
+    return publication(id, 0);
+  }
+
+  private static MockHttpServletRequestBuilder publication(String id, long version) {
+    return post("/normative-tables/" + id + "/publication")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"version\":" + version + "}");
   }
 
   private String create(String bearer) throws Exception {

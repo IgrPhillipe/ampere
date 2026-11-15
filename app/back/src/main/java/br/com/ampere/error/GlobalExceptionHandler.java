@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -43,6 +44,8 @@ public class GlobalExceptionHandler {
   private static final String MALFORMED_BODY_MESSAGE =
       "Corpo da requisição inválido. Verifique o JSON enviado.";
   private static final String CONFLICT_MESSAGE = "Conflito ao gravar os dados. Tente novamente.";
+  private static final String STALE_MESSAGE =
+      "Outra pessoa alterou estes dados ao mesmo tempo. Recarregue a página e tente de novo.";
 
   @ExceptionHandler(NotFoundException.class)
   public ProblemDetail handleNotFound(NotFoundException exception) {
@@ -144,6 +147,13 @@ public class GlobalExceptionHandler {
     log.warn("Violacao de integridade", exception);
 
     return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, CONFLICT_MESSAGE);
+  }
+
+  @ExceptionHandler(OptimisticLockingFailureException.class)
+  public ProblemDetail handleOptimisticLocking(OptimisticLockingFailureException exception) {
+    log.warn("Gravacao concorrente", exception);
+
+    return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, STALE_MESSAGE);
   }
 
   private static String invalidEnumMessage(InvalidFormatException exception) {

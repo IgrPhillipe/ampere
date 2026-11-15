@@ -1,19 +1,23 @@
 package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import br.com.ampere.config.NormativeTableSeed;
 import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.NormativeTableCode;
+import br.com.ampere.domain.NormativeTableRow;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.UserRole;
+import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -23,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 
 /** No transaction here on purpose: the controller maps the rows after the service returns. */
 @SpringBootTest
@@ -90,5 +95,36 @@ class NormativeTableServiceIntegrationTest {
             table -> assertThat(table.getCode().standard()).isEqualTo(StandardName.DIS_NOR_030));
     assertThat(tables.get(0).getCode())
         .isEqualTo(NormativeTableCode.T6_RESIDENTIAL_LIGHTING_OUTLETS);
+  }
+
+  @Test
+  void approvesOnlyTheVersionTheVerifierRead() {
+    standardRepository.save(new Standard("DIS-NOR-053", "REV 06"));
+    AuthenticatedUser reviewer = new AuthenticatedUser(2L, UserRole.REVIEWER);
+    NormativeTable draft = service.create(quadro37("1.5"), "revisor@ampere.com", reviewer);
+    NormativeTable revised =
+        service.update(draft.getId(), quadro37("1.4"), "revisor@ampere.com", reviewer);
+
+    assertThat(draft.getVersion()).isZero();
+    assertThat(revised.getVersion()).isEqualTo(1);
+    assertThatThrownBy(() -> service.publish(draft.getId(), 0, "analista@ampere.com", reviewer))
+        .isInstanceOf(BusinessException.class)
+        .extracting("status")
+        .isEqualTo(HttpStatus.CONFLICT);
+    assertThat(service.publish(draft.getId(), 1, "analista@ampere.com", reviewer).getStatus())
+        .isEqualTo(NormativeTableStatus.PUBLISHED);
+  }
+
+  private static NormativeTableParameters quadro37(String firstValue) {
+    return new NormativeTableParameters(
+        NormativeTableCode.Q37_SAFETY_FACTOR,
+        "Quadro 37",
+        "Anexo I, item 5",
+        "108",
+        List.of(
+            new NormativeTableRow(
+                null, null, new BigDecimal("25"), new BigDecimal(firstValue), null, null, null),
+            new NormativeTableRow(
+                null, new BigDecimal("25"), null, new BigDecimal("1.3"), null, null, null)));
   }
 }
