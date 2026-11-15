@@ -17,6 +17,7 @@ import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -81,6 +83,10 @@ class NormativeTableHistoryIntegrationTest {
       """;
 
   @Autowired private MockMvc mockMvc;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
+
+  @Autowired private EntityManager entityManager;
 
   @Autowired private ObjectMapper objectMapper;
 
@@ -152,22 +158,28 @@ class NormativeTableHistoryIntegrationTest {
 
   @Test
   void ordersTheRevisionsByPublicationWithTheDraftsFirst() throws Exception {
-    String third = create(SECOND_QUADRO_37);
-    publish(third);
     publish(second);
-    String draft = create(FIRST_QUADRO_37);
+    String third = create(FIRST_QUADRO_37);
+    publish(third);
+    // A database from before the one-draft rule may hold a revision registered before the vigente.
+    entityManager.flush();
+    jdbcTemplate.update(
+        "UPDATE normative_table SET registered_at = registered_at - INTERVAL '1 day' WHERE id = ?",
+        Long.valueOf(third));
+    entityManager.clear();
+    String draft = create(SECOND_QUADRO_37);
 
     mockMvc
         .perform(get("/normative-tables/" + first + "/revisions").header("Authorization", admin))
-        .andExpect(jsonPath("$.data[*].id", contains(draft, second, third, first)))
+        .andExpect(jsonPath("$.data[*].id", contains(draft, third, second, first)))
         .andExpect(
             jsonPath(
                 "$.data[*].status", contains("DRAFT", "PUBLISHED", "SUPERSEDED", "SUPERSEDED")));
     mockMvc
-        .perform(compare(first, third, second))
+        .perform(compare(first, second, third))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.from.id").value(third));
-    mockMvc.perform(compare(first, second, third)).andExpect(status().isBadRequest());
+        .andExpect(jsonPath("$.data.from.id").value(second));
+    mockMvc.perform(compare(first, third, second)).andExpect(status().isBadRequest());
   }
 
   @Test
@@ -279,8 +291,19 @@ class NormativeTableHistoryIntegrationTest {
   }
 
   private void publish(String id) throws Exception {
+    String body =
+        mockMvc
+            .perform(get("/normative-tables/" + id).header("Authorization", verifier))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    long version = objectMapper.readTree(body).path("data").path("version").asLong();
     mockMvc
-        .perform(post("/normative-tables/" + id + "/publication").header("Authorization", verifier))
+        .perform(
+            post("/normative-tables/" + id + "/publication")
+                .header("Authorization", verifier)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"version\":" + version + "}"))
         .andExpect(status().isOk());
   }
 
