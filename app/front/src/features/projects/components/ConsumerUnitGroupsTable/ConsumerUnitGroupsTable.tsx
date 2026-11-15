@@ -71,7 +71,8 @@ export const ConsumerUnitGroupsTable = ({
 				columnClassNames={groupColumnClassNames}
 				onRowClick={onOpenGroup}
 				// The section title already draws the ink rule above the header.
-				tableClassName="[&_thead_tr]:border-b [&_thead_tr]:border-border"
+				// The minimum width keeps the name readable; narrower, the table scrolls.
+				tableClassName="min-w-[48rem] [&_thead_tr]:border-b [&_thead_tr]:border-border"
 				trailingRows={
 					newGroupControl ? (
 						<NewGroupRow
