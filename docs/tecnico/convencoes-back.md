@@ -291,7 +291,7 @@ Decisões:
 
 `UserRole.canReview()` diz quem analisa; o `SecurityConfig` monta `hasAnyRole` a partir dele. Rota nova de análise entra no mesmo `requestMatchers`.
 
-A publicação de tabela normativa exige um segundo `admin`, diferente de quem cadastrou. O seed de desenvolvimento tem dois: `admin@ampere.com` cadastra e `conferente@ampere.com` publica.
+Revisão de tabela normativa: `reviewer` e `admin` cadastram e aprovam, e quem cadastrou não aprova. Só quem cadastrou altera o rascunho; excluí-lo é de quem cadastrou ou do `admin`. A aprovação envia a `version` que a pessoa leu, e o `@Version` da entidade recusa com `409` o que mudou depois. Cada tabela tem no máximo uma revisão pendente. No seed, `admin@ampere.com` e `conferente@ampere.com` aprovam o que o outro cadastra, e os analistas aprovam as duas.
 
 **Papel novo no enum exige reescrever o `CHECK` da coluna.** O Hibernate cria `app_user_role_check` com os valores do enum, e o `ddl-auto=update` não o refaz. O `config/UserRoleConstraint` reescreve o `CHECK` a cada subida, até o Flyway da pendência 16.
 

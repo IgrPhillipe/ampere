@@ -17,9 +17,9 @@ Todos com a senha `senha@123`.
 | `joao@ampere.com` | Projetista | João Batista | CREA 223344/PB. Projetos em Pedras de Fogo, único município da Paraíba na área de concessão |
 | `novo@ampere.com` | Projetista | Diego Novato | Senha temporária: o primeiro login leva à troca de senha. Sem projetos |
 | `inativo@ampere.com` | Projetista | Bruno Inativo | Conta desativada: o login é recusado. Tem um projeto aprovado antigo |
-| `admin@ampere.com` | Gestor | Admin Teste | Cadastra tabelas normativas, gere usuários, tem projetos próprios e também analisa |
-| `conferente@ampere.com` | Gestor | Conferente Teste | Segunda leitura das tabelas normativas: publica o que o admin cadastra |
-| `revisor@ampere.com` | Analista | Revisor Teste | Analista principal da fila |
+| `admin@ampere.com` | Gestor | Admin Teste | Cadastra e aprova revisões das tabelas normativas, gere usuários, tem projetos próprios e também analisa |
+| `conferente@ampere.com` | Gestor | Conferente Teste | Segunda leitura das tabelas normativas: aprova o que o admin cadastra |
+| `revisor@ampere.com` | Analista | Revisor Teste | Analista principal da fila. Também cadastra e aprova revisões das tabelas normativas |
 | `analista@ampere.com` | Analista | Ana Analista | Segunda analista, com projetos em análise, uma reprovação e duas aprovações. Responde por Caruaru, Garanhuns e Petrolina |
 
 ---
@@ -136,8 +136,10 @@ As 18 tabelas entram publicadas, digitadas pelo admin e conferidas pelo conferen
 | :--- | :--- | :--- |
 | Quadro 35 | Substituída, mais antiga que a vigente | Fatores menores nas três primeiras faixas acima de 40 m² |
 | Tabela 22 | Substituída, mais antiga que a vigente | Fator de lojas de 0,90 em vez de 1,00 |
-| Quadro 37 | Aguardando revisão, cadastrada pelo admin | Fatores de segurança de 1,4 e 1,25 nas duas primeiras faixas |
-| Tabela 2 | Aguardando revisão, cadastrada pelo conferente | Faixa 53 a 66 kVA com condutor de 50 mm² e disjuntor de 125 A. O admin pode publicá-la |
+| Quadro 37 | Aguardando revisão, cadastrada pelo admin | Fatores de segurança de 1,4 e 1,25 nas duas primeiras faixas. Só o admin a altera; o conferente e os analistas podem aprová-la |
+| Tabela 2 | Aguardando revisão, cadastrada pelo conferente | Faixa 53 a 66 kVA com condutor de 50 mm² e disjuntor de 125 A. O admin e os analistas podem aprová-la |
+
+Cada tabela tem no máximo uma revisão pendente: uma nova revisão do Quadro 37 ou da Tabela 2 só entra depois que a pendente for aprovada ou excluída.
 
 ---
 
