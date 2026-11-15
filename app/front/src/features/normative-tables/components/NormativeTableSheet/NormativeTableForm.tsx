@@ -12,8 +12,9 @@ import {
 	useUpdateNormativeTable,
 } from "@services/normative-tables";
 import { useEffect, useState } from "react";
-import { useFormState, useWatch } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 
+import { useCanManageNormativeTables } from "../../hooks";
 import {
 	type NormativeTableFormValues,
 	normativeTableFormSchema,
@@ -69,20 +70,22 @@ export const NormativeTableForm = ({
 	const [pendingCreation, setPendingCreation] =
 		useState<NormativeTablePayload | null>(null);
 	const email = useAuthStore((state) => state.user?.email);
-	// The analyst reads the tables; typing and publishing stay with the admin.
-	const canManage = useAuthStore((state) => state.user?.role === "admin");
+	const isAdmin = useAuthStore((state) => state.user?.role === "admin");
+	const canManage = useCanManageNormativeTables();
 
 	const form = useZodForm(
 		normativeTableFormSchema,
 		toNormativeTableFormValues(table),
 	);
 	const code = useWatch({ control: form.control, name: "code" });
-	const { isDirty } = useFormState({ control: form.control });
 	const definition = codes.find((entry) => entry.code === code);
 
 	const isNew = table === undefined;
-	const readOnly =
-		!canManage || (table !== undefined && table.status !== "DRAFT");
+	const isDraft = table?.status === "DRAFT";
+	const isOwnDraft =
+		isDraft && table.registeredBy.toLowerCase() === email?.toLowerCase();
+	// Only the author edits a draft, so whoever approves it reads what was typed.
+	const readOnly = !canManage || !(isNew || isOwnDraft);
 	const codeItems = Object.fromEntries(
 		codes.map((entry) => [
 			entry.code,
@@ -92,6 +95,11 @@ export const NormativeTableForm = ({
 	const standardLabel = table
 		? `${table.standard.name} ${table.standard.revision}`
 		: (definition?.standard ?? "Escolha a tabela");
+
+	// A refetched version replaces what is on screen, so nobody approves stale rows.
+	useEffect(() => {
+		if (table) form.reset(toNormativeTableFormValues(table));
+	}, [form, table]);
 
 	// Prefills the catalog reference only when the person picks another code.
 	useEffect(() => {
@@ -161,10 +169,13 @@ export const NormativeTableForm = ({
 	const publish = () => {
 		if (!table) return;
 
-		publishTable.mutate(table.id, {
-			onSuccess: onClose,
-			onSettled: () => setPublishOpen(false),
-		});
+		publishTable.mutate(
+			{ id: table.id, version: table.version },
+			{
+				onSuccess: onClose,
+				onSettled: () => setPublishOpen(false),
+			},
+		);
 	};
 
 	return (
@@ -198,6 +209,11 @@ export const NormativeTableForm = ({
 							name="code"
 							label="Tabela"
 							placeholder="Selecione a tabela da norma"
+							description={
+								isNew
+									? "Só aparecem as tabelas que o cálculo de demanda lê. A revisão aprovada substitui a vigente da mesma tabela."
+									: undefined
+							}
 							items={codeItems}
 							disabled={!isNew}
 							required
@@ -252,12 +268,9 @@ export const NormativeTableForm = ({
 			</fieldset>
 
 			<NormativeTableFormFooter
-				canDelete={table !== undefined}
 				readOnly={readOnly}
-				canPublish={!isDirty}
-				awaitingReview={
-					table?.registeredBy.toLowerCase() === email?.toLowerCase()
-				}
+				canDelete={canManage && (isOwnDraft || (isDraft && isAdmin))}
+				canApprove={canManage && isDraft && !isOwnDraft}
 				isSaving={createTable.isPending || updateTable.isPending}
 				isDeleting={deleteTable.isPending}
 				onCancel={onClose}
@@ -267,9 +280,9 @@ export const NormativeTableForm = ({
 
 			<ConfirmDialog
 				open={pendingCreation !== null}
-				title="Enviar a tabela para revisão?"
-				description="A tabela fica pendente até a aprovação de outro gestor. Os valores só entram no cálculo de demanda depois de aprovados."
-				confirmLabel="Enviar para Revisão"
+				title="Enviar a revisão para aprovação?"
+				description="A revisão fica pendente até a aprovação de outra pessoa. Os valores só entram no cálculo de demanda depois de aprovados."
+				confirmLabel="Enviar para Aprovação"
 				pendingLabel="Enviando..."
 				isPending={createTable.isPending}
 				onOpenChange={(open) => {
@@ -280,8 +293,8 @@ export const NormativeTableForm = ({
 
 			<ConfirmDialog
 				open={isPublishOpen}
-				title="Aprovar e publicar a tabela?"
-				description="A revisão passa a valer no cálculo de demanda e substitui a tabela publicada de mesmo código. Uma tabela publicada não pode ser alterada."
+				title="Aprovar e publicar a revisão?"
+				description="A revisão passa a valer no cálculo de demanda e substitui a vigente da mesma tabela. Uma revisão aprovada não pode ser alterada."
 				confirmLabel="Aprovar e Publicar"
 				pendingLabel="Publicando..."
 				isPending={publishTable.isPending}
@@ -291,16 +304,16 @@ export const NormativeTableForm = ({
 
 			<ConfirmDialog
 				open={isDeleteOpen}
-				title="Excluir tabela?"
+				title="Excluir revisão?"
 				description={
 					<>
-						A tabela{" "}
+						A revisão de{" "}
 						<strong className="text-foreground">{table?.identification}</strong>
-						, ainda aguardando revisão, será excluída. Esta ação não pode ser
+						, ainda aguardando aprovação, será excluída. Esta ação não pode ser
 						desfeita.
 					</>
 				}
-				confirmLabel="Excluir Tabela"
+				confirmLabel="Excluir Revisão"
 				pendingLabel="Excluindo..."
 				isPending={deleteTable.isPending}
 				destructive

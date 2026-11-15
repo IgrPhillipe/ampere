@@ -5,6 +5,7 @@ import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.NormativeTableCodeResponse;
+import br.com.ampere.dto.NormativeTablePublicationRequest;
 import br.com.ampere.dto.NormativeTableRequest;
 import br.com.ampere.dto.NormativeTableResponse;
 import br.com.ampere.dto.NormativeTableRowRequest;
@@ -34,7 +35,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(
     name = "Normative tables",
-    description = "Cadastro e publicação das tabelas normativas lidas pelo cálculo (admin)")
+    description =
+        "Cadastro e publicação das tabelas normativas lidas pelo cálculo (revisor e admin)")
 @RestController
 @RequestMapping("/normative-tables")
 public class NormativeTableController {
@@ -133,6 +135,9 @@ public class NormativeTableController {
         responseCode = "400",
         description = "Linhas inválidas"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "A revisão foi cadastrada por outra pessoa"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Tabela não encontrada"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -144,7 +149,8 @@ public class NormativeTableController {
       @Valid @RequestBody NormativeTableRequest request,
       @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        NormativeTableResponse.from(service.update(id, parametersOf(request), userOf(jwt))));
+        NormativeTableResponse.from(
+            service.update(id, parametersOf(request), emailOf(jwt), userOf(jwt))));
   }
 
   @PostMapping("/{id}/publication")
@@ -160,12 +166,15 @@ public class NormativeTableController {
         description = "Tabela não encontrada"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "409",
-        description = "Já publicada, ou conferida por quem cadastrou")
+        description = "Já publicada, conferida por quem cadastrou ou alterada depois de lida")
   })
   public ApiResponse<NormativeTableResponse> publish(
-      @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+      @PathVariable Long id,
+      @Valid @RequestBody NormativeTablePublicationRequest request,
+      @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        NormativeTableResponse.from(service.publish(id, emailOf(jwt), userOf(jwt))));
+        NormativeTableResponse.from(
+            service.publish(id, request.version(), emailOf(jwt), userOf(jwt))));
   }
 
   @DeleteMapping("/{id}")
@@ -176,6 +185,9 @@ public class NormativeTableController {
         responseCode = "204",
         description = "Tabela excluída"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "A revisão foi cadastrada por outra pessoa, e quem exclui não é gestor"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Tabela não encontrada"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -183,7 +195,7 @@ public class NormativeTableController {
         description = "A tabela já foi publicada")
   })
   public void delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-    service.delete(id, userOf(jwt));
+    service.delete(id, emailOf(jwt), userOf(jwt));
   }
 
   private static NormativeTableParameters parametersOf(NormativeTableRequest request) {

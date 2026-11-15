@@ -10,6 +10,7 @@ import type {
 } from "@services/normative-tables";
 import { useMemo } from "react";
 
+import { useCanManageNormativeTables } from "../../hooks";
 import { NormativeTableCards } from "./NormativeTableCards";
 import {
 	createNormativeTableColumns,
@@ -54,7 +55,7 @@ export const NormativeTablesTable = ({
 	className,
 }: NormativeTablesTableProps) => {
 	const email = useAuthStore((state) => state.user?.email);
-	const canReview = useAuthStore((state) => state.user?.role === "admin");
+	const canReview = useCanManageNormativeTables();
 	const columns = useMemo(
 		() => createNormativeTableColumns(onOpen, email, canReview),
 		[onOpen, email, canReview],

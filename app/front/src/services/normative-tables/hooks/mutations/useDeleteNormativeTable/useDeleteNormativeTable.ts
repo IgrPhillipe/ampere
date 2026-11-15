@@ -15,12 +15,12 @@ export const useDeleteNormativeTable = () => {
 				queryKey: normativeTableKeys.all(),
 			});
 
-			toast.success("Tabela excluída.");
+			toast.success("Revisão excluída.");
 		},
 		onError: (error) =>
 			toast.error(
 				getToastErrorMessage(error, {
-					fallback: "Não foi possível excluir a tabela.",
+					fallback: "Não foi possível excluir a revisão.",
 				}),
 			),
 	});

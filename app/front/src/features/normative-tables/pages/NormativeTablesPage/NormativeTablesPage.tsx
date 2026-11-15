@@ -4,7 +4,6 @@ import { PageLayout } from "@components/layout";
 import { SearchInput } from "@components/SearchInput";
 import { SortMenu, type SortOption } from "@components/SortMenu";
 import { Button } from "@components/ui/button";
-import { useAuthStore } from "@features/shared";
 import {
 	type NormativeTable,
 	type NormativeTableSort,
@@ -22,6 +21,7 @@ import {
 import { normativeTableStatusLabels } from "../../constants";
 import {
 	NORMATIVE_TABLE_SORT_DIRECTIONS,
+	useCanManageNormativeTables,
 	useNormativeTableFilters,
 } from "../../hooks";
 
@@ -40,7 +40,7 @@ const statusChips = [
 ];
 
 export const NormativeTablesPage = () => {
-	const canManage = useAuthStore((state) => state.user?.role === "admin");
+	const canManage = useCanManageNormativeTables();
 	const filters = useNormativeTableFilters();
 	const tablesQuery = useGetNormativeTableList(filters.params);
 	const [isSheetOpen, setSheetOpen] = useState(false);
@@ -66,7 +66,7 @@ export const NormativeTablesPage = () => {
 				canManage ? (
 					<Button type="button" size="sm" onClick={openNewTable}>
 						<Plus aria-hidden="true" />
-						Nova Tabela
+						Nova Revisão
 					</Button>
 				) : undefined
 			}

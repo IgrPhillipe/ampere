@@ -98,7 +98,7 @@ curl -s -X POST http://localhost:8080/api/auth/login \
   -d '{"email":"user@ampere.com","password":"senha@123"}'
 ```
 
-As tabelas normativas (`/api/normative-tables/**`), a gestão de usuários (`/api/users/**`, exceto `/api/users/me`), os municípios dos analistas (`/api/reviewers/**`), a atribuição em lote (`/api/review-queue/assignment`) e o painel do administrador (`/api/dashboard/admin`) exigem o papel `admin`; o resto da fila (`/api/review-queue/**`) aceita `reviewer` e `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`.
+A gestão de usuários (`/api/users/**`, exceto `/api/users/me`), os municípios dos analistas (`/api/reviewers/**`), a atribuição em lote (`/api/review-queue/assignment`) e o painel do administrador (`/api/dashboard/admin`) exigem o papel `admin`; as tabelas normativas (`/api/normative-tables/**`) e o resto da fila (`/api/review-queue/**`) aceitam `reviewer` e `admin`. Nas tabelas, quem cadastra uma revisão não a publica, e só quem cadastrou altera o rascunho; excluí-lo é de quem cadastrou ou do `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`.
 
 ### Cadastro e Perfil
 
