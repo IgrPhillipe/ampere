@@ -48,7 +48,7 @@ describe("CalculationSteps", () => {
 			/>,
 		);
 
-		expect(screen.getByText("Pela carga instalada")).toBeInTheDocument();
+		expect(screen.getByText("Carga instalada")).toBeInTheDocument();
 		expect(screen.queryByText("0,00")).not.toBeInTheDocument();
 	});
 

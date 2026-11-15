@@ -159,8 +159,8 @@ const StepRow = ({
 
 			<div className="col-start-2 flex flex-col items-start gap-1 sm:col-start-3 sm:items-end">
 				{hasNoKva ? (
-					<p className="font-mono text-2xs tracking-[0.11em] text-foreground uppercase">
-						Pela carga instalada
+					<p className="font-mono text-2xs tracking-[0.11em] whitespace-nowrap text-foreground uppercase">
+						Carga instalada
 					</p>
 				) : (
 					<p className="flex items-baseline gap-1.5 whitespace-nowrap">
