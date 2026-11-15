@@ -111,7 +111,7 @@ O caminho nomeia o recurso, no plural e em kebab-case; o método HTTP diz a aç�
 - Sem verbo no caminho: enviar um projeto é `POST /projects/{id}/submission`, publicar uma tabela é `POST /normative-tables/{id}/publication`.
 - Recurso de um projeto fica aninhado nele: `/projects/{id}/consumer-unit-groups`, `/projects/{id}/calculations`, `/projects/{id}/documents`.
 - Coleção que guarda todo o histórico é plural, e o mais recente é `/latest`: `GET /projects/{id}/calculations/latest`.
-- Sem papel no caminho: `/normative-tables`, `/users`, `/reviewers` e `/review-queue/assignment` são restritos ao `admin`, e o resto de `/review-queue` ao `reviewer` e ao `admin`, pelo `SecurityConfig`, não por um prefixo `/admin`.
+- Sem papel no caminho: `/users`, `/reviewers` e `/review-queue/assignment` são restritos ao `admin`, e `/normative-tables` e o resto de `/review-queue` ao `reviewer` e ao `admin`, pelo `SecurityConfig`, não por um prefixo `/admin`.
 - Ordenação de lista usa `sort=<coluna>` e `direction=ASC|DESC` (`SortDirection`). Cada lista tem o enum das suas colunas (`ProjectSort`, `ReviewQueueSort`), e o empate sai pelo `id`.
 
 ### Envelope
@@ -286,8 +286,8 @@ Decisões:
 | Papel | O que é | Caminhos exclusivos |
 | :--- | :--- | :--- |
 | `user` | projetista | painel do projetista (`/dashboard/designer`); o resto são projetos, perfil e notificações, abertas a todos os papéis |
-| `reviewer` | analista | fila (`/review-queue/**`, exceto `/review-queue/assignment`) e escrita da análise (abertura, decisão e apontamentos) do projeto atribuído a ele, junto com o `admin` |
-| `admin` | acesso total | tabelas normativas (`/normative-tables/**`), gestão de usuários (`/users/**`, exceto `/users/me`, que vem antes no `SecurityConfig`), municípios dos analistas (`/reviewers/**`) e atribuição em lote (`/review-queue/assignment`), além de tudo o que o `reviewer` faz |
+| `reviewer` | analista | fila (`/review-queue/**`, exceto `/review-queue/assignment`), escrita da análise (abertura, decisão e apontamentos) do projeto atribuído a ele e revisões das tabelas normativas (`/normative-tables/**`), junto com o `admin` |
+| `admin` | acesso total | gestão de usuários (`/users/**`, exceto `/users/me`, que vem antes no `SecurityConfig`), municípios dos analistas (`/reviewers/**`) e atribuição em lote (`/review-queue/assignment`), além de tudo o que o `reviewer` faz |
 
 `UserRole.canReview()` diz quem analisa; o `SecurityConfig` monta `hasAnyRole` a partir dele. Rota nova de análise entra no mesmo `requestMatchers`.
 
