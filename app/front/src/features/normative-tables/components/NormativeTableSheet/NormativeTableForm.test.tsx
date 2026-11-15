@@ -30,6 +30,7 @@ const draft = (registeredBy: string): NormativeTable => ({
 	identification: code.identification,
 	item: code.item,
 	page: code.page,
+	version: 0,
 	status: "DRAFT",
 	rowCount: 1,
 	registeredBy,

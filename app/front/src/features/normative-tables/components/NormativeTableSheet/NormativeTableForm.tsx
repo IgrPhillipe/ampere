@@ -161,10 +161,13 @@ export const NormativeTableForm = ({
 	const publish = () => {
 		if (!table) return;
 
-		publishTable.mutate(table.id, {
-			onSuccess: onClose,
-			onSettled: () => setPublishOpen(false),
-		});
+		publishTable.mutate(
+			{ id: table.id, version: table.version },
+			{
+				onSuccess: onClose,
+				onSettled: () => setPublishOpen(false),
+			},
+		);
 	};
 
 	return (

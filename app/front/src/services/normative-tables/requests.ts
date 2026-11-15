@@ -53,8 +53,19 @@ export const updateNormativeTable = async ({
 	return normativeTableResponseSchema.parse(response);
 };
 
-export const publishNormativeTable = async (id: string) => {
-	const response = await http.post(e.publication(id)).json<unknown>();
+export interface PublishNormativeTableParams {
+	id: string;
+	/** The version on screen, so a change saved after it is not approved unseen. */
+	version: number;
+}
+
+export const publishNormativeTable = async ({
+	id,
+	version,
+}: PublishNormativeTableParams) => {
+	const response = await http
+		.post(e.publication(id), { json: { version } })
+		.json<unknown>();
 
 	return normativeTableResponseSchema.parse(response);
 };

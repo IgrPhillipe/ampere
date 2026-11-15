@@ -63,6 +63,7 @@ export const normativeTableSchema = z.object({
 	identification: z.string(),
 	item: z.string(),
 	page: z.string(),
+	version: z.number().int().nonnegative(),
 	status: normativeTableStatusSchema,
 	rowCount: z.number().int().nonnegative(),
 	registeredBy: z.string(),
