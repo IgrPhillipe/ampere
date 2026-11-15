@@ -175,6 +175,64 @@ describe("ConsumerUnitsPage", () => {
 		});
 	});
 
+	it("opens a three-phase apartment unsaved until its loads are in", async () => {
+		renderPage();
+		fireEvent.click(
+			screen.getAllByRole("button", { name: /Adicionar Grupo/i })[0],
+		);
+		fireEvent.change(screen.getAllByPlaceholderText("Nome do grupo")[0], {
+			target: { value: "Cobertura" },
+		});
+		await pickUsage("Apartamento");
+		fireEvent.click(
+			screen.getAllByRole("combobox", { name: /Ligação do apartamento/i })[0],
+		);
+		const threePhase = await screen.findByRole("option", {
+			name: "Trifásico",
+		});
+		fireEvent.pointerDown(threePhase);
+		fireEvent.click(threePhase);
+		fireEvent.change(screen.getAllByPlaceholderText("00")[0], {
+			target: { value: "2" },
+		});
+		fireEvent.click(
+			screen.getAllByRole("button", { name: /Salvar Grupo/i })[0],
+		);
+
+		const description = await screen.findByRole("textbox", {
+			name: /Descrição/i,
+		});
+		expect(state.createGroup.mutate).not.toHaveBeenCalled();
+		expect(
+			screen.queryByRole("button", { name: /Excluir Grupo/i }),
+		).not.toBeInTheDocument();
+
+		fireEvent.change(description, { target: { value: "Chuveiro" } });
+		fireEvent.change(
+			screen.getByRole("spinbutton", { name: /Potência de placa/i }),
+			{ target: { value: "5.5" } },
+		);
+		fireEvent.click(
+			screen
+				.getAllByRole("button", { name: /Salvar Grupo/i })
+				.at(-1) as HTMLElement,
+		);
+
+		await waitFor(() => {
+			expect(state.createGroup.mutate).toHaveBeenCalledTimes(1);
+		});
+		expect(state.createGroup.mutate.mock.calls[0][0]).toMatchObject({
+			payload: {
+				kind: "RESIDENTIAL",
+				name: "Cobertura",
+				quantity: 2,
+				connectionType: "THREE_PHASE",
+				unitLoadKw: null,
+				loads: [{ description: "Chuveiro", power: 5.5 }],
+			},
+		});
+	});
+
 	it("shows each apartment's connection in the groups table", () => {
 		state.groups = [
 			{

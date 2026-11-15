@@ -35,12 +35,29 @@ const pendingCounterId = "unidades-pendencias";
 
 const newGroupLoad: Record<
 	GroupKind,
-	(load: number | null) => Partial<ConsumerUnitGroupPayload>
+	(values: NewGroupFormValues) => Partial<ConsumerUnitGroupPayload>
 > = {
-	RESIDENTIAL: (load) => ({ unitLoadKw: load, connectionType: "SINGLE_PHASE" }),
+	RESIDENTIAL: ({ load, connectionType }) => ({
+		unitLoadKw: load,
+		connectionType,
+	}),
 	LOAD: () => ({ items: [] }),
-	EV_CHARGING: (load) => ({ powerPerPointKw: load }),
+	EV_CHARGING: ({ load }) => ({ powerPerPointKw: load }),
 };
+
+/** The back refuses a three-phase apartment without loads, so it opens unsaved. */
+const threePhaseDraft = (values: NewGroupFormValues): ConsumerUnitGroup => ({
+	id: "novo",
+	kind: "RESIDENTIAL",
+	name: values.name,
+	quantity: values.quantity,
+	status: "MISSING_DATA",
+	issues: [],
+	summary: "Apartamento trifásico: detalhe as cargas de uma unidade.",
+	declaredLoadKw: 0,
+	connectionType: "THREE_PHASE",
+	loads: [],
+});
 
 interface ConsumerUnitsPageProps {
 	projectId: string;
@@ -63,6 +80,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 		usageType: undefined,
 		quantity: undefined,
 		load: null,
+		connectionType: "SINGLE_PHASE",
 	});
 
 	// `form.watch` is memoized by the React Compiler.
@@ -107,6 +125,16 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 	const saveNewGroup = (values: NewGroupFormValues) => {
 		const { kind, usage } = GROUP_USAGE_TYPES[values.usageType];
 
+		if (kind === "RESIDENTIAL" && values.connectionType === "THREE_PHASE") {
+			cancelAdding();
+			setOpened({
+				group: threePhaseDraft(values),
+				focusField: "loads[0].description",
+				draft: true,
+			});
+			return;
+		}
+
 		createGroup.mutate(
 			{
 				projectId,
@@ -115,7 +143,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 					usage,
 					name: values.name,
 					quantity: values.quantity,
-					...newGroupLoad[kind](values.load),
+					...newGroupLoad[kind](values),
 				},
 			},
 			{

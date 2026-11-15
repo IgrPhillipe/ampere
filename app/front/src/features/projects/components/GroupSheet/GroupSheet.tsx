@@ -10,6 +10,7 @@ import {
 import {
 	type ConsumerUnitGroup,
 	type ConsumerUnitGroupPayload,
+	useCreateConsumerUnitGroup,
 	useDeleteConsumerUnitGroup,
 	useUpdateConsumerUnitGroup,
 } from "@services/consumer-units";
@@ -23,6 +24,8 @@ import { ResidentialGroupForm } from "./ResidentialGroupForm";
 export interface OpenedGroup {
 	group: ConsumerUnitGroup;
 	focusField?: string;
+	/** Not saved yet: a three-phase apartment needs its loads before the back accepts it. */
+	draft?: boolean;
 }
 
 interface GroupSheetProps {
@@ -55,6 +58,7 @@ export const GroupSheet = ({
 	onClose,
 	onCreateFinding,
 }: GroupSheetProps) => {
+	const createGroup = useCreateConsumerUnitGroup(projectId);
 	const updateGroup = useUpdateConsumerUnitGroup(projectId);
 	const deleteGroup = useDeleteConsumerUnitGroup(projectId);
 	const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
@@ -67,6 +71,11 @@ export const GroupSheet = ({
 
 	const save = (payload: ConsumerUnitGroupPayload) => {
 		if (!group) return;
+
+		if (opened?.draft) {
+			createGroup.mutate({ projectId, payload }, { onSuccess: closeSheet });
+			return;
+		}
 
 		updateGroup.mutate(
 			{ projectId, groupId: group.id, payload },
@@ -99,7 +108,7 @@ export const GroupSheet = ({
 									{group.name}
 								</SheetTitle>
 								<SheetDescription>{group.summary}</SheetDescription>
-								{onCreateFinding ? (
+								{onCreateFinding && !opened?.draft ? (
 									<Button
 										type="button"
 										variant="outline"
@@ -120,7 +129,8 @@ export const GroupSheet = ({
 								{renderGroupForm(group, {
 									focusField: opened?.focusField,
 									readOnly,
-									isSaving: updateGroup.isPending,
+									isNew: opened?.draft ?? false,
+									isSaving: createGroup.isPending || updateGroup.isPending,
 									isDeleting: deleteGroup.isPending,
 									onSave: save,
 									onCancel: closeSheet,

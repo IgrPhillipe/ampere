@@ -11,7 +11,12 @@ import { GroupIdentity } from "./GroupIdentity";
 import { GroupStatusLabel } from "./GroupStatusLabel";
 import { groupConnectionLabel } from "./group-connection";
 import { type GroupRowActions, isPendingGroup, loadShare } from "./group-row";
-import { LoadField, NameAndUsageFields, QuantityField } from "./NewGroupFields";
+import {
+	ConnectionField,
+	LoadField,
+	NameAndUsageFields,
+	QuantityField,
+} from "./NewGroupFields";
 import { newGroupStatus } from "./new-group";
 
 interface ConsumerUnitGroupCardsProps extends GroupRowActions {
@@ -87,7 +92,7 @@ export const ConsumerUnitGroupCards = ({
 			<li className="flex flex-col gap-3 border-b border-border bg-muted px-4 py-4">
 				<NameAndUsageFields control={newGroupControl} />
 
-				<div className="grid grid-cols-2 items-start gap-4">
+				<div className="grid grid-cols-3 items-start gap-4">
 					<div className="flex flex-col gap-1">
 						<span
 							aria-hidden="true"
@@ -96,6 +101,19 @@ export const ConsumerUnitGroupCards = ({
 							QTD
 						</span>
 						<QuantityField control={newGroupControl} />
+					</div>
+
+					<div className="flex flex-col gap-1">
+						<span
+							aria-hidden="true"
+							className="font-mono text-2xs tracking-[0.11em] text-faint-foreground"
+						>
+							LIGAÇÃO
+						</span>
+						<ConnectionField
+							control={newGroupControl}
+							usageType={newGroupUsageType}
+						/>
 					</div>
 
 					<div className="flex flex-col gap-1">

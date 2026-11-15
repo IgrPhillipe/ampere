@@ -64,6 +64,9 @@ export const newGroupSchema = z.object({
 			.max(10000, { error: "Máximo 10.000." }),
 	),
 	load: optionalPositive("Maior que zero."),
+	connectionType: z.enum(unitConnectionTypeSchema.options, {
+		error: "Selecione a ligação.",
+	}),
 });
 
 export type NewGroupFormValues = z.infer<typeof newGroupSchema>;

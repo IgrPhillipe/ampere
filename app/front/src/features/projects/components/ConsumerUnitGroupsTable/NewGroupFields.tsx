@@ -1,10 +1,11 @@
 import { ControlledInput, ControlledSelect } from "@components/form";
-import type { Control } from "react-hook-form";
+import { type Control, useWatch } from "react-hook-form";
 
 import {
 	GROUP_USAGE_TYPES,
 	type GroupUsageType,
 	groupUsageTypeItems,
+	unitConnectionTypeItems,
 } from "../../constants";
 import type { NewGroupFormValues } from "../../schemas";
 import { newGroupLoadLabel } from "./new-group";
@@ -56,8 +57,27 @@ export const QuantityField = ({ control }: NewGroupFieldsProps) => (
 	/>
 );
 
+/** Only an apartment has its own connection; the other groups follow the building's. */
+export const ConnectionField = ({ control, usageType }: NewGroupFieldsProps) =>
+	usageType === "APARTMENT" ? (
+		<ControlledSelect
+			control={control}
+			name="connectionType"
+			label={hiddenLabel("Ligação do apartamento")}
+			items={unitConnectionTypeItems}
+			variant="underline"
+			className="text-xs"
+		/>
+	) : (
+		<span className="font-mono text-sm text-muted-foreground">
+			{usageType ? "Edificação" : ""}
+		</span>
+	);
+
 export const LoadField = ({ control, usageType }: NewGroupFieldsProps) => {
-	const label = newGroupLoadLabel(usageType);
+	// `form.watch` is memoized by the React Compiler.
+	const connectionType = useWatch({ control, name: "connectionType" });
+	const label = newGroupLoadLabel(usageType, connectionType);
 
 	if (!label) {
 		return (

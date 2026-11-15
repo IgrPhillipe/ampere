@@ -3,7 +3,12 @@ import type { Control } from "react-hook-form";
 
 import type { GroupUsageType } from "../../constants";
 import type { NewGroupFormValues } from "../../schemas";
-import { LoadField, NameAndUsageFields, QuantityField } from "./NewGroupFields";
+import {
+	ConnectionField,
+	LoadField,
+	NameAndUsageFields,
+	QuantityField,
+} from "./NewGroupFields";
 import { newGroupStatus } from "./new-group";
 
 interface NewGroupRowProps {
@@ -21,7 +26,9 @@ export const NewGroupRow = ({ control, usageType }: NewGroupRowProps) => (
 			<QuantityField control={control} />
 		</TableCell>
 
-		<TableCell />
+		<TableCell className="whitespace-normal">
+			<ConnectionField control={control} usageType={usageType} />
+		</TableCell>
 
 		<TableCell className="text-right whitespace-normal">
 			<LoadField control={control} usageType={usageType} />

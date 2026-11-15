@@ -29,6 +29,7 @@ export const ResidentialGroupForm = ({
 	group,
 	focusField,
 	readOnly,
+	isNew,
 	isSaving,
 	isDeleting,
 	onSave,
@@ -228,6 +229,7 @@ export const ResidentialGroupForm = ({
 
 			<GroupFormFooter
 				readOnly={readOnly}
+				isNew={isNew}
 				isSaving={isSaving}
 				isDeleting={isDeleting}
 				onCancel={onCancel}
