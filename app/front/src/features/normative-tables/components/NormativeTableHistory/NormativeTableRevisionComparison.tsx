@@ -11,6 +11,7 @@ import {
 } from "@components/ui/select";
 import { Skeleton } from "@components/ui/skeleton";
 import { padCount } from "@features/shared";
+import { cn } from "@lib/utils";
 import {
 	type NormativeTable,
 	type NormativeTableCode,
@@ -65,7 +66,11 @@ const RevisionPicker = ({
 			if (typeof next === "string") onValueChange(next);
 		}}
 	>
-		<SelectTrigger variant="default" aria-label={label} className="h-9 px-3">
+		<SelectTrigger
+			variant="default"
+			aria-label={label}
+			className="h-9 w-fit px-3"
+		>
 			<SelectValue />
 		</SelectTrigger>
 		<SelectContent>
@@ -82,21 +87,37 @@ const RevisionPicker = ({
 	</Select>
 );
 
-const Values = ({ values }: { values: RowValue[] }) =>
-	values.length === 1 ? (
+/** On a changed row, the values that stayed the same recede. */
+const Values = ({
+	values,
+	other,
+}: {
+	values: RowValue[];
+	other?: RowValue[];
+}) => {
+	const kept = (entry: RowValue) =>
+		other?.some(
+			({ label, value }) => label === entry.label && value === entry.value,
+		) ?? false;
+
+	return values.length === 1 ? (
 		<span>{values[0].value}</span>
 	) : (
-		<ul className="flex flex-col gap-0.5">
-			{values.map(({ label, value }) => (
-				<li key={label}>
-					<span className="font-sans text-xs text-muted-foreground">
-						{label}:
-					</span>{" "}
-					{value}
+		<ul className="flex flex-col gap-1">
+			{values.map((entry) => (
+				<li
+					key={entry.label}
+					className={cn(kept(entry) && "text-faint-foreground")}
+				>
+					<span className="block font-sans text-xs text-muted-foreground">
+						{entry.label}
+					</span>
+					{entry.value}
 				</li>
 			))}
 		</ul>
 	);
+};
 
 const Absent = () => <span className="text-faint-foreground">Não consta</span>;
 
@@ -237,13 +258,13 @@ export const NormativeTableRevisionComparison = ({
 								</th>
 								<th
 									scope="col"
-									className="w-32 py-3 pr-3 text-right font-normal"
+									className="w-40 py-3 pr-3 text-right font-normal"
 								>
 									Origem
 								</th>
 								<th
 									scope="col"
-									className="w-32 py-3 pr-3 text-right font-normal"
+									className="w-40 py-3 pr-3 text-right font-normal"
 								>
 									Destino
 								</th>
@@ -260,14 +281,20 @@ export const NormativeTableRevisionComparison = ({
 									</td>
 									<td className="py-3.5 pr-3 text-right font-mono text-sm break-words text-muted-foreground">
 										{before ? (
-											<Values values={rowValues(before, definition)} />
+											<Values
+												values={rowValues(before, definition)}
+												other={after && rowValues(after, definition)}
+											/>
 										) : (
 											<Absent />
 										)}
 									</td>
 									<td className="py-3.5 pr-3 text-right font-mono text-sm break-words text-foreground">
 										{after ? (
-											<Values values={rowValues(after, definition)} />
+											<Values
+												values={rowValues(after, definition)}
+												other={before && rowValues(before, definition)}
+											/>
 										) : (
 											<Absent />
 										)}
