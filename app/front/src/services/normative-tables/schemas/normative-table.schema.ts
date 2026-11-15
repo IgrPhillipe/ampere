@@ -78,6 +78,32 @@ export const normativeTableSchema = z.object({
 
 export type NormativeTable = z.infer<typeof normativeTableSchema>;
 
+export const normativeTableRowChangeSchema = z.object({
+	before: normativeTableRowSchema,
+	after: normativeTableRowSchema,
+});
+
+export type NormativeTableRowChange = z.infer<
+	typeof normativeTableRowChangeSchema
+>;
+
+/** Rows paired by key and band: a band that moved is one removed and one included. */
+export const normativeTableComparisonSchema = z.object({
+	from: normativeTableSchema,
+	to: normativeTableSchema,
+	included: z.array(normativeTableRowSchema),
+	removed: z.array(normativeTableRowSchema),
+	changed: z.array(normativeTableRowChangeSchema),
+});
+
+export type NormativeTableComparison = z.infer<
+	typeof normativeTableComparisonSchema
+>;
+
+export const normativeTableComparisonResponseSchema = apiResponseSchema(
+	normativeTableComparisonSchema,
+);
+
 export const normativeTableCodeListResponseSchema = apiResponseSchema(
 	z.array(normativeTableCodeSchema),
 );
