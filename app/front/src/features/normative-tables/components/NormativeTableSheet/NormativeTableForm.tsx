@@ -12,7 +12,7 @@ import {
 	useUpdateNormativeTable,
 } from "@services/normative-tables";
 import { useEffect, useState } from "react";
-import { useFormState, useWatch } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 
 import { useCanManageNormativeTables } from "../../hooks";
 import {
@@ -70,6 +70,7 @@ export const NormativeTableForm = ({
 	const [pendingCreation, setPendingCreation] =
 		useState<NormativeTablePayload | null>(null);
 	const email = useAuthStore((state) => state.user?.email);
+	const isAdmin = useAuthStore((state) => state.user?.role === "admin");
 	const canManage = useCanManageNormativeTables();
 
 	const form = useZodForm(
@@ -77,12 +78,14 @@ export const NormativeTableForm = ({
 		toNormativeTableFormValues(table),
 	);
 	const code = useWatch({ control: form.control, name: "code" });
-	const { isDirty } = useFormState({ control: form.control });
 	const definition = codes.find((entry) => entry.code === code);
 
 	const isNew = table === undefined;
-	const readOnly =
-		!canManage || (table !== undefined && table.status !== "DRAFT");
+	const isDraft = table?.status === "DRAFT";
+	const isOwnDraft =
+		isDraft && table.registeredBy.toLowerCase() === email?.toLowerCase();
+	// Only the author edits a draft, so whoever approves it reads what was typed.
+	const readOnly = !canManage || !(isNew || isOwnDraft);
 	const codeItems = Object.fromEntries(
 		codes.map((entry) => [
 			entry.code,
@@ -260,12 +263,9 @@ export const NormativeTableForm = ({
 			</fieldset>
 
 			<NormativeTableFormFooter
-				canDelete={table !== undefined}
 				readOnly={readOnly}
-				canPublish={!isDirty}
-				awaitingReview={
-					table?.registeredBy.toLowerCase() === email?.toLowerCase()
-				}
+				canDelete={canManage && (isOwnDraft || (isDraft && isAdmin))}
+				canApprove={canManage && isDraft && !isOwnDraft}
 				isSaving={createTable.isPending || updateTable.isPending}
 				isDeleting={deleteTable.isPending}
 				onCancel={onClose}

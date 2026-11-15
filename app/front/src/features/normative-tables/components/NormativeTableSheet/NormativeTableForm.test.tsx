@@ -60,14 +60,31 @@ describe("NormativeTableForm", () => {
 		).toBeVisible();
 	});
 
-	it("lets the reviewer approve a revision someone else registered", () => {
+	it("lets the reviewer approve, but not change, someone else's revision", () => {
 		signInAs("reviewer", { email: "revisor@ampere.com" });
-		renderForm(draft("admin@ampere.com"));
+		renderForm(draft("analista@ampere.com"));
 
 		expect(
 			screen.getByRole("button", { name: "Aprovar e Publicar" }),
 		).toBeVisible();
+		expect(screen.getByRole("button", { name: "Fechar" })).toBeVisible();
+		expect(
+			screen.queryByRole("button", { name: "Salvar" }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: "Excluir" }),
+		).not.toBeInTheDocument();
+		expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+	});
+
+	it("lets the admin delete someone else's revision", () => {
+		signInAs("admin", { email: "admin@ampere.com" });
+		renderForm(draft("revisor@ampere.com"));
+
 		expect(screen.getByRole("button", { name: "Excluir" })).toBeVisible();
+		expect(
+			screen.queryByRole("button", { name: "Salvar" }),
+		).not.toBeInTheDocument();
 	});
 
 	it("keeps whoever registered the revision from approving it", () => {
@@ -75,6 +92,7 @@ describe("NormativeTableForm", () => {
 		renderForm(draft("revisor@ampere.com"));
 
 		expect(screen.getByRole("button", { name: "Salvar" })).toBeVisible();
+		expect(screen.getByRole("button", { name: "Excluir" })).toBeVisible();
 		expect(
 			screen.queryByRole("button", { name: "Aprovar e Publicar" }),
 		).not.toBeInTheDocument();
