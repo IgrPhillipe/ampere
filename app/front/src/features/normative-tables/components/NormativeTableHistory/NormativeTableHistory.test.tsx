@@ -3,7 +3,13 @@ import type {
 	NormativeTableCode,
 	NormativeTableComparison,
 } from "@services/normative-tables";
-import { render, screen, within } from "@testing-library/react";
+import {
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { NormativeTableHistory } from "./NormativeTableHistory";
@@ -49,6 +55,15 @@ const older = revision("1", "2026-07-01T12:00:00Z", {
 });
 const newer = revision("2", "2026-11-12T12:00:00Z");
 
+const tabela2: NormativeTableCode = {
+	...quadro37,
+	code: "T2_SERVICE_ENTRANCE_380_220",
+	identification: "Tabela 2",
+	valueLabels: ["Categoria", "Condutor (mm²)", "Disjuntor geral (A)"],
+};
+
+const latest = revision("3", "2026-11-14T12:00:00Z");
+
 const comparison: NormativeTableComparison = {
 	from: older,
 	to: newer,
@@ -72,6 +87,14 @@ vi.mock("@services/normative-tables", async (importOriginal) => ({
 	useGetNormativeTableRevisions: hooks.revisions,
 	useCompareNormativeTableRevisions: hooks.compare,
 }));
+
+const pick = async (picker: string, option: string) => {
+	fireEvent.click(screen.getByRole("combobox", { name: picker }));
+	const item = await screen.findByRole("option", { name: option });
+	fireEvent.pointerDown(item);
+	fireEvent.click(item);
+	await waitFor(() => expect(screen.queryAllByRole("option")).toHaveLength(0));
+};
 
 const revisionsReturn = (data: NormativeTable[]) => ({
 	isPending: false,
@@ -176,6 +199,118 @@ describe("NormativeTableHistory", () => {
 
 		expect(within(changed).getByText("Dr ≤ 25 kVA")).toBeVisible();
 		expect(within(changed).getByText("Antes: Até 25 kVA")).toBeVisible();
+	});
+
+	it("compares the revisions picked as origin and destination", async () => {
+		hooks.revisions.mockReturnValue(revisionsReturn([latest, newer, older]));
+
+		render(<NormativeTableHistory table={latest} definition={quadro37} />);
+
+		expect(hooks.compare).toHaveBeenLastCalledWith({
+			id: "3",
+			from: "2",
+			to: "3",
+		});
+
+		await pick("Revisão de origem", "Revisão 01");
+
+		expect(hooks.compare).toHaveBeenLastCalledWith({
+			id: "3",
+			from: "1",
+			to: "3",
+		});
+
+		await pick("Revisão de destino", "Revisão 02");
+
+		expect(hooks.compare).toHaveBeenLastCalledWith({
+			id: "3",
+			from: "1",
+			to: "2",
+		});
+	});
+
+	it("offers as origin only the revisions before the destination, and the reverse", async () => {
+		hooks.revisions.mockReturnValue(revisionsReturn([latest, newer, older]));
+
+		render(<NormativeTableHistory table={newer} definition={quadro37} />);
+
+		fireEvent.click(
+			screen.getByRole("combobox", { name: "Revisão de origem" }),
+		);
+		expect(
+			await screen.findByRole("option", { name: "Revisão 01" }),
+		).not.toHaveAttribute("aria-disabled", "true");
+		expect(screen.getByRole("option", { name: "Revisão 02" })).toHaveAttribute(
+			"aria-disabled",
+			"true",
+		);
+		expect(screen.getByRole("option", { name: "Revisão 03" })).toHaveAttribute(
+			"aria-disabled",
+			"true",
+		);
+		fireEvent.keyDown(document.activeElement ?? document.body, {
+			key: "Escape",
+		});
+
+		fireEvent.click(
+			screen.getByRole("combobox", { name: "Revisão de destino" }),
+		);
+		await vi.waitFor(() =>
+			expect(
+				screen.getByRole("option", { name: "Revisão 01" }),
+			).toHaveAttribute("aria-disabled", "true"),
+		);
+		expect(
+			screen.getByRole("option", { name: "Revisão 02" }),
+		).not.toHaveAttribute("aria-disabled", "true");
+		expect(
+			screen.getByRole("option", { name: "Revisão 03" }),
+		).not.toHaveAttribute("aria-disabled", "true");
+	});
+
+	it("fades the values that stayed the same on a changed row", () => {
+		hooks.compare.mockReturnValue({
+			isError: false,
+			data: {
+				data: {
+					...comparison,
+					changed: [
+						{
+							before: {
+								upperBound: 66,
+								value: 2,
+								secondValue: 35,
+								thirdValue: 100,
+							},
+							after: {
+								upperBound: 66,
+								value: 2,
+								secondValue: 50,
+								thirdValue: 125,
+							},
+						},
+					],
+					included: [],
+					removed: [],
+				},
+			},
+		});
+
+		render(<NormativeTableHistory table={newer} definition={tabela2} />);
+
+		const [, changed] = within(screen.getByRole("table")).getAllByRole("row");
+		const [, origin, destination] = within(changed).getAllByRole("cell");
+		const [category, conductor, breaker] =
+			within(destination).getAllByRole("listitem");
+
+		expect(category).toHaveClass("text-faint-foreground");
+		expect(conductor).not.toHaveClass("text-faint-foreground");
+		expect(breaker).not.toHaveClass("text-faint-foreground");
+		expect(within(conductor).getByText("50")).toBeVisible();
+		expect(within(origin).getAllByRole("listitem")[0]).toHaveClass(
+			"text-faint-foreground",
+		);
+		expect(within(origin).getByText("35")).toBeVisible();
 	});
 
 	it("says when nothing changed between the revisions", () => {
