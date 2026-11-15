@@ -1,6 +1,7 @@
 package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +13,7 @@ import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.UserRole;
+import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.StandardRepository;
 import java.math.BigDecimal;
@@ -21,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
 class NormativeTableServiceTest {
@@ -86,6 +89,21 @@ class NormativeTableServiceTest {
         .containsExactly(2L, 3L, 1L, 4L);
     assertThat(ids(sort(NormativeTableSort.VERIFIED_AT, SortDirection.DESC)))
         .containsExactly(1L, 3L, 2L, 4L);
+  }
+
+  @Test
+  void refusesARevisionFromADesigner() {
+    NormativeTableParameters parameters =
+        new NormativeTableParameters(
+            NormativeTableCode.Q37_SAFETY_FACTOR, "Quadro 37", "Anexo I, item 5", "108", List.of());
+
+    assertThatThrownBy(
+            () ->
+                service.create(
+                    parameters, "user@ampere.com", new AuthenticatedUser(1L, UserRole.USER)))
+        .isInstanceOf(BusinessException.class)
+        .extracting("status")
+        .isEqualTo(HttpStatus.FORBIDDEN);
   }
 
   private List<Long> ids(NormativeTableQuery query) {

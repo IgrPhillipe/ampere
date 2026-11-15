@@ -34,7 +34,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(
     name = "Normative tables",
-    description = "Cadastro e publicação das tabelas normativas lidas pelo cálculo (admin)")
+    description =
+        "Cadastro e publicação das tabelas normativas lidas pelo cálculo (revisor e admin)")
 @RestController
 @RequestMapping("/normative-tables")
 public class NormativeTableController {

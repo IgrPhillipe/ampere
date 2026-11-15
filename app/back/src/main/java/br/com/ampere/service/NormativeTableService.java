@@ -58,7 +58,7 @@ public class NormativeTableService {
   @Transactional
   public NormativeTable create(
       NormativeTableParameters parameters, String registeredBy, AuthenticatedUser user) {
-    user.requireAdmin();
+    user.requireReviewer();
     NormativeTable table =
         new NormativeTable(
             standardOf(parameters),
@@ -95,7 +95,7 @@ public class NormativeTableService {
     NormativeTable table = draftOrFail(id, "Esta tabela já foi publicada.", user);
     if (!table.isVerifiableBy(verifiedBy)) {
       throw new BusinessException(
-          "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por outro gestor.",
+          "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por outra pessoa.",
           HttpStatus.CONFLICT);
     }
     rejectProblems(table);

@@ -28,13 +28,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-/** The analyst reads the normative tables; one administrator types them and another verifies. */
+/** Reviewer and admin register and approve the normative tables; whoever registers does not. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
 class AdminAccessIntegrationTest {
 
   private static final String PASSWORD = "senha@123";
+
+  private static final String SELF_APPROVAL =
+      "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por outra pessoa.";
 
   private static final String QUADRO_37 =
       """
@@ -99,22 +102,78 @@ class AdminAccessIntegrationTest {
   }
 
   @Test
-  void anAnalystReadsButCannotPublishOrDeleteTheNormativeTables() throws Exception {
+  void aDesignerCannotWriteTheNormativeTables() throws Exception {
     String id = create(bearer("admin@ampere.com"));
-    String reviewer = bearer("revisor@ampere.com");
+    String designer = bearer("user@ampere.com");
 
     mockMvc
-        .perform(get("/normative-tables").header("Authorization", reviewer))
-        .andExpect(status().isOk());
+        .perform(
+            post("/normative-tables")
+                .header("Authorization", designer)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(QUADRO_37))
+        .andExpect(status().isForbidden());
     mockMvc
-        .perform(get("/normative-tables/" + id).header("Authorization", reviewer))
-        .andExpect(status().isOk());
+        .perform(
+            put("/normative-tables/" + id)
+                .header("Authorization", designer)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(QUADRO_37))
+        .andExpect(status().isForbidden());
+    mockMvc
+        .perform(post("/normative-tables/" + id + "/publication").header("Authorization", designer))
+        .andExpect(status().isForbidden());
+    mockMvc
+        .perform(delete("/normative-tables/" + id).header("Authorization", designer))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void aReviewerRegistersARevisionThatAnAdminApproves() throws Exception {
+    String reviewer = bearer("revisor@ampere.com");
+    String id = create(reviewer);
+
     mockMvc
         .perform(post("/normative-tables/" + id + "/publication").header("Authorization", reviewer))
-        .andExpect(status().isForbidden());
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.detail").value(SELF_APPROVAL));
+    mockMvc
+        .perform(
+            post("/normative-tables/" + id + "/publication")
+                .header("Authorization", bearer("admin@ampere.com")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.registeredBy").value("revisor@ampere.com"))
+        .andExpect(jsonPath("$.data.verifiedBy").value("admin@ampere.com"));
+  }
+
+  @Test
+  void aReviewerApprovesARevisionAnAdminRegistered() throws Exception {
+    String id = create(bearer("admin@ampere.com"));
+
+    mockMvc
+        .perform(
+            post("/normative-tables/" + id + "/publication")
+                .header("Authorization", bearer("revisor@ampere.com")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.status").value("PUBLISHED"))
+        .andExpect(jsonPath("$.data.verifiedBy").value("revisor@ampere.com"));
+  }
+
+  @Test
+  void aReviewerEditsAndDeletesADraft() throws Exception {
+    String reviewer = bearer("revisor@ampere.com");
+    String id = create(reviewer);
+
+    mockMvc
+        .perform(
+            put("/normative-tables/" + id)
+                .header("Authorization", reviewer)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(QUADRO_37))
+        .andExpect(status().isOk());
     mockMvc
         .perform(delete("/normative-tables/" + id).header("Authorization", reviewer))
-        .andExpect(status().isForbidden());
+        .andExpect(status().isNoContent());
   }
 
   @Test
@@ -157,11 +216,7 @@ class AdminAccessIntegrationTest {
     mockMvc
         .perform(post("/normative-tables/" + id + "/publication").header("Authorization", admin))
         .andExpect(status().isConflict())
-        .andExpect(
-            jsonPath("$.detail")
-                .value(
-                    "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por outro"
-                        + " gestor."));
+        .andExpect(jsonPath("$.detail").value(SELF_APPROVAL));
 
     mockMvc
         .perform(
