@@ -36,11 +36,12 @@ const shower = {
 	powerUnit: "KW" as const,
 };
 
-const renderForm = (group: ResidentialGroup) => {
+const renderForm = (group: ResidentialGroup, focusField?: string) => {
 	const onSave = vi.fn<(payload: ConsumerUnitGroupPayload) => void>();
 	render(
 		<ResidentialGroupForm
 			group={group}
+			focusField={focusField}
 			readOnly={false}
 			isSaving={false}
 			isDeleting={false}
@@ -168,6 +169,26 @@ describe("ResidentialGroupForm", () => {
 				"Detalhe as cargas do apartamento trifásico.",
 			);
 			expect(onSave).not.toHaveBeenCalled();
+		});
+
+		it("focuses the first load power for an issue on the whole list", async () => {
+			renderForm(threePhase(), "loads");
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("spinbutton", { name: /Potência de placa/i }),
+				).toHaveFocus();
+			});
+		});
+
+		it("focuses the load field the back points to", async () => {
+			renderForm(threePhase(), "loads[0].description");
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("textbox", { name: /Descrição/i }),
+				).toHaveFocus();
+			});
 		});
 
 		it("warns when the loads add up past the low-voltage limit", async () => {

@@ -22,8 +22,9 @@ import {
 } from "./load-item";
 import { unitInstalledKw, unitLoadNotice } from "./unit-load";
 
-/** The back names the apartment loads `loads`; the form shares `items` with `LoadGroupForm`. */
-const toFormField = (field?: string) => field?.replace(/^loads/, "items");
+/** The back's `loads` are the form's `items`; the whole list, over 75 kW, focuses the first power. */
+const toFormField = (field?: string) =>
+	field === "loads" ? "items[0].power" : field?.replace(/^loads/, "items");
 
 export const ResidentialGroupForm = ({
 	group,
