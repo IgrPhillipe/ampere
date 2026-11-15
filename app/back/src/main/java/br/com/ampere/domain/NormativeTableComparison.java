@@ -4,10 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * What changed between two revisions of the same table. Rows are paired by key and band, so a row
- * whose band moved counts as one removed and one included.
- */
+/** Rows paired by key and band: a band that moved is one removed and one included. */
 public record NormativeTableComparison(
     NormativeTable from,
     NormativeTable to,

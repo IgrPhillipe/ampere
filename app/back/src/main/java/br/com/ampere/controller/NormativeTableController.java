@@ -150,7 +150,7 @@ public class NormativeTableController {
         description = "Diferenças entre as revisões"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
-        description = "Revisão ausente, ou origem posterior ao destino"),
+        description = "Revisão ausente ou inválida, ou origem posterior ao destino"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "404",
         description = "Tabela não encontrada, ou revisão fora do histórico dela")
