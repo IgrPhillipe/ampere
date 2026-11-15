@@ -55,7 +55,7 @@ export const NormativeTableSheet = ({
 					<div className="flex flex-wrap items-center gap-3 pr-8">
 						<SheetTitle className="font-heading text-xl">
 							{tableId === null
-								? "Nova Tabela"
+								? "Nova Revisão"
 								: (table?.identification ?? "Tabela")}
 						</SheetTitle>
 
@@ -64,7 +64,7 @@ export const NormativeTableSheet = ({
 
 					<SheetDescription>
 						{tableId === null
-							? "Cadastro de uma tabela normativa."
+							? "Cadastro de uma revisão de tabela normativa."
 							: table?.title}
 					</SheetDescription>
 				</SheetHeader>

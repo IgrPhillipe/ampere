@@ -28,19 +28,22 @@ const renderPage = () =>
 	);
 
 describe("NormativeTablesPage", () => {
-	it("keeps the analyst in read mode", () => {
-		signInAs("reviewer");
+	it("keeps the designer out of the revisions", () => {
+		signInAs("user");
 		renderPage();
 
 		expect(
-			screen.queryByRole("button", { name: "Nova Tabela" }),
+			screen.queryByRole("button", { name: "Nova Revisão" }),
 		).not.toBeInTheDocument();
 	});
 
-	it("lets the admin register a table", () => {
-		signInAs("admin");
+	it.each([
+		"reviewer",
+		"admin",
+	] as const)("lets the %s register a revision", (role) => {
+		signInAs(role);
 		renderPage();
 
-		expect(screen.getByRole("button", { name: "Nova Tabela" })).toBeVisible();
+		expect(screen.getByRole("button", { name: "Nova Revisão" })).toBeVisible();
 	});
 });

@@ -14,6 +14,7 @@ import {
 import { useEffect, useState } from "react";
 import { useFormState, useWatch } from "react-hook-form";
 
+import { useCanManageNormativeTables } from "../../hooks";
 import {
 	type NormativeTableFormValues,
 	normativeTableFormSchema,
@@ -69,8 +70,7 @@ export const NormativeTableForm = ({
 	const [pendingCreation, setPendingCreation] =
 		useState<NormativeTablePayload | null>(null);
 	const email = useAuthStore((state) => state.user?.email);
-	// The analyst reads the tables; typing and publishing stay with the admin.
-	const canManage = useAuthStore((state) => state.user?.role === "admin");
+	const canManage = useCanManageNormativeTables();
 
 	const form = useZodForm(
 		normativeTableFormSchema,
@@ -198,6 +198,11 @@ export const NormativeTableForm = ({
 							name="code"
 							label="Tabela"
 							placeholder="Selecione a tabela da norma"
+							description={
+								isNew
+									? "Só aparecem as tabelas que o cálculo de demanda lê. A revisão aprovada substitui a vigente da mesma tabela."
+									: undefined
+							}
 							items={codeItems}
 							disabled={!isNew}
 							required
@@ -267,8 +272,8 @@ export const NormativeTableForm = ({
 
 			<ConfirmDialog
 				open={pendingCreation !== null}
-				title="Enviar a tabela para revisão?"
-				description="A tabela fica pendente até a aprovação de outro gestor. Os valores só entram no cálculo de demanda depois de aprovados."
+				title="Enviar a revisão para aprovação?"
+				description="A revisão fica pendente até a aprovação de outra pessoa. Os valores só entram no cálculo de demanda depois de aprovados."
 				confirmLabel="Enviar para Revisão"
 				pendingLabel="Enviando..."
 				isPending={createTable.isPending}
