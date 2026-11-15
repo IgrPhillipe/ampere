@@ -17,6 +17,7 @@ import br.com.ampere.domain.NormativeTableSort;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.error.GlobalExceptionHandler;
+import br.com.ampere.service.NormativeTableHistoryService;
 import br.com.ampere.service.NormativeTableQuery;
 import br.com.ampere.service.NormativeTableService;
 import br.com.ampere.service.PersonDirectory;

@@ -11,6 +11,7 @@ import br.com.ampere.dto.NormativeTableRequest;
 import br.com.ampere.dto.NormativeTableResponse;
 import br.com.ampere.dto.NormativeTableRowRequest;
 import br.com.ampere.service.AuthenticatedUser;
+import br.com.ampere.service.NormativeTableHistoryService;
 import br.com.ampere.service.NormativeTableParameters;
 import br.com.ampere.service.NormativeTableQuery;
 import br.com.ampere.service.NormativeTableService;
@@ -47,10 +48,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class NormativeTableController {
 
   private final NormativeTableService service;
+  private final NormativeTableHistoryService historyService;
   private final PersonDirectory people;
 
-  public NormativeTableController(NormativeTableService service, PersonDirectory people) {
+  public NormativeTableController(
+      NormativeTableService service,
+      NormativeTableHistoryService historyService,
+      PersonDirectory people) {
     this.service = service;
+    this.historyService = historyService;
     this.people = people;
   }
 
@@ -111,6 +117,23 @@ public class NormativeTableController {
   public ApiResponse<NormativeTableResponse> detail(
       @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(detailOf(service.findById(id, userOf(jwt))));
+  }
+
+  @GetMapping("/{id}/revisions")
+  @Operation(
+      operationId = "listNormativeTableRevisions",
+      summary = "Histórico das revisões da mesma tabela, da mais recente à mais antiga")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Revisões cadastradas, sem as linhas"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "Tabela não encontrada")
+  })
+  public ApiResponse<List<NormativeTableResponse>> revisions(
+      @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(summaries(historyService.revisions(id, userOf(jwt))));
   }
 
   @PostMapping
