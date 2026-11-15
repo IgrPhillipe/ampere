@@ -277,7 +277,9 @@ class AdminAccessIntegrationTest {
         .andExpect(status().isNoContent());
     mockMvc
         .perform(delete("/normative-tables/" + published).header("Authorization", admin))
-        .andExpect(status().isConflict());
+        .andExpect(status().isConflict())
+        .andExpect(
+            jsonPath("$.detail").value("Só é possível excluir uma revisão aguardando aprovação."));
   }
 
   @Test
@@ -339,7 +341,14 @@ class AdminAccessIntegrationTest {
                 .header("Authorization", admin)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(QUADRO_37))
-        .andExpect(status().isConflict());
+        .andExpect(status().isConflict())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Uma revisão aprovada não é editada. Cadastre uma nova revisão."));
+    mockMvc
+        .perform(publication(id).header("Authorization", bearer("revisor@ampere.com")))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.detail").value("Esta revisão já foi aprovada."));
   }
 
   @Test

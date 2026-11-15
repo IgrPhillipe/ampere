@@ -22,7 +22,7 @@ public class NormativeTableService {
 
   private static final String NOT_FOUND = "Tabela normativa não encontrada.";
   private static final String NOT_DRAFT =
-      "Uma revisão publicada não é editada. Cadastre uma nova tabela.";
+      "Uma revisão aprovada não é editada. Cadastre uma nova revisão.";
 
   private final NormativeTableRepository tableRepository;
   private final StandardRepository standardRepository;
@@ -91,7 +91,8 @@ public class NormativeTableService {
     }
     if (table.getCode() != parameters.code()) {
       throw new BusinessException(
-          "A tabela de uma revisão não muda. Cadastre outra tabela.", HttpStatus.CONFLICT);
+          "A tabela de uma revisão não muda. Cadastre uma revisão da outra tabela.",
+          HttpStatus.CONFLICT);
     }
 
     table.revise(
@@ -112,7 +113,7 @@ public class NormativeTableService {
   @Transactional
   public NormativeTable publish(
       Long id, long readVersion, String verifiedBy, AuthenticatedUser user) {
-    NormativeTable table = draftOrFail(id, "Esta tabela já foi publicada.", user);
+    NormativeTable table = draftOrFail(id, "Esta revisão já foi aprovada.", user);
     if (!table.isVerifiableBy(verifiedBy)) {
       throw new BusinessException(
           "Quem cadastrou a tabela não pode aprová-la. A publicação é feita por outra pessoa.",
@@ -137,7 +138,7 @@ public class NormativeTableService {
   @Transactional
   public void delete(Long id, String deletedBy, AuthenticatedUser user) {
     NormativeTable table =
-        draftOrFail(id, "Só é possível excluir uma tabela aguardando revisão.", user);
+        draftOrFail(id, "Só é possível excluir uma revisão aguardando aprovação.", user);
     if (!user.isAdmin() && !table.isEditableBy(deletedBy)) {
       throw new BusinessException(
           "Só quem cadastrou a revisão ou um gestor pode excluí-la.", HttpStatus.FORBIDDEN);
