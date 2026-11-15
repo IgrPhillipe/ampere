@@ -6,6 +6,7 @@ import type {
 	LoadCategory,
 	LoadUsage,
 	PowerUnit,
+	UnitConnectionType,
 } from "@services/consumer-units";
 
 export const groupStatusLabels = {
@@ -68,6 +69,24 @@ export const powerUnitItems = {
 	CV: "CV",
 	HP: "HP",
 } as const satisfies Record<PowerUnit, string>;
+
+/** kW per unit of power, as the back converts plate powers. */
+export const powerUnitKw = {
+	KW: 1,
+	CV: 0.7355,
+	HP: 0.7457,
+} as const satisfies Record<PowerUnit, number>;
+
+export const unitConnectionTypeItems = {
+	SINGLE_PHASE: "Monofásico",
+	THREE_PHASE: "Trifásico",
+} as const satisfies Record<UnitConnectionType, string>;
+
+/** DIS-NOR-030 item 6.2.1: secondary voltage up to 75 kW of installed load. */
+export const LOW_VOLTAGE_LIMIT_KW = 75;
+
+/** Ceiling of category M3, the largest single-phase one (DIS-NOR-030 Anexo I, Tabela 2). */
+export const SINGLE_PHASE_LIMIT_KW = 15;
 
 export const evStationTypeItems = {
 	INDIVIDUAL: "Individualizado por unidade",

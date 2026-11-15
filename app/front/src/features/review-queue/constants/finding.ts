@@ -12,4 +12,6 @@ export const checkFindingTargets: Record<string, CheckFindingTarget> = {
 	NETWORK_STUDY: { stage: "CALCULATION", calculationStepCode: "Dve" },
 	TRANSFORMER_LIMIT: { stage: "CALCULATION", calculationStepCode: "Dve" },
 	SAFETY_FACTOR: { stage: "CALCULATION", calculationStepCode: "Drf" },
+	LOW_VOLTAGE_LIMIT: { stage: "CALCULATION", calculationStepCode: "Dind" },
+	UNIT_CONNECTION: { stage: "CALCULATION", calculationStepCode: "Dind" },
 };

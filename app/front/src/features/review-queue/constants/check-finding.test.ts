@@ -40,6 +40,26 @@ describe("checkToFindingValues", () => {
 		});
 	});
 
+	it.each([
+		[
+			"UNIT_CONNECTION",
+			"Há apartamento trifásico, mas o tipo de ligação da edificação é monofásico: confira a ligação da edificação ou a das unidades.",
+			"",
+		],
+		[
+			"LOW_VOLTAGE_LIMIT",
+			"Maior carga instalada por apartamento de 19,47 kW, dentro do limite de 75 kW da baixa tensão (DIS-NOR-030, item 6.2.1).",
+			"DIS-NOR-030, item 6.2.1",
+		],
+	])("points %s to the individual demand step", (code, message, standardItem) => {
+		expect(checkToFindingValues({ code, status: "WARNING", message })).toEqual({
+			stage: "CALCULATION",
+			reference: "Dind",
+			description: message,
+			standardItem,
+		});
+	});
+
 	it("falls back to the calculation stage for an unknown check", () => {
 		expect(
 			checkToFindingValues({ code: "NEW", status: "WARNING", message: "x" }),

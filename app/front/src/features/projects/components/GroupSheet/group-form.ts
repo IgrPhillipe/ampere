@@ -8,6 +8,8 @@ export interface GroupFormProps<TGroup extends ConsumerUnitGroup> {
 	group: TGroup;
 	focusField?: string;
 	readOnly: boolean;
+	/** A draft has nothing to delete yet. */
+	isNew?: boolean;
 	isSaving: boolean;
 	isDeleting: boolean;
 	onSave: (payload: ConsumerUnitGroupPayload) => void;

@@ -166,6 +166,51 @@ class DemandCalculationIntegrationTest {
   }
 
   @Test
+  void aUnitAboveTheLowVoltageLimitStopsBeforeTheCheck() throws Exception {
+    publishTables();
+    Project project = draftWithThreePhaseApartment("75.01");
+
+    mockMvc
+        .perform(
+            get("/projects/" + project.getId() + "/consumer-unit-groups")
+                .header("Authorization", "Bearer " + token))
+        .andExpect(jsonPath("$.data[0].status").value("REVIEW"))
+        .andExpect(jsonPath("$.data[0].issues", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].issues[0].severity").value("REVIEW"))
+        .andExpect(jsonPath("$.data[0].issues[0].field").value("loads"))
+        .andExpect(
+            jsonPath("$.data[0].issues[0].message")
+                .value(
+                    "Carga instalada de 75,01 kW por unidade passa do limite de 75 kW da baixa"
+                        + " tensão (DIS-NOR-030, item 6.2.1)."));
+    mockMvc
+        .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
+        .andExpect(status().isUnprocessableContent());
+    mockMvc
+        .perform(get(calculationOf(project) + "/latest").header("Authorization", "Bearer " + token))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void aUnitAtTheLowVoltageLimitPassesTheCheckOnTheIndividualStep() throws Exception {
+    publishTables();
+    Project project = draftWithThreePhaseApartment("75");
+
+    mockMvc
+        .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.steps[5].code").value("Dind"))
+        .andExpect(jsonPath("$.data.steps[5].applies").value(true))
+        .andExpect(
+            jsonPath("$.data.checks[?(@.code == 'LOW_VOLTAGE_LIMIT')].status").value("PASSED"))
+        .andExpect(
+            jsonPath("$.data.checks[?(@.code == 'LOW_VOLTAGE_LIMIT')].message")
+                .value(
+                    "Maior carga instalada por apartamento de 75,00 kW, dentro do limite de 75 kW"
+                        + " da baixa tensão (DIS-NOR-030, item 6.2.1)."));
+  }
+
+  @Test
   void namesTheTableThatIsNotPublished() throws Exception {
     Project project = draftWithPrototypeGroups(true);
 
@@ -302,6 +347,46 @@ class DemandCalculationIntegrationTest {
                     false,
                     fixed ? true : null,
                     br.com.ampere.domain.EvStationType.COLLECTIVE))));
+    return project;
+  }
+
+  private Project draftWithThreePhaseApartment(String loadKw) {
+    Project project =
+        projectRepository.save(
+            new Project(
+                "Residencial Torres do Pina",
+                "Rua do Pina, 10",
+                "Recife",
+                "2026-2002",
+                ProjectStatus.DRAFT,
+                building(),
+                standards,
+                owner));
+    groupRepository.save(
+        GroupKind.RESIDENTIAL.create(
+            project,
+            new GroupSpec(
+                "Cobertura",
+                2,
+                new BigDecimal("180"),
+                3,
+                null,
+                false,
+                ConnectionType.THREE_PHASE,
+                null,
+                List.of(
+                    new LoadItem(
+                        LoadCategory.INSTANT_HEATING,
+                        "Aquecedor de passagem",
+                        1,
+                        new BigDecimal(loadKw),
+                        PowerUnit.KW,
+                        null,
+                        null)),
+                null,
+                null,
+                null,
+                null)));
     return project;
   }
 

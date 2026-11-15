@@ -7,12 +7,19 @@ import type { Finding } from "@services/project-review";
 import { FindingBadge } from "../FindingBadge";
 import { GroupIdentity } from "./GroupIdentity";
 import { GroupStatusLabel } from "./GroupStatusLabel";
+import { groupConnectionLabel } from "./group-connection";
 import { type GroupRowActions, isPendingGroup, loadShare } from "./group-row";
 
 const columnHelper = createDataTableColumnHelper<ConsumerUnitGroup>();
 
 /** Column ids, so `columnClassNames` does not accept a made-up key. */
-export type GroupColumnId = "name" | "quantity" | "load" | "factor" | "status";
+export type GroupColumnId =
+	| "name"
+	| "quantity"
+	| "connection"
+	| "load"
+	| "factor"
+	| "status";
 
 interface GroupColumnsOptions extends GroupRowActions {
 	totalLoadKw: number;
@@ -56,6 +63,22 @@ export const createGroupColumns = ({
 			cell: ({ row }) => (
 				<span className="font-mono text-sm font-medium text-foreground">
 					{padCount(row.original.quantity)}
+				</span>
+			),
+		}),
+		columnHelper.display({
+			id: "connection",
+			header: "Ligação",
+			cell: ({ row }) => (
+				<span
+					className={cn(
+						"font-mono text-2xs tracking-[0.11em] uppercase",
+						row.original.kind === "RESIDENTIAL"
+							? "text-foreground"
+							: "text-faint-foreground",
+					)}
+				>
+					{groupConnectionLabel(row.original)}
 				</span>
 			),
 		}),

@@ -25,7 +25,13 @@ const state = vi.hoisted(() => ({
 	openError: null as unknown,
 	activeRoute: "/projetos/$id",
 	openReview: vi.fn(),
+	createFinding: vi.fn((_: unknown, options?: { onSuccess?: () => void }) =>
+		options?.onSuccess?.(),
+	),
 }));
+
+const unitConnection =
+	"Há apartamento trifásico, mas o tipo de ligação da edificação é monofásico: confira a ligação da edificação ou a das unidades.";
 
 const Section = () => {
 	const registrar = useFindingRegistrar();
@@ -43,6 +49,18 @@ const Section = () => {
 				}
 			>
 				Virar Apontamento
+			</button>
+			<button
+				type="button"
+				onClick={() =>
+					registrar.onCheck?.({
+						code: "UNIT_CONNECTION",
+						status: "WARNING",
+						message: unitConnection,
+					})
+				}
+			>
+				Apontar Ligação
 			</button>
 			<button
 				type="button"
@@ -92,11 +110,7 @@ vi.mock("@services/project-review", async (importOriginal) => ({
 		}),
 	useGetFindingList: () =>
 		loadedQuery({ data: [makeFinding({ status: "DRAFT", version: 1 })] }),
-	useCreateFinding: () =>
-		idleMutation({
-			mutate: (_: unknown, options?: { onSuccess?: () => void }) =>
-				options?.onSuccess?.(),
-		}),
+	useCreateFinding: () => idleMutation({ mutate: state.createFinding }),
 	useUpdateFinding: () => idleMutation(),
 	useDeleteFinding: () => idleMutation(),
 	useResolveFinding: () => idleMutation(),
@@ -107,7 +121,24 @@ vi.mock("@services/project-review", async (importOriginal) => ({
 vi.mock("@services/calculation", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/calculation")>()),
 	useGetLatestCalculation: () =>
-		loadedQuery({ data: { checks: [], steps: [], totals: { finalKva: 76 } } }),
+		loadedQuery({
+			data: {
+				checks: [],
+				steps: [
+					{
+						index: 6,
+						code: "Dind",
+						title: "Demanda Individual dos Apartamentos",
+						applies: true,
+						formula: "Maior demanda individual trifásica: Cobertura, 19,68 kVA",
+						details: [],
+						valueKva: 19.68,
+						reference: null,
+					},
+				],
+				totals: { finalKva: 76 },
+			},
+		}),
 }));
 
 vi.mock("@services/consumer-units", async (importOriginal) => ({
@@ -149,6 +180,7 @@ describe("ProjectReviewWorkspace", () => {
 		state.ownerId = "2";
 		state.reviewerId = "1";
 		state.openReview.mockClear();
+		state.createFinding.mockClear();
 		state.reviewerName = null;
 		state.openError = null;
 		state.activeRoute = "/projetos/$id";
@@ -439,6 +471,30 @@ describe("ProjectReviewWorkspace", () => {
 		expect(
 			screen.getByDisplayValue("Recarga acima de 20 kW exige estudo da rede."),
 		).toBeVisible();
+	});
+
+	it("saves the unit connection alert as a finding on the Dind step", async () => {
+		signInAs("reviewer");
+		state.activeRoute = "/projetos/$id/calculo";
+		renderWorkspace();
+
+		fireEvent.click(screen.getByRole("button", { name: "Apontar Ligação" }));
+		fireEvent.click(screen.getByRole("combobox", { name: /^Gravidade/ }));
+		await pickOption("Bloqueante");
+		fireEvent.click(
+			screen.getByRole("button", { name: "Registrar Apontamento" }),
+		);
+
+		await waitFor(() => expect(state.createFinding).toHaveBeenCalledTimes(1));
+		expect(state.createFinding.mock.calls[0][0]).toMatchObject({
+			payload: {
+				severity: "BLOCKING",
+				stage: "CALCULATION",
+				calculationStepCode: "Dind",
+				consumerUnitGroupId: null,
+				description: unitConnection,
+			},
+		});
 	});
 
 	it("keeps the analyst read only when someone else holds the review", () => {
