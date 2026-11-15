@@ -255,12 +255,19 @@ class AdminAccessIntegrationTest {
   }
 
   @Test
-  void anAdminDeletesADraftSomeoneElseRegistered() throws Exception {
+  void anAdminDeletesButDoesNotEditADraftSomeoneElseRegistered() throws Exception {
     String id = create(bearer("revisor@ampere.com"));
+    String admin = bearer("admin@ampere.com");
 
     mockMvc
         .perform(
-            delete("/normative-tables/" + id).header("Authorization", bearer("admin@ampere.com")))
+            put("/normative-tables/" + id)
+                .header("Authorization", admin)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(QUADRO_37))
+        .andExpect(status().isForbidden());
+    mockMvc
+        .perform(delete("/normative-tables/" + id).header("Authorization", admin))
         .andExpect(status().isNoContent());
   }
 
