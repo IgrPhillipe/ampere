@@ -21,6 +21,8 @@ export const NewGroupRow = ({ control, usageType }: NewGroupRowProps) => (
 			<QuantityField control={control} />
 		</TableCell>
 
+		<TableCell />
+
 		<TableCell className="text-right whitespace-normal">
 			<LoadField control={control} usageType={usageType} />
 		</TableCell>

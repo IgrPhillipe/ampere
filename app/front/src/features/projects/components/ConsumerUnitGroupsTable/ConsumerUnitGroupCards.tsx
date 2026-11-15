@@ -9,6 +9,7 @@ import type { NewGroupFormValues } from "../../schemas";
 import { FindingBadge } from "../FindingBadge";
 import { GroupIdentity } from "./GroupIdentity";
 import { GroupStatusLabel } from "./GroupStatusLabel";
+import { groupConnectionLabel } from "./group-connection";
 import { type GroupRowActions, isPendingGroup, loadShare } from "./group-row";
 import { LoadField, NameAndUsageFields, QuantityField } from "./NewGroupFields";
 import { newGroupStatus } from "./new-group";
@@ -66,6 +67,7 @@ export const ConsumerUnitGroupCards = ({
 
 				<dl className="flex flex-wrap gap-x-6 gap-y-2">
 					<Figure label="QTD" value={padCount(group.quantity)} />
+					<Figure label="LIGAÇÃO" value={groupConnectionLabel(group)} />
 					<Figure
 						label="CARGA kW"
 						value={

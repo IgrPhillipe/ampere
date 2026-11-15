@@ -175,6 +175,32 @@ describe("ConsumerUnitsPage", () => {
 		});
 	});
 
+	it("shows each apartment's connection in the groups table", () => {
+		state.groups = [
+			{
+				id: "103",
+				name: "Cobertura",
+				kind: "RESIDENTIAL",
+				quantity: 2,
+				status: "VALIDATED",
+				issues: [],
+				declaredLoadKw: 32,
+				summary: "180 m², trifásico (DIS-NOR-053 Quadro 35)",
+				connectionType: "THREE_PHASE",
+				loads: [],
+			},
+			makeLoadGroup(),
+		];
+
+		renderPage();
+
+		expect(
+			screen.getByRole("columnheader", { name: "Ligação" }),
+		).toBeInTheDocument();
+		expect(screen.getAllByText("Trifásico").length).toBeGreaterThan(0);
+		expect(screen.getAllByText("Edificação").length).toBeGreaterThan(0);
+	});
+
 	it("keeps the connection and the loads of a three-phase apartment on save", async () => {
 		const loads = [
 			{

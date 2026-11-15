@@ -16,6 +16,7 @@ import { NewGroupRow } from "./NewGroupRow";
 
 const groupColumnClassNames = {
 	quantity: "w-20 text-right",
+	connection: "w-32",
 	load: "w-28 text-right",
 	factor: "w-24 text-right",
 	status: "w-36",
@@ -48,7 +49,7 @@ export const ConsumerUnitGroupsTable = ({
 		[findings, onOpenGroup, totalLoadKw],
 	);
 
-	if (isLoading) return <SkeletonTable columns={5} />;
+	if (isLoading) return <SkeletonTable columns={6} />;
 
 	if (groups.length === 0 && !newGroupControl) return empty;
 
