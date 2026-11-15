@@ -208,8 +208,8 @@ export const ResidentialGroupForm = ({
 						title="Cargas do Apartamento"
 						meta={
 							<>
-								Carga instalada{" "}
-								<span className="ml-1.5 text-foreground normal-case">
+								Total{" "}
+								<span className="ml-1.5 whitespace-nowrap text-foreground normal-case">
 									{formatDecimal(installedKw)} kW
 								</span>
 							</>
