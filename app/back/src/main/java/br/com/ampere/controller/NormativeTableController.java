@@ -124,7 +124,9 @@ public class NormativeTableController {
   @GetMapping("/{id}/revisions")
   @Operation(
       operationId = "listNormativeTableRevisions",
-      summary = "Histórico das revisões da mesma tabela, da mais recente à mais antiga")
+      summary =
+          "Histórico das revisões da mesma tabela: as aguardando revisão e, depois, as"
+              + " publicadas, da publicação mais recente à mais antiga")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",

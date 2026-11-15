@@ -10,14 +10,18 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Every revision ever registered for a table code, superseded and drafts included. */
+/**
+ * Every revision ever registered for a table code, superseded and drafts included, newest first.
+ */
 @Service
 public class NormativeTableHistoryService {
 
-  private static final Comparator<NormativeTable> NEWEST_FIRST =
-      Comparator.comparing(NormativeTable::getRegisteredAt)
-          .thenComparing(NormativeTable::getId)
-          .reversed();
+  /** In the order the revisions took effect: published by approval date, drafts after them. */
+  private static final Comparator<NormativeTable> OLDEST_FIRST =
+      Comparator.comparing(
+              NormativeTable::getVerifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+          .thenComparing(NormativeTable::getRegisteredAt)
+          .thenComparing(NormativeTable::getId);
 
   private final NormativeTableService tableService;
   private final NormativeTableRepository tableRepository;
@@ -32,16 +36,18 @@ public class NormativeTableHistoryService {
   public List<NormativeTable> revisions(Long id, AuthenticatedUser user) {
     NormativeTable table = tableService.findById(id, user);
 
-    return tableRepository.findAllByCode(table.getCode()).stream().sorted(NEWEST_FIRST).toList();
+    return tableRepository.findAllByCode(table.getCode()).stream()
+        .sorted(OLDEST_FIRST.reversed())
+        .toList();
   }
 
-  /** Both revisions must belong to the history of {@code id}, the older one first. */
+  /** Both revisions must belong to the history of {@code id}, the earlier one first. */
   @Transactional(readOnly = true)
   public NormativeTableComparison compare(Long id, Long from, Long to, AuthenticatedUser user) {
     List<NormativeTable> revisions = revisions(id, user);
     NormativeTable older = find(revisions, from);
     NormativeTable newer = find(revisions, to);
-    if (NEWEST_FIRST.compare(older, newer) < 0) {
+    if (OLDEST_FIRST.compare(older, newer) > 0) {
       throw new BusinessException("A revisão de origem não pode ser posterior à de destino.");
     }
 

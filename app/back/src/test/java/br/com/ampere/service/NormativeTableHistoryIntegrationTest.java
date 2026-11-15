@@ -1,5 +1,6 @@
 package br.com.ampere.service;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -25,6 +26,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
@@ -121,10 +123,7 @@ class NormativeTableHistoryIntegrationTest {
     admin = bearer("admin@ampere.com");
     verifier = bearer("conferente@ampere.com");
     first = create(FIRST_QUADRO_37);
-    mockMvc
-        .perform(
-            post("/normative-tables/" + first + "/publication").header("Authorization", verifier))
-        .andExpect(status().isOk());
+    publish(first);
     second = create(SECOND_QUADRO_37);
   }
 
@@ -148,6 +147,26 @@ class NormativeTableHistoryIntegrationTest {
         .andExpect(jsonPath("$.data[1].verifiedByName").value("Bruno Conferente"))
         .andExpect(jsonPath("$.data[1].verifiedAt").exists())
         .andExpect(jsonPath("$.data[1].rows").doesNotExist());
+  }
+
+  @Test
+  void ordersTheRevisionsByPublicationWithTheDraftsFirst() throws Exception {
+    String third = create(SECOND_QUADRO_37);
+    publish(third);
+    publish(second);
+    String draft = create(FIRST_QUADRO_37);
+
+    mockMvc
+        .perform(get("/normative-tables/" + first + "/revisions").header("Authorization", admin))
+        .andExpect(jsonPath("$.data[*].id", contains(draft, second, third, first)))
+        .andExpect(
+            jsonPath(
+                "$.data[*].status", contains("DRAFT", "PUBLISHED", "SUPERSEDED", "SUPERSEDED")));
+    mockMvc
+        .perform(compare(first, third, second))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.from.id").value(third));
+    mockMvc.perform(compare(first, second, third)).andExpect(status().isBadRequest());
   }
 
   @Test
@@ -218,6 +237,19 @@ class NormativeTableHistoryIntegrationTest {
             get("/normative-tables/" + first + "/revisions")
                 .header("Authorization", bearer("user@ampere.com")))
         .andExpect(status().isForbidden());
+  }
+
+  private void publish(String id) throws Exception {
+    mockMvc
+        .perform(post("/normative-tables/" + id + "/publication").header("Authorization", verifier))
+        .andExpect(status().isOk());
+  }
+
+  private MockHttpServletRequestBuilder compare(String id, String from, String to) {
+    return get("/normative-tables/" + id + "/revisions/compare")
+        .param("from", from)
+        .param("to", to)
+        .header("Authorization", admin);
   }
 
   private String create(String table) throws Exception {
