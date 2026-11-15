@@ -1,6 +1,7 @@
 package br.com.ampere.service;
 
 import br.com.ampere.domain.NormativeTable;
+import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.NormativeTableSort;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.SortDirection;
@@ -12,7 +13,9 @@ import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.utils.SearchTerms;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,11 +64,7 @@ public class NormativeTableService {
       NormativeTableParameters parameters, String registeredBy, AuthenticatedUser user) {
     user.requireReviewer();
     if (tableRepository.existsByCodeAndStatus(parameters.code(), NormativeTableStatus.DRAFT)) {
-      throw new BusinessException(
-          parameters.code().identification()
-              + " já tem uma revisão aguardando aprovação. Aprove ou exclua essa revisão antes de"
-              + " cadastrar outra.",
-          HttpStatus.CONFLICT);
+      throw pendingRevision(parameters.code());
     }
     NormativeTable table =
         new NormativeTable(
@@ -78,7 +77,16 @@ public class NormativeTableService {
             registeredBy);
     rejectProblems(table);
 
-    return tableRepository.save(table);
+    try {
+      return tableRepository.saveAndFlush(table);
+    } catch (DataIntegrityViolationException exception) {
+      // Another draft of the same table was created between the check above and this insert.
+      if (Objects.toString(exception.getMostSpecificCause().getMessage(), "")
+          .contains(NormativeTableRepository.ONE_DRAFT_PER_CODE)) {
+        throw pendingRevision(parameters.code());
+      }
+      throw exception;
+    }
   }
 
   @Transactional
@@ -154,6 +162,14 @@ public class NormativeTableService {
     }
 
     return table;
+  }
+
+  private static BusinessException pendingRevision(NormativeTableCode code) {
+    return new BusinessException(
+        code.identification()
+            + " já tem uma revisão aguardando aprovação. Aprove ou exclua essa revisão antes de"
+            + " cadastrar outra.",
+        HttpStatus.CONFLICT);
   }
 
   private Standard standardOf(NormativeTableParameters parameters) {

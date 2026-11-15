@@ -10,6 +10,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface NormativeTableRepository extends JpaRepository<NormativeTable, Long> {
 
+  /**
+   * Partial unique index on the code of the drafts, created by {@code NormativeTableDraftIndex}.
+   */
+  String ONE_DRAFT_PER_CODE = "normative_table_one_draft_per_code";
+
   @EntityGraph(attributePaths = {"standard", "rows"})
   List<NormativeTable> findAllByStatus(NormativeTableStatus status);
 

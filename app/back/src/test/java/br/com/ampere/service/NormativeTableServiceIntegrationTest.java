@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 
 /** No transaction here on purpose: the controller maps the rows after the service returns. */
@@ -113,6 +114,33 @@ class NormativeTableServiceIntegrationTest {
         .isEqualTo(HttpStatus.CONFLICT);
     assertThat(service.publish(draft.getId(), 1, "analista@ampere.com", reviewer).getStatus())
         .isEqualTo(NormativeTableStatus.PUBLISHED);
+  }
+
+  @Test
+  void theDatabaseKeepsOneDraftPerTable() {
+    Standard standard = standardRepository.save(new Standard("DIS-NOR-053", "REV 06"));
+    NormativeTable published = draft(standard, "admin@ampere.com");
+    published.publish("revisor@ampere.com");
+    normativeTableRepository.saveAndFlush(published);
+    normativeTableRepository.saveAndFlush(draft(standard, "admin@ampere.com"));
+
+    assertThatThrownBy(
+            () -> normativeTableRepository.saveAndFlush(draft(standard, "revisor@ampere.com")))
+        .isInstanceOf(DataIntegrityViolationException.class)
+        .hasMessageContaining(NormativeTableRepository.ONE_DRAFT_PER_CODE);
+  }
+
+  private static NormativeTable draft(Standard standard, String registeredBy) {
+    NormativeTableParameters parameters = quadro37("1.5");
+
+    return new NormativeTable(
+        standard,
+        parameters.code(),
+        parameters.identification(),
+        parameters.item(),
+        parameters.page(),
+        parameters.rows(),
+        registeredBy);
   }
 
   private static NormativeTableParameters quadro37(String firstValue) {

@@ -2,6 +2,7 @@ package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -23,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -104,6 +106,43 @@ class NormativeTableServiceTest {
         .isInstanceOf(BusinessException.class)
         .extracting("status")
         .isEqualTo(HttpStatus.FORBIDDEN);
+  }
+
+  @Test
+  void refusesADraftCreatedAtTheSameInstantAsAnother() {
+    NormativeTableRepository tables = mock(NormativeTableRepository.class);
+    StandardRepository standards = mock(StandardRepository.class);
+    when(standards.findByNameInOrderByName(List.of("DIS-NOR-053")))
+        .thenReturn(List.of(new Standard("DIS-NOR-053", "REV 06")));
+    when(tables.saveAndFlush(any()))
+        .thenThrow(
+            new DataIntegrityViolationException(
+                "could not execute statement",
+                new IllegalStateException(
+                    "duplicate key value violates unique constraint \""
+                        + NormativeTableRepository.ONE_DRAFT_PER_CODE
+                        + "\"")));
+    NormativeTableParameters parameters =
+        new NormativeTableParameters(
+            NormativeTableCode.Q37_SAFETY_FACTOR,
+            "Quadro 37",
+            "Anexo I, item 5",
+            "108",
+            List.of(new NormativeTableRow(null, null, null, BigDecimal.ONE, null, null, null)));
+
+    assertThatThrownBy(
+            () ->
+                new NormativeTableService(tables, standards)
+                    .create(
+                        parameters,
+                        "revisor@ampere.com",
+                        new AuthenticatedUser(2L, UserRole.REVIEWER)))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage(
+            "Quadro 37 já tem uma revisão aguardando aprovação. Aprove ou exclua essa revisão"
+                + " antes de cadastrar outra.")
+        .extracting("status")
+        .isEqualTo(HttpStatus.CONFLICT);
   }
 
   private List<Long> ids(NormativeTableQuery query) {
