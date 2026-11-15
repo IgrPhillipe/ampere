@@ -15,12 +15,12 @@ export const usePublishNormativeTable = () => {
 				queryKey: normativeTableKeys.all(),
 			});
 
-			toast.success("Tabela aprovada e publicada.");
+			toast.success("Revisão aprovada e publicada.");
 		},
 		onError: (error) =>
 			toast.error(
 				getToastErrorMessage(error, {
-					fallback: "Não foi possível publicar a tabela.",
+					fallback: "Não foi possível aprovar a revisão.",
 				}),
 			),
 	});

@@ -20,7 +20,7 @@ export const useUpdateNormativeTable = () => {
 		onError: (error) =>
 			toast.error(
 				getToastErrorMessage(error, {
-					fallback: "Não foi possível salvar a tabela.",
+					fallback: "Não foi possível salvar a revisão.",
 				}),
 			),
 	});

@@ -277,7 +277,7 @@ export const NormativeTableForm = ({
 				open={pendingCreation !== null}
 				title="Enviar a revisão para aprovação?"
 				description="A revisão fica pendente até a aprovação de outra pessoa. Os valores só entram no cálculo de demanda depois de aprovados."
-				confirmLabel="Enviar para Revisão"
+				confirmLabel="Enviar para Aprovação"
 				pendingLabel="Enviando..."
 				isPending={createTable.isPending}
 				onOpenChange={(open) => {
@@ -288,8 +288,8 @@ export const NormativeTableForm = ({
 
 			<ConfirmDialog
 				open={isPublishOpen}
-				title="Aprovar e publicar a tabela?"
-				description="A revisão passa a valer no cálculo de demanda e substitui a tabela publicada de mesmo código. Uma tabela publicada não pode ser alterada."
+				title="Aprovar e publicar a revisão?"
+				description="A revisão passa a valer no cálculo de demanda e substitui a vigente da mesma tabela. Uma revisão aprovada não pode ser alterada."
 				confirmLabel="Aprovar e Publicar"
 				pendingLabel="Publicando..."
 				isPending={publishTable.isPending}
@@ -299,16 +299,16 @@ export const NormativeTableForm = ({
 
 			<ConfirmDialog
 				open={isDeleteOpen}
-				title="Excluir tabela?"
+				title="Excluir revisão?"
 				description={
 					<>
-						A tabela{" "}
+						A revisão de{" "}
 						<strong className="text-foreground">{table?.identification}</strong>
-						, ainda aguardando revisão, será excluída. Esta ação não pode ser
+						, ainda aguardando aprovação, será excluída. Esta ação não pode ser
 						desfeita.
 					</>
 				}
-				confirmLabel="Excluir Tabela"
+				confirmLabel="Excluir Revisão"
 				pendingLabel="Excluindo..."
 				isPending={deleteTable.isPending}
 				destructive
