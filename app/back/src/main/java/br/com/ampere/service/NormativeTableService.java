@@ -55,10 +55,18 @@ public class NormativeTableService {
     return tableRepository.findDetailById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND));
   }
 
+  /** One pending revision per table, so publishing it never drops another one's changes. */
   @Transactional
   public NormativeTable create(
       NormativeTableParameters parameters, String registeredBy, AuthenticatedUser user) {
     user.requireReviewer();
+    if (tableRepository.existsByCodeAndStatus(parameters.code(), NormativeTableStatus.DRAFT)) {
+      throw new BusinessException(
+          parameters.code().identification()
+              + " já tem uma revisão aguardando aprovação. Aprove ou exclua essa revisão antes de"
+              + " cadastrar outra.",
+          HttpStatus.CONFLICT);
+    }
     NormativeTable table =
         new NormativeTable(
             standardOf(parameters),

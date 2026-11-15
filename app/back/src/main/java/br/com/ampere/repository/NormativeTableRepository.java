@@ -21,4 +21,6 @@ public interface NormativeTableRepository extends JpaRepository<NormativeTable, 
 
   Optional<NormativeTable> findByCodeAndStatus(
       NormativeTableCode code, NormativeTableStatus status);
+
+  boolean existsByCodeAndStatus(NormativeTableCode code, NormativeTableStatus status);
 }

@@ -242,11 +242,11 @@ class AdminAccessIntegrationTest {
   @Test
   void anAdminDeletesADraftButNotAPublishedTable() throws Exception {
     String admin = bearer("admin@ampere.com");
-    String draft = create(admin);
     String published = create(admin);
     mockMvc.perform(
         post("/normative-tables/" + published + "/publication")
             .header("Authorization", bearer("conferente@ampere.com")));
+    String draft = create(admin);
 
     mockMvc
         .perform(delete("/normative-tables/" + draft).header("Authorization", admin))
@@ -254,6 +254,29 @@ class AdminAccessIntegrationTest {
     mockMvc
         .perform(delete("/normative-tables/" + published).header("Authorization", admin))
         .andExpect(status().isConflict());
+  }
+
+  @Test
+  void aTableHasOnePendingRevisionAtATime() throws Exception {
+    String id = create(bearer("admin@ampere.com"));
+    String reviewer = bearer("revisor@ampere.com");
+
+    mockMvc
+        .perform(
+            post("/normative-tables")
+                .header("Authorization", reviewer)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(QUADRO_37))
+        .andExpect(status().isConflict())
+        .andExpect(
+            jsonPath("$.detail")
+                .value(
+                    "Quadro 37 já tem uma revisão aguardando aprovação. Aprove ou exclua essa"
+                        + " revisão antes de cadastrar outra."));
+
+    mockMvc.perform(
+        post("/normative-tables/" + id + "/publication").header("Authorization", reviewer));
+    create(reviewer);
   }
 
   @Test
