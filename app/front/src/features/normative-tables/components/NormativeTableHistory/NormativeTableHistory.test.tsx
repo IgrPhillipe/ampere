@@ -141,7 +141,9 @@ describe("NormativeTableHistory", () => {
 		const [, changed, included, removed] = within(table).getAllByRole("row");
 
 		expect(within(changed).getByText("até 25")).toBeVisible();
-		expect(within(changed).getByText("1,5")).toBeVisible();
+		expect(within(changed).getByText("1,5")).not.toHaveClass(
+			"text-faint-foreground",
+		);
 		expect(within(changed).getByText("1,4")).toBeVisible();
 		expect(within(changed).getByText("Alterada")).toBeVisible();
 		expect(within(included).getByText("acima de 100")).toBeVisible();
@@ -199,6 +201,9 @@ describe("NormativeTableHistory", () => {
 
 		expect(within(changed).getByText("Dr ≤ 25 kVA")).toBeVisible();
 		expect(within(changed).getByText("Antes: Até 25 kVA")).toBeVisible();
+		for (const value of within(changed).getAllByText("1,4")) {
+			expect(value).toHaveClass("text-faint-foreground");
+		}
 	});
 
 	it("compares the revisions picked as origin and destination", async () => {

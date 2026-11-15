@@ -104,7 +104,9 @@ const Values = ({
 		) ?? false;
 
 	return values.length === 1 ? (
-		<span>{values[0].value}</span>
+		<span className={cn(kept(values[0]) && "text-faint-foreground")}>
+			{values[0].value}
+		</span>
 	) : (
 		<ul className="flex flex-col gap-1">
 			{values.map((entry) => (
