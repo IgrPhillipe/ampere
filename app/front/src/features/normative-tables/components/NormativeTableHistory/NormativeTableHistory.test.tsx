@@ -103,6 +103,10 @@ describe("NormativeTableHistory", () => {
 		expect(within(rows[1]).getByText("Vigente")).toBeVisible();
 		expect(within(rows[1]).getByText(/Bruno Conferente/)).toBeVisible();
 		expect(list.getAllByText(/Ana Gestora/)).toHaveLength(2);
+		expect(screen.getByText("02 revisões")).toBeVisible();
+		expect(
+			screen.getByText("01 alterada, 01 incluída, 01 removida"),
+		).toBeVisible();
 	});
 
 	it("compares the open revision with the one before it", () => {
@@ -169,6 +173,7 @@ describe("NormativeTableHistory", () => {
 		expect(
 			screen.getByText(/Esta é a única revisão desta tabela/),
 		).toBeVisible();
+		expect(screen.getByText("01 revisão")).toBeVisible();
 		expect(hooks.compare).not.toHaveBeenCalled();
 	});
 });

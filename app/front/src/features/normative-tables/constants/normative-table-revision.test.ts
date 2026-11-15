@@ -4,7 +4,11 @@ import type {
 } from "@services/normative-tables";
 import { describe, expect, it } from "vitest";
 
-import { formatRowEntry, rowValues } from "./normative-table-revision";
+import {
+	formatCount,
+	formatRowEntry,
+	rowValues,
+} from "./normative-table-revision";
 
 const row = (fields: Partial<NormativeTableRow>): NormativeTableRow => ({
 	value: 1,
@@ -58,5 +62,13 @@ describe("rowValues", () => {
 			{ label: "Condutor (mm²)", value: "50" },
 			{ label: "Disjuntor geral (A)", value: "125,5" },
 		]);
+	});
+});
+
+describe("formatCount", () => {
+	it("agrees the noun with the count", () => {
+		expect(formatCount(1, "revisão", "revisões")).toBe("01 revisão");
+		expect(formatCount(0, "revisão", "revisões")).toBe("00 revisões");
+		expect(formatCount(12, "revisão", "revisões")).toBe("12 revisões");
 	});
 });

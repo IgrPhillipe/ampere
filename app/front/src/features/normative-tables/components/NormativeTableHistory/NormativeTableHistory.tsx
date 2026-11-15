@@ -2,7 +2,7 @@ import { EmptyState } from "@components/EmptyState";
 import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDate, padCount } from "@features/shared";
+import { formatDate } from "@features/shared";
 import { cn } from "@lib/utils";
 import {
 	type NormativeTable,
@@ -12,7 +12,7 @@ import {
 import { CircleAlert } from "lucide-react";
 import { useState } from "react";
 
-import { formatRevision } from "../../constants";
+import { formatCount, formatRevision } from "../../constants";
 import { NormativeTableStatusBadge } from "../NormativeTableStatusBadge";
 import {
 	type ComparedRevisions,
@@ -111,7 +111,7 @@ export const NormativeTableHistory = ({
 				<SectionHeading
 					as="h3"
 					id="historico-titulo"
-					meta={`${padCount(revisions.length)} revisões`}
+					meta={formatCount(revisions.length, "revisão", "revisões")}
 				>
 					Revisões
 				</SectionHeading>

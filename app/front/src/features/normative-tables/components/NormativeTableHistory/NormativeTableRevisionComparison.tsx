@@ -10,7 +10,6 @@ import {
 	SelectValue,
 } from "@components/ui/select";
 import { Skeleton } from "@components/ui/skeleton";
-import { padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import {
 	type NormativeTable,
@@ -21,6 +20,7 @@ import {
 import { CircleAlert } from "lucide-react";
 
 import {
+	formatCount,
 	formatRevision,
 	formatRowEntry,
 	type RowValue,
@@ -192,7 +192,15 @@ export const NormativeTableRevisionComparison = ({
 				id="comparativo-revisoes-titulo"
 				meta={
 					comparison
-						? `${padCount(comparison.changed.length)} alteradas, ${padCount(comparison.included.length)} incluídas, ${padCount(comparison.removed.length)} removidas`
+						? [
+								formatCount(comparison.changed.length, "alterada", "alteradas"),
+								formatCount(
+									comparison.included.length,
+									"incluída",
+									"incluídas",
+								),
+								formatCount(comparison.removed.length, "removida", "removidas"),
+							].join(", ")
 						: undefined
 				}
 			>

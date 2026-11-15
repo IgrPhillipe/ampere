@@ -14,6 +14,9 @@ export const formatNormativeNumber = (value: number) =>
 /** The revisions count from 1, in the order they took effect. */
 export const formatRevision = (number: number) => `Revisão ${padCount(number)}`;
 
+export const formatCount = (count: number, one: string, many: string) =>
+	`${padCount(count)} ${count === 1 ? one : many}`;
+
 /** The band as the printed table says it, like the back end's "25 a 50" or "acima de 100". */
 const formatBand = ({ lowerBound, upperBound, label }: NormativeTableRow) => {
 	if (label) return label;
