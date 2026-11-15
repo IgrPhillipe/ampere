@@ -56,6 +56,7 @@ describe("NormativeTableSheet", () => {
 
 		expect(screen.getByText("Ana Gestora")).toBeVisible();
 		expect(screen.getByText("Bruno Conferente")).toBeVisible();
+		expect(screen.getByText("Aprovação")).toBeVisible();
 
 		fireEvent.click(screen.getByRole("tab", { name: "Histórico" }));
 

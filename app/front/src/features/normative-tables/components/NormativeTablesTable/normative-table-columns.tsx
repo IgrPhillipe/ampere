@@ -98,7 +98,7 @@ export const createNormativeTableColumns = (
 		}),
 		columnHelper.accessor("verifiedByName", {
 			id: "verifiedAt",
-			header: "Revisão",
+			header: "Aprovação",
 			cell: ({ row }) =>
 				row.original.verifiedByName ? (
 					<PersonCell

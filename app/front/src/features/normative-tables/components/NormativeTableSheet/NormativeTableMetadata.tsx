@@ -39,7 +39,7 @@ export const NormativeTableMetadata = ({
 			at={table.registeredAt}
 		/>
 		<MetadataCell
-			label="Revisão"
+			label="Aprovação"
 			person={table.verifiedByName}
 			at={table.verifiedAt}
 		/>

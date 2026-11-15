@@ -52,7 +52,7 @@ export const NormativeTableCards = ({
 						</div>
 
 						<div className="flex gap-1.5">
-							<dt>Revisão</dt>
+							<dt>Aprovação</dt>
 							<dd>{table.verifiedByName ?? "Pendente"}</dd>
 						</div>
 					</dl>
