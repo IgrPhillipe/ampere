@@ -1,11 +1,13 @@
 package br.com.ampere.controller;
 
 import br.com.ampere.domain.NormativeTable;
+import br.com.ampere.domain.NormativeTableComparison;
 import br.com.ampere.domain.NormativeTableSort;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.NormativeTableCodeResponse;
+import br.com.ampere.dto.NormativeTableComparisonResponse;
 import br.com.ampere.dto.NormativeTablePublicationRequest;
 import br.com.ampere.dto.NormativeTableRequest;
 import br.com.ampere.dto.NormativeTableResponse;
@@ -134,6 +136,34 @@ public class NormativeTableController {
   public ApiResponse<List<NormativeTableResponse>> revisions(
       @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(summaries(historyService.revisions(id, userOf(jwt))));
+  }
+
+  @GetMapping("/{id}/revisions/compare")
+  @Operation(
+      operationId = "compareNormativeTableRevisions",
+      summary = "Compara duas revisões: linhas incluídas, removidas e alteradas")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Diferenças entre as revisões"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "Revisão ausente, ou origem posterior ao destino"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "404",
+        description = "Tabela não encontrada, ou revisão fora do histórico dela")
+  })
+  public ApiResponse<NormativeTableComparisonResponse> compare(
+      @PathVariable Long id,
+      @Parameter(description = "Identificador da revisão de origem, a mais antiga") @RequestParam
+          Long from,
+      @Parameter(description = "Identificador da revisão de destino") @RequestParam Long to,
+      @AuthenticationPrincipal Jwt jwt) {
+    NormativeTableComparison comparison = historyService.compare(id, from, to, userOf(jwt));
+
+    return ApiResponse.of(
+        NormativeTableComparisonResponse.from(
+            comparison, namesOf(List.of(comparison.from(), comparison.to()))));
   }
 
   @PostMapping
