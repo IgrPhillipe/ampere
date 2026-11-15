@@ -45,7 +45,11 @@ export const ResidentialGroupForm = ({
 		quantity: group.quantity,
 		usefulArea: group.usefulArea ?? null,
 		bedrooms: group.bedrooms ?? null,
-		unitLoadKw: group.unitLoadKw ?? null,
+		// For a three-phase group the API sends the sum of its loads, not a declared total.
+		unitLoadKw:
+			group.connectionType === "THREE_PHASE"
+				? null
+				: (group.unitLoadKw ?? null),
 		compactUnit: toYesNo(group.compactUnit),
 		connectionType: group.connectionType ?? undefined,
 		items: seedsFirstLoad ? [EMPTY_LOAD_ITEM] : loads,
@@ -66,13 +70,14 @@ export const ResidentialGroupForm = ({
 	const initialFocus = toFormField(focusField);
 	useEffect(() => focusIssueField(form, initialFocus), [form, initialFocus]);
 
-	// The back keeps loads only for a three-phase apartment, and requires at least one.
+	// The back keeps one connection's data: loads (at least one) or the total load.
 	useEffect(() => {
 		if (readOnly) return;
 
 		const current = form.getValues("items");
-		if (connectionType === "THREE_PHASE" && current.length === 0) {
-			form.setValue("items", [EMPTY_LOAD_ITEM]);
+		if (connectionType === "THREE_PHASE") {
+			form.setValue("unitLoadKw", null);
+			if (current.length === 0) form.setValue("items", [EMPTY_LOAD_ITEM]);
 		} else if (connectionType === "SINGLE_PHASE" && current.length > 0) {
 			form.setValue("items", []);
 		}

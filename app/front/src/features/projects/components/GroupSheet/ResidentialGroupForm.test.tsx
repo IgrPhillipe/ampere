@@ -128,7 +128,8 @@ describe("ResidentialGroupForm", () => {
 		const threePhase = (overrides: Partial<ResidentialGroup> = {}) =>
 			makeGroup({
 				connectionType: "THREE_PHASE",
-				unitLoadKw: null,
+				// The API sends the sum of the loads.
+				unitLoadKw: 11,
 				loads: [shower],
 				...overrides,
 			});
@@ -200,16 +201,26 @@ describe("ResidentialGroupForm", () => {
 		expect(screen.getByRole("textbox", { name: /Descrição/i })).toHaveValue("");
 	});
 
+	it("drops the total load when switching to three-phase", async () => {
+		renderForm(makeGroup());
+
+		await pickConnection("Trifásico");
+		await pickConnection("Monofásico");
+
+		expect(unitLoadField()).toHaveValue(null);
+	});
+
 	it("drops the loads when switching back to single-phase", async () => {
 		const onSave = renderForm(
 			makeGroup({
 				connectionType: "THREE_PHASE",
-				unitLoadKw: null,
+				unitLoadKw: 11,
 				loads: [shower],
 			}),
 		);
 
 		await pickConnection("Monofásico");
+		expect(unitLoadField()).toHaveValue(null);
 		fireEvent.change(unitLoadField() as HTMLElement, {
 			target: { value: "9" },
 		});
