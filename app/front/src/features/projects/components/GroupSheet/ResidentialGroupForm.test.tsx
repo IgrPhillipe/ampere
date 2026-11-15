@@ -88,6 +88,30 @@ describe("ResidentialGroupForm", () => {
 			});
 		});
 
+		it("warns above the 15 kW ceiling of the single-phase connection", async () => {
+			renderForm(makeGroup());
+
+			fireEvent.change(unitLoadField() as HTMLElement, {
+				target: { value: "18" },
+			});
+
+			expect(await screen.findByRole("status")).toHaveTextContent(
+				"passa de 15 kW, teto da ligação monofásica",
+			);
+		});
+
+		it("warns above the 75 kW low-voltage limit", async () => {
+			renderForm(makeGroup());
+
+			fireEvent.change(unitLoadField() as HTMLElement, {
+				target: { value: "80" },
+			});
+
+			expect(await screen.findByRole("status")).toHaveTextContent(
+				"Carga instalada de 80,00 kW por unidade passa do limite de 75 kW da baixa tensão (DIS-NOR-030, item 6.2.1).",
+			);
+		});
+
 		it("asks for the connection when the group has none", async () => {
 			const onSave = renderForm(makeGroup({ connectionType: null }));
 
@@ -143,6 +167,27 @@ describe("ResidentialGroupForm", () => {
 				"Detalhe as cargas do apartamento trifásico.",
 			);
 			expect(onSave).not.toHaveBeenCalled();
+		});
+
+		it("warns when the loads add up past the low-voltage limit", async () => {
+			renderForm(
+				threePhase({
+					loads: [
+						{ ...shower, quantity: 10, power: 7 },
+						{
+							category: "MOTORS",
+							description: "Bomba",
+							quantity: 1,
+							power: 20,
+							powerUnit: "CV",
+						},
+					],
+				}),
+			);
+
+			expect(await screen.findByRole("status")).toHaveTextContent(
+				"Carga instalada de 84,71 kW por unidade passa do limite de 75 kW",
+			);
 		});
 	});
 

@@ -82,6 +82,12 @@ export const unitConnectionTypeItems = {
 	THREE_PHASE: "Trifásico",
 } as const satisfies Record<UnitConnectionType, string>;
 
+/** DIS-NOR-030 item 6.2.1: secondary voltage up to 75 kW of installed load. */
+export const LOW_VOLTAGE_LIMIT_KW = 75;
+
+/** Ceiling of category M3, the largest single-phase one (DIS-NOR-030 Anexo I, Tabela 2). */
+export const SINGLE_PHASE_LIMIT_KW = 15;
+
 export const evStationTypeItems = {
 	INDIVIDUAL: "Individualizado por unidade",
 	COLLECTIVE: "Coletivo",

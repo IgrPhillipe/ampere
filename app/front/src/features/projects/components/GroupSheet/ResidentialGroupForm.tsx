@@ -1,6 +1,7 @@
 import { ControlledInput, ControlledSelect } from "@components/form";
 import { formatDecimal, useZodForm } from "@features/shared";
 import type { ResidentialGroup } from "@services/consumer-units";
+import { CircleAlert } from "lucide-react";
 import { useEffect } from "react";
 import { useWatch } from "react-hook-form";
 
@@ -19,7 +20,7 @@ import {
 	toLoadItemFormValues,
 	toLoadItemPayload,
 } from "./load-item";
-import { unitInstalledKw } from "./unit-load";
+import { unitInstalledKw, unitLoadNotice } from "./unit-load";
 
 /** The back names the apartment loads `loads`; the form shares `items` with `LoadGroupForm`. */
 const toFormField = (field?: string) => field?.replace(/^loads/, "items");
@@ -56,6 +57,7 @@ export const ResidentialGroupForm = ({
 	});
 	const isThreePhase = connectionType === "THREE_PHASE";
 	const installedKw = unitInstalledKw(connectionType, unitLoadKw, items ?? []);
+	const notice = unitLoadNotice(connectionType, installedKw);
 	const itemsError =
 		form.formState.errors.items?.root?.message ??
 		form.formState.errors.items?.message;
@@ -208,6 +210,19 @@ export const ResidentialGroupForm = ({
 						emptyHint="Nenhuma carga informada. Adicione chuveiros, condicionadores de ar e demais cargas de uma unidade."
 						error={itemsError}
 					/>
+				) : null}
+
+				{notice ? (
+					<p
+						role="status"
+						className="flex gap-2.5 border-l-2 border-attention pl-3 text-sm text-foreground"
+					>
+						<CircleAlert
+							aria-hidden="true"
+							className="mt-0.5 size-4 shrink-0 text-attention"
+						/>
+						{notice}
+					</p>
 				) : null}
 			</fieldset>
 
