@@ -1,9 +1,10 @@
 import { ControlledInput, ControlledSelect } from "@components/form";
-import { useZodForm } from "@features/shared";
+import { formatDecimal, useZodForm } from "@features/shared";
 import type { ResidentialGroup } from "@services/consumer-units";
 import { useEffect } from "react";
+import { useWatch } from "react-hook-form";
 
-import { yesNoItems } from "../../constants";
+import { unitConnectionTypeItems, yesNoItems } from "../../constants";
 import {
 	type ResidentialGroupFormValues,
 	residentialGroupFormSchema,
@@ -12,6 +13,16 @@ import {
 } from "../../schemas";
 import { GroupFormFooter } from "./GroupFormFooter";
 import { focusIssueField, type GroupFormProps } from "./group-form";
+import { LoadItemsSection } from "./LoadItemsSection";
+import {
+	EMPTY_LOAD_ITEM,
+	toLoadItemFormValues,
+	toLoadItemPayload,
+} from "./load-item";
+import { unitInstalledKw } from "./unit-load";
+
+/** The back names the apartment loads `loads`; the form shares `items` with `LoadGroupForm`. */
+const toFormField = (field?: string) => field?.replace(/^loads/, "items");
 
 export const ResidentialGroupForm = ({
 	group,
@@ -23,6 +34,10 @@ export const ResidentialGroupForm = ({
 	onCancel,
 	onDelete,
 }: GroupFormProps<ResidentialGroup>) => {
+	const loads = (group.loads ?? []).map(toLoadItemFormValues);
+	const seedsFirstLoad =
+		!readOnly && group.connectionType === "THREE_PHASE" && loads.length === 0;
+
 	const form = useZodForm(residentialGroupFormSchema, {
 		name: group.name,
 		quantity: group.quantity,
@@ -30,23 +45,51 @@ export const ResidentialGroupForm = ({
 		bedrooms: group.bedrooms ?? null,
 		unitLoadKw: group.unitLoadKw ?? null,
 		compactUnit: toYesNo(group.compactUnit),
+		connectionType: group.connectionType ?? undefined,
+		items: seedsFirstLoad ? [EMPTY_LOAD_ITEM] : loads,
 	});
 
-	useEffect(() => focusIssueField(form, focusField), [form, focusField]);
+	// `form.watch` is memoized by the React Compiler.
+	const [connectionType, unitLoadKw, items] = useWatch({
+		control: form.control,
+		name: ["connectionType", "unitLoadKw", "items"],
+	});
+	const isThreePhase = connectionType === "THREE_PHASE";
+	const installedKw = unitInstalledKw(connectionType, unitLoadKw, items ?? []);
+	const itemsError =
+		form.formState.errors.items?.root?.message ??
+		form.formState.errors.items?.message;
 
-	const submit = (values: ResidentialGroupFormValues) =>
+	const initialFocus = toFormField(focusField);
+	useEffect(() => focusIssueField(form, initialFocus), [form, initialFocus]);
+
+	// The back keeps loads only for a three-phase apartment, and requires at least one.
+	useEffect(() => {
+		if (readOnly) return;
+
+		const current = form.getValues("items");
+		if (connectionType === "THREE_PHASE" && current.length === 0) {
+			form.setValue("items", [EMPTY_LOAD_ITEM]);
+		} else if (connectionType === "SINGLE_PHASE" && current.length > 0) {
+			form.setValue("items", []);
+		}
+	}, [form, connectionType, readOnly]);
+
+	const submit = (values: ResidentialGroupFormValues) => {
+		const threePhase = values.connectionType === "THREE_PHASE";
+
 		onSave({
 			kind: "RESIDENTIAL",
 			name: values.name,
 			quantity: values.quantity,
 			usefulArea: values.usefulArea,
 			bedrooms: values.bedrooms,
-			unitLoadKw: values.unitLoadKw,
+			unitLoadKw: threePhase ? null : values.unitLoadKw,
 			compactUnit: toBoolean(values.compactUnit),
-			// The connection and the loads have no field yet: they go back as they came.
-			connectionType: group.connectionType ?? "SINGLE_PHASE",
-			loads: group.loads ?? null,
+			connectionType: values.connectionType,
+			loads: threePhase ? values.items.map(toLoadItemPayload) : null,
 		});
+	};
 
 	return (
 		<form
@@ -56,83 +99,116 @@ export const ResidentialGroupForm = ({
 		>
 			<fieldset
 				disabled={readOnly}
-				className="grid flex-1 content-start gap-x-6 gap-y-6 overflow-y-auto px-6 py-6 sm:grid-cols-2 min-w-0"
+				className="flex min-w-0 flex-1 flex-col gap-8 overflow-y-auto px-6 py-6"
 			>
-				<ControlledInput
-					control={form.control}
-					name="name"
-					label="Nome do grupo"
-					required
-					variant="underline"
-					fieldClassName="sm:col-span-2"
-				/>
+				<div className="grid gap-x-6 gap-y-6 sm:grid-cols-2">
+					<ControlledInput
+						control={form.control}
+						name="name"
+						label="Nome do grupo"
+						required
+						variant="underline"
+						fieldClassName="sm:col-span-2"
+					/>
 
-				<ControlledInput
-					control={form.control}
-					name="quantity"
-					label="Quantidade de unidades"
-					type="number"
-					min={1}
-					step={1}
-					inputMode="numeric"
-					required
-					variant="underline"
-				/>
+					<ControlledInput
+						control={form.control}
+						name="quantity"
+						label="Quantidade de unidades"
+						type="number"
+						min={1}
+						step={1}
+						inputMode="numeric"
+						required
+						variant="underline"
+					/>
 
-				<ControlledInput
-					control={form.control}
-					name="usefulArea"
-					label={
-						<>
-							Área útil <span className="normal-case">(m²)</span>
-						</>
-					}
-					description="Define a demanda de cada unidade pelo Quadro 35."
-					type="number"
-					min={0}
-					step="0.01"
-					inputMode="decimal"
-					variant="underline"
-				/>
+					<ControlledSelect
+						control={form.control}
+						name="connectionType"
+						label="Ligação do apartamento"
+						description="Trifásico detalha as cargas pelo item 6.27; monofásico declara a carga total."
+						placeholder="Selecione a ligação"
+						items={unitConnectionTypeItems}
+						required
+						variant="underline"
+					/>
 
-				<ControlledInput
-					control={form.control}
-					name="unitLoadKw"
-					label={
-						<>
-							Carga instalada por unidade{" "}
-							<span className="normal-case">(kW)</span>
-						</>
-					}
-					description="Usada no cálculo individual do item 6.22.3."
-					type="number"
-					min={0}
-					step="0.01"
-					inputMode="decimal"
-					variant="underline"
-				/>
+					<ControlledInput
+						control={form.control}
+						name="usefulArea"
+						label={
+							<>
+								Área útil <span className="normal-case">(m²)</span>
+							</>
+						}
+						description="Define a demanda de cada unidade pelo Quadro 35."
+						type="number"
+						min={0}
+						step="0.01"
+						inputMode="decimal"
+						variant="underline"
+					/>
 
-				<ControlledInput
-					control={form.control}
-					name="bedrooms"
-					label="Quartos"
-					type="number"
-					min={0}
-					step={1}
-					inputMode="numeric"
-					variant="underline"
-				/>
+					<ControlledInput
+						control={form.control}
+						name="bedrooms"
+						label="Quartos"
+						type="number"
+						min={0}
+						step={1}
+						inputMode="numeric"
+						variant="underline"
+					/>
 
-				<ControlledSelect
-					control={form.control}
-					name="compactUnit"
-					label="Smart, studio ou home studio?"
-					description="Acima de 15 unidades, o fator de coincidência é fixo (item 6.25.1)."
-					placeholder="Não informado"
-					items={yesNoItems}
-					variant="underline"
-					fieldClassName="sm:col-span-2"
-				/>
+					{isThreePhase ? null : (
+						<ControlledInput
+							control={form.control}
+							name="unitLoadKw"
+							label={
+								<>
+									Carga instalada por unidade{" "}
+									<span className="normal-case">(kW)</span>
+								</>
+							}
+							description="Define a categoria da unidade (DIS-NOR-030, item 6.28.1)."
+							type="number"
+							min={0}
+							step="0.01"
+							inputMode="decimal"
+							variant="underline"
+						/>
+					)}
+
+					<ControlledSelect
+						control={form.control}
+						name="compactUnit"
+						label="Smart, studio ou home studio?"
+						description="Acima de 15 unidades, o fator de coincidência é fixo (item 6.25.1)."
+						placeholder="Não informado"
+						items={yesNoItems}
+						variant="underline"
+						fieldClassName={isThreePhase ? "sm:col-span-2" : undefined}
+					/>
+				</div>
+
+				{isThreePhase ? (
+					<LoadItemsSection
+						control={form.control}
+						readOnly={readOnly}
+						title="Cargas do Apartamento"
+						meta={
+							<>
+								Carga instalada{" "}
+								<span className="ml-1.5 text-foreground normal-case">
+									{formatDecimal(installedKw)} kW
+								</span>
+							</>
+						}
+						emptyHint="Nenhuma carga informada. Adicione chuveiros, condicionadores de ar e demais cargas de uma unidade."
+						error={itemsError}
+					/>
+				) : null}
 			</fieldset>
 
 			<GroupFormFooter

@@ -6,6 +6,7 @@ import type {
 	LoadCategory,
 	LoadUsage,
 	PowerUnit,
+	UnitConnectionType,
 } from "@services/consumer-units";
 
 export const groupStatusLabels = {
@@ -68,6 +69,18 @@ export const powerUnitItems = {
 	CV: "CV",
 	HP: "HP",
 } as const satisfies Record<PowerUnit, string>;
+
+/** kW per unit of power, as the back converts plate powers. */
+export const powerUnitKw = {
+	KW: 1,
+	CV: 0.7355,
+	HP: 0.7457,
+} as const satisfies Record<PowerUnit, number>;
+
+export const unitConnectionTypeItems = {
+	SINGLE_PHASE: "Monofásico",
+	THREE_PHASE: "Trifásico",
+} as const satisfies Record<UnitConnectionType, string>;
 
 export const evStationTypeItems = {
 	INDIVIDUAL: "Individualizado por unidade",

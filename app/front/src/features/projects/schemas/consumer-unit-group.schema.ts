@@ -5,6 +5,7 @@ import {
 	loadCategorySchema,
 	loadUsageSchema,
 	powerUnitSchema,
+	unitConnectionTypeSchema,
 } from "@services/consumer-units";
 import { z } from "zod";
 
@@ -67,25 +68,6 @@ export const newGroupSchema = z.object({
 
 export type NewGroupFormValues = z.infer<typeof newGroupSchema>;
 
-export const residentialGroupFormSchema = z.object({
-	name: nameSchema,
-	quantity: quantitySchema,
-	usefulArea: optionalPositive("A área útil deve ser maior que zero."),
-	bedrooms: optionalNumber(
-		z
-			.number()
-			.int({ error: "O número de quartos deve ser inteiro." })
-			.min(0, { error: "O número de quartos não pode ser negativo." })
-			.max(50, { error: "O número de quartos deve ser no máximo 50." }),
-	),
-	unitLoadKw: optionalPositive("A carga por unidade deve ser maior que zero."),
-	compactUnit: optionalYesNo,
-});
-
-export type ResidentialGroupFormValues = z.infer<
-	typeof residentialGroupFormSchema
->;
-
 export const loadItemFormSchema = z.object({
 	category: z.enum(loadCategorySchema.options, {
 		error: "Selecione a parcela da carga.",
@@ -104,13 +86,50 @@ export const loadItemFormSchema = z.object({
 
 export type LoadItemFormValues = z.infer<typeof loadItemFormSchema>;
 
+const loadItemsSchema = z
+	.array(loadItemFormSchema)
+	.max(100, { error: "Informe no máximo 100 cargas por grupo." });
+
+export const residentialGroupFormSchema = z
+	.object({
+		name: nameSchema,
+		quantity: quantitySchema,
+		usefulArea: optionalPositive("A área útil deve ser maior que zero."),
+		bedrooms: optionalNumber(
+			z
+				.number()
+				.int({ error: "O número de quartos deve ser inteiro." })
+				.min(0, { error: "O número de quartos não pode ser negativo." })
+				.max(50, { error: "O número de quartos deve ser no máximo 50." }),
+		),
+		unitLoadKw: optionalPositive(
+			"A carga por unidade deve ser maior que zero.",
+		),
+		compactUnit: optionalYesNo,
+		connectionType: z.enum(unitConnectionTypeSchema.options, {
+			error: "Selecione a ligação do apartamento.",
+		}),
+		/** Loads of a three-phase apartment (DIS-NOR-030 item 6.27). */
+		items: loadItemsSchema,
+	})
+	.refine(
+		(values) =>
+			values.connectionType !== "THREE_PHASE" || values.items.length > 0,
+		{
+			path: ["items"],
+			error: "Detalhe as cargas do apartamento trifásico.",
+		},
+	);
+
+export type ResidentialGroupFormValues = z.infer<
+	typeof residentialGroupFormSchema
+>;
+
 export const loadGroupFormSchema = z.object({
 	name: nameSchema,
 	quantity: quantitySchema,
 	usage: optionalEnum(loadUsageSchema),
-	items: z
-		.array(loadItemFormSchema)
-		.max(100, { error: "Informe no máximo 100 cargas por grupo." }),
+	items: loadItemsSchema,
 });
 
 export type LoadGroupFormValues = z.infer<typeof loadGroupFormSchema>;
