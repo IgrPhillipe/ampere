@@ -196,8 +196,21 @@ describe("ConsumerUnitsPage", () => {
 		const threePhase = await screen.findByRole("option", {
 			name: "Trifásico",
 		});
+		expect(
+			screen.getAllByRole("spinbutton", {
+				name: /Carga instalada por unidade/i,
+			}),
+		).not.toHaveLength(0);
 		fireEvent.pointerDown(threePhase);
 		fireEvent.click(threePhase);
+		// The loads go in the sheet, so the row drops the total.
+		await waitFor(() =>
+			expect(
+				screen.queryAllByRole("spinbutton", {
+					name: /Carga instalada por unidade/i,
+				}),
+			).toHaveLength(0),
+		);
 		fireEvent.change(screen.getAllByPlaceholderText("00")[0], {
 			target: { value: "2" },
 		});
