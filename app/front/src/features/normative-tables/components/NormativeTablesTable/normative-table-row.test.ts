@@ -15,6 +15,7 @@ const draft = (registeredBy: string): NormativeTable => ({
 	status: "DRAFT",
 	rowCount: 1,
 	registeredBy,
+	registeredByName: registeredBy,
 	registeredAt: "2026-11-10T12:00:00Z",
 });
 

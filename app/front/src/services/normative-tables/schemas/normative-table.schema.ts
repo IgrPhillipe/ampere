@@ -66,9 +66,12 @@ export const normativeTableSchema = z.object({
 	version: z.number().int().nonnegative(),
 	status: normativeTableStatusSchema,
 	rowCount: z.number().int().nonnegative(),
+	// The e-mails tell who may publish; the names are what the screen shows.
 	registeredBy: z.string(),
+	registeredByName: z.string(),
 	registeredAt: z.string(),
 	verifiedBy: z.string().nullish(),
+	verifiedByName: z.string().nullish(),
 	verifiedAt: z.string().nullish(),
 	rows: z.array(normativeTableRowSchema).optional(),
 });

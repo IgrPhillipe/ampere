@@ -35,12 +35,12 @@ export const NormativeTableMetadata = ({
 	<dl className="grid shrink-0 border-b border-border sm:grid-cols-2">
 		<MetadataCell
 			label="Cadastro"
-			person={table.registeredBy}
+			person={table.registeredByName}
 			at={table.registeredAt}
 		/>
 		<MetadataCell
 			label="Revisão"
-			person={table.verifiedBy}
+			person={table.verifiedByName}
 			at={table.verifiedAt}
 		/>
 	</dl>

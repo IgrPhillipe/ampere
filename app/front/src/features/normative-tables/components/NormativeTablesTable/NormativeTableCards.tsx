@@ -48,12 +48,12 @@ export const NormativeTableCards = ({
 
 						<div className="flex gap-1.5">
 							<dt>Cadastro</dt>
-							<dd>{table.registeredBy}</dd>
+							<dd>{table.registeredByName}</dd>
 						</div>
 
 						<div className="flex gap-1.5">
 							<dt>Revisão</dt>
-							<dd>{table.verifiedBy ?? "Pendente"}</dd>
+							<dd>{table.verifiedByName ?? "Pendente"}</dd>
 						</div>
 					</dl>
 				</button>
