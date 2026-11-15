@@ -16,7 +16,8 @@ interface CalculationStepsProps {
 	className?: string;
 }
 
-const STEP_COUNT = 5;
+/** Drf, Ds, Dc, Dve, Ded and Dind. */
+const STEP_COUNT = 6;
 
 export const CalculationSteps = ({
 	steps,
@@ -73,6 +74,10 @@ const StepRow = ({
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const isTotal = step.code === "Ded";
+	// Item 6.22.3 sizes each apartment on its own: never added to Ded.
+	const isIndividual = step.code === "Dind";
+	// Only single-phase apartments: their category comes from the installed kW.
+	const hasNoKva = isIndividual && step.applies && step.valueKva === 0;
 	// The band of Tabela 1 or 2 explains why the total differs from the sum.
 	const [lead, ...rest] = isTotal ? step.details : [undefined, ...step.details];
 	const detailsId = `etapa-${step.code}-detalhes`;
@@ -83,6 +88,7 @@ const StepRow = ({
 				"relative grid grid-cols-[3.25rem_minmax(0,1fr)] gap-y-1 border-b border-border py-3 sm:grid-cols-[3.25rem_minmax(0,1fr)_8.75rem]",
 				// The negative margin keeps the total's columns aligned with the steps above.
 				isTotal && "-mx-3 bg-accent px-3",
+				isIndividual && "mt-6 border-t",
 			)}
 		>
 			<span className="flex h-6 items-center gap-2.5">
@@ -113,6 +119,11 @@ const StepRow = ({
 				<p className="font-mono text-xs break-words text-muted-foreground">
 					{step.formula}
 				</p>
+				{isIndividual && step.applies ? (
+					<p className="text-xs text-muted-foreground">
+						Dimensiona cada apartamento e não entra na demanda da edificação.
+					</p>
+				) : null}
 				{lead ? (
 					<p className="font-mono text-xs text-foreground">{lead}</p>
 				) : null}
@@ -147,12 +158,18 @@ const StepRow = ({
 			</div>
 
 			<div className="col-start-2 flex flex-col items-start gap-1 sm:col-start-3 sm:items-end">
-				<p className="flex items-baseline gap-1.5 whitespace-nowrap">
-					<span className="font-mono text-lg font-semibold tracking-[-0.02em] text-foreground">
-						{formatDecimal(step.valueKva)}
-					</span>
-					<span className="text-xs text-muted-foreground">kVA</span>
-				</p>
+				{hasNoKva ? (
+					<p className="font-mono text-2xs tracking-[0.11em] text-foreground uppercase">
+						Pela carga instalada
+					</p>
+				) : (
+					<p className="flex items-baseline gap-1.5 whitespace-nowrap">
+						<span className="font-mono text-lg font-semibold tracking-[-0.02em] text-foreground">
+							{formatDecimal(step.valueKva)}
+						</span>
+						<span className="text-xs text-muted-foreground">kVA</span>
+					</p>
+				)}
 				{step.reference ? (
 					<span
 						className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase"
