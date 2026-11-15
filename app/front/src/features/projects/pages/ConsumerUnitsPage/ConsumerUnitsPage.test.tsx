@@ -334,8 +334,32 @@ describe("ConsumerUnitsPage", () => {
 				issues: [],
 				declaredLoadKw: 32,
 				summary: "180 m², trifásico (DIS-NOR-053 Quadro 35)",
+				usefulArea: 180,
+				unitLoadKw: 16,
 				connectionType: "THREE_PHASE",
-				loads: [],
+				loads: [
+					{
+						category: "INSTANT_HEATING",
+						description: "Chuveiro",
+						quantity: 4,
+						power: 4,
+						powerUnit: "KW",
+					},
+				],
+			},
+			{
+				id: "104",
+				name: "Apartamentos Tipo",
+				kind: "RESIDENTIAL",
+				quantity: 12,
+				status: "VALIDATED",
+				issues: [],
+				declaredLoadKw: 120,
+				summary: "80 m², monofásico (DIS-NOR-053 Quadro 35)",
+				usefulArea: 80,
+				unitLoadKw: 10,
+				connectionType: "SINGLE_PHASE",
+				loads: null,
 			},
 			makeLoadGroup(),
 		];
@@ -346,6 +370,7 @@ describe("ConsumerUnitsPage", () => {
 			screen.getByRole("columnheader", { name: "Ligação" }),
 		).toBeInTheDocument();
 		expect(screen.getAllByText("Trifásico").length).toBeGreaterThan(0);
+		expect(screen.getAllByText("Monofásico").length).toBeGreaterThan(0);
 		expect(screen.getAllByText("Edificação").length).toBeGreaterThan(0);
 	});
 
