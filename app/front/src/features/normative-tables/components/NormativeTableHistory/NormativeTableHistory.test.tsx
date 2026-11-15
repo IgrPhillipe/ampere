@@ -38,6 +38,7 @@ const revision = (
 	identification: "Quadro 37",
 	item: "Anexo I, item 5",
 	page: "108",
+	version: 0,
 	status: "DRAFT",
 	rowCount: 4,
 	registeredBy: "admin@ampere.com",

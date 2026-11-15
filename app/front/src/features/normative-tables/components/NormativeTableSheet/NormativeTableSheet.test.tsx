@@ -15,6 +15,7 @@ const table: NormativeTable = {
 	identification: "Quadro 37",
 	item: "Anexo I, item 5",
 	page: "108",
+	version: 0,
 	status: "PUBLISHED",
 	rowCount: 1,
 	registeredBy: "admin@ampere.com",
