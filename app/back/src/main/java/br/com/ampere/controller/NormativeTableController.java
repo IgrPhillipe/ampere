@@ -1,5 +1,6 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.NormativeTableSort;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.SortDirection;
@@ -13,12 +14,16 @@ import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.NormativeTableParameters;
 import br.com.ampere.service.NormativeTableQuery;
 import br.com.ampere.service.NormativeTableService;
+import br.com.ampere.service.PersonDirectory;
+import br.com.ampere.service.PersonNames;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -42,9 +47,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class NormativeTableController {
 
   private final NormativeTableService service;
+  private final PersonDirectory people;
 
-  public NormativeTableController(NormativeTableService service) {
+  public NormativeTableController(NormativeTableService service, PersonDirectory people) {
     this.service = service;
+    this.people = people;
   }
 
   @GetMapping("/codes")
@@ -88,8 +95,7 @@ public class NormativeTableController {
       @AuthenticationPrincipal Jwt jwt) {
     NormativeTableQuery query = new NormativeTableQuery(search, statuses, sort, direction);
 
-    return ApiResponse.of(
-        service.list(query, userOf(jwt)).stream().map(NormativeTableResponse::summary).toList());
+    return ApiResponse.of(summaries(service.list(query, userOf(jwt))));
   }
 
   @GetMapping("/{id}")
@@ -104,7 +110,7 @@ public class NormativeTableController {
   })
   public ApiResponse<NormativeTableResponse> detail(
       @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(NormativeTableResponse.from(service.findById(id, userOf(jwt))));
+    return ApiResponse.of(detailOf(service.findById(id, userOf(jwt))));
   }
 
   @PostMapping
@@ -121,8 +127,7 @@ public class NormativeTableController {
   public ApiResponse<NormativeTableResponse> create(
       @Valid @RequestBody NormativeTableRequest request, @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        NormativeTableResponse.from(
-            service.create(parametersOf(request), emailOf(jwt), userOf(jwt))));
+        detailOf(service.create(parametersOf(request), emailOf(jwt), userOf(jwt))));
   }
 
   @PutMapping("/{id}")
@@ -149,8 +154,7 @@ public class NormativeTableController {
       @Valid @RequestBody NormativeTableRequest request,
       @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        NormativeTableResponse.from(
-            service.update(id, parametersOf(request), emailOf(jwt), userOf(jwt))));
+        detailOf(service.update(id, parametersOf(request), emailOf(jwt), userOf(jwt))));
   }
 
   @PostMapping("/{id}/publication")
@@ -173,8 +177,7 @@ public class NormativeTableController {
       @Valid @RequestBody NormativeTablePublicationRequest request,
       @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        NormativeTableResponse.from(
-            service.publish(id, request.version(), emailOf(jwt), userOf(jwt))));
+        detailOf(service.publish(id, request.version(), emailOf(jwt), userOf(jwt))));
   }
 
   @DeleteMapping("/{id}")
@@ -196,6 +199,23 @@ public class NormativeTableController {
   })
   public void delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
     service.delete(id, emailOf(jwt), userOf(jwt));
+  }
+
+  private List<NormativeTableResponse> summaries(List<NormativeTable> tables) {
+    PersonNames names = namesOf(tables);
+
+    return tables.stream().map(table -> NormativeTableResponse.summary(table, names)).toList();
+  }
+
+  private NormativeTableResponse detailOf(NormativeTable table) {
+    return NormativeTableResponse.from(table, namesOf(List.of(table)));
+  }
+
+  private PersonNames namesOf(Collection<NormativeTable> tables) {
+    return people.namesOf(
+        tables.stream()
+            .flatMap(table -> Stream.of(table.getRegisteredBy(), table.getVerifiedBy()))
+            .toList());
   }
 
   private static NormativeTableParameters parametersOf(NormativeTableRequest request) {

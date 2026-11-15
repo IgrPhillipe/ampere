@@ -19,6 +19,8 @@ import br.com.ampere.domain.SortDirection;
 import br.com.ampere.error.GlobalExceptionHandler;
 import br.com.ampere.service.NormativeTableQuery;
 import br.com.ampere.service.NormativeTableService;
+import br.com.ampere.service.PersonDirectory;
+import br.com.ampere.service.PersonNames;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -108,6 +110,13 @@ class NormativeTableControllerTest {
     return service;
   }
 
+  private static PersonDirectory people() {
+    PersonDirectory people = mock(PersonDirectory.class);
+    when(people.namesOf(any())).thenReturn(PersonNames.none());
+
+    return people;
+  }
+
   private static NormativeTableQuery queryOf(NormativeTableService service) {
     ArgumentCaptor<NormativeTableQuery> query = ArgumentCaptor.forClass(NormativeTableQuery.class);
     verify(service).list(query.capture(), any());
@@ -119,7 +128,9 @@ class NormativeTableControllerTest {
     DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
     new EnumParameterConfig().addFormatters(conversionService);
 
-    return MockMvcBuilders.standaloneSetup(new NormativeTableController(service))
+    return MockMvcBuilders.standaloneSetup(
+            new NormativeTableController(
+                service, mock(NormativeTableHistoryService.class), people()))
         .setConversionService(conversionService)
         .setCustomArgumentResolvers(adminToken())
         .setControllerAdvice(new GlobalExceptionHandler(messageSource()))
