@@ -1,6 +1,5 @@
-import { formatDate } from "@features/shared";
+import { padCount } from "@features/shared";
 import type {
-	NormativeTable,
 	NormativeTableCode,
 	NormativeTableRow,
 } from "@services/normative-tables";
@@ -12,8 +11,8 @@ const numberFormat = new Intl.NumberFormat("pt-BR", {
 export const formatNormativeNumber = (value: number) =>
 	numberFormat.format(value);
 
-export const formatRevision = (table: NormativeTable) =>
-	`Revisão de ${formatDate(table.registeredAt)}`;
+/** The revisions count from 1, in the order they took effect. */
+export const formatRevision = (number: number) => `Revisão ${padCount(number)}`;
 
 /** The band as the printed table says it, like the back end's "25 a 50" or "acima de 100". */
 const formatBand = ({ lowerBound, upperBound, label }: NormativeTableRow) => {

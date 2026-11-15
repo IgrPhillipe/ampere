@@ -43,6 +43,7 @@ interface NormativeTableRevisionComparisonProps {
 interface RevisionPickerProps {
 	label: string;
 	value: string;
+	/** Oldest first, so each one is numbered by its position. */
 	revisions: NormativeTable[];
 	/** The API compares an older revision to a newer one, so the other side bounds this one. */
 	isAllowed: (revision: NormativeTable) => boolean;
@@ -58,7 +59,10 @@ const RevisionPicker = ({
 }: RevisionPickerProps) => (
 	<Select
 		items={Object.fromEntries(
-			revisions.map((revision) => [revision.id, formatRevision(revision)]),
+			revisions.map((revision, index) => [
+				revision.id,
+				formatRevision(index + 1),
+			]),
 		)}
 		value={value}
 		onValueChange={(next) => {
@@ -73,13 +77,13 @@ const RevisionPicker = ({
 			<SelectValue />
 		</SelectTrigger>
 		<SelectContent>
-			{revisions.map((revision) => (
+			{revisions.map((revision, index) => (
 				<SelectItem
 					key={revision.id}
 					value={revision.id}
 					disabled={!isAllowed(revision)}
 				>
-					{formatRevision(revision)}
+					{formatRevision(index + 1)}
 				</SelectItem>
 			))}
 		</SelectContent>

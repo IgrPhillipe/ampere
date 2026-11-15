@@ -117,7 +117,7 @@ export const NormativeTableHistory = ({
 				</SectionHeading>
 
 				<ol className="flex flex-col">
-					{revisions.map((revision) => {
+					{revisions.map((revision, index) => {
 						const isOpen = revision.id === table.id;
 
 						return (
@@ -131,7 +131,7 @@ export const NormativeTableHistory = ({
 							>
 								<div className="flex flex-wrap items-center gap-3">
 									<span className="text-sm font-medium text-foreground">
-										{formatRevision(revision)}
+										{formatRevision(revisions.length - index)}
 									</span>
 									<NormativeTableStatusBadge status={revision.status} />
 									{isOpen ? (

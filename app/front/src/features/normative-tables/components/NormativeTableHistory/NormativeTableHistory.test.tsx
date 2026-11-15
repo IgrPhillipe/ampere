@@ -96,7 +96,8 @@ describe("NormativeTableHistory", () => {
 
 		expect(rows).toHaveLength(2);
 		expect(rows[0]).toHaveAttribute("aria-current", "true");
-		expect(within(rows[0]).getByText("Revisão de 12/11/2026")).toBeVisible();
+		expect(within(rows[0]).getByText("Revisão 02")).toBeVisible();
+		expect(within(rows[1]).getByText("Revisão 01")).toBeVisible();
 		expect(within(rows[0]).getByText("Aguardando Revisão")).toBeVisible();
 		expect(within(rows[0]).getByText("Pendente")).toBeVisible();
 		expect(within(rows[1]).getByText("Vigente")).toBeVisible();
