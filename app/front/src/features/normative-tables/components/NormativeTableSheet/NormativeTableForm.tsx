@@ -96,6 +96,11 @@ export const NormativeTableForm = ({
 		? `${table.standard.name} ${table.standard.revision}`
 		: (definition?.standard ?? "Escolha a tabela");
 
+	// A refetched version replaces what is on screen, so nobody approves stale rows.
+	useEffect(() => {
+		if (table) form.reset(toNormativeTableFormValues(table));
+	}, [form, table]);
+
 	// Prefills the catalog reference only when the person picks another code.
 	useEffect(() => {
 		const subscription = form.watch((values, { name }) => {

@@ -17,11 +17,17 @@ export const usePublishNormativeTable = () => {
 
 			toast.success("Revisão aprovada e publicada.");
 		},
-		onError: (error) =>
+		onError: async (error) => {
 			toast.error(
 				getToastErrorMessage(error, {
 					fallback: "Não foi possível aprovar a revisão.",
 				}),
-			),
+			);
+
+			// A revision changed after it was opened comes back with the new rows.
+			await queryClient.invalidateQueries({
+				queryKey: normativeTableKeys.all(),
+			});
+		},
 	});
 };
