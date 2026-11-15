@@ -58,8 +58,8 @@ Cada tabela é cadastrada com:
 Regras da área administrativa:
 
 - **Dupla leitura obrigatória.** Uma revisão só sai de rascunho após conferência por pessoa diferente de quem cadastrou.
-- **Só quem cadastrou altera o rascunho.** Quem confere lê o que foi digitado e aprova a versão que leu; o que mudar depois volta para a conferência.
-- **Uma revisão pendente por tabela.** Outra revisão da mesma tabela só entra depois que a pendente for aprovada ou excluída.
+- **Só quem cadastrou altera o rascunho.** Quem confere lê o que foi digitado e aprova a versão que leu; o que mudar depois volta para a conferência. Excluir o rascunho é de quem cadastrou ou do gestor, para que um rascunho abandonado não trave a tabela.
+- **Uma revisão pendente por tabela.** Outra revisão da mesma tabela só entra depois que a pendente for aprovada ou excluída. O banco garante a regra também para dois cadastros no mesmo instante.
 - **Os cinco exemplos do Anexo I são o portão de publicação.** Antes de publicar uma revisão, o sistema executa os cinco exemplos resolvidos da norma com os parâmetros recém-cadastrados. Se algum deixar de fechar, a revisão não é publicada, o que barra erro de digitação nos parâmetros.
 - **Revisão publicada não é editada.** Norma nova gera revisão nova, e a anterior passa a substituída. Cálculo antigo continua apontando para a revisão sob a qual foi feito.
 

@@ -139,7 +139,7 @@ As 18 tabelas entram publicadas, digitadas pelo admin e conferidas pelo conferen
 | Quadro 37 | Aguardando revisão, cadastrada pelo admin | Fatores de segurança de 1,4 e 1,25 nas duas primeiras faixas. Só o admin a altera; o conferente e os analistas podem aprová-la |
 | Tabela 2 | Aguardando revisão, cadastrada pelo conferente | Faixa 53 a 66 kVA com condutor de 50 mm² e disjuntor de 125 A. O admin e os analistas podem aprová-la |
 
-Cada tabela tem no máximo uma revisão pendente: uma nova revisão do Quadro 37 ou da Tabela 2 só entra depois que a pendente for aprovada ou excluída.
+Cada tabela tem no máximo uma revisão pendente: uma nova revisão do Quadro 37 ou da Tabela 2 só entra depois que a pendente for aprovada ou excluída. Exclui quem a cadastrou ou o admin.
 
 ---
 
