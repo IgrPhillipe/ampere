@@ -33,6 +33,8 @@ interface GroupSheetProps {
 	readOnly?: boolean;
 	opened: OpenedGroup | null;
 	onClose: () => void;
+	/** A draft was saved as a new group. */
+	onCreated?: () => void;
 	/** The analyst registers a finding tied to the open group. */
 	onCreateFinding?: (group: ConsumerUnitGroup) => void;
 }
@@ -56,6 +58,7 @@ export const GroupSheet = ({
 	readOnly = false,
 	opened,
 	onClose,
+	onCreated,
 	onCreateFinding,
 }: GroupSheetProps) => {
 	const createGroup = useCreateConsumerUnitGroup(projectId);
@@ -73,7 +76,15 @@ export const GroupSheet = ({
 		if (!group) return;
 
 		if (opened?.draft) {
-			createGroup.mutate({ projectId, payload }, { onSuccess: closeSheet });
+			createGroup.mutate(
+				{ projectId, payload },
+				{
+					onSuccess: () => {
+						onCreated?.();
+						closeSheet();
+					},
+				},
+			);
 			return;
 		}
 

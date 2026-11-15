@@ -125,8 +125,8 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 	const saveNewGroup = (values: NewGroupFormValues) => {
 		const { kind, usage } = GROUP_USAGE_TYPES[values.usageType];
 
+		// The row keeps the name and quantity until the draft is saved.
 		if (kind === "RESIDENTIAL" && values.connectionType === "THREE_PHASE") {
-			cancelAdding();
 			setOpened({
 				group: threePhaseDraft(values),
 				focusField: "loads[0].description",
@@ -328,6 +328,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 				readOnly={!isEditable}
 				opened={opened}
 				onClose={() => setOpened(null)}
+				onCreated={cancelAdding}
 				onCreateFinding={registrar.onGroup}
 			/>
 		</>
