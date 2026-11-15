@@ -1,37 +1,18 @@
 import { ControlledInput, ControlledSelect } from "@components/form";
-import { SectionHeading } from "@components/SectionHeading";
-import { Button } from "@components/ui/button";
-import { padCount, useZodForm } from "@features/shared";
+import { useZodForm } from "@features/shared";
 import type { LoadGroup } from "@services/consumer-units";
-import { Plus, Trash2 } from "lucide-react";
 import { useEffect } from "react";
-import { useFieldArray, useWatch } from "react-hook-form";
 
-import {
-	lampTechnologyItems,
-	loadCategoryItems,
-	loadUsageItems,
-	powerUnitItems,
-	yesNoItems,
-} from "../../constants";
-import {
-	type LoadGroupFormValues,
-	loadGroupFormSchema,
-	toBoolean,
-	toYesNo,
-} from "../../schemas";
+import { loadUsageItems } from "../../constants";
+import { type LoadGroupFormValues, loadGroupFormSchema } from "../../schemas";
 import { GroupFormFooter } from "./GroupFormFooter";
 import { focusIssueField, type GroupFormProps } from "./group-form";
-
-const EMPTY_ITEM: LoadGroupFormValues["items"][number] = {
-	category: "LIGHTING_AND_OUTLETS",
-	description: "",
-	quantity: 1,
-	power: null,
-	powerUnit: "KW",
-	lampTechnology: null,
-	simultaneousStart: null,
-};
+import { LoadItemsSection } from "./LoadItemsSection";
+import {
+	EMPTY_LOAD_ITEM,
+	toLoadItemFormValues,
+	toLoadItemPayload,
+} from "./load-item";
 
 export const LoadGroupForm = ({
 	group,
@@ -53,23 +34,9 @@ export const LoadGroupForm = ({
 		quantity: group.quantity,
 		usage: group.usage ?? null,
 		items: startsOnFirstItem
-			? [EMPTY_ITEM]
-			: group.items.map((item) => ({
-					category: item.category,
-					description: item.description,
-					quantity: item.quantity,
-					power: item.power ?? null,
-					powerUnit: item.powerUnit,
-					lampTechnology: item.lampTechnology ?? null,
-					simultaneousStart: toYesNo(item.simultaneousStart),
-				})),
+			? [EMPTY_LOAD_ITEM]
+			: group.items.map(toLoadItemFormValues),
 	});
-
-	const items = useFieldArray({ control: form.control, name: "items" });
-	// `form.watch` is memoized by the React Compiler.
-	const categories = useWatch({ control: form.control, name: "items" }).map(
-		({ category }) => category,
-	);
 
 	useEffect(() => focusIssueField(form, initialFocus), [form, initialFocus]);
 
@@ -79,10 +46,7 @@ export const LoadGroupForm = ({
 			name: values.name,
 			quantity: values.quantity,
 			usage: values.usage,
-			items: values.items.map((item) => ({
-				...item,
-				simultaneousStart: toBoolean(item.simultaneousStart),
-			})),
+			items: values.items.map(toLoadItemPayload),
 		});
 
 	return (
@@ -126,139 +90,12 @@ export const LoadGroupForm = ({
 					/>
 				</div>
 
-				<section className="flex flex-col gap-6">
-					<SectionHeading
-						as="h3"
-						actions={
-							readOnly ? null : (
-								<Button
-									type="button"
-									variant="link"
-									size="sm"
-									className="h-auto px-0"
-									onClick={() => items.append(EMPTY_ITEM)}
-								>
-									<Plus aria-hidden="true" />
-									Adicionar Carga
-								</Button>
-							)
-						}
-					>
-						Cargas Instaladas
-					</SectionHeading>
-
-					{items.fields.length === 0 ? (
-						<p className="text-sm text-muted-foreground">
-							{readOnly
-								? "Nenhuma carga informada."
-								: "Nenhuma carga informada. Adicione iluminação, motores, bombas e demais cargas do grupo."}
-						</p>
-					) : null}
-
-					<ol className="flex flex-col gap-8">
-						{items.fields.map((field, index) => (
-							<li
-								key={field.id}
-								className="grid grid-cols-[2rem_minmax(0,1fr)] gap-y-6"
-							>
-								<span className="pt-6 font-mono text-sm text-muted-foreground">
-									{padCount(index + 1)}
-								</span>
-
-								<div className="grid gap-x-6 gap-y-6 sm:grid-cols-2">
-									<ControlledSelect
-										control={form.control}
-										name={`items.${index}.category`}
-										label="Parcela"
-										items={loadCategoryItems}
-										variant="underline"
-										fieldClassName="sm:col-span-2"
-									/>
-
-									<ControlledInput
-										control={form.control}
-										name={`items.${index}.description`}
-										label="Descrição"
-										placeholder="Ex.: Elevador"
-										required
-										variant="underline"
-										fieldClassName="sm:col-span-2"
-									/>
-
-									<ControlledInput
-										control={form.control}
-										name={`items.${index}.quantity`}
-										label="Quantidade"
-										type="number"
-										min={1}
-										step={1}
-										inputMode="numeric"
-										required
-										variant="underline"
-									/>
-
-									<div className="grid grid-cols-[minmax(0,1fr)_5rem] items-end gap-3">
-										<ControlledInput
-											control={form.control}
-											name={`items.${index}.power`}
-											label="Potência de placa"
-											type="number"
-											min={0}
-											step="0.01"
-											inputMode="decimal"
-											variant="underline"
-										/>
-
-										<ControlledSelect
-											control={form.control}
-											name={`items.${index}.powerUnit`}
-											label={<span className="sr-only">Unidade</span>}
-											items={powerUnitItems}
-											variant="underline"
-										/>
-									</div>
-
-									{categories[index] === "LIGHTING_AND_OUTLETS" ? (
-										<ControlledSelect
-											control={form.control}
-											name={`items.${index}.lampTechnology`}
-											label="Iluminação ou tomadas"
-											placeholder="Não informado"
-											items={lampTechnologyItems}
-											variant="underline"
-											fieldClassName="sm:col-span-2"
-										/>
-									) : null}
-
-									{categories[index] === "MOTORS" ? (
-										<ControlledSelect
-											control={form.control}
-											name={`items.${index}.simultaneousStart`}
-											label="Partida simultânea com outros motores?"
-											placeholder="Não informado"
-											items={yesNoItems}
-											variant="underline"
-											fieldClassName="sm:col-span-2"
-										/>
-									) : null}
-
-									{readOnly ? null : (
-										<Button
-											type="button"
-											variant="destructive-ghost"
-											size="sm"
-											onClick={() => items.remove(index)}
-											className="justify-self-start sm:col-span-2"
-										>
-											<Trash2 aria-hidden="true" />
-											Remover Carga
-										</Button>
-									)}
-								</div>
-							</li>
-						))}
-					</ol>
-				</section>
+				<LoadItemsSection
+					control={form.control}
+					readOnly={readOnly}
+					title="Cargas Instaladas"
+					emptyHint="Nenhuma carga informada. Adicione iluminação, motores, bombas e demais cargas do grupo."
+				/>
 			</fieldset>
 
 			<GroupFormFooter
