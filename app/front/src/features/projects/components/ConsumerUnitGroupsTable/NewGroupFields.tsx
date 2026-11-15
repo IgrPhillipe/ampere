@@ -15,7 +15,9 @@ interface NewGroupFieldsProps {
 	usageType?: GroupUsageType;
 }
 
-const numericInputClassName = "text-right font-mono";
+// The browser's spinner would cover the value in the narrow row cells.
+const numericInputClassName =
+	"text-right font-mono [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
 
 const hiddenLabel = (text: string) => <span className="sr-only">{text}</span>;
 
