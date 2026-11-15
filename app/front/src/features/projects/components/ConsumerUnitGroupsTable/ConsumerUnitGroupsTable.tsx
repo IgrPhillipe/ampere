@@ -17,7 +17,7 @@ import { NewGroupRow } from "./NewGroupRow";
 const groupColumnClassNames = {
 	quantity: "w-20 text-right",
 	connection: "w-32",
-	load: "w-28 text-right",
+	load: "w-32 text-right",
 	factor: "w-24 text-right",
 	status: "w-36",
 } satisfies Partial<Record<GroupColumnId, string>>;

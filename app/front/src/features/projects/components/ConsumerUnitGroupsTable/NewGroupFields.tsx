@@ -82,7 +82,7 @@ export const LoadField = ({ control, usageType }: NewGroupFieldsProps) => {
 	if (!label) {
 		return (
 			<span
-				className="font-mono text-sm text-muted-foreground"
+				className="font-mono text-sm whitespace-nowrap text-muted-foreground"
 				title={
 					usageType
 						? `${GROUP_USAGE_TYPES[usageType].label}: a carga é a soma das cargas informadas no grupo.`
