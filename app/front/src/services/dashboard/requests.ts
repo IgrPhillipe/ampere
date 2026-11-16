@@ -2,6 +2,7 @@ import { http } from "@lib/http";
 
 import { DashboardEndpoints as e } from "./endpoints";
 import {
+	adminDashboardResponseSchema,
 	type DashboardPeriod,
 	designerDashboardResponseSchema,
 } from "./schemas";
@@ -12,4 +13,10 @@ export const getDesignerDashboard = async (period: DashboardPeriod) => {
 		.json<unknown>();
 
 	return designerDashboardResponseSchema.parse(response);
+};
+
+export const getAdminDashboard = async () => {
+	const response = await http.get(e.admin).json<unknown>();
+
+	return adminDashboardResponseSchema.parse(response);
 };

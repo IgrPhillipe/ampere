@@ -1,0 +1,179 @@
+import { SectionHeading } from "@components/SectionHeading";
+import { Badge } from "@components/ui/badge";
+import { Skeleton } from "@components/ui/skeleton";
+import { padCount } from "@features/shared";
+import { cn } from "@lib/utils";
+import type { AdminDashboardQueueSummary } from "@services/dashboard";
+import { Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
+import { useId } from "react";
+
+interface AdminQueueSectionProps {
+	queue?: AdminDashboardQueueSummary;
+	isLoading?: boolean;
+	className?: string;
+}
+
+export const AdminQueueSection = ({
+	queue,
+	isLoading = false,
+	className,
+}: AdminQueueSectionProps) => {
+	const headingId = useId();
+
+	const unassigned = queue?.unassigned ?? 0;
+	const dueIn3Days = queue?.dueIn3Days ?? 0;
+	const overdue = queue?.overdue ?? 0;
+	const municipalitiesWithoutReviewer =
+		queue?.municipalitiesWithoutReviewer ?? 0;
+	const reviewers = queue?.byReviewer ?? [];
+
+	return (
+		<section
+			aria-labelledby={headingId}
+			className={cn("flex flex-col gap-6", className)}
+		>
+			<div className="flex items-center justify-between border-b border-border pb-3">
+				<SectionHeading id={headingId}>Fila de Análise</SectionHeading>
+				<div className="flex items-center gap-2">
+					<Link
+						to="/fila-de-analise"
+						className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+					>
+						Ir para Fila
+						<ArrowRight className="size-3.5" aria-hidden="true" />
+					</Link>
+					<Link
+						to="/distribuicao"
+						className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+					>
+						Distribuição
+						<ArrowRight className="size-3.5" aria-hidden="true" />
+					</Link>
+				</div>
+			</div>
+
+			<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+				<div className="flex flex-col gap-1 border border-border p-3">
+					<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+						Sem analista
+					</span>
+					{isLoading || !queue ? (
+						<Skeleton className="h-7 w-12" />
+					) : (
+						<span
+							className={cn(
+								"font-mono text-2xl font-bold",
+								unassigned > 0 ? "text-attention" : "text-foreground",
+							)}
+						>
+							{padCount(unassigned)}
+						</span>
+					)}
+				</div>
+
+				<div className="flex flex-col gap-1 border border-border p-3">
+					<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+						Prazo até 3 dias
+					</span>
+					{isLoading || !queue ? (
+						<Skeleton className="h-7 w-12" />
+					) : (
+						<span
+							className={cn(
+								"font-mono text-2xl font-bold",
+								dueIn3Days > 0 ? "text-attention" : "text-foreground",
+							)}
+						>
+							{padCount(dueIn3Days)}
+						</span>
+					)}
+				</div>
+
+				<div className="flex flex-col gap-1 border border-border p-3">
+					<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+						Atrasados
+					</span>
+					{isLoading || !queue ? (
+						<Skeleton className="h-7 w-12" />
+					) : (
+						<span
+							className={cn(
+								"font-mono text-2xl font-bold",
+								overdue > 0 ? "text-destructive" : "text-foreground",
+							)}
+						>
+							{padCount(overdue)}
+						</span>
+					)}
+				</div>
+
+				<div className="flex flex-col gap-1 border border-border p-3">
+					<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+						Municípios s/ analista
+					</span>
+					{isLoading || !queue ? (
+						<Skeleton className="h-7 w-12" />
+					) : (
+						<span
+							className={cn(
+								"font-mono text-2xl font-bold",
+								municipalitiesWithoutReviewer > 0
+									? "text-attention"
+									: "text-foreground",
+							)}
+						>
+							{padCount(municipalitiesWithoutReviewer)}
+						</span>
+					)}
+				</div>
+			</div>
+
+			<div className="flex flex-col gap-3">
+				<h3 className="font-mono text-2xs font-semibold tracking-[0.11em] text-faint-foreground uppercase">
+					Carga por analista
+				</h3>
+
+				{isLoading || !queue ? (
+					<div className="flex flex-col gap-2">
+						<Skeleton className="h-10 w-full" />
+						<Skeleton className="h-10 w-full" />
+					</div>
+				) : reviewers.length === 0 ? (
+					<p className="py-4 text-sm text-muted-foreground">
+						Nenhum analista cadastrado.
+					</p>
+				) : (
+					<ul className="divide-y divide-border border border-border">
+						{reviewers.map((reviewer) => (
+							<li
+								key={reviewer.id}
+								className="flex items-center justify-between px-4 py-3"
+							>
+								<div className="flex items-center gap-2">
+									<span className="text-sm font-medium text-foreground">
+										{reviewer.name}
+									</span>
+									{!reviewer.active && (
+										<Badge variant="outline" className="text-faint-foreground">
+											Inativo
+										</Badge>
+									)}
+								</div>
+
+								<div className="flex items-center gap-1.5 font-mono text-sm">
+									<span className="font-bold text-foreground">
+										{padCount(reviewer.underReview)}
+									</span>
+									<span className="text-2xs text-muted-foreground uppercase">
+										{reviewer.underReview === 1 ? "projeto" : "projetos"}
+									</span>
+								</div>
+							</li>
+						))}
+					</ul>
+				)}
+			</div>
+		</section>
+	);
+};

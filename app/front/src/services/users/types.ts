@@ -6,6 +6,8 @@ export interface ListUsersParams {
 	search?: string;
 	role?: UserRole;
 	active?: boolean;
+	mustChangePassword?: boolean;
+	inactiveDays?: number;
 }
 
 export interface ProfileRequestPayload {

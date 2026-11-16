@@ -8,7 +8,7 @@ interface UserActiveFiltersProps {
 }
 
 export const UserActiveFilters = ({ filters }: UserActiveFiltersProps) => {
-	const { search, role, status } = filters;
+	const { search, role, status, mustChangePassword, inactiveDays } = filters;
 	const active: ActiveFilter[] = [];
 
 	if (search.trim()) {
@@ -32,6 +32,22 @@ export const UserActiveFilters = ({ filters }: UserActiveFiltersProps) => {
 			id: "status",
 			label: `Situação: ${userStatusLabels[status]}`,
 			onRemove: () => filters.setStatus(null),
+		});
+	}
+
+	if (mustChangePassword) {
+		active.push({
+			id: "mustChangePassword",
+			label: "Troca de senha pendente",
+			onRemove: () => filters.setMustChangePassword(null),
+		});
+	}
+
+	if (inactiveDays) {
+		active.push({
+			id: "inactiveDays",
+			label: `Sem acesso há mais de ${inactiveDays} dias`,
+			onRemove: () => filters.setInactiveDays(null),
 		});
 	}
 

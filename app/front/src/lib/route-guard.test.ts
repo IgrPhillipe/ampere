@@ -25,7 +25,7 @@ describe("role navigation", () => {
 	it("sends each role to its home", () => {
 		expect(getRoleHomePath("user")).toBe("/painel");
 		expect(getRoleHomePath("reviewer")).toBe("/fila-de-analise");
-		expect(getRoleHomePath("admin")).toBe("/projetos");
+		expect(getRoleHomePath("admin")).toBe("/painel");
 	});
 
 	it("gives the designer the dashboard and their own projects", () => {
@@ -45,6 +45,7 @@ describe("role navigation", () => {
 
 	it("gives the admin every area", () => {
 		expect(labelsOf("admin")).toEqual([
+			"Painel",
 			"Projetos",
 			"Fila de Análise",
 			"Tabelas Normativas",
@@ -59,7 +60,7 @@ describe("role navigation", () => {
 		expect(ROLE_ACCESS.reviewQueue).not.toContain("user");
 		expect(ROLE_ACCESS.users).toEqual(["admin"]);
 		expect(ROLE_ACCESS.distribution).toEqual(["admin"]);
-		expect(ROLE_ACCESS.dashboard).toEqual(["user"]);
+		expect(ROLE_ACCESS.dashboard).toEqual(["user", "admin"]);
 	});
 });
 
