@@ -4,12 +4,12 @@ import { Pagination } from "@components/Pagination";
 import { SearchInput } from "@components/SearchInput";
 import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
-import { useDebouncedValue } from "@features/shared";
 import {
 	ProjectDeleteDialog,
 	ProjectsTable,
 	useSelectedOwnerName,
 } from "@features/projects";
+import { useDebouncedValue } from "@features/shared";
 import {
 	type Project,
 	type ProjectSort,
@@ -40,14 +40,20 @@ export const AdminActiveProjectsSection = () => {
 	const [owner, setOwner] = useState<string | null>(null);
 	const [ownerSearch, setOwnerSearch] = useState("");
 	const [page, setPage] = useState(1);
-	const [sort, setSort] = useState<{ column: ProjectSort; direction: "ASC" | "DESC" }>({
+	const [sort, setSort] = useState<{
+		column: ProjectSort;
+		direction: "ASC" | "DESC";
+	}>({
 		column: "updatedAt",
 		direction: "DESC",
 	});
 	const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
-	const debouncedOwnerSearch = useDebouncedValue(ownerSearch.trim(), SEARCH_DEBOUNCE_MS);
+	const debouncedOwnerSearch = useDebouncedValue(
+		ownerSearch.trim(),
+		SEARCH_DEBOUNCE_MS,
+	);
 
 	const projectsQuery = useGetProjectList({
 		status: ACTIVE_STATUSES,
@@ -127,7 +133,8 @@ export const AdminActiveProjectsSection = () => {
 	const handleSortChange = (column: ProjectSort) => {
 		setSort((prev) => ({
 			column,
-			direction: prev.column === column && prev.direction === "ASC" ? "DESC" : "ASC",
+			direction:
+				prev.column === column && prev.direction === "ASC" ? "DESC" : "ASC",
 		}));
 		setPage(1);
 	};

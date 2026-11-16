@@ -110,23 +110,49 @@ describe("AdminDashboardPage", () => {
 
 		// Check the user counter shortcuts
 		const userLink = screen.getByRole("link", { name: /projetistas ativos/i });
-		expect(userLink).toHaveAttribute("href", expect.stringContaining("/usuarios"));
-		expect(userLink).toHaveAttribute("href", expect.stringContaining("role=user"));
-		expect(userLink).toHaveAttribute("href", expect.stringContaining("status=active"));
+		expect(userLink).toHaveAttribute(
+			"href",
+			expect.stringContaining("/usuarios"),
+		);
+		expect(userLink).toHaveAttribute(
+			"href",
+			expect.stringContaining("role=user"),
+		);
+		expect(userLink).toHaveAttribute(
+			"href",
+			expect.stringContaining("status=active"),
+		);
 		expect(within(userLink).getByText("12")).toBeInTheDocument();
 
-		const reviewerLink = screen.getByRole("link", { name: /analistas ativos/i });
-		expect(reviewerLink).toHaveAttribute("href", expect.stringContaining("role=reviewer"));
-		expect(reviewerLink).toHaveAttribute("href", expect.stringContaining("status=active"));
+		const reviewerLink = screen.getByRole("link", {
+			name: /analistas ativos/i,
+		});
+		expect(reviewerLink).toHaveAttribute(
+			"href",
+			expect.stringContaining("role=reviewer"),
+		);
+		expect(reviewerLink).toHaveAttribute(
+			"href",
+			expect.stringContaining("status=active"),
+		);
 		expect(within(reviewerLink).getByText("02")).toBeInTheDocument();
 
 		const adminLink = screen.getByRole("link", { name: /gestores ativos/i });
-		expect(adminLink).toHaveAttribute("href", expect.stringContaining("role=admin"));
-		expect(adminLink).toHaveAttribute("href", expect.stringContaining("status=active"));
+		expect(adminLink).toHaveAttribute(
+			"href",
+			expect.stringContaining("role=admin"),
+		);
+		expect(adminLink).toHaveAttribute(
+			"href",
+			expect.stringContaining("status=active"),
+		);
 		expect(within(adminLink).getByText("01")).toBeInTheDocument();
 
 		const inactiveLink = screen.getByRole("link", { name: /contas inativas/i });
-		expect(inactiveLink).toHaveAttribute("href", expect.stringContaining("status=inactive"));
+		expect(inactiveLink).toHaveAttribute(
+			"href",
+			expect.stringContaining("status=inactive"),
+		);
 		expect(within(inactiveLink).getByText("03")).toBeInTheDocument();
 
 		const mustChangePwdLink = screen.getByRole("link", {
@@ -173,7 +199,9 @@ describe("AdminDashboardPage", () => {
 		// Queue counts
 		expect(within(queueSection).getByText("04")).toBeInTheDocument(); // unassigned
 		expect(within(queueSection).getByText("02")).toBeInTheDocument(); // dueIn3Days
-		expect(within(queueSection).getAllByText("01").length).toBeGreaterThanOrEqual(1); // overdue and Bruno's underReview
+		expect(
+			within(queueSection).getAllByText("01").length,
+		).toBeGreaterThanOrEqual(1); // overdue and Bruno's underReview
 		expect(within(queueSection).getByText("07")).toBeInTheDocument(); // municipalitiesWithoutReviewer
 
 		// Reviewers workload
