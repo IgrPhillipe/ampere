@@ -261,7 +261,7 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 | Feature | Rota | Página |
 | :--- | :--- | :--- |
 | `auth` | `/entrar`, `/criar-conta`, `/meu-perfil` | Entrar, Criar Conta e Meu Perfil |
-| `dashboard` | `/painel` | Painel, página inicial do projetista |
+| `dashboard` | `/painel` | Painel, página inicial do projetista e do admin, cada um com o seu |
 | `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id`, `/projetos/$id/<etapa>` | Meus Projetos (Projetos, para o admin), o detalhe e as etapas |
 | `review-queue` | `/fila-de-analise` | Fila de Análise |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
@@ -307,7 +307,7 @@ O `ROLE_ACCESS` de `lib/route-guard.ts` é a fonte única de quem chega a cada
 
 | Área | `user` | `reviewer` | `admin` |
 | :--- | :--- | :--- | :--- |
-| Painel | o próprio | não | não |
+| Painel | o próprio | não | o do admin |
 | Projetos | os próprios | não | todos |
 | Fila de Análise | não | sim | sim |
 | Tabelas Normativas | não | sim | sim |
