@@ -391,7 +391,7 @@ Cada história tem a issue épica, a tarefa de back e a tarefa de front, nessa o
 | US23: Distribuição da Fila de Análise (#191) | **Sprint 7.** `AT01-US23`: atribuição em lote, municípios por analista e distribuição no envio | **Sprint 8.** `AT02-US23`: seleção em lote na fila e tela "Distribuição" |
 | US15: Prazos de Análise e Validade da Aprovação (#130) | **Sprint 8.** `AT01-US15`: suspensão e retomada do prazo, status `EXPIRED` após 36 meses, job diário | **Sprint 9.** `AT02-US15`: prazo, dias suspensos e validade na fila e no painel do projeto |
 | US17: Painel do Analista (#136) | **Sprint 8.** `AT01-US17`: `GET /api/dashboard/review?period=` e `GET /api/review-queue/mine` | **Sprint 9.** `AT02-US17`: telas "Indicadores" e "Meus Pareceres" |
-| US24: Painel do Administrador (#192) | **Sprint 8.** `AT01-US24`: `GET /api/dashboard/admin` e filtros de situação em `GET /api/users` | **Sprint 9.** `AT02-US24`: tela "Painel" como inicial do administrador |
+| US24: Painel do Administrador (#192) | Entregue. `AT01-US24` (#195): `GET /api/dashboard/admin` e filtros de troca de senha pendente e último acesso em `GET /api/users` | Entregue. `AT02-US24` (#196): tela "Painel" como inicial do administrador, com contadores de usuários que abrem "Usuários" filtrada, projetos ativos com busca e filtro por projetista, e a fila com carga por analista |
 
 ## Ajustes Abertos em 31/10
 
