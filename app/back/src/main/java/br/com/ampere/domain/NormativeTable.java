@@ -70,6 +70,8 @@ public class NormativeTable {
 
   private OffsetDateTime verifiedAt;
 
+  private OffsetDateTime supersededAt;
+
   // Bumped on every change, so the verifier approves exactly the version they read.
   @Version
   @Column(nullable = false, columnDefinition = "bigint default 0")
@@ -143,6 +145,16 @@ public class NormativeTable {
     return verifiedAt;
   }
 
+  public OffsetDateTime getSupersededAt() {
+    return supersededAt;
+  }
+
+  public boolean wasEffectiveAt(OffsetDateTime at) {
+    return verifiedAt != null
+        && !verifiedAt.isAfter(at)
+        && (supersededAt == null ? isPublished() : at.isBefore(supersededAt));
+  }
+
   public long getVersion() {
     return version;
   }
@@ -182,6 +194,11 @@ public class NormativeTable {
   }
 
   public void supersede() {
+    supersede(OffsetDateTime.now(ZoneOffset.UTC));
+  }
+
+  public void supersede(OffsetDateTime at) {
+    this.supersededAt = Objects.requireNonNull(at, "at");
     this.status = NormativeTableStatus.SUPERSEDED;
   }
 

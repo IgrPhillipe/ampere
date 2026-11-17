@@ -134,10 +134,10 @@ public class NormativeTableService {
     }
     rejectProblems(table);
 
-    tableRepository
-        .findByCodeAndStatus(table.getCode(), NormativeTableStatus.PUBLISHED)
-        .ifPresent(NormativeTable::supersede);
+    var previous =
+        tableRepository.findByCodeAndStatus(table.getCode(), NormativeTableStatus.PUBLISHED);
     table.publish(verifiedBy);
+    previous.ifPresent(old -> old.supersede(table.getVerifiedAt()));
 
     return table;
   }
