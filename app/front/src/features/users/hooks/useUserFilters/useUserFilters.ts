@@ -27,8 +27,13 @@ export const useUserFilters = () => {
 		inactiveDays: parseAsInteger,
 		page: parseAsInteger.withDefault(1),
 	});
-	const { search, role, status, mustChangePassword, inactiveDays, page } =
-		query;
+	const { search, role, status, page } = query;
+	// Only the panel shortcuts set these; a hand-edited `false` or `0` lists everyone, as an unknown role does.
+	const mustChangePassword = query.mustChangePassword === true ? true : null;
+	const inactiveDays =
+		query.inactiveDays !== null && query.inactiveDays >= 1
+			? query.inactiveDays
+			: null;
 	// The URL follows each keystroke; only the request waits, so no update fires after leaving the list.
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
