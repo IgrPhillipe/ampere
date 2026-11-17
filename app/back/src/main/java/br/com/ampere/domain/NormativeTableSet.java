@@ -13,8 +13,13 @@ public final class NormativeTableSet implements NormativeTables {
       new EnumMap<>(NormativeTableCode.class);
 
   public NormativeTableSet(List<NormativeTable> published) {
+    this(published, null);
+  }
+
+  public NormativeTableSet(List<NormativeTable> published, java.time.OffsetDateTime effectiveAt) {
     published.stream()
-        .filter(NormativeTable::isPublished)
+        .filter(
+            table -> effectiveAt == null ? table.isPublished() : table.wasEffectiveAt(effectiveAt))
         .forEach(table -> tables.putIfAbsent(table.getCode(), table));
   }
 

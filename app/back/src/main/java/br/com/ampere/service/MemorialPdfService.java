@@ -505,6 +505,13 @@ public class MemorialPdfService {
 
   private static void addAppliedStandards(Document document, Calculation calculation) {
     addSection(document, 5, "Normas Aplicadas");
+    if (calculation.getProject().getSubmittedAt() != null) {
+      document.add(
+          note(
+              "Revisões normativas fixadas na data do primeiro envio do protocolo: "
+                  + calculation.getProject().getSubmittedAt().toLocalDate()
+                  + "."));
+    }
     PdfPTable fields = fields();
     if (calculation.getMainStandard() != null) {
       addField(

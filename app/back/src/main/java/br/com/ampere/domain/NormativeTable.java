@@ -189,12 +189,12 @@ public class NormativeTable {
       throw new IllegalStateException("Only a draft table is published.");
     }
     this.verifiedBy = Objects.requireNonNull(verifiedBy, "verifiedBy");
-    this.verifiedAt = OffsetDateTime.now(ZoneOffset.UTC);
+    this.verifiedAt = br.com.ampere.utils.Timestamps.now();
     this.status = NormativeTableStatus.PUBLISHED;
   }
 
   public void supersede() {
-    supersede(OffsetDateTime.now(ZoneOffset.UTC));
+    supersede(br.com.ampere.utils.Timestamps.now());
   }
 
   public void supersede(OffsetDateTime at) {

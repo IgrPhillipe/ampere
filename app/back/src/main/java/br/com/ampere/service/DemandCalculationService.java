@@ -70,9 +70,10 @@ public class DemandCalculationService {
   /** The engine run alone, unsaved: the seed reuses it for projects already submitted. */
   public Calculation compute(Project project, List<ConsumerUnitGroup> groups) {
     BuildingType building = project.getBuildingType();
+    List<br.com.ampere.domain.NormativeTable> tables = tablesFor(project);
     DemandContext context =
         new DemandContext(
-            new NormativeTableSet(tableRepository.findAllByStatus(NormativeTableStatus.PUBLISHED)),
+            new NormativeTableSet(tables, project.getSubmittedAt()),
             building.getVoltage(),
             building.getConnectionType());
     DemandResult result;
@@ -82,7 +83,63 @@ public class DemandCalculationService {
       throw unprocessable(missing.getMessage());
     }
 
-    return new Calculation(project, result, snapshot(project, groups));
+    Map<String, Object> input = input(project, groups);
+    Map<String, Long> revisions = new LinkedHashMap<>();
+    result
+        .appliedTables()
+        .forEach(
+            reference ->
+                tables.stream()
+                    .filter(table -> table.getCode() == reference.code())
+                    .findFirst()
+                    .ifPresent(table -> revisions.put(reference.code().name(), table.getId())));
+    input.put("normativeTableIds", revisions);
+    return new Calculation(project, result, objectMapper.writeValueAsString(input));
+  }
+
+  private List<br.com.ampere.domain.NormativeTable> tablesFor(Project project) {
+    if (project.getSubmittedAt() == null) {
+      return tableRepository.findAllByStatus(NormativeTableStatus.PUBLISHED);
+    }
+    return tableRepository.findListingBy().stream()
+        .filter(table -> table.wasEffectiveAt(project.getSubmittedAt()))
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public List<String> changedTables(Calculation calculation) {
+    if (calculation.getProject().getSubmittedAt() != null) return List.of();
+    JsonNode ids = objectMapper.readTree(calculation.getInputSnapshot()).get("normativeTableIds");
+    List<br.com.ampere.domain.NormativeTable> current = tablesFor(calculation.getProject());
+    if (ids != null) {
+      return java.util.stream.StreamSupport.stream(ids.properties().spliterator(), false)
+          .filter(
+              entry ->
+                  current.stream()
+                      .noneMatch(
+                          table ->
+                              table.getCode().name().equals(entry.getKey())
+                                  && table.getId().longValue() == entry.getValue().asLong()))
+          .map(
+              entry ->
+                  br.com.ampere.domain.NormativeTableCode.valueOf(entry.getKey()).identification())
+          .toList();
+    }
+    // Older calculations did not record table IDs; their references and publication dates remain
+    // usable.
+    return calculation.getAppliedTables().stream()
+        .filter(
+            applied ->
+                current.stream()
+                    .noneMatch(
+                        table ->
+                            table.getIdentification().equals(applied.getIdentification())
+                                && table.getStandard().getName().equals(applied.getStandard())
+                                && table.getStandard().getRevision().equals(applied.getRevision())
+                                && !table.getVerifiedAt().isAfter(calculation.getCalculatedAt())))
+        .map(br.com.ampere.domain.AppliedTable::getIdentification)
+        .distinct()
+        .toList();
   }
 
   /** Compared as JSON trees: key order varies across runs, and 60 and 60.00 are one value. */
@@ -93,9 +150,13 @@ public class DemandCalculationService {
 
   /** For a caller that already loaded the project's groups. */
   public boolean isCurrent(Calculation calculation, List<ConsumerUnitGroup> groups) {
-    return objectMapper
-        .readTree(calculation.getInputSnapshot())
-        .equals(SAME_VALUE, objectMapper.readTree(snapshot(calculation.getProject(), groups)));
+    var recorded =
+        (tools.jackson.databind.node.ObjectNode)
+            objectMapper.readTree(calculation.getInputSnapshot());
+    recorded.remove("normativeTableIds");
+    return recorded.equals(
+            SAME_VALUE, objectMapper.valueToTree(input(calculation.getProject(), groups)))
+        && changedTables(calculation).isEmpty();
   }
 
   private static final Comparator<JsonNode> SAME_VALUE =
@@ -121,7 +182,7 @@ public class DemandCalculationService {
     return new Latest(calculation, project.isEditable() && !isCurrent(calculation));
   }
 
-  private String snapshot(Project project, List<ConsumerUnitGroup> groups) {
+  private Map<String, Object> input(Project project, List<ConsumerUnitGroup> groups) {
     BuildingType building = project.getBuildingType();
     Map<String, Object> input = new LinkedHashMap<>();
     input.put("buildingType", building.category());
@@ -135,7 +196,7 @@ public class DemandCalculationService {
             .map(group -> Map.of("id", group.getId(), "kind", group.kind(), "spec", group.spec()))
             .toList());
 
-    return objectMapper.writeValueAsString(input);
+    return input;
   }
 
   private static BusinessException unprocessable(String message) {

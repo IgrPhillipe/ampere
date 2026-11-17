@@ -25,7 +25,9 @@ public record CalculationResponse(
     int checksCount,
     int warningsCount,
     List<Table> appliedTables,
-    boolean outdated) {
+    boolean outdated,
+    List<String> changedTables,
+    OffsetDateTime revisionsFixedAt) {
 
   private static final int COMPONENTS = 4;
   private static final BigDecimal HUNDRED = new BigDecimal("100");
@@ -80,6 +82,11 @@ public record CalculationResponse(
 
   /** {@code outdated}: the project data changed after this run, while it can still be edited. */
   public static CalculationResponse from(Calculation calculation, boolean outdated) {
+    return from(calculation, outdated, List.of());
+  }
+
+  public static CalculationResponse from(
+      Calculation calculation, boolean outdated, List<String> changedTables) {
     List<CalculationStep> steps = calculation.getSteps();
     List<CalculationCheck> checks = calculation.getChecks();
 
@@ -114,7 +121,9 @@ public record CalculationResponse(
         checks.size(),
         (int) checks.stream().filter(check -> check.getStatus() == CheckStatus.WARNING).count(),
         calculation.getAppliedTables().stream().map(CalculationResponse::table).toList(),
-        outdated);
+        outdated,
+        changedTables,
+        calculation.getProject().getSubmittedAt());
   }
 
   private static StandardResponse standard(String name, String revision) {

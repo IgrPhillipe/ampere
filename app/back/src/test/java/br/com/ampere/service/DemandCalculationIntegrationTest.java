@@ -77,6 +77,124 @@ class DemandCalculationIntegrationTest {
 
   @Autowired private CalculationRepository calculationRepository;
 
+  @Autowired private DemandCalculationService calculations;
+
+  @Autowired private jakarta.persistence.EntityManager entityManager;
+
+  @Autowired private br.com.ampere.config.NormativeTableValidityMigration validityMigration;
+
+  @Test
+  void aTableFirstUsedOnResubmissionAlsoUsesTheOriginalDate() {
+    publishTables();
+    Project project = draftWithPrototypeGroups(true);
+    var groups = groupRepository.findAllByProjectIdOrderById(project.getId());
+    var withoutEv = groups.stream().filter(group -> group.kind() != GroupKind.EV_CHARGING).toList();
+    var initial = calculations.compute(project, withoutEv);
+    var expected = calculations.compute(project, groups);
+    var old =
+        normativeTableRepository
+            .findByCodeAndStatus(
+                br.com.ampere.domain.NormativeTableCode.Q33_EV_STATIONS,
+                br.com.ampere.domain.NormativeTableStatus.PUBLISHED)
+            .orElseThrow();
+    var replacement =
+        new br.com.ampere.domain.NormativeTable(
+            old.getStandard(),
+            old.getCode(),
+            old.getIdentification(),
+            old.getItem(),
+            old.getPage(),
+            old.getRows().stream()
+                .map(
+                    row ->
+                        new br.com.ampere.domain.NormativeTableRow(
+                            row.getRowKey(),
+                            row.getLowerBound(),
+                            row.getUpperBound(),
+                            row.getPrimaryValue().multiply(new BigDecimal("0.5")),
+                            row.getSecondaryValue(),
+                            row.getTertiaryValue(),
+                            row.getLabel()))
+                .toList(),
+            "author");
+    replacement.publish("verifier");
+    old.supersede(replacement.getVerifiedAt());
+    normativeTableRepository.saveAndFlush(replacement);
+    assertThat(calculations.isCurrent(initial, withoutEv)).isTrue();
+    project.submit(replacement.getVerifiedAt().minusSeconds(1));
+    project.reject(OffsetDateTime.now(ZoneOffset.UTC), "Incluir recarga");
+    var resubmission = calculations.compute(project, groups);
+    assertThat(resubmission.getEvChargingDemand())
+        .isEqualByComparingTo(expected.getEvChargingDemand());
+  }
+
+  @Test
+  void replacingAnAppliedTableInvalidatesADraftButNotASubmittedProtocol() throws Exception {
+    publishTables();
+    Project project = draftWithPrototypeGroups(true);
+    var groups = groupRepository.findAllByProjectIdOrderById(project.getId());
+    var original = calculations.compute(project, groups);
+    calculationRepository.saveAndFlush(original);
+    assertThat(calculations.isCurrent(original, groups)).isTrue();
+    var old =
+        normativeTableRepository
+            .findByCodeAndStatus(
+                br.com.ampere.domain.NormativeTableCode.Q35_APARTMENT_DEMAND,
+                br.com.ampere.domain.NormativeTableStatus.PUBLISHED)
+            .orElseThrow();
+    var replacement =
+        new br.com.ampere.domain.NormativeTable(
+            old.getStandard(),
+            old.getCode(),
+            old.getIdentification(),
+            old.getItem(),
+            old.getPage(),
+            old.getRows().stream()
+                .map(
+                    row ->
+                        new br.com.ampere.domain.NormativeTableRow(
+                            row.getRowKey(),
+                            row.getLowerBound(),
+                            row.getUpperBound(),
+                            row.getPrimaryValue().multiply(new BigDecimal("2")),
+                            row.getSecondaryValue(),
+                            row.getTertiaryValue(),
+                            row.getLabel()))
+                .toList(),
+            "author");
+    replacement.publish("verifier");
+    old.supersede(replacement.getVerifiedAt());
+    normativeTableRepository.saveAndFlush(replacement);
+    assertThat(calculations.isCurrent(original, groups)).isFalse();
+    assertThat(calculations.changedTables(original)).contains("Quadro 35");
+    mockMvc
+        .perform(get(calculationOf(project) + "/latest").header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.outdated").value(true))
+        .andExpect(jsonPath("$.data.changedTables[0]").value("Quadro 35"));
+    var updatedDraft = calculations.compute(project, groups);
+    assertThat(updatedDraft.getResidentialDemandFinal())
+        .isNotEqualByComparingTo(original.getResidentialDemandFinal());
+    assertThat(calculations.isCurrent(updatedDraft, groups)).isTrue();
+
+    entityManager
+        .createNativeQuery("UPDATE normative_table SET superseded_at = NULL WHERE id = :id")
+        .setParameter("id", old.getId())
+        .executeUpdate();
+    validityMigration.run(null);
+    validityMigration.run(null);
+    entityManager.refresh(old);
+    assertThat(old.getSupersededAt())
+        .isEqualTo(replacement.getVerifiedAt().truncatedTo(java.time.temporal.ChronoUnit.MICROS));
+
+    project.submit(replacement.getVerifiedAt().minusSeconds(1));
+    project.reject(OffsetDateTime.now(ZoneOffset.UTC), "Corrigir");
+    var resubmission = calculations.compute(project, groups);
+    assertThat(resubmission.getResidentialDemandFinal())
+        .isEqualByComparingTo(original.getResidentialDemandFinal());
+    assertThat(calculations.isCurrent(original, groups)).isTrue();
+  }
+
   private String token;
 
   private List<Standard> standards;
@@ -273,6 +391,12 @@ class DemandCalculationIntegrationTest {
     normativeTableRepository.saveAll(
         NormativeTableSeed.all(
             standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
+    entityManager.flush();
+    entityManager
+        .createQuery("UPDATE NormativeTable t SET t.verifiedAt = :at")
+        .setParameter("at", OffsetDateTime.now(ZoneOffset.UTC).minusDays(30))
+        .executeUpdate();
+    entityManager.clear();
   }
 
   private Project draftWithPrototypeGroups(boolean fixed) {
