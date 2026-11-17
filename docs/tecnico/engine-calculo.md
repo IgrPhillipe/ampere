@@ -360,3 +360,29 @@ Detalhamento e evidência em [`fontes-normativas.md`](fontes-normativas.md).
 | 2   | DIS-NOR-030: Tensão Secundária a Edificações Individuais                  | Neoenergia Pernambuco                            | REV 07, 17/04/2026  | Carga instalada: item 6.27, p. 47 a 50. Recarga veicular: 6.26.4. Tabelas de fator de demanda: 6, 7, 8, 9, 11 a 16, 18 e 22                  |
 | 3   | Processo de submissão de projetos                                         | Neoenergia Pernambuco                            | Vigente             | Documentos exigidos, prazo de análise e validade da aprovação; ver [`../negocio/processo-submissao.md`](../negocio/processo-submissao.md)     |
 | 4   | REN nº 1.000/2021, arts. 554 e 555                                        | ANEEL                                            | 2021                | Recarga de veículos de terceiros e vedação de injeção na rede. Referenciada na **DIS-NOR-030**, itens 6.26.4.3 e 6.26.4.4                    |
+# Vigência das revisões no protocolo (#211)
+
+Antes do primeiro envio, cada cálculo usa as tabelas publicadas naquele momento.
+O snapshot registra os IDs das tabelas efetivamente consultadas. Se uma delas for
+substituída, o cálculo fica desatualizado, e `changedTables` identifica as tabelas
+que exigem recálculo. Publicar uma tabela não utilizada não invalida o resultado.
+
+Após o primeiro envio, `Project.submittedAt` fixa a data de referência do protocolo.
+O motor seleciona, por código, a tabela cujo intervalo contém essa data:
+`verifiedAt <= submittedAt < supersededAt`. A revisão atual não possui fim de
+vigência. Uma revisão `SUPERSEDED` pode participar do cálculo histórico. Isso vale
+também para tabelas que só passam a ser necessárias durante a correção/reenvio.
+
+`revisionsFixedAt` no retorno do cálculo informa essa data à interface. A tela de
+cálculo, a tela do memorial e o PDF explicam a regra. Alterações nos dados do
+projeto continuam exigindo recálculo, mesmo quando as revisões estão fixadas.
+
+Na inicialização, `NormativeTableValidityMigration` preenche `supersededAt` das
+revisões antigas com a próxima publicação conhecida do mesmo código. A operação
+é idempotente. Se não houver publicação posterior conhecida, o fim permanece
+desconhecido e essa revisão substituída não é selecionada; o sistema não inventa
+datas nem aplica silenciosamente uma revisão atual a um protocolo antigo.
+Para cálculos antigos sem IDs no snapshot, a detecção de atualização usa as
+referências preservadas e a data de publicação das tabelas atuais.
+
+O versionamento da norma inteira (pendência 34) permanece fora deste escopo.
