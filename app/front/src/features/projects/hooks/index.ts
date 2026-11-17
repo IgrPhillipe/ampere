@@ -3,5 +3,6 @@ export * from "./useCurrentSection";
 export * from "./useProjectDetailActions";
 export * from "./useProjectFilters";
 export * from "./useProjectPermissions";
+export * from "./useProjectRowActions";
 export * from "./useProjectWorkspace";
 export * from "./useSelectedOwnerName";

@@ -1,4 +1,7 @@
 export * from "./ActionRequiredList";
+export * from "./AdminActiveProjectsSection";
+export * from "./AdminQueueSection";
+export * from "./AdminUsersSection";
 export * from "./DashboardIndicators";
 export * from "./DashboardPeriodPicker";
 export * from "./DashboardSection";

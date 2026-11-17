@@ -7,16 +7,13 @@ import { SortMenu, type SortOption } from "@components/SortMenu";
 import { Button } from "@components/ui/button";
 import { useAuthStore } from "@features/shared";
 import {
-	type Project,
 	type ProjectSort,
 	type ProjectStatusCounts,
-	useDeleteProject,
 	useGetProjectList,
 	useGetProjectStatusCounts,
 } from "@services/projects";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, CircleAlert } from "lucide-react";
-import { useCallback, useState } from "react";
 
 import {
 	ProjectActiveFilters,
@@ -29,6 +26,7 @@ import { getProjectsPageTitle } from "../../constants";
 import {
 	PROJECT_SORT_DIRECTIONS,
 	useProjectFilters,
+	useProjectRowActions,
 	useSelectedOwnerName,
 } from "../../hooks";
 
@@ -60,8 +58,7 @@ export const ProjectsPage = () => {
 	const navigate = useNavigate();
 	const role = useAuthStore((state) => state.user?.role);
 	const isAdmin = role === "admin";
-	const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
-	const deleteProject = useDeleteProject();
+	const { actions, deleteDialog } = useProjectRowActions();
 	const filters = useProjectFilters();
 	const {
 		status,
@@ -87,54 +84,6 @@ export const ProjectsPage = () => {
 	const counts = statusCountsQuery.data?.data ?? emptyStatusCounts;
 	const pagination = projectsQuery.data?.pagination;
 	const hasError = projectsQuery.isError || statusCountsQuery.isError;
-
-	const handleResumeSubmission = useCallback(
-		(project: Project) =>
-			void navigate({
-				to: "/projetos/$id/documentos",
-				params: { id: project.id },
-			}),
-		[navigate],
-	);
-
-	// Resumes at the step the draft stopped: units, then calculation, then documents.
-	const handleContinueDraft = useCallback(
-		(project: Project) => {
-			const to =
-				project.consumerUnitsCount === 0
-					? "/projetos/$id/unidades"
-					: project.demandKva === null
-						? "/projetos/$id/calculo"
-						: "/projetos/$id/documentos";
-
-			void navigate({ to, params: { id: project.id } });
-		},
-		[navigate],
-	);
-
-	const handleViewProject = useCallback(
-		(project: Project) =>
-			void navigate({ to: "/projetos/$id", params: { id: project.id } }),
-		[navigate],
-	);
-
-	const handleEditProject = useCallback(
-		(project: Project) =>
-			void navigate({ to: "/projetos/$id/dados", params: { id: project.id } }),
-		[navigate],
-	);
-
-	const handleDeleteProject = useCallback((project: Project) => {
-		setProjectToDelete(project);
-	}, []);
-
-	const confirmProjectDeletion = () => {
-		if (!projectToDelete) return;
-
-		deleteProject.mutate(projectToDelete.id, {
-			onSuccess: () => setProjectToDelete(null),
-		});
-	};
 
 	return (
 		<PageLayout
@@ -230,11 +179,7 @@ export const ProjectsPage = () => {
 							projects={projects}
 							showOwner={isAdmin}
 							isLoading={projectsQuery.isPending}
-							onResumeSubmission={handleResumeSubmission}
-							onContinueDraft={handleContinueDraft}
-							onViewProject={handleViewProject}
-							onEditProject={handleEditProject}
-							onDeleteProject={handleDeleteProject}
+							{...actions}
 							sort={sort}
 							onSortChange={sortBy}
 							onClearFilters={hasActiveFilters ? clearFilters : undefined}
@@ -253,14 +198,7 @@ export const ProjectsPage = () => {
 				) : null}
 			</section>
 
-			<ProjectDeleteDialog
-				project={projectToDelete}
-				isPending={deleteProject.isPending}
-				onOpenChange={(open) => {
-					if (!open) setProjectToDelete(null);
-				}}
-				onConfirm={confirmProjectDeletion}
-			/>
+			<ProjectDeleteDialog {...deleteDialog} />
 		</PageLayout>
 	);
 };
