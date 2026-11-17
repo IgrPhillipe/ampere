@@ -8,6 +8,18 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { useId } from "react";
 
+const toneClassNames = {
+	attention: "text-attention",
+	destructive: "text-destructive",
+} as const;
+
+interface QueueCounter {
+	label: string;
+	value: number;
+	/** The color a non-zero count takes; zero stays neutral. */
+	tone: keyof typeof toneClassNames;
+}
+
 interface AdminQueueSectionProps {
 	queue?: AdminDashboardQueueSummary;
 	isLoading?: boolean;
@@ -21,11 +33,20 @@ export const AdminQueueSection = ({
 }: AdminQueueSectionProps) => {
 	const headingId = useId();
 
-	const unassigned = queue?.unassigned ?? 0;
-	const dueIn3Days = queue?.dueIn3Days ?? 0;
-	const overdue = queue?.overdue ?? 0;
-	const municipalitiesWithoutReviewer =
-		queue?.municipalitiesWithoutReviewer ?? 0;
+	const counters: QueueCounter[] = [
+		{ label: "Sem analista", value: queue?.unassigned ?? 0, tone: "attention" },
+		{
+			label: "Prazo até 3 dias",
+			value: queue?.dueIn3Days ?? 0,
+			tone: "attention",
+		},
+		{ label: "Atrasados", value: queue?.overdue ?? 0, tone: "destructive" },
+		{
+			label: "Municípios s/ analista",
+			value: queue?.municipalitiesWithoutReviewer ?? 0,
+			tone: "attention",
+		},
+	];
 	const reviewers = queue?.byReviewer ?? [];
 
 	return (
@@ -54,84 +75,35 @@ export const AdminQueueSection = ({
 			</div>
 
 			<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-				<div className="flex flex-col gap-1 border border-border p-3">
-					<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
-						Sem analista
-					</span>
-					{isLoading || !queue ? (
-						<Skeleton className="h-7 w-12" />
-					) : (
-						<span
-							className={cn(
-								"font-mono text-2xl font-bold",
-								unassigned > 0 ? "text-attention" : "text-foreground",
-							)}
-						>
-							{padCount(unassigned)}
+				{counters.map((counter) => (
+					<div
+						key={counter.label}
+						className="flex flex-col gap-1 border border-border p-3"
+					>
+						<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+							{counter.label}
 						</span>
-					)}
-				</div>
-
-				<div className="flex flex-col gap-1 border border-border p-3">
-					<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
-						Prazo até 3 dias
-					</span>
-					{isLoading || !queue ? (
-						<Skeleton className="h-7 w-12" />
-					) : (
-						<span
-							className={cn(
-								"font-mono text-2xl font-bold",
-								dueIn3Days > 0 ? "text-attention" : "text-foreground",
-							)}
-						>
-							{padCount(dueIn3Days)}
-						</span>
-					)}
-				</div>
-
-				<div className="flex flex-col gap-1 border border-border p-3">
-					<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
-						Atrasados
-					</span>
-					{isLoading || !queue ? (
-						<Skeleton className="h-7 w-12" />
-					) : (
-						<span
-							className={cn(
-								"font-mono text-2xl font-bold",
-								overdue > 0 ? "text-destructive" : "text-foreground",
-							)}
-						>
-							{padCount(overdue)}
-						</span>
-					)}
-				</div>
-
-				<div className="flex flex-col gap-1 border border-border p-3">
-					<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
-						Municípios s/ analista
-					</span>
-					{isLoading || !queue ? (
-						<Skeleton className="h-7 w-12" />
-					) : (
-						<span
-							className={cn(
-								"font-mono text-2xl font-bold",
-								municipalitiesWithoutReviewer > 0
-									? "text-attention"
-									: "text-foreground",
-							)}
-						>
-							{padCount(municipalitiesWithoutReviewer)}
-						</span>
-					)}
-				</div>
+						{isLoading || !queue ? (
+							<Skeleton className="h-7 w-12" />
+						) : (
+							<span
+								className={cn(
+									"font-mono text-2xl font-bold",
+									counter.value > 0
+										? toneClassNames[counter.tone]
+										: "text-foreground",
+								)}
+							>
+								{padCount(counter.value)}
+							</span>
+						)}
+					</div>
+				))}
 			</div>
 
 			<div className="flex flex-col gap-3">
 				<h3 className="font-mono text-2xs font-semibold tracking-[0.11em] text-faint-foreground uppercase">
-					Carga por analista
+					Carga por Analista
 				</h3>
 
 				{isLoading || !queue ? (

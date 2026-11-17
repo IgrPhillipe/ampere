@@ -51,7 +51,7 @@ export const AdminUsersSection = ({
 			search: { mustChangePassword: true },
 		},
 		{
-			label: "Sem acesso há > 30 dias",
+			label: "Sem acesso há mais de 30 dias",
 			count: users?.withoutAccess30Days ?? 0,
 			search: { status: "active", inactiveDays: 30 },
 		},
