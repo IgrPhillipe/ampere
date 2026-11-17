@@ -17,6 +17,7 @@ export * from "./ProjectDocuments";
 export * from "./ProjectFindingsOverview";
 export * from "./ProjectListFilters";
 export * from "./ProjectOwnerField";
+export * from "./ProjectOwnerFilter";
 export * from "./ProjectSectionNav";
 export * from "./ProjectStatusFilters";
 export * from "./ProjectSummary";

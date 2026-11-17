@@ -1,5 +1,4 @@
 import { type DateRange, DateRangeFilter } from "@components/DateRangeFilter";
-import { InfiniteFilterMenu } from "@components/InfiniteFilterMenu";
 import { MultiFilterMenu } from "@components/MultiFilterMenu";
 import { SearchableFilterMenu } from "@components/SearchableFilterMenu";
 import {
@@ -11,11 +10,10 @@ import {
 import {
 	type ProjectFindingsFilter,
 	projectFindingsFilterSchema,
-	useGetProjectOwnerInfiniteList,
 } from "@services/projects";
-import { useState } from "react";
 
 import { projectFindingsFilterLabels } from "../../constants/project-findings";
+import { ProjectOwnerFilter } from "../ProjectOwnerFilter";
 
 const stateOptions = CONCESSION_STATES.map((value) => ({
 	value,
@@ -56,64 +54,43 @@ export const ProjectFilterControls = ({
 	onPeriodChange,
 	findings,
 	onFindingsChange,
-}: ProjectFilterControlsProps) => {
-	const [ownerSearch, setOwnerSearch] = useState("");
-	const ownersQuery = useGetProjectOwnerInfiniteList({
-		search: ownerSearch,
-		enabled: showOwner,
-	});
-	const owners = (ownersQuery.data?.pages ?? [])
-		.flatMap(({ data }) => data)
-		.map(({ id, name }) => ({ value: id, label: name }));
-
-	return (
-		<>
-			{showOwner && onOwnerChange ? (
-				<InfiniteFilterMenu
-					label="Projetista"
-					allLabel="Todos"
-					searchPlaceholder="Buscar projetista"
-					emptyMessage="Nenhum projetista encontrado."
-					options={owners}
-					value={owner}
-					selectedLabel={ownerName}
-					onValueChange={onOwnerChange}
-					onSearchChange={setOwnerSearch}
-					hasNextPage={ownersQuery.hasNextPage}
-					isFetchingNextPage={ownersQuery.isFetchingNextPage}
-					isLoading={ownersQuery.isPending}
-					onLoadMore={() => void ownersQuery.fetchNextPage()}
-				/>
-			) : null}
-			<MultiFilterMenu
-				label="UF"
-				allLabel="Todas"
-				options={stateOptions}
-				value={state}
-				onValueChange={onStateChange}
+}: ProjectFilterControlsProps) => (
+	<>
+		{showOwner && onOwnerChange ? (
+			<ProjectOwnerFilter
+				value={owner}
+				selectedLabel={ownerName}
+				onValueChange={onOwnerChange}
 			/>
-			<SearchableFilterMenu
-				label="Município"
-				allLabel="Todos"
-				searchPlaceholder="Buscar município"
-				emptyMessage="Nenhum município encontrado."
-				options={concessionMunicipalityNames(state)}
-				value={municipality}
-				onValueChange={onMunicipalityChange}
-			/>
-			<DateRangeFilter
-				label="Criado em"
-				allLabel="Qualquer data"
-				value={period}
-				onValueChange={onPeriodChange}
-			/>
-			<MultiFilterMenu
-				label="Apontamentos"
-				allLabel="Todos"
-				options={findingsOptions}
-				value={findings}
-				onValueChange={onFindingsChange}
-			/>
-		</>
-	);
-};
+		) : null}
+		<MultiFilterMenu
+			label="UF"
+			allLabel="Todas"
+			options={stateOptions}
+			value={state}
+			onValueChange={onStateChange}
+		/>
+		<SearchableFilterMenu
+			label="Município"
+			allLabel="Todos"
+			searchPlaceholder="Buscar município"
+			emptyMessage="Nenhum município encontrado."
+			options={concessionMunicipalityNames(state)}
+			value={municipality}
+			onValueChange={onMunicipalityChange}
+		/>
+		<DateRangeFilter
+			label="Criado em"
+			allLabel="Qualquer data"
+			value={period}
+			onValueChange={onPeriodChange}
+		/>
+		<MultiFilterMenu
+			label="Apontamentos"
+			allLabel="Todos"
+			options={findingsOptions}
+			value={findings}
+			onValueChange={onFindingsChange}
+		/>
+	</>
+);
