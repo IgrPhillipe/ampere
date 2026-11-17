@@ -13,6 +13,7 @@ import {
 	StepFooter,
 	SubmissionChecklistPanel,
 } from "../../components";
+import { NormativeRevisionNotice } from "../../components/NormativeRevisionNotice";
 import { getMemorialStamp, mayHaveOfficialMemorial } from "../../constants";
 import { useProjectPermissions } from "../../hooks";
 
@@ -125,6 +126,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 
 	return (
 		<div className="flex flex-1 flex-col">
+			<NormativeRevisionNotice fixedAt={calculation?.revisionsFixedAt} />
 			{submissionQuery.isError ? (
 				<div className="flex-1 px-6 py-8 md:px-10">{content}</div>
 			) : (

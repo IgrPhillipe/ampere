@@ -25,6 +25,7 @@ import {
 	TraceabilityPanel,
 	useFindingRegistrar,
 } from "../../components";
+import { NormativeRevisionNotice } from "../../components/NormativeRevisionNotice";
 import { stageFindingsOf } from "../../constants";
 import { useProjectPermissions } from "../../hooks";
 
@@ -74,6 +75,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 
 	return (
 		<div className="flex flex-1 flex-col">
+			<NormativeRevisionNotice fixedAt={result?.revisionsFixedAt} />
 			{outdated ? (
 				<div
 					role="status"
@@ -84,8 +86,10 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 						className="size-1.5 shrink-0 rounded-full bg-attention"
 					/>
 					<p className="text-sm text-foreground">
-						Os dados do projeto mudaram depois deste cálculo. Recalcule para
-						atualizar a memória e o memorial.
+						{result?.changedTables?.length
+							? `Tabelas atualizadas: ${result.changedTables.join(", ")}. `
+							: "Os dados do projeto mudaram depois deste cálculo. "}
+						Recalcule para atualizar a memória e o memorial.
 					</p>
 					<Button
 						type="button"
