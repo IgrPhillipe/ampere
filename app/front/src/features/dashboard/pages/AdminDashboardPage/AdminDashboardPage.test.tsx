@@ -1,5 +1,6 @@
 import type { AdminDashboard } from "@services/dashboard";
 import { render, screen, within } from "@testing-library/react";
+import { withNuqsTestingAdapter } from "nuqs/adapters/testing";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -11,6 +12,7 @@ const state = vi.hoisted(() => ({
 	dashboardQuery: {} as Record<string, unknown>,
 	projectsQuery: {} as Record<string, unknown>,
 	ownersQuery: {} as Record<string, unknown>,
+	projectParams: [] as unknown[],
 }));
 
 vi.mock("@tanstack/react-router", () => ({
@@ -46,7 +48,11 @@ vi.mock("@services/dashboard", async (importOriginal) => ({
 
 vi.mock("@services/projects", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/projects")>()),
-	useGetProjectList: () => state.projectsQuery,
+	useGetProjectList: (params: unknown) => {
+		state.projectParams.push(params);
+
+		return state.projectsQuery;
+	},
 	useGetProjectOwnerInfiniteList: () => state.ownersQuery,
 	useDeleteProject: () => ({ mutate: vi.fn(), isPending: false }),
 }));
@@ -93,6 +99,11 @@ const makeAdminDashboard = (
 	...overrides,
 });
 
+const renderPage = (searchParams = "") =>
+	render(<AdminDashboardPage />, {
+		wrapper: withNuqsTestingAdapter({ searchParams }),
+	});
+
 describe("AdminDashboardPage", () => {
 	beforeEach(() => {
 		state.dashboardQuery = loadedQuery({ data: makeAdminDashboard() });
@@ -103,12 +114,12 @@ describe("AdminDashboardPage", () => {
 		state.ownersQuery = loadedQuery({
 			pages: [{ data: [] }],
 		});
+		state.projectParams = [];
 	});
 
 	it("renders user counters with links containing the expected query parameters", () => {
-		render(<AdminDashboardPage />);
+		renderPage();
 
-		// Check the user counter shortcuts
 		const userLink = screen.getByRole("link", { name: /projetistas ativos/i });
 		expect(userLink).toHaveAttribute(
 			"href",
@@ -165,7 +176,7 @@ describe("AdminDashboardPage", () => {
 		expect(within(mustChangePwdLink).getByText("04")).toBeInTheDocument();
 
 		const inactive30DaysLink = screen.getByRole("link", {
-			name: /sem acesso há > 30 dias/i,
+			name: /sem acesso há mais de 30 dias/i,
 		});
 		expect(inactive30DaysLink).toHaveAttribute(
 			"href",
@@ -179,7 +190,7 @@ describe("AdminDashboardPage", () => {
 	});
 
 	it("renders queue indicators, reviewer load, and shortcuts to review queue and distribution", () => {
-		render(<AdminDashboardPage />);
+		renderPage();
 
 		const queueSection = screen.getByRole("region", {
 			name: /fila de análise/i,
@@ -210,14 +221,32 @@ describe("AdminDashboardPage", () => {
 		expect(within(queueSection).getByText("Inativo")).toBeInTheDocument();
 	});
 
-	it("renders active projects section with heading and search", () => {
-		render(<AdminDashboardPage />);
+	it("lists the active projects of every designer, filtered from the URL", () => {
+		renderPage("?search=PRJ-0001&owner=5");
 
 		expect(
 			screen.getByRole("heading", { name: /projetos ativos/i }),
 		).toBeInTheDocument();
+		expect(screen.getByRole("searchbox")).toHaveValue("PRJ-0001");
+		expect(state.projectParams.at(-1)).toMatchObject({
+			status: ["DRAFT", "AWAITING_SUBMISSION", "UNDER_REVIEW", "REJECTED"],
+			owner: "5",
+			pageSize: 10,
+		});
+	});
+
+	it("keeps the projects table when the counters fail", () => {
+		state.dashboardQuery = { isError: true, refetch: vi.fn() };
+		renderPage();
+
 		expect(
-			screen.getByPlaceholderText(/buscar por protocolo ou nome/i),
+			screen.getByText("Não foi possível carregar os indicadores"),
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("region", { name: /fila de análise/i }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.getByRole("heading", { name: /projetos ativos/i }),
 		).toBeInTheDocument();
 	});
 });
