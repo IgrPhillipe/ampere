@@ -22,6 +22,20 @@ const projectColumnClassNames = {
 	action: "w-36 pr-0 text-right",
 } satisfies Partial<Record<ProjectColumnId, string>>;
 
+// The owner column costs the name its room, so the manager drops more columns, and sooner.
+const ownerColumnClassNames = {
+	...projectColumnClassNames,
+	units: `${projectColumnClassNames.units} hidden min-[90rem]:table-cell`,
+	createdAt: `${projectColumnClassNames.createdAt} hidden min-[90rem]:table-cell`,
+	updatedAt: `${projectColumnClassNames.updatedAt} hidden xl:table-cell`,
+} satisfies Partial<Record<ProjectColumnId, string>>;
+
+const designerColumnClassNames = {
+	...projectColumnClassNames,
+	units: `${projectColumnClassNames.units} hidden xl:table-cell`,
+	createdAt: `${projectColumnClassNames.createdAt} hidden xl:table-cell`,
+} satisfies Partial<Record<ProjectColumnId, string>>;
+
 const sortableColumns = [
 	"name",
 	"owner",
@@ -101,9 +115,13 @@ export const ProjectsTable = ({
 		<DataTable<Project, ProjectColumnId, ProjectSort>
 			columns={columns}
 			data={projects}
-			columnClassNames={projectColumnClassNames}
-			// Below this width the fixed columns squeeze the name to nothing, so the table scrolls.
-			tableClassName={showOwner ? "min-w-[80rem]" : "min-w-[70rem]"}
+			columnClassNames={
+				showOwner ? ownerColumnClassNames : designerColumnClassNames
+			}
+			// Phones scroll the table instead of squeezing the name to nothing.
+			tableClassName={
+				showOwner ? "min-w-[60rem] lg:min-w-0" : "min-w-[58rem] lg:min-w-0"
+			}
 			sortableColumns={sortableColumns}
 			sort={sort}
 			onSortChange={onSortChange}
