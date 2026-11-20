@@ -71,6 +71,7 @@ class ProjectHistoryIntegrationTest {
     submitted = project(owner, "2026-8101");
     OffsetDateTime submittedAt = OffsetDateTime.parse("2026-10-04T13:00:00Z");
     submitted.submit(submittedAt);
+    submitted.assignReviewer(analyst);
     projectRepository.saveAndFlush(submitted);
     eventRepository.saveAll(
         List.of(

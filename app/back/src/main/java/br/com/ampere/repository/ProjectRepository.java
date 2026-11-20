@@ -30,6 +30,11 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
 
   long countByStatusAndReviewedAtGreaterThanEqual(ProjectStatus status, OffsetDateTime since);
 
+  long countByReviewerIdAndReviewedAtGreaterThanEqual(Long reviewerId, OffsetDateTime since);
+
+  long countByReviewerIdAndStatusAndReviewedAtGreaterThanEqual(
+      Long reviewerId, ProjectStatus status, OffsetDateTime since);
+
   @EntityGraph(attributePaths = {"owner", "reviewer"})
   List<Project> findAllByStatusOrderByIdAsc(ProjectStatus status);
 

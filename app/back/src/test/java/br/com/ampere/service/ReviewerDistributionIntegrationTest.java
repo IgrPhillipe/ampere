@@ -434,7 +434,7 @@ class ReviewerDistributionIntegrationTest {
     assign(List.of(assigned), ana).andExpect(status().isNoContent());
 
     mockMvc
-        .perform(get("/review-queue").header(HttpHeaders.AUTHORIZATION, bearer(ana)))
+        .perform(get("/review-queue").header(HttpHeaders.AUTHORIZATION, bearer(admin)))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath("$.data[?(@.protocol == '2026-9021')].reviewerId")
@@ -451,14 +451,11 @@ class ReviewerDistributionIntegrationTest {
     Project project = readyProject("2026-9031", "Recife", designer);
     submit(project).andExpect(status().isOk());
 
-    open(project, ana)
-        .andExpect(status().isForbidden())
-        .andExpect(
-            jsonPath("$.detail").value("Somente o analista responsável pode abrir a análise."));
+    open(project, ana).andExpect(status().isNotFound());
 
     assign(List.of(project), ana).andExpect(status().isNoContent());
 
-    open(project, bruno).andExpect(status().isForbidden());
+    open(project, bruno).andExpect(status().isNotFound());
     open(project, ana)
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.reviewerId").value(String.valueOf(ana.getId())))

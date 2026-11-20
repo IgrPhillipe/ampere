@@ -240,6 +240,9 @@ class SpreadsheetExportIntegrationTest {
 
     as("outro@ampere.com", get(xlsxOf(draft))).andExpect(status().isNotFound());
     as(ANALYST, get(xlsxOf(draft))).andExpect(status().isNotFound());
+    as(ANALYST, get(xlsxOf(submitted))).andExpect(status().isNotFound());
+    submitted.assignReviewer(reviewer);
+    projectRepository.save(submitted);
     as(ANALYST, get(xlsxOf(submitted))).andExpect(status().isOk());
     as(ADMIN, get(xlsxOf(draft))).andExpect(status().isOk());
     mockMvc.perform(get(xlsxOf(draft))).andExpect(status().isUnauthorized());
@@ -309,7 +312,7 @@ class SpreadsheetExportIntegrationTest {
   }
 
   @Test
-  void exportsTheQueueInPortugueseOnlyForReviewers() throws Exception {
+  void exportsTheQueueInPortugueseToTheManager() throws Exception {
     Project assigned = calculated("2026-4501");
     assigned.rename("+Projeto; \"CSV\"", "Rua A; 1", "Recife");
     assigned.submit(now.minusDays(2));
@@ -319,24 +322,26 @@ class SpreadsheetExportIntegrationTest {
     waiting.submit(now.minusDays(40));
     projectRepository.save(waiting);
 
-    for (String email : List.of(ANALYST, ADMIN)) {
-      List<String> rows = csv(email, "/review-queue/export.csv?sort=submittedAt");
+    List<String> rows = csv(ADMIN, "/review-queue/export.csv?sort=submittedAt");
 
-      assertThat(rows.get(0))
-          .endsWith(
-              "Protocolo;Projeto;Município;UF;Projetista;Analista;Prazo;Vencimento;"
-                  + "Dias restantes;Recebido em;Envio;Reanálise;UCs;Demanda (kVA);Alertas;"
-                  + "Mensagens dos alertas");
-      assertThat(rows).hasSize(3);
-      assertThat(rows.get(1))
-          .startsWith("2026-4502;Residencial 2026-4502;Recife;PE;Usuário Teste;Sem analista;")
-          .contains(";Atrasado;")
-          .contains(";1;Não;0;Sem cálculo;0;Sem alertas");
-      assertThat(rows.get(2))
-          .startsWith("2026-4501;\"'+Projeto; \"\"CSV\"\"\";Recife;PE;Usuário Teste;Revisor Teste;")
-          .contains(";No Prazo;")
-          .contains(";135,00;");
-    }
+    assertThat(rows.get(0))
+        .endsWith(
+            "Protocolo;Projeto;Município;UF;Projetista;Analista;Prazo;Vencimento;"
+                + "Dias restantes;Recebido em;Envio;Reanálise;UCs;Demanda (kVA);Alertas;"
+                + "Mensagens dos alertas");
+    assertThat(rows).hasSize(3);
+    assertThat(rows.get(1))
+        .startsWith("2026-4502;Residencial 2026-4502;Recife;PE;Usuário Teste;Sem analista;")
+        .contains(";Atrasado;")
+        .contains(";1;Não;0;Sem cálculo;0;Sem alertas");
+    assertThat(rows.get(2))
+        .startsWith("2026-4501;\"'+Projeto; \"\"CSV\"\"\";Recife;PE;Usuário Teste;Revisor Teste;")
+        .contains(";No Prazo;")
+        .contains(";135,00;");
+    // The analyst exports only the project assigned to them.
+    List<String> own = csv(ANALYST, "/review-queue/export.csv?sort=submittedAt");
+    assertThat(own).hasSize(2);
+    assertThat(own.get(1)).startsWith("2026-4501;");
     as(DESIGNER, get("/review-queue/export.csv")).andExpect(status().isForbidden());
   }
 
@@ -349,7 +354,7 @@ class SpreadsheetExportIntegrationTest {
     lowDemand.submit(now);
     projectRepository.save(lowDemand);
 
-    List<String> rows = csv(ANALYST, "/review-queue/export.csv?filter=HIGH_DEMAND");
+    List<String> rows = csv(ADMIN, "/review-queue/export.csv?filter=HIGH_DEMAND");
 
     assertThat(rows).hasSize(2);
     assertThat(rows.get(1)).startsWith("2026-4501;");

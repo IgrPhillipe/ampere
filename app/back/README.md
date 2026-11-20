@@ -50,8 +50,8 @@ API em `http://localhost:8080/api`, documentação em `http://localhost:8080/api
   Identificação, Grupos, Etapas, Resultado, Verificações e Tabelas Aplicadas. Projeto sem cálculo
   responde 404; dados alterados depois do cálculo respondem 409, como no memorial.
 - `GET /api/projects/export.csv` exporta todos os projetos visíveis ao usuário.
-- `GET /api/review-queue/export.csv` exporta todos os projetos da fila (apenas `reviewer` e
-  `admin`).
+- `GET /api/review-queue/export.csv` exporta os projetos da fila visíveis ao usuário (apenas
+  `reviewer` e `admin`).
 
 As exportações CSV aceitam os mesmos filtros e parâmetros `sort`/`direction` das respectivas
 listagens, sem paginação. Os arquivos usam ponto e vírgula, codificação UTF-8 com BOM, cabeçalhos
@@ -98,7 +98,7 @@ curl -s -X POST http://localhost:8080/api/auth/login \
   -d '{"email":"user@ampere.com","password":"senha@123"}'
 ```
 
-A gestão de usuários (`/api/users/**`, exceto `/api/users/me`), os municípios dos analistas (`/api/reviewers/**`), a atribuição em lote (`/api/review-queue/assignment`) e o painel do administrador (`/api/dashboard/admin`) exigem o papel `admin`; as tabelas normativas (`/api/normative-tables/**`) e o resto da fila (`/api/review-queue/**`) aceitam `reviewer` e `admin`. Nas tabelas, quem cadastra uma revisão não a publica, e só quem cadastrou altera o rascunho; excluí-lo é de quem cadastrou ou do `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`.
+A gestão de usuários (`/api/users/**`, exceto `/api/users/me`), os municípios dos analistas (`/api/reviewers/**`), a atribuição em lote (`/api/review-queue/assignment`), a lista de analistas da atribuição (`/api/review-queue/reviewers`) e o painel do administrador (`/api/dashboard/admin`) exigem o papel `admin`; as tabelas normativas (`/api/normative-tables/**`) e o resto da fila (`/api/review-queue/**`) aceitam `reviewer` e `admin`. Nas tabelas, quem cadastra uma revisão não a publica, e só quem cadastrou altera o rascunho; excluí-lo é de quem cadastrou ou do `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`.
 
 ### Cadastro e Perfil
 
@@ -114,7 +114,7 @@ A gestão de usuários (`/api/users/**`, exceto `/api/users/me`), os municípios
 - O CREA é só o número, e a UF vai no campo próprio. É obrigatório para o projetista e opcional para o analista.
 - O nome e o CREA do dono saem em `technicalResponsible` no detalhe do projeto e no memorial em PDF.
 
-Cada projeto pertence a quem o criou. O projetista vê só os próprios projetos; o analista lê os enviados para análise e não altera nenhum. Os projetos do seed pertencem a `user@ampere.com`, `projetista@ampere.com`, `joao@ampere.com`, `inativo@ampere.com` e `admin@ampere.com`. Detalhes em [`convencoes-back.md`](../../docs/tecnico/convencoes-back.md#dono-do-projeto).
+Cada projeto pertence a quem o criou. O projetista vê só os próprios projetos; o analista lê os enviados que o gestor atribuiu a ele e não altera nenhum. Os projetos do seed pertencem a `user@ampere.com`, `projetista@ampere.com`, `joao@ampere.com`, `inativo@ampere.com` e `admin@ampere.com`. Detalhes em [`convencoes-back.md`](../../docs/tecnico/convencoes-back.md#dono-do-projeto).
 
 ### Resumo e Histórico do Projeto
 
@@ -173,7 +173,7 @@ Restrita ao papel `admin` pelo `SecurityConfig`, sem prefixo de papel no caminho
 | `reviewer` | vazio | ID do analista, ou `none` para os projetos sem analista |
 | `state`, `municipality` | vazio | UFs e municípios; repita o parâmetro para mais de um |
 
-Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/indicators` devolve os contadores globais, que não dependem desses parâmetros. `GET /api/review-queue/reviewers` lista os analistas do filtro `reviewer`.
+Busca, filtro e ordenação valem antes da paginação. O analista vê só os projetos atribuídos a ele, e o parâmetro `reviewer` é ignorado para ele. `GET /api/review-queue/indicators` devolve os contadores, que não dependem desses parâmetros: os da fila inteira para o `admin` e os do próprio analista para o `reviewer`. `GET /api/review-queue/reviewers`, só do `admin`, lista os analistas do filtro `reviewer` e da atribuição.
 
 ---
 
@@ -219,7 +219,7 @@ O papel `reviewer` representa o analista, e o `admin` faz tudo o que ele faz. Um
 
 | Método e caminho | Quem usa | Regra principal |
 | :--- | :--- | :--- |
-| `POST /api/projects/{id}/review` | Analista atribuído | Abre a análise; responde 403 a quem não é o responsável e ao dono do projeto |
+| `POST /api/projects/{id}/review` | Analista atribuído | Abre a análise; responde 404 ao analista que não é o responsável e 403 ao `admin` que não é o responsável ou é o dono do projeto |
 | `GET /api/projects/{id}/findings` | Dono ou analista | Lista na ordem de criação; o dono não vê rascunhos |
 | `POST /api/projects/{id}/findings` | Analista atribuído | Cria um apontamento `DRAFT` no ciclo atual |
 | `PUT /api/projects/{id}/findings/{findingId}` | Analista atribuído | Altera só apontamento `DRAFT` |

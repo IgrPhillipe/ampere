@@ -53,7 +53,9 @@ public class ReviewQueueController {
   @GetMapping
   @Operation(
       operationId = "listReviewQueue",
-      summary = "Lista os projetos em análise, ordenados e filtrados")
+      summary =
+          "Lista os projetos em análise, ordenados e filtrados; o analista vê só os atribuídos a"
+              + " ele")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -80,7 +82,10 @@ public class ReviewQueueController {
       @Parameter(description = "Direção da ordenação (ASC, DESC)")
           @RequestParam(defaultValue = "ASC")
           SortDirection direction,
-      @Parameter(description = "Filtro por analista (id do usuário ou 'none' para sem analista)")
+      @Parameter(
+              description =
+                  "Filtro por analista (id do usuário ou 'none' para sem analista); ignorado para"
+                      + " o analista")
           @RequestParam(required = false)
           String reviewer,
       @Parameter(description = "Projetista dono dos projetos, pelo identificador")
@@ -110,14 +115,15 @@ public class ReviewQueueController {
   @GetMapping("/reviewers")
   @Operation(
       operationId = "listReviewers",
-      summary = "Lista os analistas e gestores disponíveis, com o papel de cada um")
+      summary =
+          "Lista os analistas e gestores disponíveis para a atribuição, com o papel de cada um")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
         description = "Lista de analistas"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "403",
-        description = "Apenas analista e administrador acessam a fila")
+        description = "Apenas administradores acessam este recurso")
   })
   public ApiResponse<List<ReviewerOptionResponse>> reviewers(@AuthenticationPrincipal Jwt jwt) {
     List<ReviewerOptionResponse> reviewers =

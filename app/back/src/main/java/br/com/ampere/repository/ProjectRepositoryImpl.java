@@ -170,8 +170,15 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
   }
 
   @Override
-  public Page<User> findReviewQueueOwners(String search, Pageable pageable) {
-    return owners(new StringBuilder(REVIEW_QUEUE), new HashMap<>(), search, pageable);
+  public Page<User> findReviewQueueOwners(String search, Long reviewerId, Pageable pageable) {
+    StringBuilder where = new StringBuilder(REVIEW_QUEUE);
+    Map<String, Object> parameters = new HashMap<>();
+    if (reviewerId != null) {
+      where.append(" AND project.reviewer.id = :reviewerId");
+      parameters.put("reviewerId", reviewerId);
+    }
+
+    return owners(where, parameters, search, pageable);
   }
 
   @Override
@@ -190,12 +197,16 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
     return query.getResultList();
   }
 
-  /** The projects the role reaches: its own, the submitted ones, or all of them. */
+  /** The projects the role reaches: its own, the submitted ones assigned to it, or all. */
   private static StringBuilder visibleTo(
       Long userId, ProjectVisibility visibility, Map<String, Object> parameters) {
     return switch (visibility) {
       case ALL -> new StringBuilder("WHERE 1 = 1");
-      case SUBMITTED -> new StringBuilder("WHERE project.submittedAt IS NOT NULL");
+      case ASSIGNED -> {
+        parameters.put("userId", userId);
+        yield new StringBuilder(
+            "WHERE project.submittedAt IS NOT NULL AND project.reviewer.id = :userId");
+      }
       case OWN -> {
         parameters.put("userId", userId);
         yield new StringBuilder("WHERE project.owner.id = :userId");
