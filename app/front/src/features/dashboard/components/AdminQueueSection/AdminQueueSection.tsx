@@ -64,7 +64,7 @@ export const AdminQueueSection = ({
 				{counters.map((counter) => (
 					<div
 						key={counter.label}
-						className="flex flex-col gap-1 border border-border p-3"
+						className="flex flex-col justify-between gap-1 border border-border p-3"
 					>
 						<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 							{counter.label}
