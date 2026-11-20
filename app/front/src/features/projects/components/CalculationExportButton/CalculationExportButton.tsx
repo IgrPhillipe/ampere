@@ -12,8 +12,7 @@ export type CalculationExportBlocker = "noCalculation" | "outdated" | "error";
 const blockerHints: Record<CalculationExportBlocker, string> = {
 	noCalculation: "É preciso calcular a demanda antes de exportar a planilha.",
 	outdated: "Recalcule a demanda antes de exportar a planilha.",
-	error:
-		"Não foi possível carregar o cálculo. Tente novamente antes de exportar.",
+	error: "Tente novamente antes de exportar a planilha.",
 };
 
 interface CalculationExportButtonProps {

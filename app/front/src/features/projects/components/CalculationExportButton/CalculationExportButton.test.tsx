@@ -27,10 +27,7 @@ describe("CalculationExportButton", () => {
 			"É preciso calcular a demanda antes de exportar a planilha.",
 		],
 		["outdated", "Recalcule a demanda antes de exportar a planilha."],
-		[
-			"error",
-			"Não foi possível carregar o cálculo. Tente novamente antes de exportar.",
-		],
+		["error", "Tente novamente antes de exportar a planilha."],
 	] as const)("explains why a %s project cannot export", async (blocker, hint) => {
 		render(<CalculationExportButton blocker={blocker} onExport={vi.fn()} />);
 
