@@ -50,12 +50,13 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 		"CALCULATION",
 	);
 	const validation = validationQuery.data?.data;
-	const { canEdit: isEditable } = useProjectPermissions(project);
+	const { canEdit: isEditable, canRecalculate } =
+		useProjectPermissions(project);
 	const canCalculate = validation?.canCalculate ?? false;
 
 	const result = latestQuery.data?.data;
 	const neverCalculated = latestQuery.data === null;
-	const outdated = isEditable && result?.outdated === true;
+	const outdated = canRecalculate && result?.outdated === true;
 	const isBlocked =
 		isEditable && validation !== undefined && !canCalculate && !result;
 	const hasError =

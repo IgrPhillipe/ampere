@@ -22,6 +22,16 @@ describe("getProjectPermissions", () => {
 		).toBe(false);
 	});
 
+	it("reruns the calculation of a project awaiting submission", () => {
+		expect(
+			getProjectPermissions("user", "1", owned("AWAITING_SUBMISSION"))
+				.canRecalculate,
+		).toBe(true);
+		expect(
+			getProjectPermissions("user", "1", owned("UNDER_REVIEW")).canRecalculate,
+		).toBe(false);
+	});
+
 	it("keeps the documents open until the submission", () => {
 		expect(
 			getProjectPermissions("user", "1", owned("AWAITING_SUBMISSION"))
@@ -47,6 +57,7 @@ describe("getProjectPermissions", () => {
 	] as const)("freezes a project in %s for the admin too", (status) => {
 		expect(getProjectPermissions("admin", "9", others(status))).toEqual({
 			canEdit: false,
+			canRecalculate: false,
 			canEditDocuments: false,
 			canDelete: false,
 			isOwner: false,
@@ -56,6 +67,7 @@ describe("getProjectPermissions", () => {
 	it("lets the admin edit another designer's draft without owning it", () => {
 		expect(getProjectPermissions("admin", "9", others("DRAFT"))).toEqual({
 			canEdit: true,
+			canRecalculate: true,
 			canEditDocuments: true,
 			canDelete: true,
 			isOwner: false,
@@ -65,6 +77,7 @@ describe("getProjectPermissions", () => {
 	it("never lets the analyst edit", () => {
 		expect(getProjectPermissions("reviewer", "1", owned("DRAFT"))).toEqual({
 			canEdit: false,
+			canRecalculate: false,
 			canEditDocuments: false,
 			canDelete: false,
 			isOwner: false,
