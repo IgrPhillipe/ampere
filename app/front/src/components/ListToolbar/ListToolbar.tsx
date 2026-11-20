@@ -27,19 +27,22 @@ export const ListToolbar = ({
 	<div className={cn("flex flex-col bg-card", className)}>
 		{filters}
 		<div className="flex flex-col gap-3 border-b border-border px-gutter py-5 md:px-gutter-md">
-			<div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+			<div className="flex flex-wrap items-start gap-x-4 gap-y-3">
 				<div className="w-full md:w-72 md:shrink-0">{search}</div>
-				{refinements ? (
-					<div className="flex flex-wrap items-center gap-1.5">
-						{refinements}
-					</div>
-				) : null}
-				{sort || actions ? (
-					<div className="flex flex-wrap items-center gap-1.5 md:ml-auto">
-						{sort}
-						{actions}
-					</div>
-				) : null}
+				{/* Sort and actions keep the filters' line: the filters wrap, they don't. */}
+				<div className="flex min-w-0 flex-1 basis-full flex-wrap items-start gap-x-4 gap-y-3 md:basis-[40rem] md:flex-nowrap">
+					{refinements ? (
+						<div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+							{refinements}
+						</div>
+					) : null}
+					{sort || actions ? (
+						<div className="ml-auto flex shrink-0 flex-wrap items-center gap-1.5">
+							{sort}
+							{actions}
+						</div>
+					) : null}
+				</div>
 			</div>
 			{activeFilters}
 		</div>
