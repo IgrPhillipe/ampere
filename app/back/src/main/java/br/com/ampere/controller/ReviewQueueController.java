@@ -10,6 +10,7 @@ import br.com.ampere.dto.PageQuery;
 import br.com.ampere.dto.Pagination;
 import br.com.ampere.dto.ReviewQueueIndicatorsResponse;
 import br.com.ampere.dto.ReviewQueueItemResponse;
+import br.com.ampere.dto.ReviewerOptionResponse;
 import br.com.ampere.dto.UserOptionResponse;
 import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.OwnerListing;
@@ -109,7 +110,7 @@ public class ReviewQueueController {
   @GetMapping("/reviewers")
   @Operation(
       operationId = "listReviewers",
-      summary = "Lista os analistas disponíveis para o filtro")
+      summary = "Lista os analistas e gestores disponíveis, com o papel de cada um")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
@@ -118,9 +119,9 @@ public class ReviewQueueController {
         responseCode = "403",
         description = "Apenas analista e administrador acessam a fila")
   })
-  public ApiResponse<List<UserOptionResponse>> reviewers(@AuthenticationPrincipal Jwt jwt) {
-    List<UserOptionResponse> reviewers =
-        service.reviewers(userOf(jwt)).stream().map(UserOptionResponse::from).toList();
+  public ApiResponse<List<ReviewerOptionResponse>> reviewers(@AuthenticationPrincipal Jwt jwt) {
+    List<ReviewerOptionResponse> reviewers =
+        service.reviewers(userOf(jwt)).stream().map(ReviewerOptionResponse::from).toList();
     return ApiResponse.of(reviewers);
   }
 

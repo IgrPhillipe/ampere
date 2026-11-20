@@ -29,6 +29,7 @@ public record ReviewQueueItemResponse(
     long warnings,
     @Schema(description = "Mensagens dos alertas da pré-validação do último cálculo")
         List<String> alerts,
+    String ownerId,
     String ownerName,
     long consumerUnitsCount,
     BigDecimal demandKva,
@@ -55,6 +56,7 @@ public record ReviewQueueItemResponse(
         entry.suspendedDays(),
         entry.warnings().size(),
         entry.warnings(),
+        project.getOwner() == null ? null : String.valueOf(project.getOwner().getId()),
         project.getOwner() == null ? null : project.getOwner().getName(),
         entry.consumerUnitsCount(),
         entry.demandKva(),

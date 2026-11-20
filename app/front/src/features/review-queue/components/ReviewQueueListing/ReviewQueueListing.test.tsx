@@ -19,6 +19,7 @@ const item: ReviewQueueItem = {
 	alerts: [
 		"Recarga de 44,40 kW instalados, acima de 20 kW: exige estudo da rede.",
 	],
+	ownerId: "3",
 	ownerName: "João Projetista",
 	consumerUnitsCount: 48,
 	demandKva: 229.4,
