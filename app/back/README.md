@@ -213,6 +213,73 @@ Busca, filtro e ordenação valem antes da paginação. `GET /api/review-queue/i
 
 ---
 
+## Painel do Analista
+
+> Contrato a implementar na #137 (AT01-US17). O front da US17 já consome os dois endpoints e valida as respostas com os schemas `services/dashboard/schemas/review-dashboard.schema.ts` e `services/review-queue/schemas/my-reviews.schema.ts`. Até o back entrar, as telas "Indicadores" e "Meus Pareceres" mostram o estado de erro.
+
+### Escopo por Papel
+
+| Papel | Indicadores | Meus Pareceres |
+| :--- | :--- | :--- |
+| `reviewer` | Só os projetos atribuídos a ele, incluídos os que ele já decidiu | Só as decisões dele em projetos ainda atribuídos a ele; o projeto reatribuído sai da lista |
+| `admin` | A equipe inteira | As decisões dele |
+| `user` | 403 | 403 |
+
+A regra é a mesma da fila (#255): o analista não alcança projeto sem analista ou de outro analista. Todo projeto citado na resposta abre para quem pediu.
+
+### Indicadores
+
+`GET /api/dashboard/review?period=` responde a `reviewer` e `admin`. O `SecurityConfig` precisa de `/dashboard/review` em `hasAnyRole(REVIEWING_ROLES)`, antes de `anyRequest().authenticated()`; sem a regra, o projetista lê os indicadores. `period` aceita `LAST_30_DAYS` (padrão), `LAST_90_DAYS` e `CURRENT_YEAR`, contados no fuso de Recife com o dia de hoje incluído, como no painel do projetista. Os eventos vêm do histórico (`ProjectEvent`), porque o reenvio sobrescreve `submittedAt`.
+
+A resposta é `{ data: { ... } }`, sem paginação:
+
+| Campo | Período | Regra |
+| :--- | :--- | :--- |
+| `totals.received` | sim | Projetos distintos com `SUBMITTED` ou `RESUBMITTED` no período |
+| `totals.approved`, `totals.rejected` | sim | Projetos distintos com `APPROVED` ou `REJECTED` no período |
+| `totals.underReview` | não | Projetos em `UNDER_REVIEW` hoje |
+| `averageReviewDays` | sim | Média, em dias corridos com decimais, do envio ou reenvio até a decisão, para cada decisão no período; nulo sem decisões |
+| `averageCycleDays` | sim | Média do primeiro `SUBMITTED` ao `APPROVED`, para as aprovações no período; nulo sem aprovações |
+| `weekly[]` | sim | Uma entrada por semana que toca o período, da mais antiga à mais recente, inclusive as vazias. `weekStart` é a segunda-feira (`YYYY-MM-DD`), `received` conta os eventos `SUBMITTED` e `RESUBMITTED` da semana e `decided` os `APPROVED` e `REJECTED` |
+| `monthlyRejection[]` | sim | Uma entrada por mês que toca o período (`month` em `YYYY-MM`). `rejectionPercent` é reprovações sobre decisões do mês, de 0 a 100; nulo no mês sem decisões |
+| `deadlines.met`, `deadlines.overdue` | sim | Decisões no período tomadas até o prazo (`Project.deadline`, com a suspensão) ou depois dele |
+| `workload[]` | não | Só para o `admin`; o `reviewer` recebe lista vazia. Analistas e administradores com projetos `UNDER_REVIEW` atribuídos, com `id`, `name` e `underReview`, do maior ao menor |
+| `findingsRanking[]` | sim | Apontamentos publicados, por etapa (`stage`) e item da norma (`standardItem`, nulo sem item), os 10 mais frequentes, com `total`. O período vale pela data de criação do apontamento. `projects[]` traz os projetos distintos que receberam o item, com `id`, `name` e `protocol`, em ordem de protocolo |
+| `municipalities[]` | sim | Os 5 municípios com mais projetos recebidos no período, com `municipality`, `state` e `total`; o empate sai pelo nome |
+| `repeatedRejections[]` | sim | Projetos com duas ou mais reprovações no histórico e a última delas no período, com `id`, `name`, `protocol` e `rejections` (sempre 2 ou mais), do maior número ao menor |
+| `alertsByCategory[]` | sim | Projetos recebidos no período por categoria da edificação (`RESIDENTIAL_MULTIFAMILY`, `NON_RESIDENTIAL`, `MIXED`), com `projects` e `alerts`, a soma dos alertas do cálculo enviado; só as categorias com projeto |
+
+- `id` sai como string, como no resto da API.
+- Os números do `reviewer` e do `admin` usam as mesmas regras; muda só o conjunto de projetos.
+
+### Meus Pareceres
+
+`GET /api/review-queue/mine` responde a `reviewer` e `admin`; já fica sob `/review-queue/**`. Lista as decisões (`APPROVED` e `REJECTED`) cujo autor é o usuário logado, da mais recente à mais antiga, com o ID do evento como desempate. Um projeto decidido duas vezes aparece em duas linhas, uma por versão.
+
+| Parâmetro | Padrão | Valores |
+| :--- | :--- | :--- |
+| `page`, `pageSize` | `1`, `10` | Paginação de `PageQuery` |
+| `search` | vazio | Protocolo, nome do projeto ou projetista, sem diferenciar maiúsculas ou acentos |
+| `decision` | vazio | `APPROVED` ou `REJECTED` |
+| `state`, `municipality` | vazio | UFs e municípios; repita o parâmetro para mais de um |
+| `decidedFrom`, `decidedTo` | vazio | Datas `YYYY-MM-DD`, inclusivas, no fuso de Recife; início depois do fim responde 400 |
+
+Cada item de `data[]`:
+
+| Campo | Regra |
+| :--- | :--- |
+| `id`, `name`, `protocol`, `municipality`, `state` | Do projeto; `id` abre `/projetos/{id}` |
+| `ownerName` | Nome do projetista; nulo se a conta não existir mais |
+| `decision`, `decidedAt` | Tipo e data do evento, ISO 8601 com offset |
+| `version` | Número do envio decidido, 1 para o primeiro |
+| `currentVersion` | Número do envio atual do projeto. Com `version` menor, o front abre o histórico do projeto |
+| `findings` | Apontamentos publicados nessa decisão |
+| `consumerUnitsCount`, `demandKva` | Do cálculo enviado nessa versão; `demandKva` nulo sem cálculo |
+
+O envelope ganha `counts` ao lado de `data` e `pagination`: `{ all, approved, rejected }`, contados com todos os filtros menos `decision`, para os chips de decisão. O `ApiResponse` atual só tem `data` e `pagination`, então a resposta precisa de um record próprio ou de um campo opcional no envelope.
+
+---
+
 ## Análise Técnica e Apontamentos
 
 O papel `reviewer` representa o analista, e o `admin` faz tudo o que ele faz. Um projeto `UNDER_REVIEW` tem um único analista responsável, definido pelo gestor ou pela distribuição no envio: o analista não assume projeto sozinho. As rotas de escrita da análise são restritas a `reviewer` e `admin` pelo `SecurityConfig`.
