@@ -57,7 +57,9 @@ const AssignReviewerForm = ({
 	const [reviewerId, setReviewerId] = useState<string | null>(null);
 	// The API sends them by name; the record only resolves the chosen label,
 	// since numeric-like keys would reorder it by id.
-	const reviewerList = reviewersQuery.data?.data ?? [];
+	const reviewerList = (reviewersQuery.data?.data ?? []).filter(
+		({ active }) => active,
+	);
 	const reviewers = Object.fromEntries(
 		reviewerList.map(({ id, name }) => [id, name]),
 	);

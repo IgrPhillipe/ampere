@@ -78,10 +78,12 @@ vi.mock("@services/review-queue", async (importOriginal) => ({
 	useGetReviewQueueIndicators: () => ({ isError: false, data: undefined }),
 	useGetReviewerList: () => ({
 		isPending: false,
+		isSuccess: true,
 		data: {
 			data: [
-				{ id: "7", name: "Ana Analista" },
-				{ id: "8", name: "Bruno Analista" },
+				{ id: "7", name: "Ana Analista", role: "reviewer", active: true },
+				{ id: "8", name: "Bruno Analista", role: "reviewer", active: true },
+				{ id: "9", name: "Davi Analista", role: "reviewer", active: false },
 			],
 		},
 	}),
@@ -93,8 +95,8 @@ vi.mock("@services/review-queue", async (importOriginal) => ({
 	}),
 }));
 
-vi.mock("@services/reviewer-distribution", async (importOriginal) => ({
-	...(await importOriginal<typeof import("@services/reviewer-distribution")>()),
+vi.mock("@services/review-assignment", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@services/review-assignment")>()),
 	useAssignReviewQueue: () => ({ mutate: mockAssign, isPending: false }),
 }));
 
@@ -103,10 +105,10 @@ vi.mock("@tanstack/react-router", async (importOriginal) => ({
 	useNavigate: () => mockNavigate,
 }));
 
-const renderPage = () =>
+const renderPage = (searchParams = "", onUrlUpdate = vi.fn()) =>
 	render(
 		<QueryClientProvider client={new QueryClient()}>
-			<NuqsTestingAdapter>
+			<NuqsTestingAdapter searchParams={searchParams} onUrlUpdate={onUrlUpdate}>
 				<ReviewQueuePage />
 			</NuqsTestingAdapter>
 		</QueryClientProvider>,
@@ -170,6 +172,53 @@ describe("ReviewQueuePage batch assignment", () => {
 		expect(screen.getByText("Todos na fila")).toBeInTheDocument();
 		expect(
 			screen.getByRole("columnheader", { name: "Analista Responsável" }),
+		).toBeInTheDocument();
+	});
+
+	it("lets the manager filter by a deactivated analyst without assigning them", async () => {
+		signInAs("admin", { id: "1" });
+		renderPage();
+
+		fireEvent.click(screen.getByRole("button", { name: "Analista: Todos" }));
+		expect(
+			await screen.findByRole("menuitemradio", {
+				name: "Davi Analista (Inativo)",
+			}),
+		).toBeInTheDocument();
+		fireEvent.keyDown(document.activeElement ?? document.body, {
+			key: "Escape",
+		});
+
+		select("2026-0001");
+		fireEvent.click(screen.getByRole("button", { name: "Atribuir Analista" }));
+		const dialog = await screen.findByRole("dialog");
+		fireEvent.click(within(dialog).getByRole("combobox", { name: "Analista" }));
+		await screen.findByRole("option", { name: "Ana Analista" });
+		expect(
+			screen.queryByRole("option", { name: /Davi Analista/ }),
+		).not.toBeInTheDocument();
+	});
+
+	it("drops the analyst filter once that analyst leaves the list", async () => {
+		signInAs("admin", { id: "1" });
+		const onUrlUpdate = vi.fn();
+		renderPage("?reviewer=99", onUrlUpdate);
+
+		await waitFor(() =>
+			expect(
+				onUrlUpdate.mock.lastCall?.[0]?.searchParams.get("reviewer"),
+			).toBeNull(),
+		);
+	});
+
+	it("keeps the filter on a deactivated analyst still in the list", () => {
+		signInAs("admin", { id: "1" });
+		const onUrlUpdate = vi.fn();
+		renderPage("?reviewer=9", onUrlUpdate);
+
+		expect(onUrlUpdate).not.toHaveBeenCalled();
+		expect(
+			screen.getByRole("button", { name: "Analista: Davi Analista (Inativo)" }),
 		).toBeInTheDocument();
 	});
 

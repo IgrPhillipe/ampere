@@ -352,7 +352,7 @@ O analista visualiza o painel de validações do sistema e os dados submetidos.
 Na reprovação, o sistema notifica o projetista dentro do próprio sistema ([US14](#us14-notificações-no-sistema)) e o direciona para a etapa apontada no seu painel.
 
 **Regras do apontamento:**
-- O projeto é atribuído ao analista pelo gestor ou pela regra de município ([US23](#us23-distribuição-da-fila-de-análise)). "Analisar" aparece só para o analista responsável. Outro analista não acessa o projeto; o gestor o vê em consulta, com "Em análise por" e o nome do responsável.
+- O projeto é atribuído ao analista pelo gestor ([US23](#us23-distribuição-da-fila-de-análise)). "Analisar" aparece só para o analista responsável. Outro analista não acessa o projeto; o gestor o vê em consulta, com "Em análise por" e o nome do responsável.
 - O apontamento nasce de duas formas: pelo atalho "Virar Apontamento" de um alerta da verificação automática, que já traz a etapa e o item da norma, ou pelo formulário da lateral. O formulário começa na seção aberta, e trocar a seção limpa o grupo, a parcela ou o documento escolhido.
 - Cada apontamento registra a gravidade (**Bloqueante** ou **Ajuste**), a etapa (Dados da edificação, Unidades consumidoras com o grupo, Cálculo com a parcela, ou Documentos com o tipo), a descrição, o item da norma quando houver, o autor e a data.
 - Até a decisão, os apontamentos ficam em rascunho e podem ser editados ou excluídos pelo analista.
@@ -695,7 +695,7 @@ O memorial da versão não é regerado: alterações feitas depois da reprovaç�
 Central de notificações no sino do cabeçalho para os dois perfis, sem envio de e-mail.
 
 ### User Story
-> **Como** usuário do sistema, projetista ou analista,  
+> **Como** usuário do sistema, projetista, analista ou gestor,  
 > **Quero** ser avisado dentro do sistema quando um projeto meu muda de situação,  
 > **Para que** eu aja no momento certo sem precisar conferir cada projeto.
 
@@ -705,8 +705,9 @@ O sino do cabeçalho exibe o número de notificações não lidas e abre o paine
 Eventos notificados:
 - **Projetista:** projeto aprovado, projeto reprovado com o número de apontamentos, apontamento reaberto na reanálise e aprovação perto de expirar ([US15](#us15-prazos-de-análise-e-validade-da-aprovação))
 - **Analista:** projeto atribuído reenviado, prazo de análise vencendo em até 3 dias e prazo vencido
+- **Gestor:** projeto enviado ou reenviado que ficou sem analista, "Projeto 2026-1002 aguardando analista", com link para a fila filtrada em "Não Atribuído" ([US23](#us23-distribuição-da-fila-de-análise)). Ao atribuir o projeto, o aviso fica lido para todos os gestores
 
-Cada notificação mostra o protocolo, o texto, a data relativa e leva à tela do projeto. Clicar marca como lida, e o painel tem "Marcar Todas como Lidas". O sistema não envia e-mail.
+Cada notificação mostra o protocolo, o texto, a data relativa e leva à tela do projeto, ou à fila no caso do gestor. Clicar marca como lida, e o painel tem "Marcar Todas como Lidas". O sistema não envia e-mail.
 
 ### Confirmação (Critérios de Aceite - BDD)
 
@@ -997,24 +998,25 @@ Projetos enviados, reprovados ou aprovados não podem ser excluídos: o protocol
 `US23` `Prioridade: Média` `Sprint 8`
 
 ### Descrição
-Distribuição dos projetos enviados entre os analistas: atribuição manual, em lote, e regra por município.
+Distribuição dos projetos enviados entre os analistas pelo gestor, um a um ou em lote.
 
 ### User Story
 > **Como** gestor da Neoenergia (`admin`),  
-> **Quero** atribuir os projetos aos analistas, um a um, em lote ou por município,  
-> **Para que** a carga da análise fique equilibrada e cada região tenha um responsável.
+> **Quero** atribuir os projetos aos analistas, um a um ou em lote,  
+> **Para que** a carga da análise fique equilibrada.
 
 ### Conversação (Regras de Negócio e Interface)
 Na fila de análise, o gestor seleciona um ou vários projetos e escolhe o analista em "Atribuir Analista". Vale para projeto sem analista e para reatribuição de projeto em análise. Na reatribuição, os apontamentos em rascunho passam para o novo analista; os publicados ficam com o autor original.
 
-A tela "Distribuição", visível só para o gestor, lista os analistas ativos e os municípios de cada um. Um município pertence a no máximo um analista.
+No envio, o projeto fica "Não Atribuído" até o gestor atribuir. Na reanálise, o projeto volta para o analista que reprovou, se ele ainda puder analisar; senão, fica "Não Atribuído". Quando o projeto fica "Não Atribuído", os gestores ativos recebem uma notificação ([US14](#us14-notificações-no-sistema)).
 
-No envio, o projeto vai direto para o analista do município. Sem regra para o município, ou com o analista inativo, o projeto fica "Não Atribuído" até o gestor atribuir. Na reanálise, o projeto volta para o analista que reprovou, se ele ainda estiver ativo.
+A regra por município (cada município com um analista fixo) saiu em 20/11: foi proposta do time, não pedido da cliente, e o gestor é quem distribui.
 
 **Atribuição só pelo gestor** (validação com a cliente em 29/10):
 - A fila do gestor mostra a coluna "Analista Responsável", com "Não Atribuído" quando não há analista
 - O analista não assume projeto sozinho: "Analisar" aparece só para o responsável ([US07](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos))
 - O papel `admin` aparece como "Gestor" na interface
+- O filtro "Analista" também lista, como "(Inativo)", o analista desativado que ainda tem projetos em análise, para o gestor reatribuí-los. Ele não aparece em "Atribuir Analista"
 
 **Analista vê só os projetos atribuídos** (validação com a cliente em 20/11):
 - A fila, a exportação e o projeto ficam restritos aos projetos atribuídos ao analista, incluindo os que ele já decidiu
@@ -1025,11 +1027,11 @@ No envio, o projeto vai direto para o analista do município. Sem regra para o m
 
 ### Confirmação (Critérios de Aceite - BDD)
 
-#### Cenário 1 (Positivo): Distribuição Automática por Município
-- **Dado** que Caruaru está na lista de municípios da analista Ana
-- **Quando** o projetista envia um projeto de Caruaru
-- **Então** o projeto entra na fila já atribuído a Ana
-- **E** o histórico do protocolo registra a atribuição pelo sistema.
+#### Cenário 1 (Positivo): Atribuição pelo Gestor
+- **Dado** que o projetista enviou um projeto
+- **Quando** o gestor o atribui à analista Ana na fila
+- **Então** o projeto passa a "Em análise por" Ana
+- **E** o histórico do protocolo registra a atribuição pelo gestor.
 
 #### Cenário 2 (Negativo): Reatribuição para Analista Inativo
 - **Dado** que o gestor selecionou dois projetos na fila
@@ -1039,8 +1041,8 @@ No envio, o projeto vai direto para o analista do município. Sem regra para o m
 
 ### Checklist de Implementação
 - [ ] Atribuir e reatribuir analista em lote na fila
-- [ ] Manter os municípios de cada analista
-- [ ] Distribuir o projeto pelo município no envio e devolver a reanálise a quem reprovou
+- [ ] Deixar o projeto "Não Atribuído" no envio e devolver a reanálise a quem reprovou
+- [ ] Notificar os gestores quando o projeto fica "Não Atribuído"
 
 ---
 
@@ -1060,7 +1062,7 @@ Painel inicial do administrador com o estado dos usuários, dos projetos ativos 
 O item "Painel" entra no menu do administrador e passa a ser a tela inicial após o login. O painel tem três blocos:
 - **Usuários:** ativos por papel, inativos, com troca de senha pendente e sem acesso há mais de 30 dias. Cada número abre a tela "Usuários" ([US11](#us11-gestão-de-usuários)) com o filtro aplicado, onde estão "Reativar" e "Redefinir Senha"
 - **Projetos ativos:** tabela própria com os projetos em rascunho, em análise e reprovados de todos os projetistas, com busca por protocolo ou nome e filtro por projetista
-- **Fila:** projetos sem analista, prazos vencendo em até 3 dias, projetos em análise por analista e municípios sem analista ([US23](#us23-distribuição-da-fila-de-análise))
+- **Fila:** projetos sem analista, prazos vencendo em até 3 dias e projetos em análise por analista ([US23](#us23-distribuição-da-fila-de-análise))
 
 A produtividade da análise (tempos médios e taxas de reprovação) fica no painel do analista ([US17](#us17-painel-do-analista)).
 

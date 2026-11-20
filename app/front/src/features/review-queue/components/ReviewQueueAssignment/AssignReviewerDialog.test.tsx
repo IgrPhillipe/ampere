@@ -6,10 +6,12 @@ import { AssignReviewerDialog } from "./AssignReviewerDialog";
 
 const reviewers = vi.hoisted(() => ({
 	list: [
-		{ id: "7", name: "Ana Analista", role: "reviewer" },
-		{ id: "8", name: "Bruno Analista", role: "reviewer" },
+		{ id: "7", name: "Ana Analista", role: "reviewer", active: true },
+		{ id: "8", name: "Bruno Analista", role: "reviewer", active: true },
 		// A smaller id last: the list keeps the API's order by name.
-		{ id: "2", name: "Carla Gestora", role: "admin" },
+		{ id: "2", name: "Carla Gestora", role: "admin", active: true },
+		// Deactivated with projects still held: the filter lists them, the dialog does not.
+		{ id: "9", name: "Davi Inativo", role: "reviewer", active: false },
 	],
 }));
 
@@ -109,6 +111,16 @@ describe("AssignReviewerDialog", () => {
 			"Bruno Analista",
 			"Carla GestoraGestor",
 		]);
+	});
+
+	it("leaves out a deactivated analyst", async () => {
+		renderDialog([projectOf("1", "Davi Inativo")]);
+
+		const options = await openOptions();
+
+		expect(options.map((option) => option.textContent).join(" ")).not.toContain(
+			"Davi Inativo",
+		);
 	});
 
 	it("marks the admins as Gestor", async () => {

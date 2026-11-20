@@ -4,16 +4,18 @@ import { PageLayout } from "@components/layout";
 import { Pagination } from "@components/Pagination";
 import { Button } from "@components/ui/button";
 import { downloadFile, useAuthStore } from "@features/shared";
+import { useAssignReviewQueue } from "@services/review-assignment";
 import {
 	type ReviewQueueItem,
+	UNASSIGNED_REVIEWER,
 	useExportReviewQueueCsv,
+	useGetReviewerList,
 	useGetReviewQueue,
 	useGetReviewQueueIndicators,
 } from "@services/review-queue";
-import { useAssignReviewQueue } from "@services/reviewer-distribution";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleAlert } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
 	AssignReviewerDialog,
@@ -40,6 +42,8 @@ export const ReviewQueuePage = () => {
 		setSort,
 		sortBy,
 		clearFilters,
+		reviewer,
+		setReviewer,
 	} = filters;
 	const queueQuery = useGetReviewQueue({
 		...filters.params,
@@ -52,6 +56,17 @@ export const ReviewQueuePage = () => {
 	const exportQueue = useExportReviewQueueCsv();
 	const assign = useAssignReviewQueue();
 	const [isAssignOpen, setAssignOpen] = useState(false);
+	const reviewersQuery = useGetReviewerList({ enabled: isManager });
+	// A deactivated analyst leaves the list once their last project is reassigned.
+	const isReviewerGone =
+		reviewer !== null &&
+		reviewer !== UNASSIGNED_REVIEWER &&
+		reviewersQuery.isSuccess &&
+		!reviewersQuery.data.data.some(({ id }) => id === reviewer);
+
+	useEffect(() => {
+		if (isReviewerGone) setReviewer(null);
+	}, [isReviewerGone, setReviewer]);
 
 	// The selection belongs to the listing it was made on: a new page or filter drops it.
 	const listingKey = JSON.stringify(filters.params);

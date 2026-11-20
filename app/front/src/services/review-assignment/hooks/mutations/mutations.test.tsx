@@ -9,18 +9,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { httpErrorOf } from "@/test/fixtures/http-error";
 
-import { reviewerDistributionKeys } from "../../query-keys";
-import {
-	assignReviewQueue,
-	updateReviewerMunicipalities,
-} from "../../requests";
+import { assignReviewQueue } from "../../requests";
 import { useAssignReviewQueue } from "./useAssignReviewQueue";
-import { useUpdateReviewerMunicipalities } from "./useUpdateReviewerMunicipalities";
 
-vi.mock("../../requests", () => ({
-	assignReviewQueue: vi.fn(),
-	updateReviewerMunicipalities: vi.fn(),
-}));
+vi.mock("../../requests", () => ({ assignReviewQueue: vi.fn() }));
 vi.mock("sonner", () => ({
 	toast: { success: vi.fn(), error: vi.fn() },
 }));
@@ -121,67 +113,5 @@ describe("useAssignReviewQueue", () => {
 		expect(toast.error).toHaveBeenCalledWith(
 			"Não foi possível atribuir os projetos.",
 		);
-	});
-});
-
-describe("useUpdateReviewerMunicipalities", () => {
-	beforeEach(() => vi.clearAllMocks());
-
-	it("refreshes the distribution and the dashboard after saving", async () => {
-		vi.mocked(updateReviewerMunicipalities).mockResolvedValue({
-			data: [{ state: "PE", municipality: "Recife" }],
-		});
-		const { queryClient, wrapper } = setup();
-		const listKey = reviewerDistributionKeys.list();
-		queryClient.setQueryData(listKey, { data: [] });
-		queryClient.setQueryData(dashboardKeys.admin(), { data: {} });
-
-		const { result } = renderHook(() => useUpdateReviewerMunicipalities(), {
-			wrapper,
-		});
-		act(() =>
-			result.current.mutate({
-				reviewerId: "8",
-				municipalities: [{ state: "PE", municipality: "Recife" }],
-			}),
-		);
-		await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-		expect(queryClient.getQueryState(listKey)?.isInvalidated).toBe(true);
-		expect(
-			queryClient.getQueryState(dashboardKeys.admin())?.isInvalidated,
-		).toBe(true);
-		expect(toast.success).toHaveBeenCalledWith(
-			"Municípios do analista atualizados.",
-		);
-	});
-
-	it("names the analyst who already holds the municipality", async () => {
-		const detail = "O município Caruaru já pertence ao analista Ana Analista.";
-		vi.mocked(updateReviewerMunicipalities).mockRejectedValue(
-			await httpErrorOf(409, { status: 409, detail }),
-		);
-		const { queryClient, wrapper } = setup();
-		const listKey = reviewerDistributionKeys.list();
-		queryClient.setQueryData(listKey, { data: [] });
-		queryClient.setQueryData(dashboardKeys.admin(), { data: {} });
-
-		const { result } = renderHook(() => useUpdateReviewerMunicipalities(), {
-			wrapper,
-		});
-		act(() =>
-			result.current.mutate({
-				reviewerId: "8",
-				municipalities: [{ state: "PE", municipality: "Caruaru" }],
-			}),
-		);
-		await waitFor(() => expect(result.current.isError).toBe(true));
-
-		expect(toast.error).toHaveBeenCalledWith(detail);
-		// Refetched, so the picker shows who holds it now.
-		expect(queryClient.getQueryState(listKey)?.isInvalidated).toBe(true);
-		expect(
-			queryClient.getQueryState(dashboardKeys.admin())?.isInvalidated,
-		).toBe(true);
 	});
 });

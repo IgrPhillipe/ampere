@@ -1,8 +1,6 @@
 package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -11,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.ampere.config.NormativeTableSeed;
-import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EntranceStandard;
@@ -27,7 +24,6 @@ import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ResidentialGroup;
 import br.com.ampere.domain.ResidentialMultifamily;
-import br.com.ampere.domain.ReviewerMunicipality;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
@@ -42,7 +38,6 @@ import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectVersionDocumentRepository;
 import br.com.ampere.repository.ProjectVersionRepository;
-import br.com.ampere.repository.ReviewerMunicipalityRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import java.math.BigDecimal;
@@ -72,8 +67,6 @@ class ReviewerDistributionIntegrationTest {
 
   private static final String PASSWORD = "senha@123";
   private static final byte[] PDF = "%PDF-1.7\ncontent".getBytes(StandardCharsets.US_ASCII);
-  private static final String CARUARU =
-      "{\"municipalities\":[{\"state\":\"PE\",\"municipality\":\"Caruaru\"}]}";
 
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
@@ -88,7 +81,6 @@ class ReviewerDistributionIntegrationTest {
   @Autowired private FindingRepository findingRepository;
   @Autowired private ProjectEventRepository eventRepository;
   @Autowired private NotificationRepository notificationRepository;
-  @Autowired private ReviewerMunicipalityRepository municipalityRepository;
   @Autowired private NormativeTableRepository normativeTableRepository;
   @Autowired private StandardRepository standardRepository;
   @Autowired private DemandCalculationService demandCalculationService;
@@ -102,7 +94,6 @@ class ReviewerDistributionIntegrationTest {
   /** The submissions here commit, and the versions they leave would block the next class's wipe. */
   @AfterEach
   void wipe() {
-    municipalityRepository.deleteAll();
     eventRepository.deleteAll();
     versionDocumentRepository.deleteAll();
     versionRepository.deleteAll();
@@ -137,116 +128,58 @@ class ReviewerDistributionIntegrationTest {
   }
 
   @Test
-  void listsEveryActiveReviewerOnlyToTheAdmin() throws Exception {
-    rule(ana, "Gravatá");
-    rule(ana, "Caruaru");
-    deactivate(bruno);
-
-    mockMvc
-        .perform(get("/reviewers/municipalities").header(HttpHeaders.AUTHORIZATION, bearer(ana)))
-        .andExpect(status().isForbidden());
+  void theMunicipalityRoutesAreGone() throws Exception {
     mockMvc
         .perform(get("/reviewers/municipalities").header(HttpHeaders.AUTHORIZATION, bearer(admin)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data", hasSize(2)))
-        .andExpect(jsonPath("$.data[0].reviewer.name").value("Admin Gestor"))
-        .andExpect(jsonPath("$.data[0].municipalities", empty()))
-        .andExpect(jsonPath("$.data[1].reviewer.id").value(String.valueOf(ana.getId())))
-        .andExpect(jsonPath("$.data[1].municipalities[0].municipality").value("Caruaru"))
-        .andExpect(jsonPath("$.data[1].municipalities[1].state").value("PE"))
-        .andExpect(jsonPath("$.data[1].municipalities[1].municipality").value("Gravatá"));
+        .andExpect(status().isNotFound());
   }
 
   @Test
-  void replacesTheListWithTheOfficialSpellingAndWithoutRepetition() throws Exception {
-    rule(ana, "Recife");
-
-    replaceMunicipalities(
-            ana,
-            "{\"municipalities\":[{\"state\":\"PE\",\"municipality\":\"caruaru\"},"
-                + "{\"state\":\"PE\",\"municipality\":\"CARUARU\"},"
-                + "{\"state\":\"PE\",\"municipality\":\"gravata\"}]}")
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data[*].municipality", contains("Caruaru", "Gravatá")));
-
-    assertThat(municipalityRepository.findAllByOrderByStateAscMunicipalityAsc())
-        .extracting(ReviewerMunicipality::getMunicipality)
-        .containsExactly("Caruaru", "Gravatá");
-  }
-
-  @Test
-  void refusesInvalidMunicipalityLists() throws Exception {
-    replaceMunicipalities(ana, "{\"municipalities\":[{\"state\":\"PE\",\"municipality\":\"Lua\"}]}")
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.detail").value("Município fora da área de concessão: Lua (PE)."));
-    replaceMunicipalities(ana, "{\"municipalities\":[null]}").andExpect(status().isBadRequest());
-    replaceMunicipalities(designer, CARUARU).andExpect(status().isNotFound());
-
-    deactivate(bruno);
-    replaceMunicipalities(bruno, CARUARU)
-        .andExpect(status().isUnprocessableContent())
-        .andExpect(jsonPath("$.detail").value("Analista inativo."));
-  }
-
-  @Test
-  void aMunicipalityBelongsToOneActiveReviewerAtATime() throws Exception {
-    rule(ana, "Caruaru");
-
-    replaceMunicipalities(bruno, CARUARU)
-        .andExpect(status().isConflict())
-        .andExpect(
-            jsonPath("$.detail")
-                .value("O município Caruaru já pertence ao analista Ana Analista."));
-  }
-
-  @Test
-  void anotherReviewerTakesTheMunicipalityOfAnInactiveOrDemotedOne() throws Exception {
-    rule(ana, "Caruaru");
-    rule(bruno, "Gravatá");
-    deactivate(ana);
-    demote(bruno);
-
-    replaceMunicipalities(
-            admin,
-            "{\"municipalities\":[{\"state\":\"PE\",\"municipality\":\"Caruaru\"},"
-                + "{\"state\":\"PE\",\"municipality\":\"Gravatá\"}]}")
-        .andExpect(status().isOk());
-
-    assertThat(municipalityRepository.findAll())
-        .extracting(found -> found.getReviewer().getId())
-        .containsOnly(admin.getId());
-  }
-
-  @Test
-  void submissionGoesToTheReviewerOfTheMunicipality() throws Exception {
-    rule(ana, "Caruaru");
+  void submissionWaitsForTheManager() throws Exception {
     Project project = readyProject("2026-9001", "Caruaru", designer);
 
     submit(project).andExpect(status().isOk());
 
-    assertThat(reviewerOf(project).getId()).isEqualTo(ana.getId());
-    ProjectEvent assignment = lastAssignmentOf(project);
-    assertThat(assignment.getAuthor()).isNull();
-    assertThat(assignment.getDescription())
-        .isEqualTo("Análise atribuída a Ana Analista pelo sistema.");
+    assertThat(reviewerOf(project)).isNull();
+    assertThat(assignmentsOf(project)).isEmpty();
   }
 
   @Test
-  void submissionStaysUnassignedWithoutAnEligibleReviewer() throws Exception {
-    rule(ana, "Caruaru");
-    rule(bruno, "Gravatá");
-    deactivate(ana);
-    demote(bruno);
-    Project inactive = readyProject("2026-9002", "Caruaru", designer);
-    Project demoted = readyProject("2026-9003", "Gravatá", designer);
-    Project noRule = readyProject("2026-9004", "Recife", designer);
+  void submissionWithoutAnAnalystNotifiesEveryActiveManager() throws Exception {
+    String hash = passwordEncoder.encode(PASSWORD);
+    User second =
+        userRepository.save(new User("Bia Gestora", "bia@ampere.com", hash, UserRole.ADMIN));
+    User former =
+        userRepository.save(new User("Caio Gestor", "caio@ampere.com", hash, UserRole.ADMIN));
+    deactivate(former);
+    Project project = readyProject("2026-9002", "Recife", designer);
 
-    for (Project project : List.of(inactive, demoted, noRule)) {
-      submit(project).andExpect(status().isOk());
+    submit(project).andExpect(status().isOk());
 
-      assertThat(reviewerOf(project)).isNull();
-      assertThat(assignmentsOf(project)).isEmpty();
+    for (User manager : List.of(admin, second)) {
+      notifications(manager)
+          .andExpect(jsonPath("$.data.unreadCount").value(1))
+          .andExpect(jsonPath("$.data.items[0].type").value("PROJECT_UNASSIGNED"))
+          .andExpect(
+              jsonPath("$.data.items[0].text").value("Projeto 2026-9002 aguardando analista"))
+          .andExpect(jsonPath("$.data.items[0].link").value("/fila-de-analise?reviewer=none"));
     }
+    assertThat(notificationRepository.findAllByProjectId(project.getId()))
+        .extracting(notice -> notice.getRecipient().getId())
+        .containsExactlyInAnyOrder(admin.getId(), second.getId());
+  }
+
+  @Test
+  void assigningReadsTheManagersNotice() throws Exception {
+    Project project = readyProject("2026-9003", "Recife", designer);
+    submit(project).andExpect(status().isOk());
+
+    assign(List.of(project), ana).andExpect(status().isNoContent());
+
+    notifications(admin)
+        .andExpect(jsonPath("$.data.unreadCount").value(0))
+        .andExpect(jsonPath("$.data.items", hasSize(1)))
+        .andExpect(jsonPath("$.data.items[0].read").value(true));
   }
 
   @Test
@@ -260,11 +193,14 @@ class ReviewerDistributionIntegrationTest {
 
     assertThat(reviewerOf(project).getId()).isEqualTo(bruno.getId());
     assertThat(lastAssignmentOf(project).getAuthor()).isNull();
+    // Only the notice of the first submission, read when the manager assigned it.
+    notifications(admin)
+        .andExpect(jsonPath("$.data.unreadCount").value(0))
+        .andExpect(jsonPath("$.data.items", hasSize(1)));
   }
 
   @Test
-  void resubmissionFallsBackToTheMunicipalityWhenWhoRejectedIsGone() throws Exception {
-    rule(ana, "Caruaru");
+  void resubmissionWaitsForTheManagerWhenWhoRejectedIsInactive() throws Exception {
     Project project = readyProject("2026-9006", "Caruaru", designer);
     submit(project).andExpect(status().isOk());
     assign(List.of(project), bruno).andExpect(status().isNoContent());
@@ -273,12 +209,16 @@ class ReviewerDistributionIntegrationTest {
 
     resubmit(project).andExpect(status().isOk());
 
-    assertThat(reviewerOf(project).getId()).isEqualTo(ana.getId());
-    notifications(ana)
-        .andExpect(status().isOk())
+    assertThat(reviewerOf(project)).isNull();
+    notifications(admin)
         .andExpect(jsonPath("$.data.unreadCount").value(1))
-        .andExpect(jsonPath("$.data.items[0].type").value("PROJECT_RESUBMITTED"))
-        .andExpect(jsonPath("$.data.items[0].projectId").value(String.valueOf(project.getId())));
+        .andExpect(jsonPath("$.data.items", hasSize(2)))
+        .andExpect(jsonPath("$.data.items[0].type").value("PROJECT_UNASSIGNED"))
+        .andExpect(jsonPath("$.data.items[0].read").value(false));
+    assertThat(notificationRepository.findAllByProjectId(project.getId()))
+        .filteredOn(notice -> notice.getType() == NotificationType.PROJECT_UNASSIGNED)
+        .extracting(notice -> notice.getRecipient().getId())
+        .containsOnly(admin.getId());
   }
 
   @Test
@@ -329,7 +269,6 @@ class ReviewerDistributionIntegrationTest {
 
   @Test
   void redistributionPointsTheRejectingAnalystNoticesToTheQueue() throws Exception {
-    rule(ana, "Caruaru");
     Project project = readyProject("2026-9017", "Caruaru", designer);
     submit(project).andExpect(status().isOk());
     assign(List.of(project), bruno).andExpect(status().isNoContent());
@@ -361,16 +300,6 @@ class ReviewerDistributionIntegrationTest {
     demote(bruno);
 
     resubmit(project).andExpect(status().isOk());
-
-    assertThat(reviewerOf(project)).isNull();
-  }
-
-  @Test
-  void theDistributionNeverHandsAProjectToItsOwner() throws Exception {
-    rule(admin, "Caruaru");
-    Project project = readyProject("2026-9008", "Caruaru", admin);
-
-    submit(project).andExpect(status().isOk());
 
     assertThat(reviewerOf(project)).isNull();
   }
@@ -514,14 +443,6 @@ class ReviewerDistributionIntegrationTest {
             .header(HttpHeaders.AUTHORIZATION, bearer(user)));
   }
 
-  private ResultActions replaceMunicipalities(User reviewer, String body) throws Exception {
-    return mockMvc.perform(
-        put("/reviewers/{id}/municipalities", reviewer.getId())
-            .header(HttpHeaders.AUTHORIZATION, bearer(admin))
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(body));
-  }
-
   private ResultActions assign(List<Project> projects, User reviewer) throws Exception {
     String ids =
         projects.stream()
@@ -563,11 +484,6 @@ class ReviewerDistributionIntegrationTest {
     Project found = projectRepository.findDetailById(project.getId()).orElseThrow();
     found.reject(OffsetDateTime.now(ZoneOffset.UTC), "Corrigir os documentos.");
     projectRepository.save(found);
-  }
-
-  private void rule(User reviewer, String municipality) {
-    municipalityRepository.save(
-        new ReviewerMunicipality(reviewer, BrazilianState.PE, municipality));
   }
 
   private void deactivate(User user) {

@@ -47,8 +47,11 @@ describe("HeaderNav", () => {
 
 		const menu = await screen.findByRole("menu");
 		expect(
-			within(menu).getByRole("menuitem", { name: "Distribuição" }),
-		).toHaveAttribute("href", "/distribuicao");
+			within(menu).getByRole("menuitem", { name: "Fila de Análise" }),
+		).toHaveAttribute("href", "/fila-de-analise");
+		expect(
+			within(menu).queryByRole("menuitem", { name: "Distribuição" }),
+		).not.toBeInTheDocument();
 		expect(
 			within(menu).getByRole("menuitem", { name: "Indicadores" }),
 		).toHaveClass("font-medium");

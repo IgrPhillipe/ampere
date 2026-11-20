@@ -60,8 +60,8 @@ describe("review queue API contract", () => {
 	it("keeps the reviewer list when a role is unknown", () => {
 		const parsed = reviewerListResponseSchema.parse({
 			data: [
-				{ id: "2", name: "Admin Teste", role: "admin" },
-				{ id: "9", name: "Auditor Teste", role: "auditor" },
+				{ id: "2", name: "Admin Teste", role: "admin", active: true },
+				{ id: "9", name: "Auditor Teste", role: "auditor", active: false },
 			],
 		});
 

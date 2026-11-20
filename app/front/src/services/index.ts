@@ -8,7 +8,7 @@ export * from "./project-events";
 export * from "./project-review";
 export * from "./project-versions";
 export * from "./projects";
+export * from "./review-assignment";
 export * from "./review-queue";
-export * from "./reviewer-distribution";
 export * from "./submission";
 export * from "./users";

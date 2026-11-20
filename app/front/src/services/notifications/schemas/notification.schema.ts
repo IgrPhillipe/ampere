@@ -9,6 +9,7 @@ export const notificationTypeSchema = z.enum([
 	"REVIEW_DEADLINE_NEAR",
 	"REVIEW_OVERDUE",
 	"APPROVAL_EXPIRING",
+	"PROJECT_UNASSIGNED",
 ]);
 
 export type NotificationType = z.infer<typeof notificationTypeSchema>;

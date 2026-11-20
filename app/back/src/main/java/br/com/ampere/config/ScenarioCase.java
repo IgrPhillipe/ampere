@@ -159,10 +159,6 @@ final class ScenarioCase {
     return assign(reviewer, kit.manager);
   }
 
-  ScenarioCase distributeTo(User reviewer) {
-    return assign(reviewer, null);
-  }
-
   private ScenarioCase assign(User reviewer, User author) {
     if (!project.isAssignedTo(reviewer.getId())) {
       project.assignReviewer(reviewer);

@@ -81,7 +81,6 @@ public class SecurityConfig {
                     .requestMatchers(
                         "/users",
                         "/users/**",
-                        "/reviewers/**",
                         "/review-queue/assignment",
                         "/review-queue/reviewers",
                         "/dashboard/admin")

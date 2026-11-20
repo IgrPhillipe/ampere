@@ -51,7 +51,6 @@ describe("role navigation", () => {
 			"Painel",
 			"Projetos",
 			"Fila de Análise",
-			"Distribuição",
 			"Indicadores",
 			"Meus Pareceres",
 			"Tabelas Normativas",
@@ -77,12 +76,7 @@ describe("role navigation", () => {
 			entries
 				.find((entry) => entry.kind === "group")
 				?.items.map(({ label }) => label),
-		).toEqual([
-			"Fila de Análise",
-			"Distribuição",
-			"Indicadores",
-			"Meus Pareceres",
-		]);
+		).toEqual(["Fila de Análise", "Indicadores", "Meus Pareceres"]);
 	});
 
 	it("keeps the analyst's header flat", () => {
@@ -98,7 +92,6 @@ describe("role navigation", () => {
 		expect(ROLE_ACCESS.normativeTables).not.toContain("user");
 		expect(ROLE_ACCESS.reviewQueue).not.toContain("user");
 		expect(ROLE_ACCESS.users).toEqual(["admin"]);
-		expect(ROLE_ACCESS.distribution).toEqual(["admin"]);
 		expect(ROLE_ACCESS.dashboard).toEqual(["user", "admin"]);
 		expect(ROLE_ACCESS.reviewIndicators).not.toContain("user");
 		expect(ROLE_ACCESS.myReviews).not.toContain("user");

@@ -65,7 +65,7 @@ O padrão é o mesmo das Entregas 02 e 03: uma issue por história, que funciona
 - A US07 abre o ciclo: a US08, a US09 e os painéis (US16 e US17) leem os apontamentos e as decisões que ela grava.
 - Na Sprint 6, o back da US08 entra antes do back da US12, que lê os mesmos eventos.
 - O `AT26-INFRA` entrega o painel do projetista (US16) até 01/11 e as demais telas até 08/11.
-- A US23 entra antes da US24, que mostra a carga por analista e os municípios sem analista.
+- A US23 entra antes da US24, que mostra a carga por analista.
 - O `AT05-US03`, na Sprint 8, entra antes do `AT06-US03`, que monta as telas sobre o contrato dele.
 
 **Total:** 61 issues abertas entre #88 e #154: 6 na Entrega 03, 27 na Entrega 04 e 28 no Status Report 2. As #142 a #147, da duplicação de projeto e dos documentos complementares, foram fechadas fora do escopo. A US23 (#191) e a US24 (#192), com as tarefas #193 a #196, entraram em 24/10 no Status Report 2. Também em 24/10: `AT32-INFRA` a `AT34-INFRA`, `AT03-US18`, `AT04-US18`, `AT03-US03`, `AT04-US05` e `AT05-US05` na Entrega 04, e `AT03-US11` e `AT04-US11` no Status Report 2. Em 31/10, os ajustes #204 a #215 entraram no Status Report 2.
@@ -388,7 +388,7 @@ Cada história tem a issue épica, a tarefa de back e a tarefa de front, nessa o
 | US13: Versão Congelada do Envio (#124) | **Sprint 7.** `AT01-US13`: entidade `ProjectVersion` com memorial, cálculo e documentos, `GET /api/projects/{id}/versions` e `GET .../versions/{n}/memorial`, comparativo | **Sprint 8.** `AT02-US13`: versões e "Comparar Versões" na seção "Histórico" |
 | US14: Notificações no Sistema (#127) | **Sprint 7.** `AT01-US14`: entidade `Notification`, geração nos eventos da US07, US09 e US15, `GET /api/notifications` e marcação de leitura | **Sprint 8.** `AT02-US14`: contador no sino e painel de notificações dos dois perfis |
 | US19: Exportação em Planilha (#139) | **Sprint 7.** `AT01-US19`: `GET /api/projects/{id}/calculation.xlsx` e exportação `.csv` das listagens com os filtros | **Sprint 9.** `AT02-US19`: botões "Exportar Planilha" e "Exportar CSV" |
-| US23: Distribuição da Fila de Análise (#191) | **Sprint 7.** `AT01-US23`: atribuição em lote, municípios por analista e distribuição no envio | **Sprint 8.** `AT02-US23`: seleção em lote na fila e tela "Distribuição" |
+| US23: Distribuição da Fila de Análise (#191) | **Sprint 7.** `AT01-US23`: atribuição em lote e reenvio de volta a quem reprovou. A regra por município saiu em 20/11 | **Sprint 8.** `AT02-US23`: seleção em lote e "Atribuir Analista" na fila. A tela "Distribuição" saiu em 20/11 |
 | US15: Prazos de Análise e Validade da Aprovação (#130) | **Sprint 8.** `AT01-US15`: suspensão e retomada do prazo, status `EXPIRED` após 36 meses, job diário | **Sprint 9.** `AT02-US15`: prazo, dias suspensos e validade na fila e no painel do projeto |
 | US17: Painel do Analista (#136) | **Sprint 8.** `AT01-US17`: `GET /api/dashboard/review?period=` e `GET /api/review-queue/mine` | **Sprint 9.** `AT02-US17`: telas "Indicadores" e "Meus Pareceres" |
 | US24: Painel do Administrador (#192) | Entregue. `AT01-US24` (#195): `GET /api/dashboard/admin` e filtros de troca de senha pendente e último acesso em `GET /api/users` | Entregue. `AT02-US24` (#196): tela "Painel" como inicial do administrador, com contadores de usuários que abrem "Usuários" filtrada, projetos ativos com busca e filtro por projetista, e a fila com carga por analista |

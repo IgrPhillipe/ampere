@@ -11,7 +11,6 @@ import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectVersionDocumentRepository;
 import br.com.ampere.repository.ProjectVersionRepository;
-import br.com.ampere.repository.ReviewerMunicipalityRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.DemandCalculationService;
@@ -41,7 +40,6 @@ abstract class SeedIntegrationTestBase {
   @Autowired protected StandardRepository standardRepository;
   @Autowired protected NormativeTableRepository normativeTableRepository;
   @Autowired protected UserRepository userRepository;
-  @Autowired protected ReviewerMunicipalityRepository municipalityRepository;
   @Autowired protected DemandCalculationService demandCalculation;
   @Autowired protected ProjectEventService projectEventService;
   @Autowired protected ProjectVersionService projectVersionService;
@@ -57,7 +55,6 @@ abstract class SeedIntegrationTestBase {
   }
 
   protected void wipe() {
-    municipalityRepository.deleteAll();
     eventRepository.deleteAll();
     approvalMemorialRepository.deleteAll();
     versionDocumentRepository.deleteAll();
@@ -105,7 +102,6 @@ abstract class SeedIntegrationTestBase {
         standardRepository,
         normativeTableRepository,
         userRepository,
-        municipalityRepository,
         demandCalculation,
         projectEventService,
         projectVersionService,

@@ -37,7 +37,6 @@ import static br.com.ampere.domain.LoadCategory.SPECIAL_EQUIPMENT;
 import static br.com.ampere.domain.LoadCategory.STORAGE_HEATING;
 
 import br.com.ampere.config.ScenarioGroups.GroupDraft;
-import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
@@ -50,11 +49,9 @@ import br.com.ampere.domain.Mixed;
 import br.com.ampere.domain.NonResidential;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.ResidentialMultifamily;
-import br.com.ampere.domain.ReviewerMunicipality;
 import br.com.ampere.domain.SupplyVoltage;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Every project of the demonstration. The protocols 2026-1001 to 2026-1008 and 2026-2001 to
@@ -66,12 +63,6 @@ final class DemoScenarios {
   private static final SupplyVoltage V220 = SupplyVoltage.V220_127;
 
   private DemoScenarios() {}
-
-  static List<ReviewerMunicipality> municipalities(DemoUsers u) {
-    return Stream.of("Caruaru", "Garanhuns", "Petrolina")
-        .map(municipality -> new ReviewerMunicipality(u.ana(), BrazilianState.PE, municipality))
-        .toList();
-  }
 
   static List<Scenario> all(DemoUsers u) {
     List<Scenario> scenarios = new ArrayList<>();
@@ -769,10 +760,9 @@ final class DemoScenarios {
             residential(8, V380),
             u.user(),
             10,
-            // Caruaru is one of Ana's municipalities: the distribution hands it to her.
             c -> {
               ready(c, 7, apartments("Apartamento padrão", 16, "65", 2, "6.00"));
-              c.submit(4).distributeTo(u.ana());
+              c.submit(4).assignTo(u.ana());
             }),
         Scenario.of(
             "2026-2045",
@@ -783,7 +773,7 @@ final class DemoScenarios {
             nonResidential(4, V380),
             u.carla(),
             12,
-            // No analyst covers Gravatá: it waits in the queue for the manager.
+            // Nobody assigned it yet: it waits in the queue for the manager.
             c -> {
               ready(c, 8, commercial("Salas comerciais", 8));
               c.submit(6);

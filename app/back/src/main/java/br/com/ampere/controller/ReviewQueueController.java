@@ -116,7 +116,8 @@ public class ReviewQueueController {
   @Operation(
       operationId = "listReviewers",
       summary =
-          "Lista os analistas e gestores disponíveis para a atribuição, com o papel de cada um")
+          "Lista os analistas e gestores ativos e, com active false, os desativados que ainda"
+              + " têm projeto em análise")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",

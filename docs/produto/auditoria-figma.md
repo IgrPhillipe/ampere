@@ -100,7 +100,7 @@ O [`design-system-front.md`](../tecnico/design-system-front.md) põe o site da N
 | H14 Comparativo de Versões | #126, Sprint 8 |
 | Notificações (projetista e analista) | #129, Sprint 8 |
 
-As telas da Distribuição (US23) e do Painel do Administrador (US24) não estão no Hi-Fi. Seguem o padrão de listagem do H6 e do H17 e o painel do H11.
+O Painel do Administrador (US24) não está no Hi-Fi e segue o painel do H11.
 
 ## 5. Padrões Para as Telas em Desenvolvimento
 
