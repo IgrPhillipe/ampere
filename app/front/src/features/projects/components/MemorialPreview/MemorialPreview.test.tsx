@@ -26,6 +26,9 @@ describe("MemorialPreview", () => {
 		render(<MemorialPreview stamp={null} />);
 
 		expect(
+			screen.getByRole("button", { name: "Exportar Planilha" }),
+		).toBeDisabled();
+		expect(
 			screen.getByRole("heading", { name: "Memorial Gerado" }),
 		).toBeInTheDocument();
 		expect(screen.getByText("Prévia")).toBeInTheDocument();

@@ -1,5 +1,6 @@
 package br.com.ampere.domain;
 
+import br.com.ampere.utils.Timestamps;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -16,7 +17,6 @@ import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -140,7 +140,7 @@ public class Calculation {
 
   public Calculation(Project project, DemandResult result, String inputSnapshot) {
     this.project = Objects.requireNonNull(project, "project");
-    this.calculatedAt = OffsetDateTime.now(ZoneOffset.UTC);
+    this.calculatedAt = Timestamps.now();
     this.inputSnapshot = Objects.requireNonNull(inputSnapshot, "inputSnapshot");
 
     BuildingType building = project.getBuildingType();

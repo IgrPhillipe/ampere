@@ -1,5 +1,5 @@
 import { toSearchParams } from "@features/shared";
-import { http } from "@lib/http";
+import { filenameOf, http } from "@lib/http";
 
 import { ProjectEndpoints as e } from "./endpoints";
 import {
@@ -20,6 +20,20 @@ export const getProjectList = async (params: ListProjectsParams = {}) => {
 		.json<unknown>();
 
 	return projectListResponseSchema.parse(response);
+};
+
+export const exportProjectListCsv = async (params: ListProjectsParams = {}) => {
+	const searchParams = toSearchParams({ ...params });
+	searchParams.delete("page");
+	searchParams.delete("pageSize");
+	const response = await http.get(e.exportCsv, {
+		searchParams,
+	});
+
+	return {
+		filename: filenameOf(response, "projetos.csv"),
+		blob: await response.blob(),
+	};
 };
 
 export const getProjectStatusCounts = async () => {

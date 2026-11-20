@@ -1,15 +1,25 @@
+import type { Calculation } from "@services/calculation";
 import type { ProjectVersion } from "@services/project-versions";
 import type { ProjectStatus } from "@services/projects";
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { loadedQuery, makeProjectDetail } from "@/test/fixtures/project-detail";
+import { httpErrorOf } from "@/test/fixtures/http-error";
+import {
+	idleMutation,
+	loadedQuery,
+	makeProjectDetail,
+} from "@/test/fixtures/project-detail";
 
 import { MemorialPage } from "./MemorialPage";
 
 const state = vi.hoisted(() => ({
 	status: "UNDER_REVIEW" as ProjectStatus,
+	calculation: "pending" as "pending" | "none" | "ready",
+	memorialError: null as unknown,
+	exportMutate: vi.fn(),
+	download: vi.fn(),
 	versions: undefined as ProjectVersion[] | undefined,
 	versionsFailed: false,
 	versionsEnabled: [] as boolean[],
@@ -24,19 +34,32 @@ vi.mock("@services/projects", async (importOriginal) => ({
 
 vi.mock("@services/calculation", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/calculation")>()),
-	useGetLatestCalculation: () => ({
-		...loadedQuery(undefined),
-		isPending: true,
-	}),
+	useGetLatestCalculation: () => {
+		if (state.calculation === "none") return loadedQuery({ data: null });
+		if (state.calculation === "ready")
+			return loadedQuery({ data: readyCalculation });
+		return { ...loadedQuery(undefined), isPending: true };
+	},
+	useExportCalculationSpreadsheet: () =>
+		idleMutation({ mutate: state.exportMutate }),
 }));
+
+vi.mock("@features/shared", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@features/shared")>()),
+	downloadFile: (...args: unknown[]) => state.download(...args),
+}));
+
+const readyCalculation = {
+	totals: { finalKva: 46 },
+	traceability: { currentAmps: 70, breakerAmps: null, cableSectionMm2: null },
+} as unknown as Calculation;
 
 vi.mock("@services/submission", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/submission")>()),
-	useGetMemorial: () => ({
-		...loadedQuery(undefined),
-		isPending: true,
-		error: null,
-	}),
+	useGetMemorial: () =>
+		state.memorialError
+			? { ...loadedQuery(undefined), isError: true, error: state.memorialError }
+			: { ...loadedQuery(undefined), isPending: true, error: null },
 	useGetSubmission: () => ({ ...loadedQuery(undefined), isPending: true }),
 }));
 
@@ -85,6 +108,10 @@ const versionOf = (number: number): ProjectVersion => ({
 describe("MemorialPage", () => {
 	beforeEach(() => {
 		state.status = "UNDER_REVIEW";
+		state.calculation = "pending";
+		state.memorialError = null;
+		state.exportMutate.mockReset();
+		state.download.mockReset();
 		state.versions = undefined;
 		state.versionsFailed = false;
 		state.versionsEnabled = [];
@@ -98,6 +125,43 @@ describe("MemorialPage", () => {
 			screen.getByRole("heading", { name: "Memorial" }),
 		).toBeInTheDocument();
 		expect(screen.queryByText(/Prévia/)).not.toBeInTheDocument();
+	});
+
+	it("keeps spreadsheet export disabled when the project has no calculation", () => {
+		state.calculation = "none";
+		render(<MemorialPage projectId="4" />);
+
+		expect(
+			screen.getByRole("button", { name: "Exportar Planilha" }),
+		).toBeDisabled();
+	});
+
+	it("downloads the spreadsheet of the latest calculation", () => {
+		state.calculation = "ready";
+		const file = new Blob(["xlsx"]);
+		state.exportMutate.mockImplementation((_projectId, options) =>
+			options.onSuccess({ blob: file, filename: "2026-1008-calculo.xlsx" }),
+		);
+		render(<MemorialPage projectId="4" />);
+
+		fireEvent.click(screen.getByRole("button", { name: "Exportar Planilha" }));
+
+		expect(state.exportMutate).toHaveBeenCalledWith("4", expect.anything());
+		expect(state.download).toHaveBeenCalledWith(file, "2026-1008-calculo.xlsx");
+	});
+
+	it.each([
+		["outdated", 409, "Recalcule a demanda antes de gerar o memorial"],
+		["failed", 500, "Não foi possível gerar o memorial"],
+	])("keeps the spreadsheet export disabled when the memorial is %s", async (_case, status, title) => {
+		state.calculation = "ready";
+		state.memorialError = await httpErrorOf(status, { status });
+		render(<MemorialPage projectId="4" />);
+
+		expect(screen.getByText(title)).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: "Exportar Planilha" }),
+		).toBeDisabled();
 	});
 
 	it("names the latest version once the versions arrive", () => {
