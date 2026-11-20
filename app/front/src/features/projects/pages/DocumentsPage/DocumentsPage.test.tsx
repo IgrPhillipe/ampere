@@ -156,6 +156,15 @@ describe("DocumentsPage", () => {
 			expect(onDocument).toHaveBeenCalledWith(art);
 		});
 
+		it("keeps the reader's toolbar for the analyst", () => {
+			renderPage(vi.fn());
+
+			expect(screen.getByTitle("ART: art-assinada.pdf")).toHaveAttribute(
+				"src",
+				"blob:documento",
+			);
+		});
+
 		it("shows the list without the finding action to the designer", () => {
 			signInAs("user");
 			renderPage();

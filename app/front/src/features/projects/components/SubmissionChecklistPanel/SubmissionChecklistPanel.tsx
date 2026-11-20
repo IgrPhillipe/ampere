@@ -296,6 +296,7 @@ export const SubmissionChecklistPanel = ({
 			<DocumentDialog
 				projectId={projectId}
 				document={viewing}
+				hideToolbar={editable}
 				onClose={() => setViewing(undefined)}
 			/>
 		</Container>
