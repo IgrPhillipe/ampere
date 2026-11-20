@@ -398,11 +398,13 @@ describe("ProjectHistoryPage versions", () => {
 
 		const list = screen.getByRole("list", { name: "Versões enviadas" });
 		const items = within(list).getAllByRole("listitem");
-		expect(items.map((item) => item.textContent?.slice(0, 3))).toEqual([
-			"v03",
-			"v02",
-			"v01",
+		expect(items.map((item) => item.textContent?.slice(0, 8))).toEqual([
+			"Versão 3",
+			"Versão 2",
+			"Versão 1",
 		]);
+		expect(within(items[0]).getByText("Atual")).toBeInTheDocument();
+		expect(within(items[1]).queryByText("Atual")).not.toBeInTheDocument();
 		expect(
 			within(items[0]).getByRole("link", {
 				name: "Verificar o código 7F3A-91C2-04BD-2E73",
@@ -446,9 +448,7 @@ describe("ProjectHistoryPage versions", () => {
 		renderPage();
 
 		expect(
-			screen.getByText(
-				"Resumo das alterações: Carga de ar-condicionado incluída nas lojas.",
-			),
+			screen.getByText("Carga de ar-condicionado incluída nas lojas."),
 		).toBeInTheDocument();
 		fireEvent.click(
 			screen.getByRole("button", { name: "Baixar Diagrama unifilar da v02" }),
@@ -499,16 +499,18 @@ describe("ProjectHistoryPage versions", () => {
 		);
 	});
 
-	it("opens the comparison of the latest version against the one before", async () => {
+	it("compares a version with the one before it", async () => {
 		const onUrlUpdate = vi.fn<OnUrlUpdateFunction>();
 		renderPage("", onUrlUpdate);
 
-		fireEvent.click(screen.getByRole("button", { name: "Comparar Versões" }));
+		fireEvent.click(
+			screen.getByRole("button", { name: "Comparar com a Versão 1" }),
+		);
 
 		await vi.waitFor(() => expect(onUrlUpdate).toHaveBeenCalled());
 		const { searchParams } = onUrlUpdate.mock.calls.at(-1)?.[0] ?? {};
-		expect(searchParams?.get("from")).toBe("2");
-		expect(searchParams?.get("to")).toBe("3");
+		expect(searchParams?.get("from")).toBe("1");
+		expect(searchParams?.get("to")).toBe("2");
 	});
 
 	it("offers no comparison with a single version", () => {
@@ -516,7 +518,7 @@ describe("ProjectHistoryPage versions", () => {
 		renderPage();
 
 		expect(
-			screen.queryByRole("button", { name: "Comparar Versões" }),
+			screen.queryByRole("button", { name: /^Comparar com/ }),
 		).not.toBeInTheDocument();
 	});
 
@@ -529,37 +531,36 @@ describe("ProjectHistoryPage versions", () => {
 		).toBeInTheDocument();
 		expect(screen.queryByText("Projeto criado.")).not.toBeInTheDocument();
 
-		const demandRow = screen
-			.getByText("Demanda total da edificação")
-			.closest("tr");
-		expect(demandRow).toHaveAttribute("data-changed", "true");
-		expect(demandRow).toHaveTextContent("236,0 kVA");
-		expect(demandRow).toHaveTextContent("238,4 kVA");
-		expect(demandRow).toHaveTextContent("+2,4");
+		const summary = screen.getByLabelText("Resumo do comparativo");
+		expect(summary).toHaveTextContent("236,0 kVA → 238,4 kVA");
+		expect(summary).toHaveTextContent("+2,4 kVA");
+		expect(summary).toHaveTextContent("01 alterado, 01 incluído");
 
-		const groups = screen.getAllByRole("table")[1];
-		expect(within(groups).getByText("Unidades: 24 → 26")).toBeInTheDocument();
-		expect(within(groups).getByText("Incluído")).toBeInTheDocument();
-		expect(within(groups).getByText("Alterado")).toBeInTheDocument();
-
-		const field = screen.getByRole("heading", { name: "O que mudou" })
-			.parentElement?.parentElement as HTMLElement;
-		expect(within(field).getByText("Alterações na v03")).toBeInTheDocument();
-		expect(within(field).getAllByRole("listitem")).toHaveLength(3);
+		const groups = screen.getByRole("list", { name: "Grupos que mudaram" });
+		const [changed, included] = within(groups).getAllByRole("listitem");
+		expect(within(changed).getByText("Apartamento tipo A")).toBeInTheDocument();
+		expect(within(changed).getByText("Alterado")).toBeInTheDocument();
+		const row = within(changed).getByRole("rowheader", { name: "Unidades" })
+			.parentElement as HTMLElement;
+		expect(row).toHaveTextContent("24");
+		expect(row).toHaveTextContent("26");
 		expect(
-			within(field).getByText("Grupo incluído: Recarga de veículo elétrico"),
+			within(included).getByText("Recarga de veículo elétrico"),
+		).toBeInTheDocument();
+		expect(
+			within(included).getByText("Grupo novo na v03."),
 		).toBeInTheDocument();
 	});
 
 	it("lets each table scroll sideways on a narrow screen, by keyboard too", () => {
 		renderPage("?from=2&to=3");
 
-		for (const name of ["Memória de cálculo", "Grupos de UCs"]) {
-			const region = screen.getByRole("region", { name });
-			expect(region).toHaveClass("overflow-x-auto");
-			expect(region).toHaveAttribute("tabindex", "0");
-			expect(within(region).getByRole("table")).toHaveClass("min-w-[32rem]");
-		}
+		const region = screen.getByRole("region", {
+			name: "Campos de Apartamento tipo A",
+		});
+		expect(region).toHaveClass("overflow-x-auto");
+		expect(region).toHaveAttribute("tabindex", "0");
+		expect(within(region).getByRole("table")).toHaveClass("min-w-[28rem]");
 	});
 
 	it("compares the older version to the newer one even from a reversed link", () => {
@@ -574,15 +575,15 @@ describe("ProjectHistoryPage versions", () => {
 		fireEvent.click(
 			screen.getByRole("combobox", { name: "Versão de destino" }),
 		);
-		expect(await screen.findByRole("option", { name: "v01" })).toHaveAttribute(
+		expect(await screen.findByRole("option", { name: /^v01/ })).toHaveAttribute(
 			"aria-disabled",
 			"true",
 		);
-		expect(screen.getByRole("option", { name: "v02" })).toHaveAttribute(
+		expect(screen.getByRole("option", { name: /^v02/ })).toHaveAttribute(
 			"aria-disabled",
 			"true",
 		);
-		expect(screen.getByRole("option", { name: "v03" })).not.toHaveAttribute(
+		expect(screen.getByRole("option", { name: /^v03/ })).not.toHaveAttribute(
 			"aria-disabled",
 			"true",
 		);
@@ -600,16 +601,15 @@ describe("ProjectHistoryPage versions", () => {
 		expect(searchParams?.has("to")).toBe(false);
 	});
 
-	it("tells in the changes field that the comparison failed", () => {
+	it("tells that the comparison failed", () => {
 		state.comparisonFailed = true;
 		renderPage("?from=2&to=3");
 
 		expect(
 			screen.getByText("Não foi possível comparar as versões"),
 		).toBeInTheDocument();
-		expect(screen.getByText("Comparativo indisponível")).toBeInTheDocument();
 		expect(
-			screen.queryByText("Carregando o comparativo"),
-		).not.toBeInTheDocument();
+			screen.getByRole("button", { name: "Tentar Novamente" }),
+		).toBeInTheDocument();
 	});
 });

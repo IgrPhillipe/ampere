@@ -19,11 +19,10 @@ import {
 	ProjectTimeline,
 	ProjectVersionList,
 	ReworkPanel,
-	VersionChangesField,
 	VersionComparisonView,
 	type VersionDownload,
 } from "../../components";
-import { defaultComparedVersions, wasApproved } from "../../constants";
+import { wasApproved } from "../../constants";
 import { useComparedVersions } from "../../hooks";
 
 interface ProjectHistoryPageProps {
@@ -73,11 +72,6 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 			{ onSuccess: ({ blob, filename }) => downloadFile(blob, filename) },
 		);
 
-	const openComparison = () => {
-		const pair = versions ? defaultComparedVersions(versions) : null;
-		if (pair) compare(pair);
-	};
-
 	if (eventsQuery.isError || reworkQuery.isError) {
 		return (
 			<div className="flex-1 px-6 py-8 md:px-10">
@@ -112,7 +106,7 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 					? downloadFileOfVersion.variables
 					: undefined
 			}
-			onCompare={comparing ? undefined : openComparison}
+			onCompare={compare}
 			className="px-6 py-8 md:px-10 @5xl:px-8"
 		/>
 	);
@@ -150,13 +144,7 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 			)}
 
 			<div className="flex flex-col border-t border-border @5xl:border-t-0 @5xl:border-l">
-				{comparing ? (
-					<VersionChangesField
-						comparison={comparisonQuery.data?.data}
-						isError={comparisonQuery.isError}
-						className="m-6 md:mx-10 @5xl:mx-6"
-					/>
-				) : (
+				{comparing ? null : (
 					<ReworkPanel
 						rework={reworkQuery.data?.data}
 						approved={detail !== undefined && wasApproved(detail.status)}

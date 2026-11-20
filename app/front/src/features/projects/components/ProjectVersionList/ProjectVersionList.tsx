@@ -1,4 +1,5 @@
 import { SectionHeading } from "@components/SectionHeading";
+import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import { formatDate, formatKva, padCount } from "@features/shared";
@@ -7,7 +8,8 @@ import type { ProjectVersion, VersionFile } from "@services/project-versions";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Download, GitCompareArrows } from "lucide-react";
 
-import { formatVersion } from "../../constants";
+import { formatKvaDelta, formatVersion } from "../../constants";
+import type { ComparedVersions } from "../VersionComparisonView";
 
 /** A file of a version being fetched. */
 export interface VersionDownload {
@@ -20,8 +22,8 @@ interface ProjectVersionListProps {
 	isLoading?: boolean;
 	onDownload: (download: VersionDownload) => void;
 	downloading?: VersionDownload;
-	/** Present when the list offers the comparison of two versions. */
-	onCompare?: () => void;
+	/** Present when the list offers to compare a version with the one before it. */
+	onCompare?: (compared: ComparedVersions) => void;
 	className?: string;
 }
 
@@ -33,31 +35,37 @@ interface FileButtonProps {
 	ariaLabel: string;
 	busy: boolean;
 	onClick: () => void;
-	className?: string;
 }
 
-const FileButton = ({
-	label,
-	ariaLabel,
-	busy,
-	onClick,
-	className,
-}: FileButtonProps) => (
+const FileButton = ({ label, ariaLabel, busy, onClick }: FileButtonProps) => (
 	<Button
 		type="button"
-		variant="link"
+		variant="outline"
 		size="xs"
-		className={cn(
-			"h-auto px-0 font-mono text-2xs tracking-[0.11em] uppercase",
-			className,
-		)}
 		aria-label={ariaLabel}
 		disabled={busy}
 		onClick={onClick}
 	>
-		{busy ? "Baixando..." : label}
 		<Download aria-hidden="true" />
+		{busy ? "Baixando..." : label}
 	</Button>
+);
+
+const VerificationLink = ({ code }: { code: string }) => (
+	<Link
+		to="/verificar-autenticidade"
+		search={{ codigo: code }}
+		className="font-mono tracking-[0.11em] text-foreground underline-offset-4 hover:underline"
+		aria-label={`Verificar o código ${code}`}
+	>
+		{code}
+	</Link>
+);
+
+const Caption = ({ children }: { children: string }) => (
+	<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+		{children}
+	</span>
 );
 
 /** The submissions as they were frozen, each with its memorial and documents. */
@@ -90,74 +98,104 @@ export const ProjectVersionList = ({
 						: undefined
 				}
 			>
-				Versões Registradas
+				Versões Enviadas
 			</SectionHeading>
 
 			{isLoading ? (
 				<div className="flex flex-col gap-3">
-					<Skeleton className="h-10 w-full" />
-					<Skeleton className="h-10 w-full" />
+					<Skeleton className="h-24 w-full" />
+					<Skeleton className="h-24 w-full" />
 				</div>
 			) : sorted.length === 0 ? (
 				<p className="text-sm text-muted-foreground">
-					Nenhuma versão enviada ainda. O memorial oficial é gravado no envio.
+					Nenhuma versão enviada ainda. Cada envio grava uma versão, com o
+					memorial e os documentos daquele momento.
 				</p>
 			) : (
-				<ul aria-label="Versões enviadas" className="flex flex-col">
-					{sorted.map((version) => {
+				<ol aria-label="Versões enviadas" className="flex flex-col">
+					{sorted.map((version, index) => {
 						const label = formatVersion(version.number);
+						const previous = sorted[index + 1];
+						const delta = previous
+							? version.demandKva - previous.demandKva
+							: undefined;
 
 						return (
 							<li
 								key={version.number}
-								className="flex flex-col gap-1.5 border-b border-border py-3 last:border-b-0"
+								className="flex flex-col gap-3 border-b border-border py-4 first:pt-0 last:border-b-0"
 							>
-								<div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-									<span className="font-mono text-xs text-faint-foreground">
-										{label}
-									</span>
-									<time
-										dateTime={version.submittedAt}
-										className="font-mono text-sm text-foreground"
-									>
-										{formatDate(version.submittedAt)}
-									</time>
-									<span className="font-mono text-sm text-muted-foreground">
-										{formatKva(version.demandKva, 1)}
-									</span>
-									<FileButton
-										className="ml-auto"
-										label="Memorial PDF"
-										ariaLabel={`Baixar o memorial da ${label}`}
-										busy={isDownloading(version.number, MEMORIAL)}
-										onClick={() =>
-											onDownload({ version: version.number, file: MEMORIAL })
-										}
-									/>
+								<div className="flex items-start justify-between gap-4">
+									<div className="flex min-w-0 flex-col gap-1">
+										<p className="flex items-center gap-2.5">
+											<span className="font-heading text-base font-medium text-foreground">
+												Versão {version.number}
+											</span>
+											{index === 0 ? <Badge variant="tag">Atual</Badge> : null}
+										</p>
+										<p className="text-xs text-muted-foreground">
+											Enviada em{" "}
+											<time dateTime={version.submittedAt}>
+												{formatDate(version.submittedAt)}
+											</time>
+											{version.authorName ? ` por ${version.authorName}` : null}
+										</p>
+									</div>
+
+									<div className="flex shrink-0 flex-col items-end gap-1">
+										<span className="font-mono text-sm text-foreground">
+											{formatKva(version.demandKva, 1)}
+										</span>
+										{delta !== undefined ? (
+											<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+												{delta === 0
+													? "Demanda igual"
+													: `${formatKvaDelta(delta)} kVA`}
+											</span>
+										) : null}
+									</div>
 								</div>
-								<div className="flex flex-wrap items-baseline gap-x-3 text-xs text-muted-foreground">
-									{version.authorName ? (
-										<span>Enviada por {version.authorName}</span>
-									) : null}
-									{version.verificationCode ? (
-										<Link
-											to="/verificar-autenticidade"
-											search={{ codigo: version.verificationCode }}
-											className="font-mono tracking-[0.11em] underline-offset-4 hover:text-foreground hover:underline"
-											aria-label={`Verificar o código ${version.verificationCode}`}
-										>
-											{version.verificationCode}
-										</Link>
-									) : null}
-								</div>
+
 								{version.changeSummary ? (
+									<div className="flex flex-col gap-1 border-l-2 border-border-strong pl-3">
+										<Caption>O que o projetista mudou</Caption>
+										<p className="text-sm text-foreground">
+											{version.changeSummary}
+										</p>
+									</div>
+								) : null}
+
+								{version.approvalMemorial ? (
 									<p className="text-xs text-muted-foreground">
-										Resumo das alterações: {version.changeSummary}
+										Aprovada com ressalvas em{" "}
+										{formatDate(version.approvalMemorial.issuedAt)}
 									</p>
 								) : null}
-								{version.documents.length > 0 ? (
-									<div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs text-muted-foreground">
-										<span>Documentos enviados:</span>
+
+								<div className="flex flex-col gap-1.5">
+									<Caption>Arquivos</Caption>
+									<div className="flex flex-wrap gap-1.5">
+										<FileButton
+											label="Memorial"
+											ariaLabel={`Baixar o memorial da ${label}`}
+											busy={isDownloading(version.number, MEMORIAL)}
+											onClick={() =>
+												onDownload({ version: version.number, file: MEMORIAL })
+											}
+										/>
+										{version.approvalMemorial ? (
+											<FileButton
+												label="Memorial da Aprovação"
+												ariaLabel={`Baixar o memorial da aprovação da ${label}`}
+												busy={isDownloading(version.number, APPROVAL_MEMORIAL)}
+												onClick={() =>
+													onDownload({
+														version: version.number,
+														file: APPROVAL_MEMORIAL,
+													})
+												}
+											/>
+										) : null}
 										{version.documents.map((document) => {
 											const file: VersionFile = {
 												kind: "document",
@@ -177,57 +215,58 @@ export const ProjectVersionList = ({
 											);
 										})}
 									</div>
+								</div>
+
+								{version.verificationCode || version.approvalMemorial ? (
+									<dl className="flex flex-col gap-1 text-xs text-muted-foreground">
+										{version.verificationCode ? (
+											<div className="flex flex-wrap gap-x-2">
+												<dt>Código do memorial</dt>
+												<dd>
+													<VerificationLink code={version.verificationCode} />
+												</dd>
+											</div>
+										) : null}
+										{version.approvalMemorial ? (
+											<div className="flex flex-wrap gap-x-2">
+												<dt>Código da aprovação</dt>
+												<dd>
+													<VerificationLink
+														code={version.approvalMemorial.verificationCode}
+													/>
+												</dd>
+											</div>
+										) : null}
+									</dl>
 								) : null}
-								{version.approvalMemorial ? (
-									<div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs text-muted-foreground">
-										<span>
-											Aprovada com ressalvas em{" "}
-											{formatDate(version.approvalMemorial.issuedAt)}
-										</span>
-										<FileButton
-											label="Memorial da Aprovação"
-											ariaLabel={`Baixar o memorial da aprovação da ${label}`}
-											busy={isDownloading(version.number, APPROVAL_MEMORIAL)}
-											onClick={() =>
-												onDownload({
-													version: version.number,
-													file: APPROVAL_MEMORIAL,
-												})
-											}
-										/>
-										<Link
-											to="/verificar-autenticidade"
-											search={{
-												codigo: version.approvalMemorial.verificationCode,
-											}}
-											className="font-mono tracking-[0.11em] underline-offset-4 hover:text-foreground hover:underline"
-											aria-label={`Verificar o código ${version.approvalMemorial.verificationCode}`}
-										>
-											{version.approvalMemorial.verificationCode}
-										</Link>
-									</div>
+
+								{onCompare && previous ? (
+									<Button
+										type="button"
+										variant="link"
+										size="sm"
+										className="h-auto self-start px-0"
+										onClick={() =>
+											onCompare({ from: previous.number, to: version.number })
+										}
+									>
+										<GitCompareArrows aria-hidden="true" />
+										Comparar com a Versão {previous.number}
+									</Button>
 								) : null}
 							</li>
 						);
 					})}
-				</ul>
+				</ol>
 			)}
 
-			<div className="flex flex-wrap items-center justify-between gap-3">
-				{onCompare && sorted.length >= 2 ? (
-					<Button type="button" variant="outline" size="sm" onClick={onCompare}>
-						<GitCompareArrows aria-hidden="true" />
-						Comparar Versões
-					</Button>
-				) : null}
-				<Link
-					to="/verificar-autenticidade"
-					className="inline-flex items-center gap-1 font-mono text-2xs tracking-[0.11em] text-muted-foreground uppercase underline-offset-4 hover:text-foreground hover:underline"
-				>
-					Verificar Autenticidade pelo Código
-					<ArrowRight aria-hidden="true" className="size-3" />
-				</Link>
-			</div>
+			<Link
+				to="/verificar-autenticidade"
+				className="inline-flex items-center gap-1 self-start font-mono text-2xs tracking-[0.11em] text-muted-foreground uppercase underline-offset-4 hover:text-foreground hover:underline"
+			>
+				Verificar Autenticidade de um Memorial
+				<ArrowRight aria-hidden="true" className="size-3" />
+			</Link>
 		</section>
 	);
 };

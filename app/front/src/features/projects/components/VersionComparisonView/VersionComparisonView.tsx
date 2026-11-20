@@ -1,5 +1,6 @@
 import { EmptyState } from "@components/EmptyState";
 import { SectionHeading } from "@components/SectionHeading";
+import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import {
 	Select,
@@ -9,9 +10,10 @@ import {
 	SelectValue,
 } from "@components/ui/select";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDecimal, padCount } from "@features/shared";
+import { formatDate, formatKva, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type {
+	FieldChange,
 	GroupChange,
 	ProjectVersion,
 	VersionComparison,
@@ -38,70 +40,42 @@ interface VersionComparisonViewProps {
 	className?: string;
 }
 
-interface ChangeRowProps {
-	index: string;
-	label: ReactNode;
-	from: ReactNode;
-	to: ReactNode;
-	delta: ReactNode;
-	changed: boolean;
-}
+type GroupStatus = "changed" | "included" | "removed";
 
-/** A changed row keeps the sand fill and the orange bar of the prototype. */
-const ChangeRow = ({
-	index,
+const groupStatusLabels: Record<GroupStatus, string> = {
+	changed: "Alterado",
+	included: "Incluído",
+	removed: "Removido",
+};
+
+const pluralize = (count: number, one: string, many: string) =>
+	`${padCount(count)} ${count === 1 ? one : many}`;
+
+/** "Ar-condicionado, potência de placa" reads as the item and then its field. */
+const FieldLabel = ({ label }: { label: string }) => {
+	const [item, ...rest] = label.split(", ");
+	if (rest.length === 0) return <span>{label}</span>;
+
+	const field = rest.join(", ");
+	return (
+		<span className="flex flex-col">
+			<span className="text-xs text-muted-foreground">{item}</span>
+			<span>{field.charAt(0).toUpperCase() + field.slice(1)}</span>
+		</span>
+	);
+};
+
+/** Fixed columns leave the label too narrow on a phone, so the table scrolls sideways there. */
+const FieldTable = ({
 	label,
-	from,
-	to,
-	delta,
-	changed,
-}: ChangeRowProps) => (
-	<tr
-		data-changed={changed}
-		className={cn(
-			"border-b border-border align-top",
-			changed && "relative bg-surface-hover",
-		)}
-	>
-		<td className="relative py-3.5 pl-3 font-mono text-xs text-faint-foreground">
-			{changed ? (
-				<span
-					aria-hidden="true"
-					className="absolute inset-y-2 left-0 w-0.5 bg-attention"
-				/>
-			) : null}
-			{index}
-		</td>
-		<td className="py-3.5 pr-3 text-sm break-words text-foreground">{label}</td>
-		<td
-			className={cn(
-				"py-3.5 pr-3 text-right font-mono text-sm break-words",
-				changed ? "text-muted-foreground" : "text-foreground",
-			)}
-		>
-			{from}
-		</td>
-		<td className="py-3.5 pr-3 text-right font-mono text-sm break-words text-foreground">
-			{to}
-		</td>
-		<td className="py-3.5 text-right font-mono text-sm break-words text-foreground">
-			{delta}
-		</td>
-	</tr>
-);
-
-/**
- * Fixed columns leave the label too narrow on a phone, so the table scrolls sideways there. The
- * region takes focus, so the keyboard scrolls it too.
- */
-const TABLE_CLASS = "w-full min-w-[32rem] table-fixed";
-
-const ScrollableTable = ({
-	label,
-	children,
+	fields,
+	fromLabel,
+	toLabel,
 }: {
 	label: string;
-	children: ReactNode;
+	fields: readonly FieldChange[];
+	fromLabel: string;
+	toLabel: string;
 }) => (
 	<div
 		role="region"
@@ -109,50 +83,103 @@ const ScrollableTable = ({
 		tabIndex={0}
 		className="overflow-x-auto"
 	>
-		{children}
+		<table className="w-full min-w-[28rem] table-fixed text-sm">
+			<thead>
+				<tr className="border-b border-border font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+					<th scope="col" className="py-2.5 pr-4 pl-4 text-left font-normal">
+						Campo
+					</th>
+					<th scope="col" className="w-36 py-2.5 pr-4 text-left font-normal">
+						Antes ({fromLabel})
+					</th>
+					<th scope="col" className="w-36 py-2.5 pr-4 text-left font-normal">
+						Depois ({toLabel})
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				{fields.map((field) => (
+					<tr
+						key={field.field}
+						className="border-b border-border align-top last:border-b-0"
+					>
+						<th
+							scope="row"
+							className="py-3 pr-4 pl-4 text-left font-normal break-words text-foreground"
+						>
+							<FieldLabel label={field.label} />
+						</th>
+						<td className="py-3 pr-4 break-words text-muted-foreground">
+							{fieldValue(field, "from")}
+						</td>
+						<td className="py-3 pr-4 font-medium break-words text-foreground">
+							{fieldValue(field, "to")}
+						</td>
+					</tr>
+				))}
+			</tbody>
+		</table>
 	</div>
 );
 
-const HeadRow = ({
-	first,
-	from,
-	to,
+const groupNote = (status: GroupStatus, from: string, to: string) =>
+	status === "included"
+		? `Grupo novo na ${to}.`
+		: status === "removed"
+			? `Grupo que estava na ${from} e saiu na ${to}.`
+			: "Nenhum campo do grupo mudou.";
+
+const GroupCard = ({
+	group,
+	status,
+	fromLabel,
+	toLabel,
 }: {
-	first: string;
-	from: string;
-	to: string;
+	group: GroupChange;
+	status: GroupStatus;
+	fromLabel: string;
+	toLabel: string;
 }) => (
-	<thead>
-		<tr className="border-b border-border font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
-			<th scope="col" className="w-10 py-3 pl-3 text-left font-normal">
-				<span className="sr-only">Linha</span>
-			</th>
-			<th scope="col" className="py-3 pr-4 text-left font-normal">
-				{first}
-			</th>
-			<th scope="col" className="w-24 py-3 pr-3 text-right font-normal">
-				{from}
-			</th>
-			<th scope="col" className="w-24 py-3 pr-3 text-right font-normal">
-				{to}
-			</th>
-			<th scope="col" className="w-20 py-3 text-right font-normal">
-				Δ
-			</th>
-		</tr>
-	</thead>
+	<li className="relative border border-border">
+		<span
+			aria-hidden="true"
+			className="absolute inset-y-0 left-0 w-0.5 bg-attention"
+		/>
+		<div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+			<h4 className="min-w-0 text-sm font-medium break-words text-foreground">
+				{group.name}
+			</h4>
+			<Badge variant="tag">{groupStatusLabels[status]}</Badge>
+		</div>
+		{status === "changed" && group.fields.length > 0 ? (
+			<FieldTable
+				label={`Campos de ${group.name}`}
+				fields={group.fields}
+				fromLabel={fromLabel}
+				toLabel={toLabel}
+			/>
+		) : (
+			<p className="px-4 py-3 text-sm text-muted-foreground">
+				{groupNote(status, fromLabel, toLabel)}
+			</p>
+		)}
+	</li>
 );
 
-const groupDetail = ({ fields }: GroupChange) =>
-	fields.length === 0 ? null : (
-		<ul className="mt-1 flex flex-col gap-0.5 text-xs text-muted-foreground">
-			{fields.map((field) => (
-				<li key={field.field}>
-					{field.label}: {fieldValue(field, "from")} → {fieldValue(field, "to")}
-				</li>
-			))}
-		</ul>
-	);
+const SummaryCell = ({
+	label,
+	children,
+}: {
+	label: string;
+	children: ReactNode;
+}) => (
+	<div className="flex min-w-0 flex-col gap-1.5 border-l border-border pl-4 first:border-l-0 first:pl-0">
+		<dt className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+			{label}
+		</dt>
+		<dd className="text-sm text-foreground">{children}</dd>
+	</div>
+);
 
 interface VersionPickerProps {
 	label: string;
@@ -190,13 +217,14 @@ const VersionPicker = ({
 				<SelectValue />
 			</SelectTrigger>
 			<SelectContent>
-				{versions.map(({ number }) => (
+				{versions.map(({ number, submittedAt }) => (
 					<SelectItem
 						key={number}
 						value={String(number)}
 						disabled={!isAllowed(number)}
 					>
 						{formatVersion(number)}
+						<span className="sr-only">, de {formatDate(submittedAt)}</span>
 					</SelectItem>
 				))}
 			</SelectContent>
@@ -204,7 +232,7 @@ const VersionPicker = ({
 	);
 };
 
-/** H14: what changed between two submissions, line by line. */
+/** H14: what changed between two submissions, field by field. */
 export const VersionComparisonView = ({
 	versions,
 	compared,
@@ -220,50 +248,27 @@ export const VersionComparisonView = ({
 	const fromLabel = formatVersion(compared.from);
 	const toLabel = formatVersion(compared.to);
 
-	const memoryRows = comparison
-		? [
-				{
-					key: "demand",
-					label: "Demanda total da edificação",
-					from: `${formatDecimal(comparison.from.demandKva, 1)} kVA`,
-					to: `${formatDecimal(comparison.to.demandKva, 1)} kVA`,
-					delta: formatKvaDelta(comparison.demandDifferenceKva),
-					changed: comparison.demandDifferenceKva !== 0,
-				},
-				...comparison.building.map((field) => ({
-					key: field.field,
-					label: field.label,
-					from: fieldValue(field, "from"),
-					to: fieldValue(field, "to"),
-					delta: "",
-					changed: true,
-				})),
-			]
-		: [];
-	const changedMemory = memoryRows.filter(({ changed }) => changed).length;
-
-	const groupRows = comparison
+	const groups = comparison
 		? [
 				...comparison.changed.map((group) => ({
 					group,
-					from: "presente",
-					to: "alterado",
-					status: "Alterado",
+					status: "changed" as const,
 				})),
 				...comparison.included.map((group) => ({
 					group,
-					from: "ausente",
-					to: "incluído",
-					status: "Incluído",
+					status: "included" as const,
 				})),
 				...comparison.removed.map((group) => ({
 					group,
-					from: "presente",
-					to: "removido",
-					status: "Removido",
+					status: "removed" as const,
 				})),
 			]
 		: [];
+	const unchanged =
+		comparison !== undefined &&
+		comparison.demandDifferenceKva === 0 &&
+		comparison.building.length === 0 &&
+		groups.length === 0;
 
 	return (
 		<section
@@ -284,7 +289,7 @@ export const VersionComparisonView = ({
 				</SectionHeading>
 
 				<div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-					<span>Comparando</span>
+					<span>De</span>
 					<VersionPicker
 						label="Versão de origem"
 						value={compared.from}
@@ -292,7 +297,7 @@ export const VersionComparisonView = ({
 						isAllowed={(number) => number < compared.to}
 						onValueChange={(from) => onComparedChange({ ...compared, from })}
 					/>
-					<span aria-hidden="true">→</span>
+					<span>para</span>
 					<VersionPicker
 						label="Versão de destino"
 						value={compared.to}
@@ -301,9 +306,9 @@ export const VersionComparisonView = ({
 						onValueChange={(to) => onComparedChange({ ...compared, to })}
 					/>
 					{comparison ? (
-						<span className="font-mono text-foreground">
-							{formatDecimal(comparison.from.demandKva, 1)} →{" "}
-							{formatDecimal(comparison.to.demandKva, 1)} kVA
+						<span>
+							enviadas em {formatDate(comparison.from.submittedAt)} e{" "}
+							{formatDate(comparison.to.submittedAt)}
 						</span>
 					) : null}
 				</div>
@@ -324,85 +329,106 @@ export const VersionComparisonView = ({
 				/>
 			) : isLoading || !comparison ? (
 				<div className="flex flex-col gap-3" aria-busy="true">
-					<Skeleton className="h-12 w-full" />
-					<Skeleton className="h-12 w-full" />
-					<Skeleton className="h-12 w-full" />
+					<Skeleton className="h-16 w-full" />
+					<Skeleton className="h-32 w-full" />
 				</div>
 			) : (
 				<>
-					<div className="flex flex-col gap-3">
-						<SectionHeading
-							as="h3"
-							meta={`${padCount(memoryRows.length)} linhas, ${padCount(changedMemory)} alteradas`}
-						>
-							Memória de Cálculo
-						</SectionHeading>
-						<ScrollableTable label="Memória de cálculo">
-							<table className={TABLE_CLASS}>
-								<HeadRow first="Linha" from={fromLabel} to={toLabel} />
-								<tbody>
-									{memoryRows.map((row, index) => (
-										<ChangeRow
-											key={row.key}
-											index={padCount(index + 1)}
-											label={row.label}
-											from={row.from}
-											to={row.to}
-											delta={row.delta}
-											changed={row.changed}
-										/>
-									))}
-								</tbody>
-							</table>
-						</ScrollableTable>
-					</div>
+					<dl
+						aria-label="Resumo do comparativo"
+						className="grid grid-cols-1 gap-4 border-y border-border py-4 sm:grid-cols-3"
+					>
+						<SummaryCell label="Demanda total">
+							<span className="font-mono">
+								{formatKva(comparison.from.demandKva, 1)} →{" "}
+								{formatKva(comparison.to.demandKva, 1)}
+							</span>
+							<span className="block text-xs text-muted-foreground">
+								{comparison.demandDifferenceKva === 0
+									? "Sem mudança"
+									: `${formatKvaDelta(comparison.demandDifferenceKva)} kVA`}
+							</span>
+						</SummaryCell>
+						<SummaryCell label="Grupos de UCs">
+							{groups.length === 0
+								? "Nenhum mudou"
+								: [
+										comparison.changed.length > 0 &&
+											pluralize(
+												comparison.changed.length,
+												"alterado",
+												"alterados",
+											),
+										comparison.included.length > 0 &&
+											pluralize(
+												comparison.included.length,
+												"incluído",
+												"incluídos",
+											),
+										comparison.removed.length > 0 &&
+											pluralize(
+												comparison.removed.length,
+												"removido",
+												"removidos",
+											),
+									]
+										.filter(Boolean)
+										.join(", ")}
+						</SummaryCell>
+						<SummaryCell label="Dados da edificação">
+							{comparison.building.length === 0
+								? "Nenhum mudou"
+								: pluralize(
+										comparison.building.length,
+										"campo alterado",
+										"campos alterados",
+									)}
+						</SummaryCell>
+					</dl>
 
-					<div className="flex flex-col gap-3">
-						<SectionHeading
-							as="h3"
-							meta={`${padCount(comparison.changed.length)} alterados, ${padCount(comparison.included.length)} incluídos, ${padCount(comparison.removed.length)} removidos`}
-						>
-							Grupos de UCs
-						</SectionHeading>
-						{groupRows.length === 0 ? (
-							<p className="text-sm text-muted-foreground">
-								Nenhum grupo de UCs mudou entre a {fromLabel} e a {toLabel}.
-							</p>
-						) : (
-							<ScrollableTable label="Grupos de UCs">
-								<table className={TABLE_CLASS}>
-									<HeadRow first="Grupo" from={fromLabel} to={toLabel} />
-									<tbody>
-										{groupRows.map(({ group, from, to, status }, index) => (
-											<ChangeRow
-												key={`${status}-${group.id}`}
-												index={`G${index + 1}`}
-												label={
-													<>
-														{group.name}
-														{groupDetail(group)}
-													</>
-												}
-												from={from}
-												to={to}
-												delta={
-													<span className="text-2xs tracking-[0.11em] uppercase">
-														{status}
-													</span>
-												}
-												changed
-											/>
-										))}
-									</tbody>
-								</table>
-							</ScrollableTable>
-						)}
-					</div>
+					{unchanged ? (
+						<p className="text-sm text-muted-foreground">
+							Nada mudou entre a {fromLabel} e a {toLabel}.
+						</p>
+					) : null}
 
-					<p className="text-xs text-muted-foreground">
-						Linhas sem marca não mudaram entre as versões e não precisam ser
-						conferidas de novo.
-					</p>
+					{comparison.building.length > 0 ? (
+						<div className="flex flex-col gap-3">
+							<SectionHeading as="h3">Dados da Edificação</SectionHeading>
+							<div className="relative border border-border">
+								<span
+									aria-hidden="true"
+									className="absolute inset-y-0 left-0 w-0.5 bg-attention"
+								/>
+								<FieldTable
+									label="Dados da edificação"
+									fields={comparison.building}
+									fromLabel={fromLabel}
+									toLabel={toLabel}
+								/>
+							</div>
+						</div>
+					) : null}
+
+					{groups.length > 0 ? (
+						<div className="flex flex-col gap-3">
+							<SectionHeading as="h3">Grupos de UCs</SectionHeading>
+							<ul
+								aria-label="Grupos que mudaram"
+								className="flex flex-col gap-3"
+							>
+								{groups.map(({ group, status }) => (
+									<GroupCard
+										key={`${status}-${group.id}`}
+										group={group}
+										status={status}
+										fromLabel={fromLabel}
+										toLabel={toLabel}
+									/>
+								))}
+							</ul>
+						</div>
+					) : null}
 				</>
 			)}
 		</section>
