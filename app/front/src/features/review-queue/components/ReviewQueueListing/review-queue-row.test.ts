@@ -13,6 +13,8 @@ const item: ReviewQueueItem = {
 	deadline: "2026-10-08",
 	deadlineStatus: "ON_TIME",
 	daysRemaining: 20,
+	elapsedDays: 12,
+	suspendedDays: 3,
 	warnings: 0,
 	alerts: [],
 	ownerId: null,

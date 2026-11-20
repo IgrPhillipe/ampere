@@ -67,11 +67,13 @@ describe("ProjectDetailHeader", () => {
 					reviewDeadline: null,
 					deadlineStatus: null,
 					daysRemaining: null,
+					approvalValidUntil: "2026-11-10",
 				})}
 			/>,
 		);
 
 		expect(cell("Aprovado em")).toHaveTextContent("09/11/2023");
+		expect(cell("Validade encerrada")).toHaveTextContent("10/11/2026");
 	});
 
 	it("mostra a data da última movimentação", () => {
@@ -99,6 +101,44 @@ describe("ProjectDetailHeader", () => {
 		expect(cell("Retorno até")).toHaveTextContent("01/11/2026");
 		expect(cell("Retorno até")).toHaveTextContent("30 dias restantes");
 		expect(cell("Analista")).toHaveTextContent("Alice Analista");
+		expect(cell("Dias corridos")).toHaveTextContent("12 dias");
+		expect(cell("Dias suspensos")).toHaveTextContent("0 dias");
+	});
+
+	it("shows the frozen remaining time when a rejected project is suspended", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({
+					status: "REJECTED",
+					reviewDeadline: null,
+					deadlineStatus: null,
+					reviewSuspended: true,
+					daysRemaining: 18,
+					elapsedDays: 12,
+					suspendedDays: 4,
+				})}
+			/>,
+		);
+
+		expect(cell("Prazo suspenso")).toHaveTextContent("18 dias restantes");
+		expect(cell("Dias corridos")).toHaveTextContent("12 dias");
+		expect(cell("Dias suspensos")).toHaveTextContent("4 dias");
+	});
+
+	it("shows the validity date for an approved project", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({
+					status: "APPROVED",
+					reviewDeadline: null,
+					deadlineStatus: null,
+					daysRemaining: null,
+					approvalValidUntil: "2029-11-10",
+				})}
+			/>,
+		);
+
+		expect(cell("Válido até")).toHaveTextContent("10/11/2029");
 	});
 
 	it("avisa quando o prazo de retorno venceu", () => {

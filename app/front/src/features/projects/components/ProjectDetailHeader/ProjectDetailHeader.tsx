@@ -56,6 +56,16 @@ const StripDate = ({ value }: { value: string }) => (
 	<time dateTime={value}>{formatDate(value)}</time>
 );
 
+const formatDays = (count: number) =>
+	`${count} ${count === 1 ? "dia" : "dias"}`;
+
+const describeSuspendedDeadline = (daysRemaining: number) => {
+	if (daysRemaining < 0)
+		return `Atrasado ${formatDays(Math.abs(daysRemaining))}`;
+	if (daysRemaining === 0) return "Vence hoje";
+	return `${formatDays(daysRemaining)} restantes`;
+};
+
 export interface HeaderMetric {
 	label: string;
 	value?: ReactNode;
@@ -135,6 +145,8 @@ export const ProjectDetailHeader = ({
 		? `${project.technicalResponsible.name}, CREA ${project.technicalResponsible.crea}`
 		: undefined;
 	const milestone = project ? milestoneOf(project, reviewing) : undefined;
+	const suspendedReview =
+		project?.status === "REJECTED" && project.reviewSuspended;
 
 	return (
 		<header className={cn("flex flex-col border-b border-border", className)}>
@@ -207,6 +219,39 @@ export const ProjectDetailHeader = ({
 							{project.reviewerName ?? "Aguardando atribuição"}
 						</StripCell>
 					</>
+				) : null}
+
+				{suspendedReview ? (
+					<StripCell isLoading={isLoading} label="Prazo suspenso">
+						{project.daysRemaining == null
+							? "Prazo indisponível"
+							: describeSuspendedDeadline(project.daysRemaining)}
+					</StripCell>
+				) : null}
+
+				{project?.elapsedDays != null ? (
+					<StripCell isLoading={isLoading} label="Dias corridos">
+						{formatDays(project.elapsedDays)}
+					</StripCell>
+				) : null}
+
+				{project?.suspendedDays != null ? (
+					<StripCell isLoading={isLoading} label="Dias suspensos">
+						{formatDays(project.suspendedDays)}
+					</StripCell>
+				) : null}
+
+				{project &&
+				wasApproved(project.status) &&
+				project.approvalValidUntil ? (
+					<StripCell
+						isLoading={isLoading}
+						label={
+							project.status === "EXPIRED" ? "Validade encerrada" : "Válido até"
+						}
+					>
+						<StripDate value={project.approvalValidUntil} />
+					</StripCell>
 				) : null}
 
 				<StripCell

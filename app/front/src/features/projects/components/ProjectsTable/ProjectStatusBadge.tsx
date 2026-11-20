@@ -1,10 +1,11 @@
 import { Badge } from "@components/ui/badge";
-import { padCount } from "@features/shared";
+import { formatDate, padCount } from "@features/shared";
 import type { Project } from "@services/projects";
 
 import {
 	projectStatusBadgeVariants,
 	projectStatusLabels,
+	wasApproved,
 } from "../../constants";
 
 interface ProjectStatusBadgeProps {
@@ -23,14 +24,24 @@ export const ProjectStatusBadge = ({
 	const pending = showPending ? project.pendingCount : 0;
 
 	return (
-		<Badge
-			variant={projectStatusBadgeVariants[project.status]}
-			className={needsAction ? "text-foreground" : "text-muted-foreground"}
-		>
-			{projectStatusLabels[project.status]}
-			{pending > 0
-				? `, ${padCount(pending)} ${pending === 1 ? "pendência" : "pendências"}`
-				: null}
-		</Badge>
+		<div className="flex flex-col items-start gap-1">
+			<Badge
+				variant={projectStatusBadgeVariants[project.status]}
+				className={needsAction ? "text-foreground" : "text-muted-foreground"}
+			>
+				{projectStatusLabels[project.status]}
+				{pending > 0
+					? `, ${padCount(pending)} ${pending === 1 ? "pendência" : "pendências"}`
+					: null}
+			</Badge>
+			{wasApproved(project.status) && project.approvalValidUntil ? (
+				<span className="text-xs text-muted-foreground">
+					{project.status === "EXPIRED" ? "Expirou em " : "Válido até "}
+					<time dateTime={project.approvalValidUntil}>
+						{formatDate(project.approvalValidUntil)}
+					</time>
+				</span>
+			) : null}
+		</div>
 	);
 };
