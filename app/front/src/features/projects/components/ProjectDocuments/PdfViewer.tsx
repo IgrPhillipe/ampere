@@ -27,7 +27,8 @@ export const PdfViewer = ({
 		if (!blob || !frame) return;
 
 		const url = URL.createObjectURL(blob);
-		frame.src = url;
+		// Without the reader's toolbar, "Baixar" is the only download.
+		frame.src = `${url}#toolbar=0`;
 
 		return () => URL.revokeObjectURL(url);
 	}, [blob]);
