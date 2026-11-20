@@ -41,7 +41,10 @@ export const CalculationExportButton = ({
 				render={
 					<span
 						tabIndex={blocker ? 0 : undefined}
-						className={cn("inline-flex w-fit", className)}
+						className={cn(
+							"inline-flex w-fit focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+							className,
+						)}
 					/>
 				}
 			>
