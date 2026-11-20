@@ -119,10 +119,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 							Ir para o Cálculo
 						</Button>
 					) : null}
-					<CalculationExportButton
-						disabled
-						onExport={() => void exportCalculation()}
-					/>
+					<CalculationExportButton blocker="noCalculation" />
 				</div>
 			}
 		/>

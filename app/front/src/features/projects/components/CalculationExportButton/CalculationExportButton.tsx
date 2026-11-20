@@ -4,46 +4,61 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@components/ui/tooltip";
+import { cn } from "@lib/utils";
 import { Download } from "lucide-react";
 
+export type CalculationExportBlocker = "noCalculation" | "outdated" | "error";
+
+const blockerHints: Record<CalculationExportBlocker, string> = {
+	noCalculation: "É preciso calcular a demanda antes de exportar a planilha.",
+	outdated: "Recalcule a demanda antes de exportar a planilha.",
+	error:
+		"Não foi possível carregar o cálculo. Tente novamente antes de exportar.",
+};
+
 interface CalculationExportButtonProps {
-	disabled: boolean;
+	blocker?: CalculationExportBlocker;
+	disabled?: boolean;
 	isPending?: boolean;
 	onExport?: () => void;
+	className?: string;
 }
 
 export const CalculationExportButton = ({
-	disabled,
+	blocker,
+	disabled = false,
 	isPending = false,
 	onExport,
+	className,
 }: CalculationExportButtonProps) => {
-	const button = (
-		<Button
-			type="button"
-			variant="link"
-			className="h-auto w-fit px-0"
-			disabled={disabled || isPending || !onExport}
-			onClick={onExport}
-		>
-			<Download aria-hidden="true" />
-			Exportar Planilha
-		</Button>
-	);
+	const hint = isPending
+		? "Aguarde a exportação da planilha."
+		: blocker && blockerHints[blocker];
 
-	if (!disabled && !isPending && onExport) return button;
-
+	// The tooltip stays mounted in every state so the button keeps its focus.
 	return (
-		<Tooltip>
+		<Tooltip disabled={!hint}>
 			<TooltipTrigger
-				render={<span tabIndex={0} className="inline-flex w-fit" />}
+				render={
+					<span
+						tabIndex={blocker ? 0 : undefined}
+						className={cn("inline-flex w-fit", className)}
+					/>
+				}
 			>
-				{button}
+				<Button
+					type="button"
+					variant="link"
+					className="h-auto w-fit px-0"
+					disabled={disabled || isPending || !!blocker || !onExport}
+					focusableWhenDisabled={isPending}
+					onClick={onExport}
+				>
+					<Download aria-hidden="true" />
+					{isPending ? "Exportando..." : "Exportar Planilha"}
+				</Button>
 			</TooltipTrigger>
-			<TooltipContent>
-				{isPending
-					? "Aguarde a exportação da planilha."
-					: "É preciso calcular a demanda antes de exportar a planilha."}
-			</TooltipContent>
+			<TooltipContent>{hint}</TooltipContent>
 		</Tooltip>
 	);
 };

@@ -208,7 +208,7 @@ export const MemorialPreview = ({
 					Baixar PDF
 				</Button>
 				<CalculationExportButton
-					disabled={!calculation || !onExportCalculation}
+					disabled={!calculation}
 					isPending={isExportingCalculation}
 					onExport={onExportCalculation}
 				/>
