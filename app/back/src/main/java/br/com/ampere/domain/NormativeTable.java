@@ -1,5 +1,6 @@
 package br.com.ampere.domain;
 
+import br.com.ampere.utils.Timestamps;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -69,6 +70,8 @@ public class NormativeTable {
   private String verifiedBy;
 
   private OffsetDateTime verifiedAt;
+
+  private OffsetDateTime supersededAt;
 
   // Bumped on every change, so the verifier approves exactly the version they read.
   @Version
@@ -143,6 +146,16 @@ public class NormativeTable {
     return verifiedAt;
   }
 
+  public OffsetDateTime getSupersededAt() {
+    return supersededAt;
+  }
+
+  public boolean wasEffectiveAt(OffsetDateTime at) {
+    return verifiedAt != null
+        && !verifiedAt.isAfter(at)
+        && (supersededAt == null ? isPublished() : at.isBefore(supersededAt));
+  }
+
   public long getVersion() {
     return version;
   }
@@ -177,11 +190,16 @@ public class NormativeTable {
       throw new IllegalStateException("Only a draft table is published.");
     }
     this.verifiedBy = Objects.requireNonNull(verifiedBy, "verifiedBy");
-    this.verifiedAt = OffsetDateTime.now(ZoneOffset.UTC);
+    this.verifiedAt = Timestamps.now();
     this.status = NormativeTableStatus.PUBLISHED;
   }
 
   public void supersede() {
+    supersede(Timestamps.now());
+  }
+
+  public void supersede(OffsetDateTime at) {
+    this.supersededAt = Objects.requireNonNull(at, "at");
     this.status = NormativeTableStatus.SUPERSEDED;
   }
 

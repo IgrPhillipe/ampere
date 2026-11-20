@@ -1,5 +1,6 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.Calculation;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.CalculationResponse;
 import br.com.ampere.service.AuthenticatedUser;
@@ -7,6 +8,7 @@ import br.com.ampere.service.DemandCalculationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -52,8 +54,11 @@ public class DemandCalculationController {
   })
   public ApiResponse<CalculationResponse> calculate(
       @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
+    Calculation calculation = service.calculateAndRecord(projectId, userOf(jwt));
+
     return ApiResponse.of(
-        CalculationResponse.from(service.calculateAndRecord(projectId, userOf(jwt))));
+        CalculationResponse.from(
+            calculation, false, List.of(), service.revisionsFixedAt(calculation.getProject())));
   }
 
   @GetMapping("/latest")
@@ -70,7 +75,12 @@ public class DemandCalculationController {
       @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
     DemandCalculationService.Latest latest = service.latest(projectId, userOf(jwt));
 
-    return ApiResponse.of(CalculationResponse.from(latest.calculation(), latest.outdated()));
+    return ApiResponse.of(
+        CalculationResponse.from(
+            latest.calculation(),
+            latest.outdated(),
+            latest.changedTables(),
+            latest.revisionsFixedAt()));
   }
 
   private static AuthenticatedUser userOf(Jwt jwt) {

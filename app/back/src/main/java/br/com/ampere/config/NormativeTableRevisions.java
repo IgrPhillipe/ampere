@@ -120,7 +120,7 @@ final class NormativeTableRevisions {
             plan.registeredBy());
     if (plan.status() == NormativeTableStatus.SUPERSEDED) {
       revision.publish(NormativeTableSeed.VERIFIED_BY);
-      revision.supersede();
+      revision.supersede(current.getVerifiedAt());
       repository.save(revision);
       OffsetDateTime registeredAt = current.getRegisteredAt().minusDays(120);
       timestamps.table(revision.getId(), registeredAt, registeredAt.plusDays(10));

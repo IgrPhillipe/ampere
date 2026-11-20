@@ -6,16 +6,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** The published tables, looked up by code. */
+/** The published tables, or those a submitted protocol fixed, looked up by code. */
 public final class NormativeTableSet implements NormativeTables {
 
   private final Map<NormativeTableCode, NormativeTable> tables =
       new EnumMap<>(NormativeTableCode.class);
 
   public NormativeTableSet(List<NormativeTable> published) {
-    published.stream()
-        .filter(NormativeTable::isPublished)
+    this(published, null);
+  }
+
+  /** {@code fixed} null takes the published tables. */
+  public NormativeTableSet(List<NormativeTable> candidates, FixedRevisions fixed) {
+    candidates.stream()
+        .filter(table -> fixed == null ? table.isPublished() : fixed.selects(table))
         .forEach(table -> tables.putIfAbsent(table.getCode(), table));
+  }
+
+  public Optional<Long> idOf(NormativeTableCode code) {
+    return Optional.ofNullable(tables.get(code)).map(NormativeTable::getId);
   }
 
   @Override

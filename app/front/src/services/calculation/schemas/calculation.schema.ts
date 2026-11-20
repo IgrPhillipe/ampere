@@ -94,6 +94,8 @@ export const calculationSchema = z.object({
 	warningsCount: z.number().int(),
 	/** The project changed after this run, while it can still be edited. */
 	outdated: z.boolean().default(false),
+	changedTables: z.array(z.string()).optional(),
+	revisionsFixedAt: z.iso.datetime({ offset: true }).nullable().optional(),
 	appliedTables: z.array(
 		z.object({
 			identification: z.string(),

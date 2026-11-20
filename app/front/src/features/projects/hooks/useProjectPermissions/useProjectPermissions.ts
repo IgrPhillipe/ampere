@@ -4,6 +4,8 @@ import type { ProjectStatus } from "@services/projects";
 export interface ProjectPermissions {
 	/** Data, units and calculation: a draft, or a rejection being corrected. */
 	canEdit: boolean;
+	/** A project awaiting submission also reruns the calculation with the revisions in force. */
+	canRecalculate: boolean;
 	/** The documents also stay open while the project waits for its submission. */
 	canEditDocuments: boolean;
 	canDelete: boolean;
@@ -27,6 +29,11 @@ export const getProjectPermissions = (
 
 	return {
 		canEdit: canWrite && (status === "DRAFT" || status === "REJECTED"),
+		canRecalculate:
+			canWrite &&
+			(status === "DRAFT" ||
+				status === "AWAITING_SUBMISSION" ||
+				status === "REJECTED"),
 		canEditDocuments:
 			canWrite &&
 			(status === "DRAFT" ||

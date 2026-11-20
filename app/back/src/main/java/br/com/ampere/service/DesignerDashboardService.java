@@ -8,6 +8,7 @@ import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.FindingSeverity;
 import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.FindingStatus;
+import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectEventType;
@@ -118,6 +119,8 @@ public class DesignerDashboardService {
               units.getOrDefault(project.getId(), 0L),
               null));
     }
+    List<NormativeTable> published =
+        idleDrafts.isEmpty() ? List.of() : calculationService.publishedTables();
     for (Project draft : idleDrafts) {
       items.add(
           new ActionItem(
@@ -125,14 +128,14 @@ public class DesignerDashboardService {
               0,
               ChronoUnit.DAYS.between(Timestamps.localDate(draft.getUpdatedAt()), today),
               units.getOrDefault(draft.getId(), 0L),
-              pendingStage(draft)));
+              pendingStage(draft, published)));
     }
 
     return items;
   }
 
   /** The first step still incomplete, in the order the project tabs follow; null when none. */
-  private FindingStage pendingStage(Project draft) {
+  private FindingStage pendingStage(Project draft, List<NormativeTable> published) {
     Long projectId = draft.getId();
     List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(projectId);
     if (!GroupValidation.of(groups).canCalculate()) {
@@ -141,7 +144,7 @@ public class DesignerDashboardService {
     boolean calculated =
         calculationRepository
             .findFirstByProjectIdOrderByIdDesc(projectId)
-            .map(calculation -> calculationService.isCurrent(calculation, groups))
+            .map(calculation -> calculationService.isCurrent(calculation, groups, published))
             .orElse(false);
     if (!calculated) {
       return FindingStage.CALCULATION;

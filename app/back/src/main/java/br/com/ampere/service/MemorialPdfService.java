@@ -147,7 +147,7 @@ public class MemorialPdfService {
                 () ->
                     new NotFoundException(
                         "Calcule a demanda do projeto antes de gerar o memorial."));
-    if (project.isEditable() && !demandCalculationService.isCurrent(calculation)) {
+    if (project.canBeSubmitted() && !demandCalculationService.isCurrent(calculation)) {
       throw new BusinessException(
           "Os dados do projeto mudaram depois do último cálculo. Recalcule a demanda antes de"
               + " gerar o memorial.",
@@ -225,7 +225,7 @@ public class MemorialPdfService {
     addConsumerUnits(document, groups);
     addCalculationSteps(document, calculation);
     addDemandTotals(document, calculation);
-    addAppliedStandards(document, calculation);
+    addAppliedStandards(document, calculation, demandCalculationService.revisionsFixedAt(project));
     addReservations(document, project, reservations);
 
     document.close();
@@ -503,8 +503,16 @@ public class MemorialPdfService {
     document.add(total);
   }
 
-  private static void addAppliedStandards(Document document, Calculation calculation) {
+  private static void addAppliedStandards(
+      Document document, Calculation calculation, OffsetDateTime revisionsFixedAt) {
     addSection(document, 5, "Normas Aplicadas");
+    if (revisionsFixedAt != null) {
+      document.add(
+          note(
+              "Revisões normativas fixadas na data do primeiro envio do protocolo: "
+                  + BrazilianDateFormat.date(Timestamps.localDate(revisionsFixedAt))
+                  + "."));
+    }
     PdfPTable fields = fields();
     if (calculation.getMainStandard() != null) {
       addField(

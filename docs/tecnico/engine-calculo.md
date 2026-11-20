@@ -352,6 +352,21 @@ Detalhamento e evidência em [`fontes-normativas.md`](fontes-normativas.md).
 
 ---
 
+## Vigência das Revisões no Protocolo
+
+Antes do primeiro envio, o cálculo usa as tabelas publicadas. O snapshot grava em `normativeTableIds` o ID de cada tabela consultada. Se uma delas for substituída, o cálculo fica desatualizado e `changedTables` lista as tabelas que mudaram. Publicar uma tabela que o cálculo não usou não muda nada. Vale para rascunho, reprovado e aguardando envio; o envio recalcula o projeto aguardando envio cujo cálculo ficou desatualizado.
+
+Depois do primeiro envio, as revisões ficam fixadas pela versão 1 do protocolo (`ProjectVersion`), e não por `Project.submittedAt`, que muda a cada reenvio:
+
+- tabela que o cálculo da versão 1 usou: a mesma revisão, pelo ID gravado, inclusive `SUPERSEDED`;
+- tabela usada pela primeira vez num reenvio: a revisão vigente na data da versão 1, com `verifiedAt <= data < supersededAt`. A revisão atual não tem fim de vigência.
+
+Fixar pelo ID cobre a publicação que cai entre o cálculo e o envio. `revisionsFixedAt`, no retorno do cálculo, traz a data da versão 1; a tela de cálculo, a do memorial e o PDF mostram essa data. Mudança nos dados do projeto continua exigindo recálculo.
+
+Na subida, `NormativeTableValidityMigration` preenche o `supersededAt` das revisões antigas com a próxima publicação do mesmo código. A operação é idempotente. Sem publicação posterior conhecida, o fim fica em branco e a revisão substituída não é escolhida. Cálculo antigo sem `normativeTableIds` é comparado pelas referências gravadas e pela data de publicação das tabelas atuais.
+
+A revisão da norma inteira (pendência 34) continua fora deste escopo.
+
 ## Tabela Bibliográfica
 
 | #   | Documento                                                                 | Emissor                                          | Revisão / Data      | Trecho relevante                                                                                                                             |

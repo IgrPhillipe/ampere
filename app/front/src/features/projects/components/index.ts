@@ -9,6 +9,7 @@ export * from "./GroupSheet";
 export * from "./LoadComposition";
 export * from "./MemorialPreview";
 export * from "./NextStepsPanel";
+export * from "./NormativeRevisionNotice";
 export * from "./ProjectAddressFields";
 export * from "./ProjectBreadcrumb";
 export * from "./ProjectDeleteDialog";

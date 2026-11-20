@@ -15,6 +15,7 @@ import { ArrowRight, Calculator, CircleAlert } from "lucide-react";
 import {
 	CalculationExportButton,
 	MemorialPreview,
+	NormativeRevisionNotice,
 	StepFooter,
 	SubmissionChecklistPanel,
 } from "../../components";
@@ -147,6 +148,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 
 	return (
 		<div className="flex flex-1 flex-col">
+			<NormativeRevisionNotice fixedAt={calculation?.revisionsFixedAt} />
 			{submissionQuery.isError ? (
 				<div className="flex-1 px-6 py-8 md:px-10">{content}</div>
 			) : (
