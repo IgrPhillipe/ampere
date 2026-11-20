@@ -1,7 +1,11 @@
 import { EmptyState } from "@components/EmptyState";
 import { Button } from "@components/ui/button";
+import { downloadFile } from "@features/shared";
 import { getHttpStatus } from "@lib/api-error";
-import { useGetLatestCalculation } from "@services/calculation";
+import {
+	useExportCalculationSpreadsheet,
+	useGetLatestCalculation,
+} from "@services/calculation";
 import { useGetProjectVersionList } from "@services/project-versions";
 import { useGetProject } from "@services/projects";
 import { useGetMemorial, useGetSubmission } from "@services/submission";
@@ -9,6 +13,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Calculator, CircleAlert } from "lucide-react";
 
 import {
+	CalculationExportButton,
 	MemorialPreview,
 	StepFooter,
 	SubmissionChecklistPanel,
@@ -25,6 +30,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const projectQuery = useGetProject(projectId);
 	const calculationQuery = useGetLatestCalculation(projectId);
 	const calculation = calculationQuery.data?.data;
+	const exportSpreadsheet = useExportCalculationSpreadsheet();
 	const memorialQuery = useGetMemorial(projectId, {
 		enabled: calculation !== undefined,
 	});
@@ -53,24 +59,32 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const goTo = (to: "/projetos/$id/calculo" | "/projetos/$id/documentos") =>
 		void navigate({ to, params: { id: projectId } });
 
+	const exportCalculation = () =>
+		exportSpreadsheet.mutate(projectId, {
+			onSuccess: ({ blob, filename }) => downloadFile(blob, filename),
+		});
+
 	const content = hasError ? (
 		<EmptyState
 			title="Não foi possível gerar o memorial"
 			description="Confira o aviso exibido e tente novamente."
 			icon={CircleAlert}
 			action={
-				<Button
-					type="button"
-					variant="outline"
-					onClick={() => {
-						void projectQuery.refetch();
-						void calculationQuery.refetch();
-						void memorialQuery.refetch();
-						if (versionsQuery.isError) void versionsQuery.refetch();
-					}}
-				>
-					Tentar Novamente
-				</Button>
+				<div className="flex flex-wrap items-center justify-center gap-4">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => {
+							void projectQuery.refetch();
+							void calculationQuery.refetch();
+							void memorialQuery.refetch();
+							if (versionsQuery.isError) void versionsQuery.refetch();
+						}}
+					>
+						Tentar Novamente
+					</Button>
+					<CalculationExportButton blocker="error" />
+				</div>
 			}
 		/>
 	) : neverCalculated ? (
@@ -87,15 +101,18 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			}
 			icon={Calculator}
 			action={
-				canEdit ? (
-					<Button
-						type="button"
-						variant="outline"
-						onClick={() => goTo("/projetos/$id/calculo")}
-					>
-						Ir para o Cálculo
-					</Button>
-				) : undefined
+				<div className="flex flex-wrap items-center justify-center gap-4">
+					{canEdit ? (
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => goTo("/projetos/$id/calculo")}
+						>
+							Ir para o Cálculo
+						</Button>
+					) : null}
+					<CalculationExportButton blocker="noCalculation" />
+				</div>
 			}
 		/>
 	) : outdated ? (
@@ -104,13 +121,16 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			description="Os dados do projeto mudaram depois do último cálculo."
 			icon={Calculator}
 			action={
-				<Button
-					type="button"
-					variant="outline"
-					onClick={() => goTo("/projetos/$id/calculo")}
-				>
-					Ir para o Cálculo
-				</Button>
+				<div className="flex flex-wrap items-center justify-center gap-4">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => goTo("/projetos/$id/calculo")}
+					>
+						Ir para o Cálculo
+					</Button>
+					<CalculationExportButton blocker="outdated" />
+				</div>
 			}
 		/>
 	) : (
@@ -120,6 +140,8 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			calculation={calculation}
 			memorial={memorialQuery.data}
 			isLoading={memorialQuery.isPending}
+			isExportingCalculation={exportSpreadsheet.isPending}
+			onExportCalculation={exportCalculation}
 		/>
 	);
 

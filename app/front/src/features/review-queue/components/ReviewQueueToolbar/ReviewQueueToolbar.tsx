@@ -27,6 +27,7 @@ interface ReviewQueueToolbarProps {
 	onSearchChange: (value: string) => void;
 	sort: ListSort<ReviewQueueSort>;
 	onSortChange: (sort: ListSort<ReviewQueueSort>) => void;
+	actions?: ReactNode;
 	refinements?: ReactNode;
 	activeFilters?: ReactNode;
 	className?: string;
@@ -40,6 +41,7 @@ export const ReviewQueueToolbar = ({
 	onSearchChange,
 	sort,
 	onSortChange,
+	actions,
 	refinements,
 	activeFilters,
 	className,
@@ -102,6 +104,7 @@ export const ReviewQueueToolbar = ({
 				onValueChange={onSortChange}
 			/>
 		}
+		actions={actions}
 		refinements={refinements}
 		activeFilters={activeFilters}
 	/>

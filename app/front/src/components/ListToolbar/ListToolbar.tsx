@@ -7,6 +7,8 @@ interface ListToolbarProps {
 	/** Search field. The bar handles the side gutter and the divider. */
 	search: ReactNode;
 	sort?: ReactNode;
+	/** List-wide actions, such as an export, next to the sort. */
+	actions?: ReactNode;
 	/** Quick filter chips or dropdowns, on the search line while they fit. */
 	refinements?: ReactNode;
 	activeFilters?: ReactNode;
@@ -17,6 +19,7 @@ export const ListToolbar = ({
 	filters,
 	search,
 	sort,
+	actions,
 	refinements,
 	activeFilters,
 	className,
@@ -31,7 +34,12 @@ export const ListToolbar = ({
 						{refinements}
 					</div>
 				) : null}
-				{sort ? <div className="md:ml-auto">{sort}</div> : null}
+				{sort || actions ? (
+					<div className="flex flex-wrap items-center gap-1.5 md:ml-auto">
+						{sort}
+						{actions}
+					</div>
+				) : null}
 			</div>
 			{activeFilters}
 		</div>

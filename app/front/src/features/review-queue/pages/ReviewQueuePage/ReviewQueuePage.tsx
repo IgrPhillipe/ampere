@@ -1,10 +1,12 @@
 import { EmptyState } from "@components/EmptyState";
+import { ExportCsvButton } from "@components/ExportCsvButton";
 import { PageLayout } from "@components/layout";
 import { Pagination } from "@components/Pagination";
 import { Button } from "@components/ui/button";
-import { useAuthStore } from "@features/shared";
+import { downloadFile, useAuthStore } from "@features/shared";
 import {
 	type ReviewQueueItem,
+	useExportReviewQueueCsv,
 	useGetReviewQueue,
 	useGetReviewQueueIndicators,
 } from "@services/review-queue";
@@ -47,6 +49,7 @@ export const ReviewQueuePage = () => {
 	const navigate = useNavigate();
 	const user = useAuthStore((state) => state.user);
 	const isManager = user?.role === "admin";
+	const exportQueue = useExportReviewQueueCsv();
 	const assign = useAssignReviewQueue();
 	const [isAssignOpen, setAssignOpen] = useState(false);
 
@@ -93,6 +96,11 @@ export const ReviewQueuePage = () => {
 	const pagination = queueQuery.data?.pagination;
 	const hasError = queueQuery.isError || indicatorsQuery.isError;
 
+	const exportCsv = () =>
+		exportQueue.mutate(filters.params, {
+			onSuccess: ({ blob, filename }) => downloadFile(blob, filename),
+		});
+
 	return (
 		<PageLayout
 			title="Fila de Análise"
@@ -112,6 +120,13 @@ export const ReviewQueuePage = () => {
 					indicators={indicatorsQuery.data?.data}
 					sort={sort}
 					onSortChange={setSort}
+					actions={
+						<ExportCsvButton
+							disabled={pagination?.total === 0}
+							isPending={exportQueue.isPending}
+							onExport={exportCsv}
+						/>
+					}
 					refinements={
 						<ReviewQueueFilterControls
 							reviewer={filters.reviewer}

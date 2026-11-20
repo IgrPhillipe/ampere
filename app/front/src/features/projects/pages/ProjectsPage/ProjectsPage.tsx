@@ -1,14 +1,16 @@
 import { EmptyState } from "@components/EmptyState";
+import { ExportCsvButton } from "@components/ExportCsvButton";
 import { ListToolbar } from "@components/ListToolbar";
 import { PageLayout } from "@components/layout";
 import { Pagination } from "@components/Pagination";
 import { SearchInput } from "@components/SearchInput";
 import { SortMenu, type SortOption } from "@components/SortMenu";
 import { Button } from "@components/ui/button";
-import { useAuthStore } from "@features/shared";
+import { downloadFile, useAuthStore } from "@features/shared";
 import {
 	type ProjectSort,
 	type ProjectStatusCounts,
+	useExportProjectListCsv,
 	useGetProjectList,
 	useGetProjectStatusCounts,
 } from "@services/projects";
@@ -58,6 +60,7 @@ export const ProjectsPage = () => {
 	const navigate = useNavigate();
 	const role = useAuthStore((state) => state.user?.role);
 	const isAdmin = role === "admin";
+	const exportList = useExportProjectListCsv();
 	const { actions, deleteDialog } = useProjectRowActions();
 	const filters = useProjectFilters();
 	const {
@@ -84,6 +87,11 @@ export const ProjectsPage = () => {
 	const counts = statusCountsQuery.data?.data ?? emptyStatusCounts;
 	const pagination = projectsQuery.data?.pagination;
 	const hasError = projectsQuery.isError || statusCountsQuery.isError;
+
+	const exportCsv = () =>
+		exportList.mutate(filters.params, {
+			onSuccess: ({ blob, filename }) => downloadFile(blob, filename),
+		});
 
 	return (
 		<PageLayout
@@ -132,6 +140,13 @@ export const ProjectsPage = () => {
 							value={sort}
 							directions={PROJECT_SORT_DIRECTIONS}
 							onValueChange={setSort}
+						/>
+					}
+					actions={
+						<ExportCsvButton
+							disabled={pagination?.total === 0}
+							isPending={exportList.isPending}
+							onExport={exportCsv}
 						/>
 					}
 					refinements={

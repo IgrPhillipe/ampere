@@ -8,7 +8,7 @@ import {
 	within,
 } from "@testing-library/react";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { signInAs } from "@/test/fixtures/project-detail";
 
@@ -16,6 +16,31 @@ import { ReviewQueuePage } from "./ReviewQueuePage";
 
 const mockAssign = vi.fn();
 const mockNavigate = vi.fn();
+const mockDownload = vi.fn();
+const mockToastError = vi.fn();
+
+vi.mock("@lib/http", async () => {
+	const { filenameOf, http } =
+		await vi.importActual<typeof import("@lib/http")>("@lib/http");
+
+	return { filenameOf, http: http.extend({ prefix: "http://localhost/api" }) };
+});
+
+vi.mock("@features/shared", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@features/shared")>()),
+	downloadFile: (...args: unknown[]) => mockDownload(...args),
+}));
+
+vi.mock("sonner", async (importOriginal) => {
+	const sonner = await importOriginal<typeof import("sonner")>();
+
+	return {
+		...sonner,
+		toast: Object.assign(sonner.toast, {
+			error: (...args: unknown[]) => mockToastError(...args),
+		}),
+	};
+});
 
 const itemOf = (id: string, reviewerName: string | null = null) =>
 	({
@@ -119,6 +144,7 @@ describe("ReviewQueuePage batch assignment", () => {
 			screen.queryByRole("button", { name: "Atribuir Analista" }),
 		).not.toBeInTheDocument();
 		expect(screen.getAllByRole("button", { name: "Analisar" })).toHaveLength(1);
+		expect(screen.getByRole("button", { name: "Exportar CSV" })).toBeEnabled();
 	});
 
 	it("assigns the selected projects and clears the selection", async () => {
@@ -175,5 +201,73 @@ describe("ReviewQueuePage batch assignment", () => {
 		expect(
 			screen.queryByRole("button", { name: "Atribuir Analista" }),
 		).not.toBeInTheDocument();
+	});
+});
+
+describe("ReviewQueuePage export", () => {
+	let requestUrl = "";
+
+	const respondWith = (response: Response) =>
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async (request: Request) => {
+				requestUrl = request.url;
+				return response;
+			}),
+		);
+
+	beforeEach(() => {
+		requestUrl = "";
+		mockDownload.mockReset();
+		mockToastError.mockReset();
+		signInAs("reviewer", { id: "7" });
+	});
+	afterEach(() => vi.unstubAllGlobals());
+
+	it("downloads the queue as shown on screen", async () => {
+		respondWith(
+			new Response("Protocolo;Projeto", {
+				headers: {
+					"Content-Disposition":
+						'attachment; filename="fila-analise-2026-11-20.csv"',
+				},
+			}),
+		);
+		renderPage();
+
+		fireEvent.click(screen.getByRole("button", { name: "Exportar CSV" }));
+
+		await waitFor(() => expect(mockDownload).toHaveBeenCalledOnce());
+		const [blob, filename] = mockDownload.mock.calls[0];
+		expect(filename).toBe("fila-analise-2026-11-20.csv");
+		expect(await (blob as Blob).text()).toBe("Protocolo;Projeto");
+		expect(new URL(requestUrl).pathname).toBe("/api/review-queue/export.csv");
+		expect(mockToastError).not.toHaveBeenCalled();
+	});
+
+	it("shows the API reason when the export fails", async () => {
+		respondWith(
+			Response.json(
+				{
+					status: 403,
+					title: "Forbidden",
+					detail: "Apenas analista e administrador acessam a fila.",
+				},
+				{
+					status: 403,
+					headers: { "Content-Type": "application/problem+json" },
+				},
+			),
+		);
+		renderPage();
+
+		fireEvent.click(screen.getByRole("button", { name: "Exportar CSV" }));
+
+		await waitFor(() =>
+			expect(mockToastError).toHaveBeenCalledWith(
+				"Apenas analista e administrador acessam a fila.",
+			),
+		);
+		expect(mockDownload).not.toHaveBeenCalled();
 	});
 });
