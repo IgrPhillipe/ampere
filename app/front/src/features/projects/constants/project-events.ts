@@ -3,6 +3,7 @@ import type { ProjectEvent, ProjectEventType } from "@services/project-events";
 
 export const PROJECT_EVENT_LABELS = {
 	CREATED: "Criado",
+	CALCULATED: "Demanda Calculada",
 	SUBMITTED: "Enviado",
 	PRE_VALIDATED: "Pré-validado",
 	ASSIGNED: "Análise Atribuída",
@@ -15,6 +16,7 @@ export const PROJECT_EVENT_LABELS = {
 
 const DESIGNER_EVENTS = new Set<ProjectEventType>([
 	"CREATED",
+	"CALCULATED",
 	"SUBMITTED",
 	"FINDING_ANSWERED",
 	"RESUBMITTED",

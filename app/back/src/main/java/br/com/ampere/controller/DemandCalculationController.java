@@ -52,7 +52,8 @@ public class DemandCalculationController {
   })
   public ApiResponse<CalculationResponse> calculate(
       @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(CalculationResponse.from(service.calculate(projectId, userOf(jwt))));
+    return ApiResponse.of(
+        CalculationResponse.from(service.calculateAndRecord(projectId, userOf(jwt))));
   }
 
   @GetMapping("/latest")

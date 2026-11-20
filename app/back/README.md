@@ -127,7 +127,7 @@ Cada projeto pertence a quem o criou. O projetista vê só os próprios projetos
 | `openFindingsCount` | Apontamentos `OPEN` ou `CONTESTED`; zero em projeto aprovado |
 | `consumerUnitsCount` | Soma das quantidades dos grupos de unidades consumidoras |
 | `demandKva` | Demanda do último cálculo; `null` enquanto não houver cálculo |
-| `lastActivityAt` | Data do evento mais recente do histórico; edição sem evento não conta. Sem eventos, usa `updatedAt` |
+| `lastActivityAt` | Data do evento mais recente do histórico, inclusive o cálculo da demanda pedido pelo projetista; edição sem evento não conta. Sem eventos, usa `updatedAt` |
 | `reviewDeadline` | Último dia do prazo de análise, já somados os dias suspensos; `null` fora de `UNDER_REVIEW` |
 | `deadlineStatus` | `ON_TIME`, `DUE_TODAY` ou `OVERDUE`; `null` fora de `UNDER_REVIEW` |
 | `daysRemaining` | Dias até o prazo, negativo quando atrasado. Em `UNDER_REVIEW` e enquanto reprovado (congelado: são os dias com que o reenvio volta à fila); `null` nos demais |

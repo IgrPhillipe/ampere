@@ -13,6 +13,7 @@ describe("eventAuthorRoleLabel", () => {
 		["APPROVED", "admin", "Analista"],
 		["ASSIGNED", "admin", "Gestor"],
 		["CREATED", "admin", "Projetista"],
+		["CALCULATED", "admin", "Projetista"],
 		["RESUBMITTED", "admin", "Projetista"],
 		["PRE_VALIDATED", null, "Sistema"],
 	] as const)("labels %s by %s as %s", (type, authorRole, label) => {

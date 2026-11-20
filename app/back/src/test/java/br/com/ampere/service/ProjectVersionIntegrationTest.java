@@ -28,6 +28,8 @@ import br.com.ampere.domain.LoadItem;
 import br.com.ampere.domain.LoadUsage;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectEvent;
+import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ProjectVersion;
 import br.com.ampere.domain.ResidentialMultifamily;
@@ -183,6 +185,15 @@ class ProjectVersionIntegrationTest {
         .andExpect(jsonPath("$.data[0].documents", hasSize(3)))
         .andExpect(jsonPath("$.data[0].memorialSha256").value(hasLength(64)))
         .andExpect(jsonPath("$.data[0].verificationCode").isNotEmpty());
+  }
+
+  @Test
+  void theRunInsideASubmissionIsNotRecordedAsACalculation() throws Exception {
+    Project project = submittedProject("2026-4070");
+
+    assertThat(eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(project.getId()))
+        .extracting(ProjectEvent::getType)
+        .containsOnlyOnce(ProjectEventType.CALCULATED);
   }
 
   @Test

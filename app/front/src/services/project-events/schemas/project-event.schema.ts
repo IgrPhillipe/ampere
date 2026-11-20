@@ -4,6 +4,7 @@ import { z } from "zod";
 
 export const projectEventTypeSchema = z.enum([
 	"CREATED",
+	"CALCULATED",
 	"SUBMITTED",
 	"PRE_VALIDATED",
 	"ASSIGNED",
