@@ -110,29 +110,12 @@ const Item = ({
 			/>
 
 			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-				{document && !summary ? (
-					// The attached item is the way into the viewer, with no second list.
-					<button
-						type="button"
-						aria-label={`Ver ${item.label} (conferido), ${document.filename}`}
-						onClick={() => onView(document)}
-						className="group flex min-w-0 flex-col gap-0.5 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-					>
-						<span className="text-sm text-foreground underline-offset-4 group-hover:underline">
-							{item.label}
-						</span>
-						<span className="truncate font-mono text-xs text-muted-foreground">
-							{document.filename} ({formatSize(document.fileSize)})
-						</span>
-					</button>
-				) : (
-					<span className="text-sm text-foreground">
-						{item.label}
-						<span className="sr-only">
-							{item.completed ? " (conferido)" : " (pendente)"}
-						</span>
+				<span className="text-sm text-foreground">
+					{item.label}
+					<span className="sr-only">
+						{item.completed ? " (conferido)" : " (pendente)"}
 					</span>
-				)}
+				</span>
 				{summary ? null : (
 					<>
 						<FindingBadge
@@ -140,7 +123,11 @@ const Item = ({
 							target={`documento-${item.key}`}
 							className="mt-1"
 						/>
-						{document ? null : type ? (
+						{document ? (
+							<span className="truncate font-mono text-xs text-muted-foreground">
+								{document.filename} ({formatSize(document.fileSize)})
+							</span>
+						) : type ? (
 							<span className="text-xs text-muted-foreground">
 								Anexe o arquivo em PDF
 							</span>
@@ -155,6 +142,18 @@ const Item = ({
 
 			{type && editable && !summary ? (
 				<div className="flex shrink-0 items-center gap-3">
+					{document ? (
+						<Button
+							type="button"
+							variant="link"
+							size="xs"
+							className="h-auto px-0"
+							aria-label={`Ver ${item.label}`}
+							onClick={() => onView(document)}
+						>
+							Ver
+						</Button>
+					) : null}
 					<input
 						ref={inputRef}
 						type="file"

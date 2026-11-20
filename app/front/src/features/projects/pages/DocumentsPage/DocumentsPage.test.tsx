@@ -117,11 +117,7 @@ describe("DocumentsPage", () => {
 		it("opens the viewer from the attached item, with a single download", () => {
 			renderPage();
 
-			fireEvent.click(
-				screen.getByRole("button", {
-					name: "Ver ART (conferido), art-assinada.pdf",
-				}),
-			);
+			fireEvent.click(screen.getByRole("button", { name: "Ver ART" }));
 
 			const dialog = screen.getByRole("dialog");
 			expect(
