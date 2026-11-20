@@ -3,7 +3,6 @@ import {
 	nextSort,
 	type SortDirections,
 	sortDirectionSchema,
-	useAuthStore,
 	useDebouncedValue,
 } from "@features/shared";
 import {
@@ -17,7 +16,6 @@ import {
 	type ReviewQueueSort,
 	reviewQueueFilterSchema,
 	reviewQueueSortSchema,
-	UNASSIGNED_REVIEWER,
 } from "@services/review-queue";
 import {
 	parseAsInteger,
@@ -41,11 +39,6 @@ export const REVIEW_QUEUE_SORT_DIRECTIONS: SortDirections<ReviewQueueSort> = {
 
 export type ReviewQueueFilters = ReturnType<typeof useReviewQueueFilters>;
 
-const toReviewer = (value: string | null) =>
-	value === UNASSIGNED_REVIEWER || (value && /^\d+$/.test(value))
-		? value
-		: null;
-
 const toOwner = (value: string | null) =>
 	value && /^\d+$/.test(value) ? value : null;
 
@@ -60,17 +53,11 @@ export const useReviewQueueFilters = () => {
 			DEFAULT_SORT,
 		),
 		direction: parseAsStringLiteral(sortDirectionSchema.options),
-		reviewer: parseAsString,
 		owner: parseAsString,
 		state: parseAsNativeArrayOf(parseAsStringLiteral(CONCESSION_STATES)),
 		municipality: parseAsNativeArrayOf(parseAsString),
 	});
 	const { filter, search, page, state, municipality } = query;
-	// The analyst's queue holds only their own projects, so the filter is the manager's.
-	const canFilterByReviewer = useAuthStore(
-		(state) => state.user?.role === "admin",
-	);
-	const reviewer = canFilterByReviewer ? toReviewer(query.reviewer) : null;
 	const owner = toOwner(query.owner);
 	// The URL follows each keystroke; only the request waits, so no update fires after leaving the list.
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
@@ -90,12 +77,11 @@ export const useReviewQueueFilters = () => {
 			search: debouncedSearch || undefined,
 			sort: sort.column,
 			direction: sort.direction,
-			reviewer: reviewer ?? undefined,
 			owner: owner ?? undefined,
 			state: state.length ? state : undefined,
 			municipality: municipality.length ? municipality : undefined,
 		}),
-		[page, filter, debouncedSearch, sort, reviewer, owner, state, municipality],
+		[page, filter, debouncedSearch, sort, owner, state, municipality],
 	);
 
 	const setFilter = useCallback(
@@ -141,13 +127,6 @@ export const useReviewQueueFilters = () => {
 		[sort, setSort],
 	);
 
-	const setReviewer = useCallback(
-		(value: string | null) => {
-			void setQuery({ reviewer: value, page: null });
-		},
-		[setQuery],
-	);
-
 	const setOwner = useCallback(
 		(value: string | null) => {
 			void setQuery({ owner: value, page: null });
@@ -186,7 +165,6 @@ export const useReviewQueueFilters = () => {
 		void setQuery({
 			filter: null,
 			search: null,
-			reviewer: null,
 			owner: null,
 			state: null,
 			municipality: null,
@@ -199,16 +177,13 @@ export const useReviewQueueFilters = () => {
 		search,
 		page,
 		sort,
-		reviewer,
 		owner,
 		state,
 		municipality,
 		params,
-		canFilterByReviewer,
 		hasActiveFilters:
 			filter !== "ALL" ||
 			search.trim() !== "" ||
-			reviewer !== null ||
 			owner !== null ||
 			state.length > 0 ||
 			municipality.length > 0,
@@ -217,7 +192,6 @@ export const useReviewQueueFilters = () => {
 		setPage,
 		setSort,
 		sortBy,
-		setReviewer,
 		setOwner,
 		setState,
 		setMunicipality,

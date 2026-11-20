@@ -6,15 +6,12 @@ import { Button } from "@components/ui/button";
 import { downloadFile, useAuthStore } from "@features/shared";
 import {
 	type ReviewQueueItem,
-	UNASSIGNED_REVIEWER,
 	useExportReviewQueueCsv,
-	useGetReviewerList,
 	useGetReviewQueue,
 	useGetReviewQueueIndicators,
 } from "@services/review-queue";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleAlert } from "lucide-react";
-import { useEffect } from "react";
 
 import {
 	ReviewQueueActiveFilters,
@@ -39,8 +36,6 @@ export const ReviewQueuePage = () => {
 		setSort,
 		sortBy,
 		clearFilters,
-		reviewer,
-		setReviewer,
 	} = filters;
 	const queueQuery = useGetReviewQueue({
 		...filters.params,
@@ -49,20 +44,7 @@ export const ReviewQueuePage = () => {
 	const indicatorsQuery = useGetReviewQueueIndicators();
 	const navigate = useNavigate();
 	const user = useAuthStore((state) => state.user);
-	const isManager = user?.role === "admin";
 	const exportQueue = useExportReviewQueueCsv();
-	const reviewersQuery = useGetReviewerList({ enabled: isManager });
-	// A deactivated analyst leaves the list once their last project is reassigned.
-	const isReviewerGone =
-		reviewer !== null &&
-		reviewer !== UNASSIGNED_REVIEWER &&
-		reviewersQuery.isSuccess &&
-		!reviewersQuery.data.data.some(({ id }) => id === reviewer);
-
-	useEffect(() => {
-		if (isReviewerGone) setReviewer(null);
-	}, [isReviewerGone, setReviewer]);
-
 	const items = queueQuery.data?.data ?? [];
 
 	const analyze = (item: ReviewQueueItem) =>
@@ -84,11 +66,7 @@ export const ReviewQueuePage = () => {
 	return (
 		<PageLayout
 			title="Fila de Análise"
-			description={
-				isManager
-					? "Acompanhe e priorize os projetos enviados para análise técnica."
-					: "Acompanhe e priorize os projetos atribuídos a você."
-			}
+			description="Acompanhe e priorize os projetos atribuídos a você."
 			bleed
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
@@ -102,7 +80,6 @@ export const ReviewQueuePage = () => {
 					filter={filter}
 					onFilterChange={setFilter}
 					indicators={indicatorsQuery.data?.data}
-					ownQueue={!isManager}
 					sort={sort}
 					onSortChange={setSort}
 					actions={
@@ -114,9 +91,6 @@ export const ReviewQueuePage = () => {
 					}
 					refinements={
 						<ReviewQueueFilterControls
-							showReviewer={isManager}
-							reviewer={filters.reviewer}
-							onReviewerChange={filters.setReviewer}
 							owner={filters.owner}
 							ownerName={ownerName}
 							onOwnerChange={filters.setOwner}
@@ -156,7 +130,6 @@ export const ReviewQueuePage = () => {
 							isLoading={queueQuery.isPending}
 							onAnalyze={analyze}
 							currentUserId={user?.id}
-							showReviewer={isManager}
 							sort={sort}
 							onSortChange={sortBy}
 							onClearFilters={hasActiveFilters ? clearFilters : undefined}

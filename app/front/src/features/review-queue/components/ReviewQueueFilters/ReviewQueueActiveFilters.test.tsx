@@ -61,25 +61,6 @@ describe("ReviewQueueActiveFilters", () => {
 		vi.mocked(getReviewerList).mockReturnValue(new Promise(vi.fn()));
 	});
 
-	it("names the analyst once the list is loaded", () => {
-		renderChips("?reviewer=3&filter=DUE_SOON", true);
-
-		expect(screen.getByText("Analista: Revisor Teste")).toBeInTheDocument();
-		expect(screen.getByText("Vencendo o prazo")).toBeInTheDocument();
-	});
-
-	it("waits for the list instead of showing the analyst id", () => {
-		renderChips("?reviewer=3");
-
-		expect(screen.queryByText(/Analista/)).not.toBeInTheDocument();
-	});
-
-	it("labels the unassigned filter without the list", () => {
-		renderChips("?reviewer=none");
-
-		expect(screen.getByText("Não Atribuído")).toBeInTheDocument();
-	});
-
 	it("names the designer and clears the filter from the tag", async () => {
 		const lastUrl = renderChips(
 			"?owner=5&filter=DUE_SOON",

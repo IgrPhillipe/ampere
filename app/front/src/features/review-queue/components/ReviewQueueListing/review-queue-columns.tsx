@@ -7,7 +7,6 @@ import { AlertsCell } from "./AlertsCell";
 import { AnalyzeButton } from "./AnalyzeButton";
 import { DeadlineCell } from "./DeadlineCell";
 import { QueueItemIndicator } from "./QueueItemIndicator";
-import { ReviewerCell } from "./ReviewerCell";
 import {
 	formatQueueItemOrigin,
 	formatReviewCycle,
@@ -26,7 +25,6 @@ export type ReviewQueueColumnId =
 	| "warnings"
 	| "deadline"
 	| "status"
-	| "reviewer"
 	| "action"
 	// No column of its own, but still a sort key of the list.
 	| "submittedAt";
@@ -39,15 +37,12 @@ export interface ReviewQueueRowActions {
 interface ReviewQueueColumnOptions extends ReviewQueueRowActions {
 	/** Only the analyst responsible for a project reviews it. */
 	currentUserId?: string;
-	/** The analyst's queue holds only their own projects, so the column would repeat them. */
-	showReviewer?: boolean;
 }
 
 /** The H06 set: receipt and submission cycle ride on the project's second line. */
 export const createReviewQueueColumns = ({
 	onAnalyze,
 	currentUserId,
-	showReviewer = true,
 }: ReviewQueueColumnOptions) =>
 	columnHelper.columns([
 		columnHelper.display({
@@ -119,15 +114,6 @@ export const createReviewQueueColumns = ({
 			header: "Prazo",
 			cell: ({ row }) => <DeadlineCell item={row.original} />,
 		}),
-		...(showReviewer
-			? [
-					columnHelper.accessor("reviewerName", {
-						id: "reviewer",
-						header: "Analista Responsável",
-						cell: ({ row }) => <ReviewerCell item={row.original} />,
-					}),
-				]
-			: []),
 		columnHelper.display({
 			id: "action",
 			header: () => <span className="sr-only">Ação</span>,

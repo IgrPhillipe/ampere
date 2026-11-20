@@ -16,13 +16,12 @@ import {
 const columnClassNames = {
 	attention: "w-5 px-0",
 	protocol: "w-28",
-	// From 1024 to 1280 px these give way, so the reviewer and the action stay in view.
+	// From 1024 to 1280 px these give way, so the action stays in view.
 	units: "w-16 text-right lg:hidden xl:table-cell",
 	demand: "w-28 text-right lg:hidden xl:table-cell",
 	warnings: "w-32",
 	deadline: "w-28 text-right lg:hidden xl:table-cell",
 	status: "w-36 text-right",
-	reviewer: "w-36",
 	action: "w-24 pr-0 text-right",
 } satisfies Partial<Record<ReviewQueueColumnId, string>>;
 
@@ -37,8 +36,6 @@ interface ReviewQueueListingProps extends ReviewQueueRowActions {
 	items: ReviewQueueItem[];
 	/** Decides between "Analisar" and "Consultar" on each row. */
 	currentUserId?: string;
-	/** The manager's column: the analyst's queue holds only their own projects. */
-	showReviewer?: boolean;
 	isLoading?: boolean;
 	sort?: ListSort<ReviewQueueSort>;
 	onSortChange?: (column: ReviewQueueSort) => void;
@@ -50,7 +47,6 @@ export const ReviewQueueListing = ({
 	isLoading = false,
 	onAnalyze,
 	currentUserId,
-	showReviewer = true,
 	sort,
 	onSortChange,
 	onClearFilters,
@@ -61,9 +57,8 @@ export const ReviewQueueListing = ({
 			createReviewQueueColumns({
 				onAnalyze,
 				currentUserId,
-				showReviewer,
 			}),
-		[onAnalyze, currentUserId, showReviewer],
+		[onAnalyze, currentUserId],
 	);
 
 	// The attention marker has no skeleton cell of its own.
@@ -83,11 +78,7 @@ export const ReviewQueueListing = ({
 		) : (
 			<EmptyState
 				title="Nenhum projeto aguardando análise"
-				description={
-					showReviewer
-						? "Os projetos enviados pelos projetistas aparecem aqui."
-						: "Os projetos que o gestor atribuir a você aparecem aqui."
-				}
+				description="Os projetos que o gestor atribuir a você aparecem aqui."
 			/>
 		);
 	}

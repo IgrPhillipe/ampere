@@ -126,9 +126,9 @@ describe("ReviewQueuePage roles", () => {
 		expect(screen.getByRole("button", { name: "Exportar CSV" })).toBeEnabled();
 	});
 
-	it("leaves the reviewer filter and column to the manager", () => {
+	it("shows the analyst's own queue, without the analyst filter and column", () => {
 		signInAs("reviewer", { id: "7" });
-		const { unmount } = renderPage();
+		renderPage();
 
 		expect(
 			screen.getByText("Acompanhe e priorize os projetos atribuídos a você."),
@@ -140,53 +140,6 @@ describe("ReviewQueuePage roles", () => {
 		expect(
 			screen.queryByRole("columnheader", { name: "Analista Responsável" }),
 		).not.toBeInTheDocument();
-		unmount();
-
-		signInAs("admin", { id: "1" });
-		renderPage();
-
-		expect(screen.getByText("Todos na fila")).toBeInTheDocument();
-		expect(
-			screen.getByRole("columnheader", { name: "Analista Responsável" }),
-		).toBeInTheDocument();
-	});
-
-	it("lets the manager filter by a deactivated analyst", async () => {
-		signInAs("admin", { id: "1" });
-		renderPage();
-
-		fireEvent.click(screen.getByRole("button", { name: "Analista: Todos" }));
-		expect(
-			await screen.findByRole("menuitemradio", {
-				name: "Davi Analista (Inativo)",
-			}),
-		).toBeInTheDocument();
-		fireEvent.keyDown(document.activeElement ?? document.body, {
-			key: "Escape",
-		});
-	});
-
-	it("drops the analyst filter once that analyst leaves the list", async () => {
-		signInAs("admin", { id: "1" });
-		const onUrlUpdate = vi.fn();
-		renderPage("?reviewer=99", onUrlUpdate);
-
-		await waitFor(() =>
-			expect(
-				onUrlUpdate.mock.lastCall?.[0]?.searchParams.get("reviewer"),
-			).toBeNull(),
-		);
-	});
-
-	it("keeps the filter on a deactivated analyst still in the list", () => {
-		signInAs("admin", { id: "1" });
-		const onUrlUpdate = vi.fn();
-		renderPage("?reviewer=9", onUrlUpdate);
-
-		expect(onUrlUpdate).not.toHaveBeenCalled();
-		expect(
-			screen.getByRole("button", { name: "Analista: Davi Analista (Inativo)" }),
-		).toBeInTheDocument();
 	});
 });
 
