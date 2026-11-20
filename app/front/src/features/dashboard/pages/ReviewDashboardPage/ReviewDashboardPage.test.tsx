@@ -238,6 +238,26 @@ describe("ReviewDashboardPage", () => {
 		).toBeInTheDocument();
 	});
 
+	it("says so when the period has no times or deadlines", () => {
+		state.query = loadedQuery({
+			data: makeDashboard({
+				averageReviewDays: null,
+				averageCycleDays: null,
+				deadlines: { met: 0, overdue: 0 },
+			}),
+		});
+		renderPage();
+
+		const times = screen.getByRole("region", { name: "Tempos e Prazos" });
+
+		expect(
+			within(times).getByText("Sem análises no período."),
+		).toBeInTheDocument();
+		expect(
+			within(times).queryByText("Prazos vencidos"),
+		).not.toBeInTheDocument();
+	});
+
 	it("offers a retry when the indicators fail", () => {
 		const refetch = vi.fn();
 		state.query = { isError: true, isPending: false, refetch };

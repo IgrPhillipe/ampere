@@ -33,7 +33,7 @@ const plural = (count: number, one: string, many: string) =>
 const capitalize = (text: string) =>
 	text.charAt(0).toUpperCase() + text.slice(1);
 
-const timeItems = (dashboard: ReviewDashboard): IndicatorListItem[] => [
+const timeItemsOf = (dashboard: ReviewDashboard): IndicatorListItem[] => [
 	{
 		key: "review",
 		label: "Tempo médio de análise",
@@ -55,6 +55,18 @@ const timeItems = (dashboard: ReviewDashboard): IndicatorListItem[] => [
 		value: padCount(dashboard.deadlines.overdue),
 	},
 ];
+
+const hasTimes = ({
+	averageReviewDays,
+	averageCycleDays,
+	deadlines,
+}: ReviewDashboard) =>
+	averageReviewDays !== null ||
+	averageCycleDays !== null ||
+	deadlines.met + deadlines.overdue > 0;
+
+const timeItems = (dashboard: ReviewDashboard): IndicatorListItem[] =>
+	hasTimes(dashboard) ? timeItemsOf(dashboard) : [];
 
 const categoryItems = (dashboard: ReviewDashboard): IndicatorListItem[] =>
 	dashboard.alertsByCategory.map(({ category, alerts, projects }) => ({
