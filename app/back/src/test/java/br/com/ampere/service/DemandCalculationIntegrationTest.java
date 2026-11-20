@@ -20,8 +20,6 @@ import br.com.ampere.domain.LoadItem;
 import br.com.ampere.domain.LoadUsage;
 import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.NormativeTableCode;
-import br.com.ampere.domain.NormativeTableRow;
-import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
@@ -37,6 +35,7 @@ import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.utils.Timestamps;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -85,6 +84,8 @@ class DemandCalculationIntegrationTest {
   @Autowired private CalculationRepository calculationRepository;
 
   @Autowired private DemandCalculationService calculations;
+
+  @Autowired private ProjectVersionService versionService;
 
   @Autowired private EntityManager entityManager;
 
@@ -145,6 +146,23 @@ class DemandCalculationIntegrationTest {
     assertThat(resubmission.getResidentialDemandFinal())
         .isEqualByComparingTo(original.getResidentialDemandFinal());
     assertThat(calculations.isCurrent(original, groups)).isTrue();
+  }
+
+  @Test
+  void aProtocolKeepsTheTablesItsFirstRunUsedEvenIfOneIsReplacedBeforeTheSubmission() {
+    publishTables();
+    Project project = draftWithPrototypeGroups(true);
+    var groups = groupRepository.findAllByProjectIdOrderById(project.getId());
+    var sent = calculationRepository.saveAndFlush(calculations.compute(project, groups));
+    replace(NormativeTableCode.Q35_APARTMENT_DEMAND, "2");
+
+    OffsetDateTime submittedAt = Timestamps.now();
+    project.submit(submittedAt);
+    versionService.register(project, sent, submittedAt);
+    project.reject(Timestamps.now(), "Corrigir");
+
+    assertThat(calculations.compute(project, groups).getResidentialDemandFinal())
+        .isEqualByComparingTo(sent.getResidentialDemandFinal());
   }
 
   private String token;
@@ -352,37 +370,11 @@ class DemandCalculationIntegrationTest {
   }
 
   private NormativeTable published(NormativeTableCode code) {
-    return normativeTableRepository
-        .findByCodeAndStatus(code, NormativeTableStatus.PUBLISHED)
-        .orElseThrow();
+    return NormativeTableReplacement.published(normativeTableRepository, code);
   }
 
-  /** Publishes a revision with the values scaled by the factor, superseding the current one. */
   private NormativeTable replace(NormativeTableCode code, String factor) {
-    NormativeTable old = published(code);
-    NormativeTable replacement =
-        new NormativeTable(
-            old.getStandard(),
-            old.getCode(),
-            old.getIdentification(),
-            old.getItem(),
-            old.getPage(),
-            old.getRows().stream()
-                .map(
-                    row ->
-                        new NormativeTableRow(
-                            row.getRowKey(),
-                            row.getLowerBound(),
-                            row.getUpperBound(),
-                            row.getPrimaryValue().multiply(new BigDecimal(factor)),
-                            row.getSecondaryValue(),
-                            row.getTertiaryValue(),
-                            row.getLabel()))
-                .toList(),
-            "author");
-    replacement.publish("verifier");
-    old.supersede(replacement.getVerifiedAt());
-    return normativeTableRepository.saveAndFlush(replacement);
+    return NormativeTableReplacement.replace(normativeTableRepository, code, factor);
   }
 
   private Project draftWithPrototypeGroups(boolean fixed) {

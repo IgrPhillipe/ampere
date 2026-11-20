@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import br.com.ampere.config.NormativeTableSeed;
 import br.com.ampere.domain.ApprovalMemorial;
+import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DocumentType;
@@ -26,6 +27,7 @@ import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.LoadCategory;
 import br.com.ampere.domain.LoadItem;
 import br.com.ampere.domain.LoadUsage;
+import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
@@ -55,6 +57,7 @@ import com.lowagie.text.pdf.parser.PdfTextExtractor;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -217,6 +220,38 @@ class ProjectVersionIntegrationTest {
             jsonPath("$.data[1].changeSummary").value("Quantidade de apartamentos corrigida."))
         .andExpect(
             jsonPath("$.data[0].memorialSha256").value(MemorialFingerprint.sha256(versionOne)));
+  }
+
+  @Test
+  void everyResubmissionKeepsTheRevisionsOfTheFirstSubmission() throws Exception {
+    Project project = submittedProject("2026-4060");
+    Calculation sent = latestCalculation(project);
+    NormativeTableReplacement.replace(
+        normativeTableRepository, NormativeTableCode.Q35_APARTMENT_DEMAND, "2");
+    resubmit(project, "Primeira correção.");
+    NormativeTableReplacement.replace(
+        normativeTableRepository, NormativeTableCode.Q35_APARTMENT_DEMAND, "3");
+    resubmit(project, "Segunda correção.");
+    reject(project);
+
+    String body =
+        perform(post("/projects/" + project.getId() + "/calculations"))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    OffsetDateTime firstSubmission =
+        versionRepository
+            .findByProjectIdAndNumber(project.getId(), 1)
+            .orElseThrow()
+            .getSubmittedAt();
+    assertThat(
+            OffsetDateTime.parse(
+                objectMapper.readTree(body).at("/data/revisionsFixedAt").asString()))
+        .isEqualTo(firstSubmission);
+    assertThat(latestCalculation(project).getResidentialDemandFinal())
+        .isEqualByComparingTo(sent.getResidentialDemandFinal());
   }
 
   @Test
@@ -734,6 +769,10 @@ class ProjectVersionIntegrationTest {
             get(versionsOf(project) + "/1/documents/ART/file")
                 .header("Authorization", "Bearer " + other))
         .andExpect(status().isNotFound());
+  }
+
+  private Calculation latestCalculation(Project project) {
+    return calculationRepository.findFirstByProjectIdOrderByIdDesc(project.getId()).orElseThrow();
   }
 
   private Project submittedProject(String protocol) throws Exception {

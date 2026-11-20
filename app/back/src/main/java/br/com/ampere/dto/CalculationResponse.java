@@ -76,17 +76,15 @@ public record CalculationResponse(
   public record Table(
       String identification, String standard, String revision, String item, String page) {}
 
-  public static CalculationResponse from(Calculation calculation) {
-    return from(calculation, false);
-  }
-
-  /** {@code outdated}: the project data changed after this run, while it can still be edited. */
-  public static CalculationResponse from(Calculation calculation, boolean outdated) {
-    return from(calculation, outdated, List.of());
-  }
-
+  /**
+   * {@code outdated}: the project data or a table it used changed after this run, while it can
+   * still be edited. {@code revisionsFixedAt}: the first submission, null before it.
+   */
   public static CalculationResponse from(
-      Calculation calculation, boolean outdated, List<String> changedTables) {
+      Calculation calculation,
+      boolean outdated,
+      List<String> changedTables,
+      OffsetDateTime revisionsFixedAt) {
     List<CalculationStep> steps = calculation.getSteps();
     List<CalculationCheck> checks = calculation.getChecks();
 
@@ -123,7 +121,7 @@ public record CalculationResponse(
         calculation.getAppliedTables().stream().map(CalculationResponse::table).toList(),
         outdated,
         changedTables,
-        calculation.getProject().getSubmittedAt());
+        revisionsFixedAt);
   }
 
   private static StandardResponse standard(String name, String revision) {

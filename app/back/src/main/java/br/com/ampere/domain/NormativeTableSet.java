@@ -1,13 +1,12 @@
 package br.com.ampere.domain;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** The published tables, looked up by code. */
+/** The published tables, or those a submitted protocol fixed, looked up by code. */
 public final class NormativeTableSet implements NormativeTables {
 
   private final Map<NormativeTableCode, NormativeTable> tables =
@@ -17,11 +16,15 @@ public final class NormativeTableSet implements NormativeTables {
     this(published, null);
   }
 
-  public NormativeTableSet(List<NormativeTable> published, OffsetDateTime effectiveAt) {
-    published.stream()
-        .filter(
-            table -> effectiveAt == null ? table.isPublished() : table.wasEffectiveAt(effectiveAt))
+  /** {@code fixed} null takes the published tables. */
+  public NormativeTableSet(List<NormativeTable> candidates, FixedRevisions fixed) {
+    candidates.stream()
+        .filter(table -> fixed == null ? table.isPublished() : fixed.selects(table))
         .forEach(table -> tables.putIfAbsent(table.getCode(), table));
+  }
+
+  public Optional<Long> idOf(NormativeTableCode code) {
+    return Optional.ofNullable(tables.get(code)).map(NormativeTable::getId);
   }
 
   @Override

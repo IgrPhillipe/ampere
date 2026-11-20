@@ -7,6 +7,7 @@ import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DemandContext;
 import br.com.ampere.domain.DemandEngine;
 import br.com.ampere.domain.DemandResult;
+import br.com.ampere.domain.FixedRevisions;
 import br.com.ampere.domain.MissingNormativeValueException;
 import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.NormativeTableCode;
@@ -18,7 +19,10 @@ import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.NormativeTableRepository;
+import br.com.ampere.repository.ProjectVersionRepository;
+import java.time.OffsetDateTime;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,10 +37,15 @@ import tools.jackson.databind.node.ObjectNode;
 @Service
 public class DemandCalculationService {
 
+  private static final String TABLE_IDS = "normativeTableIds";
+
+  private static final int FIRST_VERSION = 1;
+
   private final ProjectService projectService;
   private final ConsumerUnitGroupRepository groupRepository;
   private final NormativeTableRepository tableRepository;
   private final CalculationRepository calculationRepository;
+  private final ProjectVersionRepository versionRepository;
   private final ObjectMapper objectMapper;
 
   public DemandCalculationService(
@@ -44,11 +53,13 @@ public class DemandCalculationService {
       ConsumerUnitGroupRepository groupRepository,
       NormativeTableRepository tableRepository,
       CalculationRepository calculationRepository,
+      ProjectVersionRepository versionRepository,
       ObjectMapper objectMapper) {
     this.projectService = projectService;
     this.groupRepository = groupRepository;
     this.tableRepository = tableRepository;
     this.calculationRepository = calculationRepository;
+    this.versionRepository = versionRepository;
     this.objectMapper = objectMapper;
   }
 
@@ -75,12 +86,9 @@ public class DemandCalculationService {
   /** The engine run alone, unsaved: the seed reuses it for projects already submitted. */
   public Calculation compute(Project project, List<ConsumerUnitGroup> groups) {
     BuildingType building = project.getBuildingType();
-    List<NormativeTable> tables = tablesFor(project);
+    NormativeTableSet tables = tablesFor(project);
     DemandContext context =
-        new DemandContext(
-            new NormativeTableSet(tables, project.getSubmittedAt()),
-            building.getVoltage(),
-            building.getConnectionType());
+        new DemandContext(tables, building.getVoltage(), building.getConnectionType());
     DemandResult result;
     try {
       result = DemandEngine.run(groups, context);
@@ -89,33 +97,63 @@ public class DemandCalculationService {
     }
 
     Map<String, Object> input = input(project, groups);
-    Map<String, Long> revisions = new LinkedHashMap<>();
+    Map<String, Long> tableIds = new LinkedHashMap<>();
     result
         .appliedTables()
         .forEach(
             reference ->
-                tables.stream()
-                    .filter(table -> table.getCode() == reference.code())
-                    .findFirst()
-                    .ifPresent(table -> revisions.put(reference.code().name(), table.getId())));
-    input.put("normativeTableIds", revisions);
+                tables
+                    .idOf(reference.code())
+                    .ifPresent(id -> tableIds.put(reference.code().name(), id)));
+    input.put(TABLE_IDS, tableIds);
     return new Calculation(project, result, objectMapper.writeValueAsString(input));
   }
 
-  private List<NormativeTable> tablesFor(Project project) {
+  private NormativeTableSet tablesFor(Project project) {
+    FixedRevisions fixed = fixedRevisions(project);
+    return fixed == null
+        ? new NormativeTableSet(tableRepository.findAllByStatus(NormativeTableStatus.PUBLISHED))
+        : new NormativeTableSet(tableRepository.findListingBy(), fixed);
+  }
+
+  /** Null before the first submission; afterwards, what the run of the first version used. */
+  public FixedRevisions fixedRevisions(Project project) {
     if (project.getSubmittedAt() == null) {
-      return tableRepository.findAllByStatus(NormativeTableStatus.PUBLISHED);
+      return null;
     }
-    return tableRepository.findListingBy().stream()
-        .filter(table -> table.wasEffectiveAt(project.getSubmittedAt()))
-        .toList();
+    return versionRepository
+        .findByProjectIdAndNumber(project.getId(), FIRST_VERSION)
+        .map(
+            first -> new FixedRevisions(first.getSubmittedAt(), tableIdsOf(first.getCalculation())))
+        // The first submission issues its memorial before its version is saved.
+        .orElseGet(() -> new FixedRevisions(project.getSubmittedAt(), Map.of()));
+  }
+
+  /** The date the protocol's revisions are fixed at; null before the first submission. */
+  @Transactional(readOnly = true)
+  public OffsetDateTime revisionsFixedAt(Project project) {
+    FixedRevisions fixed = fixedRevisions(project);
+    return fixed == null ? null : fixed.fixedAt();
+  }
+
+  private Map<NormativeTableCode, Long> tableIdsOf(Calculation calculation) {
+    JsonNode ids = objectMapper.readTree(calculation.getInputSnapshot()).get(TABLE_IDS);
+    Map<NormativeTableCode, Long> tableIds = new EnumMap<>(NormativeTableCode.class);
+    if (ids != null) {
+      ids.properties()
+          .forEach(
+              entry ->
+                  tableIds.put(
+                      NormativeTableCode.valueOf(entry.getKey()), entry.getValue().asLong()));
+    }
+    return tableIds;
   }
 
   @Transactional(readOnly = true)
   public List<String> changedTables(Calculation calculation) {
     if (calculation.getProject().getSubmittedAt() != null) return List.of();
-    JsonNode ids = objectMapper.readTree(calculation.getInputSnapshot()).get("normativeTableIds");
-    List<NormativeTable> current = tablesFor(calculation.getProject());
+    JsonNode ids = objectMapper.readTree(calculation.getInputSnapshot()).get(TABLE_IDS);
+    List<NormativeTable> current = tableRepository.findAllByStatus(NormativeTableStatus.PUBLISHED);
     if (ids != null) {
       return StreamSupport.stream(ids.properties().spliterator(), false)
           .filter(
@@ -153,7 +191,7 @@ public class DemandCalculationService {
   /** For a caller that already loaded the project's groups. */
   public boolean isCurrent(Calculation calculation, List<ConsumerUnitGroup> groups) {
     var recorded = (ObjectNode) objectMapper.readTree(calculation.getInputSnapshot());
-    recorded.remove("normativeTableIds");
+    recorded.remove(TABLE_IDS);
     return recorded.equals(
             SAME_VALUE, objectMapper.valueToTree(input(calculation.getProject(), groups)))
         && changedTables(calculation).isEmpty();
@@ -165,7 +203,8 @@ public class DemandCalculationService {
               ? left.decimalValue().compareTo(right.decimalValue())
               : left.equals(right) ? 0 : 1;
 
-  public record Latest(Calculation calculation, boolean outdated) {}
+  public record Latest(
+      Calculation calculation, boolean outdated, OffsetDateTime revisionsFixedAt) {}
 
   /** The last run, flagged when an editable project changed after it. */
   @Transactional(readOnly = true)
@@ -179,7 +218,8 @@ public class DemandCalculationService {
                     new NotFoundException(
                         "Nenhum cálculo de demanda foi feito para este projeto."));
 
-    return new Latest(calculation, project.isEditable() && !isCurrent(calculation));
+    return new Latest(
+        calculation, project.isEditable() && !isCurrent(calculation), revisionsFixedAt(project));
   }
 
   private Map<String, Object> input(Project project, List<ConsumerUnitGroup> groups) {

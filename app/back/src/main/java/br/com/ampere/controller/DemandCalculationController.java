@@ -1,5 +1,6 @@
 package br.com.ampere.controller;
 
+import br.com.ampere.domain.Calculation;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.CalculationResponse;
 import br.com.ampere.service.AuthenticatedUser;
@@ -53,7 +54,11 @@ public class DemandCalculationController {
   })
   public ApiResponse<CalculationResponse> calculate(
       @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
-    return ApiResponse.of(CalculationResponse.from(service.calculate(projectId, userOf(jwt))));
+    Calculation calculation = service.calculate(projectId, userOf(jwt));
+
+    return ApiResponse.of(
+        CalculationResponse.from(
+            calculation, false, List.of(), service.revisionsFixedAt(calculation.getProject())));
   }
 
   @GetMapping("/latest")
@@ -74,7 +79,8 @@ public class DemandCalculationController {
         CalculationResponse.from(
             latest.calculation(),
             latest.outdated(),
-            latest.outdated() ? service.changedTables(latest.calculation()) : List.of()));
+            latest.outdated() ? service.changedTables(latest.calculation()) : List.of(),
+            latest.revisionsFixedAt()));
   }
 
   private static AuthenticatedUser userOf(Jwt jwt) {

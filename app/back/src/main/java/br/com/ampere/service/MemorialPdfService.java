@@ -225,7 +225,7 @@ public class MemorialPdfService {
     addConsumerUnits(document, groups);
     addCalculationSteps(document, calculation);
     addDemandTotals(document, calculation);
-    addAppliedStandards(document, calculation);
+    addAppliedStandards(document, calculation, demandCalculationService.revisionsFixedAt(project));
     addReservations(document, project, reservations);
 
     document.close();
@@ -503,13 +503,14 @@ public class MemorialPdfService {
     document.add(total);
   }
 
-  private static void addAppliedStandards(Document document, Calculation calculation) {
+  private static void addAppliedStandards(
+      Document document, Calculation calculation, OffsetDateTime revisionsFixedAt) {
     addSection(document, 5, "Normas Aplicadas");
-    if (calculation.getProject().getSubmittedAt() != null) {
+    if (revisionsFixedAt != null) {
       document.add(
           note(
               "Revisões normativas fixadas na data do primeiro envio do protocolo: "
-                  + calculation.getProject().getSubmittedAt().toLocalDate()
+                  + revisionsFixedAt.toLocalDate()
                   + "."));
     }
     PdfPTable fields = fields();
