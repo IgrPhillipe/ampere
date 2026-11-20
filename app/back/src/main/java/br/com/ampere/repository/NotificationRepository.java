@@ -30,4 +30,16 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
       WHERE notification.recipient.id = :recipientId AND notification.readAt IS NULL
       """)
   int markAllRead(@Param("recipientId") Long recipientId, @Param("readAt") OffsetDateTime readAt);
+
+  @Modifying(flushAutomatically = true)
+  @Query(
+      """
+      UPDATE Notification notification
+      SET notification.link = :link
+      WHERE notification.recipient.id = :recipientId AND notification.project.id = :projectId
+      """)
+  int relink(
+      @Param("recipientId") Long recipientId,
+      @Param("projectId") Long projectId,
+      @Param("link") String link);
 }

@@ -19,6 +19,8 @@ import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.FindingSeverity;
 import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.GroupSpec;
+import br.com.ampere.domain.Notification;
+import br.com.ampere.domain.NotificationType;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectEvent;
@@ -34,6 +36,7 @@ import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
+import br.com.ampere.repository.NotificationRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
@@ -84,6 +87,7 @@ class ReviewerDistributionIntegrationTest {
   @Autowired private ProjectDocumentRepository documentRepository;
   @Autowired private FindingRepository findingRepository;
   @Autowired private ProjectEventRepository eventRepository;
+  @Autowired private NotificationRepository notificationRepository;
   @Autowired private ReviewerMunicipalityRepository municipalityRepository;
   @Autowired private NormativeTableRepository normativeTableRepository;
   @Autowired private StandardRepository standardRepository;
@@ -304,6 +308,48 @@ class ReviewerDistributionIntegrationTest {
         .perform(post("/notifications/read-all").header(HttpHeaders.AUTHORIZATION, bearer(bruno)))
         .andExpect(status().isNoContent());
     notifications(bruno).andExpect(jsonPath("$.data.unreadCount").value(0));
+  }
+
+  @Test
+  void reassignmentPointsThePreviousAnalystNoticesToTheQueue() throws Exception {
+    Project project = readyProject("2026-9016", "Recife", designer);
+    submit(project).andExpect(status().isOk());
+    assign(List.of(project), bruno).andExpect(status().isNoContent());
+    reject(project);
+    resubmit(project).andExpect(status().isOk());
+    notifications(bruno)
+        .andExpect(jsonPath("$.data.items[0].link").value("/fila-de-analise/" + project.getId()));
+
+    assign(List.of(project), ana).andExpect(status().isNoContent());
+
+    notifications(bruno)
+        .andExpect(jsonPath("$.data.items", hasSize(1)))
+        .andExpect(jsonPath("$.data.items[0].link").value("/fila-de-analise"));
+  }
+
+  @Test
+  void redistributionPointsTheRejectingAnalystNoticesToTheQueue() throws Exception {
+    rule(ana, "Caruaru");
+    Project project = readyProject("2026-9017", "Caruaru", designer);
+    submit(project).andExpect(status().isOk());
+    assign(List.of(project), bruno).andExpect(status().isNoContent());
+    notificationRepository.save(
+        new Notification(
+            bruno,
+            projectRepository.findDetailById(project.getId()).orElseThrow(),
+            NotificationType.REVIEW_OVERDUE,
+            "Prazo de análise do projeto 2026-9017 vencido",
+            "/fila-de-analise/" + project.getId(),
+            OffsetDateTime.now(ZoneOffset.UTC)));
+    reject(project);
+    deactivate(bruno);
+
+    resubmit(project).andExpect(status().isOk());
+
+    assertThat(notificationRepository.findAllByProjectId(project.getId()))
+        .filteredOn(notice -> notice.getRecipient().getId().equals(bruno.getId()))
+        .extracting(Notification::getLink)
+        .containsExactly("/fila-de-analise");
   }
 
   @Test

@@ -4,6 +4,7 @@ import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ReviewerMunicipality;
 import br.com.ampere.domain.User;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.FindingRepository;
@@ -29,18 +30,21 @@ public class ReviewAssignmentService {
   private final ProjectRepository projectRepository;
   private final FindingRepository findingRepository;
   private final ProjectEventService eventService;
+  private final NotificationService notificationService;
 
   public ReviewAssignmentService(
       ReviewerMunicipalityRepository municipalityRepository,
       UserRepository userRepository,
       ProjectRepository projectRepository,
       FindingRepository findingRepository,
-      ProjectEventService eventService) {
+      ProjectEventService eventService,
+      NotificationService notificationService) {
     this.municipalityRepository = municipalityRepository;
     this.userRepository = userRepository;
     this.projectRepository = projectRepository;
     this.findingRepository = findingRepository;
     this.eventService = eventService;
+    this.notificationService = notificationService;
   }
 
   /** All or nothing: every project is checked before any of them changes. */
@@ -64,6 +68,7 @@ public class ReviewAssignmentService {
 
     projects.forEach(
         project -> {
+          handOver(project, reviewer);
           project.assignReviewer(reviewer);
           eventService.assigned(project, manager, assignedAt);
         });
@@ -81,10 +86,26 @@ public class ReviewAssignmentService {
         .or(() -> municipalityReviewerOf(project))
         .ifPresentOrElse(
             reviewer -> {
+              handOver(project, reviewer);
               project.assignReviewer(reviewer);
               eventService.assigned(project, null, submittedAt);
             },
-            project::clearReviewer);
+            () -> {
+              handOver(project, null);
+              project.clearReviewer();
+            });
+  }
+
+  /** The analyst losing the project can no longer open it, so their notices stop leading there. */
+  private void handOver(Project project, User nextReviewer) {
+    User previous = project.getReviewer();
+    // The manager reaches every project, so only an analyst's links break.
+    if (previous == null || previous.getRole() != UserRole.REVIEWER) {
+      return;
+    }
+    if (nextReviewer == null || !previous.getId().equals(nextReviewer.getId())) {
+      notificationService.handedOver(project, previous);
+    }
   }
 
   private Optional<User> municipalityReviewerOf(Project project) {
