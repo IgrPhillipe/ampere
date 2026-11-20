@@ -825,7 +825,7 @@ Painel de indicadores da equipe de análise e histórico dos pareceres de cada a
 > **Para que** a equipe dimensione a demanda e oriente os projetistas sobre as falhas recorrentes.
 
 ### Conversação (Regras de Negócio e Interface)
-O menu do analista ganha "Indicadores" e "Meus Pareceres", previstos no protótipo H7.
+O menu do analista ganha "Indicadores" e "Meus Pareceres", previstos no protótipo H7. O gestor vê os indicadores da equipe na aba "Indicadores da Análise" do Painel.
 
 "Indicadores" exibe, para o período selecionado:
 - Projetos recebidos e decididos por semana
@@ -998,29 +998,29 @@ Projetos enviados, reprovados ou aprovados não podem ser excluídos: o protocol
 `US23` `Prioridade: Média` `Sprint 8`
 
 ### Descrição
-Distribuição dos projetos enviados entre os analistas pelo gestor, um a um ou em lote.
+Distribuição dos projetos enviados entre os analistas pelo gestor, projeto a projeto.
 
 ### User Story
 > **Como** gestor da Neoenergia (`admin`),  
-> **Quero** atribuir os projetos aos analistas, um a um ou em lote,  
+> **Quero** atribuir cada projeto a um analista,  
 > **Para que** a carga da análise fique equilibrada.
 
 ### Conversação (Regras de Negócio e Interface)
-Na fila de análise, o gestor seleciona um ou vários projetos e escolhe o analista em "Atribuir Analista". Vale para projeto sem analista e para reatribuição de projeto em análise. Na reatribuição, os apontamentos em rascunho passam para o novo analista; os publicados ficam com o autor original.
+O gestor escolhe o analista no cabeçalho do projeto em análise, em "Atribuir Analista" ou "Trocar Analista". A seleção em lote na fila saiu em 20/11. O gestor acha os projetos sem analista em "Projetos", com a situação "Em análise" e o analista "Sem analista". Na reatribuição, os apontamentos em rascunho passam para o novo analista; os publicados ficam com o autor original.
 
 No envio, o projeto fica "Não Atribuído" até o gestor atribuir. Na reanálise, o projeto volta para o analista que reprovou, se ele ainda puder analisar; senão, fica "Não Atribuído". Quando o projeto fica "Não Atribuído", os gestores ativos recebem uma notificação ([US14](#us14-notificações-no-sistema)).
 
 A regra por município (cada município com um analista fixo) saiu em 20/11: foi proposta do time, não pedido da cliente, e o gestor é quem distribui.
 
 **Atribuição só pelo gestor** (validação com a cliente em 29/10):
-- A fila do gestor mostra a coluna "Analista Responsável", com "Não Atribuído" quando não há analista
+- "Projetos" mostra ao gestor a coluna "Analista", com "Sem analista" no projeto em análise que ninguém tem
 - O analista não assume projeto sozinho: "Analisar" aparece só para o responsável ([US07](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos))
 - O papel `admin` aparece como "Gestor" na interface
-- O filtro "Analista" também lista, como "(Inativo)", o analista desativado que ainda tem projetos em análise, para o gestor reatribuí-los. Ele não aparece em "Atribuir Analista"
+- O filtro "Analista" de "Projetos" também lista, como "(Inativo)", o analista desativado que ainda tem projetos em análise, para o gestor reatribuí-los. Ele não aparece em "Atribuir Analista"
 
 **Analista vê só os projetos atribuídos** (validação com a cliente em 20/11):
 - A fila, a exportação e o projeto ficam restritos aos projetos atribuídos ao analista, incluindo os que ele já decidiu
-- O filtro "Analista" e a coluna "Analista Responsável" são só do gestor
+- A fila é só do analista; o gestor acompanha os projetos em "Projetos" e os indicadores na aba "Indicadores da Análise" do Painel
 - Projeto sem analista ou de outro analista não abre para o analista; o reatribuído sai do alcance de quem o tinha
 - Ao abrir um projeto fora do seu alcance, o analista vê "Projeto não encontrado" e volta para a fila
 - As notificações do analista sobre o projeto que ele perdeu passam a levar à fila, na reatribuição pelo gestor e na redistribuição do reenvio
@@ -1029,15 +1029,15 @@ A regra por município (cada município com um analista fixo) saiu em 20/11: foi
 
 #### Cenário 1 (Positivo): Atribuição pelo Gestor
 - **Dado** que o projetista enviou um projeto
-- **Quando** o gestor o atribui à analista Ana na fila
+- **Quando** o gestor o atribui à analista Ana no cabeçalho do projeto
 - **Então** o projeto passa a "Em análise por" Ana
 - **E** o histórico do protocolo registra a atribuição pelo gestor.
 
 #### Cenário 2 (Negativo): Reatribuição para Analista Inativo
-- **Dado** que o gestor selecionou dois projetos na fila
-- **Quando** tenta atribuí-los a um analista desativado
+- **Dado** que o gestor abriu "Trocar Analista" num projeto em análise
+- **Quando** tenta atribuí-lo a um analista desativado
 - **Então** o sistema recusa com a mensagem *"Analista inativo."*
-- **E** os dois projetos mantêm o analista anterior.
+- **E** o projeto mantém o analista anterior.
 
 ### Checklist de Implementação
 - [ ] Atribuir e reatribuir analista em lote na fila

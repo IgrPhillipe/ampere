@@ -306,14 +306,15 @@ O `ROLE_ACCESS` de `lib/route-guard.ts` é a fonte única de quem chega a cada
 
 | Área | `user` | `reviewer` | `admin` |
 | :--- | :--- | :--- | :--- |
-| Painel | o próprio | não | o do admin |
-| Projetos | os próprios | não | todos |
-| Fila de Análise | não | sim | sim |
+| Painel | o próprio | não | o do admin, com a aba "Indicadores da Análise" |
+| Projetos | os próprios | não | todos, com filtro e coluna de analista |
+| Fila de Análise, Indicadores e Meus Pareceres | não | sim | não |
 | Tabelas Normativas | não | sim | sim |
 | Usuários | não | não | sim |
 
-Na interface, o papel `admin` aparece como "Gestor". Na fila, só ele seleciona
-projetos e atribui o analista; "Analisar" aparece só para o analista
+Na interface, o papel `admin` aparece como "Gestor". Ele acompanha a fila em
+"Projetos", filtrando "Em análise" e por analista, e atribui ou troca o analista
+no cabeçalho do projeto em análise. "Analisar" aparece só para o analista
 responsável, e os demais abrem o projeto em consulta (US23).
 
 O que cada papel faz no detalhe do projeto sai de uma função só,
