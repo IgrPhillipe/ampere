@@ -52,7 +52,7 @@ public interface ProjectRepositoryCustom {
   /** A null or empty filter does not filter; {@code search} is already folded and escaped. */
   record ReviewQueueSearch(
       String search,
-      OffsetDateTime submittedBefore,
+      OffsetDateTime clockStartedBefore,
       BigDecimal demandAbove,
       boolean reanalysis,
       Collection<BrazilianState> states,

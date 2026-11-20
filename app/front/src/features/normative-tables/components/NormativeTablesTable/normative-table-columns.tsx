@@ -86,23 +86,23 @@ export const createNormativeTableColumns = (
 				<NormativeTableStatusBadge status={row.original.status} />
 			),
 		}),
-		columnHelper.accessor("registeredBy", {
+		columnHelper.accessor("registeredByName", {
 			id: "registeredAt",
 			header: "Cadastro",
 			cell: ({ row }) => (
 				<PersonCell
-					person={row.original.registeredBy}
+					person={row.original.registeredByName}
 					at={row.original.registeredAt}
 				/>
 			),
 		}),
-		columnHelper.accessor("verifiedBy", {
+		columnHelper.accessor("verifiedByName", {
 			id: "verifiedAt",
-			header: "Revisão",
+			header: "Aprovação",
 			cell: ({ row }) =>
-				row.original.verifiedBy ? (
+				row.original.verifiedByName ? (
 					<PersonCell
-						person={row.original.verifiedBy}
+						person={row.original.verifiedByName}
 						at={row.original.verifiedAt}
 					/>
 				) : (

@@ -20,6 +20,7 @@ import {
 	AutomaticVerification,
 	CalculationSteps,
 	LoadComposition,
+	NormativeRevisionNotice,
 	StageFindingsNotice,
 	StepFooter,
 	TraceabilityPanel,
@@ -49,12 +50,13 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 		"CALCULATION",
 	);
 	const validation = validationQuery.data?.data;
-	const { canEdit: isEditable } = useProjectPermissions(project);
+	const { canEdit: isEditable, canRecalculate } =
+		useProjectPermissions(project);
 	const canCalculate = validation?.canCalculate ?? false;
 
 	const result = latestQuery.data?.data;
 	const neverCalculated = latestQuery.data === null;
-	const outdated = isEditable && result?.outdated === true;
+	const outdated = canRecalculate && result?.outdated === true;
 	const isBlocked =
 		isEditable && validation !== undefined && !canCalculate && !result;
 	const hasError =
@@ -74,6 +76,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 
 	return (
 		<div className="flex flex-1 flex-col">
+			<NormativeRevisionNotice fixedAt={result?.revisionsFixedAt} />
 			{outdated ? (
 				<div
 					role="status"
@@ -84,8 +87,10 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 						className="size-1.5 shrink-0 rounded-full bg-attention"
 					/>
 					<p className="text-sm text-foreground">
-						Os dados do projeto mudaram depois deste cálculo. Recalcule para
-						atualizar a memória e o memorial.
+						{result?.changedTables?.length
+							? `Tabelas atualizadas: ${result.changedTables.join(", ")}. `
+							: "Os dados do projeto mudaram depois deste cálculo. "}
+						Recalcule para atualizar a memória e o memorial.
 					</p>
 					<Button
 						type="button"

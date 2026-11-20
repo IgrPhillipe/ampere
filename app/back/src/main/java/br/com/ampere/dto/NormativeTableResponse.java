@@ -3,11 +3,12 @@ package br.com.ampere.dto;
 import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.NormativeTableStatus;
+import br.com.ampere.service.PersonNames;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-/** A table with its rows, or without them in the listing. */
+/** A table with its rows, or without them in the listing. The e-mails come with the names. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record NormativeTableResponse(
     String id,
@@ -17,24 +18,27 @@ public record NormativeTableResponse(
     String identification,
     String item,
     String page,
+    long version,
     NormativeTableStatus status,
     int rowCount,
     String registeredBy,
+    String registeredByName,
     OffsetDateTime registeredAt,
     String verifiedBy,
+    String verifiedByName,
     OffsetDateTime verifiedAt,
     List<NormativeTableRowResponse> rows) {
 
-  public static NormativeTableResponse summary(NormativeTable table) {
-    return of(table, null);
+  public static NormativeTableResponse summary(NormativeTable table, PersonNames names) {
+    return of(table, names, null);
   }
 
-  public static NormativeTableResponse from(NormativeTable table) {
-    return of(table, table.getRows().stream().map(NormativeTableRowResponse::from).toList());
+  public static NormativeTableResponse from(NormativeTable table, PersonNames names) {
+    return of(table, names, table.getRows().stream().map(NormativeTableRowResponse::from).toList());
   }
 
   private static NormativeTableResponse of(
-      NormativeTable table, List<NormativeTableRowResponse> rows) {
+      NormativeTable table, PersonNames names, List<NormativeTableRowResponse> rows) {
     return new NormativeTableResponse(
         String.valueOf(table.getId()),
         StandardResponse.from(table.getStandard()),
@@ -43,11 +47,14 @@ public record NormativeTableResponse(
         table.getIdentification(),
         table.getItem(),
         table.getPage(),
+        table.getVersion(),
         table.getStatus(),
         table.getRows().size(),
         table.getRegisteredBy(),
+        names.of(table.getRegisteredBy()),
         table.getRegisteredAt(),
         table.getVerifiedBy(),
+        names.of(table.getVerifiedBy()),
         table.getVerifiedAt(),
         rows);
   }

@@ -1,4 +1,4 @@
-import { http } from "@lib/http";
+import { filenameOf, http } from "@lib/http";
 
 import { ProjectReviewEndpoints as e } from "./endpoints";
 import {
@@ -16,8 +16,6 @@ import type {
 	RespondFindingParams,
 	UpdateFindingParams,
 } from "./types";
-
-const FILENAME = /filename="?([^";]+)"?/;
 
 export const openProjectReview = async (projectId: string) => {
 	const response = await http.post(e.opening(projectId)).json<unknown>();
@@ -103,10 +101,9 @@ export const getDocumentFile = async (
 	documentId: string,
 ): Promise<DocumentFile> => {
 	const response = await http.get(e.documentFile(projectId, documentId));
-	const disposition = response.headers.get("Content-Disposition") ?? "";
 
 	return {
-		filename: FILENAME.exec(disposition)?.[1] ?? "documento.pdf",
+		filename: filenameOf(response, "documento.pdf"),
 		blob: new Blob([await response.blob()], { type: "application/pdf" }),
 	};
 };

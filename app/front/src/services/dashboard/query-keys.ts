@@ -4,4 +4,5 @@ export const dashboardKeys = {
 	all: () => ["dashboard"] as const,
 	designer: (period: DashboardPeriod) =>
 		[...dashboardKeys.all(), "designer", period] as const,
+	admin: () => [...dashboardKeys.all(), "admin"] as const,
 };

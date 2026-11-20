@@ -1,6 +1,6 @@
 import { AppShell } from "@components/layout";
 import { pageTitle } from "@lib/page-title";
-import { PASSWORD_CHANGE_PATH, requireAuth } from "@lib/route-guard";
+import { isStandalonePath, requireAuth } from "@lib/route-guard";
 import {
 	createRootRoute,
 	HeadContent,
@@ -8,12 +8,6 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
-
-/** Routes that need no session. Everything else goes through the guard. */
-const PUBLIC_PATHS = ["/criar-conta", "/entrar", "/verificar-autenticidade"];
-
-/** Rendered without the app shell; each one guards itself. */
-const STANDALONE_PATHS = [...PUBLIC_PATHS, PASSWORD_CHANGE_PATH];
 
 const RootComponent = () => {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -24,7 +18,7 @@ const RootComponent = () => {
 			    declarado em cada rota nao chega a lugar nenhum. */}
 			<HeadContent />
 
-			{STANDALONE_PATHS.includes(pathname) ? <Outlet /> : <AppShell />}
+			{isStandalonePath(pathname) ? <Outlet /> : <AppShell />}
 		</NuqsAdapter>
 	);
 };
@@ -42,7 +36,7 @@ export const Route = createRootRoute({
 		],
 	}),
 	beforeLoad: async ({ location }) => {
-		if (STANDALONE_PATHS.includes(location.pathname)) return;
+		if (isStandalonePath(location.pathname)) return;
 
 		await requireAuth()({ location });
 	},

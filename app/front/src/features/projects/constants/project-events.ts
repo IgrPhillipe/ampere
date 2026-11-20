@@ -3,6 +3,7 @@ import type { ProjectEvent, ProjectEventType } from "@services/project-events";
 
 export const PROJECT_EVENT_LABELS = {
 	CREATED: "Criado",
+	CALCULATED: "Demanda Calculada",
 	SUBMITTED: "Enviado",
 	PRE_VALIDATED: "Pré-validado",
 	ASSIGNED: "Análise Atribuída",
@@ -10,10 +11,12 @@ export const PROJECT_EVENT_LABELS = {
 	APPROVED: "Aprovado",
 	FINDING_ANSWERED: "Apontamento Respondido",
 	RESUBMITTED: "Reenviado",
+	EXPIRED: "Expirado",
 } as const satisfies Record<ProjectEventType, string>;
 
 const DESIGNER_EVENTS = new Set<ProjectEventType>([
 	"CREATED",
+	"CALCULATED",
 	"SUBMITTED",
 	"FINDING_ANSWERED",
 	"RESUBMITTED",
@@ -22,25 +25,34 @@ const DESIGNER_EVENTS = new Set<ProjectEventType>([
 const ROLE_LABELS = {
 	user: "Projetista",
 	reviewer: "Analista",
-} as const satisfies Partial<Record<UserRole, string>>;
+	admin: "Gestor",
+} as const satisfies Record<UserRole, string>;
 
 export const SYSTEM_AUTHOR_LABEL = "Sistema";
 
-/** The admin acts as designer on their own projects and as analyst on the rest, so the event tells which. */
+/**
+ * The admin acts as designer on their own projects and as analyst on the rest,
+ * so the event tells which. Assigning is the manager's job alone (US23).
+ */
 export const eventAuthorRoleLabel = ({
 	type,
 	authorRole,
 }: Pick<ProjectEvent, "type" | "authorRole">) => {
 	if (authorRole === null) return SYSTEM_AUTHOR_LABEL;
 	if (authorRole !== "admin") return ROLE_LABELS[authorRole];
+	if (type === "ASSIGNED") return ROLE_LABELS.admin;
 
 	return DESIGNER_EVENTS.has(type) ? ROLE_LABELS.user : ROLE_LABELS.reviewer;
 };
+
+/** The events that send a version to the analyst. */
+export const isSubmissionEvent = ({ type }: Pick<ProjectEvent, "type">) =>
+	type === "SUBMITTED" || type === "RESUBMITTED";
 
 export const eventLabel = ({
 	type,
 	version,
 }: Pick<ProjectEvent, "type" | "version">) =>
-	type === "SUBMITTED" || type === "RESUBMITTED"
+	isSubmissionEvent({ type })
 		? `${PROJECT_EVENT_LABELS[type]}, Versão ${version}`
 		: PROJECT_EVENT_LABELS[type];

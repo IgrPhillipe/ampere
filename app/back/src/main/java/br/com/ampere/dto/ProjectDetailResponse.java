@@ -4,15 +4,18 @@ import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.BuildingCategory;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.ConnectionType;
+import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.ReviewTimeline;
 import br.com.ampere.domain.StandardName;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.service.ProjectSummary;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -33,9 +36,34 @@ public record ProjectDetailResponse(
     OffsetDateTime submittedAt,
     String ownerId,
     String ownerName,
+    @Schema(description = "Analista responsável; nulo quando o projeto não tem analista")
+        String reviewerId,
     String reviewerName,
+    @Schema(
+            description =
+                "Último dia do prazo de análise, já somados os dias suspensos; nulo fora da análise")
+        LocalDate reviewDeadline,
+    @Schema(description = "Situação do prazo de análise; nula fora da análise")
+        DeadlineStatus deadlineStatus,
+    @Schema(
+            description =
+                "Dias até o prazo de análise, negativo se vencido; congelado enquanto reprovado,"
+                    + " nulo nos demais")
+        Long daysRemaining,
     OffsetDateTime reviewedAt,
     int reviewCycle,
+    @Schema(
+            description =
+                "Dias corridos de análise, sem os suspensos; nulo antes do primeiro envio")
+        Long elapsedDays,
+    @Schema(
+            description =
+                "Dias de prazo suspenso aguardando correção; nulo antes do primeiro envio")
+        Long suspendedDays,
+    @Schema(description = "Reprovado aguardando correção: o prazo não corre")
+        boolean reviewSuspended,
+    @Schema(description = "Último dia de validade da aprovação (36 meses); nulo se nunca aprovado")
+        LocalDate approvalValidUntil,
     @Schema(description = "Apontamentos OPEN ou CONTESTED; zero em projeto aprovado")
         long openFindingsCount,
     long consumerUnitsCount,
@@ -62,6 +90,7 @@ public record ProjectDetailResponse(
             .map(StandardResponse::from)
             .sorted(Comparator.comparing(standard -> StandardName.of(standard.name())))
             .toList();
+    ReviewTimeline timeline = summary.timeline();
 
     return new ProjectDetailResponse(
         String.valueOf(project.getId()),
@@ -77,9 +106,17 @@ public record ProjectDetailResponse(
         project.getSubmittedAt(),
         project.getOwner() == null ? null : String.valueOf(project.getOwner().getId()),
         nameOf(project.getOwner()),
+        idOf(project.getReviewer()),
         nameOf(project.getReviewer()),
+        timeline.deadline(),
+        timeline.deadlineStatus(),
+        timeline.daysRemaining(),
         project.getReviewedAt(),
         project.getReviewCycle(),
+        timeline.elapsedDays(),
+        timeline.suspendedDays(),
+        timeline.suspended(),
+        timeline.approvalValidUntil(),
         summary.openFindingsCount(),
         summary.consumerUnitsCount(),
         summary.demandKva(),
@@ -95,6 +132,10 @@ public record ProjectDetailResponse(
         standards.stream().map(StandardResponse::label).collect(Collectors.joining(" e ")),
         buildingType.demandRules().stream().map(DemandRuleResponse::from).toList(),
         TechnicalResponsibleResponse.of(project.getOwner()));
+  }
+
+  private static String idOf(User user) {
+    return user == null ? null : String.valueOf(user.getId());
   }
 
   private static String nameOf(User user) {

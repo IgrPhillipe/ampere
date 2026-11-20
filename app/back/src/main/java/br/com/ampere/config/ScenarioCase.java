@@ -14,6 +14,7 @@ import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.User;
+import br.com.ampere.utils.Timestamps;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -175,9 +176,9 @@ final class ScenarioCase {
     OffsetDateTime submittedAt = advance(daysAgo, 0);
     Calculation calculation =
         kit.calculations.findFirstByProjectIdOrderByIdDesc(project.getId()).orElseThrow();
-    project.submit(submittedAt);
+    long suspendedDays = project.submit(submittedAt);
     kit.versions.register(project, calculation, submittedAt);
-    kit.events.submitted(project, project.getOwner(), calculation, submittedAt);
+    kit.events.submitted(project, project.getOwner(), calculation, suspendedDays, submittedAt);
 
     return this;
   }
@@ -213,6 +214,19 @@ final class ScenarioCase {
     project.approve(reviewedAt, opinion);
     kit.events.approved(project, project.getReviewer(), 0, opinion, reviewedAt);
     kit.notifications.approved(project, 0, reviewedAt);
+
+    return this;
+  }
+
+  /** What the daily sweep does once the 36 months of validity have passed. */
+  ScenarioCase expire(int daysAgo) {
+    OffsetDateTime at = advance(daysAgo, 0);
+    if (!project.isApprovalExpired(Timestamps.localDate(at), Timestamps.ZONE)) {
+      throw new IllegalStateException(
+          project.getProtocol() + " is still valid " + daysAgo + " days ago.");
+    }
+    project.expire();
+    kit.events.expired(project, at);
 
     return this;
   }

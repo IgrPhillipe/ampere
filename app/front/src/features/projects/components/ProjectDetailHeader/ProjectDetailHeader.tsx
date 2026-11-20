@@ -1,3 +1,7 @@
+import {
+	DeadlineStatusBadge,
+	describeDeadline,
+} from "@components/DeadlineStatusBadge";
 import { Skeleton } from "@components/ui/skeleton";
 import {
 	formatDate,
@@ -9,7 +13,11 @@ import { cn } from "@lib/utils";
 import type { ProjectDetail } from "@services/projects";
 import type { ReactNode } from "react";
 
-import { projectStatusLabels, projectVersion } from "../../constants";
+import {
+	projectStatusLabels,
+	projectVersion,
+	wasApproved,
+} from "../../constants";
 
 interface StripCellProps {
 	label: string;
@@ -59,10 +67,23 @@ const milestoneOf = (project: ProjectDetail, reviewing: boolean) => {
 		return { label: "Recebido em", value: project.submittedAt };
 	if (project.status === "REJECTED" && project.reviewedAt)
 		return { label: "Devolvido em", value: project.reviewedAt };
-	if (project.status === "APPROVED" && project.reviewedAt)
+	if (wasApproved(project.status) && project.reviewedAt)
 		return { label: "Aprovado em", value: project.reviewedAt };
 
 	return { label: "Última movimentação", value: project.lastActivityAt };
+};
+
+/** The whole deadline for a cell cut to fit the strip. */
+const deadlineTitleOf = ({
+	reviewDeadline,
+	deadlineStatus,
+	daysRemaining,
+}: ProjectDetail) => {
+	if (!reviewDeadline) return undefined;
+	if (!deadlineStatus || daysRemaining == null)
+		return formatDate(reviewDeadline);
+
+	return `${formatDate(reviewDeadline)}, ${describeDeadline(deadlineStatus, daysRemaining, { withRemaining: true })}`;
 };
 
 const addressOf = (project: ProjectDetail) =>
@@ -158,6 +179,35 @@ export const ProjectDetailHeader = ({
 							: formatKva(project.demandKva, 1)
 						: undefined}
 				</StripCell>
+
+				{project?.status === "UNDER_REVIEW" ? (
+					<>
+						<StripCell
+							isLoading={isLoading}
+							label="Retorno até"
+							title={deadlineTitleOf(project)}
+						>
+							{project.reviewDeadline ? (
+								<>
+									<StripDate value={project.reviewDeadline} />
+									{project.deadlineStatus && project.daysRemaining != null ? (
+										<DeadlineStatusBadge
+											deadlineStatus={project.deadlineStatus}
+											daysRemaining={project.daysRemaining}
+											withRemaining
+											className="ml-2.5"
+										/>
+									) : null}
+								</>
+							) : (
+								"Prazo indisponível"
+							)}
+						</StripCell>
+						<StripCell isLoading={isLoading} label="Analista">
+							{project.reviewerName ?? "Aguardando atribuição"}
+						</StripCell>
+					</>
+				) : null}
 
 				<StripCell
 					isLoading={isLoading}

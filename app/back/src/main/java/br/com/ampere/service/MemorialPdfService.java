@@ -147,7 +147,7 @@ public class MemorialPdfService {
                 () ->
                     new NotFoundException(
                         "Calcule a demanda do projeto antes de gerar o memorial."));
-    if (project.isEditable() && !demandCalculationService.isCurrent(calculation)) {
+    if (project.canBeSubmitted() && !demandCalculationService.isCurrent(calculation)) {
       throw new BusinessException(
           "Os dados do projeto mudaram depois do último cálculo. Recalcule a demanda antes de"
               + " gerar o memorial.",
@@ -171,16 +171,16 @@ public class MemorialPdfService {
             version ->
                 approvalMemorialRepository
                     .findByVersionId(version.getId())
-                    .map(approval -> stored(approval.getMemorial()))
+                    .map(approval -> storedMemorial(approval.getMemorial()))
                     .orElseGet(() -> storedMemorial(version)))
         .orElse(null);
   }
 
   public static Memorial storedMemorial(ProjectVersion version) {
-    return stored(version.getMemorial());
+    return storedMemorial(version.getMemorial());
   }
 
-  private static Memorial stored(ProjectVersionMemorial memorial) {
+  public static Memorial storedMemorial(ProjectVersionMemorial memorial) {
     return new Memorial(memorial.getFilename(), memorial.getData());
   }
 
@@ -225,7 +225,7 @@ public class MemorialPdfService {
     addConsumerUnits(document, groups);
     addCalculationSteps(document, calculation);
     addDemandTotals(document, calculation);
-    addAppliedStandards(document, calculation);
+    addAppliedStandards(document, calculation, demandCalculationService.revisionsFixedAt(project));
     addReservations(document, project, reservations);
 
     document.close();
@@ -503,8 +503,16 @@ public class MemorialPdfService {
     document.add(total);
   }
 
-  private static void addAppliedStandards(Document document, Calculation calculation) {
+  private static void addAppliedStandards(
+      Document document, Calculation calculation, OffsetDateTime revisionsFixedAt) {
     addSection(document, 5, "Normas Aplicadas");
+    if (revisionsFixedAt != null) {
+      document.add(
+          note(
+              "Revisões normativas fixadas na data do primeiro envio do protocolo: "
+                  + BrazilianDateFormat.date(Timestamps.localDate(revisionsFixedAt))
+                  + "."));
+    }
     PdfPTable fields = fields();
     if (calculation.getMainStandard() != null) {
       addField(

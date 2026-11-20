@@ -9,6 +9,20 @@ import org.junit.jupiter.api.Test;
 
 class NormativeTableTest {
 
+  @Test
+  void publicationIntervalsIncludeTheStartAndExcludeTheReplacement() {
+    NormativeTable table = quadro37(List.of(band(null, null, "1.5")));
+    table.publish("verifier");
+    var start = table.getVerifiedAt();
+    var end = start.plusDays(1);
+    assertThat(table.wasEffectiveAt(start.minusNanos(1))).isFalse();
+    assertThat(table.wasEffectiveAt(start)).isTrue();
+    table.supersede(end);
+    assertThat(table.getSupersededAt()).isEqualTo(end);
+    assertThat(table.wasEffectiveAt(end.minusNanos(1))).isTrue();
+    assertThat(table.wasEffectiveAt(end)).isFalse();
+  }
+
   private static final Standard STANDARD = new Standard("DIS-NOR-053", "REV 06");
 
   private static NormativeTableRow band(String lower, String upper, String value) {
@@ -149,9 +163,21 @@ class NormativeTableTest {
 
     assertThat(table.getStatus()).isEqualTo(NormativeTableStatus.PUBLISHED);
     assertThat(table.getVerifiedBy()).isEqualTo("revisor@ampere.com");
-    assertThatThrownBy(() -> table.revise("Quadro 37", "item 5", "108", List.of()))
+    assertThatThrownBy(
+            () -> table.revise("admin@ampere.com", "Quadro 37", "item 5", "108", List.of()))
         .isInstanceOf(IllegalStateException.class);
     assertThatThrownBy(() -> table.publish("revisor@ampere.com"))
+        .isInstanceOf(IllegalStateException.class);
+  }
+
+  @Test
+  void onlyWhoTypedADraftRevisesIt() {
+    NormativeTable table = quadro37(List.of(band(null, "25", "1.5")));
+
+    assertThat(table.isEditableBy("ADMIN@ampere.com")).isTrue();
+    assertThat(table.isEditableBy("revisor@ampere.com")).isFalse();
+    assertThatThrownBy(
+            () -> table.revise("revisor@ampere.com", "Quadro 37", "item 5", "108", List.of()))
         .isInstanceOf(IllegalStateException.class);
   }
 

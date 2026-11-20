@@ -111,7 +111,7 @@ O caminho nomeia o recurso, no plural e em kebab-case; o método HTTP diz a aç�
 - Sem verbo no caminho: enviar um projeto é `POST /projects/{id}/submission`, publicar uma tabela é `POST /normative-tables/{id}/publication`.
 - Recurso de um projeto fica aninhado nele: `/projects/{id}/consumer-unit-groups`, `/projects/{id}/calculations`, `/projects/{id}/documents`.
 - Coleção que guarda todo o histórico é plural, e o mais recente é `/latest`: `GET /projects/{id}/calculations/latest`.
-- Sem papel no caminho: `/normative-tables`, `/users`, `/reviewers` e `/review-queue/assignment` são restritos ao `admin`, e o resto de `/review-queue` ao `reviewer` e ao `admin`, pelo `SecurityConfig`, não por um prefixo `/admin`.
+- Sem papel no caminho: `/users`, `/reviewers` e `/review-queue/assignment` são restritos ao `admin`, e `/normative-tables` e o resto de `/review-queue` ao `reviewer` e ao `admin`, pelo `SecurityConfig`, não por um prefixo `/admin`.
 - Ordenação de lista usa `sort=<coluna>` e `direction=ASC|DESC` (`SortDirection`). Cada lista tem o enum das suas colunas (`ProjectSort`, `ReviewQueueSort`), e o empate sai pelo `id`.
 
 ### Envelope
@@ -286,12 +286,12 @@ Decisões:
 | Papel | O que é | Caminhos exclusivos |
 | :--- | :--- | :--- |
 | `user` | projetista | painel do projetista (`/dashboard/designer`); o resto são projetos, perfil e notificações, abertas a todos os papéis |
-| `reviewer` | analista | fila (`/review-queue/**`, exceto `/review-queue/assignment`) e escrita da análise (abertura, decisão e apontamentos) do projeto atribuído a ele, junto com o `admin` |
-| `admin` | acesso total | tabelas normativas (`/normative-tables/**`), gestão de usuários (`/users/**`, exceto `/users/me`, que vem antes no `SecurityConfig`), municípios dos analistas (`/reviewers/**`) e atribuição em lote (`/review-queue/assignment`), além de tudo o que o `reviewer` faz |
+| `reviewer` | analista | fila (`/review-queue/**`, exceto `/review-queue/assignment`), escrita da análise (abertura, decisão e apontamentos) do projeto atribuído a ele e revisões das tabelas normativas (`/normative-tables/**`), junto com o `admin` |
+| `admin` | acesso total | gestão de usuários (`/users/**`, exceto `/users/me`, que vem antes no `SecurityConfig`), municípios dos analistas (`/reviewers/**`) e atribuição em lote (`/review-queue/assignment`), além de tudo o que o `reviewer` faz |
 
 `UserRole.canReview()` diz quem analisa; o `SecurityConfig` monta `hasAnyRole` a partir dele. Rota nova de análise entra no mesmo `requestMatchers`.
 
-A publicação de tabela normativa exige um segundo `admin`, diferente de quem cadastrou. O seed de desenvolvimento tem dois: `admin@ampere.com` cadastra e `conferente@ampere.com` publica.
+Revisão de tabela normativa: `reviewer` e `admin` cadastram e aprovam, e quem cadastrou não aprova. Só quem cadastrou altera o rascunho; excluí-lo é de quem cadastrou ou do `admin`. A aprovação envia a `version` que a pessoa leu, e o `@Version` da entidade recusa com `409` o que mudou depois. Cada tabela tem no máximo uma revisão pendente: o serviço confere antes de gravar, e o índice único parcial `normative_table_one_draft_per_code` (`code` onde `status = 'DRAFT'`) recusa dois cadastros simultâneos com o mesmo `409`. O `ddl-auto` não cria índice parcial; o `config/NormativeTableDraftIndex` o cria a cada subida. No seed, `admin@ampere.com` e `conferente@ampere.com` aprovam o que o outro cadastra, e os analistas aprovam as duas.
 
 **Papel novo no enum exige reescrever o `CHECK` da coluna.** O Hibernate cria `app_user_role_check` com os valores do enum, e o `ddl-auto=update` não o refaz. O `config/UserRoleConstraint` reescreve o `CHECK` a cada subida, até o Flyway da pendência 16.
 
@@ -394,7 +394,7 @@ O motor (`DemandEngine`) soma `Drf + Ds + Dc + Dve` sem consultar o tipo de nenh
 
 O que vale para o prédio inteiro fica no corpo de cada constante de `DemandComponent`, em `combine()`, e não no grupo. Ali são aplicados o `Fc` do Quadro 36, obtido do total de apartamentos (Anexo I, item 3), o `Fr` do Quadro 37 e o fator do Quadro 33 sobre todos os pontos de recarga (Anexo I, item 13).
 
-O `domain` não pode importar `repository`, então lê as tabelas pela interface `NormativeTables`; o service entrega um `NormativeTableSet` com as tabelas publicadas. Tabela ou linha ausente vira `MissingNormativeValueException`, que o service transforma em 422 com o nome da tabela.
+O `domain` não pode importar `repository`, então lê as tabelas pela interface `NormativeTables`; o service entrega um `NormativeTableSet` com as tabelas publicadas ou, num projeto já enviado, com as revisões fixadas no primeiro envio (`FixedRevisions`). Tabela ou linha ausente vira `MissingNormativeValueException`, que o service transforma em 422 com o nome da tabela.
 
 Cada execução grava um `Calculation` com as fórmulas, as referências e as duas revisões de norma: cálculo antigo continua apontando para a revisão sob a qual foi feito.
 

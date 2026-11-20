@@ -1,5 +1,5 @@
 import { toSearchParams } from "@features/shared";
-import { http } from "@lib/http";
+import { filenameOf, http } from "@lib/http";
 
 import { ReviewQueueEndpoints as e } from "./endpoints";
 import {
@@ -16,6 +16,22 @@ export const getReviewQueue = async (params: ListReviewQueueParams = {}) => {
 		.json<unknown>();
 
 	return reviewQueueListResponseSchema.parse(response);
+};
+
+export const exportReviewQueueCsv = async (
+	params: ListReviewQueueParams = {},
+) => {
+	const searchParams = toSearchParams({ ...params });
+	searchParams.delete("page");
+	searchParams.delete("pageSize");
+	const response = await http.get(e.exportCsv, {
+		searchParams,
+	});
+
+	return {
+		filename: filenameOf(response, "fila-de-analise.csv"),
+		blob: await response.blob(),
+	};
 };
 
 export const getReviewQueueIndicators = async () => {

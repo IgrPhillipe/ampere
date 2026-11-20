@@ -3,10 +3,9 @@ import { SheetFooter } from "@components/ui/sheet";
 import { Trash2 } from "lucide-react";
 
 interface NormativeTableFormFooterProps {
-	canDelete: boolean;
 	readOnly: boolean;
-	canPublish: boolean;
-	awaitingReview: boolean;
+	canDelete: boolean;
+	canApprove: boolean;
 	isSaving: boolean;
 	isDeleting: boolean;
 	onCancel: () => void;
@@ -15,10 +14,9 @@ interface NormativeTableFormFooterProps {
 }
 
 export const NormativeTableFormFooter = ({
-	canDelete,
 	readOnly,
-	canPublish,
-	awaitingReview,
+	canDelete,
+	canApprove,
 	isSaving,
 	isDeleting,
 	onCancel,
@@ -29,7 +27,7 @@ export const NormativeTableFormFooter = ({
 
 	return (
 		<SheetFooter className="flex-row flex-wrap items-center justify-between gap-2 border-t border-border px-6 py-4">
-			{canDelete && !readOnly ? (
+			{canDelete ? (
 				<Button
 					type="button"
 					variant="destructive-ghost"
@@ -44,9 +42,17 @@ export const NormativeTableFormFooter = ({
 
 			<div className="ml-auto flex flex-wrap items-center gap-2">
 				{readOnly ? (
-					<Button type="button" variant="outline" onClick={onCancel}>
-						Fechar
-					</Button>
+					<>
+						<Button type="button" variant="outline" onClick={onCancel}>
+							Fechar
+						</Button>
+
+						{canApprove ? (
+							<Button type="button" onClick={onPublish} disabled={isBusy}>
+								Aprovar e Publicar
+							</Button>
+						) : null}
+					</>
 				) : (
 					<>
 						<Button type="button" variant="ghost" onClick={onCancel}>
@@ -56,16 +62,6 @@ export const NormativeTableFormFooter = ({
 						<Button type="submit" variant="outline" disabled={isBusy}>
 							{isSaving ? "Salvando..." : "Salvar"}
 						</Button>
-
-						{canDelete && !awaitingReview ? (
-							<Button
-								type="button"
-								onClick={onPublish}
-								disabled={isBusy || !canPublish}
-							>
-								Aprovar e Publicar
-							</Button>
-						) : null}
 					</>
 				)}
 			</div>

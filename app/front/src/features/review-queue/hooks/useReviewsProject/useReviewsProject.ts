@@ -2,7 +2,12 @@ import { getProjectProfile } from "@features/projects";
 import { useAuthStore } from "@features/shared";
 import { useGetProject } from "@services/projects";
 
-const REVIEWED_STATUSES = new Set(["UNDER_REVIEW", "APPROVED", "REJECTED"]);
+const REVIEWED_STATUSES = new Set([
+	"UNDER_REVIEW",
+	"APPROVED",
+	"REJECTED",
+	"EXPIRED",
+]);
 
 /** Whether the project opens with the review panel: a submitted project seen by an analyst. */
 export const useReviewsProject = (projectId: string) => {

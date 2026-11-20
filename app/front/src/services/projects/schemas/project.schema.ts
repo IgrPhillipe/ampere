@@ -1,5 +1,6 @@
 import { apiResponseSchema, paginatedResponseSchema } from "@features/shared";
 import { brazilianStateSchema } from "@services/locations";
+import { deadlineStatusSchema } from "@services/review-queue";
 import { z } from "zod";
 
 export const projectStatusSchema = z.enum([
@@ -8,6 +9,7 @@ export const projectStatusSchema = z.enum([
 	"UNDER_REVIEW",
 	"REJECTED",
 	"APPROVED",
+	"EXPIRED",
 ]);
 
 export type ProjectStatus = z.infer<typeof projectStatusSchema>;
@@ -56,6 +58,7 @@ export const projectStatusCountsSchema = z.object({
 	underReview: z.number().int().nonnegative(),
 	rejected: z.number().int().nonnegative(),
 	approved: z.number().int().nonnegative(),
+	expired: z.number().int().nonnegative(),
 });
 
 export type ProjectStatusCounts = z.infer<typeof projectStatusCountsSchema>;
@@ -146,7 +149,12 @@ export const projectDetailSchema = z.object({
 	submittedAt: z.iso.datetime({ offset: true }).nullish(),
 	ownerId: z.string().nullish(),
 	ownerName: z.string().nullish(),
+	/** Only this analyst reviews the project; everybody else consults it. */
+	reviewerId: z.string().nullish(),
 	reviewerName: z.string().nullish(),
+	reviewDeadline: z.iso.date().nullish(),
+	deadlineStatus: deadlineStatusSchema.nullish(),
+	daysRemaining: z.number().int().nullish(),
 	reviewedAt: z.iso.datetime({ offset: true }).nullish(),
 	reviewCycle: z.number().int().nonnegative(),
 	openFindingsCount: z.number().int().nonnegative(),

@@ -15,6 +15,8 @@ import {
 } from "@services/review-queue";
 import { useState } from "react";
 
+import { UNASSIGNED_REVIEWER_LABEL } from "../../constants";
+
 const stateOptions = CONCESSION_STATES.map((value) => ({
 	value,
 	label: concessionStateNames[value],
@@ -52,7 +54,7 @@ export const ReviewQueueFilterControls = ({
 		.map(({ id, name }) => ({ value: id, label: name }));
 
 	const reviewers = [
-		{ value: UNASSIGNED_REVIEWER, label: "Sem analista" },
+		{ value: UNASSIGNED_REVIEWER, label: UNASSIGNED_REVIEWER_LABEL },
 		...(reviewersQuery.data?.data ?? []).map(({ id, name }) => ({
 			value: id,
 			label: name,

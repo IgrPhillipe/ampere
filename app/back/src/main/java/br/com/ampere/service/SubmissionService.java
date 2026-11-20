@@ -91,17 +91,16 @@ public class SubmissionService {
       }
       project.recordChangeSummary(changeSummary);
     }
-    // The analyst reviews the calculation of the data as submitted, not as last calculated.
-    if (project.isEditable()) {
-      demandCalculationService.calculate(projectId, user);
-    }
-
+    // The analyst reviews the calculation of the data as submitted, with the revisions in force.
     Calculation calculation =
         calculationRepository.findFirstByProjectIdOrderByIdDesc(projectId).orElseThrow();
+    if (project.isEditable() || !demandCalculationService.isCurrent(calculation)) {
+      calculation = demandCalculationService.calculate(projectId, user);
+    }
     OffsetDateTime submittedAt = Timestamps.now();
-    project.submit(submittedAt);
+    long suspendedDays = project.submit(submittedAt);
     versionService.register(project, calculation, submittedAt);
-    eventService.submitted(project, project.getOwner(), calculation, submittedAt);
+    eventService.submitted(project, project.getOwner(), calculation, suspendedDays, submittedAt);
     reviewAssignmentService.distribute(project, submittedAt);
     // After the distribution, which hands a resubmission back to whoever rejected it.
     if (project.isReanalysis()) {

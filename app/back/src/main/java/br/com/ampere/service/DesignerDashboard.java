@@ -2,6 +2,7 @@ package br.com.ampere.service;
 
 import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ReviewTimeline;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -21,7 +22,12 @@ public record DesignerDashboard(
       long consumerUnits,
       FindingStage pendingStage) {}
 
-  public record ReviewItem(Project project, LocalDate deadline, long daysRemaining) {}
+  public record ReviewItem(Project project, LocalDate deadline, long daysRemaining) {
+
+    static ReviewItem of(Project project, ReviewTimeline timeline) {
+      return new ReviewItem(project, timeline.deadline(), timeline.daysRemaining());
+    }
+  }
 
   public record FindingRank(FindingStage stage, String standardItem, long total) {}
 }

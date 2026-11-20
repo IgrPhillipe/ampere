@@ -70,6 +70,9 @@ public class DataSeeder implements CommandLineRunner {
 
   private record Account(User user, int createdDaysAgo) {}
 
+  // Older than the 36 months of an approval, so the expired demonstration project has its people.
+  private static final int OLDEST_ACCOUNT_DAYS = 1200;
+
   private final ProjectRepository projectRepository;
   private final StandardRepository standardRepository;
   private final NormativeTableRepository normativeTableRepository;
@@ -219,11 +222,12 @@ public class DataSeeder implements CommandLineRunner {
         new Account(
             User.designer(
                 "Usuário Teste", USER_EMAIL, hash, "123456", "PE", null, PHONES.get(USER_EMAIL)),
-            200),
-        new Account(staff("Admin Teste", ADMIN_EMAIL, hash, UserRole.ADMIN), 200),
+            OLDEST_ACCOUNT_DAYS),
+        new Account(staff("Admin Teste", ADMIN_EMAIL, hash, UserRole.ADMIN), OLDEST_ACCOUNT_DAYS),
         new Account(
             staff("Conferente Teste", NormativeTableSeed.VERIFIED_BY, hash, UserRole.ADMIN), 200),
-        new Account(staff("Revisor Teste", REVIEWER_EMAIL, hash, UserRole.REVIEWER), 200),
+        new Account(
+            staff("Revisor Teste", REVIEWER_EMAIL, hash, UserRole.REVIEWER), OLDEST_ACCOUNT_DAYS),
         new Account(
             User.designer(
                 "Carla Projetista",

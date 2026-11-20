@@ -15,6 +15,7 @@ const item: ReviewQueueItem = {
 	daysRemaining: 20,
 	warnings: 0,
 	alerts: [],
+	ownerId: null,
 	ownerName: null,
 	consumerUnitsCount: 0,
 	demandKva: null,

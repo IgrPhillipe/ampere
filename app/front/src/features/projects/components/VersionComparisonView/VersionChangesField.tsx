@@ -6,12 +6,14 @@ import { buildVersionChanges, formatVersion } from "../../constants";
 
 interface VersionChangesFieldProps {
 	comparison?: VersionComparison;
+	isError?: boolean;
 	className?: string;
 }
 
 /** The conclusion of the comparison: how many things changed, and which. */
 export const VersionChangesField = ({
 	comparison,
+	isError = false,
 	className,
 }: VersionChangesFieldProps) => {
 	const changes = comparison ? buildVersionChanges(comparison) : [];
@@ -23,7 +25,9 @@ export const VersionChangesField = ({
 			caption={
 				comparison
 					? `${changes.length === 1 ? "Alteração" : "Alterações"} na ${formatVersion(comparison.to.number)}`
-					: "Carregando o comparativo"
+					: isError
+						? "Comparativo indisponível"
+						: "Carregando o comparativo"
 			}
 			className={className}
 		>

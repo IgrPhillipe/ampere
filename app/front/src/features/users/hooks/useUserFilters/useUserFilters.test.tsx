@@ -40,6 +40,33 @@ describe("useUserFilters", () => {
 		expect(result.current.hasActiveFilters).toBe(true);
 	});
 
+	it("applies the panel shortcuts for pending password and last access", () => {
+		const { result } = renderFilters(
+			"?status=active&mustChangePassword=true&inactiveDays=30",
+		);
+
+		expect(result.current.params).toEqual({
+			active: true,
+			mustChangePassword: true,
+			inactiveDays: 30,
+			page: 1,
+			pageSize: USERS_PAGE_SIZE,
+		});
+		expect(result.current.hasActiveFilters).toBe(true);
+	});
+
+	it("ignores shortcut values the panel never writes", () => {
+		const { result } = renderFilters(
+			"?mustChangePassword=false&inactiveDays=0",
+		);
+
+		expect(result.current.hasActiveFilters).toBe(false);
+		expect(result.current.params).toEqual({
+			page: 1,
+			pageSize: USERS_PAGE_SIZE,
+		});
+	});
+
 	it("goes back to the first page when a filter changes", async () => {
 		const { result, onUrlUpdate, lastUrl } = renderFilters("?page=3");
 
@@ -50,9 +77,9 @@ describe("useUserFilters", () => {
 		expect(lastUrl()?.has("page")).toBe(false);
 	});
 
-	it("clears search, role and status together", async () => {
+	it("clears every filter together", async () => {
 		const { result, lastUrl } = renderFilters(
-			"?search=ana&role=user&status=active",
+			"?search=ana&role=user&status=active&mustChangePassword=true&inactiveDays=30",
 		);
 
 		act(() => result.current.clearFilters());

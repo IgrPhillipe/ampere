@@ -1,5 +1,6 @@
 export const ProjectEndpoints = {
 	list: "projects",
+	exportCsv: "projects/export.csv",
 	create: "projects",
 	statusCounts: "projects/status-counts",
 	owners: "projects/owners",

@@ -19,6 +19,7 @@ const item: ReviewQueueItem = {
 	alerts: [
 		"Recarga de 44,40 kW instalados, acima de 20 kW: exige estudo da rede.",
 	],
+	ownerId: "3",
 	ownerName: "João Projetista",
 	consumerUnitsCount: 48,
 	demandKva: 229.4,
@@ -122,10 +123,35 @@ describe("AnalyzeButton", () => {
 
 	it("hands the clicked item to the listing callback", () => {
 		const onAnalyze = vi.fn();
-		render(<ReviewQueueListing items={[item]} onAnalyze={onAnalyze} />);
+		const held = { ...item, reviewerId: "7", reviewerName: "Ana Analista" };
+		render(
+			<ReviewQueueListing
+				items={[held]}
+				currentUserId="7"
+				onAnalyze={onAnalyze}
+			/>,
+		);
 
 		fireEvent.click(screen.getAllByRole("button", { name: /analisar/i })[0]);
 
-		expect(onAnalyze).toHaveBeenCalledWith(item);
+		expect(onAnalyze).toHaveBeenCalledWith(held);
+	});
+
+	it("keeps the reviewer in view and drops secondary columns on narrow screens", () => {
+		render(<ReviewQueueListing items={[item]} onAnalyze={vi.fn()} />);
+
+		expect(screen.getByRole("table")).toHaveClass(
+			"min-w-[72rem]",
+			"lg:min-w-0",
+		);
+		for (const name of ["UCs", "Demanda", "Vencimento"]) {
+			expect(screen.getByRole("columnheader", { name })).toHaveClass(
+				"lg:hidden",
+				"xl:table-cell",
+			);
+		}
+		expect(
+			screen.getByRole("columnheader", { name: "Analista Responsável" }),
+		).not.toHaveClass("lg:hidden");
 	});
 });

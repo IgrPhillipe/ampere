@@ -8,6 +8,7 @@ import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.FindingSeverity;
 import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.FindingStatus;
+import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectEventType;
@@ -30,6 +31,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -117,6 +119,8 @@ public class DesignerDashboardService {
               units.getOrDefault(project.getId(), 0L),
               null));
     }
+    List<NormativeTable> published =
+        idleDrafts.isEmpty() ? List.of() : calculationService.publishedTables();
     for (Project draft : idleDrafts) {
       items.add(
           new ActionItem(
@@ -124,14 +128,14 @@ public class DesignerDashboardService {
               0,
               ChronoUnit.DAYS.between(Timestamps.localDate(draft.getUpdatedAt()), today),
               units.getOrDefault(draft.getId(), 0L),
-              pendingStage(draft)));
+              pendingStage(draft, published)));
     }
 
     return items;
   }
 
   /** The first step still incomplete, in the order the project tabs follow; null when none. */
-  private FindingStage pendingStage(Project draft) {
+  private FindingStage pendingStage(Project draft, List<NormativeTable> published) {
     Long projectId = draft.getId();
     List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(projectId);
     if (!GroupValidation.of(groups).canCalculate()) {
@@ -140,7 +144,7 @@ public class DesignerDashboardService {
     boolean calculated =
         calculationRepository
             .findFirstByProjectIdOrderByIdDesc(projectId)
-            .map(calculation -> calculationService.isCurrent(calculation, groups))
+            .map(calculation -> calculationService.isCurrent(calculation, groups, published))
             .orElse(false);
     if (!calculated) {
       return FindingStage.CALCULATION;
@@ -170,17 +174,19 @@ public class DesignerDashboardService {
                 FindingRepository.FindingCount::getTotal));
   }
 
-  /** Ordered by submission, which is the same as the shortest deadline first. */
+  /**
+   * Shortest deadline first. Not the submission order: a resubmission resumes the deadline of the
+   * cycle it was rejected in.
+   */
   private List<ReviewItem> underReview(Long ownerId, LocalDate today) {
     return projectRepository
         .findAllByOwnerIdAndStatusAndSubmittedAtIsNotNullOrderBySubmittedAtAscIdAsc(
             ownerId, ProjectStatus.UNDER_REVIEW)
         .stream()
-        .map(
-            project -> {
-              LocalDate deadline = project.reviewDeadline(ZONE);
-              return new ReviewItem(project, deadline, ChronoUnit.DAYS.between(today, deadline));
-            })
+        .map(project -> ReviewItem.of(project, project.reviewTimeline(today, ZONE)))
+        .sorted(
+            Comparator.comparing(ReviewItem::deadline)
+                .thenComparing(item -> item.project().getId()))
         .toList();
   }
 

@@ -11,26 +11,37 @@ declare module "@tanstack/react-router" {
 
 /** Who reaches each area: the same split the back enforces. */
 export const ROLE_ACCESS = {
-	dashboard: ["user"],
+	dashboard: ["user", "admin"],
 	projects: ["user", "admin"],
 	/** The project page itself: the analyst reads and reviews it there. */
 	projectWorkspace: ["user", "reviewer", "admin"],
 	reviewQueue: ["reviewer", "admin"],
 	normativeTables: ["reviewer", "admin"],
 	users: ["admin"],
+	distribution: ["admin"],
 } as const satisfies Record<string, readonly UserRole[]>;
 
 /** Where to send each role when it lands on a route it cannot see. */
 const ROLE_FALLBACK: Record<UserRole, string> = {
 	user: "/painel",
 	reviewer: "/fila-de-analise",
-	admin: "/projetos",
+	admin: "/painel",
 };
 
 export const getRoleHomePath = (role: UserRole) => ROLE_FALLBACK[role];
 
 /** A temporary password keeps the user here until they replace it. */
 export const PASSWORD_CHANGE_PATH = "/trocar-senha";
+
+/** Routes that need no session. Everything else goes through the guard. */
+const PUBLIC_PATHS = ["/criar-conta", "/entrar", "/verificar-autenticidade"];
+
+/** Rendered without the app shell; each one guards itself. */
+const STANDALONE_PATHS = [...PUBLIC_PATHS, PASSWORD_CHANGE_PATH];
+
+/** A trailing slash, as in a typed link, still names the same page. */
+export const isStandalonePath = (pathname: string) =>
+	STANDALONE_PATHS.includes(pathname.replace(/\/+$/, "") || "/");
 
 interface GuardContext {
 	/** The route being opened, which `window.location` still lags behind. */

@@ -1,4 +1,4 @@
-import { http } from "@lib/http";
+import { filenameOf, http } from "@lib/http";
 
 import { SubmissionEndpoints as e } from "./endpoints";
 import {
@@ -13,8 +13,6 @@ import type {
 	UploadDocumentParams,
 } from "./types";
 
-const FILENAME = /filename="?([^";]+)"?/;
-
 export const getSubmissionChecklist = async (projectId: string) => {
 	const response = await http.get(e.submission(projectId)).json<unknown>();
 
@@ -23,10 +21,9 @@ export const getSubmissionChecklist = async (projectId: string) => {
 
 export const getMemorial = async (projectId: string): Promise<Memorial> => {
 	const response = await http.get(e.memorial(projectId));
-	const disposition = response.headers.get("Content-Disposition") ?? "";
 
 	return {
-		filename: FILENAME.exec(disposition)?.[1] ?? "memorial.pdf",
+		filename: filenameOf(response, "memorial.pdf"),
 		blob: await response.blob(),
 	};
 };

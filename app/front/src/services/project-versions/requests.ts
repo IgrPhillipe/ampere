@@ -1,4 +1,4 @@
-import { http } from "@lib/http";
+import { filenameOf, http } from "@lib/http";
 import type { Memorial } from "@services/submission";
 
 import { ProjectVersionEndpoints as e } from "./endpoints";
@@ -9,10 +9,9 @@ import {
 } from "./schemas";
 import type {
 	CompareProjectVersionsParams,
-	VersionMemorialParams,
+	VersionFile,
+	VersionFileParams,
 } from "./types";
-
-const FILENAME = /filename="?([^";]+)"?/;
 
 export const getProjectVersionList = async (projectId: string) => {
 	const response = await http.get(e.list(projectId)).json<unknown>();
@@ -20,16 +19,37 @@ export const getProjectVersionList = async (projectId: string) => {
 	return projectVersionListResponseSchema.parse(response);
 };
 
-/** The PDF stored in the version, never generated again. */
-export const getVersionMemorial = async ({
+const fileOf = (projectId: string, version: number, file: VersionFile) => {
+	switch (file.kind) {
+		case "memorial":
+			return {
+				url: e.memorial(projectId, version),
+				fallback: `memorial-v${version}.pdf`,
+			};
+		case "approval-memorial":
+			return {
+				url: e.approvalMemorial(projectId, version),
+				fallback: `memorial-aprovacao-v${version}.pdf`,
+			};
+		case "document":
+			return {
+				url: e.document(projectId, version, file.type),
+				fallback: `documento-v${version}.pdf`,
+			};
+	}
+};
+
+/** A PDF stored in the version, never generated again. */
+export const getVersionFile = async ({
 	projectId,
 	version,
-}: VersionMemorialParams): Promise<Memorial> => {
-	const response = await http.get(e.memorial(projectId, version));
-	const disposition = response.headers.get("Content-Disposition") ?? "";
+	file,
+}: VersionFileParams): Promise<Memorial> => {
+	const { url, fallback } = fileOf(projectId, version, file);
+	const response = await http.get(url);
 
 	return {
-		filename: FILENAME.exec(disposition)?.[1] ?? `memorial-v${version}.pdf`,
+		filename: filenameOf(response, fallback),
 		blob: await response.blob(),
 	};
 };

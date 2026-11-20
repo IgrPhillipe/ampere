@@ -8,6 +8,7 @@ import {
 	SheetTitle,
 } from "@components/ui/sheet";
 import { Skeleton } from "@components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@components/ui/tabs";
 import {
 	type NormativeTable,
 	useGetNormativeTable,
@@ -15,6 +16,7 @@ import {
 } from "@services/normative-tables";
 import { CircleAlert } from "lucide-react";
 
+import { NormativeTableHistory } from "../NormativeTableHistory";
 import { NormativeTableStatusBadge } from "../NormativeTableStatusBadge";
 import { NormativeTableForm } from "./NormativeTableForm";
 
@@ -42,6 +44,18 @@ export const NormativeTableSheet = ({
 		codesQuery.isPending || (tableId !== null && tableQuery.isPending);
 	const hasError =
 		codesQuery.isError || (tableId !== null && tableQuery.isError);
+	const codes = codesQuery.data?.data ?? [];
+
+	// `key` resets the form when another table opens or a draft is saved.
+	const form = (
+		<NormativeTableForm
+			key={table?.id ?? "new"}
+			table={table}
+			codes={codes}
+			onCreated={onCreated}
+			onClose={onClose}
+		/>
+	);
 
 	return (
 		<Sheet
@@ -55,7 +69,7 @@ export const NormativeTableSheet = ({
 					<div className="flex flex-wrap items-center gap-3 pr-8">
 						<SheetTitle className="font-heading text-xl">
 							{tableId === null
-								? "Nova Tabela"
+								? "Nova Revisão"
 								: (table?.identification ?? "Tabela")}
 						</SheetTitle>
 
@@ -64,7 +78,7 @@ export const NormativeTableSheet = ({
 
 					<SheetDescription>
 						{tableId === null
-							? "Cadastro de uma tabela normativa."
+							? "Cadastro de uma revisão de tabela normativa."
 							: table?.title}
 					</SheetDescription>
 				</SheetHeader>
@@ -98,15 +112,37 @@ export const NormativeTableSheet = ({
 						</div>
 						<Skeleton className="h-48 w-full rounded-sm" />
 					</div>
+				) : table ? (
+					<Tabs
+						key={table.id}
+						defaultValue="table"
+						className="min-h-0 flex-1 gap-0"
+					>
+						<TabsList className="w-full justify-start px-6">
+							<TabsTrigger value="table" className="flex-none">
+								Tabela
+							</TabsTrigger>
+							<TabsTrigger value="history" className="flex-none">
+								Histórico
+							</TabsTrigger>
+						</TabsList>
+
+						<TabsContent value="table" className="flex min-h-0 flex-col">
+							{form}
+						</TabsContent>
+
+						<TabsContent
+							value="history"
+							className="min-h-0 overflow-y-auto px-6 py-6"
+						>
+							<NormativeTableHistory
+								table={table}
+								definition={codes.find(({ code }) => code === table.code)}
+							/>
+						</TabsContent>
+					</Tabs>
 				) : (
-					// `key` resets the form when another table opens or a draft is saved.
-					<NormativeTableForm
-						key={table?.id ?? "new"}
-						table={table}
-						codes={codesQuery.data?.data ?? []}
-						onCreated={onCreated}
-						onClose={onClose}
-					/>
+					form
 				)}
 			</SheetContent>
 		</Sheet>

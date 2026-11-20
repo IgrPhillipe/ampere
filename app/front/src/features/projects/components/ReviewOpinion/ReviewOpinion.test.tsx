@@ -67,4 +67,19 @@ describe("ReviewOpinion", () => {
 		expect(screen.getByText("Projeto em conformidade.")).toBeInTheDocument();
 		expect(screen.queryByText("Ressalvas")).not.toBeInTheDocument();
 	});
+
+	it("keeps the approval opinion and its reservations once expired", () => {
+		render(
+			<ReviewOpinion
+				project={{ ...approved, status: "EXPIRED" }}
+				reservations={[reservation]}
+				referenceOptions={referenceOptions}
+			/>,
+		);
+
+		expect(
+			screen.getByRole("heading", { name: "Parecer da Aprovação" }),
+		).toBeInTheDocument();
+		expect(screen.getByText("Atualizar a data da ART.")).toBeInTheDocument();
+	});
 });

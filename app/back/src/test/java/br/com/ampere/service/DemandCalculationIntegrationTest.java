@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.ampere.config.NormativeTableSeed;
+import br.com.ampere.config.NormativeTableValidityMigration;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.GroupKind;
@@ -17,8 +18,12 @@ import br.com.ampere.domain.LampTechnology;
 import br.com.ampere.domain.LoadCategory;
 import br.com.ampere.domain.LoadItem;
 import br.com.ampere.domain.LoadUsage;
+import br.com.ampere.domain.NormativeTable;
+import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectEvent;
+import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
@@ -29,12 +34,16 @@ import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
+import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.utils.Timestamps;
+import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -76,6 +85,90 @@ class DemandCalculationIntegrationTest {
   @Autowired private ConsumerUnitGroupRepository groupRepository;
 
   @Autowired private CalculationRepository calculationRepository;
+
+  @Autowired private ProjectEventRepository eventRepository;
+
+  @Autowired private DemandCalculationService calculations;
+
+  @Autowired private ProjectVersionService versionService;
+
+  @Autowired private EntityManager entityManager;
+
+  @Autowired private NormativeTableValidityMigration validityMigration;
+
+  @Test
+  void aTableFirstUsedOnResubmissionAlsoUsesTheOriginalDate() {
+    publishTables();
+    Project project = draftWithPrototypeGroups(true);
+    var groups = groupRepository.findAllByProjectIdOrderById(project.getId());
+    var withoutEv = groups.stream().filter(group -> group.kind() != GroupKind.EV_CHARGING).toList();
+    var initial = calculations.compute(project, withoutEv);
+    var expected = calculations.compute(project, groups);
+    var replacement = replace(NormativeTableCode.Q33_EV_STATIONS, "0.5");
+    assertThat(calculations.isCurrent(initial, withoutEv)).isTrue();
+    project.submit(replacement.getVerifiedAt().minusSeconds(1));
+    project.reject(OffsetDateTime.now(ZoneOffset.UTC), "Incluir recarga");
+    var resubmission = calculations.compute(project, groups);
+    assertThat(resubmission.getEvChargingDemand())
+        .isEqualByComparingTo(expected.getEvChargingDemand());
+  }
+
+  @Test
+  void replacingAnAppliedTableInvalidatesADraftButNotASubmittedProtocol() throws Exception {
+    publishTables();
+    Project project = draftWithPrototypeGroups(true);
+    var groups = groupRepository.findAllByProjectIdOrderById(project.getId());
+    var original = calculations.compute(project, groups);
+    calculationRepository.saveAndFlush(original);
+    assertThat(calculations.isCurrent(original, groups)).isTrue();
+    var old = published(NormativeTableCode.Q35_APARTMENT_DEMAND);
+    var replacement = replace(NormativeTableCode.Q35_APARTMENT_DEMAND, "2");
+    assertThat(calculations.isCurrent(original, groups)).isFalse();
+    assertThat(calculations.changedTables(original)).contains("Quadro 35");
+    mockMvc
+        .perform(get(calculationOf(project) + "/latest").header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.outdated").value(true))
+        .andExpect(jsonPath("$.data.changedTables[0]").value("Quadro 35"));
+    var updatedDraft = calculations.compute(project, groups);
+    assertThat(updatedDraft.getResidentialDemandFinal())
+        .isNotEqualByComparingTo(original.getResidentialDemandFinal());
+    assertThat(calculations.isCurrent(updatedDraft, groups)).isTrue();
+
+    entityManager
+        .createNativeQuery("UPDATE normative_table SET superseded_at = NULL WHERE id = :id")
+        .setParameter("id", old.getId())
+        .executeUpdate();
+    validityMigration.run(null);
+    validityMigration.run(null);
+    entityManager.refresh(old);
+    assertThat(old.getSupersededAt())
+        .isEqualTo(replacement.getVerifiedAt().truncatedTo(ChronoUnit.MICROS));
+
+    project.submit(replacement.getVerifiedAt().minusSeconds(1));
+    project.reject(OffsetDateTime.now(ZoneOffset.UTC), "Corrigir");
+    var resubmission = calculations.compute(project, groups);
+    assertThat(resubmission.getResidentialDemandFinal())
+        .isEqualByComparingTo(original.getResidentialDemandFinal());
+    assertThat(calculations.isCurrent(original, groups)).isTrue();
+  }
+
+  @Test
+  void aProtocolKeepsTheTablesItsFirstRunUsedEvenIfOneIsReplacedBeforeTheSubmission() {
+    publishTables();
+    Project project = draftWithPrototypeGroups(true);
+    var groups = groupRepository.findAllByProjectIdOrderById(project.getId());
+    var sent = calculationRepository.saveAndFlush(calculations.compute(project, groups));
+    replace(NormativeTableCode.Q35_APARTMENT_DEMAND, "2");
+
+    OffsetDateTime submittedAt = Timestamps.now();
+    project.submit(submittedAt);
+    versionService.register(project, sent, submittedAt);
+    project.reject(Timestamps.now(), "Corrigir");
+
+    assertThat(calculations.compute(project, groups).getResidentialDemandFinal())
+        .isEqualByComparingTo(sent.getResidentialDemandFinal());
+  }
 
   private String token;
 
@@ -153,6 +246,30 @@ class DemandCalculationIntegrationTest {
   }
 
   @Test
+  void aRunTheDesignerAsksForBecomesTheLatestActivityOfTheProject() throws Exception {
+    publishTables();
+    Project project = draftWithPrototypeGroups(true);
+    mockMvc
+        .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
+        .andExpect(status().isCreated());
+
+    ProjectEvent event =
+        eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(project.getId()).getLast();
+    assertThat(event.getType()).isEqualTo(ProjectEventType.CALCULATED);
+    assertThat(event.getDescription()).isEqualTo("Demanda calculada: 165,00 kVA.");
+    String body =
+        mockMvc
+            .perform(get("/projects/" + project.getId()).header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    assertThat(
+            OffsetDateTime.parse(objectMapper.readTree(body).at("/data/lastActivityAt").asString()))
+        .isEqualTo(event.getOccurredAt());
+  }
+
+  @Test
   void refusesToCalculateWhileAGroupIsPending() throws Exception {
     publishTables();
     Project project = draftWithPrototypeGroups(false);
@@ -163,6 +280,51 @@ class DemandCalculationIntegrationTest {
         .andExpect(
             jsonPath("$.detail")
                 .value("Há grupos com pendências. Corrija-os antes de calcular a demanda."));
+  }
+
+  @Test
+  void aUnitAboveTheLowVoltageLimitStopsBeforeTheCheck() throws Exception {
+    publishTables();
+    Project project = draftWithThreePhaseApartment("75.01");
+
+    mockMvc
+        .perform(
+            get("/projects/" + project.getId() + "/consumer-unit-groups")
+                .header("Authorization", "Bearer " + token))
+        .andExpect(jsonPath("$.data[0].status").value("REVIEW"))
+        .andExpect(jsonPath("$.data[0].issues", hasSize(1)))
+        .andExpect(jsonPath("$.data[0].issues[0].severity").value("REVIEW"))
+        .andExpect(jsonPath("$.data[0].issues[0].field").value("loads"))
+        .andExpect(
+            jsonPath("$.data[0].issues[0].message")
+                .value(
+                    "Carga instalada de 75,01 kW por unidade passa do limite de 75 kW da baixa"
+                        + " tensão (DIS-NOR-030, item 6.2.1)."));
+    mockMvc
+        .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
+        .andExpect(status().isUnprocessableContent());
+    mockMvc
+        .perform(get(calculationOf(project) + "/latest").header("Authorization", "Bearer " + token))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void aUnitAtTheLowVoltageLimitPassesTheCheckOnTheIndividualStep() throws Exception {
+    publishTables();
+    Project project = draftWithThreePhaseApartment("75");
+
+    mockMvc
+        .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.steps[5].code").value("Dind"))
+        .andExpect(jsonPath("$.data.steps[5].applies").value(true))
+        .andExpect(
+            jsonPath("$.data.checks[?(@.code == 'LOW_VOLTAGE_LIMIT')].status").value("PASSED"))
+        .andExpect(
+            jsonPath("$.data.checks[?(@.code == 'LOW_VOLTAGE_LIMIT')].message")
+                .value(
+                    "Maior carga instalada por apartamento de 75,00 kW, dentro do limite de 75 kW"
+                        + " da baixa tensão (DIS-NOR-030, item 6.2.1)."));
   }
 
   @Test
@@ -228,6 +390,20 @@ class DemandCalculationIntegrationTest {
     normativeTableRepository.saveAll(
         NormativeTableSeed.all(
             standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
+    entityManager.flush();
+    entityManager
+        .createQuery("UPDATE NormativeTable t SET t.verifiedAt = :at")
+        .setParameter("at", OffsetDateTime.now(ZoneOffset.UTC).minusDays(30))
+        .executeUpdate();
+    entityManager.clear();
+  }
+
+  private NormativeTable published(NormativeTableCode code) {
+    return NormativeTableReplacement.published(normativeTableRepository, code);
+  }
+
+  private NormativeTable replace(NormativeTableCode code, String factor) {
+    return NormativeTableReplacement.replace(normativeTableRepository, code, factor);
   }
 
   private Project draftWithPrototypeGroups(boolean fixed) {
@@ -302,6 +478,46 @@ class DemandCalculationIntegrationTest {
                     false,
                     fixed ? true : null,
                     br.com.ampere.domain.EvStationType.COLLECTIVE))));
+    return project;
+  }
+
+  private Project draftWithThreePhaseApartment(String loadKw) {
+    Project project =
+        projectRepository.save(
+            new Project(
+                "Residencial Torres do Pina",
+                "Rua do Pina, 10",
+                "Recife",
+                "2026-2002",
+                ProjectStatus.DRAFT,
+                building(),
+                standards,
+                owner));
+    groupRepository.save(
+        GroupKind.RESIDENTIAL.create(
+            project,
+            new GroupSpec(
+                "Cobertura",
+                2,
+                new BigDecimal("180"),
+                3,
+                null,
+                false,
+                ConnectionType.THREE_PHASE,
+                null,
+                List.of(
+                    new LoadItem(
+                        LoadCategory.INSTANT_HEATING,
+                        "Aquecedor de passagem",
+                        1,
+                        new BigDecimal(loadKw),
+                        PowerUnit.KW,
+                        null,
+                        null)),
+                null,
+                null,
+                null,
+                null)));
     return project;
   }
 

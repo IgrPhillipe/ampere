@@ -1,4 +1,5 @@
 import { getToastErrorMessage } from "@lib/api-error";
+import { dashboardKeys } from "@services/dashboard/query-keys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -20,7 +21,10 @@ export const useDeleteProject = ({
 		onSuccess: async (_data, projectId) => {
 			await onDeleted?.();
 			queryClient.removeQueries({ queryKey: projectKeys.detail(projectId) });
-			await queryClient.invalidateQueries({ queryKey: projectKeys.all() });
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: projectKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: dashboardKeys.all() }),
+			]);
 
 			toast.success("Projeto excluído.");
 		},

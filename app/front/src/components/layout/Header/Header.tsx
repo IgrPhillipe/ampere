@@ -17,6 +17,7 @@ import { useState } from "react";
 
 import { AppBrand } from "./AppBrand";
 import { HeaderNav } from "./HeaderNav";
+import { NotificationsMenu } from "./NotificationsMenu";
 import { ROLE_LABEL } from "./role-label";
 
 const initialsOf = (name: string) =>
@@ -29,6 +30,7 @@ const initialsOf = (name: string) =>
 
 export const Header = () => {
 	const user = useAuthStore((state) => state.user);
+	const userLabel = user ? `${user.name}, ${ROLE_LABEL[user.role]}` : undefined;
 	const logout = useLogout();
 	const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -50,18 +52,21 @@ export const Header = () => {
 
 				<HeaderNav className="absolute inset-y-0 left-1/2 hidden -translate-x-1/2 lg:flex" />
 
-				<div className="ml-auto flex items-center">
+				<div className="ml-auto flex items-center gap-1 sm:gap-2">
+					{user ? <NotificationsMenu /> : null}
+
 					<DropdownMenu>
 						<DropdownMenuTrigger
 							render={
 								<Button
 									variant="ghost"
 									size="sm"
+									aria-label={userLabel}
 									className="-mr-2 h-10 max-w-96 gap-2 px-2 sm:-mr-3 sm:px-3"
 								/>
 							}
 						>
-							<Avatar className="size-7 md:hidden">
+							<Avatar className="size-7 md:hidden lg:flex xl:hidden">
 								{user?.avatarUrl ? (
 									<AvatarImage src={user.avatarUrl} alt={user.name} />
 								) : null}
@@ -71,7 +76,7 @@ export const Header = () => {
 								</AvatarFallback>
 							</Avatar>
 
-							<span className="hidden truncate font-mono text-2xs font-normal tracking-[0.11em] uppercase md:inline">
+							<span className="hidden truncate font-mono text-2xs font-normal tracking-[0.11em] uppercase md:inline lg:hidden xl:inline">
 								{user?.name}
 								{user ? (
 									<span className="ml-2 text-faint-foreground">
@@ -84,8 +89,16 @@ export const Header = () => {
 						</DropdownMenuTrigger>
 
 						<DropdownMenuContent align="end" className="min-w-52">
-							<DropdownMenuLabel className="text-muted-foreground">
-								{user?.email}
+							<DropdownMenuLabel className="flex flex-col gap-0.5">
+								<span className="text-foreground">{user?.name}</span>
+								{user ? (
+									<span className="font-normal text-muted-foreground">
+										{ROLE_LABEL[user.role]}
+									</span>
+								) : null}
+								<span className="font-normal text-muted-foreground">
+									{user?.email}
+								</span>
 							</DropdownMenuLabel>
 
 							<DropdownMenuSeparator />

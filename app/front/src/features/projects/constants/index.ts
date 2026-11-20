@@ -2,6 +2,7 @@ export * from "./building";
 export * from "./consumer-unit-group";
 export * from "./demand";
 export * from "./finding";
+export * from "./memorial-stamp";
 export * from "./project-detail-actions";
 export * from "./project-events";
 export * from "./project-findings";

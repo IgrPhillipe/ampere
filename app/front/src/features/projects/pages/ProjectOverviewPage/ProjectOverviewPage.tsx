@@ -148,7 +148,7 @@ export const ProjectOverviewPage = ({
 			</div>
 		)
 	) : project?.status === "UNDER_REVIEW" && project.submittedAt ? (
-		<NextStepsPanel submittedAt={project.submittedAt} />
+		<NextStepsPanel project={project} />
 	) : null;
 
 	return (

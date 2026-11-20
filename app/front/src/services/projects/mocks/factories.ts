@@ -26,6 +26,7 @@ export const makeProjectStatusCounts = (
 		.length,
 	rejected: projects.filter(({ status }) => status === "REJECTED").length,
 	approved: projects.filter(({ status }) => status === "APPROVED").length,
+	expired: projects.filter(({ status }) => status === "EXPIRED").length,
 });
 
 interface MakeProjectListOptions {

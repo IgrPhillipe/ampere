@@ -16,7 +16,8 @@ import { NewGroupRow } from "./NewGroupRow";
 
 const groupColumnClassNames = {
 	quantity: "w-20 text-right",
-	load: "w-28 text-right",
+	connection: "w-32",
+	load: "w-32 text-right",
 	factor: "w-24 text-right",
 	status: "w-36",
 } satisfies Partial<Record<GroupColumnId, string>>;
@@ -48,7 +49,7 @@ export const ConsumerUnitGroupsTable = ({
 		[findings, onOpenGroup, totalLoadKw],
 	);
 
-	if (isLoading) return <SkeletonTable columns={5} />;
+	if (isLoading) return <SkeletonTable columns={6} />;
 
 	if (groups.length === 0 && !newGroupControl) return empty;
 
@@ -70,7 +71,8 @@ export const ConsumerUnitGroupsTable = ({
 				columnClassNames={groupColumnClassNames}
 				onRowClick={onOpenGroup}
 				// The section title already draws the ink rule above the header.
-				tableClassName="[&_thead_tr]:border-b [&_thead_tr]:border-border"
+				// The minimum width keeps the name readable; narrower, the table scrolls.
+				tableClassName="min-w-[48rem] [&_thead_tr]:border-b [&_thead_tr]:border-border"
 				trailingRows={
 					newGroupControl ? (
 						<NewGroupRow

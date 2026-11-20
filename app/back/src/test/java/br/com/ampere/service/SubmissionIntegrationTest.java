@@ -212,7 +212,10 @@ class SubmissionIntegrationTest {
 
     assertThat(eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(project.getId()))
         .extracting(ProjectEvent::getType)
-        .containsExactly(ProjectEventType.SUBMITTED, ProjectEventType.PRE_VALIDATED);
+        .containsExactly(
+            ProjectEventType.CALCULATED,
+            ProjectEventType.SUBMITTED,
+            ProjectEventType.PRE_VALIDATED);
 
     perform(get("/projects").param("status", "UNDER_REVIEW"))
         .andExpect(jsonPath("$.data[0].id").value(String.valueOf(project.getId())));
@@ -718,6 +721,7 @@ class SubmissionIntegrationTest {
                 .value(
                     contains(
                         "CREATED",
+                        "CALCULATED",
                         "SUBMITTED",
                         "PRE_VALIDATED",
                         "ASSIGNED",
@@ -737,34 +741,41 @@ class SubmissionIntegrationTest {
                         "APPROVED")))
         .andExpect(
             jsonPath("$.data[*].version")
-                .value(contains(0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3)))
+                .value(contains(0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3)))
         .andExpect(jsonPath("$.data[0].authorName").value("Usuário Teste"))
+        .andExpect(jsonPath("$.data[1].description").value("Demanda calculada: 46,00 kVA."))
         .andExpect(
-            jsonPath("$.data[3].description")
+            jsonPath("$.data[4].description")
                 .value("Análise atribuída a Revisor Teste por Gestor Teste."))
-        .andExpect(jsonPath("$.data[3].authorRole").value("admin"))
-        .andExpect(jsonPath("$.data[4].description").value("Reprovado com 1 apontamento."))
-        .andExpect(jsonPath("$.data[4].detail").value("Assine a ART."))
-        .andExpect(jsonPath("$.data[5].description").value("Apontamento de Documentos corrigido."))
-        .andExpect(jsonPath("$.data[5].detail").value("ART assinada."))
-        .andExpect(jsonPath("$.data[6].description").value("Apontamento de Documentos contestado."))
-        .andExpect(jsonPath("$.data[6].detail").value("A ART já estava assinada."))
-        .andExpect(jsonPath("$.data[7].detail").value("ART reenviada com a assinatura."))
-        .andExpect(jsonPath("$.data[8].description").value("Versão 2 reenviada para análise."))
-        .andExpect(jsonPath("$.data[8].detail").value("ART assinada e tipo B incluído."))
-        .andExpect(jsonPath("$.data[9].authorRole").doesNotExist())
+        .andExpect(jsonPath("$.data[4].authorRole").value("admin"))
+        .andExpect(jsonPath("$.data[5].description").value("Reprovado com 1 apontamento."))
+        .andExpect(jsonPath("$.data[5].detail").value("Assine a ART."))
+        .andExpect(jsonPath("$.data[6].description").value("Apontamento de Documentos corrigido."))
+        .andExpect(jsonPath("$.data[6].detail").value("ART assinada."))
+        .andExpect(jsonPath("$.data[7].description").value("Apontamento de Documentos contestado."))
+        .andExpect(jsonPath("$.data[7].detail").value("A ART já estava assinada."))
+        .andExpect(jsonPath("$.data[8].detail").value("ART reenviada com a assinatura."))
         .andExpect(
-            jsonPath("$.data[10].description")
-                .value("Análise atribuída a Revisor Teste pelo sistema."))
+            jsonPath("$.data[9].description")
+                .value(
+                    "Versão 2 reenviada para análise. Prazo suspenso por 0 dias; restam 30 dias."))
+        .andExpect(jsonPath("$.data[9].detail").value("ART assinada e tipo B incluído."))
         .andExpect(jsonPath("$.data[10].authorRole").doesNotExist())
-        .andExpect(jsonPath("$.data[11].description").value("Reprovado com 2 apontamentos."))
-        .andExpect(jsonPath("$.data[12].description").value("Apontamento de Documentos corrigido."))
-        .andExpect(jsonPath("$.data[12].detail").value("ART assinada pelo responsável técnico."))
         .andExpect(
-            jsonPath("$.data[13].description")
+            jsonPath("$.data[11].description")
+                .value("Análise atribuída a Revisor Teste pelo sistema."))
+        .andExpect(jsonPath("$.data[11].authorRole").doesNotExist())
+        .andExpect(jsonPath("$.data[12].description").value("Reprovado com 2 apontamentos."))
+        .andExpect(jsonPath("$.data[13].description").value("Apontamento de Documentos corrigido."))
+        .andExpect(jsonPath("$.data[13].detail").value("ART assinada pelo responsável técnico."))
+        .andExpect(
+            jsonPath("$.data[14].description")
                 .value("Apontamento de Dados da Edificação corrigido."))
-        .andExpect(jsonPath("$.data[14].description").value("Versão 3 reenviada para análise."))
-        .andExpect(jsonPath("$.data[17].description").value("Aprovado."));
+        .andExpect(
+            jsonPath("$.data[15].description")
+                .value(
+                    "Versão 3 reenviada para análise. Prazo suspenso por 0 dias; restam 30 dias."))
+        .andExpect(jsonPath("$.data[18].description").value("Aprovado."));
 
     // Each decision reaches the designer, with the reopened finding of the second one; each
     // resubmission reaches the analyst who rejected it.

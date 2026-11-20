@@ -64,7 +64,7 @@ export const UsersTable = ({
 		return (
 			<EmptyState
 				title="Nenhum usuário cadastrado"
-				description="Crie as contas de projetistas, analistas e administradores."
+				description="Crie as contas de projetistas, analistas e gestores."
 				action={
 					onCreate ? (
 						<Button type="button" onClick={onCreate}>

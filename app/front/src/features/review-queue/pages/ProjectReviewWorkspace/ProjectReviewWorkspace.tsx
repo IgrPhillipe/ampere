@@ -6,7 +6,7 @@ import {
 	sectionStage,
 	useProjectDetailActions,
 } from "@features/projects";
-import { padCount } from "@features/shared";
+import { padCount, useAuthStore } from "@features/shared";
 import { getHttpStatus } from "@lib/api-error";
 import { useGetLatestCalculation } from "@services/calculation";
 import { useGetConsumerUnitGroupList } from "@services/consumer-units";
@@ -54,15 +54,20 @@ export const ProjectReviewWorkspace = ({
 	const navigate = useNavigate();
 	const project = useGetProject(projectId).data?.data;
 	const isUnderReview = project?.status === "UNDER_REVIEW";
+	const userId = useAuthStore((state) => state.user?.id);
+	const holdsProject =
+		isUnderReview && !!project?.reviewerId && project.reviewerId === userId;
 
 	const review = useOpenProjectReview();
 	const { mutate: openReview } = review;
 
+	// Only the responsible analyst opens the review; the API refuses everybody else.
 	useEffect(() => {
-		if (isUnderReview) openReview(projectId);
-	}, [openReview, isUnderReview, projectId]);
+		if (holdsProject) openReview(projectId);
+	}, [openReview, holdsProject, projectId]);
 
-	const isConsulting = getHttpStatus(review.error) === 403;
+	const isConsulting =
+		(isUnderReview && !holdsProject) || getHttpStatus(review.error) === 403;
 	const actions = useProjectDetailActions({
 		status: project?.status,
 		ownerId: project?.ownerId,

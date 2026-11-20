@@ -7,14 +7,13 @@ import {
 } from "@services/project-events";
 import { useGetFindingList } from "@services/project-review";
 import {
-	type ProjectVersion,
 	useCompareProjectVersions,
-	useDownloadVersionMemorial,
+	useDownloadVersionFile,
 	useGetProjectVersionList,
 } from "@services/project-versions";
 import { useGetProject } from "@services/projects";
 import { CircleAlert, History } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
 	ProjectTimeline,
@@ -22,8 +21,9 @@ import {
 	ReworkPanel,
 	VersionChangesField,
 	VersionComparisonView,
+	type VersionDownload,
 } from "../../components";
-import { defaultComparedVersions } from "../../constants";
+import { defaultComparedVersions, wasApproved } from "../../constants";
 import { useComparedVersions } from "../../hooks";
 
 interface ProjectHistoryPageProps {
@@ -36,8 +36,13 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 	const reworkQuery = useGetProjectRework(projectId);
 	const versionsQuery = useGetProjectVersionList(projectId);
 	const { data: project } = useGetProject(projectId);
+	const detail = project?.data;
+	const pendingSubmission =
+		detail?.status === "UNDER_REVIEW" && detail.reviewDeadline
+			? { version: detail.reviewCycle, reviewDeadline: detail.reviewDeadline }
+			: undefined;
 	const { data: findings } = useGetFindingList(projectId);
-	const downloadMemorial = useDownloadVersionMemorial();
+	const downloadFileOfVersion = useDownloadVersionFile();
 	const { compared, compare, close } = useComparedVersions();
 
 	const versions = versionsQuery.data?.data;
@@ -49,6 +54,11 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 		knownNumbers.has(compared.to)
 			? compared
 			: null;
+	const staleLink = versions !== undefined && compared !== null && !comparing;
+	// A link to a version this project lacks leaves the URL instead of lingering there.
+	useEffect(() => {
+		if (staleLink) close();
+	}, [staleLink, close]);
 	const comparisonQuery = useCompareProjectVersions(
 		{ projectId, from: comparing?.from ?? 0, to: comparing?.to ?? 0 },
 		{ enabled: comparing !== null },
@@ -57,9 +67,9 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 	const awaitingFindings =
 		findings?.data.filter(({ status }) => status === "FIXED").length ?? 0;
 
-	const download = (version: ProjectVersion) =>
-		downloadMemorial.mutate(
-			{ projectId, version: version.number },
+	const download = ({ version, file }: VersionDownload) =>
+		downloadFileOfVersion.mutate(
+			{ projectId, version, file },
 			{ onSuccess: ({ blob, filename }) => downloadFile(blob, filename) },
 		);
 
@@ -97,9 +107,9 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 			versions={versions}
 			isLoading={versionsQuery.isPending}
 			onDownload={download}
-			downloadingVersion={
-				downloadMemorial.isPending
-					? downloadMemorial.variables?.version
+			downloading={
+				downloadFileOfVersion.isPending
+					? downloadFileOfVersion.variables
 					: undefined
 			}
 			onCompare={comparing ? undefined : openComparison}
@@ -124,6 +134,7 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 			) : (
 				<ProjectTimeline
 					events={eventsQuery.data?.data}
+					pendingSubmission={pendingSubmission}
 					direction={direction}
 					onDirectionChange={setDirection}
 					isLoading={eventsQuery.isPending}
@@ -142,12 +153,13 @@ export const ProjectHistoryPage = ({ projectId }: ProjectHistoryPageProps) => {
 				{comparing ? (
 					<VersionChangesField
 						comparison={comparisonQuery.data?.data}
+						isError={comparisonQuery.isError}
 						className="m-6 md:mx-10 @5xl:mx-6"
 					/>
 				) : (
 					<ReworkPanel
 						rework={reworkQuery.data?.data}
-						approved={project?.data.status === "APPROVED"}
+						approved={detail !== undefined && wasApproved(detail.status)}
 						awaitingFindings={awaitingFindings}
 						isLoading={reworkQuery.isPending}
 					/>

@@ -3,7 +3,13 @@ import type {
 	ConsumerUnitGroupResponse,
 } from "@services/consumer-units";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within,
+} from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -173,6 +179,212 @@ describe("ConsumerUnitsPage", () => {
 		expect(state.createGroup.mutate.mock.calls[0][0]).toMatchObject({
 			payload: { kind: "RESIDENTIAL", connectionType: "SINGLE_PHASE" },
 		});
+	});
+
+	it("opens a three-phase apartment unsaved until its loads are in", async () => {
+		renderPage();
+		fireEvent.click(
+			screen.getAllByRole("button", { name: /Adicionar Grupo/i })[0],
+		);
+		fireEvent.change(screen.getAllByPlaceholderText("Nome do grupo")[0], {
+			target: { value: "Cobertura" },
+		});
+		await pickUsage("Apartamento");
+		fireEvent.click(
+			screen.getAllByRole("combobox", { name: /Ligação do apartamento/i })[0],
+		);
+		const threePhase = await screen.findByRole("option", {
+			name: "Trifásico",
+		});
+		expect(
+			screen.getAllByRole("spinbutton", {
+				name: /Carga instalada por unidade/i,
+			}),
+		).not.toHaveLength(0);
+		fireEvent.pointerDown(threePhase);
+		fireEvent.click(threePhase);
+		// The loads go in the sheet, so the row drops the total.
+		await waitFor(() =>
+			expect(
+				screen.queryAllByRole("spinbutton", {
+					name: /Carga instalada por unidade/i,
+				}),
+			).toHaveLength(0),
+		);
+		fireEvent.change(screen.getAllByPlaceholderText("00")[0], {
+			target: { value: "2" },
+		});
+		fireEvent.click(
+			screen.getAllByRole("button", { name: /Salvar Grupo/i })[0],
+		);
+
+		const description = await screen.findByRole("textbox", {
+			name: /Descrição/i,
+		});
+		expect(state.createGroup.mutate).not.toHaveBeenCalled();
+		expect(
+			screen.queryByRole("button", { name: /Excluir Grupo/i }),
+		).not.toBeInTheDocument();
+
+		fireEvent.change(description, { target: { value: "Chuveiro" } });
+		fireEvent.change(
+			screen.getByRole("spinbutton", { name: /Potência de placa/i }),
+			{ target: { value: "5.5" } },
+		);
+		fireEvent.click(
+			screen
+				.getAllByRole("button", { name: /Salvar Grupo/i })
+				.at(-1) as HTMLElement,
+		);
+
+		await waitFor(() => {
+			expect(state.createGroup.mutate).toHaveBeenCalledTimes(1);
+		});
+		expect(state.createGroup.mutate.mock.calls[0][0]).toMatchObject({
+			payload: {
+				kind: "RESIDENTIAL",
+				name: "Cobertura",
+				quantity: 2,
+				connectionType: "THREE_PHASE",
+				unitLoadKw: null,
+				loads: [{ description: "Chuveiro", power: 5.5 }],
+			},
+		});
+	});
+
+	it("keeps the new row until the three-phase apartment is saved", async () => {
+		const threePhaseRow = async () => {
+			fireEvent.click(
+				screen.getAllByRole("combobox", {
+					name: /Ligação do apartamento/i,
+				})[0],
+			);
+			const option = await screen.findByRole("option", { name: "Trifásico" });
+			fireEvent.pointerDown(option);
+			fireEvent.click(option);
+			await waitFor(() =>
+				expect(screen.queryAllByRole("option")).toHaveLength(0),
+			);
+		};
+		const saveRow = () =>
+			fireEvent.click(
+				screen.getAllByRole("button", { name: /Salvar Grupo/i })[0],
+			);
+
+		renderPage();
+		fireEvent.click(
+			screen.getAllByRole("button", { name: /Adicionar Grupo/i })[0],
+		);
+		fireEvent.change(screen.getAllByPlaceholderText("Nome do grupo")[0], {
+			target: { value: "Cobertura" },
+		});
+		await pickUsage("Apartamento");
+		await threePhaseRow();
+		fireEvent.change(screen.getAllByPlaceholderText("00")[0], {
+			target: { value: "2" },
+		});
+		saveRow();
+
+		const sheet = await screen.findByRole("dialog");
+		fireEvent.click(within(sheet).getByRole("button", { name: "Cancelar" }));
+		await waitFor(() =>
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+		);
+		expect(screen.getAllByPlaceholderText("Nome do grupo")[0]).toHaveValue(
+			"Cobertura",
+		);
+		expect(screen.getAllByPlaceholderText("00")[0]).toHaveValue(2);
+
+		state.createGroup = respondWith({
+			id: "103",
+			name: "Cobertura",
+			kind: "RESIDENTIAL",
+			quantity: 2,
+			status: "MISSING_DATA",
+			issues: [missingData("usefulArea")],
+			declaredLoadKw: 11,
+			summary: "Área útil não informada, trifásico (DIS-NOR-053 Quadro 35)",
+			unitLoadKw: 5.5,
+			connectionType: "THREE_PHASE",
+			loads: [
+				{
+					category: "INSTANT_HEATING",
+					description: "Chuveiro",
+					quantity: 1,
+					power: 5.5,
+					powerUnit: "KW",
+				},
+			],
+		});
+		saveRow();
+		fireEvent.change(
+			await screen.findByRole("textbox", { name: /Descrição/i }),
+			{ target: { value: "Chuveiro" } },
+		);
+		fireEvent.change(
+			screen.getByRole("spinbutton", { name: /Potência de placa/i }),
+			{ target: { value: "5.5" } },
+		);
+		fireEvent.click(
+			within(screen.getByRole("dialog")).getByRole("button", {
+				name: /Salvar Grupo/i,
+			}),
+		);
+
+		await waitFor(() =>
+			expect(screen.queryByPlaceholderText("Nome do grupo")).toBeNull(),
+		);
+	});
+
+	it("shows each apartment's connection in the groups table", () => {
+		state.groups = [
+			{
+				id: "103",
+				name: "Cobertura",
+				kind: "RESIDENTIAL",
+				quantity: 2,
+				status: "VALIDATED",
+				issues: [],
+				declaredLoadKw: 32,
+				summary: "180 m², trifásico (DIS-NOR-053 Quadro 35)",
+				usefulArea: 180,
+				unitLoadKw: 16,
+				connectionType: "THREE_PHASE",
+				loads: [
+					{
+						category: "INSTANT_HEATING",
+						description: "Chuveiro",
+						quantity: 4,
+						power: 4,
+						powerUnit: "KW",
+					},
+				],
+			},
+			{
+				id: "104",
+				name: "Apartamentos Tipo",
+				kind: "RESIDENTIAL",
+				quantity: 12,
+				status: "VALIDATED",
+				issues: [],
+				declaredLoadKw: 120,
+				summary: "80 m², monofásico (DIS-NOR-053 Quadro 35)",
+				usefulArea: 80,
+				unitLoadKw: 10,
+				connectionType: "SINGLE_PHASE",
+				loads: null,
+			},
+			makeLoadGroup(),
+		];
+
+		renderPage();
+
+		expect(
+			screen.getByRole("columnheader", { name: "Ligação" }),
+		).toBeInTheDocument();
+		expect(screen.getAllByText("Trifásico").length).toBeGreaterThan(0);
+		expect(screen.getAllByText("Monofásico").length).toBeGreaterThan(0);
+		expect(screen.getAllByText("Edificação").length).toBeGreaterThan(0);
 	});
 
 	it("keeps the connection and the loads of a three-phase apartment on save", async () => {

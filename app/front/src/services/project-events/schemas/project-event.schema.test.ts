@@ -33,6 +33,22 @@ describe("projectEventListResponseSchema", () => {
 		});
 	});
 
+	it("parses the system event of an expired approval", () => {
+		const expiry = {
+			...event,
+			type: "EXPIRED",
+			version: 1,
+			description: "Validade da aprovação encerrada em 09/11/2026.",
+			detail: "Aprovação válida por 36 meses (DIS-NOR-053, item 6.27.6).",
+			authorName: null,
+			authorRole: null,
+		};
+
+		expect(
+			projectEventListResponseSchema.parse({ data: [expiry] }).data[0],
+		).toEqual(expiry);
+	});
+
 	it("rejects a numeric id", () => {
 		expect(() =>
 			projectEventListResponseSchema.parse({ data: [{ ...event, id: 98 }] }),

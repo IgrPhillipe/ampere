@@ -6,6 +6,7 @@ import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
 import {
+	downloadFile,
 	formatDate,
 	formatDateTime,
 	formatKva,
@@ -195,12 +196,7 @@ export const SubmissionConfirmationPage = ({
 			return;
 		}
 
-		const url = URL.createObjectURL(data.blob);
-		const link = document.createElement("a");
-		link.href = url;
-		link.download = data.filename;
-		link.click();
-		setTimeout(() => URL.revokeObjectURL(url), 0);
+		downloadFile(data.blob, data.filename);
 	};
 
 	const showFixed = resubmission && fixedItems.length > 0;

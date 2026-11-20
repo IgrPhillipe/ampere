@@ -12,21 +12,21 @@ Todos com a senha `senha@123`.
 
 | E-mail | Perfil | Nome | Observação |
 | :--- | :--- | :--- | :--- |
-| `user@ampere.com` | Projetista | Usuário Teste | CREA 123456/PE. Dono da maioria dos projetos |
+| `user@ampere.com` | Projetista | Usuário Teste | CREA 123456/PE. Dono da maioria dos projetos. Conta de 1.200 dias, mais antiga que o projeto expirado |
 | `projetista@ampere.com` | Projetista | Carla Projetista | CREA 654321/PE. Projetos em Pernambuco e um em Pedras de Fogo |
 | `joao@ampere.com` | Projetista | João Batista | CREA 223344/PB. Projetos em Pedras de Fogo, único município da Paraíba na área de concessão |
 | `novo@ampere.com` | Projetista | Diego Novato | Senha temporária: o primeiro login leva à troca de senha. Sem projetos |
 | `inativo@ampere.com` | Projetista | Bruno Inativo | Conta desativada: o login é recusado. Tem um projeto aprovado antigo |
-| `admin@ampere.com` | Administrador | Admin Teste | Cadastra tabelas normativas, gere usuários, tem projetos próprios e também analisa |
-| `conferente@ampere.com` | Administrador | Conferente Teste | Segunda leitura das tabelas normativas: publica o que o admin cadastra |
-| `revisor@ampere.com` | Analista | Revisor Teste | Analista principal da fila |
+| `admin@ampere.com` | Gestor | Admin Teste | Cadastra e aprova revisões das tabelas normativas, gere usuários, tem projetos próprios e também analisa |
+| `conferente@ampere.com` | Gestor | Conferente Teste | Segunda leitura das tabelas normativas: aprova o que o admin cadastra |
+| `revisor@ampere.com` | Analista | Revisor Teste | Analista principal da fila. Também cadastra e aprova revisões das tabelas normativas |
 | `analista@ampere.com` | Analista | Ana Analista | Segunda analista, com projetos em análise, uma reprovação e duas aprovações. Responde por Caruaru, Garanhuns e Petrolina |
 
 ---
 
 ## Projetos
 
-Os prazos e as datas são relativos ao momento do seed: um projeto enviado há 30 dias vence hoje, e assim por diante. O histórico segue a ordem real: criação, documentos e cálculo, envio, apontamentos, resposta, reenvio. Com o tempo os prazos envelhecem; para renová-los, veja [Como Reiniciar](#como-reiniciar).
+Os prazos e as datas são relativos ao momento do seed: um projeto enviado há 30 dias vence hoje, e assim por diante. Nos reenviados, o prazo desconta os dias em que o projeto ficou reprovado (US15): retoma com os dias que restavam na reprovação. O histórico segue a ordem real: criação, documentos e cálculo, envio, apontamentos, resposta, reenvio. Com o tempo os prazos envelhecem; para renová-los, veja [Como Reiniciar](#como-reiniciar).
 
 Cada cenário também grava a linha do tempo do protocolo: criação, envio ou reenvio, pré-validação, atribuição, decisão e respostas aos apontamentos, sempre com as datas da própria história. Os projetos de reanálise, especialmente `2026-2009` (ciclo 2) e `2026-2017` (ciclo 3), exercitam as métricas de versões enviadas, decisões, apontamentos e passos de cálculo refeitos.
 
@@ -48,7 +48,7 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 | 2026-2026 | Residencial Bosque de Camaragibe | U | Rascunho | Cálculo desatualizado: um grupo mudou depois do cálculo. O memorial responde 409 |
 | 2026-2027 | Edifício Mirante de Ipojuca | C | Rascunho | Cálculo desatualizado: a tensão do projeto mudou depois do cálculo |
 | 2026-2028 | Mercado Pedras de Fogo | J | Rascunho | Não residencial, calculado, na Paraíba |
-| 2026-2029 | Edifício Misto Conde da Boa Vista | A | Rascunho | Misto em 220/127 V, com recarga, projeto de um administrador |
+| 2026-2029 | Edifício Misto Conde da Boa Vista | A | Rascunho | Misto em 220/127 V, com recarga, projeto de um gestor |
 | 2026-2030 | Complexo Multiuso Marco Zero | U | Rascunho | Vitrine das entradas raras: recarga individualizada e incorporada ao veículo, com gerenciamento; unidade compacta; as seis categorias de carga (ar-condicionado, aquecimento instantâneo e de acumulação, cocção, aparelhos, equipamento especial); potência em HP; lâmpada fluorescente/néon/sódio |
 | 2026-2032 | Complexo Reserva do Capibaribe | C | Rascunho | Mais de 300 kVA: alerta de entrada de serviço fora das faixas |
 | 2026-2033 | Residencial Bela Vista | J | Rascunho | Quatro apartamentos: vale a demanda mínima da primeira faixa |
@@ -70,12 +70,12 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 | 2026-2006 | Mix Casa Forte | U | Revisor | Atrasado (36 dias) | Misto atrasado, com analista |
 | 2026-1007 | Edifício Comercial Boa Vista | U | Sem analista | Vence hoje | Prazo no último dia, sem dono |
 | 2026-2005 | Empresarial Pina Office | U | Revisor | Vence hoje | Apontamentos em rascunho, ainda invisíveis ao projetista: um de cálculo ligado à etapa Dc |
-| 2026-2038 | Residencial Paraíso | J | Admin | Falta 1 dia | Administrador analisando projeto que não é dele; Paraíba na fila |
+| 2026-2038 | Residencial Paraíso | J | Admin | Falta 1 dia | Gestor analisando projeto que não é dele; Paraíba na fila |
 | 2026-2036 | Condomínio Jardim Atlântico | C | Sem analista | Faltam 2 dias | Quase vencendo, sem dono |
 | 2026-2037 | Edifício Comercial Santo Amaro | U | Ana | Faltam 3 dias | Com a segunda analista |
 | 2026-2013 | Residencial Olinda Alta | C | Sem analista | No prazo | Fila sem dono, no prazo |
 | 2026-2004 | Residencial Boa Viagem Prime | U | Sem analista | No prazo | Demanda acima de 50 kVA, no prazo |
-| 2026-2015 | Sede Regional Administrativa | A | Revisor | No prazo | Projeto do administrador analisado por outro |
+| 2026-2015 | Sede Regional Administrativa | A | Revisor | No prazo | Projeto do gestor analisado por outro |
 | 2026-2040 | Condomínio Pedras Norte | J | Sem analista | No prazo | Paraíba na fila |
 | 2026-2043 | Edifício Comercial Centro de Pedras | J | Ana | No prazo | Paraíba com a segunda analista |
 | 2026-2044 | Residencial Caruaru Prime | U | Ana | No prazo | Distribuído automaticamente para Ana no envio pela regra do município Caruaru |
@@ -114,6 +114,12 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 | 2026-2042 | Edifício Parque das Flores | B | Revisor | Projeto antigo do projetista inativo |
 | 2026-2046 | Edifício Mirante da Torre | U | Revisor | Aprovado com duas ressalvas: aparecem no parecer, na Visão Geral e no memorial da aprovação |
 
+### Expirado
+
+| Protocolo | Projeto | Proj. | Analista | O que demonstra |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-2048 | Residencial Antigo Casarão | U | Revisor | Aprovado há 1.100 dias: passou dos 36 meses de validade (DIS-NOR-053, item 6.27.6) e está `EXPIRED`, com a data em que a validade terminou e o evento de expiração no histórico |
+
 ---
 
 ## Notificações
@@ -130,8 +136,12 @@ As 18 tabelas entram publicadas, digitadas pelo admin e conferidas pelo conferen
 | :--- | :--- | :--- |
 | Quadro 35 | Substituída, mais antiga que a vigente | Fatores menores nas três primeiras faixas acima de 40 m² |
 | Tabela 22 | Substituída, mais antiga que a vigente | Fator de lojas de 0,90 em vez de 1,00 |
-| Quadro 37 | Aguardando revisão, cadastrada pelo admin | Fatores de segurança de 1,4 e 1,25 nas duas primeiras faixas |
-| Tabela 2 | Aguardando revisão, cadastrada pelo conferente | Faixa 53 a 66 kVA com condutor de 50 mm² e disjuntor de 125 A. O admin pode publicá-la |
+| Quadro 37 | Aguardando revisão, cadastrada pelo admin | Fatores de segurança de 1,4 e 1,25 nas duas primeiras faixas. Só o admin a altera; o conferente e os analistas podem aprová-la |
+| Tabela 2 | Aguardando revisão, cadastrada pelo conferente | Faixa 53 a 66 kVA com condutor de 50 mm² e disjuntor de 125 A. O admin e os analistas podem aprová-la |
+
+A aba "Histórico" de cada uma mostra essa diferença no comparativo.
+
+Cada tabela tem no máximo uma revisão pendente: uma nova revisão do Quadro 37 ou da Tabela 2 só entra depois que a pendente for aprovada ou excluída. Exclui quem a cadastrou ou o admin.
 
 ---
 

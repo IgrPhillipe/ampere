@@ -58,8 +58,11 @@ Cada tabela é cadastrada com:
 Regras da área administrativa:
 
 - **Dupla leitura obrigatória.** Uma revisão só sai de rascunho após conferência por pessoa diferente de quem cadastrou.
+- **Só quem cadastrou altera o rascunho.** Quem confere lê o que foi digitado e aprova a versão que leu; o que mudar depois volta para a conferência. Excluir o rascunho é de quem cadastrou ou do gestor, para que um rascunho abandonado não trave a tabela.
+- **Uma revisão pendente por tabela.** Outra revisão da mesma tabela só entra depois que a pendente for aprovada ou excluída. O banco garante a regra também para dois cadastros no mesmo instante.
 - **Os cinco exemplos do Anexo I são o portão de publicação.** Antes de publicar uma revisão, o sistema executa os cinco exemplos resolvidos da norma com os parâmetros recém-cadastrados. Se algum deixar de fechar, a revisão não é publicada, o que barra erro de digitação nos parâmetros.
 - **Revisão publicada não é editada.** Norma nova gera revisão nova, e a anterior passa a substituída. Cálculo antigo continua apontando para a revisão sob a qual foi feito.
+- **Histórico das revisões.** A tabela lista as revisões do mesmo código, as aguardando revisão primeiro e as publicadas da mais recente à mais antiga, com quem cadastrou e quem aprovou, e compara as linhas de duas delas: incluídas, removidas e alteradas.
 
 Tabelas a cadastrar:
 
@@ -348,6 +351,21 @@ Pontos em que as normas são omissas e o motor da US04 adotou um critério. Cada
 Detalhamento e evidência em [`fontes-normativas.md`](fontes-normativas.md).
 
 ---
+
+## Vigência das Revisões no Protocolo
+
+Antes do primeiro envio, o cálculo usa as tabelas publicadas. O snapshot grava em `normativeTableIds` o ID de cada tabela consultada. Se uma delas for substituída, o cálculo fica desatualizado e `changedTables` lista as tabelas que mudaram. Publicar uma tabela que o cálculo não usou não muda nada. Vale para rascunho, reprovado e aguardando envio; o envio recalcula o projeto aguardando envio cujo cálculo ficou desatualizado.
+
+Depois do primeiro envio, as revisões ficam fixadas pela versão 1 do protocolo (`ProjectVersion`), e não por `Project.submittedAt`, que muda a cada reenvio:
+
+- tabela que o cálculo da versão 1 usou: a mesma revisão, pelo ID gravado, inclusive `SUPERSEDED`;
+- tabela usada pela primeira vez num reenvio: a revisão vigente na data da versão 1, com `verifiedAt <= data < supersededAt`. A revisão atual não tem fim de vigência.
+
+Fixar pelo ID cobre a publicação que cai entre o cálculo e o envio. `revisionsFixedAt`, no retorno do cálculo, traz a data da versão 1; a tela de cálculo, a do memorial e o PDF mostram essa data. Mudança nos dados do projeto continua exigindo recálculo.
+
+Na subida, `NormativeTableValidityMigration` preenche o `supersededAt` das revisões antigas com a próxima publicação do mesmo código. A operação é idempotente. Sem publicação posterior conhecida, o fim fica em branco e a revisão substituída não é escolhida. Cálculo antigo sem `normativeTableIds` é comparado pelas referências gravadas e pela data de publicação das tabelas atuais.
+
+A revisão da norma inteira (pendência 34) continua fora deste escopo.
 
 ## Tabela Bibliográfica
 

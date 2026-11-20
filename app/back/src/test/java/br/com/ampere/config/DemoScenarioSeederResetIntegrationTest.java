@@ -33,7 +33,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @SpringBootTest
 class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
 
-  private static final int SCENARIOS = 55;
+  private static final int SCENARIOS = 56;
 
   @Autowired private JdbcTemplate jdbcTemplate;
 

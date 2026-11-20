@@ -1,4 +1,5 @@
 import { getToastErrorMessage } from "@lib/api-error";
+import { dashboardKeys } from "@services/dashboard/query-keys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -14,7 +15,10 @@ export const useToggleUserActive = () => {
 		mutationFn: ({ id, name, role, active }: ManagedUser) =>
 			updateUser({ id, payload: { name, role, active: !active } }),
 		onSuccess: async ({ data }) => {
-			await queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: userKeys.lists() }),
+				queryClient.invalidateQueries({ queryKey: dashboardKeys.all() }),
+			]);
 			toast.success(data.active ? "Usuário reativado." : "Usuário desativado.");
 		},
 		onError: (error) =>

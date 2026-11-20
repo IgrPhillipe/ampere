@@ -15,12 +15,12 @@ export const useCreateNormativeTable = () => {
 				queryKey: normativeTableKeys.all(),
 			});
 
-			toast.success("Tabela enviada para revisão.");
+			toast.success("Revisão enviada para aprovação.");
 		},
 		onError: (error) =>
 			toast.error(
 				getToastErrorMessage(error, {
-					fallback: "Não foi possível salvar a tabela.",
+					fallback: "Não foi possível enviar a revisão.",
 				}),
 			),
 	});

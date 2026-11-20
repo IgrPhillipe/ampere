@@ -14,7 +14,7 @@ import type {
 export interface ListProjectsParams {
 	page?: number;
 	pageSize?: number;
-	status?: ProjectStatus;
+	status?: ProjectStatus | ProjectStatus[];
 	search?: string;
 	sort?: ProjectSort;
 	direction?: SortDirection;

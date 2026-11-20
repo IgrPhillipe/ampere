@@ -75,3 +75,10 @@ export const http = ky.create({
 
 /** Public third-party APIs (ViaCEP, IBGE): no prefix, no session token. */
 export const externalHttp = ky.create({ timeout: 10_000, retry: 1 });
+
+const FILENAME = /filename="?([^";]+)"?/;
+
+/** The file name the API sends in `Content-Disposition`, or the fallback. */
+export const filenameOf = (response: Response, fallback: string) =>
+	FILENAME.exec(response.headers.get("Content-Disposition") ?? "")?.[1] ??
+	fallback;

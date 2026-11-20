@@ -8,6 +8,8 @@ import type {
 } from "@services/project-review";
 import type { ProjectDetail } from "@services/projects";
 
+import { wasApproved } from "./project-status";
+
 export const findingSeverityLabels = {
 	BLOCKING: "Bloqueante",
 	ADJUSTMENT: "Ajuste",
@@ -116,7 +118,7 @@ export const awaitsDesignerResponse = (
 export const isReservation = (
 	finding: Finding,
 	project: Pick<ProjectDetail, "status">,
-) => project.status === "APPROVED" && finding.status !== "RESOLVED";
+) => wasApproved(project.status) && finding.status !== "RESOLVED";
 
 /** The findings a stage marks while the designer corrects the project. */
 export const stageFindingsOf = (

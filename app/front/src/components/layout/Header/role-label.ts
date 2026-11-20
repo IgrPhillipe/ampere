@@ -4,5 +4,5 @@ import type { UserRole } from "@features/shared";
 export const ROLE_LABEL: Record<UserRole, string> = {
 	user: "Projetista",
 	reviewer: "Analista",
-	admin: "Administrador",
+	admin: "Gestor",
 };

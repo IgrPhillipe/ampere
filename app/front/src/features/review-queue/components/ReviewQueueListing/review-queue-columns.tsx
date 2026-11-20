@@ -7,15 +7,19 @@ import { AlertsCell } from "./AlertsCell";
 import { AnalyzeButton } from "./AnalyzeButton";
 import { DeadlineCell } from "./DeadlineCell";
 import { QueueItemIndicator } from "./QueueItemIndicator";
+import { ReviewerCell } from "./ReviewerCell";
 import {
 	formatQueueItemOrigin,
 	formatReviewCycle,
+	isResponsible,
 	isUrgent,
 } from "./review-queue-row";
+import { SelectPageCheckbox, SelectRowCheckbox } from "./SelectionCheckbox";
 
 const columnHelper = createDataTableColumnHelper<ReviewQueueItem>();
 
 export type ReviewQueueColumnId =
+	| "select"
 	| "attention"
 	| "protocol"
 	| "name"
@@ -24,19 +28,37 @@ export type ReviewQueueColumnId =
 	| "warnings"
 	| "deadline"
 	| "status"
+	| "reviewer"
 	| "action"
 	// No column of its own, but still a sort key of the list.
 	| "submittedAt";
 
 export interface ReviewQueueRowActions {
+	/** Opens the project: to review it when the user holds it, to consult it otherwise. */
 	onAnalyze: (item: ReviewQueueItem) => void;
 }
+
+interface ReviewQueueColumnOptions extends ReviewQueueRowActions {
+	/** Only the analyst responsible for a project reviews it. */
+	currentUserId?: string;
+	/** Adds the checkbox column; the selection itself comes from `ReviewQueueSelectionContext`. */
+	selectable?: boolean;
+}
+
+const selectColumn = columnHelper.display({
+	id: "select",
+	header: () => <SelectPageCheckbox />,
+	cell: ({ row }) => <SelectRowCheckbox item={row.original} />,
+});
 
 /** The H06 set: receipt and submission cycle ride on the project's second line. */
 export const createReviewQueueColumns = ({
 	onAnalyze,
-}: ReviewQueueRowActions) =>
+	currentUserId,
+	selectable = false,
+}: ReviewQueueColumnOptions) =>
 	columnHelper.columns([
+		...(selectable ? [selectColumn] : []),
 		columnHelper.display({
 			id: "attention",
 			header: () => <span className="sr-only">Atenção</span>,
@@ -106,12 +128,18 @@ export const createReviewQueueColumns = ({
 			header: "Prazo",
 			cell: ({ row }) => <DeadlineCell item={row.original} />,
 		}),
+		columnHelper.accessor("reviewerName", {
+			id: "reviewer",
+			header: "Analista Responsável",
+			cell: ({ row }) => <ReviewerCell item={row.original} />,
+		}),
 		columnHelper.display({
 			id: "action",
 			header: () => <span className="sr-only">Ação</span>,
 			cell: ({ row }) => (
 				<AnalyzeButton
 					urgent={isUrgent(row.original)}
+					consult={!isResponsible(row.original, currentUserId)}
 					onAnalyze={() => onAnalyze(row.original)}
 				/>
 			),

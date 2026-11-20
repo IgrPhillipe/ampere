@@ -1,16 +1,23 @@
 import { EmptyState } from "@components/EmptyState";
+import { ExportCsvButton } from "@components/ExportCsvButton";
 import { PageLayout } from "@components/layout";
 import { Pagination } from "@components/Pagination";
 import { Button } from "@components/ui/button";
+import { downloadFile, useAuthStore } from "@features/shared";
 import {
 	type ReviewQueueItem,
+	useExportReviewQueueCsv,
 	useGetReviewQueue,
 	useGetReviewQueueIndicators,
 } from "@services/review-queue";
+import { useAssignReviewQueue } from "@services/reviewer-distribution";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleAlert } from "lucide-react";
+import { useState } from "react";
 
 import {
+	AssignReviewerDialog,
+	QueueSelectionBar,
 	ReviewQueueActiveFilters,
 	ReviewQueueFilterControls,
 	ReviewQueueListing,
@@ -40,6 +47,43 @@ export const ReviewQueuePage = () => {
 	});
 	const indicatorsQuery = useGetReviewQueueIndicators();
 	const navigate = useNavigate();
+	const user = useAuthStore((state) => state.user);
+	const isManager = user?.role === "admin";
+	const exportQueue = useExportReviewQueueCsv();
+	const assign = useAssignReviewQueue();
+	const [isAssignOpen, setAssignOpen] = useState(false);
+
+	// The selection belongs to the listing it was made on: a new page or filter drops it.
+	const listingKey = JSON.stringify(filters.params);
+	const [selectionState, setSelectionState] = useState({
+		key: listingKey,
+		ids: [] as string[],
+	});
+	const selectedIds =
+		selectionState.key === listingKey ? selectionState.ids : [];
+	const items = queueQuery.data?.data ?? [];
+	const selectedItems = items.filter(({ id }) => selectedIds.includes(id));
+
+	const selection = isManager
+		? {
+				selectedIds,
+				onSelectedIdsChange: (ids: string[]) =>
+					setSelectionState({ key: listingKey, ids }),
+			}
+		: undefined;
+
+	const clearSelection = () => setSelectionState({ key: listingKey, ids: [] });
+
+	const confirmAssignment = (reviewerId: string) =>
+		assign.mutate(
+			{ projectIds: selectedItems.map(({ id }) => id), reviewerId },
+			{
+				onSuccess: () => {
+					setAssignOpen(false);
+					clearSelection();
+				},
+			},
+		);
 
 	const analyze = (item: ReviewQueueItem) =>
 		void navigate({ to: "/projetos/$id", params: { id: item.id } });
@@ -51,6 +95,11 @@ export const ReviewQueuePage = () => {
 	);
 	const pagination = queueQuery.data?.pagination;
 	const hasError = queueQuery.isError || indicatorsQuery.isError;
+
+	const exportCsv = () =>
+		exportQueue.mutate(filters.params, {
+			onSuccess: ({ blob, filename }) => downloadFile(blob, filename),
+		});
 
 	return (
 		<PageLayout
@@ -71,6 +120,13 @@ export const ReviewQueuePage = () => {
 					indicators={indicatorsQuery.data?.data}
 					sort={sort}
 					onSortChange={setSort}
+					actions={
+						<ExportCsvButton
+							disabled={pagination?.total === 0}
+							isPending={exportQueue.isPending}
+							onExport={exportCsv}
+						/>
+					}
 					refinements={
 						<ReviewQueueFilterControls
 							reviewer={filters.reviewer}
@@ -109,14 +165,25 @@ export const ReviewQueuePage = () => {
 							}
 						/>
 					) : (
-						<ReviewQueueListing
-							items={queueQuery.data?.data ?? []}
-							isLoading={queueQuery.isPending}
-							onAnalyze={analyze}
-							sort={sort}
-							onSortChange={sortBy}
-							onClearFilters={hasActiveFilters ? clearFilters : undefined}
-						/>
+						<div className="flex flex-col gap-4">
+							{selectedItems.length > 0 ? (
+								<QueueSelectionBar
+									count={selectedItems.length}
+									onClear={clearSelection}
+									onAssign={() => setAssignOpen(true)}
+								/>
+							) : null}
+							<ReviewQueueListing
+								items={items}
+								isLoading={queueQuery.isPending}
+								onAnalyze={analyze}
+								currentUserId={user?.id}
+								selection={selection}
+								sort={sort}
+								onSortChange={sortBy}
+								onClearFilters={hasActiveFilters ? clearFilters : undefined}
+							/>
+						</div>
 					)}
 				</div>
 
@@ -130,6 +197,16 @@ export const ReviewQueuePage = () => {
 					/>
 				) : null}
 			</section>
+
+			{isManager ? (
+				<AssignReviewerDialog
+					open={isAssignOpen}
+					projects={selectedItems}
+					isPending={assign.isPending}
+					onOpenChange={setAssignOpen}
+					onConfirm={confirmAssignment}
+				/>
+			) : null}
 		</PageLayout>
 	);
 };

@@ -308,6 +308,26 @@ class DesignerDashboardIntegrationTest {
   }
 
   @Test
+  void aResubmissionTakesItsPlaceByTheDeadlineItResumed() throws Exception {
+    submitted("2026-5203", now.minusDays(5), owner);
+    Project resubmitted = project("2026-5204", ProjectStatus.DRAFT, owner);
+    // Rejected after 25 days and resubmitted today: 5 days left, against 25 of the other.
+    resubmitted.submit(now.minusDays(40));
+    resubmitted.reject(now.minusDays(15));
+    resubmitted.submit(now);
+    projectRepository.save(resubmitted);
+    LocalDate today = LocalDate.now(Timestamps.ZONE);
+
+    designerDashboard()
+        .andExpect(jsonPath("$.data.underReview", hasSize(2)))
+        .andExpect(jsonPath("$.data.underReview[0].protocol").value("2026-5204"))
+        .andExpect(jsonPath("$.data.underReview[0].deadline").value(today.plusDays(5).toString()))
+        .andExpect(jsonPath("$.data.underReview[0].daysRemaining").value(5))
+        .andExpect(jsonPath("$.data.underReview[1].protocol").value("2026-5203"))
+        .andExpect(jsonPath("$.data.underReview[1].daysRemaining").value(25));
+  }
+
+  @Test
   void aDesignerWithoutSubmissionsHasEmptyIndicators() throws Exception {
     projectRepository.save(project("2026-5301", ProjectStatus.DRAFT, owner));
 

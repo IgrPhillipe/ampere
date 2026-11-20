@@ -1,10 +1,11 @@
 import { ControlledInput, ControlledSelect } from "@components/form";
-import type { Control } from "react-hook-form";
+import { type Control, useWatch } from "react-hook-form";
 
 import {
 	GROUP_USAGE_TYPES,
 	type GroupUsageType,
 	groupUsageTypeItems,
+	unitConnectionTypeItems,
 } from "../../constants";
 import type { NewGroupFormValues } from "../../schemas";
 import { newGroupLoadLabel } from "./new-group";
@@ -14,7 +15,9 @@ interface NewGroupFieldsProps {
 	usageType?: GroupUsageType;
 }
 
-const numericInputClassName = "text-right font-mono";
+// The browser's spinner would cover the value in the narrow row cells.
+const numericInputClassName =
+	"text-right font-mono [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
 
 const hiddenLabel = (text: string) => <span className="sr-only">{text}</span>;
 
@@ -56,13 +59,32 @@ export const QuantityField = ({ control }: NewGroupFieldsProps) => (
 	/>
 );
 
+/** Only an apartment has its own connection; the other groups follow the building's. */
+export const ConnectionField = ({ control, usageType }: NewGroupFieldsProps) =>
+	usageType === "APARTMENT" ? (
+		<ControlledSelect
+			control={control}
+			name="connectionType"
+			label={hiddenLabel("Ligação do apartamento")}
+			items={unitConnectionTypeItems}
+			variant="underline"
+			className="text-xs"
+		/>
+	) : (
+		<span className="font-mono text-sm text-muted-foreground">
+			{usageType ? "Edificação" : ""}
+		</span>
+	);
+
 export const LoadField = ({ control, usageType }: NewGroupFieldsProps) => {
-	const label = newGroupLoadLabel(usageType);
+	// `form.watch` is memoized by the React Compiler.
+	const connectionType = useWatch({ control, name: "connectionType" });
+	const label = newGroupLoadLabel(usageType, connectionType);
 
 	if (!label) {
 		return (
 			<span
-				className="font-mono text-sm text-muted-foreground"
+				className="font-mono text-sm whitespace-nowrap text-muted-foreground"
 				title={
 					usageType
 						? `${GROUP_USAGE_TYPES[usageType].label}: a carga é a soma das cargas informadas no grupo.`

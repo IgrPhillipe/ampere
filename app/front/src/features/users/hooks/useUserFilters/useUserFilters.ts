@@ -2,6 +2,7 @@ import { useDebouncedValue } from "@features/shared";
 import { userRoleSchema } from "@services/auth";
 import type { ListUsersParams } from "@services/users";
 import {
+	parseAsBoolean,
 	parseAsInteger,
 	parseAsString,
 	parseAsStringLiteral,
@@ -22,9 +23,17 @@ export const useUserFilters = () => {
 		search: parseAsString.withDefault(""),
 		role: parseAsStringLiteral(userRoleSchema.options),
 		status: parseAsStringLiteral(USER_STATUSES),
+		mustChangePassword: parseAsBoolean,
+		inactiveDays: parseAsInteger,
 		page: parseAsInteger.withDefault(1),
 	});
 	const { search, role, status, page } = query;
+	// Only the panel shortcuts set these; a hand-edited `false` or `0` lists everyone, as an unknown role does.
+	const mustChangePassword = query.mustChangePassword === true ? true : null;
+	const inactiveDays =
+		query.inactiveDays !== null && query.inactiveDays >= 1
+			? query.inactiveDays
+			: null;
 	// The URL follows each keystroke; only the request waits, so no update fires after leaving the list.
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -33,10 +42,12 @@ export const useUserFilters = () => {
 			search: debouncedSearch || undefined,
 			role: role ?? undefined,
 			active: status === null ? undefined : status === "active",
+			mustChangePassword: mustChangePassword ?? undefined,
+			inactiveDays: inactiveDays ?? undefined,
 			page,
 			pageSize: USERS_PAGE_SIZE,
 		}),
-		[debouncedSearch, role, status, page],
+		[debouncedSearch, role, status, mustChangePassword, inactiveDays, page],
 	);
 
 	const setSearch = useCallback(
@@ -60,6 +71,20 @@ export const useUserFilters = () => {
 		[setQuery],
 	);
 
+	const setMustChangePassword = useCallback(
+		(value: boolean | null) => {
+			void setQuery({ mustChangePassword: value, page: null });
+		},
+		[setQuery],
+	);
+
+	const setInactiveDays = useCallback(
+		(value: number | null) => {
+			void setQuery({ inactiveDays: value, page: null });
+		},
+		[setQuery],
+	);
+
 	const setPage = useCallback(
 		(value: number) => {
 			void setQuery({ page: value });
@@ -68,19 +93,35 @@ export const useUserFilters = () => {
 	);
 
 	const clearFilters = useCallback(() => {
-		void setQuery({ search: null, role: null, status: null, page: null });
+		void setQuery({
+			search: null,
+			role: null,
+			status: null,
+			mustChangePassword: null,
+			inactiveDays: null,
+			page: null,
+		});
 	}, [setQuery]);
 
 	return {
 		search,
 		role,
 		status,
+		mustChangePassword,
+		inactiveDays,
 		page,
 		params,
-		hasActiveFilters: search.trim() !== "" || role !== null || status !== null,
+		hasActiveFilters:
+			search.trim() !== "" ||
+			role !== null ||
+			status !== null ||
+			mustChangePassword !== null ||
+			inactiveDays !== null,
 		setSearch,
 		setRole,
 		setStatus,
+		setMustChangePassword,
+		setInactiveDays,
 		setPage,
 		clearFilters,
 	};

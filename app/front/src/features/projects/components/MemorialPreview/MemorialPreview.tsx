@@ -1,7 +1,12 @@
 import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDecimal, padCount } from "@features/shared";
+import {
+	downloadFile,
+	formatDate,
+	formatDecimal,
+	padCount,
+} from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Calculation } from "@services/calculation";
 import type { ProjectDetail } from "@services/projects";
@@ -10,19 +15,18 @@ import { Link } from "@tanstack/react-router";
 import { Download } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
-/** The submission the official memorial was frozen in. */
-export interface MemorialStamp {
-	version: number;
-	verificationCode: string | null;
-}
+import type { MemorialStamp } from "../../constants";
+import { CalculationExportButton } from "../CalculationExportButton";
 
 interface MemorialPreviewProps {
 	project?: ProjectDetail;
-	/** Absent while the project is a draft or under correction: the PDF is a preview. */
+	/** Null for a preview; undefined while it is not known yet, so no label shows too early. */
 	stamp?: MemorialStamp | null;
 	calculation?: Calculation;
 	memorial?: Memorial;
 	isLoading?: boolean;
+	isExportingCalculation?: boolean;
+	onExportCalculation?: () => void;
 	className?: string;
 }
 
@@ -47,12 +51,30 @@ const protection = ({ traceability }: Calculation) =>
 		.filter(Boolean)
 		.join(", ");
 
+const stampTitle = (stamp: MemorialStamp | null | undefined) => {
+	if (stamp === undefined) return "Memorial";
+	if (stamp === null) return "Memorial Gerado";
+
+	return stamp.kind === "approval"
+		? "Memorial da Aprovação"
+		: "Memorial do Envio";
+};
+
+const stampMeta = (stamp: MemorialStamp | null | undefined) => {
+	if (stamp === undefined) return undefined;
+	if (stamp === null) return "Prévia";
+
+	return `Oficial · v${padCount(stamp.version)}${stamp.kind === "approval" ? " · com ressalvas" : ""}`;
+};
+
 export const MemorialPreview = ({
 	project,
 	stamp,
 	calculation,
 	memorial,
 	isLoading = false,
+	isExportingCalculation = false,
+	onExportCalculation,
 	className,
 }: MemorialPreviewProps) => {
 	const url = useMemo(
@@ -68,12 +90,7 @@ export const MemorialPreview = ({
 	);
 
 	const download = () => {
-		if (!url || !memorial) return;
-
-		const link = document.createElement("a");
-		link.href = url;
-		link.download = memorial.filename;
-		link.click();
+		if (memorial) downloadFile(memorial.blob, memorial.filename);
 	};
 
 	return (
@@ -81,18 +98,18 @@ export const MemorialPreview = ({
 			aria-labelledby="memorial-titulo"
 			className={cn("flex flex-col gap-5", className)}
 		>
-			<SectionHeading
-				id="memorial-titulo"
-				meta={stamp ? `Oficial · v${padCount(stamp.version)}` : "Prévia"}
-			>
-				{stamp ? "Memorial do Envio" : "Memorial Gerado"}
+			<SectionHeading id="memorial-titulo" meta={stampMeta(stamp)}>
+				{stampTitle(stamp)}
 			</SectionHeading>
 
-			{stamp ? (
+			{stamp === undefined ? (
+				<Skeleton className="h-5 w-full max-w-md" />
+			) : stamp ? (
 				<p className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-muted-foreground">
 					<span>
-						Este é o PDF gravado no envio da versão {stamp.version}: não é
-						gerado de novo.
+						{stamp.kind === "approval"
+							? `Este é o PDF emitido na aprovação com ressalvas da versão ${stamp.version}, em ${formatDate(stamp.approvedAt)}. O memorial do envio continua no Histórico.`
+							: `Este é o PDF gravado no envio da versão ${stamp.version}: não é gerado de novo.`}
 					</span>
 					{stamp.verificationCode ? (
 						<span>
@@ -170,23 +187,32 @@ export const MemorialPreview = ({
 					title={
 						stamp
 							? `Memorial oficial da versão ${stamp.version} em PDF`
-							: "Prévia do memorial em PDF"
+							: stamp === null
+								? "Prévia do memorial em PDF"
+								: "Memorial em PDF"
 					}
 					src={url}
 					className="h-[36rem] w-full border border-border"
 				/>
 			)}
 
-			<Button
-				type="button"
-				variant="link"
-				className="h-auto w-fit px-0"
-				disabled={!url}
-				onClick={download}
-			>
-				<Download aria-hidden="true" />
-				Baixar PDF
-			</Button>
+			<div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+				<Button
+					type="button"
+					variant="link"
+					className="h-auto w-fit px-0"
+					disabled={!url}
+					onClick={download}
+				>
+					<Download aria-hidden="true" />
+					Baixar PDF
+				</Button>
+				<CalculationExportButton
+					disabled={!calculation}
+					isPending={isExportingCalculation}
+					onExport={onExportCalculation}
+				/>
+			</div>
 		</section>
 	);
 };

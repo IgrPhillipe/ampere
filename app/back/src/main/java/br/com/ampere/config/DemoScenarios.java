@@ -1362,6 +1362,22 @@ final class DemoScenarios {
                   "Projeto em conformidade, com ressalvas a ajustar na execução.",
                   projectData(ADJUSTMENT, "Informe o número do lote no endereço."),
                   document(ADJUSTMENT, ART, "Atualize a data de validade da ART."));
+            }),
+        Scenario.of(
+            "2026-2048",
+            "Residencial Antigo Casarão",
+            "Rua da Aurora, 120",
+            "Recife",
+            "50050000",
+            residential(5, V380),
+            u.user(),
+            1120,
+            // Approved more than 36 months ago: the daily sweep moved it to expired.
+            c -> {
+              ready(c, 1115, apartments("Apartamento padrão", 10, "70", 2, "6.20"));
+              c.submit(1110).assignTo(u.revisor());
+              c.approve(1100, "Projeto em conformidade com a DIS-NOR-053.");
+              c.expire(2);
             }));
   }
 

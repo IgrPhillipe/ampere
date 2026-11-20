@@ -4,6 +4,7 @@ import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import jakarta.persistence.LockModeType;
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -15,7 +16,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProjectRepository extends JpaRepository<Project, Long>, ProjectRepositoryCustom {
 
-  boolean existsByOwnerIdAndStatusNot(Long ownerId, ProjectStatus status);
+  boolean existsByOwnerIdAndStatusNotIn(Long ownerId, Collection<ProjectStatus> statuses);
 
   boolean existsByReviewerIdAndStatus(Long reviewerId, ProjectStatus status);
 
@@ -35,6 +36,9 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
   @EntityGraph(attributePaths = "owner")
   List<Project> findAllByStatusAndReviewedAtBetweenOrderByIdAsc(
       ProjectStatus status, OffsetDateTime from, OffsetDateTime to);
+
+  List<Project> findAllByStatusAndReviewedAtBeforeOrderByIdAsc(
+      ProjectStatus status, OffsetDateTime reviewedBefore);
 
   List<Project> findAllByOwnerIdAndStatusOrderByReviewedAtAscIdAsc(
       Long ownerId, ProjectStatus status);

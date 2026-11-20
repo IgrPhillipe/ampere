@@ -4,6 +4,7 @@ import { Trash2 } from "lucide-react";
 
 interface GroupFormFooterProps {
 	readOnly: boolean;
+	isNew?: boolean;
 	isSaving: boolean;
 	isDeleting: boolean;
 	onCancel: () => void;
@@ -12,6 +13,7 @@ interface GroupFormFooterProps {
 
 export const GroupFormFooter = ({
 	readOnly,
+	isNew = false,
 	isSaving,
 	isDeleting,
 	onCancel,
@@ -29,16 +31,18 @@ export const GroupFormFooter = ({
 		</SheetFooter>
 	) : (
 		<SheetFooter className="flex-row flex-wrap items-center justify-between gap-2 border-t border-border px-6 py-4">
-			<Button
-				type="button"
-				variant="destructive-ghost"
-				size="sm"
-				onClick={onDelete}
-				disabled={isDeleting || isSaving}
-			>
-				<Trash2 aria-hidden="true" />
-				{isDeleting ? "Excluindo..." : "Excluir Grupo"}
-			</Button>
+			{isNew ? null : (
+				<Button
+					type="button"
+					variant="destructive-ghost"
+					size="sm"
+					onClick={onDelete}
+					disabled={isDeleting || isSaving}
+				>
+					<Trash2 aria-hidden="true" />
+					{isDeleting ? "Excluindo..." : "Excluir Grupo"}
+				</Button>
+			)}
 
 			<div className="ml-auto flex gap-2">
 				<Button type="button" variant="link" onClick={onCancel}>

@@ -90,6 +90,29 @@ const ChangeRow = ({
 	</tr>
 );
 
+/**
+ * Fixed columns leave the label too narrow on a phone, so the table scrolls sideways there. The
+ * region takes focus, so the keyboard scrolls it too.
+ */
+const TABLE_CLASS = "w-full min-w-[32rem] table-fixed";
+
+const ScrollableTable = ({
+	label,
+	children,
+}: {
+	label: string;
+	children: ReactNode;
+}) => (
+	<div
+		role="region"
+		aria-label={label}
+		tabIndex={0}
+		className="overflow-x-auto"
+	>
+		{children}
+	</div>
+);
+
 const HeadRow = ({
 	first,
 	from,
@@ -135,7 +158,8 @@ interface VersionPickerProps {
 	label: string;
 	value: number;
 	versions: ProjectVersion[];
-	disabledVersion: number;
+	/** The API compares an older version to a newer one, so the other side bounds this one. */
+	isAllowed: (number: number) => boolean;
 	onValueChange: (value: number) => void;
 }
 
@@ -143,7 +167,7 @@ const VersionPicker = ({
 	label,
 	value,
 	versions,
-	disabledVersion,
+	isAllowed,
 	onValueChange,
 }: VersionPickerProps) => {
 	const items = Object.fromEntries(
@@ -170,7 +194,7 @@ const VersionPicker = ({
 					<SelectItem
 						key={number}
 						value={String(number)}
-						disabled={number === disabledVersion}
+						disabled={!isAllowed(number)}
 					>
 						{formatVersion(number)}
 					</SelectItem>
@@ -265,7 +289,7 @@ export const VersionComparisonView = ({
 						label="Versão de origem"
 						value={compared.from}
 						versions={sorted}
-						disabledVersion={compared.to}
+						isAllowed={(number) => number < compared.to}
 						onValueChange={(from) => onComparedChange({ ...compared, from })}
 					/>
 					<span aria-hidden="true">→</span>
@@ -273,7 +297,7 @@ export const VersionComparisonView = ({
 						label="Versão de destino"
 						value={compared.to}
 						versions={sorted}
-						disabledVersion={compared.from}
+						isAllowed={(number) => number > compared.from}
 						onValueChange={(to) => onComparedChange({ ...compared, to })}
 					/>
 					{comparison ? (
@@ -313,8 +337,8 @@ export const VersionComparisonView = ({
 						>
 							Memória de Cálculo
 						</SectionHeading>
-						<div>
-							<table className="w-full table-fixed">
+						<ScrollableTable label="Memória de cálculo">
+							<table className={TABLE_CLASS}>
 								<HeadRow first="Linha" from={fromLabel} to={toLabel} />
 								<tbody>
 									{memoryRows.map((row, index) => (
@@ -330,7 +354,7 @@ export const VersionComparisonView = ({
 									))}
 								</tbody>
 							</table>
-						</div>
+						</ScrollableTable>
 					</div>
 
 					<div className="flex flex-col gap-3">
@@ -345,8 +369,8 @@ export const VersionComparisonView = ({
 								Nenhum grupo de UCs mudou entre a {fromLabel} e a {toLabel}.
 							</p>
 						) : (
-							<div>
-								<table className="w-full table-fixed">
+							<ScrollableTable label="Grupos de UCs">
+								<table className={TABLE_CLASS}>
 									<HeadRow first="Grupo" from={fromLabel} to={toLabel} />
 									<tbody>
 										{groupRows.map(({ group, from, to, status }, index) => (
@@ -371,7 +395,7 @@ export const VersionComparisonView = ({
 										))}
 									</tbody>
 								</table>
-							</div>
+							</ScrollableTable>
 						)}
 					</div>
 

@@ -16,6 +16,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.ampere.config.NormativeTableSeed;
+import br.com.ampere.domain.ApprovalMemorial;
+import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DocumentType;
@@ -25,8 +27,12 @@ import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.LoadCategory;
 import br.com.ampere.domain.LoadItem;
 import br.com.ampere.domain.LoadUsage;
+import br.com.ampere.domain.NormativeTable;
+import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectEvent;
+import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ProjectVersion;
 import br.com.ampere.domain.ResidentialMultifamily;
@@ -47,6 +53,7 @@ import br.com.ampere.repository.ProjectVersionDocumentRepository;
 import br.com.ampere.repository.ProjectVersionRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.utils.BrazilianDateFormat;
 import br.com.ampere.utils.MemorialFingerprint;
 import br.com.ampere.utils.Timestamps;
 import com.lowagie.text.pdf.PdfReader;
@@ -54,6 +61,7 @@ import com.lowagie.text.pdf.parser.PdfTextExtractor;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -185,6 +193,15 @@ class ProjectVersionIntegrationTest {
   }
 
   @Test
+  void theRunInsideASubmissionIsNotRecordedAsACalculation() throws Exception {
+    Project project = submittedProject("2026-4070");
+
+    assertThat(eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(project.getId()))
+        .extracting(ProjectEvent::getType)
+        .containsOnlyOnce(ProjectEventType.CALCULATED);
+  }
+
+  @Test
   void theMemorialOfASubmittedProjectIsTheStoredPdfAndIsNeverRegenerated() throws Exception {
     Project project = submittedProject("2026-4002");
 
@@ -216,6 +233,71 @@ class ProjectVersionIntegrationTest {
             jsonPath("$.data[1].changeSummary").value("Quantidade de apartamentos corrigida."))
         .andExpect(
             jsonPath("$.data[0].memorialSha256").value(MemorialFingerprint.sha256(versionOne)));
+  }
+
+  @Test
+  void everyResubmissionKeepsTheRevisionsOfTheFirstSubmission() throws Exception {
+    Project project = submittedProject("2026-4060");
+    Calculation sent = latestCalculation(project);
+    NormativeTableReplacement.replace(
+        normativeTableRepository, NormativeTableCode.Q35_APARTMENT_DEMAND, "2");
+    resubmit(project, "Primeira correção.");
+    NormativeTableReplacement.replace(
+        normativeTableRepository, NormativeTableCode.Q35_APARTMENT_DEMAND, "3");
+    resubmit(project, "Segunda correção.");
+    reject(project);
+
+    String body =
+        perform(post("/projects/" + project.getId() + "/calculations"))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    OffsetDateTime firstSubmission =
+        versionRepository
+            .findByProjectIdAndNumber(project.getId(), 1)
+            .orElseThrow()
+            .getSubmittedAt();
+    assertThat(
+            OffsetDateTime.parse(
+                objectMapper.readTree(body).at("/data/revisionsFixedAt").asString()))
+        .isEqualTo(firstSubmission);
+    assertThat(latestCalculation(project).getResidentialDemandFinal())
+        .isEqualByComparingTo(sent.getResidentialDemandFinal());
+    assertThat(textOf(bytes(perform(get(memorialOf(project))))))
+        .contains(
+            "primeiro envio do protocolo: "
+                + BrazilianDateFormat.date(Timestamps.localDate(firstSubmission)));
+  }
+
+  @Test
+  void aNewRevisionOutdatesAProjectAwaitingSubmissionAndTheSubmissionTakesIt() throws Exception {
+    Project project = project("2026-4061", ProjectStatus.AWAITING_SUBMISSION);
+    perform(post("/projects/" + project.getId() + "/calculations")).andExpect(status().isCreated());
+    for (DocumentType type : DocumentType.values()) {
+      upload(project, type).andExpect(status().isCreated());
+    }
+    NormativeTable replacement =
+        NormativeTableReplacement.replace(
+            normativeTableRepository, NormativeTableCode.Q35_APARTMENT_DEMAND, "2");
+
+    perform(get("/projects/" + project.getId() + "/calculations/latest"))
+        .andExpect(jsonPath("$.data.outdated").value(true))
+        .andExpect(jsonPath("$.data.changedTables[0]").value("Quadro 35"));
+    submit(project, null);
+
+    assertThat(
+            objectMapper
+                .readTree(
+                    versionRepository
+                        .findByProjectIdAndNumber(project.getId(), 1)
+                        .orElseThrow()
+                        .getCalculation()
+                        .getInputSnapshot())
+                .at("/normativeTableIds/Q35_APARTMENT_DEMAND")
+                .asLong())
+        .isEqualTo(replacement.getId());
   }
 
   @Test
@@ -306,6 +388,59 @@ class ProjectVersionIntegrationTest {
     verifyFile(submitted)
         .andExpect(jsonPath("$.data.verified").value(true))
         .andExpect(jsonPath("$.data.approvedAt").value(nullValue()));
+  }
+
+  @Test
+  void theVersionListNamesTheApprovalMemorialAndServesItsPdf() throws Exception {
+    Project project = submittedProject("2026-4032");
+    String submittedCode = codeOf(project, 1);
+    String analyst = assignedAnalyst(project);
+
+    review(post("/projects/" + project.getId() + "/review"), analyst).andExpect(status().isOk());
+    review(
+            post("/projects/" + project.getId() + "/findings")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                      "severity": "ADJUSTMENT",
+                      "stage": "DOCUMENTS",
+                      "documentType": "ART",
+                      "description": "Atualizar a data da ART.",
+                      "standardItem": "DIS-NOR-053, item 6.17"
+                    }
+                    """),
+            analyst)
+        .andExpect(status().isCreated());
+    approve(project, analyst);
+
+    ApprovalMemorial approval = approvalMemorialRepository.findAll().getFirst();
+    perform(get(versionsOf(project)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].verificationCode").value(submittedCode))
+        .andExpect(
+            jsonPath("$.data[0].approvalMemorial.verificationCode")
+                .value(approval.getVerificationCode()))
+        .andExpect(
+            jsonPath("$.data[0].approvalMemorial.memorialSha256")
+                .value(approval.getMemorialSha256()))
+        .andExpect(jsonPath("$.data[0].approvalMemorial.issuedAt").isNotEmpty());
+    byte[] approved = bytes(perform(get(versionsOf(project) + "/1/approval-memorial")));
+    assertThat(approved).isEqualTo(bytes(perform(get(memorialOf(project)))));
+    assertThat(textOf(approved)).contains(approval.getVerificationCode());
+  }
+
+  @Test
+  void aVersionWithoutApprovalWithReservationsHasNoApprovalMemorial() throws Exception {
+    Project project = submittedProject("2026-4033");
+
+    perform(get(versionsOf(project)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].approvalMemorial").value(nullValue()));
+    perform(get(versionsOf(project) + "/1/approval-memorial"))
+        .andExpect(status().isNotFound())
+        .andExpect(
+            jsonPath("$.detail").value("Esta versão não tem memorial de aprovação com ressalvas."));
   }
 
   @Test
@@ -682,6 +817,10 @@ class ProjectVersionIntegrationTest {
         .andExpect(status().isNotFound());
   }
 
+  private Calculation latestCalculation(Project project) {
+    return calculationRepository.findFirstByProjectIdOrderByIdDesc(project.getId()).orElseThrow();
+  }
+
   private Project submittedProject(String protocol) throws Exception {
     Project project = draft(protocol);
     submitCalculated(project);
@@ -755,6 +894,10 @@ class ProjectVersionIntegrationTest {
   }
 
   private Project draft(String protocol) {
+    return project(protocol, ProjectStatus.DRAFT);
+  }
+
+  private Project project(String protocol, ProjectStatus status) {
     Project project =
         projectRepository.save(
             new Project(
@@ -762,7 +905,7 @@ class ProjectVersionIntegrationTest {
                 "Rodovia BR-101, km 8",
                 "Cabo de Santo Agostinho",
                 protocol,
-                ProjectStatus.DRAFT,
+                status,
                 new ResidentialMultifamily(
                     12,
                     SupplyVoltage.V380_220,

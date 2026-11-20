@@ -8,6 +8,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class ProjectDeadlineTest {
 
@@ -80,6 +81,121 @@ class ProjectDeadlineTest {
 
     assertThat(project.getStatus()).isEqualTo(ProjectStatus.REJECTED);
     assertThat(project.getReviewedAt()).isEqualTo(NOON);
+  }
+
+  @Test
+  void aResubmissionResumesTheDeadlineWithTheDaysLeftAtTheRejection() {
+    // Rejected on the 12th day, resubmitted 10 days later (US15, scenario 1).
+    Project project = submitted(NOON.minusDays(22));
+    project.reject(NOON.minusDays(10));
+
+    long suspendedDays = project.submit(NOON);
+
+    assertThat(suspendedDays).isEqualTo(10);
+    assertThat(project.remainingReviewDays(TODAY, ZONE)).isEqualTo(18);
+    assertThat(project.reviewDeadline(ZONE)).isEqualTo(TODAY.plusDays(18));
+    assertThat(project.elapsedReviewDays(TODAY, ZONE)).isEqualTo(12);
+    assertThat(project.suspendedReviewDays(TODAY, ZONE)).isEqualTo(10);
+    assertThat(project.getSuspendedReviewDays()).isEqualTo(10);
+    assertThat(project.deadlineStatus(TODAY, ZONE)).isEqualTo(DeadlineStatus.ON_TIME);
+    assertThat(project.isReviewSuspended()).isFalse();
+  }
+
+  @Test
+  void theSuspensionCountsTheDaysOfRecifeNotOfUtc() {
+    // 23:30 in Recife is already the next day in UTC, both at the rejection and the resubmission.
+    Project project = submitted(OffsetDateTime.parse("2026-09-01T12:00:00-03:00"));
+    project.reject(OffsetDateTime.parse("2026-09-13T23:30:00-03:00"));
+
+    long suspendedDays = project.submit(OffsetDateTime.parse("2026-09-23T23:30:00-03:00"));
+
+    assertThat(suspendedDays).isEqualTo(10);
+    assertThat(project.reviewDeadline(ZONE)).isEqualTo(LocalDate.of(2026, 10, 11));
+    assertThat(project.remainingReviewDays(LocalDate.of(2026, 9, 23), ZONE)).isEqualTo(18);
+  }
+
+  @Test
+  void theDeadlineStandsStillWhileTheProjectWaitsForTheFixes() {
+    Project project = submitted(NOON.minusDays(22));
+    project.reject(NOON.minusDays(10));
+
+    assertThat(project.isReviewSuspended()).isTrue();
+    assertThat(project.elapsedReviewDays(TODAY, ZONE)).isEqualTo(12);
+    assertThat(project.remainingReviewDays(TODAY, ZONE)).isEqualTo(18);
+    assertThat(project.suspendedReviewDays(TODAY, ZONE)).isEqualTo(10);
+    assertThat(project.suspendedReviewDays(TODAY.plusDays(5), ZONE)).isEqualTo(15);
+    assertThat(project.remainingReviewDays(TODAY.plusDays(5), ZONE)).isEqualTo(18);
+  }
+
+  @Test
+  void theDaysUsedAndSuspendedAddUpAcrossRejections() {
+    Project project = submitted(NOON.minusDays(40));
+    project.reject(NOON.minusDays(35));
+    project.submit(NOON.minusDays(30));
+    project.reject(NOON.minusDays(20));
+
+    project.submit(NOON.minusDays(12));
+
+    assertThat(project.suspendedReviewDays(TODAY, ZONE)).isEqualTo(5 + 8);
+    assertThat(project.elapsedReviewDays(TODAY, ZONE)).isEqualTo(5 + 10 + 12);
+    assertThat(project.remainingReviewDays(TODAY, ZONE)).isEqualTo(3);
+    assertThat(project.reviewDeadline(ZONE)).isEqualTo(TODAY.plusDays(3));
+  }
+
+  @Test
+  void aReviewPastItsPeriodAtTheRejectionResumesOverdue() {
+    Project project = submitted(NOON.minusDays(45));
+    project.reject(NOON.minusDays(5));
+
+    project.submit(NOON);
+
+    assertThat(project.remainingReviewDays(TODAY, ZONE)).isEqualTo(-10);
+    assertThat(project.deadlineStatus(TODAY, ZONE)).isEqualTo(DeadlineStatus.OVERDUE);
+  }
+
+  @Test
+  void aSubmissionOfALegacyRowCountsFromTheSubmission() {
+    Project project = submitted(NOON.minusDays(10));
+    ReflectionTestUtils.setField(project, "reviewClockStartedAt", null);
+
+    assertThat(project.reviewDeadline(ZONE)).isEqualTo(TODAY.plusDays(20));
+    assertThat(project.elapsedReviewDays(TODAY, ZONE)).isEqualTo(10);
+  }
+
+  @Test
+  void theDecisionStopsTheCountOfDaysUsed() {
+    Project project = submitted(NOON.minusDays(10));
+    project.approve(NOON.minusDays(4));
+
+    assertThat(project.elapsedReviewDays(TODAY, ZONE)).isEqualTo(6);
+    assertThat(project.suspendedReviewDays(TODAY, ZONE)).isZero();
+    assertThat(project.isReviewSuspended()).isFalse();
+  }
+
+  @Test
+  void anApprovalIsValidThroughItsLastDayAndExpiresTheDayAfter() {
+    Project project = submitted(NOON.minusMonths(37));
+    project.approve(NOON.minusMonths(36));
+
+    assertThat(project.approvalExpiresOn(ZONE)).isEqualTo(TODAY);
+    assertThat(project.isApprovalExpired(TODAY, ZONE)).isFalse();
+    assertThat(project.isApprovalExpired(TODAY.plusDays(1), ZONE)).isTrue();
+
+    project.expire();
+
+    assertThat(project.getStatus()).isEqualTo(ProjectStatus.EXPIRED);
+    assertThat(project.wasApproved()).isTrue();
+    assertThat(project.getReviewedAt()).isEqualTo(NOON.minusMonths(36));
+    assertThat(project.isApprovalExpired(TODAY.plusDays(1), ZONE)).isFalse();
+  }
+
+  @Test
+  void onlyAnApprovedProjectExpires() {
+    Project project = submitted(NOON.minusMonths(40));
+    project.reject(NOON.minusMonths(37));
+
+    assertThat(project.isApprovalExpired(TODAY, ZONE)).isFalse();
+    assertThatThrownBy(project::expire).isInstanceOf(IllegalStateException.class);
   }
 
   @Test

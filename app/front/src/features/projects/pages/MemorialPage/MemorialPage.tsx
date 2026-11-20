@@ -1,26 +1,26 @@
 import { EmptyState } from "@components/EmptyState";
 import { Button } from "@components/ui/button";
+import { downloadFile } from "@features/shared";
 import { getHttpStatus } from "@lib/api-error";
-import { useGetLatestCalculation } from "@services/calculation";
+import {
+	useExportCalculationSpreadsheet,
+	useGetLatestCalculation,
+} from "@services/calculation";
 import { useGetProjectVersionList } from "@services/project-versions";
-import { type ProjectStatus, useGetProject } from "@services/projects";
+import { useGetProject } from "@services/projects";
 import { useGetMemorial, useGetSubmission } from "@services/submission";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Calculator, CircleAlert } from "lucide-react";
 
 import {
+	CalculationExportButton,
 	MemorialPreview,
+	NormativeRevisionNotice,
 	StepFooter,
 	SubmissionChecklistPanel,
 } from "../../components";
+import { getMemorialStamp, mayHaveOfficialMemorial } from "../../constants";
 import { useProjectPermissions } from "../../hooks";
-
-/** The API regenerates the memorial only while the project can still change. */
-const PREVIEW_STATUSES = new Set<ProjectStatus>([
-	"DRAFT",
-	"AWAITING_SUBMISSION",
-	"REJECTED",
-]);
 
 interface MemorialPageProps {
 	projectId: string;
@@ -31,6 +31,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const projectQuery = useGetProject(projectId);
 	const calculationQuery = useGetLatestCalculation(projectId);
 	const calculation = calculationQuery.data?.data;
+	const exportSpreadsheet = useExportCalculationSpreadsheet();
 	const memorialQuery = useGetMemorial(projectId, {
 		enabled: calculation !== undefined,
 	});
@@ -38,32 +39,31 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 
 	const project = projectQuery.data?.data;
 	const { canEdit } = useProjectPermissions(project);
-	const official =
-		project !== undefined && !PREVIEW_STATUSES.has(project.status);
-	const versionsQuery = useGetProjectVersionList(projectId);
-	const latestVersion = versionsQuery.data?.data.reduce<
-		(typeof versionsQuery.data.data)[number] | undefined
-	>(
-		(latest, version) =>
-			!latest || version.number > latest.number ? version : latest,
-		undefined,
-	);
+	// Only a project out of edition can hold a stored memorial; the versions say which one.
+	const checksVersions =
+		project !== undefined && mayHaveOfficialMemorial(project.status);
+	const versionsQuery = useGetProjectVersionList(projectId, {
+		enabled: checksVersions,
+	});
 	const stamp =
-		official && latestVersion
-			? {
-					version: latestVersion.number,
-					verificationCode: latestVersion.verificationCode,
-				}
-			: null;
+		project === undefined || (checksVersions && !versionsQuery.data)
+			? undefined
+			: getMemorialStamp(project.status, versionsQuery.data?.data ?? []);
 	const neverCalculated = calculationQuery.data === null;
 	const outdated = getHttpStatus(memorialQuery.error) === 409;
 	const hasError =
 		projectQuery.isError ||
 		calculationQuery.isError ||
+		versionsQuery.isError ||
 		(memorialQuery.isError && !outdated);
 
 	const goTo = (to: "/projetos/$id/calculo" | "/projetos/$id/documentos") =>
 		void navigate({ to, params: { id: projectId } });
+
+	const exportCalculation = () =>
+		exportSpreadsheet.mutate(projectId, {
+			onSuccess: ({ blob, filename }) => downloadFile(blob, filename),
+		});
 
 	const content = hasError ? (
 		<EmptyState
@@ -71,17 +71,21 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			description="Confira o aviso exibido e tente novamente."
 			icon={CircleAlert}
 			action={
-				<Button
-					type="button"
-					variant="outline"
-					onClick={() => {
-						void projectQuery.refetch();
-						void calculationQuery.refetch();
-						void memorialQuery.refetch();
-					}}
-				>
-					Tentar Novamente
-				</Button>
+				<div className="flex flex-wrap items-center justify-center gap-4">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => {
+							void projectQuery.refetch();
+							void calculationQuery.refetch();
+							void memorialQuery.refetch();
+							if (versionsQuery.isError) void versionsQuery.refetch();
+						}}
+					>
+						Tentar Novamente
+					</Button>
+					<CalculationExportButton blocker="error" />
+				</div>
 			}
 		/>
 	) : neverCalculated ? (
@@ -98,15 +102,18 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			}
 			icon={Calculator}
 			action={
-				canEdit ? (
-					<Button
-						type="button"
-						variant="outline"
-						onClick={() => goTo("/projetos/$id/calculo")}
-					>
-						Ir para o Cálculo
-					</Button>
-				) : undefined
+				<div className="flex flex-wrap items-center justify-center gap-4">
+					{canEdit ? (
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => goTo("/projetos/$id/calculo")}
+						>
+							Ir para o Cálculo
+						</Button>
+					) : null}
+					<CalculationExportButton blocker="noCalculation" />
+				</div>
 			}
 		/>
 	) : outdated ? (
@@ -115,13 +122,16 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			description="Os dados do projeto mudaram depois do último cálculo."
 			icon={Calculator}
 			action={
-				<Button
-					type="button"
-					variant="outline"
-					onClick={() => goTo("/projetos/$id/calculo")}
-				>
-					Ir para o Cálculo
-				</Button>
+				<div className="flex flex-wrap items-center justify-center gap-4">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => goTo("/projetos/$id/calculo")}
+					>
+						Ir para o Cálculo
+					</Button>
+					<CalculationExportButton blocker="outdated" />
+				</div>
 			}
 		/>
 	) : (
@@ -131,11 +141,14 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			calculation={calculation}
 			memorial={memorialQuery.data}
 			isLoading={memorialQuery.isPending}
+			isExportingCalculation={exportSpreadsheet.isPending}
+			onExportCalculation={exportCalculation}
 		/>
 	);
 
 	return (
 		<div className="flex flex-1 flex-col">
+			<NormativeRevisionNotice fixedAt={calculation?.revisionsFixedAt} />
 			{submissionQuery.isError ? (
 				<div className="flex-1 px-6 py-8 md:px-10">{content}</div>
 			) : (
