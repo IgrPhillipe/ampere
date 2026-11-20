@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { httpErrorOf } from "@/test/fixtures/http-error";
 import {
 	idleMutation,
 	loadedQuery,
@@ -17,11 +18,13 @@ import { ProjectWorkspace } from "./ProjectWorkspace";
 const state = vi.hoisted(() => ({
 	project: undefined as unknown,
 	projectError: false,
+	projectErrorCause: null as unknown,
 	findings: [] as unknown[],
 	canSubmit: true,
 	submit: vi.fn(),
 	remove: vi.fn(),
 	navigate: vi.fn(),
+	refetch: vi.fn(),
 	onDeleted: undefined as (() => void) | undefined,
 }));
 
@@ -37,6 +40,8 @@ vi.mock("@services/projects", async (importOriginal) => ({
 	useGetProject: () => ({
 		...loadedQuery({ data: state.project }),
 		isError: state.projectError,
+		error: state.projectErrorCause,
+		refetch: state.refetch,
 	}),
 	useDeleteProject: (options: { onDeleted: () => void }) => {
 		state.onDeleted = options.onDeleted;
@@ -85,6 +90,8 @@ const renderWorkspace = () =>
 describe("ProjectWorkspace", () => {
 	beforeEach(() => {
 		state.projectError = false;
+		state.projectErrorCause = null;
+		state.refetch.mockClear();
 		state.findings = [];
 		state.canSubmit = true;
 		state.submit.mockClear();
@@ -117,19 +124,53 @@ describe("ProjectWorkspace", () => {
 		expect(screen.queryByRole("tab")).not.toBeInTheDocument();
 	});
 
-	it("sends the analyst back to the queue from a project out of reach", () => {
+	it("sends the analyst back to the queue from a project out of reach", async () => {
 		signInAs("reviewer");
 		state.project = undefined;
 		state.projectError = true;
+		state.projectErrorCause = await httpErrorOf(404, {
+			detail: "Projeto não encontrado.",
+		});
+		renderWorkspace();
+
+		expect(screen.getByText("Projeto não encontrado")).toBeInTheDocument();
+		expect(screen.getByText(/não está atribuído a você/)).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: "Tentar Novamente" }),
+		).not.toBeInTheDocument();
+		fireEvent.click(
+			screen.getByRole("button", { name: "Voltar para Fila de Análise" }),
+		);
+		expect(state.navigate).toHaveBeenCalledWith({ to: "/fila-de-analise" });
+	});
+
+	it("tells the designer the project is not theirs", async () => {
+		signInAs("user");
+		state.project = undefined;
+		state.projectError = true;
+		state.projectErrorCause = await httpErrorOf(404, {});
+		renderWorkspace();
+
+		expect(
+			screen.getByText("O projeto não existe ou não pertence a você."),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: "Voltar para Meus Projetos" }),
+		).toBeInTheDocument();
+	});
+
+	it("offers a new try when the project fails to load", async () => {
+		signInAs("reviewer");
+		state.project = undefined;
+		state.projectError = true;
+		state.projectErrorCause = await httpErrorOf(500, {});
 		renderWorkspace();
 
 		expect(
 			screen.getByText("Não foi possível abrir o projeto"),
 		).toBeInTheDocument();
-		fireEvent.click(
-			screen.getByRole("button", { name: "Voltar para Fila de Análise" }),
-		);
-		expect(state.navigate).toHaveBeenCalledWith({ to: "/fila-de-analise" });
+		fireEvent.click(screen.getByRole("button", { name: "Tentar Novamente" }));
+		expect(state.refetch).toHaveBeenCalled();
 	});
 
 	it("holds the section until the project loads", () => {
