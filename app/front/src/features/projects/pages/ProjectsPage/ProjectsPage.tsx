@@ -7,16 +7,14 @@ import { SortMenu, type SortOption } from "@components/SortMenu";
 import { Button } from "@components/ui/button";
 import { downloadFile, useAuthStore } from "@features/shared";
 import {
-	exportProjectListCsv,
 	type ProjectSort,
 	type ProjectStatusCounts,
+	useExportProjectListCsv,
 	useGetProjectList,
 	useGetProjectStatusCounts,
 } from "@services/projects";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, CircleAlert } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 
 import {
 	ProjectActiveFilters,
@@ -61,7 +59,7 @@ export const ProjectsPage = () => {
 	const navigate = useNavigate();
 	const role = useAuthStore((state) => state.user?.role);
 	const isAdmin = role === "admin";
-	const [isExporting, setIsExporting] = useState(false);
+	const exportList = useExportProjectListCsv();
 	const { actions, deleteDialog } = useProjectRowActions();
 	const filters = useProjectFilters();
 	const {
@@ -89,17 +87,10 @@ export const ProjectsPage = () => {
 	const pagination = projectsQuery.data?.pagination;
 	const hasError = projectsQuery.isError || statusCountsQuery.isError;
 
-	const exportCsv = async () => {
-		setIsExporting(true);
-		try {
-			const file = await exportProjectListCsv(filters.params);
-			downloadFile(file.blob, file.filename);
-		} catch {
-			toast.error("Não foi possível exportar os projetos.");
-		} finally {
-			setIsExporting(false);
-		}
-	};
+	const exportCsv = () =>
+		exportList.mutate(filters.params, {
+			onSuccess: ({ blob, filename }) => downloadFile(blob, filename),
+		});
 
 	return (
 		<PageLayout
@@ -170,8 +161,8 @@ export const ProjectsPage = () => {
 								type="button"
 								variant="outline"
 								size="sm"
-								disabled={isExporting}
-								onClick={() => void exportCsv()}
+								disabled={exportList.isPending}
+								onClick={exportCsv}
 							>
 								Exportar CSV
 							</Button>

@@ -3,7 +3,7 @@ import { Button } from "@components/ui/button";
 import { downloadFile } from "@features/shared";
 import { getHttpStatus } from "@lib/api-error";
 import {
-	exportCalculationSpreadsheet,
+	useExportCalculationSpreadsheet,
 	useGetLatestCalculation,
 } from "@services/calculation";
 import { useGetProjectVersionList } from "@services/project-versions";
@@ -11,8 +11,6 @@ import { useGetProject } from "@services/projects";
 import { useGetMemorial, useGetSubmission } from "@services/submission";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Calculator, CircleAlert } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 
 import {
 	CalculationExportButton,
@@ -32,7 +30,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const projectQuery = useGetProject(projectId);
 	const calculationQuery = useGetLatestCalculation(projectId);
 	const calculation = calculationQuery.data?.data;
-	const [isExportingCalculation, setIsExportingCalculation] = useState(false);
+	const exportSpreadsheet = useExportCalculationSpreadsheet();
 	const memorialQuery = useGetMemorial(projectId, {
 		enabled: calculation !== undefined,
 	});
@@ -61,19 +59,10 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const goTo = (to: "/projetos/$id/calculo" | "/projetos/$id/documentos") =>
 		void navigate({ to, params: { id: projectId } });
 
-	const exportCalculation = async () => {
-		if (!calculation) return;
-
-		setIsExportingCalculation(true);
-		try {
-			const file = await exportCalculationSpreadsheet(projectId);
-			downloadFile(file.blob, file.filename);
-		} catch {
-			toast.error("Não foi possível exportar a planilha do cálculo.");
-		} finally {
-			setIsExportingCalculation(false);
-		}
-	};
+	const exportCalculation = () =>
+		exportSpreadsheet.mutate(projectId, {
+			onSuccess: ({ blob, filename }) => downloadFile(blob, filename),
+		});
 
 	const content = hasError ? (
 		<EmptyState
@@ -145,8 +134,8 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			calculation={calculation}
 			memorial={memorialQuery.data}
 			isLoading={memorialQuery.isPending}
-			isExportingCalculation={isExportingCalculation}
-			onExportCalculation={() => void exportCalculation()}
+			isExportingCalculation={exportSpreadsheet.isPending}
+			onExportCalculation={exportCalculation}
 		/>
 	);
 

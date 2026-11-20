@@ -4,8 +4,8 @@ import { Pagination } from "@components/Pagination";
 import { Button } from "@components/ui/button";
 import { downloadFile, useAuthStore } from "@features/shared";
 import {
-	exportReviewQueueCsv,
 	type ReviewQueueItem,
+	useExportReviewQueueCsv,
 	useGetReviewQueue,
 	useGetReviewQueueIndicators,
 } from "@services/review-queue";
@@ -13,7 +13,6 @@ import { useAssignReviewQueue } from "@services/reviewer-distribution";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleAlert } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import {
 	AssignReviewerDialog,
@@ -49,7 +48,7 @@ export const ReviewQueuePage = () => {
 	const navigate = useNavigate();
 	const user = useAuthStore((state) => state.user);
 	const isManager = user?.role === "admin";
-	const [isExporting, setIsExporting] = useState(false);
+	const exportQueue = useExportReviewQueueCsv();
 	const assign = useAssignReviewQueue();
 	const [isAssignOpen, setAssignOpen] = useState(false);
 
@@ -96,17 +95,10 @@ export const ReviewQueuePage = () => {
 	const pagination = queueQuery.data?.pagination;
 	const hasError = queueQuery.isError || indicatorsQuery.isError;
 
-	const exportCsv = async () => {
-		setIsExporting(true);
-		try {
-			const file = await exportReviewQueueCsv(filters.params);
-			downloadFile(file.blob, file.filename);
-		} catch {
-			toast.error("Não foi possível exportar a fila de análise.");
-		} finally {
-			setIsExporting(false);
-		}
-	};
+	const exportCsv = () =>
+		exportQueue.mutate(filters.params, {
+			onSuccess: ({ blob, filename }) => downloadFile(blob, filename),
+		});
 
 	return (
 		<PageLayout
@@ -144,8 +136,8 @@ export const ReviewQueuePage = () => {
 								type="button"
 								variant="outline"
 								size="sm"
-								disabled={isExporting}
-								onClick={() => void exportCsv()}
+								disabled={exportQueue.isPending}
+								onClick={exportCsv}
 							>
 								Exportar CSV
 							</Button>

@@ -1,16 +1,23 @@
+import type { Calculation } from "@services/calculation";
 import type { ProjectVersion } from "@services/project-versions";
 import type { ProjectStatus } from "@services/projects";
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { loadedQuery, makeProjectDetail } from "@/test/fixtures/project-detail";
+import {
+	idleMutation,
+	loadedQuery,
+	makeProjectDetail,
+} from "@/test/fixtures/project-detail";
 
 import { MemorialPage } from "./MemorialPage";
 
 const state = vi.hoisted(() => ({
 	status: "UNDER_REVIEW" as ProjectStatus,
-	calculation: "pending" as "pending" | "none",
+	calculation: "pending" as "pending" | "none" | "ready",
+	exportMutate: vi.fn(),
+	download: vi.fn(),
 	versions: undefined as ProjectVersion[] | undefined,
 	versionsFailed: false,
 	versionsEnabled: [] as boolean[],
@@ -25,11 +32,25 @@ vi.mock("@services/projects", async (importOriginal) => ({
 
 vi.mock("@services/calculation", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/calculation")>()),
-	useGetLatestCalculation: () =>
-		state.calculation === "none"
-			? loadedQuery({ data: null })
-			: { ...loadedQuery(undefined), isPending: true },
+	useGetLatestCalculation: () => {
+		if (state.calculation === "none") return loadedQuery({ data: null });
+		if (state.calculation === "ready")
+			return loadedQuery({ data: readyCalculation });
+		return { ...loadedQuery(undefined), isPending: true };
+	},
+	useExportCalculationSpreadsheet: () =>
+		idleMutation({ mutate: state.exportMutate }),
 }));
+
+vi.mock("@features/shared", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@features/shared")>()),
+	downloadFile: (...args: unknown[]) => state.download(...args),
+}));
+
+const readyCalculation = {
+	totals: { finalKva: 46 },
+	traceability: { currentAmps: 70, breakerAmps: null, cableSectionMm2: null },
+} as unknown as Calculation;
 
 vi.mock("@services/submission", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/submission")>()),
@@ -87,6 +108,8 @@ describe("MemorialPage", () => {
 	beforeEach(() => {
 		state.status = "UNDER_REVIEW";
 		state.calculation = "pending";
+		state.exportMutate.mockReset();
+		state.download.mockReset();
 		state.versions = undefined;
 		state.versionsFailed = false;
 		state.versionsEnabled = [];
@@ -109,6 +132,20 @@ describe("MemorialPage", () => {
 		expect(
 			screen.getByRole("button", { name: "Exportar Planilha" }),
 		).toBeDisabled();
+	});
+
+	it("downloads the spreadsheet of the latest calculation", () => {
+		state.calculation = "ready";
+		const file = new Blob(["xlsx"]);
+		state.exportMutate.mockImplementation((_projectId, options) =>
+			options.onSuccess({ blob: file, filename: "2026-1008-calculo.xlsx" }),
+		);
+		render(<MemorialPage projectId="4" />);
+
+		fireEvent.click(screen.getByRole("button", { name: "Exportar Planilha" }));
+
+		expect(state.exportMutate).toHaveBeenCalledWith("4", expect.anything());
+		expect(state.download).toHaveBeenCalledWith(file, "2026-1008-calculo.xlsx");
 	});
 
 	it("names the latest version once the versions arrive", () => {
