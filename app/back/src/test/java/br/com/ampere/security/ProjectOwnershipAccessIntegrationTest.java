@@ -218,6 +218,31 @@ class ProjectOwnershipAccessIntegrationTest {
   }
 
   @Test
+  void analystReachesNothingNestedInAnotherAnalystsProject() throws Exception {
+    User other =
+        userRepository.save(
+            new User("Bruno Analista", "bruno@ampere.com", "hash", UserRole.REVIEWER));
+    secondSubmitted.assignReviewer(other);
+    projectRepository.save(secondSubmitted);
+    String analyst = bearer("revisor@ampere.com");
+    String base = "/projects/" + secondSubmitted.getId();
+
+    for (String path :
+        List.of(
+            "/calculations/latest",
+            "/calculation.xlsx",
+            "/memorial",
+            "/versions",
+            "/versions/1/memorial",
+            "/findings")) {
+      mockMvc
+          .perform(get(base + path).header("Authorization", analyst))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.detail").value("Projeto não encontrado."));
+    }
+  }
+
+  @Test
   void analystLosesTheProjectReassignedToAnotherAnalyst() throws Exception {
     User other =
         userRepository.save(
