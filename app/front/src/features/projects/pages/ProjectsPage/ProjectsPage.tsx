@@ -1,4 +1,5 @@
 import { EmptyState } from "@components/EmptyState";
+import { ExportCsvButton } from "@components/ExportCsvButton";
 import { ListToolbar } from "@components/ListToolbar";
 import { PageLayout } from "@components/layout";
 import { Pagination } from "@components/Pagination";
@@ -141,32 +142,27 @@ export const ProjectsPage = () => {
 							onValueChange={setSort}
 						/>
 					}
+					actions={
+						<ExportCsvButton
+							isPending={exportList.isPending}
+							onExport={exportCsv}
+						/>
+					}
 					refinements={
-						<>
-							<ProjectFilterControls
-								showOwner={isAdmin}
-								owner={filters.owner}
-								ownerName={ownerName}
-								onOwnerChange={filters.setOwner}
-								state={filters.state}
-								onStateChange={filters.setState}
-								municipality={filters.municipality}
-								onMunicipalityChange={filters.setMunicipality}
-								period={filters.period}
-								onPeriodChange={filters.setPeriod}
-								findings={filters.findings}
-								onFindingsChange={filters.setFindings}
-							/>
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								disabled={exportList.isPending}
-								onClick={exportCsv}
-							>
-								Exportar CSV
-							</Button>
-						</>
+						<ProjectFilterControls
+							showOwner={isAdmin}
+							owner={filters.owner}
+							ownerName={ownerName}
+							onOwnerChange={filters.setOwner}
+							state={filters.state}
+							onStateChange={filters.setState}
+							municipality={filters.municipality}
+							onMunicipalityChange={filters.setMunicipality}
+							period={filters.period}
+							onPeriodChange={filters.setPeriod}
+							findings={filters.findings}
+							onFindingsChange={filters.setFindings}
+						/>
 					}
 					activeFilters={
 						<ProjectActiveFilters filters={filters} ownerName={ownerName} />

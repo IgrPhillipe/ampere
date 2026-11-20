@@ -1,4 +1,5 @@
 import { EmptyState } from "@components/EmptyState";
+import { ExportCsvButton } from "@components/ExportCsvButton";
 import { PageLayout } from "@components/layout";
 import { Pagination } from "@components/Pagination";
 import { Button } from "@components/ui/button";
@@ -119,29 +120,24 @@ export const ReviewQueuePage = () => {
 					indicators={indicatorsQuery.data?.data}
 					sort={sort}
 					onSortChange={setSort}
+					actions={
+						<ExportCsvButton
+							isPending={exportQueue.isPending}
+							onExport={exportCsv}
+						/>
+					}
 					refinements={
-						<>
-							<ReviewQueueFilterControls
-								reviewer={filters.reviewer}
-								onReviewerChange={filters.setReviewer}
-								owner={filters.owner}
-								ownerName={ownerName}
-								onOwnerChange={filters.setOwner}
-								state={filters.state}
-								onStateChange={filters.setState}
-								municipality={filters.municipality}
-								onMunicipalityChange={filters.setMunicipality}
-							/>
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								disabled={exportQueue.isPending}
-								onClick={exportCsv}
-							>
-								Exportar CSV
-							</Button>
-						</>
+						<ReviewQueueFilterControls
+							reviewer={filters.reviewer}
+							onReviewerChange={filters.setReviewer}
+							owner={filters.owner}
+							ownerName={ownerName}
+							onOwnerChange={filters.setOwner}
+							state={filters.state}
+							onStateChange={filters.setState}
+							municipality={filters.municipality}
+							onMunicipalityChange={filters.setMunicipality}
+						/>
 					}
 					activeFilters={
 						<ReviewQueueActiveFilters filters={filters} ownerName={ownerName} />
