@@ -1,3 +1,4 @@
+import { dashboardKeys } from "@services/dashboard/query-keys";
 import { projectKeys } from "@services/projects";
 import { reviewQueueKeys } from "@services/review-queue";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -38,10 +39,12 @@ const setup = () => {
 describe("useAssignReviewQueue", () => {
 	beforeEach(() => vi.clearAllMocks());
 
-	it("refreshes the queue and the assigned projects", async () => {
+	it("refreshes the queue, the assigned projects and the dashboard", async () => {
 		vi.mocked(assignReviewQueue).mockResolvedValue(undefined);
 		const { queryClient, wrapper } = setup();
 		const queueKey = reviewQueueKeys.list({ page: 1 });
+		const dashboardKey = dashboardKeys.admin();
+		queryClient.setQueryData(dashboardKey, { data: {} });
 		const detailKey = projectKeys.detail("12");
 		const otherKey = projectKeys.detail("99");
 		queryClient.setQueryData(queueKey, { data: [] });
@@ -61,6 +64,7 @@ describe("useAssignReviewQueue", () => {
 		expect(queryClient.getQueryState(queueKey)?.isInvalidated).toBe(true);
 		expect(queryClient.getQueryState(detailKey)?.isInvalidated).toBe(true);
 		expect(queryClient.getQueryState(otherKey)?.isInvalidated).toBe(false);
+		expect(queryClient.getQueryState(dashboardKey)?.isInvalidated).toBe(true);
 		expect(toast.success).toHaveBeenCalledWith("2 projetos atribuídos.");
 	});
 

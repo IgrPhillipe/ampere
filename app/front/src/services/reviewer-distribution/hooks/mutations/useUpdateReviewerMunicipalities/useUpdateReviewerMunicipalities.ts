@@ -1,4 +1,5 @@
 import { getHttpStatus, getToastErrorMessage } from "@lib/api-error";
+import { dashboardKeys } from "@services/dashboard/query-keys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -15,9 +16,12 @@ export const useUpdateReviewerMunicipalities = () => {
 	return useMutation({
 		mutationFn: updateReviewerMunicipalities,
 		onSuccess: async () => {
-			await queryClient.invalidateQueries({
-				queryKey: reviewerDistributionKeys.all(),
-			});
+			await Promise.all([
+				queryClient.invalidateQueries({
+					queryKey: reviewerDistributionKeys.all(),
+				}),
+				queryClient.invalidateQueries({ queryKey: dashboardKeys.all() }),
+			]);
 			toast.success("Municípios do analista atualizados.");
 		},
 		onError: (error) => {
