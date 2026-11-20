@@ -20,12 +20,12 @@ import {
 	AutomaticVerification,
 	CalculationSteps,
 	LoadComposition,
+	NormativeRevisionNotice,
 	StageFindingsNotice,
 	StepFooter,
 	TraceabilityPanel,
 	useFindingRegistrar,
 } from "../../components";
-import { NormativeRevisionNotice } from "../../components/NormativeRevisionNotice";
 import { stageFindingsOf } from "../../constants";
 import { useProjectPermissions } from "../../hooks";
 

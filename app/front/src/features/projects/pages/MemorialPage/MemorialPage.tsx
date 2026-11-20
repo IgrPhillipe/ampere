@@ -10,10 +10,10 @@ import { ArrowRight, Calculator, CircleAlert } from "lucide-react";
 
 import {
 	MemorialPreview,
+	NormativeRevisionNotice,
 	StepFooter,
 	SubmissionChecklistPanel,
 } from "../../components";
-import { NormativeRevisionNotice } from "../../components/NormativeRevisionNotice";
 import { getMemorialStamp, mayHaveOfficialMemorial } from "../../constants";
 import { useProjectPermissions } from "../../hooks";
 
