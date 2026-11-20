@@ -104,7 +104,11 @@ export const ReviewQueuePage = () => {
 	return (
 		<PageLayout
 			title="Fila de Análise"
-			description="Acompanhe e priorize os projetos enviados para análise técnica."
+			description={
+				isManager
+					? "Acompanhe e priorize os projetos enviados para análise técnica."
+					: "Acompanhe e priorize os projetos atribuídos a você."
+			}
 			bleed
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
@@ -118,6 +122,7 @@ export const ReviewQueuePage = () => {
 					filter={filter}
 					onFilterChange={setFilter}
 					indicators={indicatorsQuery.data?.data}
+					ownQueue={!isManager}
 					sort={sort}
 					onSortChange={setSort}
 					actions={
@@ -129,6 +134,7 @@ export const ReviewQueuePage = () => {
 					}
 					refinements={
 						<ReviewQueueFilterControls
+							showReviewer={isManager}
 							reviewer={filters.reviewer}
 							onReviewerChange={filters.setReviewer}
 							owner={filters.owner}
@@ -179,6 +185,7 @@ export const ReviewQueuePage = () => {
 								onAnalyze={analyze}
 								currentUserId={user?.id}
 								selection={selection}
+								showReviewer={isManager}
 								sort={sort}
 								onSortChange={sortBy}
 								onClearFilters={hasActiveFilters ? clearFilters : undefined}

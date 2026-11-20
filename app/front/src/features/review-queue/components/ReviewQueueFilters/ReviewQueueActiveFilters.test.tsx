@@ -6,6 +6,8 @@ import { withNuqsTestingAdapter } from "nuqs/adapters/testing";
 import type { PropsWithChildren } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { signInAs } from "@/test/fixtures/project-detail";
+
 import { useReviewQueueFilters } from "../../hooks";
 import { ReviewQueueActiveFilters } from "./ReviewQueueActiveFilters";
 
@@ -53,6 +55,7 @@ const renderChips = (
 
 describe("ReviewQueueActiveFilters", () => {
 	beforeEach(() => {
+		signInAs("admin");
 		vi.mocked(getReviewerList).mockReturnValue(new Promise(vi.fn()));
 	});
 

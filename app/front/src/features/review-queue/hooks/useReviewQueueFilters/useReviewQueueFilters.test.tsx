@@ -1,6 +1,8 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { withNuqsTestingAdapter } from "nuqs/adapters/testing";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { signInAs } from "@/test/fixtures/project-detail";
 
 import { useReviewQueueFilters } from "./useReviewQueueFilters";
 
@@ -18,6 +20,18 @@ const renderFilters = (searchParams = "") => {
 };
 
 describe("useReviewQueueFilters", () => {
+	beforeEach(() => signInAs("admin"));
+
+	it("ignores the reviewer of the URL in the analyst's queue", () => {
+		signInAs("reviewer", { id: "7" });
+		const { result } = renderFilters("?reviewer=none");
+
+		expect(result.current.canFilterByReviewer).toBe(false);
+		expect(result.current.reviewer).toBeNull();
+		expect(result.current.params.reviewer).toBeUndefined();
+		expect(result.current.hasActiveFilters).toBe(false);
+	});
+
 	it("converts invalid URL values to safe defaults", () => {
 		const { result } = renderFilters(
 			"?page=not-a-page&filter=INVALID&sort=INVALID&direction=UP&reviewer=x y&owner=x y",

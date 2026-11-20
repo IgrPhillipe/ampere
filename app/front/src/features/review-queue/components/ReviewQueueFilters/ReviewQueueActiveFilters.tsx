@@ -24,7 +24,9 @@ export const ReviewQueueActiveFilters = ({
 	filters,
 	ownerName,
 }: ReviewQueueActiveFiltersProps) => {
-	const reviewersQuery = useGetReviewerList();
+	const reviewersQuery = useGetReviewerList({
+		enabled: filters.canFilterByReviewer,
+	});
 	const { filter, search, reviewer, owner, municipality } = filters;
 	const active: ActiveFilter[] = [];
 

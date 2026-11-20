@@ -3,6 +3,7 @@ import {
 	nextSort,
 	type SortDirections,
 	sortDirectionSchema,
+	useAuthStore,
 	useDebouncedValue,
 } from "@features/shared";
 import {
@@ -65,7 +66,11 @@ export const useReviewQueueFilters = () => {
 		municipality: parseAsNativeArrayOf(parseAsString),
 	});
 	const { filter, search, page, state, municipality } = query;
-	const reviewer = toReviewer(query.reviewer);
+	// The analyst's queue holds only their own projects, so the filter is the manager's.
+	const canFilterByReviewer = useAuthStore(
+		(state) => state.user?.role === "admin",
+	);
+	const reviewer = canFilterByReviewer ? toReviewer(query.reviewer) : null;
 	const owner = toOwner(query.owner);
 	// The URL follows each keystroke; only the request waits, so no update fires after leaving the list.
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
@@ -199,6 +204,7 @@ export const useReviewQueueFilters = () => {
 		state,
 		municipality,
 		params,
+		canFilterByReviewer,
 		hasActiveFilters:
 			filter !== "ALL" ||
 			search.trim() !== "" ||

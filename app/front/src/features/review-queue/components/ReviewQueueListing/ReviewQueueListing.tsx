@@ -44,6 +44,8 @@ interface ReviewQueueListingProps extends ReviewQueueRowActions {
 	currentUserId?: string;
 	/** Present for the manager, who assigns projects in batch. */
 	selection?: ReviewQueueSelection;
+	/** The manager's column: the analyst's queue holds only their own projects. */
+	showReviewer?: boolean;
 	isLoading?: boolean;
 	sort?: ListSort<ReviewQueueSort>;
 	onSortChange?: (column: ReviewQueueSort) => void;
@@ -56,6 +58,7 @@ export const ReviewQueueListing = ({
 	onAnalyze,
 	currentUserId,
 	selection,
+	showReviewer = true,
 	sort,
 	onSortChange,
 	onClearFilters,
@@ -63,11 +66,18 @@ export const ReviewQueueListing = ({
 	const selectable = selection !== undefined;
 	// Only what changes the column set: a new definition remounts every cell.
 	const columns = useMemo(
-		() => createReviewQueueColumns({ onAnalyze, currentUserId, selectable }),
-		[onAnalyze, currentUserId, selectable],
+		() =>
+			createReviewQueueColumns({
+				onAnalyze,
+				currentUserId,
+				selectable,
+				showReviewer,
+			}),
+		[onAnalyze, currentUserId, selectable, showReviewer],
 	);
 
-	if (isLoading) return <SkeletonTable columns={selection ? 10 : 9} />;
+	// The attention marker has no skeleton cell of its own.
+	if (isLoading) return <SkeletonTable columns={columns.length - 1} />;
 
 	if (items.length === 0) {
 		return onClearFilters ? (
@@ -83,7 +93,11 @@ export const ReviewQueueListing = ({
 		) : (
 			<EmptyState
 				title="Nenhum projeto aguardando análise"
-				description="Os projetos enviados pelos projetistas aparecem aqui."
+				description={
+					showReviewer
+						? "Os projetos enviados pelos projetistas aparecem aqui."
+						: "Os projetos que o gestor atribuir a você aparecem aqui."
+				}
 			/>
 		);
 	}
