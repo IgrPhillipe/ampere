@@ -53,8 +53,8 @@ const NotificationItem = ({ notification, onOpen }: NotificationItemProps) => (
 				{notification.read ? null : <span className="sr-only">Não lida: </span>}
 				{notification.text}
 			</span>
-			<span className="pl-1 font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
-				{notification.protocol} ·{" "}
+			<span className="flex flex-wrap gap-x-3 pl-1 font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+				<span>{notification.protocol}</span>
 				<time dateTime={notification.createdAt}>
 					{formatNotificationAge(notification.createdAt)}
 				</time>

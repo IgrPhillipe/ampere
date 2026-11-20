@@ -52,7 +52,7 @@ describe("MemorialPreview", () => {
 		expect(
 			screen.getByRole("heading", { name: "Memorial do Envio" }),
 		).toBeInTheDocument();
-		expect(screen.getByText("Oficial · v03")).toBeInTheDocument();
+		expect(screen.getByText("Oficial, v03")).toBeInTheDocument();
 		expect(
 			screen.getByText(/PDF gravado no envio da versão 3/),
 		).toBeInTheDocument();
@@ -79,9 +79,7 @@ describe("MemorialPreview", () => {
 		expect(
 			screen.getByRole("heading", { name: "Memorial da Aprovação" }),
 		).toBeInTheDocument();
-		expect(
-			screen.getByText("Oficial · v01 · com ressalvas"),
-		).toBeInTheDocument();
+		expect(screen.getByText("Oficial, v01, com ressalvas")).toBeInTheDocument();
 		expect(
 			screen.getByText(/aprovação com ressalvas da versão 1, em 09\/11\/2026/),
 		).toBeInTheDocument();

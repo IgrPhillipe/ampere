@@ -235,7 +235,7 @@ export const VersionComparisonView = ({
 					label: field.label,
 					from: fieldValue(field, "from"),
 					to: fieldValue(field, "to"),
-					delta: "—",
+					delta: "",
 					changed: true,
 				})),
 			]
@@ -246,13 +246,13 @@ export const VersionComparisonView = ({
 		? [
 				...comparison.changed.map((group) => ({
 					group,
-					from: "—",
-					to: "—",
+					from: "presente",
+					to: "alterado",
 					status: "Alterado",
 				})),
 				...comparison.included.map((group) => ({
 					group,
-					from: "—",
+					from: "ausente",
 					to: "incluído",
 					status: "Incluído",
 				})),
@@ -333,7 +333,7 @@ export const VersionComparisonView = ({
 					<div className="flex flex-col gap-3">
 						<SectionHeading
 							as="h3"
-							meta={`${padCount(memoryRows.length)} linhas · ${padCount(changedMemory)} alteradas`}
+							meta={`${padCount(memoryRows.length)} linhas, ${padCount(changedMemory)} alteradas`}
 						>
 							Memória de Cálculo
 						</SectionHeading>
@@ -360,7 +360,7 @@ export const VersionComparisonView = ({
 					<div className="flex flex-col gap-3">
 						<SectionHeading
 							as="h3"
-							meta={`${padCount(comparison.changed.length)} alterados · ${padCount(comparison.included.length)} incluídos · ${padCount(comparison.removed.length)} removidos`}
+							meta={`${padCount(comparison.changed.length)} alterados, ${padCount(comparison.included.length)} incluídos, ${padCount(comparison.removed.length)} removidos`}
 						>
 							Grupos de UCs
 						</SectionHeading>

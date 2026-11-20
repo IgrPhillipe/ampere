@@ -7,9 +7,9 @@ import type {
 
 export const formatVersion = (number: number) => `v${padCount(number)}`;
 
-/** "+2,4" or "−1,0"; zero reads as no change. */
+/** "+2,4", "−1,0" or "0,0". */
 export const formatKvaDelta = (delta: number) => {
-	if (delta === 0) return "—";
+	if (delta === 0) return formatDecimal(0, 1);
 
 	return `${delta > 0 ? "+" : "−"}${formatDecimal(Math.abs(delta), 1)}`;
 };
@@ -22,7 +22,7 @@ export const fieldValue = (
 	const label = side === "from" ? change.fromLabel : change.toLabel;
 	const raw = side === "from" ? change.from : change.to;
 
-	return label ?? raw ?? "—";
+	return label ?? raw ?? "Não informado";
 };
 
 export interface VersionChangeItem {

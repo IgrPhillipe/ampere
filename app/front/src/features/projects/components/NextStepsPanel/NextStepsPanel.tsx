@@ -29,7 +29,7 @@ export const NextStepsPanel = ({
 					Retorno até {formatDate(reviewDeadline)}
 					{deadlineStatus && daysRemaining != null ? (
 						<>
-							{" · "}
+							{", "}
 							<DeadlineStatusBadge
 								deadlineStatus={deadlineStatus}
 								daysRemaining={daysRemaining}

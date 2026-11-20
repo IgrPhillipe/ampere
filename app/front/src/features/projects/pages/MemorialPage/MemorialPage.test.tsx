@@ -171,7 +171,7 @@ describe("MemorialPage", () => {
 		expect(
 			screen.getByRole("heading", { name: "Memorial do Envio" }),
 		).toBeInTheDocument();
-		expect(screen.getByText("Oficial · v02")).toBeInTheDocument();
+		expect(screen.getByText("Oficial, v02")).toBeInTheDocument();
 	});
 
 	it("marks the preview of an editable project without asking for the versions", () => {

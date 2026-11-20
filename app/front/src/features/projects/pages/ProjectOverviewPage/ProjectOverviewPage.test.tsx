@@ -136,7 +136,7 @@ describe("ProjectOverviewPage", () => {
 		expect(screen.getByText("O que Acontece Agora")).toBeVisible();
 		expect(
 			screen.getByText("Retorno até 01/11/2026", { exact: false }),
-		).toHaveTextContent("Retorno até 01/11/2026 · 30 dias restantes");
+		).toHaveTextContent("Retorno até 01/11/2026, 30 dias restantes");
 		expect(screen.getByText("Analista: Alice Analista")).toBeVisible();
 		expect(screen.queryByText("Apontamentos")).not.toBeInTheDocument();
 		expect(

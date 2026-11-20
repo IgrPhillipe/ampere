@@ -21,7 +21,7 @@ export const VersionChangesField = ({
 	return (
 		<ConclusionField
 			title="O que mudou"
-			value={comparison ? padCount(changes.length) : "—"}
+			value={comparison ? padCount(changes.length) : undefined}
 			caption={
 				comparison
 					? `${changes.length === 1 ? "Alteração" : "Alterações"} na ${formatVersion(comparison.to.number)}`

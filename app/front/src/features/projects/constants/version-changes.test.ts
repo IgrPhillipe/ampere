@@ -30,7 +30,7 @@ describe("version changes", () => {
 		expect(formatVersion(3)).toBe("v03");
 		expect(formatKvaDelta(2.44)).toBe("+2,4");
 		expect(formatKvaDelta(-1)).toBe("−1,0");
-		expect(formatKvaDelta(0)).toBe("—");
+		expect(formatKvaDelta(0)).toBe("0,0");
 	});
 
 	it("prefers the readable value of a field", () => {
@@ -45,7 +45,7 @@ describe("version changes", () => {
 
 		expect(fieldValue(change, "from")).toBe("Monofásica");
 		expect(fieldValue(change, "to")).toBe("THREE_PHASE");
-		expect(fieldValue({ ...change, to: null }, "to")).toBe("—");
+		expect(fieldValue({ ...change, to: null }, "to")).toBe("Não informado");
 	});
 
 	it("lists nothing when the versions are equal", () => {

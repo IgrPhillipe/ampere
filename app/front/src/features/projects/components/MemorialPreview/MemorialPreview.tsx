@@ -64,7 +64,7 @@ const stampMeta = (stamp: MemorialStamp | null | undefined) => {
 	if (stamp === undefined) return undefined;
 	if (stamp === null) return "Prévia";
 
-	return `Oficial · v${padCount(stamp.version)}${stamp.kind === "approval" ? " · com ressalvas" : ""}`;
+	return `Oficial, v${padCount(stamp.version)}${stamp.kind === "approval" ? ", com ressalvas" : ""}`;
 };
 
 export const MemorialPreview = ({
