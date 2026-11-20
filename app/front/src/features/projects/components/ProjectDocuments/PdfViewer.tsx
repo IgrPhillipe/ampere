@@ -10,12 +10,15 @@ import { useEffect, useRef } from "react";
 interface PdfViewerProps {
 	projectId: string;
 	document: ProjectDocument;
+	/** Hides the browser reader's toolbar, leaving "Baixar" as the only download. */
+	hideToolbar?: boolean;
 	className?: string;
 }
 
 export const PdfViewer = ({
 	projectId,
 	document,
+	hideToolbar = false,
 	className,
 }: PdfViewerProps) => {
 	const fileQuery = useGetDocumentFile(projectId, document.id);
@@ -27,10 +30,10 @@ export const PdfViewer = ({
 		if (!blob || !frame) return;
 
 		const url = URL.createObjectURL(blob);
-		frame.src = url;
+		frame.src = hideToolbar ? `${url}#toolbar=0` : url;
 
 		return () => URL.revokeObjectURL(url);
-	}, [blob]);
+	}, [blob, hideToolbar]);
 
 	const download = () => {
 		const file = fileQuery.data;

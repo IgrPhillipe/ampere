@@ -10,7 +10,12 @@ import {
 import { formatDate, padCount } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
-import { type CSSProperties, type ReactNode, useState } from "react";
+import {
+	type ComponentProps,
+	type CSSProperties,
+	type ReactNode,
+	useState,
+} from "react";
 
 import {
 	findingSeverityBadgeVariants,
@@ -269,6 +274,8 @@ export const FindingRow = ({
 interface FindingDialogProps {
 	finding: Finding | undefined;
 	referenceOf: (finding: Finding) => string | null;
+	/** Where the focus goes on close; see the Base UI dialog popup. */
+	finalFocus?: ComponentProps<typeof DialogContent>["finalFocus"];
 	onClose: () => void;
 	children: (finding: Finding) => ReactNode;
 }
@@ -276,6 +283,7 @@ interface FindingDialogProps {
 export const FindingDialog = ({
 	finding,
 	referenceOf,
+	finalFocus,
 	onClose,
 	children,
 }: FindingDialogProps) => {
@@ -292,7 +300,10 @@ export const FindingDialog = ({
 				if (!open) onClose();
 			}}
 		>
-			<DialogContent className="max-h-[85vh] gap-0 overflow-y-auto bg-card p-0 sm:max-w-xl">
+			<DialogContent
+				finalFocus={finalFocus}
+				className="max-h-[85vh] gap-0 overflow-y-auto bg-card p-0 sm:max-w-xl"
+			>
 				<DialogHeader className="border-b border-border px-6 py-5 pr-12 text-left">
 					<DialogTitle className="font-heading text-lg">
 						Apontamento

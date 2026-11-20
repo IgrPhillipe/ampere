@@ -6,7 +6,7 @@ import { cn } from "@lib/utils";
 import type { Finding } from "@services/project-review";
 import type { ProjectDetail } from "@services/projects";
 import { ArrowRight } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
 
 import {
 	awaitsDesignerResponse,
@@ -69,7 +69,15 @@ export const ProjectFindingsOverview = ({
 	const [openedId, setOpenedId] = useState<string | null>(
 		() => window.location.hash.match(/^#apontamento-(\d+)$/)?.[1] ?? null,
 	);
-	const opened = findings?.find((finding) => finding.id === openedId);
+	// Once answered, the finding leaves the list and its dialog closes.
+	const opened = current.find((finding) => finding.id === openedId);
+	if (openedId && findings && !opened) setOpenedId(null);
+	const sectionRef = useRef<HTMLElement>(null);
+	const trigger = useRef<Element | null>(null);
+	const open = (finding: Finding) => {
+		trigger.current = document.activeElement;
+		setOpenedId(finding.id);
+	};
 	const referenceOf = (finding: Finding) =>
 		describeFindingReference(finding, referenceOptions);
 
@@ -77,7 +85,7 @@ export const ProjectFindingsOverview = ({
 		finding: Finding,
 		status: FindingResponseValues["status"],
 	) => {
-		setOpenedId(finding.id);
+		open(finding);
 		onStartResponse(finding, status);
 	};
 
@@ -87,7 +95,7 @@ export const ProjectFindingsOverview = ({
 			finding={finding}
 			reference={referenceOf(finding)}
 			index={position + 1}
-			onOpen={() => setOpenedId(finding.id)}
+			onOpen={() => open(finding)}
 			actions={
 				onOpenStage || canRespond ? (
 					<>
@@ -141,7 +149,12 @@ export const ProjectFindingsOverview = ({
 				</div>
 			) : null}
 
-			<section aria-labelledby="findings-title">
+			<section
+				ref={sectionRef}
+				aria-labelledby="findings-title"
+				tabIndex={-1}
+				className="outline-none"
+			>
 				<SectionHeading
 					id="findings-title"
 					meta={`${padCount(current.length)} ${current.length === 1 ? "aguarda resposta" : "aguardam resposta"}`}
@@ -168,6 +181,11 @@ export const ProjectFindingsOverview = ({
 			<FindingDialog
 				finding={opened}
 				referenceOf={referenceOf}
+				finalFocus={() =>
+					trigger.current instanceof HTMLElement && trigger.current.isConnected
+						? trigger.current
+						: sectionRef.current
+				}
 				onClose={closeDialog}
 			>
 				{(finding) => (
