@@ -1,8 +1,9 @@
 import { apiResponseSchema } from "@features/shared";
 import { brazilianStateSchema } from "@services/locations";
-import { findingStageSchema } from "@services/project-review";
 import { buildingCategorySchema } from "@services/projects";
 import { z } from "zod";
+
+import { findingRankingItemSchema } from "./dashboard.schema";
 
 const count = z.number().int().nonnegative();
 
@@ -62,10 +63,7 @@ export const reviewerWorkloadSchema = z.object({
 export type ReviewerWorkload = z.infer<typeof reviewerWorkloadSchema>;
 
 /** A ranking line carries its projects in scope, so the click lists them without another request. */
-export const reviewFindingRankingItemSchema = z.object({
-	stage: findingStageSchema,
-	standardItem: z.string().nullable(),
-	total: count,
+export const reviewFindingRankingItemSchema = findingRankingItemSchema.extend({
 	projects: z.array(reviewDashboardProjectSchema),
 });
 
