@@ -30,7 +30,6 @@ import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ProjectVersion;
 import br.com.ampere.domain.ResidentialGroup;
-import br.com.ampere.domain.ReviewerMunicipality;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.service.GroupValidation;
@@ -111,22 +110,16 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
   }
 
   @Test
-  void showsTheDistributionByMunicipality() {
-    assertThat(municipalityRepository.findAllByOrderByStateAscMunicipalityAsc())
-        .allSatisfy(
-            rule ->
-                assertThat(rule.getReviewer().getEmail())
-                    .isEqualTo(DataSeeder.SECOND_ANALYST_EMAIL))
-        .extracting(ReviewerMunicipality::getMunicipality)
-        .containsExactly("Caruaru", "Garanhuns", "Petrolina");
-
-    Project distributed = detail("2026-2044");
-    assertThat(distributed.getReviewer().getEmail()).isEqualTo(DataSeeder.SECOND_ANALYST_EMAIL);
-    assertThat(eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(distributed.getId()))
+  void showsTheManagerAssignments() {
+    Project assigned = detail("2026-2044");
+    assertThat(assigned.getReviewer().getEmail()).isEqualTo(DataSeeder.SECOND_ANALYST_EMAIL);
+    assertThat(eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(assigned.getId()))
         .filteredOn(event -> event.getType() == ProjectEventType.ASSIGNED)
         .singleElement()
+        .satisfies(event -> assertThat(event.getAuthor()).isNotNull())
         .extracting(ProjectEvent::getDescription)
-        .isEqualTo("Análise atribuída a Ana Analista pelo sistema.");
+        .asString()
+        .startsWith("Análise atribuída a Ana Analista por ");
     assertThat(detail("2026-2045").getReviewer()).isNull();
   }
 

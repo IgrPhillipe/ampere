@@ -6,20 +6,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import br.com.ampere.domain.BrazilianState;
-import br.com.ampere.domain.ConcessionArea;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
-import br.com.ampere.domain.ReviewerMunicipality;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.ProjectRepository;
-import br.com.ampere.repository.ReviewerMunicipalityRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.Timestamps;
 import java.util.List;
@@ -45,7 +41,6 @@ class AdminDashboardIntegrationTest {
   @Autowired private MockMvc mockMvc;
   @Autowired private UserRepository userRepository;
   @Autowired private ProjectRepository projectRepository;
-  @Autowired private ReviewerMunicipalityRepository municipalityRepository;
   @Autowired private PasswordEncoder passwordEncoder;
   @Autowired private ObjectMapper objectMapper;
 
@@ -56,7 +51,6 @@ class AdminDashboardIntegrationTest {
   @BeforeEach
   void setup() {
     projectRepository.deleteAll();
-    municipalityRepository.deleteAll();
     userRepository.deleteAll();
     user("Admin Gestor", "admin@ampere.com", UserRole.ADMIN);
     designer = user("João Projetista", "joao@ampere.com", UserRole.USER);
@@ -73,7 +67,7 @@ class AdminDashboardIntegrationTest {
   }
 
   @Test
-  void answersZeroWithoutProjectsOrMunicipalities() throws Exception {
+  void answersZeroWithoutProjects() throws Exception {
     dashboard()
         .andExpect(jsonPath("$.data.users.activeByRole.user").value(1))
         .andExpect(jsonPath("$.data.users.inactive").value(0))
@@ -81,9 +75,7 @@ class AdminDashboardIntegrationTest {
         .andExpect(jsonPath("$.data.projects.underReview").value(0))
         .andExpect(jsonPath("$.data.queue.unassigned").value(0))
         .andExpect(jsonPath("$.data.queue.byReviewer[0].underReview").value(0))
-        .andExpect(
-            jsonPath("$.data.queue.municipalitiesWithoutReviewer")
-                .value(ConcessionArea.totalMunicipalities()));
+        .andExpect(jsonPath("$.data.queue.municipalitiesWithoutReviewer").doesNotExist());
   }
 
   @Test
@@ -147,19 +139,6 @@ class AdminDashboardIntegrationTest {
         .andExpect(jsonPath("$.data.queue.byReviewer[1].name").value("Ana Analista"))
         .andExpect(jsonPath("$.data.queue.byReviewer[1].active").value(false))
         .andExpect(jsonPath("$.data.queue.byReviewer[1].underReview").value(1));
-  }
-
-  @Test
-  void coversOnlyTheMunicipalitiesOfActiveReviewers() throws Exception {
-    User former = user("Ex Analista", "ex@ampere.com", UserRole.REVIEWER);
-    municipalityRepository.save(new ReviewerMunicipality(reviewer, BrazilianState.PE, "Recife"));
-    municipalityRepository.save(new ReviewerMunicipality(former, BrazilianState.PE, "Olinda"));
-    former.administer(former.getName(), UserRole.USER, true);
-
-    dashboard()
-        .andExpect(
-            jsonPath("$.data.queue.municipalitiesWithoutReviewer")
-                .value(ConcessionArea.totalMunicipalities() - 1));
   }
 
   private ResultActions dashboard() throws Exception {

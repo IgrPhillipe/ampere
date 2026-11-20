@@ -16,11 +16,7 @@ public record AdminDashboardResponse(
       long draft, long awaitingSubmission, long underReview, long rejected) {}
 
   public record QueueSummary(
-      long unassigned,
-      long dueIn3Days,
-      long overdue,
-      List<ReviewerLoad> byReviewer,
-      long municipalitiesWithoutReviewer) {}
+      long unassigned, long dueIn3Days, long overdue, List<ReviewerLoad> byReviewer) {}
 
   /** {@code active} is false for a deactivated reviewer still holding projects in the queue. */
   public record ReviewerLoad(String id, String name, boolean active, long underReview) {}

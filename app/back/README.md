@@ -98,7 +98,7 @@ curl -s -X POST http://localhost:8080/api/auth/login \
   -d '{"email":"user@ampere.com","password":"senha@123"}'
 ```
 
-A gestão de usuários (`/api/users/**`, exceto `/api/users/me`), os municípios dos analistas (`/api/reviewers/**`), a atribuição em lote (`/api/review-queue/assignment`), a lista de analistas da atribuição (`/api/review-queue/reviewers`) e o painel do administrador (`/api/dashboard/admin`) exigem o papel `admin`; as tabelas normativas (`/api/normative-tables/**`) e o resto da fila (`/api/review-queue/**`) aceitam `reviewer` e `admin`. Nas tabelas, quem cadastra uma revisão não a publica, e só quem cadastrou altera o rascunho; excluí-lo é de quem cadastrou ou do `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`.
+A gestão de usuários (`/api/users/**`, exceto `/api/users/me`), a atribuição em lote (`/api/review-queue/assignment`), a lista de analistas da atribuição (`/api/review-queue/reviewers`) e o painel do administrador (`/api/dashboard/admin`) exigem o papel `admin`; as tabelas normativas (`/api/normative-tables/**`) e o resto da fila (`/api/review-queue/**`) aceitam `reviewer` e `admin`. Nas tabelas, quem cadastra uma revisão não a publica, e só quem cadastrou altera o rascunho; excluí-lo é de quem cadastrou ou do `admin`. Os caminhos nomeiam o recurso, nunca o papel: a restrição fica no `SecurityConfig`.
 
 ### Cadastro e Perfil
 
@@ -205,10 +205,9 @@ Busca, filtro e ordenação valem antes da paginação. O analista vê só os pr
 | :--- | :--- | :--- |
 | `users` | `activeByRole`, `inactive`, `mustChangePassword`, `withoutAccess30Days` | `activeByRole` traz os três papéis, com 0 quando vazio. `withoutAccess30Days` conta só contas ativas sem login há mais de 30 dias ou nunca |
 | `projects` | `draft`, `awaitingSubmission`, `underReview`, `rejected` | Projetos de todos os projetistas; `underReview` conta só os enviados |
-| `queue` | `unassigned`, `dueIn3Days`, `overdue`, `byReviewer`, `municipalitiesWithoutReviewer` | Prazo pela regra da fila (`Project.deadlineStatus`); `dueIn3Days` vai de hoje a 3 dias e exclui os atrasados |
+| `queue` | `unassigned`, `dueIn3Days`, `overdue`, `byReviewer` | Prazo pela regra da fila (`Project.deadlineStatus`); `dueIn3Days` vai de hoje a 3 dias e exclui os atrasados |
 
 - `byReviewer` lista os analistas e administradores ativos, mesmo sem carga, e também quem foi desativado com projetos ainda atribuídos, com `active: false`.
-- `municipalitiesWithoutReviewer` é o total da área de concessão menos os municípios de analistas ativos (US23).
 - Os atalhos do bloco `users` abrem `GET /api/users` com `mustChangePassword=true`, `active=false` ou `active=true&inactiveDays=30`. A tabela de projetos ativos usa `GET /api/projects?status=DRAFT&status=AWAITING_SUBMISSION&status=UNDER_REVIEW&status=REJECTED`, com `search` e `owner`.
 
 ---
@@ -282,7 +281,7 @@ O envelope ganha `counts` ao lado de `data` e `pagination`: `{ all, approved, re
 
 ## Análise Técnica e Apontamentos
 
-O papel `reviewer` representa o analista, e o `admin` faz tudo o que ele faz. Um projeto `UNDER_REVIEW` tem um único analista responsável, definido pelo gestor ou pela distribuição no envio: o analista não assume projeto sozinho. As rotas de escrita da análise são restritas a `reviewer` e `admin` pelo `SecurityConfig`.
+O papel `reviewer` representa o analista, e o `admin` faz tudo o que ele faz. Um projeto `UNDER_REVIEW` tem um único analista responsável, definido pelo gestor, ou de volta a quem reprovou no reenvio: o analista não assume projeto sozinho. As rotas de escrita da análise são restritas a `reviewer` e `admin` pelo `SecurityConfig`.
 
 | Método e caminho | Quem usa | Regra principal |
 | :--- | :--- | :--- |
@@ -299,17 +298,14 @@ O papel `reviewer` representa o analista, e o `admin` faz tudo o que ele faz. Um
 
 | Método e caminho | Quem usa | Regra principal |
 | :--- | :--- | :--- |
-| `GET /api/reviewers/municipalities` | `admin` | Lista os analistas ativos e os municípios de cada um |
-| `PUT /api/reviewers/{id}/municipalities` | `admin` | Substitui a lista do analista |
 | `PUT /api/review-queue/assignment` | `admin` | Atribui ou reatribui vários projetos; responde 204 |
 
-- **Município.** Pertence a no máximo um analista ativo. Outro analista recebe 409; a regra de quem foi desativado ou perdeu o papel passa para quem a pedir.
-- **Envio.** O projeto vai para o analista do município. Sem regra, ou com um analista que não pode receber, fica sem responsável na fila.
-- **Reenvio.** Volta para quem reprovou. Se essa pessoa não puder mais analisar, segue a regra do município.
+- **Envio.** O projeto fica sem responsável na fila até o gestor atribuir.
+- **Reenvio.** Volta para quem reprovou. Se essa pessoa não puder mais analisar, fica sem responsável.
 - **Lote.** Tudo ou nada: `{ "projectIds": ["12", "15"], "reviewerId": "7" }`. Os apontamentos em rascunho passam para o novo analista; os publicados ficam com o autor. Repetir o analista atual não gera evento.
-- **Dono.** Ninguém recebe o próprio projeto: o lote responde 422, e a distribuição deixa o projeto sem responsável.
+- **Dono.** Ninguém recebe o próprio projeto: o lote responde 422.
 
-Toda atribuição grava um evento `ASSIGNED`, com o gestor como autor ou sem autor na distribuição.
+Toda atribuição grava um evento `ASSIGNED`, com o gestor como autor, ou sem autor quando o reenvio volta a quem reprovou.
 
 ### Contrato do Apontamento
 

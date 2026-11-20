@@ -2,14 +2,12 @@ package br.com.ampere.service;
 
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
-import br.com.ampere.domain.ReviewerMunicipality;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.ProjectRepository;
-import br.com.ampere.repository.ReviewerMunicipalityRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.Timestamps;
 import java.time.OffsetDateTime;
@@ -25,7 +23,6 @@ public class ReviewAssignmentService {
 
   static final String INACTIVE_REVIEWER = "Analista inativo.";
 
-  private final ReviewerMunicipalityRepository municipalityRepository;
   private final UserRepository userRepository;
   private final ProjectRepository projectRepository;
   private final FindingRepository findingRepository;
@@ -33,13 +30,11 @@ public class ReviewAssignmentService {
   private final NotificationService notificationService;
 
   public ReviewAssignmentService(
-      ReviewerMunicipalityRepository municipalityRepository,
       UserRepository userRepository,
       ProjectRepository projectRepository,
       FindingRepository findingRepository,
       ProjectEventService eventService,
       NotificationService notificationService) {
-    this.municipalityRepository = municipalityRepository;
     this.userRepository = userRepository;
     this.projectRepository = projectRepository;
     this.findingRepository = findingRepository;
@@ -78,12 +73,11 @@ public class ReviewAssignmentService {
         .forEach(finding -> finding.reassignTo(reviewer));
   }
 
-  /** The analyst who rejected gets the project back; otherwise the municipality's analyst. */
+  /** The analyst who rejected gets the project back; otherwise it waits for the manager. */
   @Transactional
   public void distribute(Project project, OffsetDateTime submittedAt) {
     Optional.ofNullable(project.getReviewer())
         .filter(project::canBeReviewedBy)
-        .or(() -> municipalityReviewerOf(project))
         .ifPresentOrElse(
             reviewer -> {
               handOver(project, reviewer);
@@ -106,13 +100,6 @@ public class ReviewAssignmentService {
     if (nextReviewer == null || !previous.getId().equals(nextReviewer.getId())) {
       notificationService.handedOver(project, previous);
     }
-  }
-
-  private Optional<User> municipalityReviewerOf(Project project) {
-    return municipalityRepository
-        .findByStateAndMunicipality(project.getState(), project.getMunicipality())
-        .map(ReviewerMunicipality::getReviewer)
-        .filter(project::canBeReviewedBy);
   }
 
   private User assignableReviewer(Long reviewerId) {

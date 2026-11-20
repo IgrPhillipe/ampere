@@ -15,7 +15,6 @@ import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectVersionDocumentRepository;
 import br.com.ampere.repository.ProjectVersionRepository;
-import br.com.ampere.repository.ReviewerMunicipalityRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.DemandCalculationService;
@@ -66,7 +65,6 @@ public class DemoScenarioSeeder {
   private final StandardRepository standardRepository;
   private final NormativeTableRepository normativeTableRepository;
   private final UserRepository userRepository;
-  private final ReviewerMunicipalityRepository municipalityRepository;
   private final DemandCalculationService demandCalculation;
   private final ProjectEventService eventService;
   private final ProjectVersionService versionService;
@@ -89,7 +87,6 @@ public class DemoScenarioSeeder {
       StandardRepository standardRepository,
       NormativeTableRepository normativeTableRepository,
       UserRepository userRepository,
-      ReviewerMunicipalityRepository municipalityRepository,
       DemandCalculationService demandCalculation,
       ProjectEventService eventService,
       ProjectVersionService versionService,
@@ -110,7 +107,6 @@ public class DemoScenarioSeeder {
     this.standardRepository = standardRepository;
     this.normativeTableRepository = normativeTableRepository;
     this.userRepository = userRepository;
-    this.municipalityRepository = municipalityRepository;
     this.demandCalculation = demandCalculation;
     this.eventService = eventService;
     this.versionService = versionService;
@@ -139,7 +135,6 @@ public class DemoScenarioSeeder {
       return 0;
     }
 
-    seedMunicipalities(users.get());
     ScenarioKit kit =
         new ScenarioKit(
             projectRepository,
@@ -258,13 +253,6 @@ public class DemoScenarioSeeder {
         });
 
     return 1;
-  }
-
-  /** Only into an empty table: the manager may have changed the lists since the last run. */
-  private void seedMunicipalities(DemoUsers users) {
-    if (municipalityRepository.count() == 0) {
-      municipalityRepository.saveAll(DemoScenarios.municipalities(users));
-    }
   }
 
   /** The protocol is not enough: somebody else may have filed a project under it. */

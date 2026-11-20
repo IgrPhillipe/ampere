@@ -2,7 +2,6 @@ package br.com.ampere.service;
 
 import static br.com.ampere.utils.Timestamps.ZONE;
 
-import br.com.ampere.domain.ConcessionArea;
 import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
@@ -14,7 +13,6 @@ import br.com.ampere.dto.AdminDashboardResponse.QueueSummary;
 import br.com.ampere.dto.AdminDashboardResponse.ReviewerLoad;
 import br.com.ampere.dto.AdminDashboardResponse.UsersSummary;
 import br.com.ampere.repository.ProjectRepository;
-import br.com.ampere.repository.ReviewerMunicipalityRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.Timestamps;
 import java.time.LocalDate;
@@ -38,17 +36,14 @@ public class AdminDashboardService {
 
   private final UserRepository userRepository;
   private final ProjectRepository projectRepository;
-  private final ReviewerMunicipalityRepository municipalityRepository;
   private final ReviewQueueService reviewQueueService;
 
   public AdminDashboardService(
       UserRepository userRepository,
       ProjectRepository projectRepository,
-      ReviewerMunicipalityRepository municipalityRepository,
       ReviewQueueService reviewQueueService) {
     this.userRepository = userRepository;
     this.projectRepository = projectRepository;
-    this.municipalityRepository = municipalityRepository;
     this.reviewQueueService = reviewQueueService;
   }
 
@@ -103,8 +98,7 @@ public class AdminDashboardService {
         queue.stream().filter(project -> project.getReviewer() == null).count(),
         dueSoon,
         overdue,
-        reviewerLoads(queue, caller),
-        municipalitiesWithoutReviewer());
+        reviewerLoads(queue, caller));
   }
 
   private List<ReviewerLoad> reviewerLoads(List<Project> queue, AuthenticatedUser caller) {
@@ -127,13 +121,5 @@ public class AdminDashboardService {
                     user.isActiveReviewer(),
                     loadById.getOrDefault(user.getId(), 0L)))
         .toList();
-  }
-
-  private long municipalitiesWithoutReviewer() {
-    long covered =
-        municipalityRepository.countByReviewerActiveTrueAndReviewerRoleIn(
-            Arrays.stream(UserRole.values()).filter(UserRole::canReview).toList());
-
-    return Math.max(0, ConcessionArea.totalMunicipalities() - covered);
   }
 }
