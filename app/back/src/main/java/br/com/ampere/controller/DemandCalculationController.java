@@ -7,6 +7,7 @@ import br.com.ampere.service.DemandCalculationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -73,7 +74,7 @@ public class DemandCalculationController {
         CalculationResponse.from(
             latest.calculation(),
             latest.outdated(),
-            latest.outdated() ? service.changedTables(latest.calculation()) : java.util.List.of()));
+            latest.outdated() ? service.changedTables(latest.calculation()) : List.of()));
   }
 
   private static AuthenticatedUser userOf(Jwt jwt) {

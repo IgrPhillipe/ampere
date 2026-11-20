@@ -1,5 +1,6 @@
 package br.com.ampere.service;
 
+import br.com.ampere.domain.AppliedTable;
 import br.com.ampere.domain.BuildingType;
 import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.ConsumerUnitGroup;
@@ -7,6 +8,8 @@ import br.com.ampere.domain.DemandContext;
 import br.com.ampere.domain.DemandEngine;
 import br.com.ampere.domain.DemandResult;
 import br.com.ampere.domain.MissingNormativeValueException;
+import br.com.ampere.domain.NormativeTable;
+import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.NormativeTableSet;
 import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.Project;
@@ -19,11 +22,13 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 @Service
 public class DemandCalculationService {
@@ -70,7 +75,7 @@ public class DemandCalculationService {
   /** The engine run alone, unsaved: the seed reuses it for projects already submitted. */
   public Calculation compute(Project project, List<ConsumerUnitGroup> groups) {
     BuildingType building = project.getBuildingType();
-    List<br.com.ampere.domain.NormativeTable> tables = tablesFor(project);
+    List<NormativeTable> tables = tablesFor(project);
     DemandContext context =
         new DemandContext(
             new NormativeTableSet(tables, project.getSubmittedAt()),
@@ -97,7 +102,7 @@ public class DemandCalculationService {
     return new Calculation(project, result, objectMapper.writeValueAsString(input));
   }
 
-  private List<br.com.ampere.domain.NormativeTable> tablesFor(Project project) {
+  private List<NormativeTable> tablesFor(Project project) {
     if (project.getSubmittedAt() == null) {
       return tableRepository.findAllByStatus(NormativeTableStatus.PUBLISHED);
     }
@@ -110,9 +115,9 @@ public class DemandCalculationService {
   public List<String> changedTables(Calculation calculation) {
     if (calculation.getProject().getSubmittedAt() != null) return List.of();
     JsonNode ids = objectMapper.readTree(calculation.getInputSnapshot()).get("normativeTableIds");
-    List<br.com.ampere.domain.NormativeTable> current = tablesFor(calculation.getProject());
+    List<NormativeTable> current = tablesFor(calculation.getProject());
     if (ids != null) {
-      return java.util.stream.StreamSupport.stream(ids.properties().spliterator(), false)
+      return StreamSupport.stream(ids.properties().spliterator(), false)
           .filter(
               entry ->
                   current.stream()
@@ -120,9 +125,7 @@ public class DemandCalculationService {
                           table ->
                               table.getCode().name().equals(entry.getKey())
                                   && table.getId().longValue() == entry.getValue().asLong()))
-          .map(
-              entry ->
-                  br.com.ampere.domain.NormativeTableCode.valueOf(entry.getKey()).identification())
+          .map(entry -> NormativeTableCode.valueOf(entry.getKey()).identification())
           .toList();
     }
     // Older calculations did not record table IDs; their references and publication dates remain
@@ -137,7 +140,7 @@ public class DemandCalculationService {
                                 && table.getStandard().getName().equals(applied.getStandard())
                                 && table.getStandard().getRevision().equals(applied.getRevision())
                                 && !table.getVerifiedAt().isAfter(calculation.getCalculatedAt())))
-        .map(br.com.ampere.domain.AppliedTable::getIdentification)
+        .map(AppliedTable::getIdentification)
         .distinct()
         .toList();
   }
@@ -150,9 +153,7 @@ public class DemandCalculationService {
 
   /** For a caller that already loaded the project's groups. */
   public boolean isCurrent(Calculation calculation, List<ConsumerUnitGroup> groups) {
-    var recorded =
-        (tools.jackson.databind.node.ObjectNode)
-            objectMapper.readTree(calculation.getInputSnapshot());
+    var recorded = (ObjectNode) objectMapper.readTree(calculation.getInputSnapshot());
     recorded.remove("normativeTableIds");
     return recorded.equals(
             SAME_VALUE, objectMapper.valueToTree(input(calculation.getProject(), groups)))

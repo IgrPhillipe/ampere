@@ -1,6 +1,7 @@
 package br.com.ampere.domain;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,7 @@ public final class NormativeTableSet implements NormativeTables {
     this(published, null);
   }
 
-  public NormativeTableSet(List<NormativeTable> published, java.time.OffsetDateTime effectiveAt) {
+  public NormativeTableSet(List<NormativeTable> published, OffsetDateTime effectiveAt) {
     published.stream()
         .filter(
             table -> effectiveAt == null ? table.isPublished() : table.wasEffectiveAt(effectiveAt))

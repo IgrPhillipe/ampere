@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.ampere.config.NormativeTableSeed;
+import br.com.ampere.config.NormativeTableValidityMigration;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.GroupKind;
@@ -17,6 +18,10 @@ import br.com.ampere.domain.LampTechnology;
 import br.com.ampere.domain.LoadCategory;
 import br.com.ampere.domain.LoadItem;
 import br.com.ampere.domain.LoadUsage;
+import br.com.ampere.domain.NormativeTable;
+import br.com.ampere.domain.NormativeTableCode;
+import br.com.ampere.domain.NormativeTableRow;
+import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
@@ -32,9 +37,11 @@ import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -79,9 +86,9 @@ class DemandCalculationIntegrationTest {
 
   @Autowired private DemandCalculationService calculations;
 
-  @Autowired private jakarta.persistence.EntityManager entityManager;
+  @Autowired private EntityManager entityManager;
 
-  @Autowired private br.com.ampere.config.NormativeTableValidityMigration validityMigration;
+  @Autowired private NormativeTableValidityMigration validityMigration;
 
   @Test
   void aTableFirstUsedOnResubmissionAlsoUsesTheOriginalDate() {
@@ -93,12 +100,10 @@ class DemandCalculationIntegrationTest {
     var expected = calculations.compute(project, groups);
     var old =
         normativeTableRepository
-            .findByCodeAndStatus(
-                br.com.ampere.domain.NormativeTableCode.Q33_EV_STATIONS,
-                br.com.ampere.domain.NormativeTableStatus.PUBLISHED)
+            .findByCodeAndStatus(NormativeTableCode.Q33_EV_STATIONS, NormativeTableStatus.PUBLISHED)
             .orElseThrow();
     var replacement =
-        new br.com.ampere.domain.NormativeTable(
+        new NormativeTable(
             old.getStandard(),
             old.getCode(),
             old.getIdentification(),
@@ -107,7 +112,7 @@ class DemandCalculationIntegrationTest {
             old.getRows().stream()
                 .map(
                     row ->
-                        new br.com.ampere.domain.NormativeTableRow(
+                        new NormativeTableRow(
                             row.getRowKey(),
                             row.getLowerBound(),
                             row.getUpperBound(),
@@ -139,11 +144,10 @@ class DemandCalculationIntegrationTest {
     var old =
         normativeTableRepository
             .findByCodeAndStatus(
-                br.com.ampere.domain.NormativeTableCode.Q35_APARTMENT_DEMAND,
-                br.com.ampere.domain.NormativeTableStatus.PUBLISHED)
+                NormativeTableCode.Q35_APARTMENT_DEMAND, NormativeTableStatus.PUBLISHED)
             .orElseThrow();
     var replacement =
-        new br.com.ampere.domain.NormativeTable(
+        new NormativeTable(
             old.getStandard(),
             old.getCode(),
             old.getIdentification(),
@@ -152,7 +156,7 @@ class DemandCalculationIntegrationTest {
             old.getRows().stream()
                 .map(
                     row ->
-                        new br.com.ampere.domain.NormativeTableRow(
+                        new NormativeTableRow(
                             row.getRowKey(),
                             row.getLowerBound(),
                             row.getUpperBound(),
@@ -185,7 +189,7 @@ class DemandCalculationIntegrationTest {
     validityMigration.run(null);
     entityManager.refresh(old);
     assertThat(old.getSupersededAt())
-        .isEqualTo(replacement.getVerifiedAt().truncatedTo(java.time.temporal.ChronoUnit.MICROS));
+        .isEqualTo(replacement.getVerifiedAt().truncatedTo(ChronoUnit.MICROS));
 
     project.submit(replacement.getVerifiedAt().minusSeconds(1));
     project.reject(OffsetDateTime.now(ZoneOffset.UTC), "Corrigir");

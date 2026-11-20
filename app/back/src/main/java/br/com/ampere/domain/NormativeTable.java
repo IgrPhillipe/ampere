@@ -1,5 +1,6 @@
 package br.com.ampere.domain;
 
+import br.com.ampere.utils.Timestamps;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -189,12 +190,12 @@ public class NormativeTable {
       throw new IllegalStateException("Only a draft table is published.");
     }
     this.verifiedBy = Objects.requireNonNull(verifiedBy, "verifiedBy");
-    this.verifiedAt = br.com.ampere.utils.Timestamps.now();
+    this.verifiedAt = Timestamps.now();
     this.status = NormativeTableStatus.PUBLISHED;
   }
 
   public void supersede() {
-    supersede(br.com.ampere.utils.Timestamps.now());
+    supersede(Timestamps.now());
   }
 
   public void supersede(OffsetDateTime at) {
