@@ -94,7 +94,7 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 					findings={documentFindings}
 					isLoading={submissionQuery.isPending}
 					editable
-					as="section"
+					layout="page"
 					uploadingType={
 						uploadMutation.isPending
 							? uploadMutation.variables?.type
@@ -107,7 +107,6 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 					}
 					onUpload={upload}
 					onRemove={remove}
-					className="w-full max-w-3xl flex-1 md:px-10"
 				/>
 			) : (
 				<section
