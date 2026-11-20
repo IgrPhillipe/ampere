@@ -6,9 +6,11 @@ import br.com.ampere.domain.NotificationType;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.User;
+import br.com.ampere.domain.UserRole;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.NotificationRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.Timestamps;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -31,13 +33,19 @@ public class NotificationService {
 
   static final String QUEUE_LINK = "/fila-de-analise";
 
+  static final String UNASSIGNED_QUEUE_LINK = "/fila-de-analise?reviewer=none";
+
   private final NotificationRepository notificationRepository;
   private final ProjectRepository projectRepository;
+  private final UserRepository userRepository;
 
   public NotificationService(
-      NotificationRepository notificationRepository, ProjectRepository projectRepository) {
+      NotificationRepository notificationRepository,
+      ProjectRepository projectRepository,
+      UserRepository userRepository) {
     this.notificationRepository = notificationRepository;
     this.projectRepository = projectRepository;
+    this.userRepository = userRepository;
   }
 
   @Transactional(readOnly = true)
@@ -114,6 +122,29 @@ public class NotificationService {
   /** The analyst who lost the project keeps the notices, now leading to their own queue. */
   public void handedOver(Project project, User previousReviewer) {
     notificationRepository.relink(previousReviewer.getId(), project.getId(), QUEUE_LINK);
+  }
+
+  /** Every active manager, since only a manager assigns the project that arrived without one. */
+  public void unassigned(Project project, OffsetDateTime at) {
+    userRepository
+        .findAllByRoleInAndActiveTrueOrderByNameAsc(List.of(UserRole.ADMIN))
+        .forEach(
+            manager ->
+                notify(
+                    manager,
+                    project,
+                    NotificationType.PROJECT_UNASSIGNED,
+                    "Projeto " + project.getProtocol() + " aguardando analista",
+                    UNASSIGNED_QUEUE_LINK,
+                    at));
+  }
+
+  /** Read once assigned: the notice stays in the history, but nothing is left to do. */
+  public void assigned(List<Long> projectIds, OffsetDateTime at) {
+    if (!projectIds.isEmpty()) {
+      notificationRepository.markReadByProjects(
+          projectIds, NotificationType.PROJECT_UNASSIGNED, at);
+    }
   }
 
   public void resubmitted(Project project, OffsetDateTime at) {
@@ -222,7 +253,7 @@ public class NotificationService {
     if (recipient == null) {
       return 0;
     }
-    if (isTimeBased(type)
+    if (isOncePerCycle(type)
         && notificationRepository.existsByRecipientIdAndProjectIdAndTypeAndReviewCycle(
             recipient.getId(), project.getId(), type, project.getReviewCycle())) {
       return 0;
@@ -232,9 +263,10 @@ public class NotificationService {
     return 1;
   }
 
-  private static boolean isTimeBased(NotificationType type) {
+  private static boolean isOncePerCycle(NotificationType type) {
     return type == NotificationType.REVIEW_DEADLINE_NEAR
         || type == NotificationType.REVIEW_OVERDUE
-        || type == NotificationType.APPROVAL_EXPIRING;
+        || type == NotificationType.APPROVAL_EXPIRING
+        || type == NotificationType.PROJECT_UNASSIGNED;
   }
 }

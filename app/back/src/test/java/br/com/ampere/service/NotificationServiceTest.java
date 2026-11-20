@@ -29,6 +29,7 @@ import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.NotificationRepository;
 import br.com.ampere.repository.ProjectRepository;
+import br.com.ampere.repository.UserRepository;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,7 @@ class NotificationServiceTest {
 
   private NotificationRepository notificationRepository;
   private ProjectRepository projectRepository;
+  private UserRepository userRepository;
   private NotificationService service;
   private List<Notification> saved;
   private User designer;
@@ -52,6 +54,7 @@ class NotificationServiceTest {
   void setUp() {
     notificationRepository = mock(NotificationRepository.class);
     projectRepository = mock(ProjectRepository.class);
+    userRepository = mock(UserRepository.class);
     saved = new ArrayList<>();
     when(notificationRepository.save(any(Notification.class)))
         .thenAnswer(
@@ -60,7 +63,7 @@ class NotificationServiceTest {
               saved.add(notification);
               return notification;
             });
-    service = new NotificationService(notificationRepository, projectRepository);
+    service = new NotificationService(notificationRepository, projectRepository, userRepository);
     designer = user(1L, "Ana Projetista", UserRole.USER);
     analyst = user(2L, "Alice Analista", UserRole.REVIEWER);
   }

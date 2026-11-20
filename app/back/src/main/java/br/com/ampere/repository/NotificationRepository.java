@@ -3,6 +3,7 @@ package br.com.ampere.repository;
 import br.com.ampere.domain.Notification;
 import br.com.ampere.domain.NotificationType;
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,6 +31,20 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
       WHERE notification.recipient.id = :recipientId AND notification.readAt IS NULL
       """)
   int markAllRead(@Param("recipientId") Long recipientId, @Param("readAt") OffsetDateTime readAt);
+
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query(
+      """
+      UPDATE Notification notification
+      SET notification.readAt = :readAt
+      WHERE notification.project.id IN :projectIds
+        AND notification.type = :type
+        AND notification.readAt IS NULL
+      """)
+  int markReadByProjects(
+      @Param("projectIds") Collection<Long> projectIds,
+      @Param("type") NotificationType type,
+      @Param("readAt") OffsetDateTime readAt);
 
   @Modifying(flushAutomatically = true)
   @Query(

@@ -402,7 +402,7 @@ Cada envio grava uma versão imutável (`ProjectVersion`): número (o ciclo de a
 
 ## Notificações
 
-Central do sino do cabeçalho, para projetista e analista. Sem e-mail. Cada notificação guarda destinatário, tipo, protocolo, texto, link da tela e data de leitura. Os endpoints valem para qualquer usuário autenticado e só enxergam as notificações do próprio usuário.
+Central do sino do cabeçalho, para projetista, analista e gestor. Sem e-mail. Cada notificação guarda destinatário, tipo, protocolo, texto, link da tela e data de leitura. Os endpoints valem para qualquer usuário autenticado e só enxergam as notificações do próprio usuário.
 
 | Método e caminho | Regra principal |
 | :--- | :--- |
@@ -416,12 +416,14 @@ Central do sino do cabeçalho, para projetista e analista. Sem e-mail. Cada noti
 | Decisão de reprovar ("reprovado com N apontamentos") | `PROJECT_REJECTED` | Dono do projeto | `/projetos/{id}/apontamentos` |
 | Decisão de reprovar com apontamentos reabertos no ciclo ("N apontamentos reabertos") | `FINDING_REOPENED` | Dono do projeto | `/projetos/{id}/apontamentos` |
 | Reenvio de projeto reprovado | `PROJECT_RESUBMITTED` | Analista atribuído | `/fila-de-analise/{id}` |
+| Envio ou reenvio que deixa o projeto sem analista ("aguardando analista") | `PROJECT_UNASSIGNED` | Gestores ativos | `/fila-de-analise?reviewer=none` |
 | Prazo de análise vence em até 3 dias (hoje inclusive) | `REVIEW_DEADLINE_NEAR` | Analista atribuído | `/fila-de-analise/{id}` |
 | Prazo de análise vencido | `REVIEW_OVERDUE` | Analista atribuído | `/fila-de-analise/{id}` |
 | Aprovação expira em até 30 dias (36 meses após a aprovação) | `APPROVAL_EXPIRING` | Dono do projeto | `/projetos/{id}` |
 
-- As quatro primeiras nascem na transação da operação que as causa (decisão ou envio). A reabertura só avisa na reprovação: antes disso o projetista não pode responder, e o analista ainda pode aceitar o apontamento. Sem destinatário (projeto sem dono, ou sem analista atribuído), nada é gerado.
+- As cinco primeiras nascem na transação da operação que as causa (decisão ou envio). A reabertura só avisa na reprovação: antes disso o projetista não pode responder, e o analista ainda pode aceitar o apontamento. Sem destinatário (projeto sem dono, ou sem analista atribuído), nada é gerado.
 - As três últimas não têm ação do usuário: `NotificationScheduler` varre os projetos todo dia às 06:00 (horário de Recife) e a cada subida da API, para recuperar uma varredura perdida. A varredura primeiro expira as aprovações vencidas (`ApprovalExpiryService`) e depois gera os avisos, então projeto `EXPIRED` não recebe `APPROVAL_EXPIRING`. `NOTIFICATIONS_CRON` troca o horário e `-` desliga as duas. Cada aviso sai uma vez por projeto, tipo e ciclo de análise, então rodar a varredura de novo não repete nada. O prazo é o de `Project.reviewDeadline`, com a suspensão da US15.
+- `PROJECT_UNASSIGNED` sai uma vez por projeto, gestor e ciclo de análise. Quando o gestor atribui o projeto, o aviso fica lido para todos os gestores: continua no histórico, mas sem nada a fazer.
 - O contador some quando as notificações são lidas, mas elas continuam na lista.
 
 ---

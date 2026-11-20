@@ -17,7 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Decides who holds the review of a project: the manager, or the rules on submission. */
+/** Decides who holds a review: the manager, or whoever rejected it on resubmission. */
 @Service
 public class ReviewAssignmentService {
 
@@ -67,6 +67,7 @@ public class ReviewAssignmentService {
           project.assignReviewer(reviewer);
           eventService.assigned(project, manager, assignedAt);
         });
+    notificationService.assigned(projects.stream().map(Project::getId).toList(), assignedAt);
     findingRepository
         .findAllByProjectIdInAndStatus(
             projects.stream().map(Project::getId).toList(), FindingStatus.DRAFT)
@@ -87,6 +88,7 @@ public class ReviewAssignmentService {
             () -> {
               handOver(project, null);
               project.clearReviewer();
+              notificationService.unassigned(project, submittedAt);
             });
   }
 

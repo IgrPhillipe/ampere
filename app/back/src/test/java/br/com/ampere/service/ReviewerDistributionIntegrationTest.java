@@ -145,6 +145,44 @@ class ReviewerDistributionIntegrationTest {
   }
 
   @Test
+  void submissionWithoutAnAnalystNotifiesEveryActiveManager() throws Exception {
+    String hash = passwordEncoder.encode(PASSWORD);
+    User second =
+        userRepository.save(new User("Bia Gestora", "bia@ampere.com", hash, UserRole.ADMIN));
+    User former =
+        userRepository.save(new User("Caio Gestor", "caio@ampere.com", hash, UserRole.ADMIN));
+    deactivate(former);
+    Project project = readyProject("2026-9002", "Recife", designer);
+
+    submit(project).andExpect(status().isOk());
+
+    for (User manager : List.of(admin, second)) {
+      notifications(manager)
+          .andExpect(jsonPath("$.data.unreadCount").value(1))
+          .andExpect(jsonPath("$.data.items[0].type").value("PROJECT_UNASSIGNED"))
+          .andExpect(
+              jsonPath("$.data.items[0].text").value("Projeto 2026-9002 aguardando analista"))
+          .andExpect(jsonPath("$.data.items[0].link").value("/fila-de-analise?reviewer=none"));
+    }
+    assertThat(notificationRepository.findAllByProjectId(project.getId()))
+        .extracting(notice -> notice.getRecipient().getId())
+        .containsExactlyInAnyOrder(admin.getId(), second.getId());
+  }
+
+  @Test
+  void assigningReadsTheManagersNotice() throws Exception {
+    Project project = readyProject("2026-9003", "Recife", designer);
+    submit(project).andExpect(status().isOk());
+
+    assign(List.of(project), ana).andExpect(status().isNoContent());
+
+    notifications(admin)
+        .andExpect(jsonPath("$.data.unreadCount").value(0))
+        .andExpect(jsonPath("$.data.items", hasSize(1)))
+        .andExpect(jsonPath("$.data.items[0].read").value(true));
+  }
+
+  @Test
   void resubmissionGoesBackToWhoRejected() throws Exception {
     Project project = readyProject("2026-9005", "Recife", designer);
     submit(project).andExpect(status().isOk());
@@ -155,6 +193,10 @@ class ReviewerDistributionIntegrationTest {
 
     assertThat(reviewerOf(project).getId()).isEqualTo(bruno.getId());
     assertThat(lastAssignmentOf(project).getAuthor()).isNull();
+    // Only the notice of the first submission, read when the manager assigned it.
+    notifications(admin)
+        .andExpect(jsonPath("$.data.unreadCount").value(0))
+        .andExpect(jsonPath("$.data.items", hasSize(1)));
   }
 
   @Test
@@ -168,6 +210,15 @@ class ReviewerDistributionIntegrationTest {
     resubmit(project).andExpect(status().isOk());
 
     assertThat(reviewerOf(project)).isNull();
+    notifications(admin)
+        .andExpect(jsonPath("$.data.unreadCount").value(1))
+        .andExpect(jsonPath("$.data.items", hasSize(2)))
+        .andExpect(jsonPath("$.data.items[0].type").value("PROJECT_UNASSIGNED"))
+        .andExpect(jsonPath("$.data.items[0].read").value(false));
+    assertThat(notificationRepository.findAllByProjectId(project.getId()))
+        .filteredOn(notice -> notice.getType() == NotificationType.PROJECT_UNASSIGNED)
+        .extracting(notice -> notice.getRecipient().getId())
+        .containsOnly(admin.getId());
   }
 
   @Test
