@@ -162,7 +162,7 @@ export const ReviewDashboardPage = () => {
 						title={`${copy.band}, ${dashboardPeriodLabels[period]}`}
 					/>
 
-					<div className="grid flex-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,3fr)]">
+					<div className="grid flex-1 grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,3fr)]">
 						<div className="flex flex-col gap-10 px-gutter py-7 md:px-gutter-md">
 							<ReviewFindingsRanking items={dashboard?.findingsRanking} />
 							<WeeklyReviewChart weeks={dashboard?.weekly} />
