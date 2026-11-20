@@ -45,6 +45,17 @@ vi.mock("@services/locations", async (importOriginal) => ({
 		),
 }));
 
+vi.mock("@services/review-queue", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@services/review-queue")>()),
+	useGetReviewerList: () =>
+		loadedQuery({
+			data: [
+				{ id: "7", name: "Ana Analista", role: "reviewer", active: true },
+				{ id: "9", name: "Davi Inativo", role: "reviewer", active: false },
+			],
+		}),
+}));
+
 vi.mock("@services/users/requests", () => ({
 	getUserList: vi.fn().mockResolvedValue({
 		data: [
@@ -121,6 +132,7 @@ describe("ProjectDataPage", () => {
 		await pick(/Tensão de fornecimento/, "380/220 V");
 		await pick(/Tipo de ligação/, "Trifásico");
 		await pick(/Padrão de entrada/, "Coletivo");
+		await pick(/Analista/, "Ana Analista");
 
 		await waitFor(() => expect(screen.getByText("11/11")).toBeInTheDocument());
 		fireEvent.click(
@@ -131,6 +143,7 @@ describe("ProjectDataPage", () => {
 		expect(state.create.mutate).toHaveBeenCalledWith(
 			expect.objectContaining({
 				ownerId: "5",
+				reviewerId: "7",
 				name: "Residencial Boa Vista",
 				municipality: "Recife",
 				state: "PE",
@@ -139,11 +152,27 @@ describe("ProjectDataPage", () => {
 		);
 	});
 
-	it("leaves the designer field out for the designer", () => {
+	it("offers the administrator only the active analysts, as optional", async () => {
+		signInAs("admin");
+		renderPage();
+
+		fireEvent.click(screen.getByRole("combobox", { name: /Analista/ }));
+		const options = await screen.findAllByRole("option");
+
+		expect(options.map((option) => option.textContent)).toEqual([
+			"Definir depois",
+			"Ana Analista",
+		]);
+	});
+
+	it("leaves the designer and analyst fields out for the designer", () => {
 		signInAs("user");
 		renderPage();
 
 		expect(ownerField()).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("combobox", { name: /Analista/ }),
+		).not.toBeInTheDocument();
 		expect(screen.getByText("00/10")).toBeInTheDocument();
 	});
 
@@ -158,6 +187,9 @@ describe("ProjectDataPage", () => {
 
 		expect(ownerField()).toBeDisabled();
 		expect(ownerField()).toHaveTextContent("Carla Projetista");
+		expect(
+			screen.queryByRole("combobox", { name: /Analista/ }),
+		).not.toBeInTheDocument();
 		expect(screen.getByText("10/10")).toBeInTheDocument();
 
 		fireEvent.change(screen.getByPlaceholderText("Digite o nome do projeto"), {
@@ -171,7 +203,10 @@ describe("ProjectDataPage", () => {
 		expect(state.update.mutate).toHaveBeenCalledWith(
 			{
 				id: "4",
-				payload: expect.not.objectContaining({ ownerId: expect.anything() }),
+				payload: expect.not.objectContaining({
+					ownerId: expect.anything(),
+					reviewerId: expect.anything(),
+				}),
 			},
 			expect.anything(),
 		);

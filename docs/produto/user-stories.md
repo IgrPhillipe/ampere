@@ -1001,7 +1001,7 @@ Distribuição dos projetos enviados entre os analistas pelo gestor, projeto a p
 ### Conversação (Regras de Negócio e Interface)
 O gestor escolhe o analista no cabeçalho do projeto em análise, em "Atribuir Analista" ou "Trocar Analista". A seleção em lote na fila saiu em 20/11. O gestor acha os projetos sem analista em "Projetos", com a situação "Em análise" e o analista "Sem analista". Na reatribuição, os apontamentos em rascunho passam para o novo analista; os publicados ficam com o autor original.
 
-No envio, o projeto fica "Não Atribuído" até o gestor atribuir. Na reanálise, o projeto volta para o analista que reprovou, se ele ainda puder analisar; senão, fica "Não Atribuído". Quando o projeto fica "Não Atribuído", os gestores ativos recebem uma notificação ([US14](#us14-notificações-no-sistema)).
+Quando o gestor cria o projeto em nome de um projetista, pode escolher o analista no campo opcional "Analista". O analista recebe o projeto no envio e não vê o rascunho antes disso. Sem essa escolha, o projeto fica "Não Atribuído" no envio até o gestor atribuir. Na reanálise, o projeto volta para o analista que reprovou, se ele ainda puder analisar; senão, fica "Não Atribuído". Quando o projeto fica "Não Atribuído", os gestores ativos recebem uma notificação ([US14](#us14-notificações-no-sistema)).
 
 A regra por município (cada município com um analista fixo) saiu em 20/11: foi proposta do time, não pedido da cliente, e o gestor é quem distribui.
 

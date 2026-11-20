@@ -50,4 +50,6 @@ export interface CreateProjectPayload {
 	entranceStandard: EntranceStandard;
 	/** Read only when the administrator creates the project. */
 	ownerId?: string;
+	/** The analyst who gets the project on submission; read only when the administrator creates. */
+	reviewerId?: string;
 }

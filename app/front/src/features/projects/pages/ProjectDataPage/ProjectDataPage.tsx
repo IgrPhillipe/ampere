@@ -24,6 +24,7 @@ import {
 	ProjectAddressFields,
 	ProjectBreadcrumb,
 	ProjectOwnerField,
+	ProjectReviewerField,
 	StageFindingsNotice,
 	StepFooter,
 } from "../../components";
@@ -129,6 +130,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 		connectionType: undefined,
 		entranceStandard: undefined,
 		ownerId: undefined,
+		reviewerId: undefined,
 	});
 
 	useEffect(() => {
@@ -170,7 +172,10 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 
 		updateProject.mutate(
 			// The owner never changes after the creation.
-			{ id: projectId, payload: { ...submitted, ownerId: undefined } },
+			{
+				id: projectId,
+				payload: { ...submitted, ownerId: undefined, reviewerId: undefined },
+			},
 			{
 				onSuccess: () => {
 					// The latest calculation may now be outdated.
@@ -219,6 +224,10 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 										disabled={!choosesOwner}
 										ownerName={project?.ownerName}
 									/>
+								) : null}
+
+								{choosesOwner ? (
+									<ProjectReviewerField control={form.control} />
 								) : null}
 
 								<ControlledInput
