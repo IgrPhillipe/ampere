@@ -246,6 +246,7 @@ class ReviewQueueIntegrationTest {
         .andExpect(jsonPath("$.data[0].warnings").value(1))
         .andExpect(jsonPath("$.data[0].alerts", hasSize(1)))
         .andExpect(jsonPath("$.data[0].reviewCycle").value(1))
+        .andExpect(jsonPath("$.data[0].ownerId").value(String.valueOf(owner.getId())))
         .andExpect(jsonPath("$.data[0].ownerName").value("João Projetista"))
         .andExpect(jsonPath("$.data[0].consumerUnitsCount").value(51))
         .andExpect(jsonPath("$.data[0].demandKva", notNullValue()))
@@ -340,8 +341,10 @@ class ReviewQueueIntegrationTest {
         .andExpect(jsonPath("$.data", hasSize(3)))
         .andExpect(jsonPath("$.data[0].name").value("Admin Teste"))
         .andExpect(jsonPath("$.data[0].id").value(String.valueOf(admin.getId())))
+        .andExpect(jsonPath("$.data[0].role").value("admin"))
         .andExpect(jsonPath("$.data[1].name").value("Revisor Beta"))
-        .andExpect(jsonPath("$.data[2].name").value("Revisor Teste"));
+        .andExpect(jsonPath("$.data[2].name").value("Revisor Teste"))
+        .andExpect(jsonPath("$.data[2].role").value("reviewer"));
     mockMvc
         .perform(
             get("/review-queue/reviewers")
