@@ -22,18 +22,18 @@ const projectColumnClassNames = {
 	action: "w-36 pr-0 text-right",
 } satisfies Partial<Record<ProjectColumnId, string>>;
 
-// The owner column costs the name its room, so the manager drops more columns, and sooner.
+// The owner column costs the name its room, so the manager drops more columns, and longer.
 const ownerColumnClassNames = {
 	...projectColumnClassNames,
-	units: `${projectColumnClassNames.units} hidden min-[90rem]:table-cell`,
-	createdAt: `${projectColumnClassNames.createdAt} hidden min-[90rem]:table-cell`,
-	updatedAt: `${projectColumnClassNames.updatedAt} hidden xl:table-cell`,
+	units: `${projectColumnClassNames.units} lg:hidden wide:table-cell`,
+	createdAt: `${projectColumnClassNames.createdAt} lg:hidden wide:table-cell`,
+	updatedAt: `${projectColumnClassNames.updatedAt} lg:hidden xl:table-cell`,
 } satisfies Partial<Record<ProjectColumnId, string>>;
 
 const designerColumnClassNames = {
 	...projectColumnClassNames,
-	units: `${projectColumnClassNames.units} hidden xl:table-cell`,
-	createdAt: `${projectColumnClassNames.createdAt} hidden xl:table-cell`,
+	units: `${projectColumnClassNames.units} lg:hidden xl:table-cell`,
+	createdAt: `${projectColumnClassNames.createdAt} lg:hidden xl:table-cell`,
 } satisfies Partial<Record<ProjectColumnId, string>>;
 
 const sortableColumns = [
@@ -118,9 +118,9 @@ export const ProjectsTable = ({
 			columnClassNames={
 				showOwner ? ownerColumnClassNames : designerColumnClassNames
 			}
-			// Phones scroll the table instead of squeezing the name to nothing.
+			// Below 1024 px every column stays and the table scrolls instead.
 			tableClassName={
-				showOwner ? "min-w-[60rem] lg:min-w-0" : "min-w-[58rem] lg:min-w-0"
+				showOwner ? "min-w-[80rem] lg:min-w-0" : "min-w-[70rem] lg:min-w-0"
 			}
 			sortableColumns={sortableColumns}
 			sort={sort}

@@ -21,11 +21,11 @@ const columnClassNames = {
 	select: "w-12 pr-0",
 	attention: "w-5 px-0",
 	protocol: "w-28",
-	// Below 1280 px these give way, so the reviewer and the action stay in view.
-	units: "hidden w-16 text-right xl:table-cell",
-	demand: "hidden w-28 text-right xl:table-cell",
+	// From 1024 to 1280 px these give way, so the reviewer and the action stay in view.
+	units: "w-16 text-right lg:hidden xl:table-cell",
+	demand: "w-28 text-right lg:hidden xl:table-cell",
 	warnings: "w-32",
-	deadline: "hidden w-28 text-right xl:table-cell",
+	deadline: "w-28 text-right lg:hidden xl:table-cell",
 	status: "w-36 text-right",
 	reviewer: "w-36",
 	action: "w-24 pr-0 text-right",
@@ -93,8 +93,8 @@ export const ReviewQueueListing = ({
 			columns={columns}
 			data={items}
 			columnClassNames={columnClassNames}
-			// Phones scroll the table instead of squeezing the name to nothing.
-			tableClassName="min-w-[58rem] lg:min-w-0"
+			// Below 1024 px every column stays and the table scrolls instead.
+			tableClassName="min-w-[72rem] lg:min-w-0"
 			sortableColumns={sortableColumns}
 			sort={sort}
 			onSortChange={onSortChange}
