@@ -19,6 +19,10 @@ public record ProjectResponse(
     String protocol,
     String ownerId,
     String ownerName,
+    @Schema(description = "Identificador do analista responsável; nulo enquanto não houver")
+        String reviewerId,
+    @Schema(description = "Nome do analista responsável; nulo enquanto não houver")
+        String reviewerName,
     ProjectStatus status,
     OffsetDateTime createdAt,
     OffsetDateTime updatedAt,
@@ -47,6 +51,8 @@ public record ProjectResponse(
         project.getProtocol(),
         project.getOwner() == null ? null : String.valueOf(project.getOwner().getId()),
         project.getOwner() == null ? null : project.getOwner().getName(),
+        project.getReviewer() == null ? null : String.valueOf(project.getReviewer().getId()),
+        project.getReviewer() == null ? null : project.getReviewer().getName(),
         project.getStatus(),
         project.getCreatedAt(),
         project.getUpdatedAt(),

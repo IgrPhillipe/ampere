@@ -89,6 +89,12 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
       where.append(" AND project.owner.id = :owner");
       parameters.put("owner", search.owner());
     }
+    if (search.unassigned()) {
+      where.append(" AND project.reviewer IS NULL");
+    } else if (search.reviewerId() != null) {
+      where.append(" AND project.reviewer.id = :reviewerId");
+      parameters.put("reviewerId", search.reviewerId());
+    }
 
     String direction = search.direction().name();
     String column =
@@ -100,9 +106,10 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
           case UPDATED_AT -> "project.updatedAt " + direction;
         };
 
-    // The owner comes with the page: the admin's listing shows who designed each project.
+    // Owner and reviewer come with the page: the admin's listing shows both on each project.
     return page(
-        "SELECT project FROM Project project LEFT JOIN FETCH project.owner owner",
+        "SELECT project FROM Project project LEFT JOIN FETCH project.owner owner"
+            + " LEFT JOIN FETCH project.reviewer",
         where,
         parameters,
         column + ", project.id " + direction,

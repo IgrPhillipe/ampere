@@ -10,7 +10,6 @@ import br.com.ampere.domain.ReviewTimeline;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
-import br.com.ampere.error.BusinessException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.ProjectRepository;
@@ -37,9 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReviewQueueService {
 
   public static final BigDecimal HIGH_DEMAND_THRESHOLD = new BigDecimal("50");
-
-  /** {@code reviewer} value for the projects the manager has not assigned yet. */
-  public static final String UNASSIGNED = "none";
 
   private final ProjectRepository projectRepository;
   private final CalculationRepository calculationRepository;
@@ -82,9 +78,8 @@ public class ReviewQueueService {
       ReviewQueueQuery query, LocalDate today, AuthenticatedUser user) {
     // The analyst's own scope replaces whatever reviewer the request asks for.
     Long scope = analystScope(user);
-    String reviewer = scope != null || query.reviewer() == null ? "" : query.reviewer().trim();
-    boolean unassigned = UNASSIGNED.equalsIgnoreCase(reviewer);
-    Long reviewerId = reviewer.isEmpty() || unassigned ? null : analystId(reviewer);
+    ReviewerFilter reviewer =
+        scope != null ? ReviewerFilter.ANY : ReviewerFilter.of(query.reviewer(), userRepository);
 
     return new ReviewQueueSearch(
         SearchTerms.normalize(query.search()),
@@ -93,8 +88,8 @@ public class ReviewQueueService {
         query.filter() == ReviewQueueFilter.REANALYSIS,
         query.states(),
         query.municipalities(),
-        scope != null ? scope : reviewerId,
-        unassigned,
+        scope != null ? scope : reviewer.reviewerId(),
+        reviewer.unassigned(),
         query.owner(),
         query.sort(),
         query.direction());
@@ -222,25 +217,6 @@ public class ReviewQueueService {
                 SortDirection.ASC),
             PageRequest.of(0, 1))
         .getTotalElements();
-  }
-
-  private Long analystId(String reviewer) {
-    long id;
-    try {
-      id = Long.parseLong(reviewer);
-    } catch (NumberFormatException exception) {
-      throw new BusinessException("Identificador de analista inválido.");
-    }
-
-    User user =
-        userRepository
-            .findById(id)
-            .orElseThrow(() -> new BusinessException("Analista informado não encontrado."));
-    if (!user.getRole().canReview()) {
-      throw new BusinessException("O usuário informado não é um analista.");
-    }
-
-    return id;
   }
 
   private Map<Long, List<String>> latestWarnings(List<Long> projectIds) {

@@ -98,6 +98,12 @@ public class ProjectController {
       @Parameter(description = "Projetista dono dos projetos, pelo identificador")
           @RequestParam(required = false)
           Long owner,
+      @Parameter(
+              description =
+                  "Filtro por analista (id do usuário ou 'none' para sem analista); só para o"
+                      + " administrador")
+          @RequestParam(required = false)
+          String reviewer,
       @AuthenticationPrincipal Jwt jwt) {
     ProjectListing listing =
         service.list(
@@ -113,7 +119,8 @@ public class ProjectController {
                 createdFrom,
                 createdTo,
                 findings,
-                owner),
+                owner,
+                reviewer),
             userOf(jwt));
     List<ProjectResponse> projects =
         listing.projects().stream()

@@ -268,15 +268,15 @@ class SpreadsheetExportIntegrationTest {
     assertThat(content).startsWith((byte) 0xef, (byte) 0xbb, (byte) 0xbf);
     assertThat(rows.get(0))
         .endsWith(
-            "Protocolo;Projeto;Endereço;Município;UF;Projetista;Situação;Pendências;UCs;"
-                + "Demanda (kVA);Criado em;Atualizado em");
+            "Protocolo;Projeto;Endereço;Município;UF;Projetista;Analista;Situação;Pendências;"
+                + "UCs;Demanda (kVA);Criado em;Atualizado em");
     assertThat(rows).hasSize(3);
     assertThat(rows.get(2))
         .startsWith("2026-2001;\"'=Edifício; Aurora \"\"A\"\"\";\"Rua; 1\";Recife;PE;Usuário Teste")
-        .contains(";Rascunho;0;51;")
+        .contains(";Usuário Teste;Sem analista;Rascunho;0;51;")
         .contains(";135,00;");
     assertThat(rows.get(1)).contains(";Sem cálculo;");
-    assertThat(rows.get(1).split(";")[10]).matches(BR_DATE_TIME);
+    assertThat(rows.get(1).split(";")[11]).matches(BR_DATE_TIME);
   }
 
   @Test
@@ -294,6 +294,27 @@ class SpreadsheetExportIntegrationTest {
     assertThat(drafts.get(1)).startsWith("2026-2003;");
     assertThat(drafts.get(2)).startsWith("2026-2001;");
     assertThat(csv(DESIGNER, "/projects/export.csv?state=SP")).hasSize(1);
+  }
+
+  @Test
+  void filtersTheProjectsByAnalystLikeTheListing() throws Exception {
+    Project assigned = project("2026-2001");
+    assigned.submit(now);
+    assigned.assignReviewer(reviewer);
+    projectRepository.save(assigned);
+    Project waiting = project("2026-2002");
+    waiting.submit(now);
+    projectRepository.save(waiting);
+
+    List<String> byAnalyst =
+        csv(ADMIN, "/projects/export.csv?reviewer=" + reviewer.getId() + "&sort=name");
+    List<String> unassigned = csv(ADMIN, "/projects/export.csv?reviewer=none&sort=name");
+
+    assertThat(byAnalyst).hasSize(2);
+    assertThat(byAnalyst.get(1)).startsWith("2026-2001;").contains(";Revisor Teste;");
+    assertThat(unassigned).hasSize(2);
+    assertThat(unassigned.get(1)).startsWith("2026-2002;").contains(";Sem analista;");
+    assertThat(csv(DESIGNER, "/projects/export.csv?reviewer=none")).hasSize(3);
   }
 
   @Test

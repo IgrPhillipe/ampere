@@ -34,6 +34,7 @@ import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectRepositoryCustom.ProjectSearch;
+import br.com.ampere.repository.UserRepository;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -72,6 +73,7 @@ class ProjectServiceTest {
                 LocalDate.of(2026, 10, 1),
                 LocalDate.of(2026, 10, 10),
                 Set.of(OpenFindingsFilter.ANY_OPEN),
+                null,
                 null),
             DESIGNER);
 
@@ -104,6 +106,7 @@ class ProjectServiceTest {
             null,
             LocalDate.of(2026, 10, 10),
             LocalDate.of(2026, 10, 1),
+            null,
             null,
             null);
 
@@ -241,6 +244,7 @@ class ProjectServiceTest {
         mock(CalculationRepository.class),
         mock(ProjectDocumentRepository.class),
         mock(ProjectEventRepository.class),
+        mock(UserRepository.class),
         creation,
         mock(ApplicableStandards.class));
   }
@@ -261,6 +265,7 @@ class ProjectServiceTest {
         calculationRepository,
         mock(ProjectDocumentRepository.class),
         mock(ProjectEventRepository.class),
+        mock(UserRepository.class),
         mock(ProjectCreation.class),
         mock(ApplicableStandards.class));
   }

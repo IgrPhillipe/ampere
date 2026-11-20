@@ -19,7 +19,8 @@ public record ProjectListQuery(
     LocalDate createdFrom,
     LocalDate createdTo,
     Collection<OpenFindingsFilter> findings,
-    Long owner) {
+    Long owner,
+    String reviewer) {
 
   public ProjectListQuery {
     statuses = FilterValues.setOf(statuses, "status");

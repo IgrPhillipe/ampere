@@ -48,6 +48,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
+import org.hibernate.Hibernate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -243,6 +244,7 @@ class ProjectServiceIntegrationTest {
                 null,
                 ProjectSort.NAME,
                 SortDirection.ASC,
+                null,
                 null,
                 null,
                 null,
@@ -444,6 +446,7 @@ class ProjectServiceIntegrationTest {
             null,
             null,
             null,
+            null,
             null);
 
     assertThat(list(inParaiba).projects()).containsExactly(pedras);
@@ -487,6 +490,7 @@ class ProjectServiceIntegrationTest {
                     null,
                     null,
                     Set.of(OpenFindingsFilter.BLOCKING_OPEN, OpenFindingsFilter.NONE_OPEN),
+                    null,
                     null))
                 .projects())
         .containsExactlyInAnyOrder(blocked, drafted, resolved, clean, reserved);
@@ -506,6 +510,7 @@ class ProjectServiceIntegrationTest {
             SortDirection.DESC,
             null,
             Set.of("recife", " Olinda "),
+            null,
             null,
             null,
             null,
@@ -536,10 +541,68 @@ class ProjectServiceIntegrationTest {
                 null,
                 null,
                 Set.of(OpenFindingsFilter.BLOCKING_OPEN),
+                null,
                 null));
 
     assertThat(listing.projects()).containsExactly(alpha, zeta);
     assertThat(listing.totalElements()).isEqualTo(2);
+  }
+
+  @Test
+  void filtersTheAdministratorListingByAnalystOrWithoutOne() {
+    User analyst =
+        userRepository.save(new User("Ana Analista", "ana@ampere.com", "hash", UserRole.REVIEWER));
+    Project assigned = save("Alpha", "Recife", "2026-0101");
+    assigned.assignReviewer(analyst);
+    projectRepository.save(assigned);
+    Project waiting = save("Beta", "Recife", "2026-0102");
+    AuthenticatedUser admin = admin();
+
+    assertThat(adminList(String.valueOf(analyst.getId()), admin).projects())
+        .containsExactly(assigned);
+    assertThat(adminList(" NONE ", admin).projects()).containsExactly(waiting);
+    assertThat(adminList(null, admin).projects()).containsExactly(assigned, waiting);
+  }
+
+  @Test
+  void bringsTheAnalystWithThePage() {
+    User analyst =
+        userRepository.save(new User("Ana Analista", "ana@ampere.com", "hash", UserRole.REVIEWER));
+    Project assigned = save("Alpha", "Recife", "2026-0101");
+    assigned.assignReviewer(analyst);
+    projectRepository.save(assigned);
+    AuthenticatedUser admin = admin();
+    entityManager.flush();
+    entityManager.clear();
+
+    Project listed = adminList(null, admin).projects().getFirst();
+
+    assertThat(Hibernate.isInitialized(listed.getReviewer())).isTrue();
+    assertThat(listed.getReviewer().getName()).isEqualTo("Ana Analista");
+  }
+
+  @Test
+  void ignoresTheAnalystFilterOutsideTheAdministratorListing() {
+    Project alpha = save("Alpha", "Recife", "2026-0101");
+    Project beta = save("Beta", "Recife", "2026-0102");
+
+    assertThat(service.list(1, 20, byReviewer("invalido"), designer).projects())
+        .containsExactly(alpha, beta);
+  }
+
+  @Test
+  void refusesAnAnalystFilterThatIsNotAnAnalyst() {
+    AuthenticatedUser admin = admin();
+
+    assertThatThrownBy(() -> adminList("invalido", admin))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("Identificador de analista inválido.");
+    assertThatThrownBy(() -> adminList(String.valueOf(owner.getId()), admin))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("O usuário informado não é um analista.");
+    assertThatThrownBy(() -> adminList("999999", admin))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("Analista informado não encontrado.");
   }
 
   @Test
@@ -856,6 +919,7 @@ class ProjectServiceIntegrationTest {
             null,
             null,
             null,
+            null,
             null));
   }
 
@@ -863,8 +927,35 @@ class ProjectServiceIntegrationTest {
     return service.list(1, 20, query, designer);
   }
 
+  private AuthenticatedUser admin() {
+    User admin =
+        userRepository.save(new User("Gestor", "gestor@ampere.com", "hash", UserRole.ADMIN));
+
+    return new AuthenticatedUser(admin.getId(), UserRole.ADMIN);
+  }
+
+  private ProjectListing adminList(String reviewer, AuthenticatedUser admin) {
+    return service.list(1, 20, byReviewer(reviewer), admin);
+  }
+
+  private static ProjectListQuery byReviewer(String reviewer) {
+    return new ProjectListQuery(
+        null,
+        null,
+        ProjectSort.NAME,
+        SortDirection.ASC,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        reviewer);
+  }
+
   private static ProjectListQuery sortedBy(ProjectSort sort, SortDirection direction) {
-    return new ProjectListQuery(null, null, sort, direction, null, null, null, null, null, null);
+    return new ProjectListQuery(
+        null, null, sort, direction, null, null, null, null, null, null, null);
   }
 
   private static ProjectListQuery filtered(
@@ -878,6 +969,7 @@ class ProjectServiceIntegrationTest {
         municipality == null ? null : Set.of(municipality),
         createdFrom,
         createdTo,
+        null,
         null,
         null);
   }
@@ -893,6 +985,7 @@ class ProjectServiceIntegrationTest {
         null,
         null,
         findings == null ? null : Set.of(findings),
+        null,
         null);
   }
 

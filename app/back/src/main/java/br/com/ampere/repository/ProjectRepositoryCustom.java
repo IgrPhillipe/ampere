@@ -46,6 +46,8 @@ public interface ProjectRepositoryCustom {
       OffsetDateTime createdBefore,
       Collection<OpenFindingsFilter> findings,
       Long owner,
+      Long reviewerId,
+      boolean unassigned,
       ProjectSort sort,
       SortDirection direction) {}
 

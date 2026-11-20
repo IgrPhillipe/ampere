@@ -138,6 +138,8 @@ Cada projeto pertence a quem o criou. O projetista vê só os próprios projetos
 
 A listagem `GET /api/projects` traz `reviewDeadline`, `reviewSuspended` e `approvalValidUntil` com as mesmas regras, e `GET /api/projects/status-counts` conta `expired` à parte de `approved`.
 
+Cada item da listagem traz também `reviewerId` e `reviewerName`, do analista responsável, `null` enquanto não houver. O parâmetro `reviewer` filtra pelo ID do analista, ou `none` para os projetos sem analista, como na fila; vale só para o `admin` e é ignorado para projetista e analista. ID inválido, inexistente ou de quem não analisa responde 400. `GET /api/projects/export.csv` aceita o mesmo filtro e traz a coluna Analista, com "Sem analista" quando vazia.
+
 O dono consulta o histórico do próprio projeto em `GET /api/projects/{id}/events?direction=DESC`. Analistas acessam o histórico dos projetos enviados; administradores, o de qualquer projeto. A regra é a mesma do detalhe. Outro projetista recebe 404, sem revelar a existência do projeto.
 
 ### Gestão de Usuários
