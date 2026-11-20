@@ -126,6 +126,7 @@ describe("DocumentsPage", () => {
 			expect(
 				within(dialog).getByTitle("ART: art-assinada.pdf"),
 			).toHaveAttribute("src", "blob:documento#toolbar=0");
+			expect(within(dialog).getAllByText("art-assinada.pdf")).toHaveLength(1);
 		});
 	});
 

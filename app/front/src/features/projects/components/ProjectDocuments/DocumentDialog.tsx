@@ -1,7 +1,6 @@
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from "@components/ui/dialog";
@@ -35,7 +34,6 @@ export const DocumentDialog = ({
 				<DialogTitle className="font-heading text-lg">
 					{document?.typeLabel ?? "Documento"}
 				</DialogTitle>
-				<DialogDescription>{document?.filename}</DialogDescription>
 			</DialogHeader>
 			<div className="px-6 py-5">
 				{document ? (
