@@ -112,7 +112,7 @@ const AssignReviewerForm = ({
 												<Badge variant="neutral">Gestor</Badge>
 											) : null}
 											{isOwner ? (
-												<span className="text-xs text-muted-foreground">
+												<span className="text-xs text-disabled-foreground">
 													{ownerReason(projects.length)}
 												</span>
 											) : null}
