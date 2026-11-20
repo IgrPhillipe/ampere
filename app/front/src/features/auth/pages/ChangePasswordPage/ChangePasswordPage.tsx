@@ -35,7 +35,6 @@ export const ChangePasswordPage = ({ redirectTo }: ChangePasswordPageProps) => {
 		<AuthLayout
 			title="Troca de Senha"
 			description="Sua senha é temporária. Crie uma nova senha para continuar."
-			note="A nova senha precisa de ao menos 8 caracteres, com letra e número."
 		>
 			<ChangePasswordForm
 				form={form}

@@ -2,7 +2,6 @@ import { Button } from "@components/ui/button";
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
@@ -43,10 +42,6 @@ export const ChangePasswordDialog = ({
 					<DialogTitle className="font-heading text-xl">
 						Alterar Senha
 					</DialogTitle>
-
-					<DialogDescription>
-						A nova senha deve ter ao menos 8 caracteres, com letra e número.
-					</DialogDescription>
 				</DialogHeader>
 
 				<ChangePasswordForm form={form} onSubmit={submit}>

@@ -55,7 +55,10 @@ export const FormField = ({
 
 		{children}
 
-		{description ? <FieldDescription>{description}</FieldDescription> : null}
+		{/* The error takes the hint's place, so the field shows one message. */}
+		{description && !error ? (
+			<FieldDescription>{description}</FieldDescription>
+		) : null}
 
 		{error ? <FieldError match>{error}</FieldError> : null}
 	</Field>

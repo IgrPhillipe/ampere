@@ -1,6 +1,7 @@
 import { ControlledInput } from "@components/form";
 import type { ReactNode } from "react";
 
+import { PASSWORD_HINT } from "../../schemas";
 import type { useChangePasswordForm } from "./useChangePasswordForm";
 
 type ChangePasswordFormState = ReturnType<typeof useChangePasswordForm>;
@@ -36,6 +37,7 @@ export const ChangePasswordForm = ({
 			type="password"
 			required
 			autoComplete="new-password"
+			description={PASSWORD_HINT}
 		/>
 
 		<ControlledInput

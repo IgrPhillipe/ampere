@@ -5,7 +5,11 @@ import { useRegister } from "@services/auth";
 import { Link } from "@tanstack/react-router";
 
 import { AuthLayout } from "../../components/AuthLayout";
-import { type RegisterFormValues, registerSchema } from "../../schemas";
+import {
+	PASSWORD_HINT,
+	type RegisterFormValues,
+	registerSchema,
+} from "../../schemas";
 
 export const RegisterPage = () => {
 	const form = useZodForm(registerSchema, {
@@ -34,11 +38,7 @@ export const RegisterPage = () => {
 		);
 
 	return (
-		<AuthLayout
-			title="Criar Conta"
-			description="A conta é criada com o papel de projetista. Seu nome e o CREA identificam o responsável técnico no carimbo do projeto e no memorial."
-			note="Campos com * são obrigatórios. A senha precisa de ao menos 8 caracteres, com letra e número. Analistas não se cadastram aqui: são criados pelo gestor."
-		>
+		<AuthLayout title="Criar Conta">
 			<form
 				noValidate
 				onSubmit={form.handleSubmit(onSubmit)}
@@ -111,6 +111,7 @@ export const RegisterPage = () => {
 						type="password"
 						required
 						autoComplete="new-password"
+						description={PASSWORD_HINT}
 					/>
 
 					<ControlledInput

@@ -4,6 +4,9 @@ import { z } from "zod";
 const PASSWORD_POLICY_ERROR =
 	"A senha deve ter ao menos 8 caracteres, com letra e número.";
 
+/** Shown under every new password field, until a validation error replaces it. */
+export const PASSWORD_HINT = "Ao menos 8 caracteres, com letra e número.";
+
 /** Same policy as the API: 8 to 72 characters, with a letter and a digit. */
 export const passwordSchema = z
 	.string({ error: "A senha é obrigatória." })
