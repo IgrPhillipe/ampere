@@ -23,9 +23,14 @@ export type ReviewQueueSort = z.infer<typeof reviewQueueSortSchema>;
 /** `reviewer` value for projects nobody picked up yet. */
 export const UNASSIGNED_REVIEWER = "none";
 
+export const reviewerRoleSchema = z.enum(["reviewer", "admin"]);
+
+export type ReviewerRole = z.infer<typeof reviewerRoleSchema>;
+
 export const reviewerSchema = z.object({
 	id: z.string(),
 	name: z.string(),
+	role: reviewerRoleSchema,
 });
 
 export type Reviewer = z.infer<typeof reviewerSchema>;
@@ -53,6 +58,7 @@ export const reviewQueueItemSchema = z.object({
 	daysRemaining: z.number().int(),
 	warnings: z.number().int().nonnegative(),
 	alerts: z.array(z.string()),
+	ownerId: z.string().nullable(),
 	ownerName: z.string().nullable(),
 	consumerUnitsCount: z.number().int().nonnegative(),
 	demandKva: z.number().nonnegative().nullable(),

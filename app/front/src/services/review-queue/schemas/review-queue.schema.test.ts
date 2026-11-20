@@ -23,6 +23,7 @@ describe("review queue API contract", () => {
 					alerts: [
 						"Recarga de 44,40 kW instalados, acima de 20 kW: exige estudo da rede.",
 					],
+					ownerId: "12",
 					ownerName: "José da Silva",
 					consumerUnitsCount: 12,
 					demandKva: 51.4,

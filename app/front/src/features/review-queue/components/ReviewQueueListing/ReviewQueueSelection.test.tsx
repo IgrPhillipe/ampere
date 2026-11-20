@@ -19,6 +19,7 @@ const itemOf = (
 	daysRemaining: 20,
 	warnings: 0,
 	alerts: [],
+	ownerId: "3",
 	ownerName: "João Projetista",
 	consumerUnitsCount: 4,
 	demandKva: 30,

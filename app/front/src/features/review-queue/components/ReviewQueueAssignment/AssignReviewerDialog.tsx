@@ -1,3 +1,4 @@
+import { Badge } from "@components/ui/badge";
 import { Button } from "@components/ui/button";
 import {
 	Dialog,
@@ -37,6 +38,9 @@ interface AssignReviewerDialogProps {
 const formatProjectCount = (count: number) =>
 	count === 1 ? "1 projeto" : `${count} projetos`;
 
+const ownerReason = (count: number) =>
+	count === 1 ? "Dono do projeto" : "Dono de um dos projetos";
+
 interface AssignReviewerFormProps
 	extends Omit<AssignReviewerDialogProps, "open" | "onOpenChange"> {
 	onCancel: () => void;
@@ -57,6 +61,8 @@ const AssignReviewerForm = ({
 	const reviewers = Object.fromEntries(
 		reviewerList.map(({ id, name }) => [id, name]),
 	);
+	// The API refuses the owner as analyst of their own project.
+	const ownerIds = new Set(projects.map(({ ownerId }) => ownerId));
 	const listed = projects.slice(0, LISTED_PROJECTS);
 	const hidden = projects.length - listed.length;
 
@@ -96,11 +102,24 @@ const AssignReviewerForm = ({
 							/>
 						</SelectTrigger>
 						<SelectContent>
-							{reviewerList.map(({ id, name }) => (
-								<SelectItem key={id} value={id}>
-									{name}
-								</SelectItem>
-							))}
+							{reviewerList.map(({ id, name, role }) => {
+								const isOwner = ownerIds.has(id);
+								return (
+									<SelectItem key={id} value={id} disabled={isOwner}>
+										<span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+											<span className="truncate">{name}</span>
+											{role === "admin" ? (
+												<Badge variant="neutral">Gestor</Badge>
+											) : null}
+											{isOwner ? (
+												<span className="text-xs text-muted-foreground">
+													{ownerReason(projects.length)}
+												</span>
+											) : null}
+										</span>
+									</SelectItem>
+								);
+							})}
 						</SelectContent>
 					</Select>
 				</div>

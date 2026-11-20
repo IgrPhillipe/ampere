@@ -6,10 +6,10 @@ import { AssignReviewerDialog } from "./AssignReviewerDialog";
 
 const reviewers = vi.hoisted(() => ({
 	list: [
-		{ id: "7", name: "Ana Analista" },
-		{ id: "8", name: "Bruno Analista" },
+		{ id: "7", name: "Ana Analista", role: "reviewer" },
+		{ id: "8", name: "Bruno Analista", role: "reviewer" },
 		// A smaller id last: the list keeps the API's order by name.
-		{ id: "2", name: "Carla Gestora" },
+		{ id: "2", name: "Carla Gestora", role: "admin" },
 	],
 }));
 
@@ -21,13 +21,23 @@ vi.mock("@services/review-queue", async (importOriginal) => ({
 	}),
 }));
 
-const projectOf = (id: string, reviewerName: string | null = null) =>
+const projectOf = (
+	id: string,
+	reviewerName: string | null = null,
+	ownerId = "30",
+) =>
 	({
 		id,
 		protocol: `2026-000${id}`,
+		ownerId,
 		reviewerId: reviewerName ? "7" : null,
 		reviewerName,
 	}) as ReviewQueueItem;
+
+const openOptions = () => {
+	fireEvent.click(screen.getByRole("combobox", { name: "Analista" }));
+	return screen.findAllByRole("option");
+};
 
 const renderDialog = (
 	projects: ReviewQueueItem[],
@@ -92,14 +102,54 @@ describe("AssignReviewerDialog", () => {
 	it("lists the analysts in the order the API sends, by name", async () => {
 		renderDialog([projectOf("1")]);
 
-		fireEvent.click(screen.getByRole("combobox", { name: "Analista" }));
-		const options = await screen.findAllByRole("option");
+		const options = await openOptions();
 
 		expect(options.map((option) => option.textContent)).toEqual([
 			"Ana Analista",
 			"Bruno Analista",
-			"Carla Gestora",
+			"Carla GestoraGestor",
 		]);
+	});
+
+	it("marks the admins as Gestor", async () => {
+		renderDialog([projectOf("1")]);
+
+		const [ana, , carla] = await openOptions();
+
+		expect(carla).toHaveTextContent("Gestor");
+		expect(ana).not.toHaveTextContent("Gestor");
+	});
+
+	it("disables the owner of the project, with the reason", async () => {
+		const { onConfirm } = renderDialog([projectOf("1", null, "2")]);
+
+		const [ana, , carla] = await openOptions();
+
+		expect(carla).toHaveAttribute("aria-disabled", "true");
+		expect(carla).toHaveTextContent("Dono do projeto");
+		expect(ana).not.toHaveAttribute("aria-disabled", "true");
+		fireEvent.pointerDown(carla);
+		fireEvent.click(carla);
+		expect(
+			screen.getByRole("combobox", { name: "Analista" }),
+		).toHaveTextContent("Selecione o analista");
+		expect(screen.getByRole("button", { name: "Atribuir" })).toBeDisabled();
+		expect(onConfirm).not.toHaveBeenCalled();
+	});
+
+	it("disables the owner of any project in a batch", async () => {
+		renderDialog([
+			projectOf("1", null, "30"),
+			projectOf("2", null, "8"),
+			projectOf("3", null, "31"),
+		]);
+
+		const [ana, bruno, carla] = await openOptions();
+
+		expect(bruno).toHaveAttribute("aria-disabled", "true");
+		expect(bruno).toHaveTextContent("Dono de um dos projetos");
+		expect(ana).not.toHaveAttribute("aria-disabled", "true");
+		expect(carla).not.toHaveAttribute("aria-disabled", "true");
 	});
 
 	it("drops an analyst who left the refreshed list", async () => {
