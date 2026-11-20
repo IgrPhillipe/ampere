@@ -79,7 +79,7 @@ public class DemandCalculationController {
         CalculationResponse.from(
             latest.calculation(),
             latest.outdated(),
-            latest.outdated() ? service.changedTables(latest.calculation()) : List.of(),
+            latest.changedTables(),
             latest.revisionsFixedAt()));
   }
 

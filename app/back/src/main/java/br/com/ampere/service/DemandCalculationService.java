@@ -149,11 +149,25 @@ public class DemandCalculationService {
     return tableIds;
   }
 
+  /** Read once by a caller that checks many drafts. */
+  @Transactional(readOnly = true)
+  public List<NormativeTable> publishedTables() {
+    return tableRepository.findAllByStatus(NormativeTableStatus.PUBLISHED);
+  }
+
+  /** The tables replaced since a draft's run; a submitted protocol keeps its revisions. */
   @Transactional(readOnly = true)
   public List<String> changedTables(Calculation calculation) {
-    if (calculation.getProject().getSubmittedAt() != null) return List.of();
+    return calculation.getProject().getSubmittedAt() == null
+        ? changedTables(calculation, publishedTables())
+        : List.of();
+  }
+
+  private List<String> changedTables(Calculation calculation, List<NormativeTable> current) {
+    if (calculation.getProject().getSubmittedAt() != null) {
+      return List.of();
+    }
     JsonNode ids = objectMapper.readTree(calculation.getInputSnapshot()).get(TABLE_IDS);
-    List<NormativeTable> current = tableRepository.findAllByStatus(NormativeTableStatus.PUBLISHED);
     if (ids != null) {
       return StreamSupport.stream(ids.properties().spliterator(), false)
           .filter(
@@ -182,19 +196,30 @@ public class DemandCalculationService {
         .toList();
   }
 
-  /** Compared as JSON trees: key order varies across runs, and 60 and 60.00 are one value. */
   public boolean isCurrent(Calculation calculation) {
-    return isCurrent(
-        calculation, groupRepository.findAllByProjectIdOrderById(calculation.getProject().getId()));
+    return sameInput(
+            calculation,
+            groupRepository.findAllByProjectIdOrderById(calculation.getProject().getId()))
+        && changedTables(calculation).isEmpty();
   }
 
   /** For a caller that already loaded the project's groups. */
   public boolean isCurrent(Calculation calculation, List<ConsumerUnitGroup> groups) {
-    var recorded = (ObjectNode) objectMapper.readTree(calculation.getInputSnapshot());
+    return sameInput(calculation, groups) && changedTables(calculation).isEmpty();
+  }
+
+  /** For a caller that also loaded the published tables once for many projects. */
+  public boolean isCurrent(
+      Calculation calculation, List<ConsumerUnitGroup> groups, List<NormativeTable> published) {
+    return sameInput(calculation, groups) && changedTables(calculation, published).isEmpty();
+  }
+
+  /** Compared as JSON trees: key order varies across runs, and 60 and 60.00 are one value. */
+  private boolean sameInput(Calculation calculation, List<ConsumerUnitGroup> groups) {
+    ObjectNode recorded = (ObjectNode) objectMapper.readTree(calculation.getInputSnapshot());
     recorded.remove(TABLE_IDS);
     return recorded.equals(
-            SAME_VALUE, objectMapper.valueToTree(input(calculation.getProject(), groups)))
-        && changedTables(calculation).isEmpty();
+        SAME_VALUE, objectMapper.valueToTree(input(calculation.getProject(), groups)));
   }
 
   private static final Comparator<JsonNode> SAME_VALUE =
@@ -204,7 +229,10 @@ public class DemandCalculationService {
               : left.equals(right) ? 0 : 1;
 
   public record Latest(
-      Calculation calculation, boolean outdated, OffsetDateTime revisionsFixedAt) {}
+      Calculation calculation,
+      boolean outdated,
+      List<String> changedTables,
+      OffsetDateTime revisionsFixedAt) {}
 
   /** The last run, flagged when an editable project changed after it. */
   @Transactional(readOnly = true)
@@ -218,8 +246,15 @@ public class DemandCalculationService {
                     new NotFoundException(
                         "Nenhum cálculo de demanda foi feito para este projeto."));
 
-    return new Latest(
-        calculation, project.isEditable() && !isCurrent(calculation), revisionsFixedAt(project));
+    if (!project.isEditable()) {
+      return new Latest(calculation, false, List.of(), revisionsFixedAt(project));
+    }
+    List<String> changed = changedTables(calculation);
+    boolean outdated =
+        !changed.isEmpty()
+            || !sameInput(calculation, groupRepository.findAllByProjectIdOrderById(projectId));
+
+    return new Latest(calculation, outdated, changed, revisionsFixedAt(project));
   }
 
   private Map<String, Object> input(Project project, List<ConsumerUnitGroup> groups) {
