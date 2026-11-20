@@ -3,6 +3,7 @@ import {
 	getHttpStatus,
 	getToastErrorMessage,
 } from "@lib/api-error";
+import { dashboardKeys } from "@services/dashboard/query-keys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -15,7 +16,10 @@ export const useUpdateUser = () => {
 	return useMutation({
 		mutationFn: updateUser,
 		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: userKeys.lists() }),
+				queryClient.invalidateQueries({ queryKey: dashboardKeys.all() }),
+			]);
 			toast.success("Alterações salvas.");
 		},
 		onError: (error) => {

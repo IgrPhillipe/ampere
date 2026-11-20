@@ -1,4 +1,5 @@
 import { getToastErrorMessage } from "@lib/api-error";
+import { dashboardKeys } from "@services/dashboard/query-keys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -11,12 +12,11 @@ export const useCreateProject = () => {
 	return useMutation({
 		mutationFn: createProject,
 		onSuccess: async () => {
-			// `all()` e nao `lists()`: os contadores por situacao sao uma query
-			// propria e ficariam ate 60s (o `staleTime` padrao) mostrando um
-			// total sem o rascunho recem-criado.
-			await queryClient.invalidateQueries({
-				queryKey: projectKeys.all(),
-			});
+			// `all()`, not `lists()`: the status counters are a query of their own.
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: projectKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: dashboardKeys.all() }),
+			]);
 
 			toast.success("Projeto criado.");
 		},

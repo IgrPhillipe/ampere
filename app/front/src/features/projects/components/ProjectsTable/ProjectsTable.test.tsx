@@ -73,10 +73,30 @@ describe("ProjectsTable", () => {
 			<ProjectsTable projects={[project]} {...actions} />,
 		);
 
-		expect(screen.getByRole("table")).toHaveClass("min-w-[70rem]");
+		expect(screen.getByRole("table")).toHaveClass(
+			"min-w-[70rem]",
+			"lg:min-w-0",
+		);
+		expect(screen.getByRole("columnheader", { name: "UCs" })).toHaveClass(
+			"lg:hidden",
+			"xl:table-cell",
+		);
+		expect(
+			screen.getByRole("columnheader", { name: "Atualizado" }),
+		).not.toHaveClass("lg:hidden");
 
 		rerender(<ProjectsTable projects={[project]} showOwner {...actions} />);
 
-		expect(screen.getByRole("table")).toHaveClass("min-w-[80rem]");
+		expect(screen.getByRole("table")).toHaveClass(
+			"min-w-[80rem]",
+			"lg:min-w-0",
+		);
+		expect(screen.getByRole("columnheader", { name: "Criado em" })).toHaveClass(
+			"lg:hidden",
+			"wide:table-cell",
+		);
+		expect(
+			screen.getByRole("columnheader", { name: "Atualizado" }),
+		).toHaveClass("lg:hidden", "xl:table-cell");
 	});
 });

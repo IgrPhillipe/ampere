@@ -1,7 +1,6 @@
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from "@components/ui/dialog";
@@ -13,12 +12,15 @@ interface DocumentDialogProps {
 	projectId: string;
 	/** `undefined` keeps the dialog closed. */
 	document?: ProjectDocument;
+	/** See `PdfViewer`. */
+	hideToolbar?: boolean;
 	onClose: () => void;
 }
 
 export const DocumentDialog = ({
 	projectId,
 	document,
+	hideToolbar,
 	onClose,
 }: DocumentDialogProps) => (
 	<Dialog
@@ -32,11 +34,14 @@ export const DocumentDialog = ({
 				<DialogTitle className="font-heading text-lg">
 					{document?.typeLabel ?? "Documento"}
 				</DialogTitle>
-				<DialogDescription>{document?.filename}</DialogDescription>
 			</DialogHeader>
 			<div className="px-6 py-5">
 				{document ? (
-					<PdfViewer projectId={projectId} document={document} />
+					<PdfViewer
+						projectId={projectId}
+						document={document}
+						hideToolbar={hideToolbar}
+					/>
 				) : null}
 			</div>
 		</DialogContent>

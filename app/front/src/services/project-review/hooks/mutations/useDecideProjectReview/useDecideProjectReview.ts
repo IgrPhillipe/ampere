@@ -1,4 +1,6 @@
 import { getToastErrorMessage } from "@lib/api-error";
+// Not the barrel: the dashboard schemas import project-review, closing a cycle.
+import { dashboardKeys } from "@services/dashboard/query-keys";
 import { projectKeys } from "@services/projects";
 import { reviewQueueKeys } from "@services/review-queue";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -16,6 +18,7 @@ export const useDecideProjectReview = () => {
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: projectKeys.all() }),
 				queryClient.invalidateQueries({ queryKey: reviewQueueKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: dashboardKeys.all() }),
 				queryClient.invalidateQueries({
 					queryKey: projectReviewKeys.findings(projectId),
 				}),

@@ -1,3 +1,4 @@
+import { dashboardKeys } from "@services/dashboard/query-keys";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { PropsWithChildren } from "react";
@@ -18,7 +19,7 @@ describe("useDeleteProject", () => {
 		vi.mocked(deleteProject).mockResolvedValue(undefined);
 	});
 
-	it("removes the detail and invalidates lists and counters", async () => {
+	it("removes the detail and invalidates lists, counters and the dashboard", async () => {
 		const queryClient = new QueryClient({
 			defaultOptions: {
 				queries: { retry: false },
@@ -28,7 +29,9 @@ describe("useDeleteProject", () => {
 		const listKey = projectKeys.list({ page: 1 });
 		const countsKey = projectKeys.statusCounts();
 		const detailKey = projectKeys.detail("4");
+		const dashboardKey = dashboardKeys.designer("LAST_30_DAYS");
 		queryClient.setQueryData(listKey, { data: [] });
+		queryClient.setQueryData(dashboardKey, { data: {} });
 		queryClient.setQueryData(countsKey, { data: { draft: 1 } });
 		queryClient.setQueryData(detailKey, { data: { id: "4" } });
 
@@ -44,6 +47,7 @@ describe("useDeleteProject", () => {
 		expect(queryClient.getQueryData(detailKey)).toBeUndefined();
 		expect(queryClient.getQueryState(listKey)?.isInvalidated).toBe(true);
 		expect(queryClient.getQueryState(countsKey)?.isInvalidated).toBe(true);
+		expect(queryClient.getQueryState(dashboardKey)?.isInvalidated).toBe(true);
 		expect(toast.success).toHaveBeenCalledWith("Projeto excluído.");
 	});
 

@@ -1,5 +1,6 @@
 import { padCount } from "@features/shared";
 import { getToastErrorMessage } from "@lib/api-error";
+import { dashboardKeys } from "@services/dashboard/query-keys";
 import { projectKeys } from "@services/projects";
 import { submissionKeys } from "@services/submission";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17,6 +18,7 @@ export const useRunCalculation = () => {
 			queryClient.setQueryData(calculationKeys.latest(projectId), response);
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: projectKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: dashboardKeys.all() }),
 				queryClient.invalidateQueries({
 					queryKey: submissionKeys.checklist(projectId),
 				}),

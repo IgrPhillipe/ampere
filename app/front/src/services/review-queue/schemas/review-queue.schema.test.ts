@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+	reviewerListResponseSchema,
 	reviewQueueIndicatorsResponseSchema,
 	reviewQueueListResponseSchema,
 } from "./review-queue.schema";
@@ -23,6 +24,7 @@ describe("review queue API contract", () => {
 					alerts: [
 						"Recarga de 44,40 kW instalados, acima de 20 kW: exige estudo da rede.",
 					],
+					ownerId: "12",
 					ownerName: "José da Silva",
 					consumerUnitsCount: 12,
 					demandKva: 51.4,
@@ -53,5 +55,16 @@ describe("review queue API contract", () => {
 		expect(reviewQueueIndicatorsResponseSchema.parse(response)).toEqual(
 			response,
 		);
+	});
+
+	it("keeps the reviewer list when a role is unknown", () => {
+		const parsed = reviewerListResponseSchema.parse({
+			data: [
+				{ id: "2", name: "Admin Teste", role: "admin" },
+				{ id: "9", name: "Auditor Teste", role: "auditor" },
+			],
+		});
+
+		expect(parsed.data.map(({ role }) => role)).toEqual(["admin", "reviewer"]);
 	});
 });

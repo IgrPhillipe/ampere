@@ -1,5 +1,5 @@
 import type { Finding } from "@services/project-review";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { FindingReferenceOptions } from "../../constants";
@@ -145,5 +145,48 @@ describe("ProjectFindingsOverview", () => {
 		expect(
 			screen.queryByRole("button", { name: "Contestar" }),
 		).not.toBeInTheDocument();
+	});
+
+	it("closes the answered finding and keeps the focus on the list", async () => {
+		const finding = makeFinding({ description: "Substituir ART." });
+		const overview = (findings: Finding[]) => (
+			<ProjectFindingsOverview
+				findings={findings}
+				project={rejected}
+				referenceOptions={referenceOptions}
+				canRespond
+				isResponding={false}
+				onStartResponse={vi.fn()}
+				onSubmitResponse={vi.fn()}
+				onCancelResponse={vi.fn()}
+			/>
+		);
+		const { rerender } = render(overview([finding]));
+
+		const trigger = screen.getByRole("button", { name: "Marcar Corrigido" });
+		trigger.focus();
+		fireEvent.click(trigger);
+		expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+		rerender(overview([{ ...finding, status: "FIXED" }]));
+
+		await waitFor(() =>
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+		);
+		expect(screen.getByRole("region", { name: "Apontamentos" })).toHaveFocus();
+	});
+
+	it("returns the focus to the trigger when the dialog is dismissed", async () => {
+		renderOverview([makeFinding({ description: "Substituir ART." })]);
+
+		const trigger = screen.getByRole("button", { name: "Marcar Corrigido" });
+		trigger.focus();
+		fireEvent.click(trigger);
+		fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+
+		await waitFor(() =>
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+		);
+		expect(trigger).toHaveFocus();
 	});
 });

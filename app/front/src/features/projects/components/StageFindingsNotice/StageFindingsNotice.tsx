@@ -200,6 +200,7 @@ export const StageFindingsNotice = ({
 			<DocumentDialog
 				projectId={projectId}
 				document={viewing}
+				hideToolbar={canRespond}
 				onClose={() => setViewing(undefined)}
 			/>
 		</section>

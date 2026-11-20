@@ -1,4 +1,5 @@
 import { getToastErrorMessage } from "@lib/api-error";
+import { dashboardKeys } from "@services/dashboard/query-keys";
 import { projectKeys } from "@services/projects";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -15,6 +16,7 @@ export const useSubmitProject = () => {
 			queryClient.setQueryData(projectKeys.detail(projectId), response);
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: projectKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: dashboardKeys.all() }),
 				queryClient.invalidateQueries({
 					queryKey: submissionKeys.checklist(projectId),
 				}),

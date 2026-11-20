@@ -1,4 +1,5 @@
 import { getToastErrorMessage } from "@lib/api-error";
+import { dashboardKeys } from "@services/dashboard/query-keys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -11,7 +12,10 @@ export const useResetUserPassword = () => {
 	return useMutation({
 		mutationFn: resetUserPassword,
 		onSuccess: () =>
-			queryClient.invalidateQueries({ queryKey: userKeys.lists() }),
+			Promise.all([
+				queryClient.invalidateQueries({ queryKey: userKeys.lists() }),
+				queryClient.invalidateQueries({ queryKey: dashboardKeys.all() }),
+			]),
 		onError: (error) =>
 			toast.error(
 				getToastErrorMessage(error, {

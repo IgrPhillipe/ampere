@@ -22,7 +22,6 @@ interface ProjectDocumentsProps {
 	/** `undefined` while loading. */
 	documents?: ProjectDocument[];
 	onCreateFinding?: (document: ProjectDocument) => void;
-	emptyDescription?: string;
 	className?: string;
 }
 
@@ -30,7 +29,6 @@ export const ProjectDocuments = ({
 	projectId,
 	documents,
 	onCreateFinding,
-	emptyDescription = "O projeto foi enviado sem anexos.",
 	className,
 }: ProjectDocumentsProps) => {
 	const [selectedId, setSelectedId] = useState<string>();
@@ -48,7 +46,7 @@ export const ProjectDocuments = ({
 		return (
 			<EmptyState
 				title="Nenhum documento anexado"
-				description={emptyDescription}
+				description="O projeto foi enviado sem anexos."
 				icon={FileText}
 			/>
 		);
