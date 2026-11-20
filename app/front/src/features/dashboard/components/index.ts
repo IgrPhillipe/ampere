@@ -6,4 +6,8 @@ export * from "./DashboardIndicators";
 export * from "./DashboardPeriodPicker";
 export * from "./DashboardSection";
 export * from "./FindingsRanking";
+export * from "./IndicatorList";
+export * from "./ReviewFindingsRanking";
+export * from "./ReviewIndicators";
 export * from "./UnderReviewList";
+export * from "./WeeklyReviewChart";

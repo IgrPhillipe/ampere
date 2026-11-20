@@ -261,9 +261,9 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 | Feature | Rota | Página |
 | :--- | :--- | :--- |
 | `auth` | `/entrar`, `/criar-conta`, `/meu-perfil` | Entrar, Criar Conta e Meu Perfil |
-| `dashboard` | `/painel` | Painel, página inicial do projetista e do admin, cada um com o seu |
+| `dashboard` | `/painel`, `/indicadores` | Painel, página inicial do projetista e do admin, cada um com o seu, e Indicadores da análise |
 | `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id`, `/projetos/$id/<etapa>` | Meus Projetos (Projetos, para o admin), o detalhe e as etapas |
-| `review-queue` | `/fila-de-analise` | Fila de Análise |
+| `review-queue` | `/fila-de-analise`, `/meus-pareceres` | Fila de Análise e Meus Pareceres |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
 | `memorial-verification` | `/verificar-autenticidade` | Verificar Autenticidade, pública |
 | `reviewer-distribution` | `/distribuicao` | Distribuição: os municípios de cada analista |

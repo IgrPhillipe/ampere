@@ -25,6 +25,16 @@ export const APP_NAV_ITEMS: NavItem[] = [
 		roles: ROLE_ACCESS.reviewQueue,
 	},
 	{
+		to: "/indicadores",
+		label: "Indicadores",
+		roles: ROLE_ACCESS.reviewIndicators,
+	},
+	{
+		to: "/meus-pareceres",
+		label: "Meus Pareceres",
+		roles: ROLE_ACCESS.myReviews,
+	},
+	{
 		to: "/tabelas-normativas",
 		label: "Tabelas Normativas",
 		roles: ROLE_ACCESS.normativeTables,

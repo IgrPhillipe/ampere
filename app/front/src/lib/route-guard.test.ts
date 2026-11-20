@@ -36,9 +36,11 @@ describe("role navigation", () => {
 		]);
 	});
 
-	it("gives the analyst the review queue and the normative tables", () => {
+	it("gives the analyst the review queue, their panel and the normative tables", () => {
 		expect(labelsOf("reviewer")).toEqual([
 			"Fila de Análise",
+			"Indicadores",
+			"Meus Pareceres",
 			"Tabelas Normativas",
 		]);
 	});
@@ -48,6 +50,8 @@ describe("role navigation", () => {
 			"Painel",
 			"Projetos",
 			"Fila de Análise",
+			"Indicadores",
+			"Meus Pareceres",
 			"Tabelas Normativas",
 			"Distribuição",
 			"Usuários",
@@ -61,6 +65,8 @@ describe("role navigation", () => {
 		expect(ROLE_ACCESS.users).toEqual(["admin"]);
 		expect(ROLE_ACCESS.distribution).toEqual(["admin"]);
 		expect(ROLE_ACCESS.dashboard).toEqual(["user", "admin"]);
+		expect(ROLE_ACCESS.reviewIndicators).not.toContain("user");
+		expect(ROLE_ACCESS.myReviews).not.toContain("user");
 	});
 });
 

@@ -14,7 +14,9 @@ import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as TrocarSenhaRouteImport } from './routes/trocar-senha'
 import { Route as TabelasNormativasRouteImport } from './routes/tabelas-normativas'
 import { Route as PainelRouteImport } from './routes/painel'
+import { Route as MeusPareceresRouteImport } from './routes/meus-pareceres'
 import { Route as MeuPerfilRouteImport } from './routes/meu-perfil'
+import { Route as IndicadoresRouteImport } from './routes/indicadores'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as DistribuicaoRouteImport } from './routes/distribuicao'
 import { Route as CriarContaRouteImport } from './routes/criar-conta'
@@ -59,9 +61,19 @@ const PainelRoute = PainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MeusPareceresRoute = MeusPareceresRouteImport.update({
+  id: '/meus-pareceres',
+  path: '/meus-pareceres',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MeuPerfilRoute = MeuPerfilRouteImport.update({
   id: '/meu-perfil',
   path: '/meu-perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndicadoresRoute = IndicadoresRouteImport.update({
+  id: '/indicadores',
+  path: '/indicadores',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarRoute = EntrarRouteImport.update({
@@ -160,7 +172,9 @@ export interface FileRoutesByFullPath {
   '/criar-conta': typeof CriarContaRoute
   '/distribuicao': typeof DistribuicaoRoute
   '/entrar': typeof EntrarRoute
+  '/indicadores': typeof IndicadoresRoute
   '/meu-perfil': typeof MeuPerfilRoute
+  '/meus-pareceres': typeof MeusPareceresRoute
   '/painel': typeof PainelRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
@@ -186,7 +200,9 @@ export interface FileRoutesByTo {
   '/criar-conta': typeof CriarContaRoute
   '/distribuicao': typeof DistribuicaoRoute
   '/entrar': typeof EntrarRoute
+  '/indicadores': typeof IndicadoresRoute
   '/meu-perfil': typeof MeuPerfilRoute
+  '/meus-pareceres': typeof MeusPareceresRoute
   '/painel': typeof PainelRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
@@ -212,7 +228,9 @@ export interface FileRoutesById {
   '/criar-conta': typeof CriarContaRoute
   '/distribuicao': typeof DistribuicaoRoute
   '/entrar': typeof EntrarRoute
+  '/indicadores': typeof IndicadoresRoute
   '/meu-perfil': typeof MeuPerfilRoute
+  '/meus-pareceres': typeof MeusPareceresRoute
   '/painel': typeof PainelRoute
   '/tabelas-normativas': typeof TabelasNormativasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
@@ -240,7 +258,9 @@ export interface FileRouteTypes {
     | '/criar-conta'
     | '/distribuicao'
     | '/entrar'
+    | '/indicadores'
     | '/meu-perfil'
+    | '/meus-pareceres'
     | '/painel'
     | '/tabelas-normativas'
     | '/trocar-senha'
@@ -266,7 +286,9 @@ export interface FileRouteTypes {
     | '/criar-conta'
     | '/distribuicao'
     | '/entrar'
+    | '/indicadores'
     | '/meu-perfil'
+    | '/meus-pareceres'
     | '/painel'
     | '/tabelas-normativas'
     | '/trocar-senha'
@@ -291,7 +313,9 @@ export interface FileRouteTypes {
     | '/criar-conta'
     | '/distribuicao'
     | '/entrar'
+    | '/indicadores'
     | '/meu-perfil'
+    | '/meus-pareceres'
     | '/painel'
     | '/tabelas-normativas'
     | '/trocar-senha'
@@ -318,7 +342,9 @@ export interface RootRouteChildren {
   CriarContaRoute: typeof CriarContaRoute
   DistribuicaoRoute: typeof DistribuicaoRoute
   EntrarRoute: typeof EntrarRoute
+  IndicadoresRoute: typeof IndicadoresRoute
   MeuPerfilRoute: typeof MeuPerfilRoute
+  MeusPareceresRoute: typeof MeusPareceresRoute
   PainelRoute: typeof PainelRoute
   TabelasNormativasRoute: typeof TabelasNormativasRoute
   TrocarSenhaRoute: typeof TrocarSenhaRoute
@@ -369,11 +395,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/meus-pareceres': {
+      id: '/meus-pareceres'
+      path: '/meus-pareceres'
+      fullPath: '/meus-pareceres'
+      preLoaderRoute: typeof MeusPareceresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/meu-perfil': {
       id: '/meu-perfil'
       path: '/meu-perfil'
       fullPath: '/meu-perfil'
       preLoaderRoute: typeof MeuPerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/indicadores': {
+      id: '/indicadores'
+      path: '/indicadores'
+      fullPath: '/indicadores'
+      preLoaderRoute: typeof IndicadoresRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrar': {
@@ -536,7 +576,9 @@ const rootRouteChildren: RootRouteChildren = {
   CriarContaRoute: CriarContaRoute,
   DistribuicaoRoute: DistribuicaoRoute,
   EntrarRoute: EntrarRoute,
+  IndicadoresRoute: IndicadoresRoute,
   MeuPerfilRoute: MeuPerfilRoute,
+  MeusPareceresRoute: MeusPareceresRoute,
   PainelRoute: PainelRoute,
   TabelasNormativasRoute: TabelasNormativasRoute,
   TrocarSenhaRoute: TrocarSenhaRoute,
