@@ -98,33 +98,7 @@ class DemandCalculationIntegrationTest {
     var withoutEv = groups.stream().filter(group -> group.kind() != GroupKind.EV_CHARGING).toList();
     var initial = calculations.compute(project, withoutEv);
     var expected = calculations.compute(project, groups);
-    var old =
-        normativeTableRepository
-            .findByCodeAndStatus(NormativeTableCode.Q33_EV_STATIONS, NormativeTableStatus.PUBLISHED)
-            .orElseThrow();
-    var replacement =
-        new NormativeTable(
-            old.getStandard(),
-            old.getCode(),
-            old.getIdentification(),
-            old.getItem(),
-            old.getPage(),
-            old.getRows().stream()
-                .map(
-                    row ->
-                        new NormativeTableRow(
-                            row.getRowKey(),
-                            row.getLowerBound(),
-                            row.getUpperBound(),
-                            row.getPrimaryValue().multiply(new BigDecimal("0.5")),
-                            row.getSecondaryValue(),
-                            row.getTertiaryValue(),
-                            row.getLabel()))
-                .toList(),
-            "author");
-    replacement.publish("verifier");
-    old.supersede(replacement.getVerifiedAt());
-    normativeTableRepository.saveAndFlush(replacement);
+    var replacement = replace(NormativeTableCode.Q33_EV_STATIONS, "0.5");
     assertThat(calculations.isCurrent(initial, withoutEv)).isTrue();
     project.submit(replacement.getVerifiedAt().minusSeconds(1));
     project.reject(OffsetDateTime.now(ZoneOffset.UTC), "Incluir recarga");
@@ -141,34 +115,8 @@ class DemandCalculationIntegrationTest {
     var original = calculations.compute(project, groups);
     calculationRepository.saveAndFlush(original);
     assertThat(calculations.isCurrent(original, groups)).isTrue();
-    var old =
-        normativeTableRepository
-            .findByCodeAndStatus(
-                NormativeTableCode.Q35_APARTMENT_DEMAND, NormativeTableStatus.PUBLISHED)
-            .orElseThrow();
-    var replacement =
-        new NormativeTable(
-            old.getStandard(),
-            old.getCode(),
-            old.getIdentification(),
-            old.getItem(),
-            old.getPage(),
-            old.getRows().stream()
-                .map(
-                    row ->
-                        new NormativeTableRow(
-                            row.getRowKey(),
-                            row.getLowerBound(),
-                            row.getUpperBound(),
-                            row.getPrimaryValue().multiply(new BigDecimal("2")),
-                            row.getSecondaryValue(),
-                            row.getTertiaryValue(),
-                            row.getLabel()))
-                .toList(),
-            "author");
-    replacement.publish("verifier");
-    old.supersede(replacement.getVerifiedAt());
-    normativeTableRepository.saveAndFlush(replacement);
+    var old = published(NormativeTableCode.Q35_APARTMENT_DEMAND);
+    var replacement = replace(NormativeTableCode.Q35_APARTMENT_DEMAND, "2");
     assertThat(calculations.isCurrent(original, groups)).isFalse();
     assertThat(calculations.changedTables(original)).contains("Quadro 35");
     mockMvc
@@ -401,6 +349,40 @@ class DemandCalculationIntegrationTest {
         .setParameter("at", OffsetDateTime.now(ZoneOffset.UTC).minusDays(30))
         .executeUpdate();
     entityManager.clear();
+  }
+
+  private NormativeTable published(NormativeTableCode code) {
+    return normativeTableRepository
+        .findByCodeAndStatus(code, NormativeTableStatus.PUBLISHED)
+        .orElseThrow();
+  }
+
+  /** Publishes a revision with the values scaled by the factor, superseding the current one. */
+  private NormativeTable replace(NormativeTableCode code, String factor) {
+    NormativeTable old = published(code);
+    NormativeTable replacement =
+        new NormativeTable(
+            old.getStandard(),
+            old.getCode(),
+            old.getIdentification(),
+            old.getItem(),
+            old.getPage(),
+            old.getRows().stream()
+                .map(
+                    row ->
+                        new NormativeTableRow(
+                            row.getRowKey(),
+                            row.getLowerBound(),
+                            row.getUpperBound(),
+                            row.getPrimaryValue().multiply(new BigDecimal(factor)),
+                            row.getSecondaryValue(),
+                            row.getTertiaryValue(),
+                            row.getLabel()))
+                .toList(),
+            "author");
+    replacement.publish("verifier");
+    old.supersede(replacement.getVerifiedAt());
+    return normativeTableRepository.saveAndFlush(replacement);
   }
 
   private Project draftWithPrototypeGroups(boolean fixed) {
