@@ -20,7 +20,7 @@ const columnClassNames = {
 interface MyReviewsListingProps {
 	items: MyReviewItem[];
 	isLoading?: boolean;
-	/** Opens the project's analysis in consultation. */
+	/** Opens the project in consultation, or its history for an older decision. */
 	onOpen: (item: MyReviewItem) => void;
 	onClearFilters?: () => void;
 }

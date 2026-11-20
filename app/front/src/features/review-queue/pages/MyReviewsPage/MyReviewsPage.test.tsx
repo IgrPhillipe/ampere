@@ -59,6 +59,7 @@ const reviewOf = (
 	decidedAt: "2026-11-10T14:00:00-03:00",
 	findings: 0,
 	version: 1,
+	currentVersion: 1,
 	consumerUnitsCount: 24,
 	demandKva: 86.4,
 	...overrides,
@@ -152,6 +153,24 @@ describe("MyReviewsPage", () => {
 		expect(screen.getByRole("link", { name: "Edifício 82" })).toHaveAttribute(
 			"href",
 			"/projetos/82",
+		);
+	});
+
+	it("opens the history for a decision on an older submission", () => {
+		state.query = loadedQuery(
+			responseOf([reviewOf("83", { version: 1, currentVersion: 2 })]),
+		);
+		renderPage();
+
+		fireEvent.click(screen.getByRole("row", { name: /Edifício 83/ }));
+
+		expect(state.navigate).toHaveBeenCalledWith({
+			to: "/projetos/$id/historico",
+			params: { id: "83" },
+		});
+		expect(screen.getByRole("link", { name: "Edifício 83" })).toHaveAttribute(
+			"href",
+			"/projetos/83/historico",
 		);
 	});
 

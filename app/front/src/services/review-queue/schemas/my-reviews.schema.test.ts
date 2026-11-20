@@ -15,6 +15,7 @@ const makeResponse = (decision = "REJECTED") => ({
 			decidedAt: "2026-11-10T14:00:00-03:00",
 			findings: 4,
 			version: 2,
+			currentVersion: 3,
 			consumerUnitsCount: 24,
 			demandKva: null,
 		},

@@ -28,6 +28,8 @@ export const myReviewItemSchema = z.object({
 	findings: z.number().int().nonnegative(),
 	/** The submission decided, 1 for the first. */
 	version: z.number().int().positive(),
+	/** The project's latest submission: an older decision opens the history instead. */
+	currentVersion: z.number().int().positive(),
 	consumerUnitsCount: z.number().int().nonnegative(),
 	demandKva: z.number().nonnegative().nullable(),
 });

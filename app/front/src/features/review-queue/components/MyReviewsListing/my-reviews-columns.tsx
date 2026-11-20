@@ -21,7 +21,17 @@ export type MyReviewColumnId =
 
 const mono = "font-mono text-sm text-foreground";
 
-/** H13: no action column. The name is the link, and the row opens the same analysis. */
+/** A decision on an older submission opens the history, where that version is. */
+export const myReviewTargetOf = ({
+	id,
+	version,
+	currentVersion,
+}: MyReviewItem) =>
+	version < currentVersion
+		? ({ to: "/projetos/$id/historico", params: { id } } as const)
+		: ({ to: "/projetos/$id", params: { id } } as const);
+
+/** H13: no action column. The name is the link, and the row opens the same page. */
 export const myReviewColumns = columnHelper.columns([
 	columnHelper.accessor("protocol", {
 		header: "Protocolo",
@@ -32,8 +42,7 @@ export const myReviewColumns = columnHelper.columns([
 		cell: ({ row }) => (
 			<div className="flex flex-col gap-1 whitespace-normal">
 				<Link
-					to="/projetos/$id"
-					params={{ id: row.original.id }}
+					{...myReviewTargetOf(row.original)}
 					// The row opens the same page; one navigation is enough.
 					onClick={(event) => event.stopPropagation()}
 					className="text-base font-medium text-foreground hover:underline focus-visible:underline focus-visible:outline-none"

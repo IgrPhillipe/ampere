@@ -6,7 +6,11 @@ import { type MyReviewItem, useGetMyReviews } from "@services/review-queue";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleAlert } from "lucide-react";
 
-import { MyReviewsListing, MyReviewsToolbar } from "../../components";
+import {
+	MyReviewsListing,
+	MyReviewsToolbar,
+	myReviewTargetOf,
+} from "../../components";
 import { useMyReviewsFilters } from "../../hooks";
 
 const PAGE_SIZE = 10;
@@ -21,8 +25,7 @@ export const MyReviewsPage = () => {
 	const navigate = useNavigate();
 	const pagination = reviewsQuery.data?.pagination;
 
-	const open = (item: MyReviewItem) =>
-		void navigate({ to: "/projetos/$id", params: { id: item.id } });
+	const open = (item: MyReviewItem) => void navigate(myReviewTargetOf(item));
 
 	return (
 		<PageLayout
