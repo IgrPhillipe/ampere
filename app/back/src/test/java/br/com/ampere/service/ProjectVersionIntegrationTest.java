@@ -51,6 +51,7 @@ import br.com.ampere.repository.ProjectVersionDocumentRepository;
 import br.com.ampere.repository.ProjectVersionRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.utils.BrazilianDateFormat;
 import br.com.ampere.utils.MemorialFingerprint;
 import br.com.ampere.utils.Timestamps;
 import com.lowagie.text.pdf.PdfReader;
@@ -253,6 +254,10 @@ class ProjectVersionIntegrationTest {
         .isEqualTo(firstSubmission);
     assertThat(latestCalculation(project).getResidentialDemandFinal())
         .isEqualByComparingTo(sent.getResidentialDemandFinal());
+    assertThat(textOf(bytes(perform(get(memorialOf(project))))))
+        .contains(
+            "primeiro envio do protocolo: "
+                + BrazilianDateFormat.date(Timestamps.localDate(firstSubmission)));
   }
 
   @Test

@@ -510,7 +510,7 @@ public class MemorialPdfService {
       document.add(
           note(
               "Revisões normativas fixadas na data do primeiro envio do protocolo: "
-                  + revisionsFixedAt.toLocalDate()
+                  + BrazilianDateFormat.date(Timestamps.localDate(revisionsFixedAt))
                   + "."));
     }
     PdfPTable fields = fields();
