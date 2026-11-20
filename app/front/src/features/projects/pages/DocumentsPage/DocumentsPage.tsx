@@ -87,7 +87,6 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 			/>
 
 			{editable ? (
-				// The checklist is the single list while the designer can still edit.
 				<SubmissionChecklistPanel
 					projectId={projectId}
 					checklist={checklist}
