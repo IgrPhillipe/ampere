@@ -1,10 +1,6 @@
 import type { SortDirection } from "@features/shared";
 import type { ProjectEvent, ProjectRework } from "@services/project-events";
 import type { Finding } from "@services/project-review";
-import type {
-	ProjectVersion,
-	VersionComparison,
-} from "@services/project-versions";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import {
 	NuqsTestingAdapter,
@@ -77,31 +73,6 @@ const state = vi.hoisted(() => ({
 	reviewCycle: 2,
 	reviewDeadline: "2026-09-27" as string | null,
 	findings: [] as Pick<Finding, "id" | "status">[],
-	versions: [] as ProjectVersion[],
-	compared: [] as { from: number; to: number }[],
-	comparison: undefined as VersionComparison | undefined,
-	comparisonFailed: false,
-	download: vi.fn(),
-}));
-
-vi.mock("@services/project-versions", async (importOriginal) => ({
-	...(await importOriginal<typeof import("@services/project-versions")>()),
-	useGetProjectVersionList: () => loadedQuery({ data: state.versions }),
-	useCompareProjectVersions: (
-		params: { from: number; to: number },
-		{ enabled }: { enabled?: boolean } = {},
-	) => {
-		if (enabled) state.compared.push({ from: params.from, to: params.to });
-		if (enabled && state.comparisonFailed)
-			return { ...loadedQuery(undefined), isError: true };
-		return enabled
-			? loadedQuery(state.comparison ? { data: state.comparison } : undefined)
-			: { ...loadedQuery(undefined), isPending: true };
-	},
-	useDownloadVersionFile: () => ({
-		mutate: state.download,
-		isPending: false,
-	}),
 }));
 
 vi.mock("@tanstack/react-router", async (importOriginal) => ({
@@ -128,18 +99,6 @@ vi.mock("@tanstack/react-router", async (importOriginal) => ({
 		</a>
 	),
 }));
-
-const versionOf = (number: number, demandKva: number): ProjectVersion => ({
-	number,
-	submittedAt: `2026-08-2${number}T12:00:00Z`,
-	authorName: "Ana Lima",
-	changeSummary: null,
-	demandKva,
-	documents: [],
-	memorialSha256: "a".repeat(64),
-	verificationCode: `7F3A-91C2-04BD-2E7${number}`,
-	approvalMemorial: null,
-});
 
 /** Stands in for the API: it sorts by the direction it receives. */
 vi.mock("@services/project-events", async (importOriginal) => ({
@@ -211,10 +170,6 @@ describe("ProjectHistoryPage", () => {
 		state.reviewCycle = 2;
 		state.reviewDeadline = "2026-09-27";
 		state.findings = [];
-		state.versions = [];
-		state.compared = [];
-		state.comparison = undefined;
-		state.download.mockReset();
 	});
 
 	it("lists the most recent event first by default", () => {
@@ -350,266 +305,21 @@ describe("ProjectHistoryPage", () => {
 	});
 });
 
-describe("ProjectHistoryPage versions", () => {
-	const COMPARISON: VersionComparison = {
-		from: { number: 2, submittedAt: "2026-08-22T12:00:00Z", demandKva: 236 },
-		to: { number: 3, submittedAt: "2026-08-23T12:00:00Z", demandKva: 238.4 },
-		demandDifferenceKva: 2.4,
-		included: [{ id: "9", name: "Recarga de veículo elétrico", fields: [] }],
-		removed: [],
-		changed: [
-			{
-				id: "5",
-				name: "Apartamento tipo A",
-				fields: [
-					{
-						field: "unitCount",
-						label: "Unidades",
-						from: "24",
-						to: "26",
-						fromLabel: null,
-						toLabel: null,
-					},
-				],
-			},
-		],
-		building: [],
-	};
-
+describe("ProjectHistoryPage without versions", () => {
 	beforeEach(() => {
 		state.events = EVENTS;
-		state.directions = [];
 		state.failed = false;
-		state.status = "UNDER_REVIEW";
-		state.findings = [];
-		state.versions = [
-			versionOf(1, 230),
-			versionOf(2, 236),
-			versionOf(3, 238.4),
-		];
-		state.compared = [];
-		state.comparison = COMPARISON;
-		state.comparisonFailed = false;
-		state.download.mockReset();
 	});
 
-	it("lists the versions newest first, each with its memorial and code", () => {
-		renderPage();
+	it("leaves the versions and their comparison out of the history", () => {
+		renderPage("?from=1&to=2");
 
-		const list = screen.getByRole("list", { name: "Versões enviadas" });
-		const items = within(list).getAllByRole("listitem");
-		expect(items.map((item) => item.textContent?.slice(0, 8))).toEqual([
-			"Versão 3",
-			"Versão 2",
-			"Versão 1",
-		]);
-		expect(within(items[0]).getByText("Atual")).toBeInTheDocument();
-		expect(within(items[1]).queryByText("Atual")).not.toBeInTheDocument();
-		expect(
-			within(items[0]).getByRole("link", {
-				name: "Verificar o código 7F3A-91C2-04BD-2E73",
-			}),
-		).toHaveAttribute(
-			"href",
-			"/verificar-autenticidade?codigo=7F3A-91C2-04BD-2E73",
-		);
-
-		fireEvent.click(
-			screen.getByRole("button", { name: "Baixar o memorial da v02" }),
-		);
-		expect(state.download).toHaveBeenCalledWith(
-			{ projectId: "4", version: 2, file: { kind: "memorial" } },
-			expect.anything(),
-		);
-	});
-
-	it("shows what each version sent: the change summary and the documents, to download", () => {
-		state.versions = [
-			versionOf(1, 230),
-			{
-				...versionOf(2, 236),
-				changeSummary: "Carga de ar-condicionado incluída nas lojas.",
-				documents: [
-					{
-						type: "ART",
-						typeLabel: "ART",
-						filename: "art.pdf",
-						fileSize: 1024,
-					},
-					{
-						type: "SINGLE_LINE_DIAGRAM",
-						typeLabel: "Diagrama unifilar",
-						filename: "unifilar.pdf",
-						fileSize: 2048,
-					},
-				],
-			},
-		];
-		renderPage();
-
-		expect(
-			screen.getByText("Carga de ar-condicionado incluída nas lojas."),
-		).toBeInTheDocument();
-		fireEvent.click(
-			screen.getByRole("button", { name: "Baixar Diagrama unifilar da v02" }),
-		);
-		expect(state.download).toHaveBeenCalledWith(
-			{
-				projectId: "4",
-				version: 2,
-				file: { kind: "document", type: "SINGLE_LINE_DIAGRAM" },
-			},
-			expect.anything(),
-		);
-	});
-
-	it("offers the memorial of an approval with reservations beside the submitted one", () => {
-		state.status = "APPROVED";
-		state.versions = [
-			{
-				...versionOf(1, 230),
-				approvalMemorial: {
-					memorialSha256: "b".repeat(64),
-					verificationCode: "14AD-9894-877C-3C4A",
-					issuedAt: "2026-09-01T13:00:00Z",
-				},
-			},
-		];
-		renderPage();
-
-		expect(
-			screen.getByText("Aprovada com ressalvas em 01/09/2026"),
-		).toBeInTheDocument();
-		expect(
-			screen.getByRole("link", {
-				name: "Verificar o código 14AD-9894-877C-3C4A",
-			}),
-		).toHaveAttribute(
-			"href",
-			"/verificar-autenticidade?codigo=14AD-9894-877C-3C4A",
-		);
-		fireEvent.click(
-			screen.getByRole("button", {
-				name: "Baixar o memorial da aprovação da v01",
-			}),
-		);
-		expect(state.download).toHaveBeenCalledWith(
-			{ projectId: "4", version: 1, file: { kind: "approval-memorial" } },
-			expect.anything(),
-		);
-	});
-
-	it("compares a version with the one before it", async () => {
-		const onUrlUpdate = vi.fn<OnUrlUpdateFunction>();
-		renderPage("", onUrlUpdate);
-
-		fireEvent.click(
-			screen.getByRole("button", { name: "Comparar com a Versão 1" }),
-		);
-
-		await vi.waitFor(() => expect(onUrlUpdate).toHaveBeenCalled());
-		const { searchParams } = onUrlUpdate.mock.calls.at(-1)?.[0] ?? {};
-		expect(searchParams?.get("from")).toBe("1");
-		expect(searchParams?.get("to")).toBe("2");
-	});
-
-	it("offers no comparison with a single version", () => {
-		state.versions = [versionOf(1, 230)];
-		renderPage();
-
-		expect(
-			screen.queryByRole("button", { name: /^Comparar com/ }),
-		).not.toBeInTheDocument();
-	});
-
-	it("shows what changed between the versions in the URL", () => {
-		renderPage("?from=2&to=3");
-
-		expect(state.compared.at(-1)).toEqual({ from: 2, to: 3 });
-		expect(
-			screen.getByRole("heading", { name: "Comparativo de Versões" }),
-		).toBeInTheDocument();
-		expect(screen.queryByText("Projeto criado.")).not.toBeInTheDocument();
-
-		const summary = screen.getByLabelText("Resumo do comparativo");
-		expect(summary).toHaveTextContent("236,0 kVA → 238,4 kVA");
-		expect(summary).toHaveTextContent("+2,4 kVA");
-		expect(summary).toHaveTextContent("01 alterado, 01 incluído");
-
-		const groups = screen.getByRole("list", { name: "Grupos que mudaram" });
-		const [changed, included] = within(groups).getAllByRole("listitem");
-		expect(within(changed).getByText("Apartamento tipo A")).toBeInTheDocument();
-		expect(within(changed).getByText("Alterado")).toBeInTheDocument();
-		const row = within(changed).getByRole("rowheader", { name: "Unidades" })
-			.parentElement as HTMLElement;
-		expect(row).toHaveTextContent("24");
-		expect(row).toHaveTextContent("26");
-		expect(
-			within(included).getByText("Recarga de veículo elétrico"),
-		).toBeInTheDocument();
-		expect(
-			within(included).getByText("Grupo novo na v03."),
-		).toBeInTheDocument();
-	});
-
-	it("lets each table scroll sideways on a narrow screen, by keyboard too", () => {
-		renderPage("?from=2&to=3");
-
-		const region = screen.getByRole("region", {
-			name: "Campos de Apartamento tipo A",
-		});
-		expect(region).toHaveClass("overflow-x-auto");
-		expect(region).toHaveAttribute("tabindex", "0");
-		expect(within(region).getByRole("table")).toHaveClass("min-w-[28rem]");
-	});
-
-	it("compares the older version to the newer one even from a reversed link", () => {
-		renderPage("?from=3&to=1");
-
-		expect(state.compared.at(-1)).toEqual({ from: 1, to: 3 });
-	});
-
-	it("offers as origin only the versions before the destination, and the reverse", async () => {
-		renderPage("?from=2&to=3");
-
-		fireEvent.click(
-			screen.getByRole("combobox", { name: "Versão de destino" }),
-		);
-		expect(await screen.findByRole("option", { name: /^v01/ })).toHaveAttribute(
-			"aria-disabled",
-			"true",
-		);
-		expect(screen.getByRole("option", { name: /^v02/ })).toHaveAttribute(
-			"aria-disabled",
-			"true",
-		);
-		expect(screen.getByRole("option", { name: /^v03/ })).not.toHaveAttribute(
-			"aria-disabled",
-			"true",
-		);
-	});
-
-	it("drops from the URL a pair naming a version the project does not have", async () => {
-		const onUrlUpdate = vi.fn<OnUrlUpdateFunction>();
-		renderPage("?from=2&to=9", onUrlUpdate);
-
-		expect(state.compared).toEqual([]);
 		expect(screen.getByText("Projeto criado.")).toBeInTheDocument();
-		await vi.waitFor(() => expect(onUrlUpdate).toHaveBeenCalled());
-		const { searchParams } = onUrlUpdate.mock.calls.at(-1)?.[0] ?? {};
-		expect(searchParams?.has("from")).toBe(false);
-		expect(searchParams?.has("to")).toBe(false);
-	});
-
-	it("tells that the comparison failed", () => {
-		state.comparisonFailed = true;
-		renderPage("?from=2&to=3");
-
 		expect(
-			screen.getByText("Não foi possível comparar as versões"),
-		).toBeInTheDocument();
+			screen.queryByRole("heading", { name: "Versões Enviadas" }),
+		).not.toBeInTheDocument();
 		expect(
-			screen.getByRole("button", { name: "Tentar Novamente" }),
-		).toBeInTheDocument();
+			screen.queryByRole("heading", { name: "Comparativo de Versões" }),
+		).not.toBeInTheDocument();
 	});
 });

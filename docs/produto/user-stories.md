@@ -651,7 +651,7 @@ No envio e em cada reenvio, o sistema grava a versão do projeto com:
 
 O memorial oficial é o do envio: o download de um projeto enviado devolve sempre o PDF gravado na versão. Enquanto o projeto está em rascunho ou em correção, o memorial sai marcado como "Prévia".
 
-O memorial da versão não é regerado: alterações feitas depois da reprovação entram apenas na versão seguinte. A aba "Histórico" ([US08](#us08-linha-do-tempo-e-histórico-do-protocolo)) lista as versões com o download do memorial de cada uma e um comparativo da demanda e dos grupos entre duas versões.
+O memorial da versão não é regerado: alterações feitas depois da reprovação entram apenas na versão seguinte. A lista de versões e o comparativo entre duas versões saíram da aba "Histórico" ([US08](#us08-linha-do-tempo-e-histórico-do-protocolo)) em 20/11. As versões continuam gravadas, e cada memorial segue verificável pelo código.
 
 **Autenticidade do memorial:**
 - O PDF leva nos metadados o título, o projetista, o protocolo, a versão e as normas aplicadas.
@@ -666,13 +666,7 @@ O memorial da versão não é regerado: alterações feitas depois da reprovaç�
 - **Então** o PDF mostra os grupos e a demanda exatamente como foram enviados
 - **E** o rodapé identifica o protocolo, a versão 1 e a data do envio.
 
-#### Cenário 2 (Positivo): Comparativo Entre Versões
-- **Dado** que o projeto tem as versões 1 e 2
-- **Quando** o analista seleciona "Comparar Versões"
-- **Então** o sistema destaca os grupos incluídos, removidos e alterados
-- **E** exibe a demanda total de cada versão.
-
-#### Cenário 3 (Negativo): Memorial Alterado Fora do Sistema
+#### Cenário 2 (Negativo): Memorial Alterado Fora do Sistema
 - **Dado** que o memorial da versão 1 foi editado depois do download
 - **Quando** o arquivo é enviado em "Verificar Autenticidade"
 - **Então** o sistema informa que o documento não corresponde a nenhuma versão registrada
@@ -681,7 +675,6 @@ O memorial da versão não é regerado: alterações feitas depois da reprovaç�
 ### Checklist de Implementação
 - [ ] Gravar a versão com memorial, cálculo e documentos a cada envio
 - [ ] Baixar o memorial de qualquer versão
-- [ ] Comparar a demanda e os grupos entre duas versões
 - [ ] Gravar o hash e os metadados do memorial e imprimir o código de verificação
 - [ ] Verificar a autenticidade do memorial pelo código ou pelo arquivo
 
