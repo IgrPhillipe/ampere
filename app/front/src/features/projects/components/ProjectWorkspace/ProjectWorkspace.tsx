@@ -97,10 +97,12 @@ export const ProjectWorkspace = ({
 		ownerId: project?.ownerId,
 	});
 
-	const root = breadcrumbRoot ?? {
-		label: getProjectsPageTitle(role),
-		to: "/projetos",
-	};
+	// The analyst has no project listing: a project they cannot open sends them back to the queue.
+	const root =
+		breadcrumbRoot ??
+		(role === "reviewer"
+			? { label: "Fila de Análise", to: "/fila-de-analise" }
+			: { label: getProjectsPageTitle(role), to: "/projetos" });
 	const reanalysis =
 		project?.status === "UNDER_REVIEW" && project.reviewCycle > 1;
 	const sections: Partial<Record<ProjectSectionKey, ProjectSectionState>> =

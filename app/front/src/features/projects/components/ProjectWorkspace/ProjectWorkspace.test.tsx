@@ -16,6 +16,7 @@ import { ProjectWorkspace } from "./ProjectWorkspace";
 
 const state = vi.hoisted(() => ({
 	project: undefined as unknown,
+	projectError: false,
 	findings: [] as unknown[],
 	canSubmit: true,
 	submit: vi.fn(),
@@ -33,7 +34,10 @@ vi.mock("@tanstack/react-router", () => ({
 
 vi.mock("@services/projects", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/projects")>()),
-	useGetProject: () => loadedQuery({ data: state.project }),
+	useGetProject: () => ({
+		...loadedQuery({ data: state.project }),
+		isError: state.projectError,
+	}),
 	useDeleteProject: (options: { onDeleted: () => void }) => {
 		state.onDeleted = options.onDeleted;
 		return idleMutation({ mutate: state.remove });
@@ -80,6 +84,7 @@ const renderWorkspace = () =>
 
 describe("ProjectWorkspace", () => {
 	beforeEach(() => {
+		state.projectError = false;
 		state.findings = [];
 		state.canSubmit = true;
 		state.submit.mockClear();
@@ -110,6 +115,21 @@ describe("ProjectWorkspace", () => {
 			).toBeVisible();
 		}
 		expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+	});
+
+	it("sends the analyst back to the queue from a project out of reach", () => {
+		signInAs("reviewer");
+		state.project = undefined;
+		state.projectError = true;
+		renderWorkspace();
+
+		expect(
+			screen.getByText("Não foi possível abrir o projeto"),
+		).toBeInTheDocument();
+		fireEvent.click(
+			screen.getByRole("button", { name: "Voltar para Fila de Análise" }),
+		);
+		expect(state.navigate).toHaveBeenCalledWith({ to: "/fila-de-analise" });
 	});
 
 	it("holds the section until the project loads", () => {
