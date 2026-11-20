@@ -56,8 +56,29 @@ public class ProjectCreation {
                     HttpStatus.UNPROCESSABLE_CONTENT));
   }
 
+  /**
+   * The analyst the administrator picks ahead: they get the project on submission. Only the
+   * administrator chooses; for the designer it is ignored.
+   */
+  @Transactional(readOnly = true)
+  public User reviewerOf(Long requestedReviewerId, AuthenticatedUser user) {
+    if (requestedReviewerId == null || !user.isAdmin()) {
+      return null;
+    }
+
+    return userRepository
+        .findById(requestedReviewerId)
+        .filter(User::isActiveReviewer)
+        .orElseThrow(
+            () ->
+                new BusinessException(
+                    "O analista informado não existe, está inativo ou não é analista.",
+                    HttpStatus.UNPROCESSABLE_CONTENT));
+  }
+
   @Transactional
-  public Project createWithGeneratedProtocol(ProjectParameters parameters, User owner) {
+  public Project createWithGeneratedProtocol(
+      ProjectParameters parameters, User owner, User reviewer) {
     String municipality = ProjectPlaces.municipalityOf(parameters);
     BuildingType buildingType = parameters.toBuildingType();
     int year = LocalDate.now().getYear();
@@ -76,6 +97,9 @@ public class ProjectCreation {
             applicableStandards.of(buildingType),
             owner);
     project.locate(parameters.postalCode(), parameters.state());
+    if (reviewer != null) {
+      project.assignReviewer(reviewer);
+    }
 
     Project created = projectRepository.saveAndFlush(project);
     eventService.created(created, owner);

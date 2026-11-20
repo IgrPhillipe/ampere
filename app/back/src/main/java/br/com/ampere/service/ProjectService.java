@@ -208,13 +208,17 @@ public class ProjectService {
   }
 
   public ProjectSummary create(
-      ProjectParameters parameters, Long requestedOwnerId, AuthenticatedUser user) {
+      ProjectParameters parameters,
+      Long requestedOwnerId,
+      Long requestedReviewerId,
+      AuthenticatedUser user) {
     writerOrFail(user);
     User owner = projectCreation.ownerOf(requestedOwnerId, user);
+    User reviewer = projectCreation.reviewerOf(requestedReviewerId, user);
 
     for (int attempt = 1; attempt <= PROTOCOL_ATTEMPTS; attempt++) {
       try {
-        return summarize(projectCreation.createWithGeneratedProtocol(parameters, owner));
+        return summarize(projectCreation.createWithGeneratedProtocol(parameters, owner, reviewer));
       } catch (DataIntegrityViolationException collision) {
         log.warn("Protocol collision on attempt {} of {}", attempt, PROTOCOL_ATTEMPTS);
       }

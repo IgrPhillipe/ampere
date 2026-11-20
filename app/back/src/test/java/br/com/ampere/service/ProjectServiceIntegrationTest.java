@@ -609,7 +609,7 @@ class ProjectServiceIntegrationTest {
   void createsADraftProjectWithAGeneratedProtocolAndBothStandards() {
     Project created =
         service
-            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, designer)
+            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, null, designer)
             .project();
 
     assertThat(created.getId()).isNotNull();
@@ -626,7 +626,7 @@ class ProjectServiceIntegrationTest {
   void assignsTheAuthenticatedUserAsTheOwner() {
     Project created =
         service
-            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, designer)
+            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, null, designer)
             .project();
 
     assertThat(created.getOwner().getId()).isEqualTo(owner.getId());
@@ -647,7 +647,7 @@ class ProjectServiceIntegrationTest {
             ConnectionType.THREE_PHASE,
             EntranceStandard.COLLECTIVE);
 
-    assertThatThrownBy(() -> service.create(inJoaoPessoa, null, designer))
+    assertThatThrownBy(() -> service.create(inJoaoPessoa, null, null, designer))
         .isInstanceOf(BusinessException.class)
         .hasMessageContaining("Pedras de Fogo (PB)");
   }
@@ -679,10 +679,10 @@ class ProjectServiceIntegrationTest {
             ConnectionType.THREE_PHASE,
             EntranceStandard.COLLECTIVE);
 
-    assertThatThrownBy(() -> service.create(paulistaCep, null, designer))
+    assertThatThrownBy(() -> service.create(paulistaCep, null, null, designer))
         .isInstanceOf(BusinessException.class)
         .hasMessage("O CEP não pertence à UF informada.");
-    assertThatThrownBy(() -> service.create(unknownCity, null, designer))
+    assertThatThrownBy(() -> service.create(unknownCity, null, null, designer))
         .isInstanceOf(BusinessException.class)
         .hasMessageContaining("Pedras de Fogo (PB)");
   }
@@ -702,7 +702,7 @@ class ProjectServiceIntegrationTest {
             ConnectionType.THREE_PHASE,
             EntranceStandard.COLLECTIVE);
 
-    assertThat(service.create(typed, null, designer).project().getMunicipality())
+    assertThat(service.create(typed, null, null, designer).project().getMunicipality())
         .isEqualTo("Jaboatão dos Guararapes");
   }
 
@@ -710,7 +710,7 @@ class ProjectServiceIntegrationTest {
   void storesThePostalCodeAndTheState() {
     Project created =
         service
-            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, designer)
+            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, null, designer)
             .project();
 
     assertThat(created.getPostalCode()).isEqualTo("54500000");
@@ -724,7 +724,8 @@ class ProjectServiceIntegrationTest {
 
     Project created =
         service
-            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), owner.getId(), admin)
+            .create(
+                parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), owner.getId(), null, admin)
             .project();
 
     assertThat(created.getOwner().getId()).isEqualTo(owner.getId());
@@ -743,7 +744,7 @@ class ProjectServiceIntegrationTest {
       assertThatThrownBy(
               () ->
                   service.create(
-                      parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), ownerId, admin))
+                      parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), ownerId, null, admin))
           .isInstanceOf(BusinessException.class)
           .extracting(exception -> ((BusinessException) exception).getStatus())
           .isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
@@ -755,7 +756,9 @@ class ProjectServiceIntegrationTest {
     AuthenticatedUser admin = administrator();
 
     assertThatThrownBy(
-            () -> service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, admin))
+            () ->
+                service.create(
+                    parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, null, admin))
         .isInstanceOf(BusinessException.class)
         .hasMessage("O projetista é obrigatório.")
         .extracting(exception -> ((BusinessException) exception).getStatus())
@@ -768,10 +771,67 @@ class ProjectServiceIntegrationTest {
 
     Project created =
         service
-            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), other, designer)
+            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), other, null, designer)
             .project();
 
     assertThat(created.getOwner().getId()).isEqualTo(owner.getId());
+  }
+
+  @Test
+  void keepsTheAnalystTheAdministratorPicksAtCreation() {
+    AuthenticatedUser admin = administrator();
+    User reviewer =
+        userRepository.save(new User("Rui Analista", "rui@ampere.com", "hash", UserRole.REVIEWER));
+
+    Project created =
+        service
+            .create(
+                parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY),
+                owner.getId(),
+                reviewer.getId(),
+                admin)
+            .project();
+
+    assertThat(created.isAssignedTo(reviewer.getId())).isTrue();
+  }
+
+  @Test
+  void rejectsAnAnalystThatIsMissingInactiveOrNotAnAnalystAtCreation() {
+    AuthenticatedUser admin = administrator();
+    User inactive = new User("Rui Inativo", "rui.inativo@ampere.com", "hash", UserRole.REVIEWER);
+    inactive.administer("Rui Inativo", UserRole.REVIEWER, false);
+    Long inactiveId = userRepository.save(inactive).getId();
+
+    for (Long reviewerId : List.of(inactiveId, owner.getId(), -1L)) {
+      assertThatThrownBy(
+              () ->
+                  service.create(
+                      parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY),
+                      owner.getId(),
+                      reviewerId,
+                      admin))
+          .isInstanceOf(BusinessException.class)
+          .hasMessage("O analista informado não existe, está inativo ou não é analista.")
+          .extracting(exception -> ((BusinessException) exception).getStatus())
+          .isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
+    }
+  }
+
+  @Test
+  void ignoresTheRequestedAnalystWhenADesignerCreates() {
+    User reviewer =
+        userRepository.save(new User("Rui Analista", "rui@ampere.com", "hash", UserRole.REVIEWER));
+
+    Project created =
+        service
+            .create(
+                parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY),
+                null,
+                reviewer.getId(),
+                designer)
+            .project();
+
+    assertThat(created.getReviewer()).isNull();
   }
 
   private AuthenticatedUser administrator() {
@@ -784,12 +844,18 @@ class ProjectServiceIntegrationTest {
   @Test
   void generatesSequentialProtocolsWithinTheYear() {
     String first =
-        service.create(parameters(BuildingCategory.MIXED), null, designer).project().getProtocol();
+        service
+            .create(parameters(BuildingCategory.MIXED), null, null, designer)
+            .project()
+            .getProtocol();
     String second =
-        service.create(parameters(BuildingCategory.MIXED), null, designer).project().getProtocol();
+        service
+            .create(parameters(BuildingCategory.MIXED), null, null, designer)
+            .project()
+            .getProtocol();
     String third =
         service
-            .create(parameters(BuildingCategory.NON_RESIDENTIAL), null, designer)
+            .create(parameters(BuildingCategory.NON_RESIDENTIAL), null, null, designer)
             .project()
             .getProtocol();
 
@@ -800,7 +866,7 @@ class ProjectServiceIntegrationTest {
   void updatesTheTechnicalParametersOfADraft() {
     Long id =
         service
-            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, designer)
+            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, null, designer)
             .project()
             .getId();
 
@@ -885,7 +951,8 @@ class ProjectServiceIntegrationTest {
 
   @Test
   void deletesADraftProjectAndItsFindings() {
-    Project draft = service.create(parameters(BuildingCategory.MIXED), null, designer).project();
+    Project draft =
+        service.create(parameters(BuildingCategory.MIXED), null, null, designer).project();
     findingRepository.save(published(finding(draft)));
 
     service.delete(draft.getId(), designer);

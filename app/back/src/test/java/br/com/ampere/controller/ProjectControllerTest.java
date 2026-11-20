@@ -340,7 +340,7 @@ class ProjectControllerTest {
   @Test
   void createsProjectAndAnswersCreated() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.create(any(), any(), eq(DESIGNER)))
+    when(service.create(any(), any(), any(), eq(DESIGNER)))
         .thenReturn(new ProjectSummary(draft(), 0, 0, null, null, NO_TIMELINE));
 
     mockMvc(service)
@@ -358,7 +358,7 @@ class ProjectControllerTest {
   @Test
   void passesTheOwnerIdOfTheBodyToTheService() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.create(any(), eq(5L), eq(DESIGNER)))
+    when(service.create(any(), eq(5L), any(), eq(DESIGNER)))
         .thenReturn(new ProjectSummary(draft(), 0, 0, null, null, NO_TIMELINE));
 
     mockMvc(service)
@@ -366,6 +366,20 @@ class ProjectControllerTest {
             post("/projects")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validBody().replace("\"floors\"", "\"ownerId\": \"5\", \"floors\"")))
+        .andExpect(status().isCreated());
+  }
+
+  @Test
+  void passesTheReviewerIdOfTheBodyToTheService() throws Exception {
+    ProjectService service = mock(ProjectService.class);
+    when(service.create(any(), any(), eq(7L), eq(DESIGNER)))
+        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null, NO_TIMELINE));
+
+    mockMvc(service)
+        .perform(
+            post("/projects")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validBody().replace("\"floors\"", "\"reviewerId\": \"7\", \"floors\"")))
         .andExpect(status().isCreated());
   }
 

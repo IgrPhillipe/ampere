@@ -125,13 +125,14 @@ class ProjectServiceTest {
     User owner = mock(User.class);
     Project created = mock(Project.class);
     when(creation.ownerOf(null, DESIGNER)).thenReturn(owner);
-    when(creation.createWithGeneratedProtocol(any(), eq(owner)))
+    when(creation.createWithGeneratedProtocol(any(), eq(owner), any()))
         .thenThrow(new DataIntegrityViolationException("duplicate protocol"))
         .thenReturn(created);
 
-    assertThat(service(creation).create(parameters(), null, DESIGNER).project()).isSameAs(created);
+    assertThat(service(creation).create(parameters(), null, null, DESIGNER).project())
+        .isSameAs(created);
     verify(creation, times(1)).ownerOf(null, DESIGNER);
-    verify(creation, times(2)).createWithGeneratedProtocol(any(), eq(owner));
+    verify(creation, times(2)).createWithGeneratedProtocol(any(), eq(owner), any());
   }
 
   @Test
@@ -140,23 +141,23 @@ class ProjectServiceTest {
     when(creation.ownerOf(null, ADMIN))
         .thenThrow(new BusinessException("O projetista é obrigatório.", HttpStatus.BAD_REQUEST));
 
-    assertThatThrownBy(() -> service(creation).create(parameters(), null, ADMIN))
+    assertThatThrownBy(() -> service(creation).create(parameters(), null, null, ADMIN))
         .isInstanceOf(BusinessException.class);
-    verify(creation, never()).createWithGeneratedProtocol(any(), any());
+    verify(creation, never()).createWithGeneratedProtocol(any(), any(), any());
   }
 
   @Test
   void answersConflictWhenEveryProtocolAttemptCollides() {
     ProjectCreation creation = mock(ProjectCreation.class);
-    when(creation.createWithGeneratedProtocol(any(), any()))
+    when(creation.createWithGeneratedProtocol(any(), any(), any()))
         .thenThrow(new DataIntegrityViolationException("duplicate protocol"));
 
-    assertThatThrownBy(() -> service(creation).create(parameters(), null, DESIGNER))
+    assertThatThrownBy(() -> service(creation).create(parameters(), null, null, DESIGNER))
         .isInstanceOf(BusinessException.class)
         .hasMessage("Não foi possível gerar o protocolo do projeto. Tente novamente.")
         .extracting(exception -> ((BusinessException) exception).getStatus())
         .isEqualTo(HttpStatus.CONFLICT);
-    verify(creation, times(3)).createWithGeneratedProtocol(any(), any());
+    verify(creation, times(3)).createWithGeneratedProtocol(any(), any(), any());
   }
 
   @Test
