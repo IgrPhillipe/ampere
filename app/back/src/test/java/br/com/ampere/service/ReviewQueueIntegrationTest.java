@@ -1,6 +1,7 @@
 package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -144,7 +145,7 @@ class ReviewQueueIntegrationTest {
     projectRepository.save(project("2026-4004", ProjectStatus.UNDER_REVIEW));
     projectRepository.save(project("2026-4005", ProjectStatus.DRAFT));
 
-    asAnalyst(get("/review-queue"))
+    asManager(get("/review-queue"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(3)))
         .andExpect(jsonPath("$.pagination.total").value(3))
@@ -166,7 +167,7 @@ class ReviewQueueIntegrationTest {
     submitted("2026-4002", now.minusDays(40));
     submitted("2026-4003", now.minusDays(30));
 
-    asAnalyst(get("/review-queue").param("direction", "DESC"))
+    asManager(get("/review-queue").param("direction", "DESC"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(3)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4001"))
@@ -180,11 +181,11 @@ class ReviewQueueIntegrationTest {
     submitted("2026-4302", sharedSubmission);
     submitted("2026-4301", sharedSubmission);
 
-    asAnalyst(get("/review-queue").param("direction", "ASC"))
+    asManager(get("/review-queue").param("direction", "ASC"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4302"))
         .andExpect(jsonPath("$.data[1].protocol").value("2026-4301"));
-    asAnalyst(get("/review-queue").param("direction", "DESC"))
+    asManager(get("/review-queue").param("direction", "DESC"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4302"))
         .andExpect(jsonPath("$.data[1].protocol").value("2026-4301"));
@@ -196,7 +197,7 @@ class ReviewQueueIntegrationTest {
     submitted("2026-4402", now.minusDays(40));
     submitted("2026-4403", now.minusDays(30));
 
-    asAnalyst(
+    asManager(
             get("/review-queue")
                 .param("search", "joao")
                 .param("filter", "DUE_SOON")
@@ -217,13 +218,13 @@ class ReviewQueueIntegrationTest {
     submitted("2026-4002", now.minusDays(40));
     submitted("2026-4003", now.minusDays(30));
 
-    asAnalyst(get("/review-queue").param("filter", "DUE_SOON"))
+    asManager(get("/review-queue").param("filter", "DUE_SOON"))
         .andExpect(jsonPath("$.data", hasSize(2)))
         .andExpect(jsonPath("$.pagination.total").value(2))
         .andExpect(jsonPath("$.data[0].deadlineStatus").value("OVERDUE"))
         .andExpect(jsonPath("$.data[1].deadlineStatus").value("DUE_TODAY"));
 
-    asAnalyst(get("/review-queue").param("pageSize", "1").param("page", "2"))
+    asManager(get("/review-queue").param("pageSize", "1").param("page", "2"))
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4003"))
         .andExpect(jsonPath("$.pagination.total").value(3));
@@ -241,7 +242,7 @@ class ReviewQueueIntegrationTest {
         .andExpect(jsonPath("$.data.warningsCount").value(1));
     project.submit(now.minusDays(5));
 
-    asAnalyst(get("/review-queue"))
+    asManager(get("/review-queue"))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4001"))
         .andExpect(jsonPath("$.data[0].warnings").value(1))
         .andExpect(jsonPath("$.data[0].alerts", hasSize(1)))
@@ -262,7 +263,7 @@ class ReviewQueueIntegrationTest {
     submitted("2026-4102", now.minusDays(4));
 
     assertSingleSearchResult("4101", "2026-4101");
-    asAnalyst(get("/review-queue").param("search", "joao"))
+    asManager(get("/review-queue").param("search", "joao"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(2)))
         .andExpect(jsonPath("$.data[0].ownerName").value("João Projetista"));
@@ -283,24 +284,24 @@ class ReviewQueueIntegrationTest {
     projectRepository.save(reanalysis);
     submitted("2026-4203", now.minusDays(3));
 
-    asAnalyst(get("/review-queue").param("filter", "HIGH_DEMAND"))
+    asManager(get("/review-queue").param("filter", "HIGH_DEMAND"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4201"));
-    asAnalyst(get("/review-queue").param("filter", "REANALYSIS"))
+    asManager(get("/review-queue").param("filter", "REANALYSIS"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-4202"))
         .andExpect(jsonPath("$.data[0].reanalysis").value(true));
 
-    asAnalyst(get("/review-queue/indicators"))
+    asManager(get("/review-queue/indicators"))
         .andExpect(jsonPath("$.data.highDemand").value(1))
         .andExpect(jsonPath("$.data.reanalysis").value(1));
   }
 
   @Test
   void rejectsAnUnknownQueueFilter() throws Exception {
-    asAnalyst(get("/review-queue").param("filter", "urgente"))
+    asManager(get("/review-queue").param("filter", "urgente"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("DUE_SOON")))
         .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("REANALYSIS")));
@@ -308,7 +309,7 @@ class ReviewQueueIntegrationTest {
 
   @Test
   void rejectsAnUnknownQueueSort() throws Exception {
-    asAnalyst(get("/review-queue").param("sort", "oldest_first"))
+    asManager(get("/review-queue").param("sort", "oldest_first"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("DEADLINE")))
         .andExpect(
@@ -317,26 +318,26 @@ class ReviewQueueIntegrationTest {
 
   @Test
   void rejectsLegacyDirectionInSortParameter() throws Exception {
-    asAnalyst(get("/review-queue").param("sort", "ASC")).andExpect(status().isBadRequest());
+    asManager(get("/review-queue").param("sort", "ASC")).andExpect(status().isBadRequest());
   }
 
   @Test
   void rejectsAnUnknownQueueDirection() throws Exception {
-    asAnalyst(get("/review-queue").param("direction", "oldest_first"))
+    asManager(get("/review-queue").param("direction", "oldest_first"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("ASC")))
         .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("DESC")));
   }
 
   @Test
-  void listsTheActiveAnalystsAndAdminsAndRefusesTheDesigner() throws Exception {
+  void listsTheActiveAnalystsAndAdminsOnlyToTheManager() throws Exception {
     String hash = passwordEncoder.encode(PASSWORD);
     userRepository.save(new User("Revisor Beta", "beta@ampere.com", hash, UserRole.ADMIN));
     User inactive = new User("Analista Inativo", "inativo@ampere.com", hash, UserRole.REVIEWER);
     inactive.administer(inactive.getName(), UserRole.REVIEWER, false);
     userRepository.save(inactive);
 
-    asAnalyst(get("/review-queue/reviewers"))
+    asManager(get("/review-queue/reviewers"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(3)))
         .andExpect(jsonPath("$.data[0].name").value("Admin Teste"))
@@ -349,7 +350,7 @@ class ReviewQueueIntegrationTest {
         .perform(
             get("/review-queue/reviewers")
                 .header("Authorization", "Bearer " + token("revisor@ampere.com")))
-        .andExpect(status().isOk());
+        .andExpect(status().isForbidden());
 
     mockMvc
         .perform(
@@ -369,18 +370,18 @@ class ReviewQueueIntegrationTest {
     calculate(large);
     large.submit(now.minusDays(4));
 
-    asAnalyst(get("/review-queue"))
+    asManager(get("/review-queue"))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-6001"))
         .andExpect(jsonPath("$.data[1].protocol").value("2026-6002"));
-    asAnalyst(get("/review-queue").param("sort", "demand").param("direction", "DESC"))
+    asManager(get("/review-queue").param("sort", "demand").param("direction", "DESC"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data[0].protocol").value("2026-6002"))
         .andExpect(jsonPath("$.data[1].protocol").value("2026-6001"));
-    asAnalyst(get("/review-queue").param("sort", "warnings").param("direction", "DESC"))
+    asManager(get("/review-queue").param("sort", "warnings").param("direction", "DESC"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data[0].warnings").value(1))
         .andExpect(jsonPath("$.data[1].warnings").value(0));
-    asAnalyst(get("/review-queue").param("sort", "submittedAt").param("direction", "DESC"))
+    asManager(get("/review-queue").param("sort", "submittedAt").param("direction", "DESC"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data[0].protocol").value("2026-6002"))
         .andExpect(jsonPath("$.data[1].protocol").value("2026-6001"));
@@ -398,13 +399,13 @@ class ReviewQueueIntegrationTest {
     pedras.submit(now.minusDays(3));
     projectRepository.save(pedras);
 
-    asAnalyst(get("/review-queue").param("state", "PB", ""))
+    asManager(get("/review-queue").param("state", "PB", ""))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.detail").value("O filtro 'state' tem um valor vazio."));
-    asAnalyst(get("/review-queue").param("municipality", "Recife", " "))
+    asManager(get("/review-queue").param("municipality", "Recife", " "))
         .andExpect(status().isBadRequest());
 
-    asAnalyst(get("/review-queue").param("state", "PB"))
+    asManager(get("/review-queue").param("state", "PB"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-7102"))
@@ -424,17 +425,17 @@ class ReviewQueueIntegrationTest {
     p2.submit(now.minusDays(3));
     projectRepository.save(p2);
 
-    asAnalyst(get("/review-queue").param("municipality", "recife"))
+    asManager(get("/review-queue").param("municipality", "recife"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-7001"));
 
-    asAnalyst(get("/review-queue").param("reviewer", String.valueOf(admin.getId())))
+    asManager(get("/review-queue").param("reviewer", String.valueOf(admin.getId())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-7001"));
 
-    asAnalyst(get("/review-queue").param("reviewer", "none"))
+    asManager(get("/review-queue").param("reviewer", "none"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-7002"));
@@ -454,14 +455,14 @@ class ReviewQueueIntegrationTest {
     fromOther.submit(now.minusDays(2));
     projectRepository.save(fromOther);
 
-    asAnalyst(get("/review-queue").param("owner", String.valueOf(other.getId())))
+    asManager(get("/review-queue").param("owner", String.valueOf(other.getId())))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-7302"));
-    asAnalyst(get("/review-queue").param("owner", String.valueOf(owner.getId())))
+    asManager(get("/review-queue").param("owner", String.valueOf(owner.getId())))
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].protocol").value("2026-7301"));
-    asAnalyst(get("/review-queue").param("owner", "invalido")).andExpect(status().isBadRequest());
+    asManager(get("/review-queue").param("owner", "invalido")).andExpect(status().isBadRequest());
   }
 
   @Test
@@ -478,21 +479,21 @@ class ReviewQueueIntegrationTest {
     projectRepository.save(project("2026-7403", ProjectStatus.DRAFT, draftOnly));
     reviewed("2026-7404", false, now.minusDays(1));
 
-    asAnalyst(get("/review-queue/owners"))
+    asManager(get("/review-queue/owners"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(2)))
         .andExpect(jsonPath("$.data[0].name").value("João Projetista"))
         .andExpect(jsonPath("$.data[0].id").value(String.valueOf(owner.getId())))
         .andExpect(jsonPath("$.data[1].name").value("Maria Projetista"))
         .andExpect(jsonPath("$.pagination.total").value(2));
-    asAnalyst(get("/review-queue/owners").param("search", "JOAO"))
+    asManager(get("/review-queue/owners").param("search", "JOAO"))
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].name").value("João Projetista"))
         .andExpect(jsonPath("$.pagination.total").value(1));
-    asAnalyst(get("/review-queue/owners").param("search", "carlos"))
+    asManager(get("/review-queue/owners").param("search", "carlos"))
         .andExpect(jsonPath("$.data", hasSize(0)))
         .andExpect(jsonPath("$.pagination.total").value(0));
-    asAnalyst(get("/review-queue/owners").param("page", "2").param("pageSize", "1"))
+    asManager(get("/review-queue/owners").param("page", "2").param("pageSize", "1"))
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].name").value("Maria Projetista"))
         .andExpect(jsonPath("$.pagination.total").value(2))
@@ -512,18 +513,18 @@ class ReviewQueueIntegrationTest {
 
   @Test
   void filtersByAnAnalystWithTheReviewerRole() throws Exception {
-    asAnalyst(get("/review-queue").param("reviewer", String.valueOf(reviewer.getId())))
+    asManager(get("/review-queue").param("reviewer", String.valueOf(reviewer.getId())))
         .andExpect(status().isOk());
   }
 
   @Test
   void rejectsInvalidReviewer() throws Exception {
-    asAnalyst(get("/review-queue").param("reviewer", "invalido"))
+    asManager(get("/review-queue").param("reviewer", "invalido"))
         .andExpect(status().isBadRequest());
 
-    asAnalyst(get("/review-queue").param("reviewer", "999999")).andExpect(status().isBadRequest());
+    asManager(get("/review-queue").param("reviewer", "999999")).andExpect(status().isBadRequest());
 
-    asAnalyst(get("/review-queue").param("reviewer", String.valueOf(owner.getId())))
+    asManager(get("/review-queue").param("reviewer", String.valueOf(owner.getId())))
         .andExpect(status().isBadRequest());
   }
 
@@ -554,7 +555,7 @@ class ReviewQueueIntegrationTest {
     olinda.submit(now.minusDays(1));
     projectRepository.save(olinda);
 
-    asAnalyst(
+    asManager(
             get("/review-queue")
                 .param("municipality", "Recife")
                 .param("filter", "REANALYSIS")
@@ -608,7 +609,7 @@ class ReviewQueueIntegrationTest {
     reviewed("2026-4006", false, now);
     reviewed("2026-4007", false, now.minusDays(45));
 
-    asAnalyst(get("/review-queue/indicators"))
+    asManager(get("/review-queue/indicators"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.total").value(3))
         .andExpect(jsonPath("$.data.dueSoon").value(2))
@@ -619,8 +620,63 @@ class ReviewQueueIntegrationTest {
   }
 
   @Test
+  void theAnalystSeesOnlyTheProjectsAssignedToThem() throws Exception {
+    User maria =
+        userRepository.save(
+            new User(
+                "Maria Projetista",
+                "maria@ampere.com",
+                passwordEncoder.encode(PASSWORD),
+                UserRole.USER));
+    Project own = project("2026-7501", ProjectStatus.DRAFT, maria);
+    own.submit(now.minusDays(4));
+    own.assignReviewer(reviewer);
+    projectRepository.save(own);
+    submitted("2026-7502", now.minusDays(3));
+    Project others = project("2026-7503", ProjectStatus.DRAFT);
+    others.submit(now.minusDays(2));
+    others.assignReviewer(admin);
+    projectRepository.save(others);
+
+    for (String filter : List.of("", "none", String.valueOf(admin.getId()), "invalido")) {
+      asReviewer(get("/review-queue").param("reviewer", filter))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.data", hasSize(1)))
+          .andExpect(jsonPath("$.data[0].protocol").value("2026-7501"));
+    }
+    asReviewer(get("/review-queue/owners"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[*].name").value(contains("Maria Projetista")));
+    asManager(get("/review-queue")).andExpect(jsonPath("$.data", hasSize(3)));
+  }
+
+  @Test
+  void theAnalystIndicatorsCountOnlyTheirOwnWork() throws Exception {
+    Project own = project("2026-7601", ProjectStatus.DRAFT);
+    own.submit(now.minusDays(2));
+    own.assignReviewer(reviewer);
+    projectRepository.save(own);
+    submitted("2026-7602", now.minusDays(2));
+    Project decided = project("2026-7603", ProjectStatus.DRAFT);
+    decided.submit(now.minusDays(5));
+    decided.assignReviewer(reviewer);
+    decided.reject(now);
+    projectRepository.save(decided);
+    reviewed("2026-7604", false, now);
+
+    asReviewer(get("/review-queue/indicators"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.total").value(1))
+        .andExpect(jsonPath("$.data.reviewedToday").value(1))
+        .andExpect(jsonPath("$.data.monthlyRejectionPercent").value(100));
+    asManager(get("/review-queue/indicators"))
+        .andExpect(jsonPath("$.data.total").value(2))
+        .andExpect(jsonPath("$.data.reviewedToday").value(2));
+  }
+
+  @Test
   void anEmptyMonthHasNoRejectionRate() throws Exception {
-    asAnalyst(get("/review-queue/indicators"))
+    asManager(get("/review-queue/indicators"))
         .andExpect(jsonPath("$.data.total").value(0))
         .andExpect(jsonPath("$.data.reviewedToday").value(0))
         .andExpect(jsonPath("$.data.monthlyRejectionPercent").value(0));
@@ -716,7 +772,7 @@ class ReviewQueueIntegrationTest {
   }
 
   private void assertSingleSearchResult(String search, String protocol) throws Exception {
-    asAnalyst(get("/review-queue").param("search", search))
+    asManager(get("/review-queue").param("search", search))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data", hasSize(1)))
         .andExpect(jsonPath("$.data[0].protocol").value(protocol));
@@ -742,10 +798,17 @@ class ReviewQueueIntegrationTest {
             null));
   }
 
-  private org.springframework.test.web.servlet.ResultActions asAnalyst(
+  private org.springframework.test.web.servlet.ResultActions asManager(
       org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder request)
       throws Exception {
     return mockMvc.perform(request.header("Authorization", "Bearer " + token("admin@ampere.com")));
+  }
+
+  private org.springframework.test.web.servlet.ResultActions asReviewer(
+      org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder request)
+      throws Exception {
+    return mockMvc.perform(
+        request.header("Authorization", "Bearer " + token("revisor@ampere.com")));
   }
 
   private String token(String email) throws Exception {

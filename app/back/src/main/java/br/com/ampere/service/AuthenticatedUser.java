@@ -52,7 +52,7 @@ public record AuthenticatedUser(Long id, UserRole role) {
   public ProjectVisibility projectVisibility() {
     return switch (role) {
       case USER -> ProjectVisibility.OWN;
-      case REVIEWER -> ProjectVisibility.SUBMITTED;
+      case REVIEWER -> ProjectVisibility.ASSIGNED;
       case ADMIN -> ProjectVisibility.ALL;
     };
   }

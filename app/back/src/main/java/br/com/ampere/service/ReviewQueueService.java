@@ -36,7 +36,7 @@ public class ReviewQueueService {
 
   public static final BigDecimal HIGH_DEMAND_THRESHOLD = new BigDecimal("50");
 
-  /** {@code reviewer} value for the projects no analyst picked up yet. */
+  /** {@code reviewer} value for the projects the manager has not assigned yet. */
   public static final String UNASSIGNED = "none";
 
   private final ProjectRepository projectRepository;
@@ -62,7 +62,7 @@ public class ReviewQueueService {
     LocalDate today = LocalDate.now(ZONE);
     Page<Project> projects =
         projectRepository.searchReviewQueue(
-            search(query, today), PageRequest.of(page - 1, pageSize));
+            search(query, today, user), PageRequest.of(page - 1, pageSize));
 
     return listing(projects, today);
   }
@@ -73,12 +73,16 @@ public class ReviewQueueService {
     LocalDate today = LocalDate.now(ZONE);
 
     return listing(
-        projectRepository.searchReviewQueue(search(query, today), Pageable.unpaged()), today);
+        projectRepository.searchReviewQueue(search(query, today, user), Pageable.unpaged()), today);
   }
 
-  private ReviewQueueSearch search(ReviewQueueQuery query, LocalDate today) {
-    String reviewer = query.reviewer() == null ? "" : query.reviewer().trim();
+  private ReviewQueueSearch search(
+      ReviewQueueQuery query, LocalDate today, AuthenticatedUser user) {
+    // The analyst's own scope replaces whatever reviewer the request asks for.
+    Long scope = analystScope(user);
+    String reviewer = scope != null || query.reviewer() == null ? "" : query.reviewer().trim();
     boolean unassigned = UNASSIGNED.equalsIgnoreCase(reviewer);
+    Long reviewerId = reviewer.isEmpty() || unassigned ? null : analystId(reviewer);
 
     return new ReviewQueueSearch(
         SearchTerms.normalize(query.search()),
@@ -87,7 +91,7 @@ public class ReviewQueueService {
         query.filter() == ReviewQueueFilter.REANALYSIS,
         query.states(),
         query.municipalities(),
-        reviewer.isEmpty() || unassigned ? null : analystId(reviewer),
+        scope != null ? scope : reviewerId,
         unassigned,
         query.owner(),
         query.sort(),
@@ -121,10 +125,10 @@ public class ReviewQueueService {
     return new ReviewQueueListing(entries, projects.getTotalElements());
   }
 
-  /** Whoever can hold a review: active analysts and admins. */
+  /** Whoever can hold a review: active analysts and admins. Only the manager assigns. */
   @Transactional(readOnly = true)
   public List<User> reviewers(AuthenticatedUser user) {
-    user.requireReviewer();
+    user.requireAdmin();
     return userRepository.findAllByRoleInAndActiveTrueOrderByNameAsc(
         Arrays.stream(UserRole.values()).filter(UserRole::canReview).toList());
   }
@@ -135,7 +139,7 @@ public class ReviewQueueService {
     user.requireReviewer();
     Page<User> owners =
         projectRepository.findReviewQueueOwners(
-            SearchTerms.normalize(search), PageRequest.of(page - 1, pageSize));
+            SearchTerms.normalize(search), analystScope(user), PageRequest.of(page - 1, pageSize));
 
     return new OwnerListing(owners.getContent(), owners.getTotalElements());
   }
@@ -146,16 +150,34 @@ public class ReviewQueueService {
     LocalDate today = LocalDate.now(ZONE);
     OffsetDateTime startOfToday = today.atStartOfDay(ZONE).toOffsetDateTime();
     OffsetDateTime startOfMonth = today.withDayOfMonth(1).atStartOfDay(ZONE).toOffsetDateTime();
+    OffsetDateTime cutoff = dueSoonCutoff(today);
+    Long scope = analystScope(user);
+    if (scope != null) {
+      return new ReviewQueueIndicators(
+          filteredCount(false, false, false, cutoff, scope),
+          filteredCount(true, false, false, cutoff, scope),
+          filteredCount(false, true, false, cutoff, scope),
+          filteredCount(false, false, true, cutoff, scope),
+          projectRepository.countByReviewerIdAndReviewedAtGreaterThanEqual(scope, startOfToday),
+          projectRepository.countByReviewerIdAndReviewedAtGreaterThanEqual(scope, startOfMonth),
+          projectRepository.countByReviewerIdAndStatusAndReviewedAtGreaterThanEqual(
+              scope, ProjectStatus.REJECTED, startOfMonth));
+    }
 
     return new ReviewQueueIndicators(
         projectRepository.countByStatusAndSubmittedAtIsNotNull(ProjectStatus.UNDER_REVIEW),
-        filteredCount(true, false, false, dueSoonCutoff(today)),
-        filteredCount(false, true, false, dueSoonCutoff(today)),
-        filteredCount(false, false, true, dueSoonCutoff(today)),
+        filteredCount(true, false, false, cutoff, null),
+        filteredCount(false, true, false, cutoff, null),
+        filteredCount(false, false, true, cutoff, null),
         projectRepository.countByReviewedAtGreaterThanEqual(startOfToday),
         projectRepository.countByReviewedAtGreaterThanEqual(startOfMonth),
         projectRepository.countByStatusAndReviewedAtGreaterThanEqual(
             ProjectStatus.REJECTED, startOfMonth));
+  }
+
+  /** The analyst only reaches the projects the manager assigned to them; the manager, all. */
+  private static Long analystScope(AuthenticatedUser user) {
+    return user.isReviewer() ? user.id() : null;
   }
 
   /** A review clock started before this instant means the deadline is today or already past. */
@@ -168,7 +190,11 @@ public class ReviewQueueService {
   }
 
   private long filteredCount(
-      boolean dueSoon, boolean highDemand, boolean reanalysis, OffsetDateTime clockStartedBefore) {
+      boolean dueSoon,
+      boolean highDemand,
+      boolean reanalysis,
+      OffsetDateTime clockStartedBefore,
+      Long reviewerId) {
     return projectRepository
         .searchReviewQueue(
             new ReviewQueueSearch(
@@ -178,7 +204,7 @@ public class ReviewQueueService {
                 reanalysis,
                 Set.of(),
                 Set.of(),
-                null,
+                reviewerId,
                 false,
                 null,
                 ReviewQueueSort.DEADLINE,

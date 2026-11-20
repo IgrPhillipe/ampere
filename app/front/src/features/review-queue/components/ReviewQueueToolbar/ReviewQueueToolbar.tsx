@@ -21,6 +21,8 @@ const sortOptions: SortOption<ReviewQueueSort>[] = [
 
 interface ReviewQueueToolbarProps {
 	indicators?: ReviewQueueIndicators;
+	/** The analyst's queue: the counts cover only the projects assigned to them. */
+	ownQueue?: boolean;
 	filter: ReviewQueueFilter;
 	onFilterChange: (filter: ReviewQueueFilter) => void;
 	search: string;
@@ -35,6 +37,7 @@ interface ReviewQueueToolbarProps {
 
 export const ReviewQueueToolbar = ({
 	indicators,
+	ownQueue = false,
 	filter,
 	onFilterChange,
 	search,
@@ -54,7 +57,7 @@ export const ReviewQueueToolbar = ({
 				tiles={[
 					{
 						value: "ALL",
-						label: "Todos na fila",
+						label: ownQueue ? "Meus projetos" : "Todos na fila",
 						count: indicators?.total ?? 0,
 					},
 					{

@@ -43,6 +43,8 @@ interface ReviewQueueColumnOptions extends ReviewQueueRowActions {
 	currentUserId?: string;
 	/** Adds the checkbox column; the selection itself comes from `ReviewQueueSelectionContext`. */
 	selectable?: boolean;
+	/** The analyst's queue holds only their own projects, so the column would repeat them. */
+	showReviewer?: boolean;
 }
 
 const selectColumn = columnHelper.display({
@@ -56,6 +58,7 @@ export const createReviewQueueColumns = ({
 	onAnalyze,
 	currentUserId,
 	selectable = false,
+	showReviewer = true,
 }: ReviewQueueColumnOptions) =>
 	columnHelper.columns([
 		...(selectable ? [selectColumn] : []),
@@ -128,11 +131,15 @@ export const createReviewQueueColumns = ({
 			header: "Prazo",
 			cell: ({ row }) => <DeadlineCell item={row.original} />,
 		}),
-		columnHelper.accessor("reviewerName", {
-			id: "reviewer",
-			header: "Analista Responsável",
-			cell: ({ row }) => <ReviewerCell item={row.original} />,
-		}),
+		...(showReviewer
+			? [
+					columnHelper.accessor("reviewerName", {
+						id: "reviewer",
+						header: "Analista Responsável",
+						cell: ({ row }) => <ReviewerCell item={row.original} />,
+					}),
+				]
+			: []),
 		columnHelper.display({
 			id: "action",
 			header: () => <span className="sr-only">Ação</span>,

@@ -497,8 +497,8 @@ describe("ProjectReviewWorkspace", () => {
 		});
 	});
 
-	it("keeps the analyst read only when someone else holds the review", () => {
-		signInAs("reviewer");
+	it("keeps the manager read only when someone else holds the review", () => {
+		signInAs("admin");
 		state.holdsReview = false;
 		renderWorkspace();
 
@@ -522,7 +522,7 @@ describe("ProjectReviewWorkspace", () => {
 		state.holdsReview = false;
 		state.reviewerId = "9";
 		state.reviewerName = "Ana Analista";
-		signInAs("reviewer");
+		signInAs("admin");
 		renderWorkspace();
 
 		expect(state.openReview).not.toHaveBeenCalled();
@@ -534,7 +534,7 @@ describe("ProjectReviewWorkspace", () => {
 	it("tells when the project still has no analyst", () => {
 		state.holdsReview = false;
 		state.reviewerId = null;
-		signInAs("reviewer");
+		signInAs("admin");
 		renderWorkspace();
 
 		expect(state.openReview).not.toHaveBeenCalled();
@@ -546,7 +546,7 @@ describe("ProjectReviewWorkspace", () => {
 	it("consults the project when the API refuses the review anyway", async () => {
 		state.holdsReview = false;
 		state.openError = await httpErrorOf(403, {});
-		signInAs("reviewer");
+		signInAs("admin");
 		renderWorkspace();
 
 		expect(state.openReview).toHaveBeenCalledWith("4");

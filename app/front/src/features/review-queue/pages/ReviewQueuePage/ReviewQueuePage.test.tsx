@@ -148,6 +148,31 @@ describe("ReviewQueuePage batch assignment", () => {
 		expect(screen.getByRole("button", { name: "Exportar CSV" })).toBeEnabled();
 	});
 
+	it("leaves the reviewer filter and column to the manager", () => {
+		signInAs("reviewer", { id: "7" });
+		const { unmount } = renderPage();
+
+		expect(
+			screen.getByText("Acompanhe e priorize os projetos atribuídos a você."),
+		).toBeInTheDocument();
+		expect(screen.getByText("Meus projetos")).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: /^Analista/ }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("columnheader", { name: "Analista Responsável" }),
+		).not.toBeInTheDocument();
+		unmount();
+
+		signInAs("admin", { id: "1" });
+		renderPage();
+
+		expect(screen.getByText("Todos na fila")).toBeInTheDocument();
+		expect(
+			screen.getByRole("columnheader", { name: "Analista Responsável" }),
+		).toBeInTheDocument();
+	});
+
 	it("assigns the selected projects and clears the selection", async () => {
 		signInAs("admin", { id: "1" });
 		mockAssign.mockImplementation((_payload, options) => options.onSuccess());

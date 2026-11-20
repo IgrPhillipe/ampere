@@ -138,13 +138,13 @@ class ProjectReviewWorkflowIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, bearer(owner)))
         .andExpect(status().isForbidden());
 
-    open(unassigned, analyst).andExpect(status().isForbidden());
+    // Unassigned, the project stays out of every analyst's reach.
+    open(unassigned, analyst).andExpect(status().isNotFound());
     mockMvc
         .perform(
             get("/projects/{id}", unassigned.getId())
                 .header(HttpHeaders.AUTHORIZATION, bearer(analyst)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.reviewerId").value((Object) null));
+        .andExpect(status().isNotFound());
 
     mockMvc
         .perform(
@@ -158,6 +158,7 @@ class ProjectReviewWorkflowIntegrationTest {
     open(unassigned, analyst)
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.reviewerId").value(analyst.getId()));
+    // The admin consults the project but does not open someone else's review.
     open(unassigned, otherAnalyst).andExpect(status().isForbidden());
     mockMvc
         .perform(

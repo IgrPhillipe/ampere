@@ -29,6 +29,8 @@ public class NotificationService {
 
   private static final String NOT_FOUND = "Notificação não encontrada.";
 
+  static final String QUEUE_LINK = "/fila-de-analise";
+
   private final NotificationRepository notificationRepository;
   private final ProjectRepository projectRepository;
 
@@ -107,6 +109,11 @@ public class NotificationService {
         findings + noun + " na reanálise do projeto " + project.getProtocol(),
         findingsLink(project),
         at);
+  }
+
+  /** The analyst who lost the project keeps the notices, now leading to their own queue. */
+  public void handedOver(Project project, User previousReviewer) {
+    notificationRepository.relink(previousReviewer.getId(), project.getId(), QUEUE_LINK);
   }
 
   public void resubmitted(Project project, OffsetDateTime at) {

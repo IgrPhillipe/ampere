@@ -1,7 +1,11 @@
 import { QueryCache, QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { getToastErrorMessage, isPasswordChangeRequired } from "./api-error";
+import {
+	getHttpStatus,
+	getToastErrorMessage,
+	isPasswordChangeRequired,
+} from "./api-error";
 
 export const queryClient = new QueryClient({
 	/** A query error becomes a toast without every hook needing an `onError`. */
@@ -18,6 +22,11 @@ export const queryClient = new QueryClient({
 		},
 	}),
 	defaultOptions: {
-		queries: { staleTime: 60_000, retry: 1 },
+		queries: {
+			staleTime: 60_000,
+			// A missing resource stays missing, so only other failures get a second try.
+			retry: (failureCount, error) =>
+				failureCount < 1 && getHttpStatus(error) !== 404,
+		},
 	},
 });

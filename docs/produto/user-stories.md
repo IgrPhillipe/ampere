@@ -310,6 +310,8 @@ A tela exibe indicadores consolidados no topo:
 
 A tabela traz a listagem ordenada pela urgência de prazo de atendimento (ex.: vence hoje, atrasado, dias restantes) e expõe badges com a quantidade de alertas normativos identificados previamente pelo sistema.
 
+A fila do analista mostra só os projetos que o gestor atribuiu a ele, e os indicadores contam só esses projetos. O gestor vê a fila inteira ([US23](#us23-distribuição-da-fila-de-análise)).
+
 ### Confirmação (Critérios de Aceite - BDD)
 
 #### Cenário 1 (Positivo): Filtrar Projetos Prioritários com Prazo Crítico
@@ -350,7 +352,7 @@ O analista visualiza o painel de validações do sistema e os dados submetidos.
 Na reprovação, o sistema notifica o projetista dentro do próprio sistema ([US14](#us14-notificações-no-sistema)) e o direciona para a etapa apontada no seu painel.
 
 **Regras do apontamento:**
-- O projeto é atribuído ao analista pelo gestor ou pela regra de município ([US23](#us23-distribuição-da-fila-de-análise)). "Analisar" aparece só para o analista responsável; os demais veem o projeto em consulta, como "Em análise por" e o nome do responsável.
+- O projeto é atribuído ao analista pelo gestor ou pela regra de município ([US23](#us23-distribuição-da-fila-de-análise)). "Analisar" aparece só para o analista responsável. Outro analista não acessa o projeto; o gestor o vê em consulta, com "Em análise por" e o nome do responsável.
 - O apontamento nasce de duas formas: pelo atalho "Virar Apontamento" de um alerta da verificação automática, que já traz a etapa e o item da norma, ou pelo formulário da lateral. O formulário começa na seção aberta, e trocar a seção limpa o grupo, a parcela ou o documento escolhido.
 - Cada apontamento registra a gravidade (**Bloqueante** ou **Ajuste**), a etapa (Dados da edificação, Unidades consumidoras com o grupo, Cálculo com a parcela, ou Documentos com o tipo), a descrição, o item da norma quando houver, o autor e a data.
 - Até a decisão, os apontamentos ficam em rascunho e podem ser editados ou excluídos pelo analista.
@@ -838,6 +840,11 @@ O menu do analista ganha "Indicadores" e "Meus Pareceres", previstos no protóti
 
 "Meus Pareceres" lista os projetos decididos pelo analista logado, com a decisão, a data, o número de apontamentos e a versão, com os filtros da [US18](#us18-filtros-e-ordenação-das-listagens).
 
+**Escopo por papel** (validação com a cliente em 20/11):
+- Para o analista, os indicadores, o ranking de apontamentos e as listas contam só os projetos atribuídos a ele, como a fila ([US23](#us23-distribuição-da-fila-de-análise)). O gestor vê os números da equipe toda
+- Os projetos listados pelo ranking abrem para o analista só se estiverem atribuídos a ele
+- "Meus Pareceres" lista os projetos decididos pelo analista que continuam atribuídos a ele. O projeto reatribuído ou redistribuído depois da decisão sai da lista de quem o tinha
+
 ### Confirmação (Critérios de Aceite - BDD)
 
 #### Cenário 1 (Positivo): Consulta dos Apontamentos Mais Frequentes
@@ -1005,9 +1012,16 @@ A tela "Distribuição", visível só para o gestor, lista os analistas ativos e
 No envio, o projeto vai direto para o analista do município. Sem regra para o município, ou com o analista inativo, o projeto fica "Não Atribuído" até o gestor atribuir. Na reanálise, o projeto volta para o analista que reprovou, se ele ainda estiver ativo.
 
 **Atribuição só pelo gestor** (validação com a cliente em 29/10):
-- A fila mostra a coluna "Analista Responsável", com "Não Atribuído" quando não há analista
+- A fila do gestor mostra a coluna "Analista Responsável", com "Não Atribuído" quando não há analista
 - O analista não assume projeto sozinho: "Analisar" aparece só para o responsável ([US07](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos))
 - O papel `admin` aparece como "Gestor" na interface
+
+**Analista vê só os projetos atribuídos** (validação com a cliente em 20/11):
+- A fila, a exportação e o projeto ficam restritos aos projetos atribuídos ao analista, incluindo os que ele já decidiu
+- O filtro "Analista" e a coluna "Analista Responsável" são só do gestor
+- Projeto sem analista ou de outro analista não abre para o analista; o reatribuído sai do alcance de quem o tinha
+- Ao abrir um projeto fora do seu alcance, o analista vê "Projeto não encontrado" e volta para a fila
+- As notificações do analista sobre o projeto que ele perdeu passam a levar à fila, na reatribuição pelo gestor e na redistribuição do reenvio
 
 ### Confirmação (Critérios de Aceite - BDD)
 

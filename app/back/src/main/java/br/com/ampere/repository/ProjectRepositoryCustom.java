@@ -27,8 +27,8 @@ public interface ProjectRepositoryCustom {
   Page<User> findAccessibleOwners(
       Long userId, ProjectVisibility visibility, String search, Pageable pageable);
 
-  /** The designers with a project in the review queue; {@code search} is folded and escaped. */
-  Page<User> findReviewQueueOwners(String search, Pageable pageable);
+  /** Designers with a project in the queue, held by {@code reviewerId} when given. */
+  Page<User> findReviewQueueOwners(String search, Long reviewerId, Pageable pageable);
 
   List<StatusCount> countAccessiblePerStatus(Long userId, ProjectVisibility visibility);
 

@@ -83,6 +83,7 @@ public class SecurityConfig {
                         "/users/**",
                         "/reviewers/**",
                         "/review-queue/assignment",
+                        "/review-queue/reviewers",
                         "/dashboard/admin")
                     .hasRole(ADMIN)
                     .requestMatchers(

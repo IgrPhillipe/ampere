@@ -97,11 +97,15 @@ class ProjectOwnershipAccessIntegrationTest {
         userRepository.save(new User("Ana Projetista", "ana@ampere.com", hash, UserRole.USER));
     User secondDesigner =
         userRepository.save(new User("Beto Projetista", "beto@ampere.com", hash, UserRole.USER));
-    userRepository.save(new User("Alice Analista", "revisor@ampere.com", hash, UserRole.REVIEWER));
+    User analyst =
+        userRepository.save(
+            new User("Alice Analista", "revisor@ampere.com", hash, UserRole.REVIEWER));
     userRepository.save(new User("Carla Admin", "admin@ampere.com", hash, UserRole.ADMIN));
 
     firstDraft = projectRepository.save(project("Projeto Ana", "2026-2001", firstDesigner));
     firstSubmitted = submitted("Projeto Ana Enviado", "2026-2002", firstDesigner);
+    firstSubmitted.assignReviewer(analyst);
+    firstSubmitted = projectRepository.save(firstSubmitted);
     secondDraft = projectRepository.save(project("Projeto Beto", "2026-3001", secondDesigner));
     secondSubmitted = submitted("Projeto Beto Enviado", "2026-3002", secondDesigner);
   }
@@ -185,14 +189,13 @@ class ProjectOwnershipAccessIntegrationTest {
   }
 
   @Test
-  void analystReadsAllSubmittedProjectsButCannotSeeDrafts() throws Exception {
+  void analystReadsOnlyTheSubmittedProjectsAssignedToThem() throws Exception {
     String analyst = bearer("revisor@ampere.com");
     mockMvc
         .perform(get("/projects").header("Authorization", analyst))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.pagination.total").value(2))
-        .andExpect(
-            jsonPath("$.data[*].protocol").value(containsInAnyOrder("2026-2002", "2026-3002")));
+        .andExpect(jsonPath("$.pagination.total").value(1))
+        .andExpect(jsonPath("$.data[*].protocol").value(contains("2026-2002")));
 
     mockMvc
         .perform(get("/projects/{id}", firstSubmitted.getId()).header("Authorization", analyst))
@@ -202,19 +205,80 @@ class ProjectOwnershipAccessIntegrationTest {
         .andExpect(status().isNotFound());
     mockMvc
         .perform(get("/projects/{id}", secondSubmitted.getId()).header("Authorization", analyst))
+        .andExpect(status().isNotFound());
+    mockMvc
+        .perform(
+            get("/projects/{id}/documents", secondSubmitted.getId())
+                .header("Authorization", analyst))
+        .andExpect(status().isNotFound());
+    mockMvc
+        .perform(
+            get("/projects/{id}/events", secondSubmitted.getId()).header("Authorization", analyst))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void analystReachesNothingNestedInAnotherAnalystsProject() throws Exception {
+    User other =
+        userRepository.save(
+            new User("Bruno Analista", "bruno@ampere.com", "hash", UserRole.REVIEWER));
+    secondSubmitted.assignReviewer(other);
+    projectRepository.save(secondSubmitted);
+    String analyst = bearer("revisor@ampere.com");
+    String base = "/projects/" + secondSubmitted.getId();
+
+    for (String path :
+        List.of(
+            "/calculations/latest",
+            "/calculation.xlsx",
+            "/memorial",
+            "/versions",
+            "/versions/1/memorial",
+            "/findings")) {
+      mockMvc
+          .perform(get(base + path).header("Authorization", analyst))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.detail").value("Projeto não encontrado."));
+    }
+  }
+
+  @Test
+  void analystLosesTheProjectReassignedToAnotherAnalyst() throws Exception {
+    User other =
+        userRepository.save(
+            new User("Bruno Analista", "bruno@ampere.com", "hash", UserRole.REVIEWER));
+    firstSubmitted.assignReviewer(other);
+    projectRepository.save(firstSubmitted);
+
+    mockMvc
+        .perform(
+            get("/projects/{id}", firstSubmitted.getId())
+                .header("Authorization", bearer("revisor@ampere.com")))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void analystKeepsTheProjectTheyDecided() throws Exception {
+    firstSubmitted.approve(OffsetDateTime.now(ZoneOffset.UTC));
+    projectRepository.save(firstSubmitted);
+
+    mockMvc
+        .perform(
+            get("/projects/{id}", firstSubmitted.getId())
+                .header("Authorization", bearer("revisor@ampere.com")))
         .andExpect(status().isOk());
   }
 
   @Test
-  void analystCountsOnlyTheSubmittedProjects() throws Exception {
+  void analystCountsOnlyTheProjectsAssignedToThem() throws Exception {
     String analyst = bearer("revisor@ampere.com");
 
     mockMvc
         .perform(get("/projects/status-counts").header("Authorization", analyst))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.total").value(2))
+        .andExpect(jsonPath("$.data.total").value(1))
         .andExpect(jsonPath("$.data.draft").value(0))
-        .andExpect(jsonPath("$.data.underReview").value(2));
+        .andExpect(jsonPath("$.data.underReview").value(1));
   }
 
   @Test
@@ -313,11 +377,11 @@ class ProjectOwnershipAccessIntegrationTest {
         .perform(get("/projects/owners").header("Authorization", bearer("ana@ampere.com")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data[*].name").value(contains("Ana Projetista")));
-    // Both designers have a submitted project, so the analyst reaches both.
+    // Only Ana's submitted project is assigned to the analyst.
     mockMvc
         .perform(get("/projects/owners").header("Authorization", bearer("revisor@ampere.com")))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data[*].name").value(contains("Ana Projetista", "Beto Projetista")));
+        .andExpect(jsonPath("$.data[*].name").value(contains("Ana Projetista")));
   }
 
   @Test

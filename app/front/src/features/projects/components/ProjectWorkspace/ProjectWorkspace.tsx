@@ -3,7 +3,13 @@ import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
-import { formatDate, padCount, useAuthStore } from "@features/shared";
+import {
+	formatDate,
+	padCount,
+	type UserRole,
+	useAuthStore,
+} from "@features/shared";
+import { getHttpStatus } from "@lib/api-error";
 import { cn } from "@lib/utils";
 import { useDeleteProject } from "@services/projects";
 import { useSubmitProject } from "@services/submission";
@@ -47,6 +53,13 @@ const STEPS_WITH_FOOTER: ProjectSectionKey[] = [
 	"calculation",
 	"memorial",
 ];
+
+const notFoundDescriptions: Record<UserRole, string> = {
+	reviewer:
+		"O projeto não existe ou não está atribuído a você. Os projetos que o gestor atribuir a você ficam na fila de análise.",
+	user: "O projeto não existe ou não pertence a você.",
+	admin: "O projeto não existe ou foi excluído.",
+};
 
 /** On the history the side panel would squeeze the timeline, so it goes below. */
 export type AsidePlacement = "side" | "below";
@@ -97,10 +110,12 @@ export const ProjectWorkspace = ({
 		ownerId: project?.ownerId,
 	});
 
-	const root = breadcrumbRoot ?? {
-		label: getProjectsPageTitle(role),
-		to: "/projetos",
-	};
+	// The analyst has no project listing: a project they cannot open sends them back to the queue.
+	const root =
+		breadcrumbRoot ??
+		(role === "reviewer"
+			? { label: "Fila de Análise", to: "/fila-de-analise" }
+			: { label: getProjectsPageTitle(role), to: "/projetos" });
 	const reanalysis =
 		project?.status === "UNDER_REVIEW" && project.reviewCycle > 1;
 	const sections: Partial<Record<ProjectSectionKey, ProjectSectionState>> =
@@ -218,29 +233,41 @@ export const ProjectWorkspace = ({
 		) : null;
 
 	if (projectQuery.isError) {
+		const missing = getHttpStatus(projectQuery.error) === 404;
+
 		return (
 			<PageLayout bleed className="mx-auto w-full max-w-page">
 				<div className="px-6 md:px-10">
 					<EmptyState
-						title="Não foi possível abrir o projeto"
-						description="Confira o aviso exibido e tente novamente."
+						title={
+							missing
+								? "Projeto não encontrado"
+								: "Não foi possível abrir o projeto"
+						}
+						description={
+							missing
+								? notFoundDescriptions[role ?? "user"]
+								: "Confira o aviso exibido e tente novamente."
+						}
 						icon={CircleAlert}
 						action={
 							<div className="flex gap-2">
 								<Button
 									type="button"
-									variant="ghost"
+									variant={missing ? "outline" : "ghost"}
 									onClick={() => void navigate({ to: root.to })}
 								>
 									Voltar para {root.label}
 								</Button>
-								<Button
-									type="button"
-									variant="outline"
-									onClick={() => void projectQuery.refetch()}
-								>
-									Tentar Novamente
-								</Button>
+								{missing ? null : (
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => void projectQuery.refetch()}
+									>
+										Tentar Novamente
+									</Button>
+								)}
 							</div>
 						}
 					/>

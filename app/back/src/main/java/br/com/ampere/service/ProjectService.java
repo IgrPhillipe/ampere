@@ -274,7 +274,7 @@ public class ProjectService {
   private static boolean isVisibleTo(Project project, AuthenticatedUser user) {
     return switch (user.projectVisibility()) {
       case OWN -> project.isOwnedBy(user.id());
-      case SUBMITTED -> project.wasSubmitted();
+      case ASSIGNED -> project.wasSubmitted() && project.isAssignedTo(user.id());
       case ALL -> true;
     };
   }

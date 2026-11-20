@@ -23,6 +23,8 @@ const stateOptions = CONCESSION_STATES.map((value) => ({
 }));
 
 interface ReviewQueueFilterControlsProps {
+	/** The manager's filter: the analyst only sees their own projects. */
+	showReviewer?: boolean;
 	reviewer: string | null;
 	onReviewerChange: (reviewer: string | null) => void;
 	owner: string | null;
@@ -36,6 +38,7 @@ interface ReviewQueueFilterControlsProps {
 }
 
 export const ReviewQueueFilterControls = ({
+	showReviewer = true,
 	reviewer,
 	onReviewerChange,
 	owner,
@@ -46,7 +49,7 @@ export const ReviewQueueFilterControls = ({
 	municipality,
 	onMunicipalityChange,
 }: ReviewQueueFilterControlsProps) => {
-	const reviewersQuery = useGetReviewerList();
+	const reviewersQuery = useGetReviewerList({ enabled: showReviewer });
 	const [ownerSearch, setOwnerSearch] = useState("");
 	const ownersQuery = useGetQueueOwnerInfiniteList({ search: ownerSearch });
 	const owners = (ownersQuery.data?.pages ?? [])
@@ -63,14 +66,16 @@ export const ReviewQueueFilterControls = ({
 
 	return (
 		<>
-			<FilterMenu
-				label="Analista"
-				allLabel="Todos"
-				options={reviewers}
-				value={reviewer}
-				onValueChange={onReviewerChange}
-				disabled={reviewersQuery.isPending}
-			/>
+			{showReviewer ? (
+				<FilterMenu
+					label="Analista"
+					allLabel="Todos"
+					options={reviewers}
+					value={reviewer}
+					onValueChange={onReviewerChange}
+					disabled={reviewersQuery.isPending}
+				/>
+			) : null}
 			<InfiniteFilterMenu
 				label="Projetista"
 				allLabel="Todos"
