@@ -7,6 +7,7 @@ import {
 	idleMutation,
 	loadedQuery,
 	makeChecklist,
+	makeFinding,
 	makeProjectDetail,
 	signInAs,
 } from "@/test/fixtures/project-detail";
@@ -25,6 +26,7 @@ const art: ProjectDocument = {
 
 const state = vi.hoisted(() => ({
 	project: undefined as unknown,
+	findings: [] as unknown[],
 }));
 
 vi.mock("@services/projects", async (importOriginal) => ({
@@ -34,7 +36,7 @@ vi.mock("@services/projects", async (importOriginal) => ({
 
 vi.mock("@services/project-review", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/project-review")>()),
-	useGetFindingList: () => loadedQuery({ data: [] }),
+	useGetFindingList: () => loadedQuery({ data: state.findings }),
 	useGetDocumentFile: () =>
 		loadedQuery({
 			filename: "art-assinada.pdf",
@@ -80,6 +82,7 @@ const renderPage = (onDocument?: (document: ProjectDocument) => void) =>
 describe("DocumentsPage", () => {
 	// jsdom has no object URLs; keep the rest of `URL` intact.
 	beforeEach(() => {
+		state.findings = [];
 		URL.createObjectURL = vi.fn(() => "blob:documento");
 		URL.revokeObjectURL = vi.fn();
 	});
@@ -127,6 +130,54 @@ describe("DocumentsPage", () => {
 				within(dialog).getByTitle("ART: art-assinada.pdf"),
 			).toHaveAttribute("src", "blob:documento#toolbar=0");
 			expect(within(dialog).getAllByText("art-assinada.pdf")).toHaveLength(1);
+		});
+	});
+
+	describe("while a rejected project is corrected", () => {
+		beforeEach(() => {
+			signInAs("user");
+			state.project = makeProjectDetail({ status: "REJECTED", ownerId: "1" });
+			state.findings = [makeFinding()];
+		});
+
+		it("keeps the checklist editable and marks the pointed document", () => {
+			renderPage();
+
+			expect(
+				screen.getByRole("region", { name: "Checagem Antes do Envio" }),
+			).toBeVisible();
+			expect(
+				screen.queryByRole("heading", { name: "Documentos Anexados" }),
+			).toBeNull();
+			expect(
+				screen.getByRole("button", { name: "Substituir ART" }),
+			).toBeVisible();
+			expect(screen.getByText(/1 apontamento neste item/)).toBeInTheDocument();
+		});
+	});
+
+	describe("while the project awaits its submission", () => {
+		beforeEach(() => {
+			signInAs("user");
+			state.project = makeProjectDetail({
+				status: "AWAITING_SUBMISSION",
+				ownerId: "1",
+			});
+		});
+
+		it("keeps the documents open in the checklist", () => {
+			renderPage();
+
+			expect(
+				screen.getByRole("region", { name: "Checagem Antes do Envio" }),
+			).toBeVisible();
+			expect(
+				screen.queryByRole("list", { name: "Documentos anexados" }),
+			).toBeNull();
+			expect(screen.getByRole("button", { name: "Remover ART" })).toBeVisible();
+			expect(
+				screen.getByRole("button", { name: "Anexar Diagrama unifilar" }),
+			).toBeVisible();
 		});
 	});
 
