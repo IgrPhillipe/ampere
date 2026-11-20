@@ -345,7 +345,8 @@ class ReviewQueueIntegrationTest {
         .andExpect(jsonPath("$.data[0].role").value("admin"))
         .andExpect(jsonPath("$.data[1].name").value("Revisor Beta"))
         .andExpect(jsonPath("$.data[2].name").value("Revisor Teste"))
-        .andExpect(jsonPath("$.data[2].role").value("reviewer"));
+        .andExpect(jsonPath("$.data[2].role").value("reviewer"))
+        .andExpect(jsonPath("$.data[2].active").value(true));
     mockMvc
         .perform(
             get("/review-queue/reviewers")
@@ -357,6 +358,36 @@ class ReviewQueueIntegrationTest {
             get("/review-queue/reviewers")
                 .header("Authorization", "Bearer " + token("user@ampere.com")))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void listsTheDeactivatedAnalystWhoStillHoldsAReview() throws Exception {
+    String hash = passwordEncoder.encode(PASSWORD);
+    User holder =
+        userRepository.save(new User("Ana Inativa", "ana@ampere.com", hash, UserRole.REVIEWER));
+    User decided =
+        userRepository.save(new User("Bia Inativa", "bia@ampere.com", hash, UserRole.REVIEWER));
+    Project held = project("2026-6101", ProjectStatus.DRAFT);
+    held.submit(now.minusDays(3));
+    held.assignReviewer(holder);
+    projectRepository.save(held);
+    Project rejected = project("2026-6102", ProjectStatus.DRAFT);
+    rejected.submit(now.minusDays(5));
+    rejected.assignReviewer(decided);
+    rejected.reject(now);
+    projectRepository.save(rejected);
+    holder.administer(holder.getName(), UserRole.REVIEWER, false);
+    decided.administer(decided.getName(), UserRole.REVIEWER, false);
+    userRepository.saveAll(List.of(holder, decided));
+
+    asManager(get("/review-queue/reviewers"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data", hasSize(3)))
+        .andExpect(jsonPath("$.data[0].name").value("Admin Teste"))
+        .andExpect(jsonPath("$.data[1].name").value("Ana Inativa"))
+        .andExpect(jsonPath("$.data[1].active").value(false))
+        .andExpect(jsonPath("$.data[2].name").value("Revisor Teste"))
+        .andExpect(jsonPath("$.data[2].active").value(true));
   }
 
   @Test

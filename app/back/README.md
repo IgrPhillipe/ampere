@@ -173,7 +173,7 @@ Restrita ao papel `admin` pelo `SecurityConfig`, sem prefixo de papel no caminho
 | `reviewer` | vazio | ID do analista, ou `none` para os projetos sem analista |
 | `state`, `municipality` | vazio | UFs e municípios; repita o parâmetro para mais de um |
 
-Busca, filtro e ordenação valem antes da paginação. O analista vê só os projetos atribuídos a ele, e o parâmetro `reviewer` é ignorado para ele. `GET /api/review-queue/indicators` devolve os contadores, que não dependem desses parâmetros: os da fila inteira para o `admin` e os do próprio analista para o `reviewer`. `GET /api/review-queue/reviewers`, só do `admin`, lista os analistas do filtro `reviewer` e da atribuição.
+Busca, filtro e ordenação valem antes da paginação. O analista vê só os projetos atribuídos a ele, e o parâmetro `reviewer` é ignorado para ele. `GET /api/review-queue/indicators` devolve os contadores, que não dependem desses parâmetros: os da fila inteira para o `admin` e os do próprio analista para o `reviewer`. `GET /api/review-queue/reviewers`, só do `admin`, lista os analistas do filtro `reviewer` e da atribuição. Quem foi desativado com projeto ainda em análise vem com `active: false`: entra no filtro, não na atribuição.
 
 ---
 

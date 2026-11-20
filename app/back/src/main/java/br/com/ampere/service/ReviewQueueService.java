@@ -21,10 +21,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -125,12 +127,21 @@ public class ReviewQueueService {
     return new ReviewQueueListing(entries, projects.getTotalElements());
   }
 
-  /** Whoever can hold a review: active analysts and admins. Only the manager assigns. */
+  /** Active analysts and admins, plus anyone deactivated still holding a review to hand over. */
   @Transactional(readOnly = true)
   public List<User> reviewers(AuthenticatedUser user) {
     user.requireAdmin();
-    return userRepository.findAllByRoleInAndActiveTrueOrderByNameAsc(
-        Arrays.stream(UserRole.values()).filter(UserRole::canReview).toList());
+    List<User> active =
+        userRepository.findAllByRoleInAndActiveTrueOrderByNameAsc(
+            Arrays.stream(UserRole.values()).filter(UserRole::canReview).toList());
+    List<User> holders =
+        projectRepository.findReviewersByStatus(ProjectStatus.UNDER_REVIEW).stream()
+            .filter(reviewer -> !reviewer.isActiveReviewer())
+            .toList();
+
+    return Stream.concat(active.stream(), holders.stream())
+        .sorted(Comparator.comparing(User::getName).thenComparing(User::getId))
+        .toList();
   }
 
   /** The designers with a project waiting in the queue, for the owner filter. */

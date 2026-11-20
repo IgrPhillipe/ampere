@@ -2,6 +2,7 @@ package br.com.ampere.repository;
 
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.User;
 import jakarta.persistence.LockModeType;
 import java.time.OffsetDateTime;
 import java.util.Collection;
@@ -19,6 +20,9 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
   boolean existsByOwnerIdAndStatusNotIn(Long ownerId, Collection<ProjectStatus> statuses);
 
   boolean existsByReviewerIdAndStatus(Long reviewerId, ProjectStatus status);
+
+  @Query("SELECT DISTINCT p.reviewer FROM Project p WHERE p.status = :status")
+  List<User> findReviewersByStatus(@Param("status") ProjectStatus status);
 
   boolean existsByOwnerIdAndSubmittedAtIsNotNull(Long ownerId);
 
