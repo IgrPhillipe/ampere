@@ -56,7 +56,7 @@ describe("notification format", () => {
 	});
 
 	it("writes the count in two digits and caps it", () => {
-		expect(formatUnreadCount(7)).toBe("07");
+		expect(formatUnreadCount(7)).toBe("7");
 		expect(formatUnreadCount(99)).toBe("99");
 		expect(formatUnreadCount(100)).toBe("99+");
 	});

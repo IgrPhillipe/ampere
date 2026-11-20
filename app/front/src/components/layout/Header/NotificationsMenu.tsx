@@ -105,17 +105,17 @@ export const NotificationsMenu = () => {
 				render={
 					<Button
 						variant="ghost"
-						size={unreadCount > 0 ? "sm" : "icon-sm"}
+						size="icon-sm"
 						aria-label={formatUnreadLabel(unreadCount)}
+						className="relative"
 					/>
 				}
 			>
 				<BellIcon />
-				{/* The prototype has no colored counter: the count is a number in ink. */}
 				{unreadCount > 0 ? (
 					<span
 						aria-hidden="true"
-						className="font-mono text-2xs font-medium text-foreground tabular-nums"
+						className="pointer-events-none absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 font-mono text-[0.625rem] leading-none font-medium text-destructive-foreground tabular-nums"
 					>
 						{formatUnreadCount(unreadCount)}
 					</span>
