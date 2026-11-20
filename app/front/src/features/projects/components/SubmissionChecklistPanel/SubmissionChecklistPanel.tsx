@@ -12,7 +12,7 @@ import type {
 	SubmissionChecklist,
 } from "@services/submission";
 import { Check, Circle, Paperclip } from "lucide-react";
-import { type ChangeEvent, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { FindingBadge } from "../FindingBadge";
@@ -71,7 +71,17 @@ const Item = ({
 	onView,
 }: ItemProps) => {
 	const inputRef = useRef<HTMLInputElement>(null);
+	const attachRef = useRef<HTMLButtonElement>(null);
+	const removeRequested = useRef(false);
 	const type = item.key === "CALCULATION" ? undefined : item.key;
+
+	// The remove button unmounts with the document; "Anexar" takes the focus.
+	useEffect(() => {
+		if (document || !removeRequested.current) return;
+
+		removeRequested.current = false;
+		attachRef.current?.focus();
+	}, [document]);
 
 	const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
@@ -164,6 +174,7 @@ const Item = ({
 						onChange={handleChange}
 					/>
 					<Button
+						ref={attachRef}
 						type="button"
 						variant={document ? "link" : "outline"}
 						size="xs"
@@ -183,7 +194,10 @@ const Item = ({
 							className="h-auto px-0"
 							disabled={isRemoving}
 							aria-label={`Remover ${item.label}`}
-							onClick={() => onRemove?.(document)}
+							onClick={() => {
+								removeRequested.current = true;
+								onRemove?.(document);
+							}}
 						>
 							Remover
 						</Button>
