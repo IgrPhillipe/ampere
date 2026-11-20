@@ -1015,6 +1015,7 @@ A regra por município (cada município com um analista fixo) saiu em 20/11: foi
 - A fila do gestor mostra a coluna "Analista Responsável", com "Não Atribuído" quando não há analista
 - O analista não assume projeto sozinho: "Analisar" aparece só para o responsável ([US07](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos))
 - O papel `admin` aparece como "Gestor" na interface
+- O filtro "Analista" também lista, como "(Inativo)", o analista desativado que ainda tem projetos em análise, para o gestor reatribuí-los. Ele não aparece em "Atribuir Analista"
 
 **Analista vê só os projetos atribuídos** (validação com a cliente em 20/11):
 - A fila, a exportação e o projeto ficam restritos aos projetos atribuídos ao analista, incluindo os que ele já decidiu
