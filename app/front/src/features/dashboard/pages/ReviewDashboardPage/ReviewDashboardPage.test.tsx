@@ -126,11 +126,10 @@ describe("ReviewDashboardPage", () => {
 				name: "Projetos da equipe no período, Últimos 30 Dias",
 			}),
 		).toBeInTheDocument();
+		// The load per analyst lives in the panel's queue section only.
 		expect(
-			within(
-				screen.getByRole("region", { name: "Em Análise por Analista" }),
-			).getByText("Ana Analista").nextSibling,
-		).toHaveTextContent("05");
+			screen.queryByRole("region", { name: "Em Análise por Analista" }),
+		).not.toBeInTheDocument();
 	});
 
 	it("asks for the period picked, starting from the last 30 days", () => {

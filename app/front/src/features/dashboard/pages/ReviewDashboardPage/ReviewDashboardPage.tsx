@@ -106,13 +106,6 @@ const monthlyItems = (dashboard: ReviewDashboard): IndicatorListItem[] =>
 				: formatPercent(rejectionPercent),
 	}));
 
-const workloadItems = (dashboard: ReviewDashboard): IndicatorListItem[] =>
-	dashboard.workload.map(({ id, name, underReview }) => ({
-		key: id,
-		label: name,
-		value: padCount(underReview),
-	}));
-
 const municipalityItems = (dashboard: ReviewDashboard): IndicatorListItem[] =>
 	dashboard.municipalities.map(({ municipality, state, total }) => ({
 		key: `${municipality}/${state}`,
@@ -207,13 +200,6 @@ export const ReviewIndicatorsPanel = ({
 						items={itemsOf(monthlyItems)}
 						emptyMessage="Nenhuma decisão no período."
 					/>
-					{isAdmin ? (
-						<IndicatorList
-							title="Em Análise por Analista"
-							items={itemsOf(workloadItems)}
-							emptyMessage="Nenhum projeto em análise."
-						/>
-					) : null}
 					<IndicatorList
 						title="Municípios com Mais Projetos"
 						items={itemsOf(municipalityItems)}

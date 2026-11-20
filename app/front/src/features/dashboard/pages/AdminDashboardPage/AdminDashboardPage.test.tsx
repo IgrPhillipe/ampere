@@ -10,9 +10,7 @@ import { AdminDashboardPage } from "./AdminDashboardPage";
 
 const state = vi.hoisted(() => ({
 	dashboardQuery: {} as Record<string, unknown>,
-	projectsQuery: {} as Record<string, unknown>,
-	ownersQuery: {} as Record<string, unknown>,
-	projectParams: [] as unknown[],
+	reviewQuery: {} as Record<string, unknown>,
 }));
 
 vi.mock("@tanstack/react-router", () => ({
@@ -44,17 +42,7 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@services/dashboard", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/dashboard")>()),
 	useGetAdminDashboard: () => state.dashboardQuery,
-}));
-
-vi.mock("@services/projects", async (importOriginal) => ({
-	...(await importOriginal<typeof import("@services/projects")>()),
-	useGetProjectList: (params: unknown) => {
-		state.projectParams.push(params);
-
-		return state.projectsQuery;
-	},
-	useGetProjectOwnerInfiniteList: () => state.ownersQuery,
-	useDeleteProject: () => ({ mutate: vi.fn(), isPending: false }),
+	useGetReviewDashboard: () => state.reviewQuery,
 }));
 
 const makeAdminDashboard = (
@@ -106,14 +94,8 @@ const renderPage = (searchParams = "") =>
 describe("AdminDashboardPage", () => {
 	beforeEach(() => {
 		state.dashboardQuery = loadedQuery({ data: makeAdminDashboard() });
-		state.projectsQuery = loadedQuery({
-			data: [],
-			pagination: { page: 1, pageSize: 10, total: 0 },
-		});
-		state.ownersQuery = loadedQuery({
-			pages: [{ data: [] }],
-		});
-		state.projectParams = [];
+		// The review indicators wait for their own endpoint.
+		state.reviewQuery = { isError: true, refetch: vi.fn() };
 	});
 
 	it("renders user counters with links containing the expected query parameters", () => {
@@ -218,32 +200,30 @@ describe("AdminDashboardPage", () => {
 		expect(within(queueSection).getByText("Inativo")).toBeInTheDocument();
 	});
 
-	it("lists the active projects of every designer, filtered from the URL", () => {
-		renderPage("?search=PRJ-0001&owner=5");
+	it("holds numbers only: the projects are listed in Projetos", () => {
+		renderPage();
 
 		expect(
-			screen.getByRole("heading", { name: /projetos ativos/i }),
+			screen.queryByRole("heading", { name: /projetos ativos/i }),
+		).not.toBeInTheDocument();
+		expect(screen.queryByRole("table")).not.toBeInTheDocument();
+		expect(
+			screen.getByRole("heading", { name: "Indicadores da Análise" }),
 		).toBeInTheDocument();
-		expect(screen.getByRole("searchbox")).toHaveValue("PRJ-0001");
-		expect(state.projectParams.at(-1)).toMatchObject({
-			status: ["DRAFT", "AWAITING_SUBMISSION", "UNDER_REVIEW", "REJECTED"],
-			owner: "5",
-			pageSize: 10,
-		});
+		expect(
+			screen.getByRole("button", { name: "Últimos 90 Dias" }),
+		).toBeInTheDocument();
 	});
 
-	it("keeps the projects table when the counters fail", () => {
+	it("keeps the review indicators when the counters fail", () => {
 		state.dashboardQuery = { isError: true, refetch: vi.fn() };
 		renderPage();
 
 		expect(
-			screen.getByText("Não foi possível carregar os indicadores"),
-		).toBeInTheDocument();
-		expect(
 			screen.queryByRole("region", { name: /fila de análise/i }),
 		).not.toBeInTheDocument();
 		expect(
-			screen.getByRole("heading", { name: /projetos ativos/i }),
+			screen.getByRole("heading", { name: "Indicadores da Análise" }),
 		).toBeInTheDocument();
 	});
 });

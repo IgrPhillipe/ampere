@@ -818,7 +818,7 @@ Painel de indicadores da equipe de análise e histórico dos pareceres de cada a
 > **Para que** a equipe dimensione a demanda e oriente os projetistas sobre as falhas recorrentes.
 
 ### Conversação (Regras de Negócio e Interface)
-O menu do analista ganha "Indicadores" e "Meus Pareceres", previstos no protótipo H7. O gestor vê os indicadores da equipe na aba "Indicadores da Análise" do Painel.
+O menu do analista ganha "Indicadores" e "Meus Pareceres", previstos no protótipo H7. O gestor vê os indicadores da equipe na seção "Indicadores da Análise" do Painel.
 
 "Indicadores" exibe, para o período selecionado:
 - Projetos recebidos e decididos por semana
@@ -1013,7 +1013,7 @@ A regra por município (cada município com um analista fixo) saiu em 20/11: foi
 
 **Analista vê só os projetos atribuídos** (validação com a cliente em 20/11):
 - A fila, a exportação e o projeto ficam restritos aos projetos atribuídos ao analista, incluindo os que ele já decidiu
-- A fila é só do analista; o gestor acompanha os projetos em "Projetos" e os indicadores na aba "Indicadores da Análise" do Painel
+- A fila é só do analista; o gestor acompanha os projetos em "Projetos" e os indicadores na seção "Indicadores da Análise" do Painel
 - Projeto sem analista ou de outro analista não abre para o analista; o reatribuído sai do alcance de quem o tinha
 - Ao abrir um projeto fora do seu alcance, o analista vê "Projeto não encontrado" e volta para a fila
 - As notificações do analista sobre o projeto que ele perdeu passam a levar à fila, na reatribuição pelo gestor e na redistribuição do reenvio
@@ -1044,7 +1044,7 @@ A regra por município (cada município com um analista fixo) saiu em 20/11: foi
 `US24` `Prioridade: Média` `Sprint 9`
 
 ### Descrição
-Painel inicial do administrador com o estado dos usuários, dos projetos ativos e da fila. É a entrada do suporte: acesso perdido, senha e conta desativada.
+Painel inicial do administrador com o estado dos usuários, da fila e os indicadores da análise. É a entrada do suporte: acesso perdido, senha e conta desativada.
 
 ### User Story
 > **Como** administrador da Neoenergia,  
@@ -1052,12 +1052,10 @@ Painel inicial do administrador com o estado dos usuários, dos projetos ativos 
 > **Para que** eu resolva problemas de acesso e acompanhe a operação sem depender das listagens principais.
 
 ### Conversação (Regras de Negócio e Interface)
-O item "Painel" entra no menu do administrador e passa a ser a tela inicial após o login. O painel tem três blocos:
+O item "Painel" entra no menu do administrador e passa a ser a tela inicial após o login. O painel só tem números; a listagem dos projetos fica em "Projetos" (desde 20/11). São três blocos:
 - **Usuários:** ativos por papel, inativos, com troca de senha pendente e sem acesso há mais de 30 dias. Cada número abre a tela "Usuários" ([US11](#us11-gestão-de-usuários)) com o filtro aplicado, onde estão "Reativar" e "Redefinir Senha"
-- **Projetos ativos:** tabela própria com os projetos em rascunho, em análise e reprovados de todos os projetistas, com busca por protocolo ou nome e filtro por projetista
-- **Fila:** projetos sem analista, prazos vencendo em até 3 dias e projetos em análise por analista ([US23](#us23-distribuição-da-fila-de-análise))
-
-A produtividade da análise (tempos médios e taxas de reprovação) fica no painel do analista ([US17](#us17-painel-do-analista)).
+- **Fila:** projetos sem analista, prazos vencendo em até 3 dias e projetos em análise por analista ([US23](#us23-distribuição-da-fila-de-análise)), com o atalho para os projetos em análise
+- **Indicadores da Análise:** os indicadores da equipe no período escolhido, os mesmos do painel do analista ([US17](#us17-painel-do-analista))
 
 ### Confirmação (Critérios de Aceite - BDD)
 
@@ -1076,4 +1074,4 @@ A produtividade da análise (tempos médios e taxas de reprovação) fica no pai
 ### Checklist de Implementação
 - [ ] Calcular os contadores de usuários, projetos e fila
 - [ ] Abrir a tela "Usuários" com o filtro de cada contador
-- [ ] Listar os projetos ativos de todos os projetistas
+- [ ] Mostrar os indicadores da análise da equipe

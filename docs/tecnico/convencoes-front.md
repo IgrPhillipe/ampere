@@ -306,7 +306,7 @@ O `ROLE_ACCESS` de `lib/route-guard.ts` é a fonte única de quem chega a cada
 
 | Área | `user` | `reviewer` | `admin` |
 | :--- | :--- | :--- | :--- |
-| Painel | o próprio | não | o do admin, com a aba "Indicadores da Análise" |
+| Painel | o próprio | não | o do admin, só com números: usuários, fila e indicadores da análise |
 | Projetos | os próprios | não | todos, com filtro e coluna de analista |
 | Fila de Análise, Indicadores e Meus Pareceres | não | sim | não |
 | Tabelas Normativas | não | sim | sim |
