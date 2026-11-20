@@ -70,18 +70,21 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			description="Confira o aviso exibido e tente novamente."
 			icon={CircleAlert}
 			action={
-				<Button
-					type="button"
-					variant="outline"
-					onClick={() => {
-						void projectQuery.refetch();
-						void calculationQuery.refetch();
-						void memorialQuery.refetch();
-						if (versionsQuery.isError) void versionsQuery.refetch();
-					}}
-				>
-					Tentar Novamente
-				</Button>
+				<div className="flex flex-wrap items-center justify-center gap-4">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => {
+							void projectQuery.refetch();
+							void calculationQuery.refetch();
+							void memorialQuery.refetch();
+							if (versionsQuery.isError) void versionsQuery.refetch();
+						}}
+					>
+						Tentar Novamente
+					</Button>
+					<CalculationExportButton blocker="error" />
+				</div>
 			}
 		/>
 	) : neverCalculated ? (
@@ -118,13 +121,16 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			description="Os dados do projeto mudaram depois do último cálculo."
 			icon={Calculator}
 			action={
-				<Button
-					type="button"
-					variant="outline"
-					onClick={() => goTo("/projetos/$id/calculo")}
-				>
-					Ir para o Cálculo
-				</Button>
+				<div className="flex flex-wrap items-center justify-center gap-4">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => goTo("/projetos/$id/calculo")}
+					>
+						Ir para o Cálculo
+					</Button>
+					<CalculationExportButton blocker="outdated" />
+				</div>
 			}
 		/>
 	) : (
