@@ -16,7 +16,7 @@ export const ROLE_ACCESS = {
 	/** The project page itself: the analyst reads and reviews it there. */
 	projectWorkspace: ["user", "reviewer", "admin"],
 	reviewQueue: ["reviewer", "admin"],
-	/** The analysis team's indicators, which the admin also follows. */
+	/** The analyst sees their assigned projects; the admin, the whole team. */
 	reviewIndicators: ["reviewer", "admin"],
 	/** Whoever decides has decisions of their own: the back lets the admin review too. */
 	myReviews: ["reviewer", "admin"],

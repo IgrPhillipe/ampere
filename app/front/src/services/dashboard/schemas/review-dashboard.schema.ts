@@ -17,7 +17,7 @@ export type ReviewDashboardProject = z.infer<
 	typeof reviewDashboardProjectSchema
 >;
 
-/** Projects by situation in the period: decided in it, or still under review. */
+/** Projects in scope by situation: decided in the period, or still under review. */
 export const reviewDashboardTotalsSchema = z.object({
 	received: count,
 	approved: count,
@@ -52,6 +52,7 @@ export const reviewDeadlinesSchema = z.object({
 
 export type ReviewDeadlines = z.infer<typeof reviewDeadlinesSchema>;
 
+/** Admin only: empty for the analyst, who sees only their own projects. */
 export const reviewerWorkloadSchema = z.object({
 	id: z.string(),
 	name: z.string(),
@@ -60,7 +61,7 @@ export const reviewerWorkloadSchema = z.object({
 
 export type ReviewerWorkload = z.infer<typeof reviewerWorkloadSchema>;
 
-/** A ranking line carries its projects, so the click lists them without another request. */
+/** A ranking line carries its projects in scope, so the click lists them without another request. */
 export const reviewFindingRankingItemSchema = z.object({
 	stage: findingStageSchema,
 	standardItem: z.string().nullable(),
@@ -114,7 +115,7 @@ export const reviewDashboardSchema = z.object({
 
 export type ReviewDashboard = z.infer<typeof reviewDashboardSchema>;
 
-/** `GET /dashboard/review?period=`: the analysis team's indicators. */
+/** `GET /dashboard/review?period=`: the analyst's assigned projects, or the whole team for the admin. */
 export const reviewDashboardResponseSchema = apiResponseSchema(
 	reviewDashboardSchema,
 );

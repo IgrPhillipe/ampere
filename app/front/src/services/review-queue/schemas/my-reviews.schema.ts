@@ -43,7 +43,7 @@ export const myReviewCountsSchema = z.object({
 
 export type MyReviewCounts = z.infer<typeof myReviewCountsSchema>;
 
-/** `GET /review-queue/mine`: the decisions of the signed-in analyst, newest first. */
+/** `GET /review-queue/mine`: the signed-in user's decisions, newest first; an analyst's only on projects still assigned to them. */
 export const myReviewListResponseSchema = paginatedResponseSchema(
 	z.array(myReviewItemSchema),
 ).extend({ counts: myReviewCountsSchema });

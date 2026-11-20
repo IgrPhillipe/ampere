@@ -2,7 +2,7 @@ import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
 import { buildingTypeLabels } from "@features/projects";
-import { formatPercent, padCount } from "@features/shared";
+import { formatPercent, padCount, useAuthStore } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import {
 	type ReviewDashboard,
@@ -101,8 +101,24 @@ const municipalityItems = (dashboard: ReviewDashboard): IndicatorListItem[] =>
 		value: padCount(total),
 	}));
 
-/** H12: the analysis team's indicators for the chosen period. */
+/** The back scopes the numbers: the analyst's assigned projects, or the whole team for the admin. */
+const SCOPE_COPY = {
+	reviewer: {
+		description:
+			"Os projetos atribuídos a você, com os prazos e os apontamentos mais frequentes.",
+		band: "Seus projetos no período",
+	},
+	admin: {
+		description:
+			"A demanda da equipe de análise e os apontamentos mais frequentes nos projetos recebidos.",
+		band: "Projetos da equipe no período",
+	},
+} as const;
+
+/** H12: the indicators of the chosen period, scoped by the role. */
 export const ReviewDashboardPage = () => {
+	const isAdmin = useAuthStore((state) => state.user?.role) === "admin";
+	const copy = SCOPE_COPY[isAdmin ? "admin" : "reviewer"];
 	const [period, setPeriod] = useDashboardPeriod();
 	const dashboardQuery = useGetReviewDashboard(period);
 	const dashboard = dashboardQuery.data?.data;
@@ -112,7 +128,7 @@ export const ReviewDashboardPage = () => {
 	return (
 		<PageLayout
 			title="Indicadores"
-			description="A demanda da análise e os apontamentos mais frequentes nos projetos recebidos."
+			description={copy.description}
 			actions={
 				<DashboardPeriodPicker
 					value={period}
@@ -143,7 +159,7 @@ export const ReviewDashboardPage = () => {
 				<div className="flex flex-1 flex-col bg-card">
 					<ReviewIndicators
 						totals={dashboard?.totals}
-						periodLabel={dashboardPeriodLabels[period]}
+						title={`${copy.band}, ${dashboardPeriodLabels[period]}`}
 					/>
 
 					<div className="grid flex-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,3fr)]">
@@ -176,11 +192,13 @@ export const ReviewDashboardPage = () => {
 								items={itemsOf(monthlyItems)}
 								emptyMessage="Nenhuma decisão no período."
 							/>
-							<IndicatorList
-								title="Em Análise por Analista"
-								items={itemsOf(workloadItems)}
-								emptyMessage="Nenhum projeto em análise."
-							/>
+							{isAdmin ? (
+								<IndicatorList
+									title="Em Análise por Analista"
+									items={itemsOf(workloadItems)}
+									emptyMessage="Nenhum projeto em análise."
+								/>
+							) : null}
 							<IndicatorList
 								title="Municípios com Mais Projetos"
 								items={itemsOf(municipalityItems)}

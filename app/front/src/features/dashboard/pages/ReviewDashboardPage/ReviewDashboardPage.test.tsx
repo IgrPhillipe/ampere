@@ -1,10 +1,11 @@
+import { useAuthStore } from "@features/shared";
 import type { ReviewDashboard } from "@services/dashboard";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { withNuqsTestingAdapter } from "nuqs/adapters/testing";
 import type { ReactNode } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { loadedQuery } from "@/test/fixtures/project-detail";
+import { loadedQuery, signInAs } from "@/test/fixtures/project-detail";
 
 import { ReviewDashboardPage } from "./ReviewDashboardPage";
 
@@ -85,13 +86,16 @@ describe("ReviewDashboardPage", () => {
 	beforeEach(() => {
 		state.periods = [];
 		state.query = loadedQuery({ data: makeDashboard() });
+		signInAs("reviewer");
 	});
+
+	afterEach(() => useAuthStore.getState().logout());
 
 	it("shows the period's projects by situation", () => {
 		renderPage();
 
 		const band = screen.getByRole("region", {
-			name: "Projetos do período, Últimos 30 Dias",
+			name: "Seus projetos no período, Últimos 30 Dias",
 		});
 
 		expect(within(band).getByText("Aprovados").nextSibling).toHaveTextContent(
@@ -105,6 +109,30 @@ describe("ReviewDashboardPage", () => {
 		);
 	});
 
+	it("keeps the workload by analyst to the admin", () => {
+		renderPage();
+
+		expect(
+			screen.queryByRole("region", { name: "Em Análise por Analista" }),
+		).not.toBeInTheDocument();
+	});
+
+	it("shows the admin the whole team", () => {
+		signInAs("admin");
+		renderPage();
+
+		expect(
+			screen.getByRole("region", {
+				name: "Projetos da equipe no período, Últimos 30 Dias",
+			}),
+		).toBeInTheDocument();
+		expect(
+			within(
+				screen.getByRole("region", { name: "Em Análise por Analista" }),
+			).getByText("Ana Analista").nextSibling,
+		).toHaveTextContent("05");
+	});
+
 	it("asks for the period picked, starting from the last 30 days", () => {
 		renderPage();
 
@@ -115,7 +143,7 @@ describe("ReviewDashboardPage", () => {
 		expect(state.periods.at(-1)).toBe("LAST_90_DAYS");
 		expect(
 			screen.getByRole("region", {
-				name: "Projetos do período, Últimos 90 Dias",
+				name: "Seus projetos no período, Últimos 90 Dias",
 			}),
 		).toBeInTheDocument();
 	});

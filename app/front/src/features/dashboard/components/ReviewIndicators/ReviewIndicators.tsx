@@ -7,7 +7,7 @@ import { useId } from "react";
 interface ReviewIndicatorsProps {
 	/** Without `totals` the band shows skeletons. */
 	totals?: ReviewDashboardTotals;
-	periodLabel: string;
+	title: string;
 	className?: string;
 }
 
@@ -18,10 +18,10 @@ const TILES: { key: keyof ReviewDashboardTotals; label: string }[] = [
 	{ key: "underReview", label: "Em análise" },
 ];
 
-/** H12's conclusion field: the period's projects by situation. It does not filter. */
+/** H12's conclusion field: the projects in scope by situation. It does not filter. */
 export const ReviewIndicators = ({
 	totals,
-	periodLabel,
+	title,
 	className,
 }: ReviewIndicatorsProps) => {
 	const titleId = useId();
@@ -35,7 +35,7 @@ export const ReviewIndicators = ({
 				id={titleId}
 				className="px-gutter pt-5 font-mono text-2xs tracking-[0.11em] uppercase opacity-85 md:px-gutter-md"
 			>
-				Projetos do período, {periodLabel}
+				{title}
 			</h2>
 
 			<dl className="grid grid-cols-2 lg:grid-cols-4">
