@@ -30,7 +30,8 @@ export type ReviewerRole = z.infer<typeof reviewerRoleSchema>;
 export const reviewerSchema = z.object({
 	id: z.string(),
 	name: z.string(),
-	role: reviewerRoleSchema,
+	// An unknown role must not drop the whole list; it reads as an analyst.
+	role: reviewerRoleSchema.catch("reviewer"),
 });
 
 export type Reviewer = z.infer<typeof reviewerSchema>;
