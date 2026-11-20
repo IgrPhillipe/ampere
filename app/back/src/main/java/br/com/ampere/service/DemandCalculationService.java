@@ -66,11 +66,14 @@ public class DemandCalculationService {
   /** Every run is kept: a later one does not overwrite what an earlier one showed. */
   @Transactional
   public Calculation calculate(Long projectId, AuthenticatedUser user) {
-    Project project =
-        projectService.editableOrFail(
-            projectId,
-            "Só é possível calcular a demanda de um projeto em rascunho ou reprovado.",
-            user);
+    Project project = projectService.findWritableById(projectId, user);
+    // A project awaiting submission keeps its data but takes the revisions in force.
+    if (!project.canBeSubmitted()) {
+      throw new BusinessException(
+          "Só é possível calcular a demanda de um projeto em rascunho, aguardando envio ou"
+              + " reprovado.",
+          HttpStatus.CONFLICT);
+    }
     List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(projectId);
     if (groups.isEmpty()) {
       throw unprocessable("Cadastre ao menos um grupo de unidades antes de calcular a demanda.");
@@ -234,7 +237,7 @@ public class DemandCalculationService {
       List<String> changedTables,
       OffsetDateTime revisionsFixedAt) {}
 
-  /** The last run, flagged when an editable project changed after it. */
+  /** The last run, flagged when a project not yet under review changed after it. */
   @Transactional(readOnly = true)
   public Latest latest(Long projectId, AuthenticatedUser user) {
     Project project = projectService.findById(projectId, user);
@@ -246,7 +249,7 @@ public class DemandCalculationService {
                     new NotFoundException(
                         "Nenhum cálculo de demanda foi feito para este projeto."));
 
-    if (!project.isEditable()) {
+    if (!project.canBeSubmitted()) {
       return new Latest(calculation, false, List.of(), revisionsFixedAt(project));
     }
     List<String> changed = changedTables(calculation);

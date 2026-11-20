@@ -147,7 +147,7 @@ public class MemorialPdfService {
                 () ->
                     new NotFoundException(
                         "Calcule a demanda do projeto antes de gerar o memorial."));
-    if (project.isEditable() && !demandCalculationService.isCurrent(calculation)) {
+    if (project.canBeSubmitted() && !demandCalculationService.isCurrent(calculation)) {
       throw new BusinessException(
           "Os dados do projeto mudaram depois do último cálculo. Recalcule a demanda antes de"
               + " gerar o memorial.",

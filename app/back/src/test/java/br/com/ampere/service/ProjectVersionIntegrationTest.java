@@ -27,6 +27,7 @@ import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.LoadCategory;
 import br.com.ampere.domain.LoadItem;
 import br.com.ampere.domain.LoadUsage;
+import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
@@ -252,6 +253,35 @@ class ProjectVersionIntegrationTest {
         .isEqualTo(firstSubmission);
     assertThat(latestCalculation(project).getResidentialDemandFinal())
         .isEqualByComparingTo(sent.getResidentialDemandFinal());
+  }
+
+  @Test
+  void aNewRevisionOutdatesAProjectAwaitingSubmissionAndTheSubmissionTakesIt() throws Exception {
+    Project project = project("2026-4061", ProjectStatus.AWAITING_SUBMISSION);
+    perform(post("/projects/" + project.getId() + "/calculations")).andExpect(status().isCreated());
+    for (DocumentType type : DocumentType.values()) {
+      upload(project, type).andExpect(status().isCreated());
+    }
+    NormativeTable replacement =
+        NormativeTableReplacement.replace(
+            normativeTableRepository, NormativeTableCode.Q35_APARTMENT_DEMAND, "2");
+
+    perform(get("/projects/" + project.getId() + "/calculations/latest"))
+        .andExpect(jsonPath("$.data.outdated").value(true))
+        .andExpect(jsonPath("$.data.changedTables[0]").value("Quadro 35"));
+    submit(project, null);
+
+    assertThat(
+            objectMapper
+                .readTree(
+                    versionRepository
+                        .findByProjectIdAndNumber(project.getId(), 1)
+                        .orElseThrow()
+                        .getCalculation()
+                        .getInputSnapshot())
+                .at("/normativeTableIds/Q35_APARTMENT_DEMAND")
+                .asLong())
+        .isEqualTo(replacement.getId());
   }
 
   @Test
@@ -848,6 +878,10 @@ class ProjectVersionIntegrationTest {
   }
 
   private Project draft(String protocol) {
+    return project(protocol, ProjectStatus.DRAFT);
+  }
+
+  private Project project(String protocol, ProjectStatus status) {
     Project project =
         projectRepository.save(
             new Project(
@@ -855,7 +889,7 @@ class ProjectVersionIntegrationTest {
                 "Rodovia BR-101, km 8",
                 "Cabo de Santo Agostinho",
                 protocol,
-                ProjectStatus.DRAFT,
+                status,
                 new ResidentialMultifamily(
                     12,
                     SupplyVoltage.V380_220,
