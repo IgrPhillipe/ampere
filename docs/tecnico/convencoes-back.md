@@ -394,7 +394,7 @@ O motor (`DemandEngine`) soma `Drf + Ds + Dc + Dve` sem consultar o tipo de nenh
 
 O que vale para o prédio inteiro fica no corpo de cada constante de `DemandComponent`, em `combine()`, e não no grupo. Ali são aplicados o `Fc` do Quadro 36, obtido do total de apartamentos (Anexo I, item 3), o `Fr` do Quadro 37 e o fator do Quadro 33 sobre todos os pontos de recarga (Anexo I, item 13).
 
-O `domain` não pode importar `repository`, então lê as tabelas pela interface `NormativeTables`; o service entrega um `NormativeTableSet` com as tabelas publicadas. Tabela ou linha ausente vira `MissingNormativeValueException`, que o service transforma em 422 com o nome da tabela.
+O `domain` não pode importar `repository`, então lê as tabelas pela interface `NormativeTables`; o service entrega um `NormativeTableSet` com as tabelas publicadas ou, num projeto já enviado, com as revisões fixadas no primeiro envio (`FixedRevisions`). Tabela ou linha ausente vira `MissingNormativeValueException`, que o service transforma em 422 com o nome da tabela.
 
 Cada execução grava um `Calculation` com as fórmulas, as referências e as duas revisões de norma: cálculo antigo continua apontando para a revisão sob a qual foi feito.
 
