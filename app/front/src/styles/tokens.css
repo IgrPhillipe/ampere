@@ -224,6 +224,8 @@
 	--container-page: var(--ds-size-page);
 	--spacing-gutter: var(--ds-space-gutter);
 	--spacing-gutter-md: var(--ds-space-gutter-md);
+	/* Media queries cannot read variables, so this one is literal. */
+	--breakpoint-wide: 90rem;
 	--radius-xs: var(--ds-radius-xs);
 	--radius-sm: var(--ds-radius-sm);
 	--radius-md: var(--ds-radius-md);

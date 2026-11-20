@@ -40,7 +40,7 @@ export const FilterTiles = <T,>({
 			className,
 		)}
 	>
-		<div className="grid auto-cols-[minmax(10rem,1fr)] grid-flow-col">
+		<div className="grid auto-cols-[minmax(8.5rem,1fr)] grid-flow-col">
 			{tiles.map((tile) => {
 				const isActive = value === tile.value;
 

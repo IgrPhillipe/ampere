@@ -16,16 +16,17 @@ import {
 	ReviewQueueSelectionContext,
 } from "./selection-context";
 
-/** `table-fixed`: these widths fit the sheet at 1440 px, and the name takes the rest. */
+/** `table-fixed`: these widths fit the sheet at 1280 px, and the name takes the rest. */
 const columnClassNames = {
 	select: "w-12 pr-0",
 	attention: "w-5 px-0",
 	protocol: "w-28",
-	units: "w-16 text-right",
-	demand: "w-28 text-right",
+	// From 1024 to 1280 px these give way, so the reviewer and the action stay in view.
+	units: "w-16 text-right lg:hidden xl:table-cell",
+	demand: "w-28 text-right lg:hidden xl:table-cell",
 	warnings: "w-32",
-	deadline: "w-28 text-right",
-	status: "w-32 text-right",
+	deadline: "w-28 text-right lg:hidden xl:table-cell",
+	status: "w-36 text-right",
 	reviewer: "w-36",
 	action: "w-24 pr-0 text-right",
 } satisfies Partial<Record<ReviewQueueColumnId, string>>;
@@ -92,7 +93,8 @@ export const ReviewQueueListing = ({
 			columns={columns}
 			data={items}
 			columnClassNames={columnClassNames}
-			tableClassName="min-w-[72rem]"
+			// Below 1024 px every column stays and the table scrolls instead.
+			tableClassName="min-w-[72rem] lg:min-w-0"
 			sortableColumns={sortableColumns}
 			sort={sort}
 			onSortChange={onSortChange}
