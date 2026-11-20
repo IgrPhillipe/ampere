@@ -74,22 +74,6 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 		);
 	}
 
-	const attached = (
-		<section aria-labelledby="anexos-titulo" className="flex flex-col gap-5">
-			<SectionHeading id="anexos-titulo">Documentos Anexados</SectionHeading>
-			<ProjectDocuments
-				projectId={projectId}
-				documents={checklist?.documents}
-				onCreateFinding={registrar.onDocument}
-				emptyDescription={
-					editable
-						? "Anexe a ART, o diagrama unifilar e a planta de situação na checagem ao lado."
-						: undefined
-				}
-			/>
-		</section>
-	);
-
 	return (
 		<div className="flex flex-1 flex-col">
 			<StageFindingsNotice
@@ -103,32 +87,40 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 			/>
 
 			{editable ? (
-				<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_400px]">
-					<div className="min-w-0 px-6 py-8 md:px-10">{attached}</div>
-
-					<SubmissionChecklistPanel
-						projectId={projectId}
-						checklist={checklist}
-						findings={documentFindings}
-						isLoading={submissionQuery.isPending}
-						editable
-						uploadingType={
-							uploadMutation.isPending
-								? uploadMutation.variables?.type
-								: undefined
-						}
-						removingId={
-							deleteMutation.isPending
-								? deleteMutation.variables?.documentId
-								: undefined
-						}
-						onUpload={upload}
-						onRemove={remove}
-						className="order-first border-b border-border @5xl:order-none @5xl:border-b-0 @5xl:border-l"
-					/>
-				</div>
+				<SubmissionChecklistPanel
+					projectId={projectId}
+					checklist={checklist}
+					findings={documentFindings}
+					isLoading={submissionQuery.isPending}
+					editable
+					layout="page"
+					uploadingType={
+						uploadMutation.isPending
+							? uploadMutation.variables?.type
+							: undefined
+					}
+					removingId={
+						deleteMutation.isPending
+							? deleteMutation.variables?.documentId
+							: undefined
+					}
+					onUpload={upload}
+					onRemove={remove}
+				/>
 			) : (
-				<div className="flex-1 px-6 py-8 md:px-10">{attached}</div>
+				<section
+					aria-labelledby="anexos-titulo"
+					className="flex flex-1 flex-col gap-5 px-6 py-8 md:px-10"
+				>
+					<SectionHeading id="anexos-titulo">
+						Documentos Anexados
+					</SectionHeading>
+					<ProjectDocuments
+						projectId={projectId}
+						documents={checklist?.documents}
+						onCreateFinding={registrar.onDocument}
+					/>
+				</section>
 			)}
 		</div>
 	);

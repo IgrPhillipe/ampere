@@ -11,8 +11,8 @@ import type {
 	ProjectDocument,
 	SubmissionChecklist,
 } from "@services/submission";
-import { Check, Circle, Eye, Paperclip } from "lucide-react";
-import { type ChangeEvent, useRef, useState } from "react";
+import { Check, Circle, Paperclip } from "lucide-react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { FindingBadge } from "../FindingBadge";
@@ -28,6 +28,8 @@ interface SubmissionChecklistPanelProps {
 	editable: boolean;
 	/** Only the conferred items, without files or actions, as in the memorial. */
 	summary?: boolean;
+	/** `page` when the checklist is the page's own content, split in two columns. */
+	layout?: "panel" | "page";
 	uploadingType?: DocumentType;
 	removingId?: string;
 	onUpload?: (type: DocumentType, file: File) => void;
@@ -69,7 +71,17 @@ const Item = ({
 	onView,
 }: ItemProps) => {
 	const inputRef = useRef<HTMLInputElement>(null);
+	const attachRef = useRef<HTMLButtonElement>(null);
+	const removeRequested = useRef(false);
 	const type = item.key === "CALCULATION" ? undefined : item.key;
+
+	// The remove button unmounts with the document; "Anexar" takes the focus.
+	useEffect(() => {
+		if (document || !removeRequested.current) return;
+
+		removeRequested.current = false;
+		attachRef.current?.focus();
+	}, [document]);
 
 	const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
@@ -138,20 +150,6 @@ const Item = ({
 				)}
 			</div>
 
-			{document && !editable && !summary ? (
-				<Button
-					type="button"
-					variant="link"
-					size="xs"
-					className="h-auto px-0"
-					aria-label={`Ver ${item.label}`}
-					onClick={() => onView(document)}
-				>
-					<Eye aria-hidden="true" />
-					Ver
-				</Button>
-			) : null}
-
 			{type && editable && !summary ? (
 				<div className="flex shrink-0 items-center gap-3">
 					{document ? (
@@ -176,6 +174,7 @@ const Item = ({
 						onChange={handleChange}
 					/>
 					<Button
+						ref={attachRef}
 						type="button"
 						variant={document ? "link" : "outline"}
 						size="xs"
@@ -195,7 +194,10 @@ const Item = ({
 							className="h-auto px-0"
 							disabled={isRemoving}
 							aria-label={`Remover ${item.label}`}
-							onClick={() => onRemove?.(document)}
+							onClick={() => {
+								removeRequested.current = true;
+								onRemove?.(document);
+							}}
 						>
 							Remover
 						</Button>
@@ -213,6 +215,7 @@ export const SubmissionChecklistPanel = ({
 	findings = [],
 	editable,
 	summary = false,
+	layout = "panel",
 	uploadingType,
 	removingId,
 	onUpload,
@@ -222,79 +225,110 @@ export const SubmissionChecklistPanel = ({
 	const [viewing, setViewing] = useState<ProjectDocument>();
 	const done = checklist?.items.filter((item) => item.completed).length ?? 0;
 	const total = checklist?.items.length ?? 0;
+	const page = layout === "page";
+	const Container = page ? "section" : "aside";
 
 	return (
-		<aside
+		<Container
 			aria-labelledby="checagem-titulo"
-			className={cn("flex flex-col px-6 py-8 md:px-9.5", className)}
+			className={cn(
+				page
+					? "grid flex-1 content-start px-6 py-8 md:px-10 @5xl:grid-cols-[minmax(0,1fr)_400px] @5xl:grid-rows-[auto_1fr] @5xl:p-0"
+					: "flex flex-col px-6 py-8 md:px-9.5",
+				className,
+			)}
 		>
-			<ConclusionField
-				label={
-					<span id="checagem-titulo" role="heading" aria-level={2}>
-						Checagem Antes do Envio
-					</span>
-				}
-				value={
-					isLoading || !checklist ? undefined : (
-						<span aria-live="polite">
-							{padCount(done)}/{padCount(total)}
+			<div
+				className={cn(
+					page &&
+						"@5xl:col-start-2 @5xl:row-start-1 @5xl:border-l @5xl:border-border @5xl:px-9.5 @5xl:pt-8",
+				)}
+			>
+				<ConclusionField
+					label={
+						<span id="checagem-titulo" role="heading" aria-level={2}>
+							Checagem Antes do Envio
 						</span>
-					)
-				}
-				caption="Itens obrigatórios conferidos"
+					}
+					value={
+						isLoading || !checklist ? undefined : (
+							<span aria-live="polite">
+								{padCount(done)}/{padCount(total)}
+							</span>
+						)
+					}
+					caption="Itens obrigatórios conferidos"
+				>
+					{isLoading || !checklist ? (
+						<Skeleton className="h-14 w-36 bg-primary-foreground/20" />
+					) : null}
+				</ConclusionField>
+			</div>
+
+			<div
+				className={cn(
+					"min-w-0",
+					page &&
+						"@5xl:col-start-1 @5xl:row-span-2 @5xl:row-start-1 @5xl:px-10 @5xl:py-8",
+				)}
 			>
 				{isLoading || !checklist ? (
-					<Skeleton className="h-14 w-36 bg-primary-foreground/20" />
-				) : null}
-			</ConclusionField>
+					<div
+						className={cn("mt-9.5 flex flex-col gap-3", page && "@5xl:mt-0")}
+					>
+						{Array.from({ length: 4 }, (_, index) => (
+							<Skeleton key={index} className="h-10 w-full" />
+						))}
+					</div>
+				) : (
+					<>
+						{summary ? null : (
+							<FindingBadge
+								findings={findings.filter(
+									(finding) => finding.documentType === null,
+								)}
+								className={cn("mt-5", page && "@5xl:mt-0 @5xl:mb-5")}
+							/>
+						)}
+						<ul className={cn("mt-9.5 flex flex-col", page && "@5xl:mt-0")}>
+							{checklist.items.map((item) => {
+								const document = checklist.documents.find(
+									({ type }) => type === item.key,
+								);
 
-			{isLoading || !checklist ? (
-				<div className="mt-9.5 flex flex-col gap-3">
-					{Array.from({ length: 4 }, (_, index) => (
-						<Skeleton key={index} className="h-10 w-full" />
-					))}
-				</div>
-			) : (
-				<>
-					{summary ? null : (
-						<FindingBadge
-							findings={findings.filter(
-								(finding) => finding.documentType === null,
-							)}
-							className="mt-5"
-						/>
-					)}
-					<ul className="mt-9.5 flex flex-col">
-						{checklist.items.map((item) => {
-							const document = checklist.documents.find(
-								({ type }) => type === item.key,
-							);
+								return (
+									<Item
+										key={item.key}
+										item={item}
+										document={document}
+										editable={editable}
+										summary={summary}
+										isUploading={uploadingType === item.key}
+										isRemoving={
+											document !== undefined && removingId === document.id
+										}
+										findings={findings.filter(
+											(finding) => finding.documentType === item.key,
+										)}
+										onUpload={onUpload}
+										onRemove={onRemove}
+										onView={setViewing}
+									/>
+								);
+							})}
+						</ul>
+					</>
+				)}
+			</div>
 
-							return (
-								<Item
-									key={item.key}
-									item={item}
-									document={document}
-									editable={editable}
-									summary={summary}
-									isUploading={uploadingType === item.key}
-									isRemoving={
-										document !== undefined && removingId === document.id
-									}
-									findings={findings.filter(
-										(finding) => finding.documentType === item.key,
-									)}
-									onUpload={onUpload}
-									onRemove={onRemove}
-									onView={setViewing}
-								/>
-							);
-						})}
-					</ul>
-				</>
-			)}
-
-			<section aria-labelledby="envio-segue-titulo" className="mt-9.5">
+			<section
+				aria-labelledby="envio-segue-titulo"
+				className={cn(
+					"mt-9.5",
+					page &&
+						"@5xl:col-start-2 @5xl:row-start-2 @5xl:mt-0 @5xl:border-l @5xl:border-border @5xl:px-9.5 @5xl:pt-9.5 @5xl:pb-8",
+				)}
+			>
 				<SectionHeading as="h3" id="envio-segue-titulo">
 					O que Segue no Envio
 				</SectionHeading>
@@ -307,8 +341,9 @@ export const SubmissionChecklistPanel = ({
 			<DocumentDialog
 				projectId={projectId}
 				document={viewing}
+				hideToolbar={editable}
 				onClose={() => setViewing(undefined)}
 			/>
-		</aside>
+		</Container>
 	);
 };
