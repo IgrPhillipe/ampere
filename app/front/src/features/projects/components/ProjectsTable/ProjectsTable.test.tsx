@@ -67,4 +67,16 @@ describe("ProjectsTable", () => {
 			screen.getByRole("button", { name: "Limpar Filtros" }),
 		).toBeInTheDocument();
 	});
+
+	it("keeps room for the project name on narrow screens", () => {
+		const { rerender } = render(
+			<ProjectsTable projects={[project]} {...actions} />,
+		);
+
+		expect(screen.getByRole("table")).toHaveClass("min-w-[70rem]");
+
+		rerender(<ProjectsTable projects={[project]} showOwner {...actions} />);
+
+		expect(screen.getByRole("table")).toHaveClass("min-w-[80rem]");
+	});
 });

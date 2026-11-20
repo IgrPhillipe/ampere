@@ -102,6 +102,8 @@ export const ProjectsTable = ({
 			columns={columns}
 			data={projects}
 			columnClassNames={projectColumnClassNames}
+			// Below this width the fixed columns squeeze the name to nothing, so the table scrolls.
+			tableClassName={showOwner ? "min-w-[80rem]" : "min-w-[70rem]"}
 			sortableColumns={sortableColumns}
 			sort={sort}
 			onSortChange={onSortChange}
