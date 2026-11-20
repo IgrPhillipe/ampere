@@ -197,10 +197,10 @@ describe("ReviewDashboardPage", () => {
 		expect(
 			within(section).getByText("Residencial multifamiliar, 10 projetos")
 				.nextSibling,
-		).toHaveTextContent("15");
+		).toHaveTextContent("15 alertas");
 		expect(
-			within(section).getByText("Não residencial, 1 projeto"),
-		).toBeInTheDocument();
+			within(section).getByText("Não residencial, 1 projeto").nextSibling,
+		).toHaveTextContent("4 alertas");
 		expect(within(section).getByText("Misto, 2 projetos")).toBeInTheDocument();
 	});
 
@@ -211,7 +211,10 @@ describe("ReviewDashboardPage", () => {
 
 		expect(
 			within(times).getByText("Tempo médio de análise").nextSibling,
-		).toHaveTextContent("6,5 d");
+		).toHaveTextContent("6,5 dias");
+		expect(screen.getByText("Outubro de 2026").nextSibling).toHaveTextContent(
+			"40%",
+		);
 		expect(within(times).getByText("Sem aprovação")).toBeInTheDocument();
 		expect(
 			within(times).getByText("Prazos vencidos").nextSibling,

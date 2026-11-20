@@ -25,7 +25,13 @@ import { useDashboardPeriod } from "../../hooks";
 const formatDays = (value: number | null, emptyLabel: string) =>
 	value === null
 		? emptyLabel
-		: `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} d`;
+		: `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} ${value === 1 ? "dia" : "dias"}`;
+
+const plural = (count: number, one: string, many: string) =>
+	`${count} ${count === 1 ? one : many}`;
+
+const capitalize = (text: string) =>
+	text.charAt(0).toUpperCase() + text.slice(1);
 
 const timeItems = (dashboard: ReviewDashboard): IndicatorListItem[] => [
 	{
@@ -53,8 +59,8 @@ const timeItems = (dashboard: ReviewDashboard): IndicatorListItem[] => [
 const categoryItems = (dashboard: ReviewDashboard): IndicatorListItem[] =>
 	dashboard.alertsByCategory.map(({ category, alerts, projects }) => ({
 		key: category,
-		label: `${buildingTypeLabels[category]}, ${projects} ${projects === 1 ? "projeto" : "projetos"}`,
-		value: padCount(alerts),
+		label: `${buildingTypeLabels[category]}, ${plural(projects, "projeto", "projetos")}`,
+		value: plural(alerts, "alerta", "alertas"),
 	}));
 
 const repeatedRejectionItems = (
@@ -80,7 +86,7 @@ const repeatedRejectionItems = (
 const monthlyItems = (dashboard: ReviewDashboard): IndicatorListItem[] =>
 	dashboard.monthlyRejection.map(({ month, rejectionPercent }) => ({
 		key: month,
-		label: dayjs(`${month}-01`).format("MMMM [de] YYYY"),
+		label: capitalize(dayjs(`${month}-01`).format("MMMM [de] YYYY")),
 		value:
 			rejectionPercent === null
 				? "Sem decisão"
