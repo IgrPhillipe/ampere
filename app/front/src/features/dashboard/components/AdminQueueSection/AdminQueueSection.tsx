@@ -41,11 +41,6 @@ export const AdminQueueSection = ({
 			tone: "attention",
 		},
 		{ label: "Atrasados", value: queue?.overdue ?? 0, tone: "destructive" },
-		{
-			label: "Municípios s/ analista",
-			value: queue?.municipalitiesWithoutReviewer ?? 0,
-			tone: "attention",
-		},
 	];
 	const reviewers = queue?.byReviewer ?? [];
 
@@ -56,25 +51,16 @@ export const AdminQueueSection = ({
 		>
 			<div className="flex items-center justify-between border-b border-border pb-3">
 				<SectionHeading id={headingId}>Fila de Análise</SectionHeading>
-				<div className="flex items-center gap-2">
-					<Link
-						to="/fila-de-analise"
-						className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-					>
-						Ir para Fila
-						<ArrowRight className="size-3.5" aria-hidden="true" />
-					</Link>
-					<Link
-						to="/distribuicao"
-						className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-					>
-						Distribuição
-						<ArrowRight className="size-3.5" aria-hidden="true" />
-					</Link>
-				</div>
+				<Link
+					to="/fila-de-analise"
+					className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+				>
+					Ir para Fila
+					<ArrowRight className="size-3.5" aria-hidden="true" />
+				</Link>
 			</div>
 
-			<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+			<div className="grid grid-cols-3 gap-3">
 				{counters.map((counter) => (
 					<div
 						key={counter.label}

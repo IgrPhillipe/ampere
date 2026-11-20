@@ -94,7 +94,6 @@ const makeAdminDashboard = (
 				underReview: 1,
 			},
 		],
-		municipalitiesWithoutReviewer: 7,
 	},
 	...overrides,
 });
@@ -189,7 +188,7 @@ describe("AdminDashboardPage", () => {
 		expect(within(inactive30DaysLink).getByText("05")).toBeInTheDocument();
 	});
 
-	it("renders queue indicators, reviewer load, and shortcuts to review queue and distribution", () => {
+	it("renders queue indicators, reviewer load, and the shortcut to the review queue", () => {
 		renderPage();
 
 		const queueSection = screen.getByRole("region", {
@@ -202,10 +201,9 @@ describe("AdminDashboardPage", () => {
 		});
 		expect(queueLink).toHaveAttribute("href", "/fila-de-analise");
 
-		const distLink = within(queueSection).getByRole("link", {
-			name: /distribuição/i,
-		});
-		expect(distLink).toHaveAttribute("href", "/distribuicao");
+		expect(
+			within(queueSection).queryByRole("link", { name: /distribuição/i }),
+		).not.toBeInTheDocument();
 
 		// Queue counts
 		expect(within(queueSection).getByText("04")).toBeInTheDocument(); // unassigned
@@ -213,7 +211,6 @@ describe("AdminDashboardPage", () => {
 		expect(
 			within(queueSection).getAllByText("01").length,
 		).toBeGreaterThanOrEqual(1); // overdue and Bruno's underReview
-		expect(within(queueSection).getByText("07")).toBeInTheDocument(); // municipalitiesWithoutReviewer
 
 		// Reviewers workload
 		expect(within(queueSection).getByText("Ana Silva")).toBeInTheDocument();

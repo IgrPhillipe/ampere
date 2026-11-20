@@ -36,12 +36,6 @@ export const APP_NAV_ITEMS: NavItem[] = [
 		group: ANALYSIS_GROUP,
 	},
 	{
-		to: "/distribuicao",
-		label: "Distribuição",
-		roles: ROLE_ACCESS.distribution,
-		group: ANALYSIS_GROUP,
-	},
-	{
 		to: "/indicadores",
 		label: "Indicadores",
 		roles: ROLE_ACCESS.reviewIndicators,

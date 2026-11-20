@@ -37,7 +37,6 @@ export const adminDashboardQueueSummarySchema = z.object({
 	dueIn3Days: z.number().int().nonnegative(),
 	overdue: z.number().int().nonnegative(),
 	byReviewer: z.array(reviewerLoadSchema),
-	municipalitiesWithoutReviewer: z.number().int().nonnegative(),
 });
 
 export type AdminDashboardQueueSummary = z.infer<

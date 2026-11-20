@@ -4,13 +4,13 @@ import { PageLayout } from "@components/layout";
 import { Pagination } from "@components/Pagination";
 import { Button } from "@components/ui/button";
 import { downloadFile, useAuthStore } from "@features/shared";
+import { useAssignReviewQueue } from "@services/review-assignment";
 import {
 	type ReviewQueueItem,
 	useExportReviewQueueCsv,
 	useGetReviewQueue,
 	useGetReviewQueueIndicators,
 } from "@services/review-queue";
-import { useAssignReviewQueue } from "@services/reviewer-distribution";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleAlert } from "lucide-react";
 import { useState } from "react";

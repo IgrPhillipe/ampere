@@ -93,8 +93,8 @@ vi.mock("@services/review-queue", async (importOriginal) => ({
 	}),
 }));
 
-vi.mock("@services/reviewer-distribution", async (importOriginal) => ({
-	...(await importOriginal<typeof import("@services/reviewer-distribution")>()),
+vi.mock("@services/review-assignment", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@services/review-assignment")>()),
 	useAssignReviewQueue: () => ({ mutate: mockAssign, isPending: false }),
 }));
 
