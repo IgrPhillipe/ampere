@@ -128,8 +128,7 @@ public class DemandCalculationService {
           .map(entry -> NormativeTableCode.valueOf(entry.getKey()).identification())
           .toList();
     }
-    // Older calculations did not record table IDs; their references and publication dates remain
-    // usable.
+    // Older runs lack table IDs, so their references and publication dates are compared.
     return calculation.getAppliedTables().stream()
         .filter(
             applied ->
