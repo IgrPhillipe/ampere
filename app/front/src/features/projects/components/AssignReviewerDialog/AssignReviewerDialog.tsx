@@ -16,30 +16,23 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@components/ui/select";
-import {
-	type ReviewQueueItem,
-	useGetReviewerList,
-} from "@services/review-queue";
+import { useGetReviewerList } from "@services/review-queue";
 import { useId, useState } from "react";
 
-import { UNASSIGNED_REVIEWER_LABEL } from "../../constants";
-
-/** Up to this many protocols are listed; beyond it, only the count. */
-const LISTED_PROJECTS = 5;
+/** What the dialog reads of the project under review. */
+export interface AssignableProject {
+	protocol: string;
+	ownerId?: string | null;
+	reviewerId?: string | null;
+}
 
 interface AssignReviewerDialogProps {
 	open: boolean;
-	projects: readonly ReviewQueueItem[];
+	project: AssignableProject;
 	isPending: boolean;
 	onOpenChange: (open: boolean) => void;
 	onConfirm: (reviewerId: string) => void;
 }
-
-const formatProjectCount = (count: number) =>
-	count === 1 ? "1 projeto" : `${count} projetos`;
-
-const ownerReason = (count: number) =>
-	count === 1 ? "Dono do projeto" : "Dono de um dos projetos";
 
 interface AssignReviewerFormProps
 	extends Omit<AssignReviewerDialogProps, "open" | "onOpenChange"> {
@@ -47,14 +40,14 @@ interface AssignReviewerFormProps
 }
 
 const AssignReviewerForm = ({
-	projects,
+	project,
 	isPending,
 	onCancel,
 	onConfirm,
 }: AssignReviewerFormProps) => {
 	const fieldId = useId();
 	const reviewersQuery = useGetReviewerList();
-	const [reviewerId, setReviewerId] = useState<string | null>(null);
+	const [chosenId, setChosenId] = useState<string | null>(null);
 	// The API sends them by name; the record only resolves the chosen label,
 	// since numeric-like keys would reorder it by id.
 	const reviewerList = (reviewersQuery.data?.data ?? []).filter(
@@ -63,68 +56,54 @@ const AssignReviewerForm = ({
 	const reviewers = Object.fromEntries(
 		reviewerList.map(({ id, name }) => [id, name]),
 	);
-	// The API refuses the owner as analyst of their own project.
-	const ownerIds = new Set(projects.map(({ ownerId }) => ownerId));
-	const listed = projects.slice(0, LISTED_PROJECTS);
-	const hidden = projects.length - listed.length;
+	// An analyst who left the refreshed list cannot be confirmed.
+	const reviewerId = chosenId && chosenId in reviewers ? chosenId : null;
+	const unchanged = reviewerId === project.reviewerId;
 
 	return (
 		<>
-			<div className="flex flex-col gap-5">
-				<ul className="flex flex-col gap-1 text-sm" aria-label="Projetos">
-					{listed.map((project) => (
-						<li key={project.id} className="flex gap-2">
-							<span className="font-mono text-foreground">
-								{project.protocol}
-							</span>
-							<span className="truncate text-muted-foreground">
-								{project.reviewerName ?? UNASSIGNED_REVIEWER_LABEL}
-							</span>
-						</li>
-					))}
-					{hidden > 0 ? (
-						<li className="text-muted-foreground">
-							e mais {formatProjectCount(hidden)}
-						</li>
-					) : null}
-				</ul>
-
-				<div className="flex flex-col gap-2">
-					<Label id={fieldId}>Analista</Label>
-					<Select
-						items={reviewers}
-						value={reviewerId}
-						onValueChange={(value) => setReviewerId(value as string | null)}
-						disabled={isPending || reviewersQuery.isPending}
-					>
-						<SelectTrigger aria-labelledby={fieldId}>
-							<SelectValue
-								placeholder="Selecione o analista"
-								className="min-w-0 truncate"
-							/>
-						</SelectTrigger>
-						<SelectContent>
-							{reviewerList.map(({ id, name, role }) => {
-								const isOwner = ownerIds.has(id);
-								return (
-									<SelectItem key={id} value={id} disabled={isOwner}>
-										<span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-											<span className="truncate">{name}</span>
-											{role === "admin" ? (
-												<Badge variant="neutral">Gestor</Badge>
-											) : null}
-											{isOwner ? (
-												<span className="text-xs text-disabled-foreground">
-													{ownerReason(projects.length)}
-												</span>
-											) : null}
-										</span>
-									</SelectItem>
-								);
-							})}
-						</SelectContent>
-					</Select>
-				</div>
+			<div className="flex flex-col gap-2">
+				<Label id={fieldId}>Analista</Label>
+				<Select
+					items={reviewers}
+					value={reviewerId}
+					onValueChange={(value) => setChosenId(value as string | null)}
+					disabled={isPending || reviewersQuery.isPending}
+				>
+					<SelectTrigger aria-labelledby={fieldId}>
+						<SelectValue
+							placeholder="Selecione o analista"
+							className="min-w-0 truncate"
+						/>
+					</SelectTrigger>
+					<SelectContent>
+						{reviewerList.map(({ id, name, role }) => {
+							// The API refuses the owner as analyst of their own project.
+							const isOwner = id === project.ownerId;
+							const isCurrent = id === project.reviewerId;
+							return (
+								<SelectItem key={id} value={id} disabled={isOwner}>
+									<span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+										<span className="truncate">{name}</span>
+										{role === "admin" ? (
+											<Badge variant="neutral">Gestor</Badge>
+										) : null}
+										{isOwner ? (
+											<span className="text-xs text-disabled-foreground">
+												Dono do projeto
+											</span>
+										) : null}
+										{isCurrent ? (
+											<span className="text-xs text-muted-foreground">
+												Analista atual
+											</span>
+										) : null}
+									</span>
+								</SelectItem>
+							);
+						})}
+					</SelectContent>
+				</Select>
 			</div>
 
 			<DialogFooter>
@@ -139,7 +118,7 @@ const AssignReviewerForm = ({
 				<Button
 					type="button"
 					onClick={() => reviewerId && onConfirm(reviewerId)}
-					disabled={isPending || !reviewerId}
+					disabled={isPending || !reviewerId || unchanged}
 				>
 					{isPending ? "Atribuindo..." : "Atribuir"}
 				</Button>
@@ -148,10 +127,10 @@ const AssignReviewerForm = ({
 	);
 };
 
-/** Assigns or reassigns the selected projects; drafts follow the new analyst. */
+/** Assigns or reassigns the project's analyst; drafts follow the new analyst. */
 export const AssignReviewerDialog = ({
 	open,
-	projects,
+	project,
 	isPending,
 	onOpenChange,
 	onConfirm,
@@ -165,19 +144,19 @@ export const AssignReviewerDialog = ({
 		<DialogContent className="bg-card" showCloseButton={!isPending}>
 			<DialogHeader>
 				<DialogTitle className="font-heading text-xl">
-					Atribuir Analista
+					{project.reviewerId ? "Trocar Analista" : "Atribuir Analista"}
 				</DialogTitle>
 				<DialogDescription>
-					Escolha o analista de {formatProjectCount(projects.length)}. Na
-					reatribuição, os apontamentos em rascunho passam para o novo analista;
-					os publicados ficam com o autor.
+					Escolha o analista do projeto {project.protocol}. Na troca, os
+					apontamentos em rascunho passam para o novo analista; os publicados
+					ficam com o autor.
 				</DialogDescription>
 			</DialogHeader>
 
 			<AssignReviewerForm
 				// Closing remounts it, so the choice starts empty on reopening.
 				key={open ? "open" : "closed"}
-				projects={projects}
+				project={project}
 				isPending={isPending}
 				onCancel={() => onOpenChange(false)}
 				onConfirm={onConfirm}

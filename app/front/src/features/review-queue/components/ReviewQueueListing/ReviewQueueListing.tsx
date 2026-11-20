@@ -11,14 +11,9 @@ import {
 	type ReviewQueueColumnId,
 	type ReviewQueueRowActions,
 } from "./review-queue-columns";
-import {
-	type ReviewQueueSelection,
-	ReviewQueueSelectionContext,
-} from "./selection-context";
 
 /** `table-fixed`: these widths fit the sheet at 1280 px, and the name takes the rest. */
 const columnClassNames = {
-	select: "w-12 pr-0",
 	attention: "w-5 px-0",
 	protocol: "w-28",
 	// From 1024 to 1280 px these give way, so the reviewer and the action stay in view.
@@ -42,8 +37,6 @@ interface ReviewQueueListingProps extends ReviewQueueRowActions {
 	items: ReviewQueueItem[];
 	/** Decides between "Analisar" and "Consultar" on each row. */
 	currentUserId?: string;
-	/** Present for the manager, who assigns projects in batch. */
-	selection?: ReviewQueueSelection;
 	/** The manager's column: the analyst's queue holds only their own projects. */
 	showReviewer?: boolean;
 	isLoading?: boolean;
@@ -57,23 +50,20 @@ export const ReviewQueueListing = ({
 	isLoading = false,
 	onAnalyze,
 	currentUserId,
-	selection,
 	showReviewer = true,
 	sort,
 	onSortChange,
 	onClearFilters,
 }: ReviewQueueListingProps) => {
-	const selectable = selection !== undefined;
 	// Only what changes the column set: a new definition remounts every cell.
 	const columns = useMemo(
 		() =>
 			createReviewQueueColumns({
 				onAnalyze,
 				currentUserId,
-				selectable,
 				showReviewer,
 			}),
-		[onAnalyze, currentUserId, selectable, showReviewer],
+		[onAnalyze, currentUserId, showReviewer],
 	);
 
 	// The attention marker has no skeleton cell of its own.
@@ -102,7 +92,7 @@ export const ReviewQueueListing = ({
 		);
 	}
 
-	const table = (
+	return (
 		<DataTable<ReviewQueueItem, ReviewQueueColumnId, ReviewQueueSort>
 			columns={columns}
 			data={items}
@@ -113,15 +103,5 @@ export const ReviewQueueListing = ({
 			sort={sort}
 			onSortChange={onSortChange}
 		/>
-	);
-
-	return selection ? (
-		<ReviewQueueSelectionContext
-			value={{ ...selection, pageIds: items.map(({ id }) => id) }}
-		>
-			{table}
-		</ReviewQueueSelectionContext>
-	) : (
-		table
 	);
 };

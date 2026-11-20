@@ -14,12 +14,10 @@ import {
 	isResponsible,
 	isUrgent,
 } from "./review-queue-row";
-import { SelectPageCheckbox, SelectRowCheckbox } from "./SelectionCheckbox";
 
 const columnHelper = createDataTableColumnHelper<ReviewQueueItem>();
 
 export type ReviewQueueColumnId =
-	| "select"
 	| "attention"
 	| "protocol"
 	| "name"
@@ -41,27 +39,17 @@ export interface ReviewQueueRowActions {
 interface ReviewQueueColumnOptions extends ReviewQueueRowActions {
 	/** Only the analyst responsible for a project reviews it. */
 	currentUserId?: string;
-	/** Adds the checkbox column; the selection itself comes from `ReviewQueueSelectionContext`. */
-	selectable?: boolean;
 	/** The analyst's queue holds only their own projects, so the column would repeat them. */
 	showReviewer?: boolean;
 }
-
-const selectColumn = columnHelper.display({
-	id: "select",
-	header: () => <SelectPageCheckbox />,
-	cell: ({ row }) => <SelectRowCheckbox item={row.original} />,
-});
 
 /** The H06 set: receipt and submission cycle ride on the project's second line. */
 export const createReviewQueueColumns = ({
 	onAnalyze,
 	currentUserId,
-	selectable = false,
 	showReviewer = true,
 }: ReviewQueueColumnOptions) =>
 	columnHelper.columns([
-		...(selectable ? [selectColumn] : []),
 		columnHelper.display({
 			id: "attention",
 			header: () => <span className="sr-only">Atenção</span>,

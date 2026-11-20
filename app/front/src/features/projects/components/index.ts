@@ -1,3 +1,4 @@
+export * from "./AssignReviewerDialog";
 export * from "./AutomaticVerification";
 export * from "./CalculationExportButton";
 export * from "./CalculationSteps";

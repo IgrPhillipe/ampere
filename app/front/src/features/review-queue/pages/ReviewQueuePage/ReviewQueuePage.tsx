@@ -4,7 +4,6 @@ import { PageLayout } from "@components/layout";
 import { Pagination } from "@components/Pagination";
 import { Button } from "@components/ui/button";
 import { downloadFile, useAuthStore } from "@features/shared";
-import { useAssignReviewQueue } from "@services/review-assignment";
 import {
 	type ReviewQueueItem,
 	UNASSIGNED_REVIEWER,
@@ -15,11 +14,9 @@ import {
 } from "@services/review-queue";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleAlert } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import {
-	AssignReviewerDialog,
-	QueueSelectionBar,
 	ReviewQueueActiveFilters,
 	ReviewQueueFilterControls,
 	ReviewQueueListing,
@@ -54,8 +51,6 @@ export const ReviewQueuePage = () => {
 	const user = useAuthStore((state) => state.user);
 	const isManager = user?.role === "admin";
 	const exportQueue = useExportReviewQueueCsv();
-	const assign = useAssignReviewQueue();
-	const [isAssignOpen, setAssignOpen] = useState(false);
 	const reviewersQuery = useGetReviewerList({ enabled: isManager });
 	// A deactivated analyst leaves the list once their last project is reassigned.
 	const isReviewerGone =
@@ -68,37 +63,7 @@ export const ReviewQueuePage = () => {
 		if (isReviewerGone) setReviewer(null);
 	}, [isReviewerGone, setReviewer]);
 
-	// The selection belongs to the listing it was made on: a new page or filter drops it.
-	const listingKey = JSON.stringify(filters.params);
-	const [selectionState, setSelectionState] = useState({
-		key: listingKey,
-		ids: [] as string[],
-	});
-	const selectedIds =
-		selectionState.key === listingKey ? selectionState.ids : [];
 	const items = queueQuery.data?.data ?? [];
-	const selectedItems = items.filter(({ id }) => selectedIds.includes(id));
-
-	const selection = isManager
-		? {
-				selectedIds,
-				onSelectedIdsChange: (ids: string[]) =>
-					setSelectionState({ key: listingKey, ids }),
-			}
-		: undefined;
-
-	const clearSelection = () => setSelectionState({ key: listingKey, ids: [] });
-
-	const confirmAssignment = (reviewerId: string) =>
-		assign.mutate(
-			{ projectIds: selectedItems.map(({ id }) => id), reviewerId },
-			{
-				onSuccess: () => {
-					setAssignOpen(false);
-					clearSelection();
-				},
-			},
-		);
 
 	const analyze = (item: ReviewQueueItem) =>
 		void navigate({ to: "/projetos/$id", params: { id: item.id } });
@@ -186,26 +151,16 @@ export const ReviewQueuePage = () => {
 							}
 						/>
 					) : (
-						<div className="flex flex-col gap-4">
-							{selectedItems.length > 0 ? (
-								<QueueSelectionBar
-									count={selectedItems.length}
-									onClear={clearSelection}
-									onAssign={() => setAssignOpen(true)}
-								/>
-							) : null}
-							<ReviewQueueListing
-								items={items}
-								isLoading={queueQuery.isPending}
-								onAnalyze={analyze}
-								currentUserId={user?.id}
-								selection={selection}
-								showReviewer={isManager}
-								sort={sort}
-								onSortChange={sortBy}
-								onClearFilters={hasActiveFilters ? clearFilters : undefined}
-							/>
-						</div>
+						<ReviewQueueListing
+							items={items}
+							isLoading={queueQuery.isPending}
+							onAnalyze={analyze}
+							currentUserId={user?.id}
+							showReviewer={isManager}
+							sort={sort}
+							onSortChange={sortBy}
+							onClearFilters={hasActiveFilters ? clearFilters : undefined}
+						/>
 					)}
 				</div>
 
@@ -219,16 +174,6 @@ export const ReviewQueuePage = () => {
 					/>
 				) : null}
 			</section>
-
-			{isManager ? (
-				<AssignReviewerDialog
-					open={isAssignOpen}
-					projects={selectedItems}
-					isPending={assign.isPending}
-					onOpenChange={setAssignOpen}
-					onConfirm={confirmAssignment}
-				/>
-			) : null}
 		</PageLayout>
 	);
 };
