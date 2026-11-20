@@ -695,7 +695,7 @@ O memorial da versão não é regerado: alterações feitas depois da reprovaç�
 Central de notificações no sino do cabeçalho para os dois perfis, sem envio de e-mail.
 
 ### User Story
-> **Como** usuário do sistema, projetista ou analista,  
+> **Como** usuário do sistema, projetista, analista ou gestor,  
 > **Quero** ser avisado dentro do sistema quando um projeto meu muda de situação,  
 > **Para que** eu aja no momento certo sem precisar conferir cada projeto.
 
@@ -705,8 +705,9 @@ O sino do cabeçalho exibe o número de notificações não lidas e abre o paine
 Eventos notificados:
 - **Projetista:** projeto aprovado, projeto reprovado com o número de apontamentos, apontamento reaberto na reanálise e aprovação perto de expirar ([US15](#us15-prazos-de-análise-e-validade-da-aprovação))
 - **Analista:** projeto atribuído reenviado, prazo de análise vencendo em até 3 dias e prazo vencido
+- **Gestor:** projeto enviado ou reenviado que ficou sem analista, "Projeto 2026-1002 aguardando analista", com link para a fila filtrada em "Não Atribuído" ([US23](#us23-distribuição-da-fila-de-análise)). Ao atribuir o projeto, o aviso fica lido para todos os gestores
 
-Cada notificação mostra o protocolo, o texto, a data relativa e leva à tela do projeto. Clicar marca como lida, e o painel tem "Marcar Todas como Lidas". O sistema não envia e-mail.
+Cada notificação mostra o protocolo, o texto, a data relativa e leva à tela do projeto, ou à fila no caso do gestor. Clicar marca como lida, e o painel tem "Marcar Todas como Lidas". O sistema não envia e-mail.
 
 ### Confirmação (Critérios de Aceite - BDD)
 
@@ -1007,7 +1008,7 @@ Distribuição dos projetos enviados entre os analistas pelo gestor, um a um ou 
 ### Conversação (Regras de Negócio e Interface)
 Na fila de análise, o gestor seleciona um ou vários projetos e escolhe o analista em "Atribuir Analista". Vale para projeto sem analista e para reatribuição de projeto em análise. Na reatribuição, os apontamentos em rascunho passam para o novo analista; os publicados ficam com o autor original.
 
-No envio, o projeto fica "Não Atribuído" até o gestor atribuir. Na reanálise, o projeto volta para o analista que reprovou, se ele ainda puder analisar; senão, fica "Não Atribuído".
+No envio, o projeto fica "Não Atribuído" até o gestor atribuir. Na reanálise, o projeto volta para o analista que reprovou, se ele ainda puder analisar; senão, fica "Não Atribuído". Quando o projeto fica "Não Atribuído", os gestores ativos recebem uma notificação ([US14](#us14-notificações-no-sistema)).
 
 A regra por município (cada município com um analista fixo) saiu em 20/11: foi proposta do time, não pedido da cliente, e o gestor é quem distribui.
 
@@ -1041,6 +1042,7 @@ A regra por município (cada município com um analista fixo) saiu em 20/11: foi
 ### Checklist de Implementação
 - [ ] Atribuir e reatribuir analista em lote na fila
 - [ ] Deixar o projeto "Não Atribuído" no envio e devolver a reanálise a quem reprovou
+- [ ] Notificar os gestores quando o projeto fica "Não Atribuído"
 
 ---
 
