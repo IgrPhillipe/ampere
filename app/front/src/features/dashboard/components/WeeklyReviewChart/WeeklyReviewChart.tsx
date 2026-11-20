@@ -1,6 +1,7 @@
 import { Skeleton } from "@components/ui/skeleton";
 import dayjs from "@lib/dayjs";
 import type { ReviewWeek } from "@services/dashboard";
+import { useEffect, useRef } from "react";
 
 import { DashboardSection, DashboardSectionEmpty } from "../DashboardSection";
 
@@ -21,6 +22,14 @@ export const WeeklyReviewChart = ({
 	weeks,
 	className,
 }: WeeklyReviewChartProps) => {
+	const barsRef = useRef<HTMLOListElement>(null);
+
+	// A long period scrolls on narrow screens; the latest weeks matter most.
+	useEffect(() => {
+		const bars = barsRef.current;
+		if (bars && weeks) bars.scrollLeft = bars.scrollWidth;
+	}, [weeks]);
+
 	const max = Math.max(
 		1,
 		...(weeks ?? []).flatMap(({ received, decided }) => [received, decided]),
@@ -53,7 +62,10 @@ export const WeeklyReviewChart = ({
 							</li>
 						))}
 					</ul>
-					<ol className="flex h-40 items-end gap-2 overflow-x-auto">
+					<ol
+						ref={barsRef}
+						className="flex h-40 items-end gap-2 overflow-x-auto"
+					>
 						{weeks.map(({ weekStart, received, decided }) => (
 							<li
 								key={weekStart}
