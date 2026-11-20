@@ -64,7 +64,7 @@ export const Header = () => {
 								/>
 							}
 						>
-							<Avatar className="size-7 md:hidden">
+							<Avatar className="size-7 xl:hidden">
 								{user?.avatarUrl ? (
 									<AvatarImage src={user.avatarUrl} alt={user.name} />
 								) : null}
@@ -74,7 +74,7 @@ export const Header = () => {
 								</AvatarFallback>
 							</Avatar>
 
-							<span className="hidden truncate font-mono text-2xs font-normal tracking-[0.11em] uppercase md:inline">
+							<span className="hidden truncate font-mono text-2xs font-normal tracking-[0.11em] uppercase xl:inline">
 								{user?.name}
 								{user ? (
 									<span className="ml-2 text-faint-foreground">
