@@ -840,6 +840,11 @@ O menu do analista ganha "Indicadores" e "Meus Pareceres", previstos no protóti
 
 "Meus Pareceres" lista os projetos decididos pelo analista logado, com a decisão, a data, o número de apontamentos e a versão, com os filtros da [US18](#us18-filtros-e-ordenação-das-listagens).
 
+**Escopo por papel** (validação com a cliente em 20/11):
+- Para o analista, os indicadores, o ranking de apontamentos e as listas contam só os projetos atribuídos a ele, como a fila ([US23](#us23-distribuição-da-fila-de-análise)). O gestor vê os números da equipe toda
+- Os projetos listados pelo ranking abrem para o analista só se estiverem atribuídos a ele
+- "Meus Pareceres" lista os projetos decididos pelo analista que continuam atribuídos a ele. O projeto reatribuído ou redistribuído depois da decisão sai da lista de quem o tinha
+
 ### Confirmação (Critérios de Aceite - BDD)
 
 #### Cenário 1 (Positivo): Consulta dos Apontamentos Mais Frequentes
@@ -1015,6 +1020,8 @@ No envio, o projeto vai direto para o analista do município. Sem regra para o m
 - A fila, a exportação e o projeto ficam restritos aos projetos atribuídos ao analista, incluindo os que ele já decidiu
 - O filtro "Analista" e a coluna "Analista Responsável" são só do gestor
 - Projeto sem analista ou de outro analista não abre para o analista; o reatribuído sai do alcance de quem o tinha
+- Ao abrir um projeto fora do seu alcance, o analista vê "Projeto não encontrado" e volta para a fila
+- As notificações do analista sobre o projeto que ele perdeu passam a levar à fila, na reatribuição pelo gestor e na redistribuição do reenvio
 
 ### Confirmação (Critérios de Aceite - BDD)
 
