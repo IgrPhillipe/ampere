@@ -1,4 +1,4 @@
-import { http } from "@lib/http";
+import { filenameOf, http } from "@lib/http";
 import { isHTTPError } from "ky";
 
 import { CalculationEndpoints as e } from "./endpoints";
@@ -21,4 +21,13 @@ export const runCalculation = async (projectId: string) => {
 	const response = await http.post(e.create(projectId)).json<unknown>();
 
 	return calculationResponseSchema.parse(response);
+};
+
+export const exportCalculationSpreadsheet = async (projectId: string) => {
+	const response = await http.get(e.spreadsheet(projectId));
+
+	return {
+		filename: filenameOf(response, "calculo.xlsx"),
+		blob: await response.blob(),
+	};
 };

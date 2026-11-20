@@ -16,6 +16,7 @@ import { Download } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
 import type { MemorialStamp } from "../../constants";
+import { CalculationExportButton } from "../CalculationExportButton/CalculationExportButton";
 
 interface MemorialPreviewProps {
 	project?: ProjectDetail;
@@ -24,6 +25,8 @@ interface MemorialPreviewProps {
 	calculation?: Calculation;
 	memorial?: Memorial;
 	isLoading?: boolean;
+	isExportingCalculation?: boolean;
+	onExportCalculation?: () => void;
 	className?: string;
 }
 
@@ -70,6 +73,8 @@ export const MemorialPreview = ({
 	calculation,
 	memorial,
 	isLoading = false,
+	isExportingCalculation = false,
+	onExportCalculation,
 	className,
 }: MemorialPreviewProps) => {
 	const url = useMemo(
@@ -191,16 +196,23 @@ export const MemorialPreview = ({
 				/>
 			)}
 
-			<Button
-				type="button"
-				variant="link"
-				className="h-auto w-fit px-0"
-				disabled={!url}
-				onClick={download}
-			>
-				<Download aria-hidden="true" />
-				Baixar PDF
-			</Button>
+			<div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+				<Button
+					type="button"
+					variant="link"
+					className="h-auto w-fit px-0"
+					disabled={!url}
+					onClick={download}
+				>
+					<Download aria-hidden="true" />
+					Baixar PDF
+				</Button>
+				<CalculationExportButton
+					disabled={!calculation || !onExportCalculation}
+					isPending={isExportingCalculation}
+					onExport={onExportCalculation}
+				/>
+			</div>
 		</section>
 	);
 };

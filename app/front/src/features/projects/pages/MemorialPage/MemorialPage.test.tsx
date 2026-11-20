@@ -10,6 +10,7 @@ import { MemorialPage } from "./MemorialPage";
 
 const state = vi.hoisted(() => ({
 	status: "UNDER_REVIEW" as ProjectStatus,
+	calculation: "pending" as "pending" | "none",
 	versions: undefined as ProjectVersion[] | undefined,
 	versionsFailed: false,
 	versionsEnabled: [] as boolean[],
@@ -24,10 +25,10 @@ vi.mock("@services/projects", async (importOriginal) => ({
 
 vi.mock("@services/calculation", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/calculation")>()),
-	useGetLatestCalculation: () => ({
-		...loadedQuery(undefined),
-		isPending: true,
-	}),
+	useGetLatestCalculation: () =>
+		state.calculation === "none"
+			? loadedQuery({ data: null })
+			: { ...loadedQuery(undefined), isPending: true },
 }));
 
 vi.mock("@services/submission", async (importOriginal) => ({
@@ -85,6 +86,7 @@ const versionOf = (number: number): ProjectVersion => ({
 describe("MemorialPage", () => {
 	beforeEach(() => {
 		state.status = "UNDER_REVIEW";
+		state.calculation = "pending";
 		state.versions = undefined;
 		state.versionsFailed = false;
 		state.versionsEnabled = [];
@@ -98,6 +100,15 @@ describe("MemorialPage", () => {
 			screen.getByRole("heading", { name: "Memorial" }),
 		).toBeInTheDocument();
 		expect(screen.queryByText(/Prévia/)).not.toBeInTheDocument();
+	});
+
+	it("keeps spreadsheet export disabled when the project has no calculation", () => {
+		state.calculation = "none";
+		render(<MemorialPage projectId="4" />);
+
+		expect(
+			screen.getByRole("button", { name: "Exportar Planilha" }),
+		).toBeDisabled();
 	});
 
 	it("names the latest version once the versions arrive", () => {

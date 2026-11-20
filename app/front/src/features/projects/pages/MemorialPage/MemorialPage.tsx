@@ -1,14 +1,21 @@
 import { EmptyState } from "@components/EmptyState";
 import { Button } from "@components/ui/button";
+import { downloadFile } from "@features/shared";
 import { getHttpStatus } from "@lib/api-error";
-import { useGetLatestCalculation } from "@services/calculation";
+import {
+	exportCalculationSpreadsheet,
+	useGetLatestCalculation,
+} from "@services/calculation";
 import { useGetProjectVersionList } from "@services/project-versions";
 import { useGetProject } from "@services/projects";
 import { useGetMemorial, useGetSubmission } from "@services/submission";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Calculator, CircleAlert } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import {
+	CalculationExportButton,
 	MemorialPreview,
 	StepFooter,
 	SubmissionChecklistPanel,
@@ -25,6 +32,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 	const projectQuery = useGetProject(projectId);
 	const calculationQuery = useGetLatestCalculation(projectId);
 	const calculation = calculationQuery.data?.data;
+	const [isExportingCalculation, setIsExportingCalculation] = useState(false);
 	const memorialQuery = useGetMemorial(projectId, {
 		enabled: calculation !== undefined,
 	});
@@ -52,6 +60,20 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 
 	const goTo = (to: "/projetos/$id/calculo" | "/projetos/$id/documentos") =>
 		void navigate({ to, params: { id: projectId } });
+
+	const exportCalculation = async () => {
+		if (!calculation) return;
+
+		setIsExportingCalculation(true);
+		try {
+			const file = await exportCalculationSpreadsheet(projectId);
+			downloadFile(file.blob, file.filename);
+		} catch {
+			toast.error("Não foi possível exportar a planilha do cálculo.");
+		} finally {
+			setIsExportingCalculation(false);
+		}
+	};
 
 	const content = hasError ? (
 		<EmptyState
@@ -87,15 +109,21 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			}
 			icon={Calculator}
 			action={
-				canEdit ? (
-					<Button
-						type="button"
-						variant="outline"
-						onClick={() => goTo("/projetos/$id/calculo")}
-					>
-						Ir para o Cálculo
-					</Button>
-				) : undefined
+				<div className="flex flex-wrap items-center justify-center gap-4">
+					{canEdit ? (
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => goTo("/projetos/$id/calculo")}
+						>
+							Ir para o Cálculo
+						</Button>
+					) : null}
+					<CalculationExportButton
+						disabled
+						onExport={() => void exportCalculation()}
+					/>
+				</div>
 			}
 		/>
 	) : outdated ? (
@@ -120,6 +148,8 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			calculation={calculation}
 			memorial={memorialQuery.data}
 			isLoading={memorialQuery.isPending}
+			isExportingCalculation={isExportingCalculation}
+			onExportCalculation={() => void exportCalculation()}
 		/>
 	);
 

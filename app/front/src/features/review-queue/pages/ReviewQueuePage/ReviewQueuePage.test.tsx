@@ -119,6 +119,7 @@ describe("ReviewQueuePage batch assignment", () => {
 			screen.queryByRole("button", { name: "Atribuir Analista" }),
 		).not.toBeInTheDocument();
 		expect(screen.getAllByRole("button", { name: "Analisar" })).toHaveLength(1);
+		expect(screen.getByRole("button", { name: "Exportar CSV" })).toBeEnabled();
 	});
 
 	it("assigns the selected projects and clears the selection", async () => {

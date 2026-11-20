@@ -2,8 +2,9 @@ import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Pagination } from "@components/Pagination";
 import { Button } from "@components/ui/button";
-import { useAuthStore } from "@features/shared";
+import { downloadFile, useAuthStore } from "@features/shared";
 import {
+	exportReviewQueueCsv,
 	type ReviewQueueItem,
 	useGetReviewQueue,
 	useGetReviewQueueIndicators,
@@ -12,6 +13,7 @@ import { useAssignReviewQueue } from "@services/reviewer-distribution";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleAlert } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import {
 	AssignReviewerDialog,
@@ -47,6 +49,7 @@ export const ReviewQueuePage = () => {
 	const navigate = useNavigate();
 	const user = useAuthStore((state) => state.user);
 	const isManager = user?.role === "admin";
+	const [isExporting, setIsExporting] = useState(false);
 	const assign = useAssignReviewQueue();
 	const [isAssignOpen, setAssignOpen] = useState(false);
 
@@ -93,6 +96,18 @@ export const ReviewQueuePage = () => {
 	const pagination = queueQuery.data?.pagination;
 	const hasError = queueQuery.isError || indicatorsQuery.isError;
 
+	const exportCsv = async () => {
+		setIsExporting(true);
+		try {
+			const file = await exportReviewQueueCsv(filters.params);
+			downloadFile(file.blob, file.filename);
+		} catch {
+			toast.error("Não foi possível exportar a fila de análise.");
+		} finally {
+			setIsExporting(false);
+		}
+	};
+
 	return (
 		<PageLayout
 			title="Fila de Análise"
@@ -113,17 +128,28 @@ export const ReviewQueuePage = () => {
 					sort={sort}
 					onSortChange={setSort}
 					refinements={
-						<ReviewQueueFilterControls
-							reviewer={filters.reviewer}
-							onReviewerChange={filters.setReviewer}
-							owner={filters.owner}
-							ownerName={ownerName}
-							onOwnerChange={filters.setOwner}
-							state={filters.state}
-							onStateChange={filters.setState}
-							municipality={filters.municipality}
-							onMunicipalityChange={filters.setMunicipality}
-						/>
+						<>
+							<ReviewQueueFilterControls
+								reviewer={filters.reviewer}
+								onReviewerChange={filters.setReviewer}
+								owner={filters.owner}
+								ownerName={ownerName}
+								onOwnerChange={filters.setOwner}
+								state={filters.state}
+								onStateChange={filters.setState}
+								municipality={filters.municipality}
+								onMunicipalityChange={filters.setMunicipality}
+							/>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								disabled={isExporting}
+								onClick={() => void exportCsv()}
+							>
+								Exportar CSV
+							</Button>
+						</>
 					}
 					activeFilters={
 						<ReviewQueueActiveFilters filters={filters} ownerName={ownerName} />

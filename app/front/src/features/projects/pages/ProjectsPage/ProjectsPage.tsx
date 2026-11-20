@@ -5,8 +5,9 @@ import { Pagination } from "@components/Pagination";
 import { SearchInput } from "@components/SearchInput";
 import { SortMenu, type SortOption } from "@components/SortMenu";
 import { Button } from "@components/ui/button";
-import { useAuthStore } from "@features/shared";
+import { downloadFile, useAuthStore } from "@features/shared";
 import {
+	exportProjectListCsv,
 	type ProjectSort,
 	type ProjectStatusCounts,
 	useGetProjectList,
@@ -14,6 +15,8 @@ import {
 } from "@services/projects";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, CircleAlert } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import {
 	ProjectActiveFilters,
@@ -58,6 +61,7 @@ export const ProjectsPage = () => {
 	const navigate = useNavigate();
 	const role = useAuthStore((state) => state.user?.role);
 	const isAdmin = role === "admin";
+	const [isExporting, setIsExporting] = useState(false);
 	const { actions, deleteDialog } = useProjectRowActions();
 	const filters = useProjectFilters();
 	const {
@@ -84,6 +88,18 @@ export const ProjectsPage = () => {
 	const counts = statusCountsQuery.data?.data ?? emptyStatusCounts;
 	const pagination = projectsQuery.data?.pagination;
 	const hasError = projectsQuery.isError || statusCountsQuery.isError;
+
+	const exportCsv = async () => {
+		setIsExporting(true);
+		try {
+			const file = await exportProjectListCsv(filters.params);
+			downloadFile(file.blob, file.filename);
+		} catch {
+			toast.error("Não foi possível exportar os projetos.");
+		} finally {
+			setIsExporting(false);
+		}
+	};
 
 	return (
 		<PageLayout
@@ -135,20 +151,31 @@ export const ProjectsPage = () => {
 						/>
 					}
 					refinements={
-						<ProjectFilterControls
-							showOwner={isAdmin}
-							owner={filters.owner}
-							ownerName={ownerName}
-							onOwnerChange={filters.setOwner}
-							state={filters.state}
-							onStateChange={filters.setState}
-							municipality={filters.municipality}
-							onMunicipalityChange={filters.setMunicipality}
-							period={filters.period}
-							onPeriodChange={filters.setPeriod}
-							findings={filters.findings}
-							onFindingsChange={filters.setFindings}
-						/>
+						<>
+							<ProjectFilterControls
+								showOwner={isAdmin}
+								owner={filters.owner}
+								ownerName={ownerName}
+								onOwnerChange={filters.setOwner}
+								state={filters.state}
+								onStateChange={filters.setState}
+								municipality={filters.municipality}
+								onMunicipalityChange={filters.setMunicipality}
+								period={filters.period}
+								onPeriodChange={filters.setPeriod}
+								findings={filters.findings}
+								onFindingsChange={filters.setFindings}
+							/>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								disabled={isExporting}
+								onClick={() => void exportCsv()}
+							>
+								Exportar CSV
+							</Button>
+						</>
 					}
 					activeFilters={
 						<ProjectActiveFilters filters={filters} ownerName={ownerName} />
