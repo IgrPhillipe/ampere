@@ -12,9 +12,7 @@ export const useCreateProject = () => {
 	return useMutation({
 		mutationFn: createProject,
 		onSuccess: async () => {
-			// `all()` e nao `lists()`: os contadores por situacao sao uma query
-			// propria e ficariam ate 60s (o `staleTime` padrao) mostrando um
-			// total sem o rascunho recem-criado.
+			// `all()`, not `lists()`: the status counters are a query of their own.
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: projectKeys.all() }),
 				queryClient.invalidateQueries({ queryKey: dashboardKeys.all() }),
