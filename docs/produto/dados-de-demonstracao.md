@@ -20,7 +20,7 @@ Todos com a senha `senha@123`.
 | `admin@ampere.com` | Gestor | Admin Teste | Cadastra e aprova revisões das tabelas normativas, gere usuários, tem projetos próprios e também analisa |
 | `conferente@ampere.com` | Gestor | Conferente Teste | Segunda leitura das tabelas normativas: aprova o que o admin cadastra |
 | `revisor@ampere.com` | Analista | Revisor Teste | Analista principal da fila. Também cadastra e aprova revisões das tabelas normativas |
-| `analista@ampere.com` | Analista | Ana Analista | Segunda analista, com projetos em análise, uma reprovação e duas aprovações. Responde por Caruaru, Garanhuns e Petrolina |
+| `analista@ampere.com` | Analista | Ana Analista | Segunda analista, com projetos em análise, uma reprovação e duas aprovações |
 
 ---
 
