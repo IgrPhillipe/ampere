@@ -78,6 +78,7 @@ vi.mock("@services/review-queue", async (importOriginal) => ({
 	useGetReviewQueueIndicators: () => ({ isError: false, data: undefined }),
 	useGetReviewerList: () => ({
 		isPending: false,
+		isSuccess: true,
 		data: {
 			data: [
 				{ id: "7", name: "Ana Analista", role: "reviewer", active: true },
@@ -104,10 +105,10 @@ vi.mock("@tanstack/react-router", async (importOriginal) => ({
 	useNavigate: () => mockNavigate,
 }));
 
-const renderPage = () =>
+const renderPage = (searchParams = "", onUrlUpdate = vi.fn()) =>
 	render(
 		<QueryClientProvider client={new QueryClient()}>
-			<NuqsTestingAdapter>
+			<NuqsTestingAdapter searchParams={searchParams} onUrlUpdate={onUrlUpdate}>
 				<ReviewQueuePage />
 			</NuqsTestingAdapter>
 		</QueryClientProvider>,
@@ -196,6 +197,29 @@ describe("ReviewQueuePage batch assignment", () => {
 		expect(
 			screen.queryByRole("option", { name: /Davi Analista/ }),
 		).not.toBeInTheDocument();
+	});
+
+	it("drops the analyst filter once that analyst leaves the list", async () => {
+		signInAs("admin", { id: "1" });
+		const onUrlUpdate = vi.fn();
+		renderPage("?reviewer=99", onUrlUpdate);
+
+		await waitFor(() =>
+			expect(
+				onUrlUpdate.mock.lastCall?.[0]?.searchParams.get("reviewer"),
+			).toBeNull(),
+		);
+	});
+
+	it("keeps the filter on a deactivated analyst still in the list", () => {
+		signInAs("admin", { id: "1" });
+		const onUrlUpdate = vi.fn();
+		renderPage("?reviewer=9", onUrlUpdate);
+
+		expect(onUrlUpdate).not.toHaveBeenCalled();
+		expect(
+			screen.getByRole("button", { name: "Analista: Davi Analista (Inativo)" }),
+		).toBeInTheDocument();
 	});
 
 	it("assigns the selected projects and clears the selection", async () => {
