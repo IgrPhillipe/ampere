@@ -58,9 +58,9 @@ export const ReviewQueueFilterControls = ({
 
 	const reviewers = [
 		{ value: UNASSIGNED_REVIEWER, label: UNASSIGNED_REVIEWER_LABEL },
-		...(reviewersQuery.data?.data ?? []).map(({ id, name }) => ({
+		...(reviewersQuery.data?.data ?? []).map(({ id, name, active }) => ({
 			value: id,
-			label: name,
+			label: active ? name : `${name} (Inativo)`,
 		})),
 	];
 

@@ -32,6 +32,8 @@ export const reviewerSchema = z.object({
 	name: z.string(),
 	// An unknown role must not drop the whole list; it reads as an analyst.
 	role: reviewerRoleSchema.catch("reviewer"),
+	// False for someone deactivated who still holds projects: filterable, not assignable.
+	active: z.boolean(),
 });
 
 export type Reviewer = z.infer<typeof reviewerSchema>;

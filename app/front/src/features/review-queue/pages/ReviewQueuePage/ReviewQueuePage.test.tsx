@@ -80,8 +80,9 @@ vi.mock("@services/review-queue", async (importOriginal) => ({
 		isPending: false,
 		data: {
 			data: [
-				{ id: "7", name: "Ana Analista" },
-				{ id: "8", name: "Bruno Analista" },
+				{ id: "7", name: "Ana Analista", role: "reviewer", active: true },
+				{ id: "8", name: "Bruno Analista", role: "reviewer", active: true },
+				{ id: "9", name: "Davi Analista", role: "reviewer", active: false },
 			],
 		},
 	}),
@@ -171,6 +172,30 @@ describe("ReviewQueuePage batch assignment", () => {
 		expect(
 			screen.getByRole("columnheader", { name: "Analista Responsável" }),
 		).toBeInTheDocument();
+	});
+
+	it("lets the manager filter by a deactivated analyst without assigning them", async () => {
+		signInAs("admin", { id: "1" });
+		renderPage();
+
+		fireEvent.click(screen.getByRole("button", { name: "Analista: Todos" }));
+		expect(
+			await screen.findByRole("menuitemradio", {
+				name: "Davi Analista (Inativo)",
+			}),
+		).toBeInTheDocument();
+		fireEvent.keyDown(document.activeElement ?? document.body, {
+			key: "Escape",
+		});
+
+		select("2026-0001");
+		fireEvent.click(screen.getByRole("button", { name: "Atribuir Analista" }));
+		const dialog = await screen.findByRole("dialog");
+		fireEvent.click(within(dialog).getByRole("combobox", { name: "Analista" }));
+		await screen.findByRole("option", { name: "Ana Analista" });
+		expect(
+			screen.queryByRole("option", { name: /Davi Analista/ }),
+		).not.toBeInTheDocument();
 	});
 
 	it("assigns the selected projects and clears the selection", async () => {

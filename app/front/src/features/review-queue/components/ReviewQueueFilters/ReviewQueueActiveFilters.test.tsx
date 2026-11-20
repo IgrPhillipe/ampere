@@ -32,7 +32,9 @@ const renderChips = (
 
 	if (cachedReviewers) {
 		queryClient.setQueryData(reviewQueueKeys.reviewers(), {
-			data: [{ id: "3", name: "Revisor Teste" }],
+			data: [
+				{ id: "3", name: "Revisor Teste", role: "reviewer", active: true },
+			],
 		});
 	}
 
