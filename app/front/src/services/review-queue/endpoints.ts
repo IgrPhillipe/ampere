@@ -1,5 +1,6 @@
 export const ReviewQueueEndpoints = {
 	list: "review-queue",
+	mine: "review-queue/mine",
 	exportCsv: "review-queue/export.csv",
 	indicators: "review-queue/indicators",
 	reviewers: "review-queue/reviewers",

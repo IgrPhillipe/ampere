@@ -5,6 +5,7 @@ import {
 	adminDashboardResponseSchema,
 	type DashboardPeriod,
 	designerDashboardResponseSchema,
+	reviewDashboardResponseSchema,
 } from "./schemas";
 
 export const getDesignerDashboard = async (period: DashboardPeriod) => {
@@ -19,4 +20,12 @@ export const getAdminDashboard = async () => {
 	const response = await http.get(e.admin).json<unknown>();
 
 	return adminDashboardResponseSchema.parse(response);
+};
+
+export const getReviewDashboard = async (period: DashboardPeriod) => {
+	const response = await http
+		.get(e.review, { searchParams: { period } })
+		.json<unknown>();
+
+	return reviewDashboardResponseSchema.parse(response);
 };

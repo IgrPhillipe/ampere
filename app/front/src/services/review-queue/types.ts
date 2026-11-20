@@ -1,7 +1,11 @@
 import type { SortDirection } from "@features/shared";
 import type { BrazilianState } from "@services/locations";
 
-import type { ReviewQueueFilter, ReviewQueueSort } from "./schemas";
+import type {
+	MyReviewDecision,
+	ReviewQueueFilter,
+	ReviewQueueSort,
+} from "./schemas";
 
 export interface ListReviewQueueParams {
 	page?: number;
@@ -22,4 +26,17 @@ export interface ListQueueOwnersParams {
 	page?: number;
 	pageSize?: number;
 	search?: string;
+}
+
+export interface ListMyReviewsParams {
+	page?: number;
+	pageSize?: number;
+	/** Protocol, project or designer. */
+	search?: string;
+	decision?: MyReviewDecision;
+	state?: BrazilianState[];
+	municipality?: string[];
+	/** `YYYY-MM-DD`, inclusive. */
+	decidedFrom?: string;
+	decidedTo?: string;
 }

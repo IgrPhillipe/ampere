@@ -1,6 +1,7 @@
 import {
 	APP_NAV_ITEMS,
 	filterNavItemsByRole,
+	groupNavItemsByRole,
 } from "@components/layout/nav-items";
 import { type UserRole, useAuthStore } from "@features/shared";
 import { afterEach, describe, expect, it } from "vitest";
@@ -36,9 +37,11 @@ describe("role navigation", () => {
 		]);
 	});
 
-	it("gives the analyst the review queue and the normative tables", () => {
+	it("gives the analyst the review queue, their panel and the normative tables", () => {
 		expect(labelsOf("reviewer")).toEqual([
 			"Fila de Análise",
+			"Indicadores",
+			"Meus Pareceres",
 			"Tabelas Normativas",
 		]);
 	});
@@ -48,10 +51,46 @@ describe("role navigation", () => {
 			"Painel",
 			"Projetos",
 			"Fila de Análise",
-			"Tabelas Normativas",
 			"Distribuição",
+			"Indicadores",
+			"Meus Pareceres",
+			"Tabelas Normativas",
 			"Usuários",
 		]);
+	});
+
+	it("folds the admin's analysis areas into one header menu", () => {
+		const entries = groupNavItemsByRole(APP_NAV_ITEMS, "admin");
+
+		expect(
+			entries.map((entry) =>
+				entry.kind === "group" ? entry.label : entry.item.label,
+			),
+		).toEqual([
+			"Painel",
+			"Projetos",
+			"Análise",
+			"Tabelas Normativas",
+			"Usuários",
+		]);
+		expect(
+			entries
+				.find((entry) => entry.kind === "group")
+				?.items.map(({ label }) => label),
+		).toEqual([
+			"Fila de Análise",
+			"Distribuição",
+			"Indicadores",
+			"Meus Pareceres",
+		]);
+	});
+
+	it("keeps the analyst's header flat", () => {
+		expect(
+			groupNavItemsByRole(APP_NAV_ITEMS, "reviewer").every(
+				(entry) => entry.kind === "item",
+			),
+		).toBe(true);
 	});
 
 	it("keeps the analyst out of the projects and the designer out of the tables", () => {
@@ -61,6 +100,8 @@ describe("role navigation", () => {
 		expect(ROLE_ACCESS.users).toEqual(["admin"]);
 		expect(ROLE_ACCESS.distribution).toEqual(["admin"]);
 		expect(ROLE_ACCESS.dashboard).toEqual(["user", "admin"]);
+		expect(ROLE_ACCESS.reviewIndicators).not.toContain("user");
+		expect(ROLE_ACCESS.myReviews).not.toContain("user");
 	});
 });
 
