@@ -122,6 +122,7 @@ export const ReviewQueuePage = () => {
 					onSortChange={setSort}
 					actions={
 						<ExportCsvButton
+							disabled={pagination?.total === 0}
 							isPending={exportQueue.isPending}
 							onExport={exportCsv}
 						/>

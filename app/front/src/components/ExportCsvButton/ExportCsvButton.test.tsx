@@ -27,4 +27,15 @@ describe("ExportCsvButton", () => {
 		expect(button).toHaveFocus();
 		expect(onExport).not.toHaveBeenCalled();
 	});
+
+	it("stays off when there is nothing to export", () => {
+		const onExport = vi.fn();
+		render(<ExportCsvButton disabled onExport={onExport} />);
+		const button = screen.getByRole("button", { name: "Exportar CSV" });
+
+		fireEvent.click(button);
+
+		expect(button).toBeDisabled();
+		expect(onExport).not.toHaveBeenCalled();
+	});
 });

@@ -8,6 +8,7 @@ import { signInAs } from "@/test/fixtures/project-detail";
 
 import { ProjectsPage } from "./ProjectsPage";
 
+const state = vi.hoisted(() => ({ total: 3 }));
 const mockDownload = vi.fn();
 const mockToastError = vi.fn();
 
@@ -42,7 +43,7 @@ vi.mock("@services/projects", async (importOriginal) => ({
 		isPlaceholderData: false,
 		data: {
 			data: [] as Project[],
-			pagination: { total: 0, page: 1, pageSize: 10 },
+			pagination: { total: state.total, page: 1, pageSize: 10 },
 		},
 	}),
 	useGetProjectStatusCounts: () => ({ isError: false, data: undefined }),
@@ -68,6 +69,7 @@ describe("ProjectsPage export", () => {
 
 	beforeEach(() => {
 		requestUrl = "";
+		state.total = 3;
 		mockDownload.mockReset();
 		mockToastError.mockReset();
 		signInAs("user", { id: "1" });
@@ -150,5 +152,12 @@ describe("ProjectsPage export", () => {
 		);
 		expect(mockDownload).not.toHaveBeenCalled();
 		expect(exportButton()).toHaveTextContent("Exportar CSV");
+	});
+
+	it("keeps the export off when the filters match no project", () => {
+		state.total = 0;
+		renderPage("?search=inexistente");
+
+		expect(exportButton()).toBeDisabled();
 	});
 });

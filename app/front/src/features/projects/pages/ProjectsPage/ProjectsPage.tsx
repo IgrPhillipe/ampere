@@ -144,6 +144,7 @@ export const ProjectsPage = () => {
 					}
 					actions={
 						<ExportCsvButton
+							disabled={pagination?.total === 0}
 							isPending={exportList.isPending}
 							onExport={exportCsv}
 						/>
