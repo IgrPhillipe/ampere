@@ -16,7 +16,7 @@ import { Download } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
 import type { MemorialStamp } from "../../constants";
-import { CalculationExportButton } from "../CalculationExportButton/CalculationExportButton";
+import { CalculationExportButton } from "../CalculationExportButton";
 
 interface MemorialPreviewProps {
 	project?: ProjectDetail;

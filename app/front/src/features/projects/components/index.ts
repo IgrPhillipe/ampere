@@ -1,5 +1,5 @@
 export * from "./AutomaticVerification";
-export * from "./CalculationExportButton/CalculationExportButton";
+export * from "./CalculationExportButton";
 export * from "./CalculationSteps";
 export * from "./ChangeSummaryNotice";
 export * from "./ConsumerUnitGroupsTable";
