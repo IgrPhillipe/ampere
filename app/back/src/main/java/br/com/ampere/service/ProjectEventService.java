@@ -11,6 +11,7 @@ import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.User;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.utils.BrazilianDateFormat;
+import br.com.ampere.utils.BrazilianNumberFormat;
 import br.com.ampere.utils.Timestamps;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -32,6 +33,19 @@ public class ProjectEventService {
 
   public void created(Project project, User author, OffsetDateTime occurredAt) {
     record(project, ProjectEventType.CREATED, author, "Projeto criado.", null, occurredAt);
+  }
+
+  /** A run the designer asked for; the run inside a submission goes with the submission event. */
+  public void calculated(Project project, Calculation calculation) {
+    record(
+        project,
+        ProjectEventType.CALCULATED,
+        project.getOwner(),
+        "Demanda calculada: "
+            + BrazilianNumberFormat.format(calculation.getFinalTotalDemand())
+            + " kVA.",
+        null,
+        calculation.getCalculatedAt());
   }
 
   /** {@code suspendedDays} is what {@link Project#submit} returned for this submission. */

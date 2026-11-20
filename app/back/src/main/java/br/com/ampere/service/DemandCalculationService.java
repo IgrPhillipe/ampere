@@ -46,6 +46,7 @@ public class DemandCalculationService {
   private final NormativeTableRepository tableRepository;
   private final CalculationRepository calculationRepository;
   private final ProjectVersionRepository versionRepository;
+  private final ProjectEventService eventService;
   private final ObjectMapper objectMapper;
 
   public DemandCalculationService(
@@ -54,13 +55,24 @@ public class DemandCalculationService {
       NormativeTableRepository tableRepository,
       CalculationRepository calculationRepository,
       ProjectVersionRepository versionRepository,
+      ProjectEventService eventService,
       ObjectMapper objectMapper) {
     this.projectService = projectService;
     this.groupRepository = groupRepository;
     this.tableRepository = tableRepository;
     this.calculationRepository = calculationRepository;
     this.versionRepository = versionRepository;
+    this.eventService = eventService;
     this.objectMapper = objectMapper;
+  }
+
+  /** The run the designer asks for, recorded in the protocol history as its latest activity. */
+  @Transactional
+  public Calculation calculateAndRecord(Long projectId, AuthenticatedUser user) {
+    Calculation calculation = calculate(projectId, user);
+    eventService.calculated(calculation.getProject(), calculation);
+
+    return calculation;
   }
 
   /** Every run is kept: a later one does not overwrite what an earlier one showed. */

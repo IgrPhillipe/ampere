@@ -54,7 +54,7 @@ public class DemandCalculationController {
   })
   public ApiResponse<CalculationResponse> calculate(
       @PathVariable Long projectId, @AuthenticationPrincipal Jwt jwt) {
-    Calculation calculation = service.calculate(projectId, userOf(jwt));
+    Calculation calculation = service.calculateAndRecord(projectId, userOf(jwt));
 
     return ApiResponse.of(
         CalculationResponse.from(

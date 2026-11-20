@@ -22,6 +22,8 @@ import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectEvent;
+import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
@@ -32,6 +34,7 @@ import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.NormativeTableRepository;
+import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
@@ -82,6 +85,8 @@ class DemandCalculationIntegrationTest {
   @Autowired private ConsumerUnitGroupRepository groupRepository;
 
   @Autowired private CalculationRepository calculationRepository;
+
+  @Autowired private ProjectEventRepository eventRepository;
 
   @Autowired private DemandCalculationService calculations;
 
@@ -238,6 +243,30 @@ class DemandCalculationIntegrationTest {
         .perform(get("/projects").header("Authorization", "Bearer " + token))
         .andExpect(jsonPath("$.data[0].consumerUnitsCount").value(55))
         .andExpect(jsonPath("$.data[0].demandKva").value(165.00));
+  }
+
+  @Test
+  void aRunTheDesignerAsksForBecomesTheLatestActivityOfTheProject() throws Exception {
+    publishTables();
+    Project project = draftWithPrototypeGroups(true);
+    mockMvc
+        .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
+        .andExpect(status().isCreated());
+
+    ProjectEvent event =
+        eventRepository.findAllByProjectIdOrderByOccurredAtAscIdAsc(project.getId()).getLast();
+    assertThat(event.getType()).isEqualTo(ProjectEventType.CALCULATED);
+    assertThat(event.getDescription()).isEqualTo("Demanda calculada: 165,00 kVA.");
+    String body =
+        mockMvc
+            .perform(get("/projects/" + project.getId()).header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    assertThat(
+            OffsetDateTime.parse(objectMapper.readTree(body).at("/data/lastActivityAt").asString()))
+        .isEqualTo(event.getOccurredAt());
   }
 
   @Test
