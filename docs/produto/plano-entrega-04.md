@@ -65,7 +65,7 @@ O padrão é o mesmo das Entregas 02 e 03: uma issue por história, que funciona
 - A US07 abre o ciclo: a US08, a US09 e os painéis (US16 e US17) leem os apontamentos e as decisões que ela grava.
 - Na Sprint 6, o back da US08 entra antes do back da US12, que lê os mesmos eventos.
 - O `AT26-INFRA` entrega o painel do projetista (US16) até 01/11 e as demais telas até 08/11.
-- A US23 entra antes da US24, que mostra a carga por analista e os municípios sem analista.
+- A US23 entra antes da US24, que mostra a carga por analista.
 - O `AT05-US03`, na Sprint 8, entra antes do `AT06-US03`, que monta as telas sobre o contrato dele.
 
 **Total:** 61 issues abertas entre #88 e #154: 6 na Entrega 03, 27 na Entrega 04 e 28 no Status Report 2. As #142 a #147, da duplicação de projeto e dos documentos complementares, foram fechadas fora do escopo. A US23 (#191) e a US24 (#192), com as tarefas #193 a #196, entraram em 24/10 no Status Report 2. Também em 24/10: `AT32-INFRA` a `AT34-INFRA`, `AT03-US18`, `AT04-US18`, `AT03-US03`, `AT04-US05` e `AT05-US05` na Entrega 04, e `AT03-US11` e `AT04-US11` no Status Report 2. Em 31/10, os ajustes #204 a #215 entraram no Status Report 2.

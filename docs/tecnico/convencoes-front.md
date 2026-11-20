@@ -266,7 +266,6 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 | `review-queue` | `/fila-de-analise`, `/meus-pareceres` | Fila de Análise e Meus Pareceres |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
 | `memorial-verification` | `/verificar-autenticidade` | Verificar Autenticidade, pública |
-| `reviewer-distribution` | `/distribuicao` | Distribuição: os municípios de cada analista |
 | `users` | `/usuarios` | Usuários |
 
 - `/` não tem página: o `redirectToRoleHome` manda cada papel à sua página
@@ -311,7 +310,6 @@ O `ROLE_ACCESS` de `lib/route-guard.ts` é a fonte única de quem chega a cada
 | Projetos | os próprios | não | todos |
 | Fila de Análise | não | sim | sim |
 | Tabelas Normativas | não | sim | sim |
-| Distribuição | não | não | sim |
 | Usuários | não | não | sim |
 
 Na interface, o papel `admin` aparece como "Gestor". Na fila, só ele seleciona
