@@ -1,5 +1,6 @@
 import { getToastErrorMessage } from "@lib/api-error";
 import { calculationKeys } from "@services/calculation";
+import { dashboardKeys } from "@services/dashboard/query-keys";
 import { projectKeys } from "@services/projects";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ export const useCreateConsumerUnitGroup = (projectId: string) => {
 				queryClient.invalidateQueries({
 					queryKey: projectKeys.detail(projectId),
 				}),
+				queryClient.invalidateQueries({ queryKey: dashboardKeys.all() }),
 			]);
 
 			toast.success("Grupo salvo.");

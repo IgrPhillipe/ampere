@@ -1,4 +1,5 @@
 import { getHttpStatus, getToastErrorMessage } from "@lib/api-error";
+import { dashboardKeys } from "@services/dashboard/query-keys";
 import { projectKeys } from "@services/projects";
 import { reviewQueueKeys } from "@services/review-queue";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17,6 +18,7 @@ export const useAssignReviewQueue = () => {
 		onSuccess: async (_, { projectIds }) => {
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: reviewQueueKeys.all() }),
+				queryClient.invalidateQueries({ queryKey: dashboardKeys.all() }),
 				...projectIds.map((id) =>
 					queryClient.invalidateQueries({ queryKey: projectKeys.detail(id) }),
 				),
@@ -36,6 +38,7 @@ export const useAssignReviewQueue = () => {
 			const status = getHttpStatus(error);
 			if (status !== undefined && STALE_STATUSES.has(status)) {
 				void queryClient.invalidateQueries({ queryKey: reviewQueueKeys.all() });
+				void queryClient.invalidateQueries({ queryKey: dashboardKeys.all() });
 			}
 		},
 	});

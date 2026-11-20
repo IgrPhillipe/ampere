@@ -1,3 +1,4 @@
+import { dashboardKeys } from "@services/dashboard/query-keys";
 import { projectKeys } from "@services/projects";
 import { reviewQueueKeys } from "@services/review-queue";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -38,10 +39,12 @@ const setup = () => {
 describe("useAssignReviewQueue", () => {
 	beforeEach(() => vi.clearAllMocks());
 
-	it("refreshes the queue and the assigned projects", async () => {
+	it("refreshes the queue, the assigned projects and the dashboard", async () => {
 		vi.mocked(assignReviewQueue).mockResolvedValue(undefined);
 		const { queryClient, wrapper } = setup();
 		const queueKey = reviewQueueKeys.list({ page: 1 });
+		const dashboardKey = dashboardKeys.admin();
+		queryClient.setQueryData(dashboardKey, { data: {} });
 		const detailKey = projectKeys.detail("12");
 		const otherKey = projectKeys.detail("99");
 		queryClient.setQueryData(queueKey, { data: [] });
@@ -61,6 +64,7 @@ describe("useAssignReviewQueue", () => {
 		expect(queryClient.getQueryState(queueKey)?.isInvalidated).toBe(true);
 		expect(queryClient.getQueryState(detailKey)?.isInvalidated).toBe(true);
 		expect(queryClient.getQueryState(otherKey)?.isInvalidated).toBe(false);
+		expect(queryClient.getQueryState(dashboardKey)?.isInvalidated).toBe(true);
 		expect(toast.success).toHaveBeenCalledWith("2 projetos atribuídos.");
 	});
 
@@ -70,6 +74,7 @@ describe("useAssignReviewQueue", () => {
 		);
 		const { queryClient, wrapper } = setup();
 		queryClient.setQueryData(reviewQueueKeys.reviewers(), { data: [] });
+		queryClient.setQueryData(dashboardKeys.admin(), { data: {} });
 
 		const { result } = renderHook(() => useAssignReviewQueue(), { wrapper });
 		act(() =>
@@ -82,6 +87,9 @@ describe("useAssignReviewQueue", () => {
 		// Refetched, so the inactive analyst leaves the list of choices.
 		expect(
 			queryClient.getQueryState(reviewQueueKeys.reviewers())?.isInvalidated,
+		).toBe(true);
+		expect(
+			queryClient.getQueryState(dashboardKeys.admin())?.isInvalidated,
 		).toBe(true);
 	});
 
@@ -119,13 +127,14 @@ describe("useAssignReviewQueue", () => {
 describe("useUpdateReviewerMunicipalities", () => {
 	beforeEach(() => vi.clearAllMocks());
 
-	it("refreshes the distribution after saving", async () => {
+	it("refreshes the distribution and the dashboard after saving", async () => {
 		vi.mocked(updateReviewerMunicipalities).mockResolvedValue({
 			data: [{ state: "PE", municipality: "Recife" }],
 		});
 		const { queryClient, wrapper } = setup();
 		const listKey = reviewerDistributionKeys.list();
 		queryClient.setQueryData(listKey, { data: [] });
+		queryClient.setQueryData(dashboardKeys.admin(), { data: {} });
 
 		const { result } = renderHook(() => useUpdateReviewerMunicipalities(), {
 			wrapper,
@@ -139,6 +148,9 @@ describe("useUpdateReviewerMunicipalities", () => {
 		await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
 		expect(queryClient.getQueryState(listKey)?.isInvalidated).toBe(true);
+		expect(
+			queryClient.getQueryState(dashboardKeys.admin())?.isInvalidated,
+		).toBe(true);
 		expect(toast.success).toHaveBeenCalledWith(
 			"Municípios do analista atualizados.",
 		);
@@ -152,6 +164,7 @@ describe("useUpdateReviewerMunicipalities", () => {
 		const { queryClient, wrapper } = setup();
 		const listKey = reviewerDistributionKeys.list();
 		queryClient.setQueryData(listKey, { data: [] });
+		queryClient.setQueryData(dashboardKeys.admin(), { data: {} });
 
 		const { result } = renderHook(() => useUpdateReviewerMunicipalities(), {
 			wrapper,
@@ -167,5 +180,8 @@ describe("useUpdateReviewerMunicipalities", () => {
 		expect(toast.error).toHaveBeenCalledWith(detail);
 		// Refetched, so the picker shows who holds it now.
 		expect(queryClient.getQueryState(listKey)?.isInvalidated).toBe(true);
+		expect(
+			queryClient.getQueryState(dashboardKeys.admin())?.isInvalidated,
+		).toBe(true);
 	});
 });
