@@ -135,4 +135,22 @@ describe("AnalyzeButton", () => {
 
 		expect(onAnalyze).toHaveBeenCalledWith(held);
 	});
+
+	it("keeps the reviewer in view and drops secondary columns on narrow screens", () => {
+		render(<ReviewQueueListing items={[item]} onAnalyze={vi.fn()} />);
+
+		expect(screen.getByRole("table")).toHaveClass(
+			"min-w-[58rem]",
+			"lg:min-w-0",
+		);
+		for (const name of ["UCs", "Demanda", "Vencimento"]) {
+			expect(screen.getByRole("columnheader", { name })).toHaveClass(
+				"hidden",
+				"xl:table-cell",
+			);
+		}
+		expect(
+			screen.getByRole("columnheader", { name: "Analista Responsável" }),
+		).not.toHaveClass("hidden");
+	});
 });
