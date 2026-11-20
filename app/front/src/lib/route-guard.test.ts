@@ -46,37 +46,13 @@ describe("role navigation", () => {
 		]);
 	});
 
-	it("gives the admin every area", () => {
+	it("gives the admin the panel and the projects in place of the analysis areas", () => {
 		expect(labelsOf("admin")).toEqual([
 			"Painel",
 			"Projetos",
-			"Fila de Análise",
-			"Indicadores",
-			"Meus Pareceres",
 			"Tabelas Normativas",
 			"Usuários",
 		]);
-	});
-
-	it("folds the admin's analysis areas into one header menu", () => {
-		const entries = groupNavItemsByRole(APP_NAV_ITEMS, "admin");
-
-		expect(
-			entries.map((entry) =>
-				entry.kind === "group" ? entry.label : entry.item.label,
-			),
-		).toEqual([
-			"Painel",
-			"Projetos",
-			"Análise",
-			"Tabelas Normativas",
-			"Usuários",
-		]);
-		expect(
-			entries
-				.find((entry) => entry.kind === "group")
-				?.items.map(({ label }) => label),
-		).toEqual(["Fila de Análise", "Indicadores", "Meus Pareceres"]);
 	});
 
 	it("keeps the analyst's header flat", () => {

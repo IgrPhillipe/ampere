@@ -1,5 +1,5 @@
 import { useAuthStore } from "@features/shared";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -29,45 +29,22 @@ vi.mock("@tanstack/react-router", () => ({
 describe("HeaderNav", () => {
 	afterEach(() => useAuthStore.getState().logout());
 
-	it("opens the admin's analysis areas from one menu", async () => {
+	it("leaves the analysis areas out of the admin's header", () => {
 		signInAs("admin");
 		render(<HeaderNav />);
 
 		const nav = screen.getByRole("navigation", {
 			name: "Navegação principal",
 		});
+		for (const name of ["Fila de Análise", "Indicadores", "Meus Pareceres"]) {
+			expect(within(nav).queryByRole("link", { name })).not.toBeInTheDocument();
+		}
 		expect(
-			within(nav).queryByRole("link", { name: "Indicadores" }),
-		).not.toBeInTheDocument();
-
-		const trigger = within(nav).getByRole("button", { name: "Análise" });
-		expect(trigger).toHaveClass("text-foreground");
-
-		fireEvent.click(trigger);
-
-		const menu = await screen.findByRole("menu");
-		expect(
-			within(menu).getByRole("menuitem", { name: "Fila de Análise" }),
-		).toHaveAttribute("href", "/fila-de-analise");
-		expect(
-			within(menu).queryByRole("menuitem", { name: "Distribuição" }),
+			within(nav).queryByRole("button", { name: "Análise" }),
 		).not.toBeInTheDocument();
 		expect(
-			within(menu).getByRole("menuitem", { name: "Indicadores" }),
-		).toHaveClass("font-medium");
-	});
-
-	it("lists every area flat in the mobile sheet", () => {
-		signInAs("admin");
-		render(<HeaderNav orientation="vertical" />);
-
-		expect(screen.getByRole("link", { name: "Indicadores" })).toHaveAttribute(
-			"href",
-			"/indicadores",
-		);
-		expect(
-			screen.queryByRole("button", { name: "Análise" }),
-		).not.toBeInTheDocument();
+			within(nav).getByRole("link", { name: "Projetos" }),
+		).toBeInTheDocument();
 	});
 
 	it("keeps the analyst's areas in the header itself", () => {

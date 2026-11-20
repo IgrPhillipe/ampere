@@ -5,6 +5,7 @@ import { buildingTypeLabels } from "@features/projects";
 import { formatPercent, padCount, useAuthStore } from "@features/shared";
 import dayjs from "@lib/dayjs";
 import {
+	type DashboardPeriod,
 	type ReviewDashboard,
 	useGetReviewDashboard,
 } from "@services/dashboard";
@@ -133,20 +134,105 @@ const SCOPE_COPY = {
 	},
 } as const;
 
-/** H12: the indicators of the chosen period, scoped by the role. */
-export const ReviewDashboardPage = () => {
+interface ReviewIndicatorsPanelProps {
+	period: DashboardPeriod;
+}
+
+/** H12: the indicators of the period, scoped by the role; the admin reads them in the panel. */
+export const ReviewIndicatorsPanel = ({
+	period,
+}: ReviewIndicatorsPanelProps) => {
 	const isAdmin = useAuthStore((state) => state.user?.role) === "admin";
 	const copy = SCOPE_COPY[isAdmin ? "admin" : "reviewer"];
-	const [period, setPeriod] = useDashboardPeriod();
 	const dashboardQuery = useGetReviewDashboard(period);
 	const dashboard = dashboardQuery.data?.data;
 	const itemsOf = (build: (value: ReviewDashboard) => IndicatorListItem[]) =>
 		dashboard ? build(dashboard) : undefined;
 
+	return dashboardQuery.isError ? (
+		<div className="px-gutter md:px-gutter-md">
+			<EmptyState
+				title="Não foi possível carregar os indicadores"
+				description="Verifique sua conexão e tente novamente."
+				icon={CircleAlert}
+				action={
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => void dashboardQuery.refetch()}
+					>
+						Tentar Novamente
+					</Button>
+				}
+			/>
+		</div>
+	) : (
+		<div className="flex flex-1 flex-col bg-card">
+			<ReviewIndicators
+				totals={dashboard?.totals}
+				title={`${copy.band}, ${dashboardPeriodLabels[period]}`}
+			/>
+
+			<div className="grid flex-1 grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,3fr)]">
+				<div className="flex flex-col gap-10 px-gutter py-7 md:px-gutter-md">
+					<FindingsRanking
+						title="Apontamentos Mais Frequentes"
+						emptyMessage="Nenhum apontamento emitido no período."
+						items={dashboard?.findingsRanking}
+					/>
+					<WeeklyReviewChart weeks={dashboard?.weekly} />
+					<IndicatorList
+						title="Mais de Uma Reprovação"
+						caption="Projetos"
+						items={itemsOf(repeatedRejectionItems)}
+						emptyMessage="Nenhum projeto reprovado mais de uma vez no período."
+					/>
+				</div>
+
+				<div className="flex flex-col gap-10 border-t border-border px-gutter py-7 md:px-gutter-md lg:border-t-0 lg:border-l">
+					<IndicatorList
+						title="Tempos e Prazos"
+						items={itemsOf(timeItems)}
+						emptyMessage="Sem análises no período."
+					/>
+					<IndicatorList
+						title="Alertas por Categoria"
+						caption="Da edificação"
+						items={itemsOf(categoryItems)}
+						emptyMessage="Nenhum alerta nos projetos recebidos no período."
+					/>
+					<IndicatorList
+						title="Taxa de Reprovação"
+						caption="Por mês"
+						items={itemsOf(monthlyItems)}
+						emptyMessage="Nenhuma decisão no período."
+					/>
+					{isAdmin ? (
+						<IndicatorList
+							title="Em Análise por Analista"
+							items={itemsOf(workloadItems)}
+							emptyMessage="Nenhum projeto em análise."
+						/>
+					) : null}
+					<IndicatorList
+						title="Municípios com Mais Projetos"
+						items={itemsOf(municipalityItems)}
+						emptyMessage="Nenhum projeto recebido no período."
+					/>
+				</div>
+			</div>
+		</div>
+	);
+};
+
+/** The analyst's indicators page. */
+export const ReviewDashboardPage = () => {
+	const [period, setPeriod] = useDashboardPeriod();
+
 	return (
 		<PageLayout
 			title="Indicadores"
-			description={copy.description}
+			description={SCOPE_COPY.reviewer.description}
 			actions={
 				<DashboardPeriodPicker
 					value={period}
@@ -156,80 +242,7 @@ export const ReviewDashboardPage = () => {
 			bleed
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
-			{dashboardQuery.isError ? (
-				<div className="px-gutter md:px-gutter-md">
-					<EmptyState
-						title="Não foi possível carregar os indicadores"
-						description="Verifique sua conexão e tente novamente."
-						icon={CircleAlert}
-						action={
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => void dashboardQuery.refetch()}
-							>
-								Tentar Novamente
-							</Button>
-						}
-					/>
-				</div>
-			) : (
-				<div className="flex flex-1 flex-col bg-card">
-					<ReviewIndicators
-						totals={dashboard?.totals}
-						title={`${copy.band}, ${dashboardPeriodLabels[period]}`}
-					/>
-
-					<div className="grid flex-1 grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,3fr)]">
-						<div className="flex flex-col gap-10 px-gutter py-7 md:px-gutter-md">
-							<FindingsRanking
-								title="Apontamentos Mais Frequentes"
-								emptyMessage="Nenhum apontamento emitido no período."
-								items={dashboard?.findingsRanking}
-							/>
-							<WeeklyReviewChart weeks={dashboard?.weekly} />
-							<IndicatorList
-								title="Mais de Uma Reprovação"
-								caption="Projetos"
-								items={itemsOf(repeatedRejectionItems)}
-								emptyMessage="Nenhum projeto reprovado mais de uma vez no período."
-							/>
-						</div>
-
-						<div className="flex flex-col gap-10 border-t border-border px-gutter py-7 md:px-gutter-md lg:border-t-0 lg:border-l">
-							<IndicatorList
-								title="Tempos e Prazos"
-								items={itemsOf(timeItems)}
-								emptyMessage="Sem análises no período."
-							/>
-							<IndicatorList
-								title="Alertas por Categoria"
-								caption="Da edificação"
-								items={itemsOf(categoryItems)}
-								emptyMessage="Nenhum alerta nos projetos recebidos no período."
-							/>
-							<IndicatorList
-								title="Taxa de Reprovação"
-								caption="Por mês"
-								items={itemsOf(monthlyItems)}
-								emptyMessage="Nenhuma decisão no período."
-							/>
-							{isAdmin ? (
-								<IndicatorList
-									title="Em Análise por Analista"
-									items={itemsOf(workloadItems)}
-									emptyMessage="Nenhum projeto em análise."
-								/>
-							) : null}
-							<IndicatorList
-								title="Municípios com Mais Projetos"
-								items={itemsOf(municipalityItems)}
-								emptyMessage="Nenhum projeto recebido no período."
-							/>
-						</div>
-					</div>
-				</div>
-			)}
+			<ReviewIndicatorsPanel period={period} />
 		</PageLayout>
 	);
 };

@@ -52,10 +52,11 @@ export const AdminQueueSection = ({
 			<div className="flex items-center justify-between border-b border-border pb-3">
 				<SectionHeading id={headingId}>Fila de Análise</SectionHeading>
 				<Link
-					to="/fila-de-analise"
+					to="/projetos"
+					search={{ status: "UNDER_REVIEW" }}
 					className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
 				>
-					Ir para Fila
+					Ver Projetos em Análise
 					<ArrowRight className="size-3.5" aria-hidden="true" />
 				</Link>
 			</div>

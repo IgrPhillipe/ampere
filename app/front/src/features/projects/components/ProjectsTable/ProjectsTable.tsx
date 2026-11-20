@@ -14,6 +14,7 @@ const projectColumnClassNames = {
 	attention: "w-5 px-0",
 	protocol: "w-28",
 	owner: "w-36",
+	reviewer: "w-36",
 	status: "w-48",
 	units: "w-16 text-right",
 	demand: "w-28 text-right",
@@ -26,6 +27,7 @@ const projectColumnClassNames = {
 const ownerColumnClassNames = {
 	...projectColumnClassNames,
 	units: `${projectColumnClassNames.units} lg:hidden wide:table-cell`,
+	demand: `${projectColumnClassNames.demand} lg:hidden xl:table-cell`,
 	createdAt: `${projectColumnClassNames.createdAt} lg:hidden wide:table-cell`,
 	updatedAt: `${projectColumnClassNames.updatedAt} lg:hidden xl:table-cell`,
 } satisfies Partial<Record<ProjectColumnId, string>>;
@@ -120,7 +122,7 @@ export const ProjectsTable = ({
 			}
 			// Below 1024 px every column stays and the table scrolls instead.
 			tableClassName={
-				showOwner ? "min-w-[80rem] lg:min-w-0" : "min-w-[70rem] lg:min-w-0"
+				showOwner ? "min-w-[88rem] lg:min-w-0" : "min-w-[70rem] lg:min-w-0"
 			}
 			sortableColumns={sortableColumns}
 			sort={sort}

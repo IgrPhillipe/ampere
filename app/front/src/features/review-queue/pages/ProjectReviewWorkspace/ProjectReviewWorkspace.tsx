@@ -55,6 +55,7 @@ export const ProjectReviewWorkspace = ({
 	const project = useGetProject(projectId).data?.data;
 	const isUnderReview = project?.status === "UNDER_REVIEW";
 	const userId = useAuthStore((state) => state.user?.id);
+	const isManager = useAuthStore((state) => state.user?.role) === "admin";
 	const holdsProject =
 		isUnderReview && !!project?.reviewerId && project.reviewerId === userId;
 
@@ -144,7 +145,7 @@ export const ProjectReviewWorkspace = ({
 			{
 				onSuccess: () => {
 					setDecision(null);
-					void navigate({ to: "/fila-de-analise" });
+					void navigate({ to: isManager ? "/projetos" : "/fila-de-analise" });
 				},
 			},
 		);
@@ -164,7 +165,11 @@ export const ProjectReviewWorkspace = ({
 		<ProjectWorkspace
 			projectId={projectId}
 			reviewing
-			breadcrumbRoot={{ label: "Fila de Análise", to: "/fila-de-analise" }}
+			breadcrumbRoot={
+				isManager
+					? { label: "Projetos", to: "/projetos" }
+					: { label: "Fila de Análise", to: "/fila-de-analise" }
+			}
 			metrics={[
 				{
 					label: "Pendências",

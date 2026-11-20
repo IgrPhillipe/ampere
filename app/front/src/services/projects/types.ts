@@ -26,6 +26,8 @@ export interface ListProjectsParams {
 	createdTo?: string;
 	findings?: ProjectFindingsFilter[];
 	owner?: string;
+	/** An analyst's id, or `none` for the projects without one. */
+	reviewer?: string;
 }
 
 export interface ListOwnersParams {

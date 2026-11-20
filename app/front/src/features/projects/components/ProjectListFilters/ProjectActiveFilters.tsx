@@ -10,6 +10,8 @@ interface ProjectActiveFiltersProps {
 	filters: ProjectFilters;
 	/** The selected designer's name, resolved by the page. */
 	ownerName?: string;
+	/** The selected analyst's name, resolved by the page. */
+	reviewerName?: string;
 }
 
 const periodLabel = ({ from, to }: DateRange) => {
@@ -21,8 +23,10 @@ const periodLabel = ({ from, to }: DateRange) => {
 export const ProjectActiveFilters = ({
 	filters,
 	ownerName,
+	reviewerName,
 }: ProjectActiveFiltersProps) => {
-	const { status, search, municipality, period, findings, owner } = filters;
+	const { status, search, municipality, period, findings, owner, reviewer } =
+		filters;
 	const active: ActiveFilter[] = [];
 
 	if (status) {
@@ -46,6 +50,14 @@ export const ProjectActiveFilters = ({
 			id: "owner",
 			label: `Projetista: ${ownerName}`,
 			onRemove: () => filters.setOwner(null),
+		});
+	}
+
+	if (reviewer && reviewerName) {
+		active.push({
+			id: "reviewer",
+			label: `Analista: ${reviewerName}`,
+			onRemove: () => filters.setReviewer(null),
 		});
 	}
 

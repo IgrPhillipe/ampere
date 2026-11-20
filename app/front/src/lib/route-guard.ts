@@ -15,11 +15,10 @@ export const ROLE_ACCESS = {
 	projects: ["user", "admin"],
 	/** The project page itself: the analyst reads and reviews it there. */
 	projectWorkspace: ["user", "reviewer", "admin"],
-	reviewQueue: ["reviewer", "admin"],
-	/** The analyst sees their assigned projects; the admin, the whole team. */
-	reviewIndicators: ["reviewer", "admin"],
-	/** Whoever decides has decisions of their own: the back lets the admin review too. */
-	myReviews: ["reviewer", "admin"],
+	/** The admin follows the queue in "Projetos" and the indicators in the panel. */
+	reviewQueue: ["reviewer"],
+	reviewIndicators: ["reviewer"],
+	myReviews: ["reviewer"],
 	normativeTables: ["reviewer", "admin"],
 	users: ["admin"],
 } as const satisfies Record<string, readonly UserRole[]>;

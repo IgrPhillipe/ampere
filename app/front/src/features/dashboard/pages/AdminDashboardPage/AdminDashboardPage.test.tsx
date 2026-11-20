@@ -188,7 +188,7 @@ describe("AdminDashboardPage", () => {
 		expect(within(inactive30DaysLink).getByText("05")).toBeInTheDocument();
 	});
 
-	it("renders queue indicators, reviewer load, and the shortcut to the review queue", () => {
+	it("renders queue indicators, reviewer load, and the shortcut to the projects under review", () => {
 		renderPage();
 
 		const queueSection = screen.getByRole("region", {
@@ -197,9 +197,9 @@ describe("AdminDashboardPage", () => {
 
 		// Shortcuts
 		const queueLink = within(queueSection).getByRole("link", {
-			name: /ir para fila/i,
+			name: /ver projetos em análise/i,
 		});
-		expect(queueLink).toHaveAttribute("href", "/fila-de-analise");
+		expect(queueLink).toHaveAttribute("href", "/projetos?status=UNDER_REVIEW");
 
 		expect(
 			within(queueSection).queryByRole("link", { name: /distribuição/i }),
