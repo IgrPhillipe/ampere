@@ -6,11 +6,11 @@ import type { MyReviewItem } from "@services/review-queue";
 
 import { type MyReviewColumnId, myReviewColumns } from "./my-reviews-columns";
 
-/** `table-fixed`: the name takes what the other columns leave. */
+/** `table-fixed`: the name takes what the other columns leave; UCs and demand wait for `xl`. */
 const columnClassNames = {
 	protocol: "w-28",
-	units: "w-16 text-right",
-	demand: "w-26 text-right",
+	units: "w-16 text-right lg:hidden xl:table-cell",
+	demand: "w-26 text-right lg:hidden xl:table-cell",
 	version: "w-20 text-right",
 	findings: "w-30 text-right",
 	decision: "w-26",
@@ -57,7 +57,7 @@ export const MyReviewsListing = ({
 			columns={myReviewColumns}
 			data={items}
 			columnClassNames={columnClassNames}
-			tableClassName="min-w-[54rem]"
+			tableClassName="min-w-[70rem] lg:min-w-0"
 			onRowClick={onOpen}
 		/>
 	);

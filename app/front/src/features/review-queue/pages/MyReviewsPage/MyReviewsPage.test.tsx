@@ -174,6 +174,21 @@ describe("MyReviewsPage", () => {
 		);
 	});
 
+	it("keeps the project readable on narrow screens", () => {
+		renderPage();
+
+		expect(screen.getByRole("table")).toHaveClass(
+			"min-w-[70rem]",
+			"lg:min-w-0",
+		);
+		for (const name of ["UCs", "Demanda"]) {
+			expect(screen.getByRole("columnheader", { name })).toHaveClass(
+				"lg:hidden",
+				"xl:table-cell",
+			);
+		}
+	});
+
 	it("offers to clear the filters when they hide every decision", () => {
 		state.query = loadedQuery(responseOf([]));
 		renderPage("?decision=REJECTED");
