@@ -35,6 +35,7 @@ export const useUpdateReviewerMunicipalities = () => {
 				void queryClient.invalidateQueries({
 					queryKey: reviewerDistributionKeys.all(),
 				});
+				void queryClient.invalidateQueries({ queryKey: dashboardKeys.all() });
 			}
 		},
 	});

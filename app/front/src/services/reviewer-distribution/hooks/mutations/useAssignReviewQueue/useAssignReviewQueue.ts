@@ -38,6 +38,7 @@ export const useAssignReviewQueue = () => {
 			const status = getHttpStatus(error);
 			if (status !== undefined && STALE_STATUSES.has(status)) {
 				void queryClient.invalidateQueries({ queryKey: reviewQueueKeys.all() });
+				void queryClient.invalidateQueries({ queryKey: dashboardKeys.all() });
 			}
 		},
 	});

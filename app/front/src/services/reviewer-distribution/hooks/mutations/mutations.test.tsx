@@ -74,6 +74,7 @@ describe("useAssignReviewQueue", () => {
 		);
 		const { queryClient, wrapper } = setup();
 		queryClient.setQueryData(reviewQueueKeys.reviewers(), { data: [] });
+		queryClient.setQueryData(dashboardKeys.admin(), { data: {} });
 
 		const { result } = renderHook(() => useAssignReviewQueue(), { wrapper });
 		act(() =>
@@ -86,6 +87,9 @@ describe("useAssignReviewQueue", () => {
 		// Refetched, so the inactive analyst leaves the list of choices.
 		expect(
 			queryClient.getQueryState(reviewQueueKeys.reviewers())?.isInvalidated,
+		).toBe(true);
+		expect(
+			queryClient.getQueryState(dashboardKeys.admin())?.isInvalidated,
 		).toBe(true);
 	});
 
@@ -123,13 +127,14 @@ describe("useAssignReviewQueue", () => {
 describe("useUpdateReviewerMunicipalities", () => {
 	beforeEach(() => vi.clearAllMocks());
 
-	it("refreshes the distribution after saving", async () => {
+	it("refreshes the distribution and the dashboard after saving", async () => {
 		vi.mocked(updateReviewerMunicipalities).mockResolvedValue({
 			data: [{ state: "PE", municipality: "Recife" }],
 		});
 		const { queryClient, wrapper } = setup();
 		const listKey = reviewerDistributionKeys.list();
 		queryClient.setQueryData(listKey, { data: [] });
+		queryClient.setQueryData(dashboardKeys.admin(), { data: {} });
 
 		const { result } = renderHook(() => useUpdateReviewerMunicipalities(), {
 			wrapper,
@@ -143,6 +148,9 @@ describe("useUpdateReviewerMunicipalities", () => {
 		await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
 		expect(queryClient.getQueryState(listKey)?.isInvalidated).toBe(true);
+		expect(
+			queryClient.getQueryState(dashboardKeys.admin())?.isInvalidated,
+		).toBe(true);
 		expect(toast.success).toHaveBeenCalledWith(
 			"Municípios do analista atualizados.",
 		);
@@ -156,6 +164,7 @@ describe("useUpdateReviewerMunicipalities", () => {
 		const { queryClient, wrapper } = setup();
 		const listKey = reviewerDistributionKeys.list();
 		queryClient.setQueryData(listKey, { data: [] });
+		queryClient.setQueryData(dashboardKeys.admin(), { data: {} });
 
 		const { result } = renderHook(() => useUpdateReviewerMunicipalities(), {
 			wrapper,
@@ -171,5 +180,8 @@ describe("useUpdateReviewerMunicipalities", () => {
 		expect(toast.error).toHaveBeenCalledWith(detail);
 		// Refetched, so the picker shows who holds it now.
 		expect(queryClient.getQueryState(listKey)?.isInvalidated).toBe(true);
+		expect(
+			queryClient.getQueryState(dashboardKeys.admin())?.isInvalidated,
+		).toBe(true);
 	});
 });
