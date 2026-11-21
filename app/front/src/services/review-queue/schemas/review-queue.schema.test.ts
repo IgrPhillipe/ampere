@@ -42,38 +42,6 @@ describe("review queue API contract", () => {
 		expect(reviewQueueListResponseSchema.parse(response)).toEqual(response);
 	});
 
-	it("accepts an unassigned queue item without an owner id", () => {
-		const response = {
-			data: [
-				{
-					id: "42",
-					name: "Condomínio Vila Nova",
-					protocol: "2026-0475",
-					municipality: "Jaboatão dos Guararapes",
-					state: "PE",
-					submittedAt: "2026-09-08T12:00:00Z",
-					deadline: "2026-10-08",
-					deadlineStatus: "DUE_TODAY",
-					daysRemaining: 0,
-					elapsedDays: 12,
-					suspendedDays: 3,
-					warnings: 1,
-					alerts: [],
-					ownerName: null,
-					consumerUnitsCount: 12,
-					demandKva: 51.4,
-					reanalysis: true,
-					reviewCycle: 2,
-					reviewerId: "7",
-					reviewerName: "Ana Analista",
-				},
-			],
-			pagination: { total: 1, page: 1, pageSize: 10 },
-		};
-
-		expect(reviewQueueListResponseSchema.parse(response)).toEqual(response);
-	});
-
 	it("accepts zeroed indicator values", () => {
 		const response = {
 			data: {

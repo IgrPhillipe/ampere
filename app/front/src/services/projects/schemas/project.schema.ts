@@ -47,8 +47,6 @@ export const projectSchema = z.object({
 	pendingCount: z.number().int().nonnegative(),
 	consumerUnitsCount: z.number().int().nonnegative(),
 	demandKva: z.number().nullable(),
-	reviewDeadline: z.iso.date().nullish(),
-	reviewSuspended: z.boolean().nullish(),
 	approvalValidUntil: z.iso.date().nullish(),
 });
 

@@ -61,7 +61,7 @@ export const reviewQueueItemSchema = z.object({
 	suspendedDays: z.number().int().nonnegative(),
 	warnings: z.number().int().nonnegative(),
 	alerts: z.array(z.string()),
-	ownerId: z.string().nullish(),
+	ownerId: z.string().nullable(),
 	ownerName: z.string().nullable(),
 	consumerUnitsCount: z.number().int().nonnegative(),
 	demandKva: z.number().nonnegative().nullable(),
