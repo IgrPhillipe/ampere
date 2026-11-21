@@ -12,10 +12,13 @@ import { CircleAlert } from "lucide-react";
 import {
 	DashboardBand,
 	DashboardLayout,
+	DashboardPeriodPicker,
 	IndicatorList,
 	ReviewActionList,
+	ReviewPeriodIndicators,
 	UnderReviewList,
 } from "../../components";
+import { useDashboardPeriod } from "../../hooks";
 
 /** Enough to show what comes next; the whole list is in "Projetos". */
 const LISTED = 6;
@@ -30,8 +33,9 @@ const filterLink = (label: string, filter?: "APPROVED" | "REJECTED") => (
 	</Link>
 );
 
-/** The analyst's panel: their assigned projects now, laid out like every other panel. */
+/** The analyst's panel: their assigned projects today, then their indicators of the period. */
 export const AnalystDashboardPage = () => {
+	const [period, setPeriod] = useDashboardPeriod();
 	const indicatorsQuery = useGetReviewQueueIndicators();
 	const nextQuery = useGetReviewQueue({
 		filter: "ALL",
@@ -52,7 +56,13 @@ export const AnalystDashboardPage = () => {
 	return (
 		<PageLayout
 			title="Painel"
-			description="Os projetos atribuídos a você: o que vence primeiro e como anda a sua análise."
+			description="Os projetos atribuídos a você: a faixa e o que exige ação mostram hoje, e os indicadores abaixo seguem o período escolhido."
+			actions={
+				<DashboardPeriodPicker
+					value={period}
+					onValueChange={(value) => void setPeriod(value)}
+				/>
+			}
 			bleed
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
@@ -153,6 +163,7 @@ export const AnalystDashboardPage = () => {
 								}
 								emptyMessage="Nenhum projeto atribuído a você."
 							/>
+							<ReviewPeriodIndicators period={period} />
 						</>
 					}
 					aside={<ReviewActionList items={dueQuery.data?.data} />}

@@ -1,15 +1,18 @@
 import type { AdminDashboard } from "@services/dashboard";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { withNuqsTestingAdapter } from "nuqs/adapters/testing";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { loadedQuery } from "@/test/fixtures/project-detail";
+import { reviewDashboardOf } from "@/test/fixtures/review-dashboard";
 
 import { AdminDashboardPage } from "./AdminDashboardPage";
 
 const state = vi.hoisted(() => ({
 	dashboardQuery: {} as Record<string, unknown>,
+	reviewQuery: {} as Record<string, unknown>,
+	periods: [] as string[],
 }));
 
 vi.mock("@tanstack/react-router", () => ({
@@ -41,6 +44,11 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@services/dashboard", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/dashboard")>()),
 	useGetAdminDashboard: () => state.dashboardQuery,
+	useGetReviewDashboard: (period: string) => {
+		state.periods.push(period);
+
+		return state.reviewQuery;
+	},
 }));
 
 const makeAdminDashboard = (
@@ -86,12 +94,14 @@ const makeAdminDashboard = (
 
 const renderPage = (searchParams = "") =>
 	render(<AdminDashboardPage />, {
-		wrapper: withNuqsTestingAdapter({ searchParams }),
+		wrapper: withNuqsTestingAdapter({ searchParams, hasMemory: true }),
 	});
 
 describe("AdminDashboardPage", () => {
 	beforeEach(() => {
 		state.dashboardQuery = loadedQuery({ data: makeAdminDashboard() });
+		state.reviewQuery = loadedQuery({ data: reviewDashboardOf() });
+		state.periods = [];
 	});
 
 	it("puts the queue on the green band, like every panel", () => {
@@ -184,5 +194,60 @@ describe("AdminDashboardPage", () => {
 			screen.getByText("Não foi possível carregar o painel"),
 		).toBeInTheDocument();
 		expect(screen.queryByRole("table")).not.toBeInTheDocument();
+	});
+
+	it("adds the team's indicators of the period to the follow-up column", () => {
+		renderPage();
+
+		expect(
+			within(
+				screen.getByRole("region", { name: /Projetos no Período/ }),
+			).getByText("Reprovados").nextSibling,
+		).toHaveTextContent("09");
+		expect(
+			within(
+				screen.getByRole("region", { name: /Apontamentos Mais Frequentes/ }),
+			).getByText("12"),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("region", { name: "Tempos e Prazos" }),
+		).toBeInTheDocument();
+		// "Carga por Analista" already shows the load; the indicators do not repeat it.
+		expect(
+			screen.queryByRole("region", { name: /Em Análise por Analista/ }),
+		).not.toBeInTheDocument();
+	});
+
+	it("asks the indicators for the period picked and keeps the queue of today", () => {
+		renderPage("?period=LAST_90_DAYS");
+
+		expect(state.periods.at(-1)).toBe("LAST_90_DAYS");
+
+		fireEvent.click(screen.getByRole("button", { name: "Ano Corrente" }));
+
+		expect(state.periods.at(-1)).toBe("CURRENT_YEAR");
+		expect(
+			screen.getByRole("region", { name: "Fila de análise hoje" }),
+		).toBeInTheDocument();
+	});
+
+	it("keeps the panel when only the indicators fail", () => {
+		const refetch = vi.fn();
+		state.reviewQuery = { isError: true, refetch };
+		renderPage();
+
+		expect(
+			screen.getByText("Não foi possível carregar os indicadores do período"),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("region", { name: /Carga por Analista/ }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("region", { name: "Exige Ação" }),
+		).toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole("button", { name: "Tentar Novamente" }));
+
+		expect(refetch).toHaveBeenCalled();
 	});
 });

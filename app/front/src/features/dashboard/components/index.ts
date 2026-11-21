@@ -8,5 +8,6 @@ export * from "./DashboardSection";
 export * from "./FindingsRanking";
 export * from "./IndicatorList";
 export * from "./ReviewActionList";
+export * from "./ReviewPeriodIndicators";
 export * from "./UnderReviewList";
 export * from "./WeeklyReviewChart";
