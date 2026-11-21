@@ -135,9 +135,14 @@ public class SpreadsheetExportService {
               text(project.getState()),
               text(ownerName(project)),
               reviewerName(project),
-              entry.deadlineStatus().label(),
-              BrazilianDateFormat.date(entry.deadline()),
-              BrazilianNumberFormat.format(entry.daysRemaining()),
+              // A decided project has no deadline: the decision takes the status column.
+              entry.deadlineStatus() == null
+                  ? project.getStatus().label()
+                  : entry.deadlineStatus().label(),
+              entry.deadline() == null ? "" : BrazilianDateFormat.date(entry.deadline()),
+              entry.daysRemaining() == null
+                  ? ""
+                  : BrazilianNumberFormat.format(entry.daysRemaining()),
               dateTime(project.getSubmittedAt()),
               BrazilianNumberFormat.format(project.getReviewCycle()),
               project.isReanalysis() ? "Sim" : "Não",

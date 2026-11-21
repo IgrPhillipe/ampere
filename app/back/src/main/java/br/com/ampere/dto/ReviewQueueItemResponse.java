@@ -26,10 +26,12 @@ public record ReviewQueueItemResponse(
     @Schema(description = "Último dia do prazo de 30 dias, já somados os dias suspensos")
         LocalDate deadline,
     DeadlineStatus deadlineStatus,
-    @Schema(description = "Dias restantes do prazo; negativo quando atrasado") long daysRemaining,
-    @Schema(description = "Dias corridos de análise, sem os dias suspensos") long elapsedDays,
+    @Schema(description = "Dias restantes do prazo; negativo quando atrasado, nulo se decidido")
+        Long daysRemaining,
+    @Schema(description = "Dias corridos de análise, sem os dias suspensos; nulo se decidido")
+        Long elapsedDays,
     @Schema(description = "Dias em que o prazo ficou suspenso aguardando correção")
-        long suspendedDays,
+        Long suspendedDays,
     long warnings,
     @Schema(description = "Mensagens dos alertas da pré-validação do último cálculo")
         List<String> alerts,

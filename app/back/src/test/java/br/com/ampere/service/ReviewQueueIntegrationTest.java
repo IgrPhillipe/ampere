@@ -743,6 +743,8 @@ class ReviewQueueIntegrationTest {
         .andExpect(jsonPath("$.data[0].reviewedAt").isNotEmpty());
     asReviewer(get("/review-queue").param("filter", "REJECTED"))
         .andExpect(jsonPath("$.data[*].protocol").value(contains("2026-7704")));
+    asReviewer(get("/review-queue/export.csv").param("filter", "APPROVED"))
+        .andExpect(status().isOk());
     asReviewer(get("/review-queue/indicators"))
         .andExpect(jsonPath("$.data.total").value(1))
         .andExpect(jsonPath("$.data.approved").value(2))

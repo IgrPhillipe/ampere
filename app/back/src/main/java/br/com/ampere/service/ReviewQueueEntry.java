@@ -14,9 +14,10 @@ public record ReviewQueueEntry(
     Project project,
     LocalDate deadline,
     DeadlineStatus deadlineStatus,
-    long daysRemaining,
-    long elapsedDays,
-    long suspendedDays,
+    // Null once the project is decided: the clock stopped.
+    Long daysRemaining,
+    Long elapsedDays,
+    Long suspendedDays,
     List<String> warnings,
     long consumerUnitsCount,
     BigDecimal demandKva) {}
