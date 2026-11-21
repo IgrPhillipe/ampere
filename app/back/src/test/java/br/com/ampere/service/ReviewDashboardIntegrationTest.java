@@ -1,7 +1,9 @@
 package br.com.ampere.service;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -260,6 +262,36 @@ class ReviewDashboardIntegrationTest {
         .andExpect(
             jsonPath("$.data.findingsRanking[0].projects[*].protocol")
                 .value(contains("2026-7201", "2026-7202", "2026-7203")));
+  }
+
+  @Test
+  void theRankingKeepsTheTenMostFrequentFindings() throws Exception {
+    Project project = underReview("2026-7211", reviewer, 5);
+    IntStream.rangeClosed(1, 10)
+        .forEach(
+            item -> {
+              finding(project, "6." + item, now.minusDays(2), true);
+              finding(project, "6." + item, now.minusDays(2), true);
+            });
+    finding(project, "9.9", now.minusDays(2), true);
+
+    as(REVIEWER, get("/dashboard/review"))
+        .andExpect(jsonPath("$.data.findingsRanking", hasSize(10)))
+        .andExpect(jsonPath("$.data.findingsRanking[*].standardItem", not(hasItem("9.9"))))
+        .andExpect(jsonPath("$.data.findingsRanking[9].projects", hasSize(1)));
+  }
+
+  @Test
+  void theMonthlyRateRejectsOneDecisionInThree() throws Exception {
+    decided("2026-7601", reviewer, ProjectStatus.REJECTED, 3, 0);
+    decided("2026-7602", reviewer, ProjectStatus.APPROVED, 3, 0);
+    decided("2026-7603", reviewer, ProjectStatus.APPROVED, 3, 0);
+
+    as(REVIEWER, get("/dashboard/review"))
+        .andExpect(
+            jsonPath("$.data.monthlyRejection[-1].month")
+                .value(YearMonth.now(Timestamps.ZONE).toString()))
+        .andExpect(jsonPath("$.data.monthlyRejection[-1].rejectionPercent").value(33.3));
   }
 
   @Test
