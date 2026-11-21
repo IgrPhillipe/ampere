@@ -12,7 +12,6 @@ export const reviewDashboardOf = (
 	],
 	monthlyRejection: [{ month: "2026-10", rejectionPercent: 40 }],
 	deadlines: { met: 20, overdue: 3 },
-	workload: [],
 	findingsRanking: [
 		{
 			stage: "CALCULATION",

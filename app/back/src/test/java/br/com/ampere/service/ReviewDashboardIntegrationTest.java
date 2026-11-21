@@ -177,7 +177,6 @@ class ReviewDashboardIntegrationTest {
             jsonPath("$.data.monthlyRejection[0].month").value(YearMonth.from(firstDay).toString()))
         .andExpect(jsonPath("$.data.monthlyRejection[0].rejectionPercent").isEmpty())
         .andExpect(jsonPath("$.data.deadlines.met").value(0))
-        .andExpect(jsonPath("$.data.workload", hasSize(0)))
         .andExpect(jsonPath("$.data.findingsRanking", hasSize(0)))
         .andExpect(jsonPath("$.data.municipalities", hasSize(0)))
         .andExpect(jsonPath("$.data.repeatedRejections", hasSize(0)))
@@ -193,15 +192,11 @@ class ReviewDashboardIntegrationTest {
 
     as(REVIEWER, get("/dashboard/review"))
         .andExpect(jsonPath("$.data.totals.received").value(2))
-        .andExpect(jsonPath("$.data.totals.underReview").value(2))
-        .andExpect(jsonPath("$.data.workload", hasSize(0)));
+        .andExpect(jsonPath("$.data.totals.underReview").value(2));
     as(ADMIN, get("/dashboard/review"))
         .andExpect(jsonPath("$.data.totals.received").value(4))
         .andExpect(jsonPath("$.data.totals.underReview").value(4))
-        .andExpect(
-            jsonPath("$.data.workload[*].name").value(contains("Revisor Teste", "Ana Analista")))
-        .andExpect(jsonPath("$.data.workload[0].id").value(String.valueOf(reviewer.getId())))
-        .andExpect(jsonPath("$.data.workload[*].underReview").value(contains(2, 1)));
+        .andExpect(jsonPath("$.data.workload").doesNotExist());
   }
 
   @Test

@@ -19,7 +19,6 @@ import br.com.ampere.dto.ReviewDashboardResponse.ProjectReference;
 import br.com.ampere.dto.ReviewDashboardResponse.RepeatedRejectionResponse;
 import br.com.ampere.dto.ReviewDashboardResponse.TotalsResponse;
 import br.com.ampere.dto.ReviewDashboardResponse.WeekResponse;
-import br.com.ampere.dto.ReviewDashboardResponse.WorkloadResponse;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.FindingRepository.RankedProject;
 import br.com.ampere.repository.ProjectEventRepository;
@@ -110,7 +109,6 @@ public class ReviewDashboardService {
             .map(month -> new MonthResponse(month.month().toString(), month.rejectionPercent()))
             .toList(),
         new DeadlinesResponse(deadlines.met(), deadlines.overdue()),
-        reviewerId == null ? workload() : List.of(),
         findingsRanking(reviewerId, since),
         municipalities(received, projects),
         repeatedRejections(repeated, projects),
@@ -131,15 +129,6 @@ public class ReviewDashboardService {
         ? projectRepository.countByStatusAndSubmittedAtIsNotNull(ProjectStatus.UNDER_REVIEW)
         : projectRepository.countByReviewerIdAndStatusIn(
             reviewerId, Set.of(ProjectStatus.UNDER_REVIEW));
-  }
-
-  private List<WorkloadResponse> workload() {
-    return projectRepository.countUnderReviewPerReviewer().stream()
-        .map(
-            load ->
-                new WorkloadResponse(
-                    String.valueOf(load.getId()), load.getName(), load.getUnderReview()))
-        .toList();
   }
 
   private List<FindingRankResponse> findingsRanking(Long reviewerId, OffsetDateTime since) {

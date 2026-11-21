@@ -85,19 +85,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
   @EntityGraph(attributePaths = "buildingType")
   List<Project> findAllByIdIn(Collection<Long> ids);
 
-  /** Reviewers holding a project under review, the busiest first. */
-  @Query(
-      """
-      SELECT reviewer.id AS id, reviewer.name AS name, COUNT(project) AS underReview
-      FROM Project project
-      JOIN project.reviewer reviewer
-      WHERE project.status = br.com.ampere.domain.ProjectStatus.UNDER_REVIEW
-        AND project.submittedAt IS NOT NULL
-      GROUP BY reviewer.id, reviewer.name
-      ORDER BY COUNT(project) DESC, reviewer.name, reviewer.id
-      """)
-  List<ReviewerWorkload> countUnderReviewPerReviewer();
-
   @Modifying
   @Query(
       """
@@ -121,13 +108,4 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
           br.com.ampere.domain.ProjectStatus.AWAITING_SUBMISSION)
       """)
   int dateLegacySubmissions();
-
-  interface ReviewerWorkload {
-
-    Long getId();
-
-    String getName();
-
-    long getUnderReview();
-  }
 }

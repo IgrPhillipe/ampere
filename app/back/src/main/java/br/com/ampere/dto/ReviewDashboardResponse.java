@@ -19,8 +19,6 @@ public record ReviewDashboardResponse(
     @Schema(description = "Cada mês que toca o período, do mais antigo ao mais recente")
         List<MonthResponse> monthlyRejection,
     DeadlinesResponse deadlines,
-    @Schema(description = "Projetos em análise por analista; vazio para o analista")
-        List<WorkloadResponse> workload,
     @Schema(
             description =
                 "Os 10 apontamentos mais frequentes no período, por etapa e item da norma")
@@ -51,8 +49,6 @@ public record ReviewDashboardResponse(
   public record DeadlinesResponse(
       @Schema(description = "Decisões no período tomadas dentro do prazo") long met,
       @Schema(description = "Decisões no período tomadas depois do prazo") long overdue) {}
-
-  public record WorkloadResponse(String id, String name, long underReview) {}
 
   public record ProjectReference(String id, String name, String protocol) {}
 
