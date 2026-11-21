@@ -20,21 +20,11 @@ const renderFilters = (searchParams = "") => {
 };
 
 describe("useReviewQueueFilters", () => {
-	beforeEach(() => signInAs("admin"));
-
-	it("ignores the reviewer of the URL in the analyst's queue", () => {
-		signInAs("reviewer", { id: "7" });
-		const { result } = renderFilters("?reviewer=none");
-
-		expect(result.current.canFilterByReviewer).toBe(false);
-		expect(result.current.reviewer).toBeNull();
-		expect(result.current.params.reviewer).toBeUndefined();
-		expect(result.current.hasActiveFilters).toBe(false);
-	});
+	beforeEach(() => signInAs("reviewer", { id: "7" }));
 
 	it("converts invalid URL values to safe defaults", () => {
 		const { result } = renderFilters(
-			"?page=not-a-page&filter=INVALID&sort=INVALID&direction=UP&reviewer=x y&owner=x y",
+			"?page=not-a-page&filter=INVALID&sort=INVALID&direction=UP&owner=x y",
 		);
 
 		expect(result.current.page).toBe(1);
@@ -43,7 +33,6 @@ describe("useReviewQueueFilters", () => {
 			column: "deadline",
 			direction: "ASC",
 		});
-		expect(result.current.reviewer).toBeNull();
 		expect(result.current.owner).toBeNull();
 		expect(result.current.hasActiveFilters).toBe(false);
 	});
@@ -59,11 +48,10 @@ describe("useReviewQueueFilters", () => {
 
 	it("reads a sort column, its direction and the new filters from the URL", () => {
 		const { result } = renderFilters(
-			"?sort=demand&direction=ASC&reviewer=none&municipality=Recife&municipality=Olinda&state=PE",
+			"?sort=demand&direction=ASC&municipality=Recife&municipality=Olinda&state=PE",
 		);
 
 		expect(result.current.sort).toEqual({ column: "demand", direction: "ASC" });
-		expect(result.current.reviewer).toBe("none");
 		expect(result.current.municipality).toEqual(["Recife", "Olinda"]);
 		expect(result.current.state).toEqual(["PE"]);
 		expect(result.current.hasActiveFilters).toBe(true);
@@ -71,7 +59,7 @@ describe("useReviewQueueFilters", () => {
 
 	it("builds the API params from the URL", () => {
 		const { result } = renderFilters(
-			"?filter=REANALYSIS&sort=demand&reviewer=none&owner=7&municipality=Recife",
+			"?filter=REANALYSIS&sort=demand&owner=7&municipality=Recife",
 		);
 
 		expect(result.current.params).toEqual({
@@ -80,7 +68,6 @@ describe("useReviewQueueFilters", () => {
 			search: undefined,
 			sort: "demand",
 			direction: "DESC",
-			reviewer: "none",
 			owner: "7",
 			municipality: ["Recife"],
 		});
@@ -150,7 +137,7 @@ describe("useReviewQueueFilters", () => {
 
 	it("clears the filters and keeps the sort", async () => {
 		const { result, lastUrl } = renderFilters(
-			"?filter=DUE_SOON&search=Olinda&reviewer=2&owner=7&municipality=Olinda%2FPE&sort=demand",
+			"?filter=DUE_SOON&search=Olinda&owner=7&municipality=Olinda%2FPE&sort=demand",
 		);
 
 		act(() => result.current.clearFilters());

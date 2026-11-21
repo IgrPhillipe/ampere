@@ -43,6 +43,7 @@ class OpenApiConfigTest {
                 LocalDate.class,
                 List.class,
                 Long.class,
+                String.class,
                 Jwt.class)
             .getAnnotation(Operation.class);
 

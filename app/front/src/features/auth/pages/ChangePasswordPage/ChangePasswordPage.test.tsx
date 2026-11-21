@@ -72,7 +72,7 @@ describe("ChangePasswordPage", () => {
 		submitPasswords();
 
 		await waitFor(() =>
-			expect(mockNavigate).toHaveBeenCalledWith({ to: "/fila-de-analise" }),
+			expect(mockNavigate).toHaveBeenCalledWith({ to: "/projetos" }),
 		);
 	});
 

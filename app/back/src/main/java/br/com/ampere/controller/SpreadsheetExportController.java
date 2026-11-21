@@ -110,6 +110,12 @@ public class SpreadsheetExportController {
       @Parameter(description = "Projetista dono dos projetos, pelo identificador")
           @RequestParam(required = false)
           Long owner,
+      @Parameter(
+              description =
+                  "Filtro por analista (id do usuário ou 'none' para sem analista); só para o"
+                      + " administrador")
+          @RequestParam(required = false)
+          String reviewer,
       @AuthenticationPrincipal Jwt jwt) {
     ProjectListQuery query =
         new ProjectListQuery(
@@ -122,7 +128,8 @@ public class SpreadsheetExportController {
             createdFrom,
             createdTo,
             findings,
-            owner);
+            owner,
+            reviewer);
     return download(service.projects(query, userOf(jwt)));
   }
 

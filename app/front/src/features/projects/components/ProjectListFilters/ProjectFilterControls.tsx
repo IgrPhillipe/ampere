@@ -14,6 +14,7 @@ import {
 
 import { projectFindingsFilterLabels } from "../../constants/project-findings";
 import { ProjectOwnerFilter } from "../ProjectOwnerFilter";
+import { ProjectReviewerFilter } from "../ProjectReviewerFilter";
 
 const stateOptions = CONCESSION_STATES.map((value) => ({
 	value,
@@ -31,6 +32,9 @@ interface ProjectFilterControlsProps {
 	/** The selected designer's name, which may not be among the loaded owners. */
 	ownerName?: string;
 	onOwnerChange?: (owner: string | null) => void;
+	/** The manager's filter by analyst, beside the designer's. */
+	reviewer?: string | null;
+	onReviewerChange?: (reviewer: string | null) => void;
 	state: ConcessionState[];
 	onStateChange: (state: ConcessionState[]) => void;
 	municipality: string[];
@@ -46,6 +50,8 @@ export const ProjectFilterControls = ({
 	owner = null,
 	ownerName,
 	onOwnerChange,
+	reviewer = null,
+	onReviewerChange,
 	state,
 	onStateChange,
 	municipality,
@@ -61,6 +67,12 @@ export const ProjectFilterControls = ({
 				value={owner}
 				selectedLabel={ownerName}
 				onValueChange={onOwnerChange}
+			/>
+		) : null}
+		{showOwner && onReviewerChange ? (
+			<ProjectReviewerFilter
+				value={reviewer}
+				onValueChange={onReviewerChange}
 			/>
 		) : null}
 		<MultiFilterMenu

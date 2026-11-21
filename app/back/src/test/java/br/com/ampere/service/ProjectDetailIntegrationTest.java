@@ -74,6 +74,7 @@ class ProjectDetailIntegrationTest {
                     ConnectionType.THREE_PHASE,
                     EntranceStandard.COLLECTIVE),
                 null,
+                null,
                 designer)
             .project()
             .getId();

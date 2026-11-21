@@ -5,6 +5,7 @@ import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectStatus;
+import br.com.ampere.domain.ProjectVisibility;
 import br.com.ampere.domain.User;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
@@ -15,6 +16,7 @@ import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectRepositoryCustom.ProjectSearch;
+import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.SearchTerms;
 import br.com.ampere.utils.Timestamps;
 import java.math.BigDecimal;
@@ -63,6 +65,7 @@ public class ProjectService {
   private final CalculationRepository calculationRepository;
   private final ProjectDocumentRepository documentRepository;
   private final ProjectEventRepository eventRepository;
+  private final UserRepository userRepository;
   private final ProjectCreation projectCreation;
   private final ApplicableStandards applicableStandards;
 
@@ -73,6 +76,7 @@ public class ProjectService {
       CalculationRepository calculationRepository,
       ProjectDocumentRepository documentRepository,
       ProjectEventRepository eventRepository,
+      UserRepository userRepository,
       ProjectCreation projectCreation,
       ApplicableStandards applicableStandards) {
     this.projectRepository = projectRepository;
@@ -81,6 +85,7 @@ public class ProjectService {
     this.calculationRepository = calculationRepository;
     this.documentRepository = documentRepository;
     this.eventRepository = eventRepository;
+    this.userRepository = userRepository;
     this.projectCreation = projectCreation;
     this.applicableStandards = applicableStandards;
   }
@@ -113,7 +118,13 @@ public class ProjectService {
     }
   }
 
-  private static ProjectSearch search(ProjectListQuery query, AuthenticatedUser user) {
+  private ProjectSearch search(ProjectListQuery query, AuthenticatedUser user) {
+    // Designers and analysts already have a fixed scope, so only the admin filters by analyst.
+    ReviewerFilter reviewer =
+        user.projectVisibility() == ProjectVisibility.ALL
+            ? ReviewerFilter.of(query.reviewer(), userRepository)
+            : ReviewerFilter.ANY;
+
     return new ProjectSearch(
         user.id(),
         user.projectVisibility(),
@@ -125,6 +136,8 @@ public class ProjectService {
         query.createdTo() == null ? null : startOf(query.createdTo().plusDays(1)),
         query.findings(),
         query.owner(),
+        reviewer.reviewerId(),
+        reviewer.unassigned(),
         query.sort(),
         query.direction());
   }
@@ -195,13 +208,17 @@ public class ProjectService {
   }
 
   public ProjectSummary create(
-      ProjectParameters parameters, Long requestedOwnerId, AuthenticatedUser user) {
+      ProjectParameters parameters,
+      Long requestedOwnerId,
+      Long requestedReviewerId,
+      AuthenticatedUser user) {
     writerOrFail(user);
     User owner = projectCreation.ownerOf(requestedOwnerId, user);
+    User reviewer = projectCreation.reviewerOf(requestedReviewerId, user);
 
     for (int attempt = 1; attempt <= PROTOCOL_ATTEMPTS; attempt++) {
       try {
-        return summarize(projectCreation.createWithGeneratedProtocol(parameters, owner));
+        return summarize(projectCreation.createWithGeneratedProtocol(parameters, owner, reviewer));
       } catch (DataIntegrityViolationException collision) {
         log.warn("Protocol collision on attempt {} of {}", attempt, PROTOCOL_ATTEMPTS);
       }

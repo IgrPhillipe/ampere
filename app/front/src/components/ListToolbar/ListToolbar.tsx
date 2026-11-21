@@ -9,7 +9,7 @@ interface ListToolbarProps {
 	sort?: ReactNode;
 	/** List-wide actions, such as an export, next to the sort. */
 	actions?: ReactNode;
-	/** Quick filter chips or dropdowns, on the search line while they fit. */
+	/** Quick filter chips or dropdowns, on the line below the search. */
 	refinements?: ReactNode;
 	activeFilters?: ReactNode;
 	className?: string;
@@ -27,20 +27,24 @@ export const ListToolbar = ({
 	<div className={cn("flex flex-col bg-card", className)}>
 		{filters}
 		<div className="flex flex-col gap-3 border-b border-border px-gutter py-5 md:px-gutter-md">
-			<div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-				<div className="w-full md:w-72 md:shrink-0">{search}</div>
-				{refinements ? (
-					<div className="flex flex-wrap items-center gap-1.5">
-						{refinements}
-					</div>
-				) : null}
-				{sort || actions ? (
-					<div className="flex flex-wrap items-center gap-1.5 md:ml-auto">
-						{sort}
-						{actions}
-					</div>
-				) : null}
-			</div>
+			{/* The search takes the whole line, past its own default width. */}
+			<div className="w-full *:max-w-none">{search}</div>
+			{/* Sort and actions keep the filters' line: the filters wrap, they don't. */}
+			{refinements || sort || actions ? (
+				<div className="flex flex-wrap items-start gap-x-4 gap-y-3 md:flex-nowrap">
+					{refinements ? (
+						<div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+							{refinements}
+						</div>
+					) : null}
+					{sort || actions ? (
+						<div className="ml-auto flex shrink-0 flex-wrap items-center gap-1.5">
+							{sort}
+							{actions}
+						</div>
+					) : null}
+				</div>
+			) : null}
 			{activeFilters}
 		</div>
 	</div>

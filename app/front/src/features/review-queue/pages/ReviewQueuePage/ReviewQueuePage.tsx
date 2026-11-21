@@ -4,22 +4,17 @@ import { PageLayout } from "@components/layout";
 import { Pagination } from "@components/Pagination";
 import { Button } from "@components/ui/button";
 import { downloadFile, useAuthStore } from "@features/shared";
-import { useAssignReviewQueue } from "@services/review-assignment";
 import {
+	DECIDED_REVIEW_FILTERS,
 	type ReviewQueueItem,
-	UNASSIGNED_REVIEWER,
 	useExportReviewQueueCsv,
-	useGetReviewerList,
 	useGetReviewQueue,
 	useGetReviewQueueIndicators,
 } from "@services/review-queue";
 import { useNavigate } from "@tanstack/react-router";
 import { CircleAlert } from "lucide-react";
-import { useEffect, useState } from "react";
 
 import {
-	AssignReviewerDialog,
-	QueueSelectionBar,
 	ReviewQueueActiveFilters,
 	ReviewQueueFilterControls,
 	ReviewQueueListing,
@@ -42,8 +37,6 @@ export const ReviewQueuePage = () => {
 		setSort,
 		sortBy,
 		clearFilters,
-		reviewer,
-		setReviewer,
 	} = filters;
 	const queueQuery = useGetReviewQueue({
 		...filters.params,
@@ -52,53 +45,8 @@ export const ReviewQueuePage = () => {
 	const indicatorsQuery = useGetReviewQueueIndicators();
 	const navigate = useNavigate();
 	const user = useAuthStore((state) => state.user);
-	const isManager = user?.role === "admin";
 	const exportQueue = useExportReviewQueueCsv();
-	const assign = useAssignReviewQueue();
-	const [isAssignOpen, setAssignOpen] = useState(false);
-	const reviewersQuery = useGetReviewerList({ enabled: isManager });
-	// A deactivated analyst leaves the list once their last project is reassigned.
-	const isReviewerGone =
-		reviewer !== null &&
-		reviewer !== UNASSIGNED_REVIEWER &&
-		reviewersQuery.isSuccess &&
-		!reviewersQuery.data.data.some(({ id }) => id === reviewer);
-
-	useEffect(() => {
-		if (isReviewerGone) setReviewer(null);
-	}, [isReviewerGone, setReviewer]);
-
-	// The selection belongs to the listing it was made on: a new page or filter drops it.
-	const listingKey = JSON.stringify(filters.params);
-	const [selectionState, setSelectionState] = useState({
-		key: listingKey,
-		ids: [] as string[],
-	});
-	const selectedIds =
-		selectionState.key === listingKey ? selectionState.ids : [];
 	const items = queueQuery.data?.data ?? [];
-	const selectedItems = items.filter(({ id }) => selectedIds.includes(id));
-
-	const selection = isManager
-		? {
-				selectedIds,
-				onSelectedIdsChange: (ids: string[]) =>
-					setSelectionState({ key: listingKey, ids }),
-			}
-		: undefined;
-
-	const clearSelection = () => setSelectionState({ key: listingKey, ids: [] });
-
-	const confirmAssignment = (reviewerId: string) =>
-		assign.mutate(
-			{ projectIds: selectedItems.map(({ id }) => id), reviewerId },
-			{
-				onSuccess: () => {
-					setAssignOpen(false);
-					clearSelection();
-				},
-			},
-		);
 
 	const analyze = (item: ReviewQueueItem) =>
 		void navigate({ to: "/projetos/$id", params: { id: item.id } });
@@ -118,18 +66,14 @@ export const ReviewQueuePage = () => {
 
 	return (
 		<PageLayout
-			title="Fila de Análise"
-			description={
-				isManager
-					? "Acompanhe e priorize os projetos enviados para análise técnica."
-					: "Acompanhe e priorize os projetos atribuídos a você."
-			}
+			title="Projetos"
+			description="Os projetos atribuídos a você: os que estão em análise e os que você já decidiu."
 			bleed
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
 			<section
 				className="flex flex-1 flex-col bg-card"
-				aria-label="Fila de análise técnica"
+				aria-label="Projetos atribuídos"
 			>
 				<ReviewQueueToolbar
 					search={search}
@@ -137,7 +81,6 @@ export const ReviewQueuePage = () => {
 					filter={filter}
 					onFilterChange={setFilter}
 					indicators={indicatorsQuery.data?.data}
-					ownQueue={!isManager}
 					sort={sort}
 					onSortChange={setSort}
 					actions={
@@ -149,9 +92,6 @@ export const ReviewQueuePage = () => {
 					}
 					refinements={
 						<ReviewQueueFilterControls
-							showReviewer={isManager}
-							reviewer={filters.reviewer}
-							onReviewerChange={filters.setReviewer}
 							owner={filters.owner}
 							ownerName={ownerName}
 							onOwnerChange={filters.setOwner}
@@ -186,26 +126,16 @@ export const ReviewQueuePage = () => {
 							}
 						/>
 					) : (
-						<div className="flex flex-col gap-4">
-							{selectedItems.length > 0 ? (
-								<QueueSelectionBar
-									count={selectedItems.length}
-									onClear={clearSelection}
-									onAssign={() => setAssignOpen(true)}
-								/>
-							) : null}
-							<ReviewQueueListing
-								items={items}
-								isLoading={queueQuery.isPending}
-								onAnalyze={analyze}
-								currentUserId={user?.id}
-								selection={selection}
-								showReviewer={isManager}
-								sort={sort}
-								onSortChange={sortBy}
-								onClearFilters={hasActiveFilters ? clearFilters : undefined}
-							/>
-						</div>
+						<ReviewQueueListing
+							items={items}
+							isLoading={queueQuery.isPending}
+							onAnalyze={analyze}
+							currentUserId={user?.id}
+							decided={DECIDED_REVIEW_FILTERS.includes(filter)}
+							sort={sort}
+							onSortChange={sortBy}
+							onClearFilters={hasActiveFilters ? clearFilters : undefined}
+						/>
 					)}
 				</div>
 
@@ -219,16 +149,6 @@ export const ReviewQueuePage = () => {
 					/>
 				) : null}
 			</section>
-
-			{isManager ? (
-				<AssignReviewerDialog
-					open={isAssignOpen}
-					projects={selectedItems}
-					isPending={assign.isPending}
-					onOpenChange={setAssignOpen}
-					onConfirm={confirmAssignment}
-				/>
-			) : null}
 		</PageLayout>
 	);
 };

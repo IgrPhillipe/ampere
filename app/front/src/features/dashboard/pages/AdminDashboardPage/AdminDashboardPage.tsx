@@ -1,65 +1,160 @@
 import { EmptyState } from "@components/EmptyState";
 import { PageLayout } from "@components/layout";
 import { Button } from "@components/ui/button";
+import { padCount } from "@features/shared";
+import { userRolePluralLabels } from "@features/users";
 import { useGetAdminDashboard } from "@services/dashboard";
+import { Link } from "@tanstack/react-router";
 import { CircleAlert } from "lucide-react";
+import type { ReactNode } from "react";
 
 import {
-	AdminActiveProjectsSection,
-	AdminQueueSection,
-	AdminUsersSection,
+	AdminActionList,
+	DashboardBand,
+	DashboardLayout,
+	DashboardPeriodPicker,
+	IndicatorList,
+	ReviewPeriodIndicators,
 } from "../../components";
+import { useDashboardPeriod } from "../../hooks";
 
+const usersLink = (
+	label: string,
+	search: Record<string, string | number | boolean>,
+): ReactNode => (
+	<Link
+		to="/usuarios"
+		search={search}
+		className="text-foreground underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none"
+	>
+		{label}
+	</Link>
+);
+
+const plural = (count: number) => (count === 1 ? "projeto" : "projetos");
+
+/** The manager's panel: the queue and the team today, then the team's indicators of the period. */
 export const AdminDashboardPage = () => {
+	const [period, setPeriod] = useDashboardPeriod();
 	const dashboardQuery = useGetAdminDashboard();
 	const dashboard = dashboardQuery.data?.data;
-	// The projects table has its own query, so it stays when the counters fail.
-	const hasCountersError = dashboardQuery.isError;
 
 	return (
 		<PageLayout
 			title="Painel"
-			description="Acompanhamento operacional, estado dos usuários e fila de análise."
+			description="A fila, a carga da equipe e o que espera por você hoje, e os indicadores da equipe no período escolhido."
+			actions={
+				<DashboardPeriodPicker
+					value={period}
+					onValueChange={(value) => void setPeriod(value)}
+				/>
+			}
 			bleed
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
-			<div className="flex flex-1 flex-col bg-card">
-				{hasCountersError ? (
-					<div className="border-b border-border px-gutter py-7 md:px-gutter-md">
-						<EmptyState
-							title="Não foi possível carregar os indicadores"
-							description="Verifique sua conexão e tente novamente."
-							icon={CircleAlert}
-							action={
-								<Button
-									type="button"
-									variant="outline"
-									onClick={() => void dashboardQuery.refetch()}
-								>
-									Tentar Novamente
-								</Button>
-							}
-						/>
-					</div>
-				) : (
-					<AdminUsersSection
-						users={dashboard?.users}
-						isLoading={dashboardQuery.isPending}
+			{dashboardQuery.isError ? (
+				<div className="px-gutter md:px-gutter-md">
+					<EmptyState
+						title="Não foi possível carregar o painel"
+						description="Verifique sua conexão e tente novamente."
+						icon={CircleAlert}
+						action={
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => void dashboardQuery.refetch()}
+							>
+								Tentar Novamente
+							</Button>
+						}
 					/>
-				)}
-
-				{/* Stacked: the projects table needs the full width for its columns. */}
-				<div className="flex flex-1 flex-col gap-7 px-gutter py-7 md:px-gutter-md">
-					<AdminActiveProjectsSection />
-					{hasCountersError ? null : (
-						<AdminQueueSection
-							queue={dashboard?.queue}
-							isLoading={dashboardQuery.isPending}
-							className="border-t border-border pt-7"
-						/>
-					)}
 				</div>
-			</div>
+			) : (
+				<DashboardLayout
+					band={
+						<DashboardBand
+							title="Fila de análise hoje"
+							tiles={[
+								{
+									label: "Em análise",
+									value: dashboard && padCount(dashboard.projects.underReview),
+								},
+								{
+									label: "Sem analista",
+									value: dashboard && padCount(dashboard.queue.unassigned),
+								},
+								{
+									label: "Prazo até 3 dias",
+									value: dashboard && padCount(dashboard.queue.dueIn3Days),
+								},
+								{
+									label: "Atrasados",
+									value: dashboard && padCount(dashboard.queue.overdue),
+								},
+							]}
+						/>
+					}
+					main={
+						<>
+							<IndicatorList
+								title="Carga por Analista"
+								caption="Em análise"
+								items={dashboard?.queue.byReviewer.map(
+									({ id, name, active, underReview }) => ({
+										key: id,
+										label: active ? name : `${name} (Inativo)`,
+										value: `${padCount(underReview)} ${plural(underReview)}`,
+									}),
+								)}
+								emptyMessage="Nenhum analista cadastrado."
+							/>
+							<IndicatorList
+								title="Usuários"
+								items={
+									dashboard && [
+										{
+											key: "users",
+											label: usersLink(`${userRolePluralLabels.user} ativos`, {
+												role: "user",
+												status: "active",
+											}),
+											value: padCount(dashboard.users.activeByRole.user ?? 0),
+										},
+										{
+											key: "reviewers",
+											label: usersLink(
+												`${userRolePluralLabels.reviewer} ativos`,
+												{ role: "reviewer", status: "active" },
+											),
+											value: padCount(
+												dashboard.users.activeByRole.reviewer ?? 0,
+											),
+										},
+										{
+											key: "admins",
+											label: usersLink(`${userRolePluralLabels.admin} ativos`, {
+												role: "admin",
+												status: "active",
+											}),
+											value: padCount(dashboard.users.activeByRole.admin ?? 0),
+										},
+										{
+											key: "inactive",
+											label: usersLink("Contas inativas", {
+												status: "inactive",
+											}),
+											value: padCount(dashboard.users.inactive),
+										},
+									]
+								}
+								emptyMessage="Nenhum usuário cadastrado."
+							/>
+							<ReviewPeriodIndicators period={period} />
+						</>
+					}
+					aside={<AdminActionList dashboard={dashboard} />}
+				/>
+			)}
 		</PageLayout>
 	);
 };

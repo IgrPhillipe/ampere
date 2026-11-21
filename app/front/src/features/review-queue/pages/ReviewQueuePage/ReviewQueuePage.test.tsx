@@ -1,12 +1,6 @@
 import type { ReviewQueueItem } from "@services/review-queue";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-	fireEvent,
-	render,
-	screen,
-	waitFor,
-	within,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -47,6 +41,8 @@ const itemOf = (id: string, reviewerName: string | null = null) =>
 		id,
 		name: `Projeto ${id}`,
 		protocol: `2026-000${id}`,
+		status: "UNDER_REVIEW",
+		reviewedAt: null,
 		municipality: "Caruaru",
 		state: "PE",
 		submittedAt: "2026-09-08T12:00:00Z",
@@ -116,31 +112,13 @@ const renderPage = (searchParams = "", onUrlUpdate = vi.fn()) =>
 		</QueryClientProvider>,
 	);
 
-const select = (protocol: string) =>
-	fireEvent.click(
-		screen.getByRole("checkbox", { name: `Selecionar o projeto ${protocol}` }),
-	);
-
-const assignTo = async (name: string) => {
-	fireEvent.click(screen.getByRole("button", { name: "Atribuir Analista" }));
-	const dialog = await screen.findByRole("dialog");
-	fireEvent.click(within(dialog).getByRole("combobox", { name: "Analista" }));
-	const option = await screen.findByRole("option", { name });
-	fireEvent.pointerDown(option);
-	fireEvent.click(option);
-	await waitFor(() => expect(screen.queryAllByRole("option")).toHaveLength(0));
-	fireEvent.click(within(dialog).getByRole("button", { name: "Atribuir" }));
-
-	return dialog;
-};
-
-describe("ReviewQueuePage batch assignment", () => {
+describe("ReviewQueuePage roles", () => {
 	beforeEach(() => {
 		mockAssign.mockReset();
 		mockNavigate.mockReset();
 	});
 
-	it("keeps the selection away from the analyst", () => {
+	it("offers no batch selection", () => {
 		signInAs("reviewer", { id: "7" });
 		renderPage();
 
@@ -152,131 +130,19 @@ describe("ReviewQueuePage batch assignment", () => {
 		expect(screen.getByRole("button", { name: "Exportar CSV" })).toBeEnabled();
 	});
 
-	it("leaves the reviewer filter and column to the manager", () => {
+	it("shows the analyst's projects, pending and decided, without the analyst column", () => {
 		signInAs("reviewer", { id: "7" });
-		const { unmount } = renderPage();
+		renderPage();
 
-		expect(
-			screen.getByText("Acompanhe e priorize os projetos atribuídos a você."),
-		).toBeInTheDocument();
-		expect(screen.getByText("Meus projetos")).toBeInTheDocument();
+		expect(screen.getByText(/os que você já decidiu/)).toBeInTheDocument();
+		expect(screen.getByText("Em análise")).toBeInTheDocument();
+		expect(screen.getByText("Aprovados")).toBeInTheDocument();
+		expect(screen.getByText("Reprovados")).toBeInTheDocument();
 		expect(
 			screen.queryByRole("button", { name: /^Analista/ }),
 		).not.toBeInTheDocument();
 		expect(
 			screen.queryByRole("columnheader", { name: "Analista Responsável" }),
-		).not.toBeInTheDocument();
-		unmount();
-
-		signInAs("admin", { id: "1" });
-		renderPage();
-
-		expect(screen.getByText("Todos na fila")).toBeInTheDocument();
-		expect(
-			screen.getByRole("columnheader", { name: "Analista Responsável" }),
-		).toBeInTheDocument();
-	});
-
-	it("lets the manager filter by a deactivated analyst without assigning them", async () => {
-		signInAs("admin", { id: "1" });
-		renderPage();
-
-		fireEvent.click(screen.getByRole("button", { name: "Analista: Todos" }));
-		expect(
-			await screen.findByRole("menuitemradio", {
-				name: "Davi Analista (Inativo)",
-			}),
-		).toBeInTheDocument();
-		fireEvent.keyDown(document.activeElement ?? document.body, {
-			key: "Escape",
-		});
-
-		select("2026-0001");
-		fireEvent.click(screen.getByRole("button", { name: "Atribuir Analista" }));
-		const dialog = await screen.findByRole("dialog");
-		fireEvent.click(within(dialog).getByRole("combobox", { name: "Analista" }));
-		await screen.findByRole("option", { name: "Ana Analista" });
-		expect(
-			screen.queryByRole("option", { name: /Davi Analista/ }),
-		).not.toBeInTheDocument();
-	});
-
-	it("drops the analyst filter once that analyst leaves the list", async () => {
-		signInAs("admin", { id: "1" });
-		const onUrlUpdate = vi.fn();
-		renderPage("?reviewer=99", onUrlUpdate);
-
-		await waitFor(() =>
-			expect(
-				onUrlUpdate.mock.lastCall?.[0]?.searchParams.get("reviewer"),
-			).toBeNull(),
-		);
-	});
-
-	it("keeps the filter on a deactivated analyst still in the list", () => {
-		signInAs("admin", { id: "1" });
-		const onUrlUpdate = vi.fn();
-		renderPage("?reviewer=9", onUrlUpdate);
-
-		expect(onUrlUpdate).not.toHaveBeenCalled();
-		expect(
-			screen.getByRole("button", { name: "Analista: Davi Analista (Inativo)" }),
-		).toBeInTheDocument();
-	});
-
-	it("assigns the selected projects and clears the selection", async () => {
-		signInAs("admin", { id: "1" });
-		mockAssign.mockImplementation((_payload, options) => options.onSuccess());
-		renderPage();
-
-		expect(
-			screen.queryByRole("button", { name: "Atribuir Analista" }),
-		).not.toBeInTheDocument();
-		select("2026-0001");
-		select("2026-0003");
-		expect(screen.getByText("2 projetos selecionados")).toBeInTheDocument();
-
-		await assignTo("Bruno Analista");
-
-		expect(mockAssign).toHaveBeenCalledWith(
-			{ projectIds: ["1", "3"], reviewerId: "8" },
-			expect.anything(),
-		);
-		await waitFor(() =>
-			expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
-		);
-		expect(screen.queryByText(/selecionados?$/)).not.toBeInTheDocument();
-	});
-
-	it("keeps the dialog and the selection when the API refuses", async () => {
-		signInAs("admin", { id: "1" });
-		// The hook toasts the refusal; the page only must not move on.
-		mockAssign.mockImplementation((_payload, options) =>
-			options.onError?.(new Error("Analista inativo.")),
-		);
-		renderPage();
-
-		select("2026-0001");
-		select("2026-0002");
-		const dialog = await assignTo("Ana Analista");
-
-		expect(mockAssign).toHaveBeenCalledOnce();
-		expect(dialog).toBeInTheDocument();
-		expect(screen.getByText("2 projetos selecionados")).toBeInTheDocument();
-	});
-
-	it("drops the selection with Limpar Seleção", () => {
-		signInAs("admin", { id: "1" });
-		renderPage();
-
-		select("2026-0002");
-		fireEvent.click(screen.getByRole("button", { name: "Limpar Seleção" }));
-
-		expect(
-			screen.getByRole("checkbox", { name: "Selecionar o projeto 2026-0002" }),
-		).toHaveAttribute("aria-checked", "false");
-		expect(
-			screen.queryByRole("button", { name: "Atribuir Analista" }),
 		).not.toBeInTheDocument();
 	});
 });

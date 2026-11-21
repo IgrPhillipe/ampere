@@ -73,4 +73,28 @@ public interface ProjectVersionRepository extends JpaRepository<ProjectVersion, 
       WHERE version.memorialSha256 = :sha256
       """)
   Optional<ProjectVersion> findByMemorialSha256(@Param("sha256") String sha256);
+
+  /**
+   * Pre-validation warnings of each submitted version's calculation; versions without one omitted.
+   */
+  @Query(
+      """
+      SELECT version.project.id AS projectId, version.number AS number, COUNT(item) AS warnings
+      FROM ProjectVersion version
+      JOIN version.calculation calculation
+      JOIN calculation.checks item
+      WHERE version.project.id IN :projectIds
+        AND item.status = br.com.ampere.domain.CheckStatus.WARNING
+      GROUP BY version.project.id, version.number
+      """)
+  List<VersionWarnings> countWarnings(@Param("projectIds") Collection<Long> projectIds);
+
+  interface VersionWarnings {
+
+    Long getProjectId();
+
+    int getNumber();
+
+    long getWarnings();
+  }
 }

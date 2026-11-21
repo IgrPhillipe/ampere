@@ -124,7 +124,7 @@ describe("ProjectWorkspace", () => {
 		expect(screen.queryByRole("tab")).not.toBeInTheDocument();
 	});
 
-	it("sends the analyst back to the queue from a project out of reach", async () => {
+	it("sends the analyst back to their projects from a project out of reach", async () => {
 		signInAs("reviewer");
 		state.project = undefined;
 		state.projectError = true;
@@ -139,9 +139,9 @@ describe("ProjectWorkspace", () => {
 			screen.queryByRole("button", { name: "Tentar Novamente" }),
 		).not.toBeInTheDocument();
 		fireEvent.click(
-			screen.getByRole("button", { name: "Voltar para Fila de Análise" }),
+			screen.getByRole("button", { name: "Voltar para Projetos" }),
 		);
-		expect(state.navigate).toHaveBeenCalledWith({ to: "/fila-de-analise" });
+		expect(state.navigate).toHaveBeenCalledWith({ to: "/projetos" });
 	});
 
 	it("tells the designer the project is not theirs", async () => {

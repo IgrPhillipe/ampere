@@ -3,17 +3,12 @@ import { filenameOf, http } from "@lib/http";
 
 import { ReviewQueueEndpoints as e } from "./endpoints";
 import {
-	myReviewListResponseSchema,
 	queueOwnerListResponseSchema,
 	reviewerListResponseSchema,
 	reviewQueueIndicatorsResponseSchema,
 	reviewQueueListResponseSchema,
 } from "./schemas";
-import type {
-	ListMyReviewsParams,
-	ListQueueOwnersParams,
-	ListReviewQueueParams,
-} from "./types";
+import type { ListQueueOwnersParams, ListReviewQueueParams } from "./types";
 
 export const getReviewQueue = async (params: ListReviewQueueParams = {}) => {
 	const response = await http
@@ -57,12 +52,4 @@ export const getQueueOwnerList = async (params: ListQueueOwnersParams = {}) => {
 		.json<unknown>();
 
 	return queueOwnerListResponseSchema.parse(response);
-};
-
-export const getMyReviews = async (params: ListMyReviewsParams = {}) => {
-	const response = await http
-		.get(e.mine, { searchParams: toSearchParams({ ...params }) })
-		.json<unknown>();
-
-	return myReviewListResponseSchema.parse(response);
 };

@@ -23,6 +23,7 @@ import {
 	ProjectFilterControls,
 	ProjectStatusFilters,
 	ProjectsTable,
+	useReviewerFilterLabel,
 } from "../../components";
 import { getProjectsPageTitle } from "../../constants";
 import {
@@ -84,6 +85,9 @@ export const ProjectsPage = () => {
 
 	const projects = projectsQuery.data?.data ?? [];
 	const ownerName = useSelectedOwnerName(filters.owner, projects);
+	const reviewerName = useReviewerFilterLabel(
+		isAdmin ? filters.reviewer : null,
+	);
 	const counts = statusCountsQuery.data?.data ?? emptyStatusCounts;
 	const pagination = projectsQuery.data?.pagination;
 	const hasError = projectsQuery.isError || statusCountsQuery.isError;
@@ -155,6 +159,8 @@ export const ProjectsPage = () => {
 							owner={filters.owner}
 							ownerName={ownerName}
 							onOwnerChange={filters.setOwner}
+							reviewer={filters.reviewer}
+							onReviewerChange={filters.setReviewer}
 							state={filters.state}
 							onStateChange={filters.setState}
 							municipality={filters.municipality}
@@ -166,7 +172,11 @@ export const ProjectsPage = () => {
 						/>
 					}
 					activeFilters={
-						<ProjectActiveFilters filters={filters} ownerName={ownerName} />
+						<ProjectActiveFilters
+							filters={filters}
+							ownerName={ownerName}
+							reviewerName={reviewerName}
+						/>
 					}
 				/>
 

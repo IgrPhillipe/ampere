@@ -69,15 +69,15 @@ describe("NotificationsMenu", () => {
 		]);
 	});
 
-	it("shows the unread count on the bell", () => {
+	it("shows the unread count as a badge on the bell", () => {
 		render(<NotificationsMenu />);
 
 		const bell = screen.getByRole("button", {
 			name: "Notificações, 1 não lida",
 		});
-		const count = within(bell).getByText("01");
-		expect(count).toHaveClass("font-mono", "text-foreground");
-		expect(count).not.toHaveClass("bg-attention");
+		const badge = within(bell).getByText("1");
+		expect(badge).toHaveClass("absolute", "rounded-full", "bg-destructive");
+		expect(badge).toHaveAttribute("aria-hidden", "true");
 	});
 
 	it("drops the count when nothing is unread", () => {

@@ -21,31 +21,15 @@ export interface NavGroup {
 	roles: readonly UserRole[];
 }
 
-/** The admin's analysis areas: flat, they would not fit the header from 1024 px. */
-const ANALYSIS_GROUP: NavGroup = { label: "Análise", roles: ["admin"] };
-
 export const APP_NAV_ITEMS: NavItem[] = [
 	{ to: "/painel", label: "Painel", roles: ROLE_ACCESS.dashboard },
 	{ to: "/projetos", label: "Meus Projetos", exact: true, roles: ["user"] },
 	{ to: "/projetos/novo", label: "Novo Projeto", exact: true, roles: ["user"] },
-	{ to: "/projetos", label: "Projetos", exact: true, roles: ["admin"] },
 	{
-		to: "/fila-de-analise",
-		label: "Fila de Análise",
-		roles: ROLE_ACCESS.reviewQueue,
-		group: ANALYSIS_GROUP,
-	},
-	{
-		to: "/indicadores",
-		label: "Indicadores",
-		roles: ROLE_ACCESS.reviewIndicators,
-		group: ANALYSIS_GROUP,
-	},
-	{
-		to: "/meus-pareceres",
-		label: "Meus Pareceres",
-		roles: ROLE_ACCESS.myReviews,
-		group: ANALYSIS_GROUP,
+		to: "/projetos",
+		label: "Projetos",
+		exact: true,
+		roles: ["reviewer", "admin"],
 	},
 	{
 		to: "/tabelas-normativas",

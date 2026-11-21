@@ -31,17 +31,17 @@ const setup = () => {
 describe("useAssignReviewQueue", () => {
 	beforeEach(() => vi.clearAllMocks());
 
-	it("refreshes the queue, the assigned projects and the dashboard", async () => {
+	it("refreshes the queue, the projects and the dashboard", async () => {
 		vi.mocked(assignReviewQueue).mockResolvedValue(undefined);
 		const { queryClient, wrapper } = setup();
 		const queueKey = reviewQueueKeys.list({ page: 1 });
 		const dashboardKey = dashboardKeys.admin();
 		queryClient.setQueryData(dashboardKey, { data: {} });
 		const detailKey = projectKeys.detail("12");
-		const otherKey = projectKeys.detail("99");
+		const listKey = projectKeys.lists();
 		queryClient.setQueryData(queueKey, { data: [] });
 		queryClient.setQueryData(detailKey, { data: { id: "12" } });
-		queryClient.setQueryData(otherKey, { data: { id: "99" } });
+		queryClient.setQueryData(listKey, { data: [] });
 
 		const { result } = renderHook(() => useAssignReviewQueue(), { wrapper });
 		act(() =>
@@ -55,7 +55,8 @@ describe("useAssignReviewQueue", () => {
 		);
 		expect(queryClient.getQueryState(queueKey)?.isInvalidated).toBe(true);
 		expect(queryClient.getQueryState(detailKey)?.isInvalidated).toBe(true);
-		expect(queryClient.getQueryState(otherKey)?.isInvalidated).toBe(false);
+		// The listing shows the analyst, so it refreshes too.
+		expect(queryClient.getQueryState(listKey)?.isInvalidated).toBe(true);
 		expect(queryClient.getQueryState(dashboardKey)?.isInvalidated).toBe(true);
 		expect(toast.success).toHaveBeenCalledWith("2 projetos atribuídos.");
 	});

@@ -26,6 +26,8 @@ export interface ListProjectsParams {
 	createdTo?: string;
 	findings?: ProjectFindingsFilter[];
 	owner?: string;
+	/** An analyst's id, or `none` for the projects without one. */
+	reviewer?: string;
 }
 
 export interface ListOwnersParams {
@@ -48,4 +50,6 @@ export interface CreateProjectPayload {
 	entranceStandard: EntranceStandard;
 	/** Read only when the administrator creates the project. */
 	ownerId?: string;
+	/** The analyst who gets the project on submission; read only when the administrator creates. */
+	reviewerId?: string;
 }

@@ -1,16 +1,10 @@
-import type {
-	ListMyReviewsParams,
-	ListQueueOwnersParams,
-	ListReviewQueueParams,
-} from "./types";
+import type { ListQueueOwnersParams, ListReviewQueueParams } from "./types";
 
 export const reviewQueueKeys = {
 	all: () => ["review-queue"] as const,
 	lists: () => [...reviewQueueKeys.all(), "list"] as const,
 	list: (params: ListReviewQueueParams = {}) =>
 		[...reviewQueueKeys.lists(), params] as const,
-	mine: (params: ListMyReviewsParams = {}) =>
-		[...reviewQueueKeys.all(), "mine", params] as const,
 	indicators: () => [...reviewQueueKeys.all(), "indicators"] as const,
 	reviewers: () => [...reviewQueueKeys.all(), "reviewers"] as const,
 	owners: () => [...reviewQueueKeys.all(), "owners"] as const,

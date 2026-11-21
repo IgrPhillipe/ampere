@@ -2,7 +2,7 @@ import { FilterTiles } from "@components/FilterTiles";
 import { ListToolbar } from "@components/ListToolbar";
 import { SearchInput } from "@components/SearchInput";
 import { SortMenu, type SortOption } from "@components/SortMenu";
-import { formatPercent, type ListSort, padCount } from "@features/shared";
+import type { ListSort } from "@features/shared";
 import type {
 	ReviewQueueFilter,
 	ReviewQueueIndicators,
@@ -21,8 +21,6 @@ const sortOptions: SortOption<ReviewQueueSort>[] = [
 
 interface ReviewQueueToolbarProps {
 	indicators?: ReviewQueueIndicators;
-	/** The analyst's queue: the counts cover only the projects assigned to them. */
-	ownQueue?: boolean;
 	filter: ReviewQueueFilter;
 	onFilterChange: (filter: ReviewQueueFilter) => void;
 	search: string;
@@ -37,7 +35,6 @@ interface ReviewQueueToolbarProps {
 
 export const ReviewQueueToolbar = ({
 	indicators,
-	ownQueue = false,
 	filter,
 	onFilterChange,
 	search,
@@ -53,11 +50,11 @@ export const ReviewQueueToolbar = ({
 		className={className}
 		filters={
 			<FilterTiles
-				label="Filtrar fila de análise"
+				label="Filtrar projetos"
 				tiles={[
 					{
 						value: "ALL",
-						label: ownQueue ? "Meus projetos" : "Todos na fila",
+						label: "Em análise",
 						count: indicators?.total ?? 0,
 					},
 					{
@@ -75,16 +72,15 @@ export const ReviewQueueToolbar = ({
 						label: "Reanálise",
 						count: indicators?.reanalysis ?? 0,
 					},
-				]}
-				stats={[
 					{
-						label: "Analisados hoje",
-						value: indicators && padCount(indicators.reviewedToday),
+						value: "APPROVED",
+						label: "Aprovados",
+						count: indicators?.approved ?? 0,
 					},
 					{
-						label: "Reprovados no mês",
-						value:
-							indicators && formatPercent(indicators.monthlyRejectionPercent),
+						value: "REJECTED",
+						label: "Reprovados",
+						count: indicators?.rejected ?? 0,
 					},
 				]}
 				value={filter}
@@ -96,7 +92,7 @@ export const ReviewQueueToolbar = ({
 				value={search}
 				onValueChange={onSearchChange}
 				placeholder="Protocolo, projetista ou município"
-				label="Buscar na fila de análise"
+				label="Buscar projetos"
 			/>
 		}
 		sort={

@@ -42,4 +42,11 @@ public record ProjectRequest(
                     + " e na edição",
             type = "string",
             example = "5")
-        Long ownerId) {}
+        Long ownerId,
+    @Schema(
+            description =
+                "Analista que recebe o projeto no envio. Opcional, só o admin informa, na criação;"
+                    + " ignorado para o projetista e na edição",
+            type = "string",
+            example = "7")
+        Long reviewerId) {}

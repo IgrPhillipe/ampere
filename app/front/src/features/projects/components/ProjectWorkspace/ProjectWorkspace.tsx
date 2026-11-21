@@ -12,6 +12,7 @@ import {
 import { getHttpStatus } from "@lib/api-error";
 import { cn } from "@lib/utils";
 import { useDeleteProject } from "@services/projects";
+import { useAssignReviewQueue } from "@services/review-assignment";
 import { useSubmitProject } from "@services/submission";
 import { Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, CircleAlert, Lock } from "lucide-react";
@@ -23,6 +24,7 @@ import {
 	useProjectDetailActions,
 	useProjectWorkspace,
 } from "../../hooks";
+import { AssignReviewerDialog } from "../AssignReviewerDialog";
 import { ChangeSummaryNotice } from "../ChangeSummaryNotice";
 import { ProjectDeleteDialog } from "../ProjectDeleteDialog";
 import { ProjectDetailFooter } from "../ProjectDetailFooter";
@@ -56,7 +58,7 @@ const STEPS_WITH_FOOTER: ProjectSectionKey[] = [
 
 const notFoundDescriptions: Record<UserRole, string> = {
 	reviewer:
-		"O projeto não existe ou não está atribuído a você. Os projetos que o gestor atribuir a você ficam na fila de análise.",
+		"O projeto não existe ou não está atribuído a você. Os projetos que o gestor atribuir a você ficam em Projetos.",
 	user: "O projeto não existe ou não pertence a você.",
 	admin: "O projeto não existe ou foi excluído.",
 };
@@ -105,17 +107,17 @@ export const ProjectWorkspace = ({
 		onDeleted: () => navigate({ to: "/projetos", replace: true }),
 	});
 	const [deleting, setDeleting] = useState(false);
+	const [assigning, setAssigning] = useState(false);
+	const assignMutation = useAssignReviewQueue();
 	const detailActions = useProjectDetailActions({
 		status: project?.status,
 		ownerId: project?.ownerId,
 	});
 
-	// The analyst has no project listing: a project they cannot open sends them back to the queue.
-	const root =
-		breadcrumbRoot ??
-		(role === "reviewer"
-			? { label: "Fila de Análise", to: "/fila-de-analise" }
-			: { label: getProjectsPageTitle(role), to: "/projetos" });
+	const root = breadcrumbRoot ?? {
+		label: getProjectsPageTitle(role),
+		to: "/projetos",
+	};
 	const reanalysis =
 		project?.status === "UNDER_REVIEW" && project.reviewCycle > 1;
 	const sections: Partial<Record<ProjectSectionKey, ProjectSectionState>> =
@@ -224,6 +226,24 @@ export const ProjectWorkspace = ({
 		</ProjectDetailFooter>
 	) : null;
 
+	// The manager picks the analyst here, on any project under review.
+	const canAssign = role === "admin" && project?.status === "UNDER_REVIEW";
+	const assignAction = canAssign ? (
+		<Button
+			type="button"
+			variant="link"
+			className="h-auto px-0"
+			onClick={() => setAssigning(true)}
+		>
+			{project.reviewerId ? "Trocar Analista" : "Atribuir Analista"}
+		</Button>
+	) : null;
+	const confirmAssignment = (reviewerId: string) =>
+		assignMutation.mutate(
+			{ projectIds: [projectId], reviewerId },
+			{ onSuccess: () => setAssigning(false) },
+		);
+
 	const designerActions =
 		deleteAction || submitAction ? (
 			<>
@@ -304,7 +324,18 @@ export const ProjectWorkspace = ({
 						reviewing={reviewing}
 						correcting={detailActions.resubmit}
 						metrics={reviewing ? metrics : (metrics ?? designerMetrics)}
-						actions={reviewing ? actions : (actions ?? designerActions)}
+						actions={
+							assignAction ? (
+								<>
+									{assignAction}
+									{reviewing ? actions : (actions ?? designerActions)}
+								</>
+							) : reviewing ? (
+								actions
+							) : (
+								(actions ?? designerActions)
+							)
+						}
 					/>
 
 					{!reviewing && project?.status === "UNDER_REVIEW" ? (
@@ -386,6 +417,16 @@ export const ProjectWorkspace = ({
 				onOpenChange={setDeleting}
 				onConfirm={() => deleteMutation.mutate(projectId)}
 			/>
+
+			{canAssign ? (
+				<AssignReviewerDialog
+					open={assigning}
+					project={project}
+					isPending={assignMutation.isPending}
+					onOpenChange={setAssigning}
+					onConfirm={confirmAssignment}
+				/>
+			) : null}
 		</ProjectWorkspaceContext>
 	);
 };

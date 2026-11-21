@@ -1,17 +1,14 @@
 import { type ActiveFilter, ActiveFilters } from "@components/ActiveFilters";
-import {
-	type ReviewQueueFilter,
-	UNASSIGNED_REVIEWER,
-	useGetReviewerList,
-} from "@services/review-queue";
+import type { ReviewQueueFilter } from "@services/review-queue";
 
-import { UNASSIGNED_REVIEWER_LABEL } from "../../constants";
 import type { ReviewQueueFilters } from "../../hooks";
 
 const filterLabels: Record<Exclude<ReviewQueueFilter, "ALL">, string> = {
 	DUE_SOON: "Vencendo o prazo",
 	HIGH_DEMAND: "Acima de 50 kVA",
 	REANALYSIS: "Reanálise",
+	APPROVED: "Aprovados",
+	REJECTED: "Reprovados",
 };
 
 interface ReviewQueueActiveFiltersProps {
@@ -24,10 +21,7 @@ export const ReviewQueueActiveFilters = ({
 	filters,
 	ownerName,
 }: ReviewQueueActiveFiltersProps) => {
-	const reviewersQuery = useGetReviewerList({
-		enabled: filters.canFilterByReviewer,
-	});
-	const { filter, search, reviewer, owner, municipality } = filters;
+	const { filter, search, owner, municipality } = filters;
 	const active: ActiveFilter[] = [];
 
 	if (filter !== "ALL") {
@@ -43,24 +37,6 @@ export const ReviewQueueActiveFilters = ({
 			id: "search",
 			label: `Busca: ${search.trim()}`,
 			onRemove: () => filters.setSearch(""),
-		});
-	}
-
-	if (reviewer === UNASSIGNED_REVIEWER) {
-		active.push({
-			id: "reviewer",
-			label: UNASSIGNED_REVIEWER_LABEL,
-			onRemove: () => filters.setReviewer(null),
-		});
-	} else if (reviewer && !reviewersQuery.isPending) {
-		const name =
-			reviewersQuery.data?.data.find(({ id }) => id === reviewer)?.name ??
-			reviewer;
-
-		active.push({
-			id: "reviewer",
-			label: `Analista: ${name}`,
-			onRemove: () => filters.setReviewer(null),
 		});
 	}
 

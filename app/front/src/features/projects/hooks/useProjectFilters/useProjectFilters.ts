@@ -64,8 +64,18 @@ export const useProjectFilters = () => {
 			parseAsStringLiteral(projectFindingsFilterSchema.options),
 		),
 		owner: parseAsString,
+		reviewer: parseAsString,
 	});
-	const { status, search, page, state, municipality, findings, owner } = query;
+	const {
+		status,
+		search,
+		page,
+		state,
+		municipality,
+		findings,
+		owner,
+		reviewer,
+	} = query;
 	// The URL follows each keystroke; only the request waits, so no update fires after leaving the list.
 	const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -98,6 +108,7 @@ export const useProjectFilters = () => {
 			createdTo: period.to ?? undefined,
 			findings: findings.length ? findings : undefined,
 			owner: owner ?? undefined,
+			reviewer: reviewer ?? undefined,
 		}),
 		[
 			page,
@@ -109,6 +120,7 @@ export const useProjectFilters = () => {
 			period,
 			findings,
 			owner,
+			reviewer,
 		],
 	);
 
@@ -204,6 +216,13 @@ export const useProjectFilters = () => {
 		[setQuery],
 	);
 
+	const setReviewer = useCallback(
+		(value: string | null) => {
+			void setQuery({ reviewer: value, page: null });
+		},
+		[setQuery],
+	);
+
 	const clearFilters = useCallback(() => {
 		void setQuery({
 			status: null,
@@ -214,6 +233,7 @@ export const useProjectFilters = () => {
 			createdTo: null,
 			findings: null,
 			owner: null,
+			reviewer: null,
 			page: null,
 		});
 	}, [setQuery]);
@@ -228,6 +248,7 @@ export const useProjectFilters = () => {
 		period,
 		findings,
 		owner,
+		reviewer,
 		params,
 		// An empty list under an active filter asks for "Limpar Filtros"; without one, it does not.
 		hasActiveFilters:
@@ -238,7 +259,8 @@ export const useProjectFilters = () => {
 			period.from !== null ||
 			period.to !== null ||
 			findings.length > 0 ||
-			owner !== null,
+			owner !== null ||
+			reviewer !== null,
 		setStatus,
 		setSearch,
 		setPage,
@@ -249,6 +271,7 @@ export const useProjectFilters = () => {
 		setPeriod,
 		setFindings,
 		setOwner,
+		setReviewer,
 		clearFilters,
 	};
 };

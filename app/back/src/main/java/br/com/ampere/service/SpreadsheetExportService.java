@@ -36,6 +36,7 @@ public class SpreadsheetExportService {
           "Município",
           "UF",
           "Projetista",
+          "Analista",
           "Situação",
           "Pendências",
           "UCs",
@@ -107,6 +108,7 @@ public class SpreadsheetExportService {
               text(project.getMunicipality()),
               text(project.getState()),
               text(ownerName(project)),
+              reviewerName(project),
               project.getStatus().label(),
               BrazilianNumberFormat.format(listing.pendingCountFor(project)),
               BrazilianNumberFormat.format(listing.unitCountFor(project)),
@@ -132,10 +134,15 @@ public class SpreadsheetExportService {
               text(project.getMunicipality()),
               text(project.getState()),
               text(ownerName(project)),
-              project.getReviewer() == null ? NO_REVIEWER : text(project.getReviewer().getName()),
-              entry.deadlineStatus().label(),
-              BrazilianDateFormat.date(entry.deadline()),
-              BrazilianNumberFormat.format(entry.daysRemaining()),
+              reviewerName(project),
+              // A decided project has no deadline: the decision takes the status column.
+              entry.deadlineStatus() == null
+                  ? project.getStatus().label()
+                  : entry.deadlineStatus().label(),
+              entry.deadline() == null ? "" : BrazilianDateFormat.date(entry.deadline()),
+              entry.daysRemaining() == null
+                  ? ""
+                  : BrazilianNumberFormat.format(entry.daysRemaining()),
               dateTime(project.getSubmittedAt()),
               BrazilianNumberFormat.format(project.getReviewCycle()),
               project.isReanalysis() ? "Sim" : "Não",
@@ -160,6 +167,12 @@ public class SpreadsheetExportService {
     User owner = project.getOwner();
 
     return owner == null ? null : owner.getName();
+  }
+
+  private static String reviewerName(Project project) {
+    User reviewer = project.getReviewer();
+
+    return reviewer == null ? NO_REVIEWER : text(reviewer.getName());
   }
 
   private static String text(Object value) {

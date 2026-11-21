@@ -1,4 +1,3 @@
-import { FilterMenu } from "@components/FilterMenu";
 import { InfiniteFilterMenu } from "@components/InfiniteFilterMenu";
 import { MultiFilterMenu } from "@components/MultiFilterMenu";
 import { SearchableFilterMenu } from "@components/SearchableFilterMenu";
@@ -8,14 +7,8 @@ import {
 	concessionMunicipalityNames,
 	concessionStateNames,
 } from "@services/locations";
-import {
-	UNASSIGNED_REVIEWER,
-	useGetQueueOwnerInfiniteList,
-	useGetReviewerList,
-} from "@services/review-queue";
+import { useGetQueueOwnerInfiniteList } from "@services/review-queue";
 import { useState } from "react";
-
-import { UNASSIGNED_REVIEWER_LABEL } from "../../constants";
 
 const stateOptions = CONCESSION_STATES.map((value) => ({
 	value,
@@ -23,10 +16,6 @@ const stateOptions = CONCESSION_STATES.map((value) => ({
 }));
 
 interface ReviewQueueFilterControlsProps {
-	/** The manager's filter: the analyst only sees their own projects. */
-	showReviewer?: boolean;
-	reviewer: string | null;
-	onReviewerChange: (reviewer: string | null) => void;
 	owner: string | null;
 	/** The selected designer's name, which may not be among the loaded owners. */
 	ownerName?: string;
@@ -38,9 +27,6 @@ interface ReviewQueueFilterControlsProps {
 }
 
 export const ReviewQueueFilterControls = ({
-	showReviewer = true,
-	reviewer,
-	onReviewerChange,
 	owner,
 	ownerName,
 	onOwnerChange,
@@ -49,33 +35,14 @@ export const ReviewQueueFilterControls = ({
 	municipality,
 	onMunicipalityChange,
 }: ReviewQueueFilterControlsProps) => {
-	const reviewersQuery = useGetReviewerList({ enabled: showReviewer });
 	const [ownerSearch, setOwnerSearch] = useState("");
 	const ownersQuery = useGetQueueOwnerInfiniteList({ search: ownerSearch });
 	const owners = (ownersQuery.data?.pages ?? [])
 		.flatMap(({ data }) => data)
 		.map(({ id, name }) => ({ value: id, label: name }));
 
-	const reviewers = [
-		{ value: UNASSIGNED_REVIEWER, label: UNASSIGNED_REVIEWER_LABEL },
-		...(reviewersQuery.data?.data ?? []).map(({ id, name, active }) => ({
-			value: id,
-			label: active ? name : `${name} (Inativo)`,
-		})),
-	];
-
 	return (
 		<>
-			{showReviewer ? (
-				<FilterMenu
-					label="Analista"
-					allLabel="Todos"
-					options={reviewers}
-					value={reviewer}
-					onValueChange={onReviewerChange}
-					disabled={reviewersQuery.isPending}
-				/>
-			) : null}
 			<InfiniteFilterMenu
 				label="Projetista"
 				allLabel="Todos"

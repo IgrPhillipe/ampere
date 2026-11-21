@@ -30,6 +30,10 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
 
   long countByStatusAndSubmittedAtIsNotNull(ProjectStatus status);
 
+  long countByStatusIn(Collection<ProjectStatus> statuses);
+
+  long countByReviewerIdAndStatusIn(Long reviewerId, Collection<ProjectStatus> statuses);
+
   long countByReviewedAtGreaterThanEqual(OffsetDateTime since);
 
   long countByStatusAndReviewedAtGreaterThanEqual(ProjectStatus status, OffsetDateTime since);
@@ -77,6 +81,9 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
   Optional<Project> lockById(@Param("id") Long id);
 
   List<Project> findAllByOwnerIsNull();
+
+  @EntityGraph(attributePaths = "buildingType")
+  List<Project> findAllByIdIn(Collection<Long> ids);
 
   @Modifying
   @Query(

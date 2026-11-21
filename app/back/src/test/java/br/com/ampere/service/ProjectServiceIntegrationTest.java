@@ -48,6 +48,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
+import org.hibernate.Hibernate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -243,6 +244,7 @@ class ProjectServiceIntegrationTest {
                 null,
                 ProjectSort.NAME,
                 SortDirection.ASC,
+                null,
                 null,
                 null,
                 null,
@@ -444,6 +446,7 @@ class ProjectServiceIntegrationTest {
             null,
             null,
             null,
+            null,
             null);
 
     assertThat(list(inParaiba).projects()).containsExactly(pedras);
@@ -487,6 +490,7 @@ class ProjectServiceIntegrationTest {
                     null,
                     null,
                     Set.of(OpenFindingsFilter.BLOCKING_OPEN, OpenFindingsFilter.NONE_OPEN),
+                    null,
                     null))
                 .projects())
         .containsExactlyInAnyOrder(blocked, drafted, resolved, clean, reserved);
@@ -506,6 +510,7 @@ class ProjectServiceIntegrationTest {
             SortDirection.DESC,
             null,
             Set.of("recife", " Olinda "),
+            null,
             null,
             null,
             null,
@@ -536,6 +541,7 @@ class ProjectServiceIntegrationTest {
                 null,
                 null,
                 Set.of(OpenFindingsFilter.BLOCKING_OPEN),
+                null,
                 null));
 
     assertThat(listing.projects()).containsExactly(alpha, zeta);
@@ -543,10 +549,67 @@ class ProjectServiceIntegrationTest {
   }
 
   @Test
+  void filtersTheAdministratorListingByAnalystOrWithoutOne() {
+    User analyst =
+        userRepository.save(new User("Ana Analista", "ana@ampere.com", "hash", UserRole.REVIEWER));
+    Project assigned = save("Alpha", "Recife", "2026-0101");
+    assigned.assignReviewer(analyst);
+    projectRepository.save(assigned);
+    Project waiting = save("Beta", "Recife", "2026-0102");
+    AuthenticatedUser admin = admin();
+
+    assertThat(adminList(String.valueOf(analyst.getId()), admin).projects())
+        .containsExactly(assigned);
+    assertThat(adminList(" NONE ", admin).projects()).containsExactly(waiting);
+    assertThat(adminList(null, admin).projects()).containsExactly(assigned, waiting);
+  }
+
+  @Test
+  void bringsTheAnalystWithThePage() {
+    User analyst =
+        userRepository.save(new User("Ana Analista", "ana@ampere.com", "hash", UserRole.REVIEWER));
+    Project assigned = save("Alpha", "Recife", "2026-0101");
+    assigned.assignReviewer(analyst);
+    projectRepository.save(assigned);
+    AuthenticatedUser admin = admin();
+    entityManager.flush();
+    entityManager.clear();
+
+    Project listed = adminList(null, admin).projects().getFirst();
+
+    assertThat(Hibernate.isInitialized(listed.getReviewer())).isTrue();
+    assertThat(listed.getReviewer().getName()).isEqualTo("Ana Analista");
+  }
+
+  @Test
+  void ignoresTheAnalystFilterOutsideTheAdministratorListing() {
+    Project alpha = save("Alpha", "Recife", "2026-0101");
+    Project beta = save("Beta", "Recife", "2026-0102");
+
+    assertThat(service.list(1, 20, byReviewer("invalido"), designer).projects())
+        .containsExactly(alpha, beta);
+  }
+
+  @Test
+  void refusesAnAnalystFilterThatIsNotAnAnalyst() {
+    AuthenticatedUser admin = admin();
+
+    assertThatThrownBy(() -> adminList("invalido", admin))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("Identificador de analista inválido.");
+    assertThatThrownBy(() -> adminList(String.valueOf(owner.getId()), admin))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("O usuário informado não é um analista.");
+    assertThatThrownBy(() -> adminList("999999", admin))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("Analista informado não encontrado.");
+  }
+
+  @Test
   void createsADraftProjectWithAGeneratedProtocolAndBothStandards() {
     Project created =
         service
-            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, designer)
+            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, null, designer)
             .project();
 
     assertThat(created.getId()).isNotNull();
@@ -563,7 +626,7 @@ class ProjectServiceIntegrationTest {
   void assignsTheAuthenticatedUserAsTheOwner() {
     Project created =
         service
-            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, designer)
+            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, null, designer)
             .project();
 
     assertThat(created.getOwner().getId()).isEqualTo(owner.getId());
@@ -584,7 +647,7 @@ class ProjectServiceIntegrationTest {
             ConnectionType.THREE_PHASE,
             EntranceStandard.COLLECTIVE);
 
-    assertThatThrownBy(() -> service.create(inJoaoPessoa, null, designer))
+    assertThatThrownBy(() -> service.create(inJoaoPessoa, null, null, designer))
         .isInstanceOf(BusinessException.class)
         .hasMessageContaining("Pedras de Fogo (PB)");
   }
@@ -616,10 +679,10 @@ class ProjectServiceIntegrationTest {
             ConnectionType.THREE_PHASE,
             EntranceStandard.COLLECTIVE);
 
-    assertThatThrownBy(() -> service.create(paulistaCep, null, designer))
+    assertThatThrownBy(() -> service.create(paulistaCep, null, null, designer))
         .isInstanceOf(BusinessException.class)
         .hasMessage("O CEP não pertence à UF informada.");
-    assertThatThrownBy(() -> service.create(unknownCity, null, designer))
+    assertThatThrownBy(() -> service.create(unknownCity, null, null, designer))
         .isInstanceOf(BusinessException.class)
         .hasMessageContaining("Pedras de Fogo (PB)");
   }
@@ -639,7 +702,7 @@ class ProjectServiceIntegrationTest {
             ConnectionType.THREE_PHASE,
             EntranceStandard.COLLECTIVE);
 
-    assertThat(service.create(typed, null, designer).project().getMunicipality())
+    assertThat(service.create(typed, null, null, designer).project().getMunicipality())
         .isEqualTo("Jaboatão dos Guararapes");
   }
 
@@ -647,7 +710,7 @@ class ProjectServiceIntegrationTest {
   void storesThePostalCodeAndTheState() {
     Project created =
         service
-            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, designer)
+            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, null, designer)
             .project();
 
     assertThat(created.getPostalCode()).isEqualTo("54500000");
@@ -661,7 +724,8 @@ class ProjectServiceIntegrationTest {
 
     Project created =
         service
-            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), owner.getId(), admin)
+            .create(
+                parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), owner.getId(), null, admin)
             .project();
 
     assertThat(created.getOwner().getId()).isEqualTo(owner.getId());
@@ -680,7 +744,7 @@ class ProjectServiceIntegrationTest {
       assertThatThrownBy(
               () ->
                   service.create(
-                      parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), ownerId, admin))
+                      parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), ownerId, null, admin))
           .isInstanceOf(BusinessException.class)
           .extracting(exception -> ((BusinessException) exception).getStatus())
           .isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
@@ -692,7 +756,9 @@ class ProjectServiceIntegrationTest {
     AuthenticatedUser admin = administrator();
 
     assertThatThrownBy(
-            () -> service.create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, admin))
+            () ->
+                service.create(
+                    parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, null, admin))
         .isInstanceOf(BusinessException.class)
         .hasMessage("O projetista é obrigatório.")
         .extracting(exception -> ((BusinessException) exception).getStatus())
@@ -705,10 +771,67 @@ class ProjectServiceIntegrationTest {
 
     Project created =
         service
-            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), other, designer)
+            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), other, null, designer)
             .project();
 
     assertThat(created.getOwner().getId()).isEqualTo(owner.getId());
+  }
+
+  @Test
+  void keepsTheAnalystTheAdministratorPicksAtCreation() {
+    AuthenticatedUser admin = administrator();
+    User reviewer =
+        userRepository.save(new User("Rui Analista", "rui@ampere.com", "hash", UserRole.REVIEWER));
+
+    Project created =
+        service
+            .create(
+                parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY),
+                owner.getId(),
+                reviewer.getId(),
+                admin)
+            .project();
+
+    assertThat(created.isAssignedTo(reviewer.getId())).isTrue();
+  }
+
+  @Test
+  void rejectsAnAnalystThatIsMissingInactiveOrNotAnAnalystAtCreation() {
+    AuthenticatedUser admin = administrator();
+    User inactive = new User("Rui Inativo", "rui.inativo@ampere.com", "hash", UserRole.REVIEWER);
+    inactive.administer("Rui Inativo", UserRole.REVIEWER, false);
+    Long inactiveId = userRepository.save(inactive).getId();
+
+    for (Long reviewerId : List.of(inactiveId, owner.getId(), -1L)) {
+      assertThatThrownBy(
+              () ->
+                  service.create(
+                      parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY),
+                      owner.getId(),
+                      reviewerId,
+                      admin))
+          .isInstanceOf(BusinessException.class)
+          .hasMessage("O analista informado não existe, está inativo ou não é analista.")
+          .extracting(exception -> ((BusinessException) exception).getStatus())
+          .isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
+    }
+  }
+
+  @Test
+  void ignoresTheRequestedAnalystWhenADesignerCreates() {
+    User reviewer =
+        userRepository.save(new User("Rui Analista", "rui@ampere.com", "hash", UserRole.REVIEWER));
+
+    Project created =
+        service
+            .create(
+                parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY),
+                null,
+                reviewer.getId(),
+                designer)
+            .project();
+
+    assertThat(created.getReviewer()).isNull();
   }
 
   private AuthenticatedUser administrator() {
@@ -721,12 +844,18 @@ class ProjectServiceIntegrationTest {
   @Test
   void generatesSequentialProtocolsWithinTheYear() {
     String first =
-        service.create(parameters(BuildingCategory.MIXED), null, designer).project().getProtocol();
+        service
+            .create(parameters(BuildingCategory.MIXED), null, null, designer)
+            .project()
+            .getProtocol();
     String second =
-        service.create(parameters(BuildingCategory.MIXED), null, designer).project().getProtocol();
+        service
+            .create(parameters(BuildingCategory.MIXED), null, null, designer)
+            .project()
+            .getProtocol();
     String third =
         service
-            .create(parameters(BuildingCategory.NON_RESIDENTIAL), null, designer)
+            .create(parameters(BuildingCategory.NON_RESIDENTIAL), null, null, designer)
             .project()
             .getProtocol();
 
@@ -737,7 +866,7 @@ class ProjectServiceIntegrationTest {
   void updatesTheTechnicalParametersOfADraft() {
     Long id =
         service
-            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, designer)
+            .create(parameters(BuildingCategory.RESIDENTIAL_MULTIFAMILY), null, null, designer)
             .project()
             .getId();
 
@@ -822,7 +951,8 @@ class ProjectServiceIntegrationTest {
 
   @Test
   void deletesADraftProjectAndItsFindings() {
-    Project draft = service.create(parameters(BuildingCategory.MIXED), null, designer).project();
+    Project draft =
+        service.create(parameters(BuildingCategory.MIXED), null, null, designer).project();
     findingRepository.save(published(finding(draft)));
 
     service.delete(draft.getId(), designer);
@@ -856,6 +986,7 @@ class ProjectServiceIntegrationTest {
             null,
             null,
             null,
+            null,
             null));
   }
 
@@ -863,8 +994,35 @@ class ProjectServiceIntegrationTest {
     return service.list(1, 20, query, designer);
   }
 
+  private AuthenticatedUser admin() {
+    User admin =
+        userRepository.save(new User("Gestor", "gestor@ampere.com", "hash", UserRole.ADMIN));
+
+    return new AuthenticatedUser(admin.getId(), UserRole.ADMIN);
+  }
+
+  private ProjectListing adminList(String reviewer, AuthenticatedUser admin) {
+    return service.list(1, 20, byReviewer(reviewer), admin);
+  }
+
+  private static ProjectListQuery byReviewer(String reviewer) {
+    return new ProjectListQuery(
+        null,
+        null,
+        ProjectSort.NAME,
+        SortDirection.ASC,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        reviewer);
+  }
+
   private static ProjectListQuery sortedBy(ProjectSort sort, SortDirection direction) {
-    return new ProjectListQuery(null, null, sort, direction, null, null, null, null, null, null);
+    return new ProjectListQuery(
+        null, null, sort, direction, null, null, null, null, null, null, null);
   }
 
   private static ProjectListQuery filtered(
@@ -878,6 +1036,7 @@ class ProjectServiceIntegrationTest {
         municipality == null ? null : Set.of(municipality),
         createdFrom,
         createdTo,
+        null,
         null,
         null);
   }
@@ -893,6 +1052,7 @@ class ProjectServiceIntegrationTest {
         null,
         null,
         findings == null ? null : Set.of(findings),
+        null,
         null);
   }
 

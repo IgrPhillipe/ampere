@@ -9,6 +9,8 @@ const item: ReviewQueueItem = {
 	id: "1",
 	name: "Condomínio Vila Nova",
 	protocol: "2026-0475",
+	status: "UNDER_REVIEW",
+	reviewedAt: null,
 	municipality: "Jaboatão dos Guararapes",
 	state: "PE",
 	submittedAt: "2026-09-08T12:00:00Z",
@@ -141,7 +143,7 @@ describe("AnalyzeButton", () => {
 		expect(onAnalyze).toHaveBeenCalledWith(held);
 	});
 
-	it("keeps the reviewer in view and drops secondary columns on narrow screens", () => {
+	it("drops secondary columns on narrow screens", () => {
 		render(<ReviewQueueListing items={[item]} onAnalyze={vi.fn()} />);
 
 		expect(screen.getByRole("table")).toHaveClass(
@@ -155,7 +157,7 @@ describe("AnalyzeButton", () => {
 			);
 		}
 		expect(
-			screen.getByRole("columnheader", { name: "Analista Responsável" }),
-		).not.toHaveClass("lg:hidden");
+			screen.queryByRole("columnheader", { name: "Analista Responsável" }),
+		).not.toBeInTheDocument();
 	});
 });

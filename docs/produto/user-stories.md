@@ -651,7 +651,7 @@ No envio e em cada reenvio, o sistema grava a versão do projeto com:
 
 O memorial oficial é o do envio: o download de um projeto enviado devolve sempre o PDF gravado na versão. Enquanto o projeto está em rascunho ou em correção, o memorial sai marcado como "Prévia".
 
-O memorial da versão não é regerado: alterações feitas depois da reprovação entram apenas na versão seguinte. A aba "Histórico" ([US08](#us08-linha-do-tempo-e-histórico-do-protocolo)) lista as versões com o download do memorial de cada uma e um comparativo da demanda e dos grupos entre duas versões.
+O memorial da versão não é regerado: alterações feitas depois da reprovação entram apenas na versão seguinte. A lista de versões e o comparativo entre duas versões saíram da aba "Histórico" ([US08](#us08-linha-do-tempo-e-histórico-do-protocolo)) em 20/11. As versões continuam gravadas, e cada memorial segue verificável pelo código.
 
 **Autenticidade do memorial:**
 - O PDF leva nos metadados o título, o projetista, o protocolo, a versão e as normas aplicadas.
@@ -666,13 +666,7 @@ O memorial da versão não é regerado: alterações feitas depois da reprovaç�
 - **Então** o PDF mostra os grupos e a demanda exatamente como foram enviados
 - **E** o rodapé identifica o protocolo, a versão 1 e a data do envio.
 
-#### Cenário 2 (Positivo): Comparativo Entre Versões
-- **Dado** que o projeto tem as versões 1 e 2
-- **Quando** o analista seleciona "Comparar Versões"
-- **Então** o sistema destaca os grupos incluídos, removidos e alterados
-- **E** exibe a demanda total de cada versão.
-
-#### Cenário 3 (Negativo): Memorial Alterado Fora do Sistema
+#### Cenário 2 (Negativo): Memorial Alterado Fora do Sistema
 - **Dado** que o memorial da versão 1 foi editado depois do download
 - **Quando** o arquivo é enviado em "Verificar Autenticidade"
 - **Então** o sistema informa que o documento não corresponde a nenhuma versão registrada
@@ -681,7 +675,6 @@ O memorial da versão não é regerado: alterações feitas depois da reprovaç�
 ### Checklist de Implementação
 - [ ] Gravar a versão com memorial, cálculo e documentos a cada envio
 - [ ] Baixar o memorial de qualquer versão
-- [ ] Comparar a demanda e os grupos entre duas versões
 - [ ] Gravar o hash e os metadados do memorial e imprimir o código de verificação
 - [ ] Verificar a autenticidade do memorial pelo código ou pelo arquivo
 
@@ -825,45 +818,45 @@ Painel de indicadores da equipe de análise e histórico dos pareceres de cada a
 > **Para que** a equipe dimensione a demanda e oriente os projetistas sobre as falhas recorrentes.
 
 ### Conversação (Regras de Negócio e Interface)
-O menu do analista ganha "Indicadores" e "Meus Pareceres", previstos no protótipo H7.
+O "Painel" do analista e "Projetos" substituem a Fila de Análise, os Indicadores e Meus Pareceres do protótipo H7 (20/11). "Projetos" lista os projetos atribuídos a ele, em análise e já decididos. O Painel segue o layout dos outros painéis: na faixa, em análise, vencendo o prazo, analisados hoje e reprovação no mês; no acompanhamento, os próximos do prazo e o total por situação; em "Exige Ação", os atrasados ou que vencem hoje, com "Analisar".
 
-"Indicadores" exibe, para o período selecionado:
+O seletor de período ("Últimos 30 dias", "Últimos 90 dias" e "Ano corrente") fica no topo do Painel do analista e do gestor e vale só para os indicadores: a faixa e o "Exige Ação" mostram sempre o dia de hoje. Depois do que já está no acompanhamento, entram os indicadores do período:
+- Projetos recebidos, aprovados e reprovados no período
 - Projetos recebidos e decididos por semana
-- Tempo médio de análise e de ciclo completo até a aprovação
-- Taxa de reprovação por mês
-- Prazos cumpridos e vencidos
-- Projetos em análise por analista
 - **Apontamentos mais frequentes** por etapa e item da norma
-- Municípios com mais projetos
-- Projetos aprovados, reprovados e em análise no período
-- Projetos com mais de uma reprovação
+- Tempo médio de análise e de ciclo completo até a aprovação, com os prazos cumpridos e vencidos
+- Taxa de reprovação por mês
 - Alertas por categoria da edificação (residencial, não residencial e misto)
+- Municípios com mais projetos
+- Projetos com mais de uma reprovação
 
-"Meus Pareceres" lista os projetos decididos pelo analista logado, com a decisão, a data, o número de apontamentos e a versão, com os filtros da [US18](#us18-filtros-e-ordenação-das-listagens).
+Os projetos em análise por analista ficam só na "Carga por Analista" do gestor. Se os indicadores não carregarem, só essa parte mostra o erro com "Tentar Novamente"; o restante do Painel continua.
+
+Em "Projetos", os filtros "Aprovados" e "Reprovados" listam os projetos decididos pelo analista, com a decisão e a data, da decisão mais recente para a mais antiga, com os filtros da [US18](#us18-filtros-e-ordenação-das-listagens).
 
 **Escopo por papel** (validação com a cliente em 20/11):
 - Para o analista, os indicadores, o ranking de apontamentos e as listas contam só os projetos atribuídos a ele, como a fila ([US23](#us23-distribuição-da-fila-de-análise)). O gestor vê os números da equipe toda
 - Os projetos listados pelo ranking abrem para o analista só se estiverem atribuídos a ele
-- "Meus Pareceres" lista os projetos decididos pelo analista que continuam atribuídos a ele. O projeto reatribuído ou redistribuído depois da decisão sai da lista de quem o tinha
+- Os projetos decididos em "Projetos" são os que continuam atribuídos ao analista. O projeto reatribuído ou redistribuído depois da decisão sai da lista de quem o tinha
 
 ### Confirmação (Critérios de Aceite - BDD)
 
 #### Cenário 1 (Positivo): Consulta dos Apontamentos Mais Frequentes
-- **Dado** que o analista está em "Indicadores" com o período "Últimos 90 dias"
+- **Dado** que o analista está no "Painel" com o período "Últimos 90 dias"
 - **Quando** visualiza o ranking de apontamentos
 - **Então** o sistema lista as etapas e os itens da norma ordenados pela quantidade de apontamentos
 - **E** clicar em um item lista os projetos que receberam esse apontamento.
 
 #### Cenário 2 (Positivo): Histórico de Pareceres
 - **Dado** que o analista decidiu 12 projetos no mês
-- **Quando** abre "Meus Pareceres" e filtra por "Reprovado"
+- **Quando** abre "Projetos" e filtra por "Reprovados"
 - **Então** a lista exibe apenas os projetos que ele reprovou, com o número de apontamentos
 - **E** cada linha abre a análise do projeto em modo de consulta.
 
 ### Checklist de Implementação
-- [ ] Calcular os indicadores da equipe no período selecionado
-- [ ] Exibir o ranking dos apontamentos mais frequentes
-- [ ] Listar os pareceres do analista logado
+- [x] Calcular os indicadores da equipe no período selecionado
+- [x] Exibir o ranking dos apontamentos mais frequentes
+- [ ] Listar os projetos decididos pelo analista em "Projetos"
 
 ---
 
@@ -998,29 +991,29 @@ Projetos enviados, reprovados ou aprovados não podem ser excluídos: o protocol
 `US23` `Prioridade: Média` `Sprint 8`
 
 ### Descrição
-Distribuição dos projetos enviados entre os analistas pelo gestor, um a um ou em lote.
+Distribuição dos projetos enviados entre os analistas pelo gestor, projeto a projeto.
 
 ### User Story
 > **Como** gestor da Neoenergia (`admin`),  
-> **Quero** atribuir os projetos aos analistas, um a um ou em lote,  
+> **Quero** atribuir cada projeto a um analista,  
 > **Para que** a carga da análise fique equilibrada.
 
 ### Conversação (Regras de Negócio e Interface)
-Na fila de análise, o gestor seleciona um ou vários projetos e escolhe o analista em "Atribuir Analista". Vale para projeto sem analista e para reatribuição de projeto em análise. Na reatribuição, os apontamentos em rascunho passam para o novo analista; os publicados ficam com o autor original.
+O gestor escolhe o analista no cabeçalho do projeto em análise, em "Atribuir Analista" ou "Trocar Analista". A seleção em lote na fila saiu em 20/11. O gestor acha os projetos sem analista em "Projetos", com a situação "Em análise" e o analista "Sem analista". Na reatribuição, os apontamentos em rascunho passam para o novo analista; os publicados ficam com o autor original.
 
-No envio, o projeto fica "Não Atribuído" até o gestor atribuir. Na reanálise, o projeto volta para o analista que reprovou, se ele ainda puder analisar; senão, fica "Não Atribuído". Quando o projeto fica "Não Atribuído", os gestores ativos recebem uma notificação ([US14](#us14-notificações-no-sistema)).
+Quando o gestor cria o projeto em nome de um projetista, pode escolher o analista no campo opcional "Analista". O analista recebe o projeto no envio e não vê o rascunho antes disso. Sem essa escolha, o projeto fica "Não Atribuído" no envio até o gestor atribuir. Na reanálise, o projeto volta para o analista que reprovou, se ele ainda puder analisar; senão, fica "Não Atribuído". Quando o projeto fica "Não Atribuído", os gestores ativos recebem uma notificação ([US14](#us14-notificações-no-sistema)).
 
 A regra por município (cada município com um analista fixo) saiu em 20/11: foi proposta do time, não pedido da cliente, e o gestor é quem distribui.
 
 **Atribuição só pelo gestor** (validação com a cliente em 29/10):
-- A fila do gestor mostra a coluna "Analista Responsável", com "Não Atribuído" quando não há analista
+- "Projetos" mostra ao gestor a coluna "Analista", com "Sem analista" no projeto em análise que ninguém tem
 - O analista não assume projeto sozinho: "Analisar" aparece só para o responsável ([US07](#us07-auditoria-de-memória-e-registro-pontual-de-apontamentos))
 - O papel `admin` aparece como "Gestor" na interface
-- O filtro "Analista" também lista, como "(Inativo)", o analista desativado que ainda tem projetos em análise, para o gestor reatribuí-los. Ele não aparece em "Atribuir Analista"
+- O filtro "Analista" de "Projetos" também lista, como "(Inativo)", o analista desativado que ainda tem projetos em análise, para o gestor reatribuí-los. Ele não aparece em "Atribuir Analista"
 
 **Analista vê só os projetos atribuídos** (validação com a cliente em 20/11):
 - A fila, a exportação e o projeto ficam restritos aos projetos atribuídos ao analista, incluindo os que ele já decidiu
-- O filtro "Analista" e a coluna "Analista Responsável" são só do gestor
+- A fila é só do analista; o gestor acompanha os projetos em "Projetos" e a fila no Painel
 - Projeto sem analista ou de outro analista não abre para o analista; o reatribuído sai do alcance de quem o tinha
 - Ao abrir um projeto fora do seu alcance, o analista vê "Projeto não encontrado" e volta para a fila
 - As notificações do analista sobre o projeto que ele perdeu passam a levar à fila, na reatribuição pelo gestor e na redistribuição do reenvio
@@ -1029,15 +1022,15 @@ A regra por município (cada município com um analista fixo) saiu em 20/11: foi
 
 #### Cenário 1 (Positivo): Atribuição pelo Gestor
 - **Dado** que o projetista enviou um projeto
-- **Quando** o gestor o atribui à analista Ana na fila
+- **Quando** o gestor o atribui à analista Ana no cabeçalho do projeto
 - **Então** o projeto passa a "Em análise por" Ana
 - **E** o histórico do protocolo registra a atribuição pelo gestor.
 
 #### Cenário 2 (Negativo): Reatribuição para Analista Inativo
-- **Dado** que o gestor selecionou dois projetos na fila
-- **Quando** tenta atribuí-los a um analista desativado
+- **Dado** que o gestor abriu "Trocar Analista" num projeto em análise
+- **Quando** tenta atribuí-lo a um analista desativado
 - **Então** o sistema recusa com a mensagem *"Analista inativo."*
-- **E** os dois projetos mantêm o analista anterior.
+- **E** o projeto mantém o analista anterior.
 
 ### Checklist de Implementação
 - [ ] Atribuir e reatribuir analista em lote na fila
@@ -1051,7 +1044,7 @@ A regra por município (cada município com um analista fixo) saiu em 20/11: foi
 `US24` `Prioridade: Média` `Sprint 9`
 
 ### Descrição
-Painel inicial do administrador com o estado dos usuários, dos projetos ativos e da fila. É a entrada do suporte: acesso perdido, senha e conta desativada.
+Painel inicial do administrador com o estado dos usuários, da fila e os indicadores da análise. É a entrada do suporte: acesso perdido, senha e conta desativada.
 
 ### User Story
 > **Como** administrador da Neoenergia,  
@@ -1059,12 +1052,10 @@ Painel inicial do administrador com o estado dos usuários, dos projetos ativos 
 > **Para que** eu resolva problemas de acesso e acompanhe a operação sem depender das listagens principais.
 
 ### Conversação (Regras de Negócio e Interface)
-O item "Painel" entra no menu do administrador e passa a ser a tela inicial após o login. O painel tem três blocos:
-- **Usuários:** ativos por papel, inativos, com troca de senha pendente e sem acesso há mais de 30 dias. Cada número abre a tela "Usuários" ([US11](#us11-gestão-de-usuários)) com o filtro aplicado, onde estão "Reativar" e "Redefinir Senha"
-- **Projetos ativos:** tabela própria com os projetos em rascunho, em análise e reprovados de todos os projetistas, com busca por protocolo ou nome e filtro por projetista
-- **Fila:** projetos sem analista, prazos vencendo em até 3 dias e projetos em análise por analista ([US23](#us23-distribuição-da-fila-de-análise))
-
-A produtividade da análise (tempos médios e taxas de reprovação) fica no painel do analista ([US17](#us17-painel-do-analista)).
+O item "Painel" entra no menu do administrador e passa a ser a tela inicial após o login. Desde 21/11, os painéis dos três papéis têm o mesmo layout: a faixa verde com quatro números, uma coluna de acompanhamento e a coluna "Exige Ação". A listagem dos projetos fica em "Projetos". No painel do gestor:
+- **Faixa:** projetos em análise, sem analista, com prazo até 3 dias e atrasados
+- **Acompanhamento:** carga por analista ([US23](#us23-distribuição-da-fila-de-análise)) e os usuários ativos por papel e inativos, cada número abrindo a tela "Usuários" ([US11](#us11-gestão-de-usuários)) com o filtro aplicado. Abaixo, os indicadores da equipe no período escolhido no topo do Painel, os mesmos do analista ([US17](#us17-painel-do-analista))
+- **Exige Ação:** projetos sem analista, análises atrasadas, trocas de senha pendentes e contas sem acesso há mais de 30 dias, cada item com o atalho para a lista filtrada; o que está zerado não aparece
 
 ### Confirmação (Critérios de Aceite - BDD)
 
@@ -1083,4 +1074,4 @@ A produtividade da análise (tempos médios e taxas de reprovação) fica no pai
 ### Checklist de Implementação
 - [ ] Calcular os contadores de usuários, projetos e fila
 - [ ] Abrir a tela "Usuários" com o filtro de cada contador
-- [ ] Listar os projetos ativos de todos os projetistas
+- [ ] Mostrar os indicadores da análise da equipe

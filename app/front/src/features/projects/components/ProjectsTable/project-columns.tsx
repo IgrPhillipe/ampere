@@ -16,6 +16,7 @@ export type ProjectColumnId =
 	| "protocol"
 	| "name"
 	| "owner"
+	| "reviewer"
 	| "status"
 	| "units"
 	| "demand"
@@ -70,6 +71,22 @@ export const createProjectColumns = (
 								{row.original.ownerName ?? "Não informado"}
 							</span>
 						),
+					}),
+					columnHelper.accessor("reviewerName", {
+						id: "reviewer",
+						header: "Analista",
+						cell: ({ row }) =>
+							row.original.reviewerName ? (
+								<span className="text-sm whitespace-normal text-muted-foreground">
+									{row.original.reviewerName}
+								</span>
+							) : (
+								<span className="text-sm text-faint-foreground">
+									{row.original.status === "UNDER_REVIEW"
+										? "Sem analista"
+										: "Não se aplica"}
+								</span>
+							),
 					}),
 				]
 			: []),

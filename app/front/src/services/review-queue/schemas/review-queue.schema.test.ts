@@ -14,6 +14,8 @@ describe("review queue API contract", () => {
 					id: "42",
 					name: "Condomínio Vila Nova",
 					protocol: "2026-0475",
+					status: "UNDER_REVIEW",
+					reviewedAt: null,
 					municipality: "Jaboatão dos Guararapes",
 					state: "PE",
 					submittedAt: "2026-09-08T12:00:00Z",
@@ -42,6 +44,41 @@ describe("review queue API contract", () => {
 		expect(reviewQueueListResponseSchema.parse(response)).toEqual(response);
 	});
 
+	it("accepts a decided project with its clock stopped", () => {
+		const response = {
+			data: [
+				{
+					id: "43",
+					name: "Comercial Praça Sul",
+					protocol: "2026-1006",
+					status: "APPROVED",
+					reviewedAt: "2026-11-20T12:00:00Z",
+					municipality: "Olinda",
+					state: "PE",
+					submittedAt: "2026-11-01T12:00:00Z",
+					deadline: null,
+					deadlineStatus: null,
+					daysRemaining: null,
+					elapsedDays: null,
+					suspendedDays: null,
+					warnings: 0,
+					alerts: [],
+					ownerId: "1",
+					ownerName: "Usuário Teste",
+					consumerUnitsCount: 4,
+					demandKva: 12.5,
+					reanalysis: false,
+					reviewCycle: 1,
+					reviewerId: "7",
+					reviewerName: "Ana Analista",
+				},
+			],
+			pagination: { total: 1, page: 1, pageSize: 10 },
+		};
+
+		expect(reviewQueueListResponseSchema.parse(response)).toEqual(response);
+	});
+
 	it("accepts zeroed indicator values", () => {
 		const response = {
 			data: {
@@ -51,6 +88,8 @@ describe("review queue API contract", () => {
 				reanalysis: 0,
 				reviewedToday: 0,
 				monthlyRejectionPercent: 0,
+				approved: 0,
+				rejected: 0,
 			},
 		};
 

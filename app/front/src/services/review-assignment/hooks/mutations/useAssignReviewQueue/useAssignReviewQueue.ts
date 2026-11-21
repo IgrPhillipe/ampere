@@ -19,9 +19,8 @@ export const useAssignReviewQueue = () => {
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: reviewQueueKeys.all() }),
 				queryClient.invalidateQueries({ queryKey: dashboardKeys.all() }),
-				...projectIds.map((id) =>
-					queryClient.invalidateQueries({ queryKey: projectKeys.detail(id) }),
-				),
+				// The listing shows the analyst too, not only the detail.
+				queryClient.invalidateQueries({ queryKey: projectKeys.all() }),
 			]);
 			toast.success(
 				projectIds.length === 1
@@ -39,6 +38,7 @@ export const useAssignReviewQueue = () => {
 			if (status !== undefined && STALE_STATUSES.has(status)) {
 				void queryClient.invalidateQueries({ queryKey: reviewQueueKeys.all() });
 				void queryClient.invalidateQueries({ queryKey: dashboardKeys.all() });
+				void queryClient.invalidateQueries({ queryKey: projectKeys.all() });
 			}
 		},
 	});

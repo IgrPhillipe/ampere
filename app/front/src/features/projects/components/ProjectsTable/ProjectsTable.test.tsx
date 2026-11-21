@@ -112,8 +112,15 @@ describe("ProjectsTable", () => {
 		rerender(<ProjectsTable projects={[project]} showOwner {...actions} />);
 
 		expect(screen.getByRole("table")).toHaveClass(
-			"min-w-[80rem]",
+			"min-w-[88rem]",
 			"lg:min-w-0",
+		);
+		expect(
+			screen.getByRole("columnheader", { name: "Analista" }),
+		).toBeInTheDocument();
+		expect(screen.getByRole("columnheader", { name: "Demanda" })).toHaveClass(
+			"lg:hidden",
+			"xl:table-cell",
 		);
 		expect(screen.getByRole("columnheader", { name: "Criado em" })).toHaveClass(
 			"lg:hidden",

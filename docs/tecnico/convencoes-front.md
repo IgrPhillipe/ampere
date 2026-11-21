@@ -261,9 +261,9 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 | Feature | Rota | Página |
 | :--- | :--- | :--- |
 | `auth` | `/entrar`, `/criar-conta`, `/meu-perfil` | Entrar, Criar Conta e Meu Perfil |
-| `dashboard` | `/painel`, `/indicadores` | Painel, página inicial do projetista e do admin, cada um com o seu, e Indicadores da análise |
+| `dashboard` | `/painel` | Painel de cada papel, no mesmo layout (`DashboardLayout`: `DashboardBand`, acompanhamento e "Exige Ação"). O analista e o gestor têm, no fim do acompanhamento, os indicadores do período (`ReviewPeriodIndicators`, com `?period=`), que falham sozinhos sem derrubar o painel |
 | `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id`, `/projetos/$id/<etapa>` | Meus Projetos (Projetos, para o admin), o detalhe e as etapas |
-| `review-queue` | `/fila-de-analise`, `/meus-pareceres` | Fila de Análise e Meus Pareceres |
+| `review-queue` | `/projetos`, para o analista | Projetos do analista: em análise, com prazo e "Analisar", e os já decididos. `/fila-de-analise`, `/indicadores` e `/meus-pareceres` redirecionam |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
 | `memorial-verification` | `/verificar-autenticidade` | Verificar Autenticidade, pública |
 | `users` | `/usuarios` | Usuários |
@@ -306,14 +306,14 @@ O `ROLE_ACCESS` de `lib/route-guard.ts` é a fonte única de quem chega a cada
 
 | Área | `user` | `reviewer` | `admin` |
 | :--- | :--- | :--- | :--- |
-| Painel | o próprio | não | o do admin |
-| Projetos | os próprios | não | todos |
-| Fila de Análise | não | sim | sim |
+| Painel | o próprio | os projetos dele: prazos, o que exige ação e os indicadores do período | a fila, a carga da equipe, os usuários, o que exige ação e os indicadores da equipe no período |
+| Projetos | os próprios | os atribuídos a ele, em análise e decididos | todos, com filtro e coluna de analista |
 | Tabelas Normativas | não | sim | sim |
 | Usuários | não | não | sim |
 
-Na interface, o papel `admin` aparece como "Gestor". Na fila, só ele seleciona
-projetos e atribui o analista; "Analisar" aparece só para o analista
+Na interface, o papel `admin` aparece como "Gestor". Ele acompanha a fila em
+"Projetos", filtrando "Em análise" e por analista, e atribui ou troca o analista
+no cabeçalho do projeto em análise. "Analisar" aparece só para o analista
 responsável, e os demais abrem o projeto em consulta (US23).
 
 O que cada papel faz no detalhe do projeto sai de uma função só,

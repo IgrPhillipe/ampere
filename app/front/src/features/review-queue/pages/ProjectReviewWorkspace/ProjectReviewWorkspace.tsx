@@ -144,7 +144,7 @@ export const ProjectReviewWorkspace = ({
 			{
 				onSuccess: () => {
 					setDecision(null);
-					void navigate({ to: "/fila-de-analise" });
+					void navigate({ to: "/projetos" });
 				},
 			},
 		);
@@ -164,7 +164,7 @@ export const ProjectReviewWorkspace = ({
 		<ProjectWorkspace
 			projectId={projectId}
 			reviewing
-			breadcrumbRoot={{ label: "Fila de Análise", to: "/fila-de-analise" }}
+			breadcrumbRoot={{ label: "Projetos", to: "/projetos" }}
 			metrics={[
 				{
 					label: "Pendências",

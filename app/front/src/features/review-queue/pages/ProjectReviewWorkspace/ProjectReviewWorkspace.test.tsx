@@ -449,7 +449,7 @@ describe("ProjectReviewWorkspace", () => {
 		expect(screen.getByText("Protocolo").nextElementSibling).toHaveTextContent(
 			"2026-1004",
 		);
-		expect(screen.getByRole("link", { name: "Fila de Análise" })).toBeVisible();
+		expect(screen.getByRole("link", { name: "Projetos" })).toBeVisible();
 		expect(screen.getByText("Novo Apontamento")).toBeVisible();
 		// The draft finding leaves rejection as the only decision.
 		expect(

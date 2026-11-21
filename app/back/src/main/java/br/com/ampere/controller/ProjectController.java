@@ -98,6 +98,12 @@ public class ProjectController {
       @Parameter(description = "Projetista dono dos projetos, pelo identificador")
           @RequestParam(required = false)
           Long owner,
+      @Parameter(
+              description =
+                  "Filtro por analista (id do usuário ou 'none' para sem analista); só para o"
+                      + " administrador")
+          @RequestParam(required = false)
+          String reviewer,
       @AuthenticationPrincipal Jwt jwt) {
     ProjectListing listing =
         service.list(
@@ -113,7 +119,8 @@ public class ProjectController {
                 createdFrom,
                 createdTo,
                 findings,
-                owner),
+                owner,
+                reviewer),
             userOf(jwt));
     List<ProjectResponse> projects =
         listing.projects().stream()
@@ -191,13 +198,16 @@ public class ProjectController {
         description = "Não foi possível gerar o protocolo"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "422",
-        description = "Projetista inexistente, inativo ou com papel diferente de user")
+        description =
+            "Projetista inexistente, inativo ou com papel diferente de user; analista"
+                + " inexistente, inativo ou sem papel de análise")
   })
   public ApiResponse<ProjectDetailResponse> create(
       @Valid @RequestBody ProjectRequest request, @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
         ProjectDetailResponse.from(
-            service.create(parametersOf(request), request.ownerId(), userOf(jwt))));
+            service.create(
+                parametersOf(request), request.ownerId(), request.reviewerId(), userOf(jwt))));
   }
 
   @GetMapping("/{id}")

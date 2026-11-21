@@ -162,7 +162,9 @@ class ReviewerDistributionIntegrationTest {
           .andExpect(jsonPath("$.data.items[0].type").value("PROJECT_UNASSIGNED"))
           .andExpect(
               jsonPath("$.data.items[0].text").value("Projeto 2026-9002 aguardando analista"))
-          .andExpect(jsonPath("$.data.items[0].link").value("/fila-de-analise?reviewer=none"));
+          .andExpect(
+              jsonPath("$.data.items[0].link")
+                  .value("/projetos?status=UNDER_REVIEW&reviewer=none"));
     }
     assertThat(notificationRepository.findAllByProjectId(project.getId()))
         .extracting(notice -> notice.getRecipient().getId())
@@ -258,13 +260,13 @@ class ReviewerDistributionIntegrationTest {
     reject(project);
     resubmit(project).andExpect(status().isOk());
     notifications(bruno)
-        .andExpect(jsonPath("$.data.items[0].link").value("/fila-de-analise/" + project.getId()));
+        .andExpect(jsonPath("$.data.items[0].link").value("/projetos/" + project.getId()));
 
     assign(List.of(project), ana).andExpect(status().isNoContent());
 
     notifications(bruno)
         .andExpect(jsonPath("$.data.items", hasSize(1)))
-        .andExpect(jsonPath("$.data.items[0].link").value("/fila-de-analise"));
+        .andExpect(jsonPath("$.data.items[0].link").value("/projetos"));
   }
 
   @Test
@@ -278,7 +280,7 @@ class ReviewerDistributionIntegrationTest {
             projectRepository.findDetailById(project.getId()).orElseThrow(),
             NotificationType.REVIEW_OVERDUE,
             "Prazo de análise do projeto 2026-9017 vencido",
-            "/fila-de-analise/" + project.getId(),
+            "/projetos/" + project.getId(),
             OffsetDateTime.now(ZoneOffset.UTC)));
     reject(project);
     deactivate(bruno);
@@ -288,7 +290,7 @@ class ReviewerDistributionIntegrationTest {
     assertThat(notificationRepository.findAllByProjectId(project.getId()))
         .filteredOn(notice -> notice.getRecipient().getId().equals(bruno.getId()))
         .extracting(Notification::getLink)
-        .containsExactly("/fila-de-analise");
+        .containsExactly("/projetos");
   }
 
   @Test

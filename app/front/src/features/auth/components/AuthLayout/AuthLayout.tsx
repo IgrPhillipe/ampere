@@ -5,7 +5,7 @@ interface AuthLayoutProps {
 	/** Versalete line above the title. */
 	eyebrow?: ReactNode;
 	title: string;
-	description: ReactNode;
+	description?: ReactNode;
 	/** Requirements note closing the column, after the actions. */
 	note?: ReactNode;
 	children: ReactNode;
@@ -36,7 +36,9 @@ export const AuthLayout = ({
 							{title}
 						</h1>
 
-						<p className="text-sm text-muted-foreground">{description}</p>
+						{description ? (
+							<p className="text-sm text-muted-foreground">{description}</p>
+						) : null}
 					</div>
 
 					{children}

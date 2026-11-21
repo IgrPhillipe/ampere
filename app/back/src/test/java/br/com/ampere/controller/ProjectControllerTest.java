@@ -31,6 +31,7 @@ import br.com.ampere.domain.ReviewTimeline;
 import br.com.ampere.domain.SortDirection;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
+import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.PageQuery;
@@ -123,7 +124,8 @@ class ProjectControllerTest {
             LocalDate.of(2026, 10, 1),
             LocalDate.of(2026, 10, 10),
             Set.of(OpenFindingsFilter.BLOCKING_OPEN),
-            null);
+            null,
+            "none");
     when(service.list(1, 20, query, DESIGNER))
         .thenReturn(
             new ProjectListing(List.of(), 0, LocalDate.now(), Map.of(), Map.of(), Map.of()));
@@ -136,7 +138,8 @@ class ProjectControllerTest {
                 .param("municipality", "Recife")
                 .param("createdFrom", "2026-10-01")
                 .param("createdTo", "2026-10-10")
-                .param("findings", "BLOCKING_OPEN"))
+                .param("findings", "BLOCKING_OPEN")
+                .param("reviewer", "none"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.pagination.total").value(0));
   }
@@ -155,6 +158,7 @@ class ProjectControllerTest {
             null,
             null,
             Set.of(OpenFindingsFilter.BLOCKING_OPEN, OpenFindingsFilter.NONE_OPEN),
+            null,
             null);
     when(service.list(1, 20, query, DESIGNER))
         .thenReturn(
@@ -250,6 +254,10 @@ class ProjectControllerTest {
     when(project.getMunicipality()).thenReturn("Jaboatão dos Guararapes");
     when(project.getProtocol()).thenReturn("2026-8475");
     when(project.getStatus()).thenReturn(ProjectStatus.REJECTED);
+    User reviewer = mock(User.class);
+    when(reviewer.getId()).thenReturn(9L);
+    when(reviewer.getName()).thenReturn("Ana Analista");
+    when(project.getReviewer()).thenReturn(reviewer);
     when(project.reviewTimeline(LocalDate.parse("2026-09-20"), Timestamps.ZONE))
         .thenReturn(NO_TIMELINE);
     when(project.getCreatedAt())
@@ -279,6 +287,7 @@ class ProjectControllerTest {
                 null,
                 null,
                 null,
+                null,
                 null),
             DESIGNER))
         .thenReturn(listing);
@@ -297,6 +306,7 @@ class ProjectControllerTest {
             null,
             null,
             null,
+            null,
             designerToken());
 
     assertThat(response.data()).hasSize(1);
@@ -304,6 +314,8 @@ class ProjectControllerTest {
     assertThat(response.data().getFirst().pendingCount()).isEqualTo(3);
     assertThat(response.data().getFirst().consumerUnitsCount()).isEqualTo(55);
     assertThat(response.data().getFirst().demandKva()).isEqualByComparingTo("165");
+    assertThat(response.data().getFirst().reviewerId()).isEqualTo("9");
+    assertThat(response.data().getFirst().reviewerName()).isEqualTo("Ana Analista");
     assertThat(response.pagination().total()).isOne();
     assertThat(response.pagination().page()).isOne();
     assertThat(response.pagination().pageSize()).isEqualTo(20);
@@ -328,7 +340,7 @@ class ProjectControllerTest {
   @Test
   void createsProjectAndAnswersCreated() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.create(any(), any(), eq(DESIGNER)))
+    when(service.create(any(), any(), any(), eq(DESIGNER)))
         .thenReturn(new ProjectSummary(draft(), 0, 0, null, null, NO_TIMELINE));
 
     mockMvc(service)
@@ -346,7 +358,7 @@ class ProjectControllerTest {
   @Test
   void passesTheOwnerIdOfTheBodyToTheService() throws Exception {
     ProjectService service = mock(ProjectService.class);
-    when(service.create(any(), eq(5L), eq(DESIGNER)))
+    when(service.create(any(), eq(5L), any(), eq(DESIGNER)))
         .thenReturn(new ProjectSummary(draft(), 0, 0, null, null, NO_TIMELINE));
 
     mockMvc(service)
@@ -354,6 +366,20 @@ class ProjectControllerTest {
             post("/projects")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validBody().replace("\"floors\"", "\"ownerId\": \"5\", \"floors\"")))
+        .andExpect(status().isCreated());
+  }
+
+  @Test
+  void passesTheReviewerIdOfTheBodyToTheService() throws Exception {
+    ProjectService service = mock(ProjectService.class);
+    when(service.create(any(), any(), eq(7L), eq(DESIGNER)))
+        .thenReturn(new ProjectSummary(draft(), 0, 0, null, null, NO_TIMELINE));
+
+    mockMvc(service)
+        .perform(
+            post("/projects")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validBody().replace("\"floors\"", "\"reviewerId\": \"7\", \"floors\"")))
         .andExpect(status().isCreated());
   }
 

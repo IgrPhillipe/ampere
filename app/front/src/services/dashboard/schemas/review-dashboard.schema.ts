@@ -53,15 +53,6 @@ export const reviewDeadlinesSchema = z.object({
 
 export type ReviewDeadlines = z.infer<typeof reviewDeadlinesSchema>;
 
-/** Admin only: empty for the analyst, who sees only their own projects. */
-export const reviewerWorkloadSchema = z.object({
-	id: z.string(),
-	name: z.string(),
-	underReview: count,
-});
-
-export type ReviewerWorkload = z.infer<typeof reviewerWorkloadSchema>;
-
 /** A ranking line carries its projects in scope, so the click lists them without another request. */
 export const reviewFindingRankingItemSchema = findingRankingItemSchema.extend({
 	projects: z.array(reviewDashboardProjectSchema),
@@ -104,7 +95,6 @@ export const reviewDashboardSchema = z.object({
 	weekly: z.array(reviewWeekSchema),
 	monthlyRejection: z.array(monthlyRejectionSchema),
 	deadlines: reviewDeadlinesSchema,
-	workload: z.array(reviewerWorkloadSchema),
 	findingsRanking: z.array(reviewFindingRankingItemSchema),
 	municipalities: z.array(municipalityTotalSchema),
 	repeatedRejections: z.array(repeatedRejectionSchema),
