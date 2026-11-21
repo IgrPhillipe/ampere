@@ -7,7 +7,6 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -151,15 +150,71 @@ public enum LoadCategory {
   },
   AIR_CONDITIONING("f", "Condicionadores de ar") {
     @Override
+    List<ValidationIssue> issues(
+        LoadItem item, String path, LoadOccupancy usage, DemandContext context) {
+      return item.getPowerUnit() == PowerUnit.BTU_H
+          ? ratedIssues(
+              item, path, context, NormativeTableCode.T11_AIR_CONDITIONERS, item.getPower())
+          : List.of();
+    }
+
+    /** In BTU/h, the W of Tabela 11 (item 6.27.6); the manufacturer's kW otherwise. */
+    @Override
+    BigDecimal installedKw(LoadItem item, DemandContext context) {
+      return item.getPowerUnit() == PowerUnit.BTU_H
+          ? ratedKw(item, context, NormativeTableCode.T11_AIR_CONDITIONERS, item.getPower())
+          : item.plateKw();
+    }
+
+    @Override
+    boolean acceptsCapacity() {
+      return true;
+    }
+
+    /** Tabela 12 over the VA of Tabela 11, or the manufacturer's kW at power factor 1,00. */
+    @Override
     ParcelDemand demand(
         List<LoadItem> items, int groupQuantity, LoadOccupancy usage, DemandContext context) {
-      return byCount(
-          items,
-          groupQuantity,
-          NormativeTableCode.T12_AIR_CONDITIONING,
-          usage.airConditioningKey(),
-          BigDecimal.ONE,
-          context);
+      List<String> notes = new ArrayList<>();
+      List<NormativeReference> references = new ArrayList<>();
+      long appliances = 0;
+      BigDecimal apparent = BigDecimal.ZERO;
+      for (LoadItem item : items) {
+        long count = (long) item.getQuantity() * groupQuantity;
+        appliances += count;
+        if (item.getPowerUnit() == PowerUnit.BTU_H) {
+          NormativeValue unit = airConditioner(item, context, notes);
+          references.add(unit.reference());
+          apparent = apparent.add(unit.secondValue().multiply(BigDecimal.valueOf(count)));
+        } else {
+          apparent = apparent.add(groupKw(item, groupQuantity, context));
+        }
+      }
+      NormativeValue factor =
+          context
+              .tables()
+              .find(
+                  NormativeTableCode.T12_AIR_CONDITIONING,
+                  usage.airConditioningKey(),
+                  BigDecimal.valueOf(appliances));
+      references.add(0, factor.reference());
+      BigDecimal kva = DeclaredValues.kva(apparent.multiply(factor.value()));
+
+      return new ParcelDemand(
+          this,
+          kva,
+          prefixed(
+              this,
+              appliances
+                  + (appliances == 1 ? " aparelho, " : " aparelhos, ")
+                  + DeclaredValues.fixed(apparent, 2)
+                  + " kVA × "
+                  + DeclaredValues.fixed(factor.value(), 2)
+                  + " = "
+                  + DeclaredValues.fixed(kva, 2)
+                  + " kVA",
+              notes),
+          DemandComponent.distinct(references));
     }
   },
   MOTORS("g", "Motores e máquinas de solda a motor") {
@@ -269,7 +324,7 @@ public enum LoadCategory {
 
     @Override
     boolean ratedByMotorTable(LoadItem item) {
-      return item.getPowerUnit() != PowerUnit.KW;
+      return item.getPowerUnit() == PowerUnit.CV || item.getPowerUnit() == PowerUnit.HP;
     }
 
     /** Pumps rated in CV or HP take their kVA from the motor table; in kW, power factor 1,00. */
@@ -372,6 +427,11 @@ public enum LoadCategory {
 
   /** Whether the installed load comes from Tabela 18 or 19 instead of the plate. */
   boolean ratedByMotorTable(LoadItem item) {
+    return false;
+  }
+
+  /** Whether a capacity in BTU/h means anything for this parcel. */
+  boolean acceptsCapacity() {
     return false;
   }
 
@@ -483,25 +543,50 @@ public enum LoadCategory {
         : item.getPower();
   }
 
-  /** Empty when the motor table is not published or has no row that reaches the motor. */
-  private static Optional<NormativeValue> motorRating(LoadItem item, DemandContext context) {
-    NormativeTableCode table = context.connectionType().motorTable();
-    if (!context.tables().contains(table)) {
-      return Optional.empty();
-    }
-    return context.tables().lookup(table, null, motorSize(item));
+  /** Tabela 11 at the first tabulated capacity that reaches the appliance, as Exemplo 3 does. */
+  private static NormativeValue airConditioner(
+      LoadItem item, DemandContext context, List<String> notes) {
+    NormativeValue unit =
+        context.tables().find(NormativeTableCode.T11_AIR_CONDITIONERS, item.getPower());
+    String read =
+        unit.row().getUpperBound().compareTo(item.getPower()) == 0
+            ? " pela "
+            : " lido na linha de " + unit.band() + " da ";
+    notes.add(
+        item.getDescription()
+            + ": "
+            + DeclaredValues.decimal(item.getPower())
+            + " BTU/h"
+            + read
+            + unit.reference().identification()
+            + ", "
+            + DeclaredValues.fixed(unit.value(), 2)
+            + " kW e "
+            + DeclaredValues.fixed(unit.secondValue(), 2)
+            + " kVA cada");
+    return unit;
   }
 
-  /** Falls back to the plate only while the item has a pending issue that blocks the run. */
-  private static BigDecimal absorbedKw(LoadItem item, DemandContext context) {
-    return motorRating(item, context)
-        .map(motor -> motor.value().multiply(BigDecimal.valueOf(item.getQuantity())))
+  /** The kW column of a rating table with the item's quantity; the plate while it cannot. */
+  private static BigDecimal ratedKw(
+      LoadItem item, DemandContext context, NormativeTableCode table, BigDecimal argument) {
+    if (!context.tables().contains(table)) {
+      return item.plateKw();
+    }
+    return context
+        .tables()
+        .lookup(table, null, argument)
+        .map(row -> row.value().multiply(BigDecimal.valueOf(item.getQuantity())))
         .orElseGet(item::plateKw);
   }
 
-  private static List<ValidationIssue> motorTableIssues(
-      LoadItem item, String path, DemandContext context) {
-    NormativeTableCode table = context.connectionType().motorTable();
+  /** What blocks the run while the plate is shown: the table missing or no row reached. */
+  private static List<ValidationIssue> ratedIssues(
+      LoadItem item,
+      String path,
+      DemandContext context,
+      NormativeTableCode table,
+      BigDecimal argument) {
     String citation = table.identification() + " da " + table.standard().code();
     if (!context.tables().contains(table)) {
       return List.of(
@@ -513,7 +598,7 @@ public enum LoadCategory {
                   + item.getDescription()
                   + "\". Publique a tabela em Normas e Tabelas."));
     }
-    if (motorRating(item, context).isEmpty()) {
+    if (context.tables().lookup(table, null, argument).isEmpty()) {
       return List.of(
           ValidationIssue.review(
               path + ".power",
@@ -525,9 +610,20 @@ public enum LoadCategory {
                   + item.getPowerUnit().label()
                   + " passa da última linha da "
                   + citation
-                  + ": confira a potência de placa."));
+                  + (item.getPowerUnit() == PowerUnit.BTU_H
+                      ? ": confira a capacidade do aparelho."
+                      : ": confira a potência de placa.")));
     }
     return List.of();
+  }
+
+  private static BigDecimal absorbedKw(LoadItem item, DemandContext context) {
+    return ratedKw(item, context, context.connectionType().motorTable(), motorSize(item));
+  }
+
+  private static List<ValidationIssue> motorTableIssues(
+      LoadItem item, String path, DemandContext context) {
+    return ratedIssues(item, path, context, context.connectionType().motorTable(), motorSize(item));
   }
 
   private static BigDecimal groupKw(LoadItem item, int groupQuantity, DemandContext context) {

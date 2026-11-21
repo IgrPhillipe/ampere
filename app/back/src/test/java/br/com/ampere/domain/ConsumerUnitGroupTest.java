@@ -355,6 +355,41 @@ class ConsumerUnitGroupTest {
   }
 
   @Test
+  void anAirConditionerInBtuTakesTheWattsOfTabela11AtTheNextRow() {
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(PROJECT, commonArea(List.of(airConditioner(2, "14000"))));
+
+    assertThat(group.loadPerUnitKw(CONTEXT)).isEqualByComparingTo("3.80");
+    assertThat(group.validate(CONTEXT)).isEmpty();
+  }
+
+  @Test
+  void anAirConditionerAboveTheLastRowOfTabela11IsUnderReview() {
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(PROJECT, commonArea(List.of(airConditioner(1, "80000"))));
+
+    assertThat(group.validate(CONTEXT))
+        .extracting(ValidationIssue::severity, ValidationIssue::field, ValidationIssue::message)
+        .containsExactly(
+            tuple(
+                IssueSeverity.REVIEW,
+                "items[0].power",
+                "\"Condicionador de ar\" declarado com 80.000 BTU/h passa da última linha da"
+                    + " Tabela 11 da DIS-NOR-030: confira a capacidade do aparelho."));
+  }
+
+  @Test
+  void onlyAnAirConditionerIsDeclaredInBtu() {
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(
+            PROJECT, commonArea(List.of(motor("Bomba", 9000, PowerUnit.BTU_H, false))));
+
+    assertThat(group.validate(CONTEXT))
+        .extracting(ValidationIssue::severity, ValidationIssue::field)
+        .containsExactly(tuple(IssueSeverity.REVIEW, "items[0].powerUnit"));
+  }
+
+  @Test
   void aSinglePhaseBuildingReadsItsMotorsInTabela18() {
     ConsumerUnitGroup group =
         GroupKind.LOAD.create(PROJECT, commonArea(List.of(motor("Bomba", 1, PowerUnit.CV, false))));
@@ -590,6 +625,17 @@ class ConsumerUnitGroupTest {
         unit,
         null,
         simultaneousStart);
+  }
+
+  private static LoadItem airConditioner(int quantity, String btu) {
+    return new LoadItem(
+        LoadCategory.AIR_CONDITIONING,
+        "Condicionador de ar",
+        quantity,
+        new BigDecimal(btu),
+        PowerUnit.BTU_H,
+        null,
+        null);
   }
 
   private static LoadItem lighting(String description, double kw, LampTechnology lamp) {

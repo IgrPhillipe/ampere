@@ -102,6 +102,14 @@ public class LoadItem {
           ValidationIssue.missing(
               path + ".power", "Informe a potência de placa de \"" + description + "\"."));
     }
+    if (powerUnit == PowerUnit.BTU_H && !category.acceptsCapacity()) {
+      return List.of(
+          ValidationIssue.review(
+              path + ".powerUnit",
+              "BTU/h vale só para condicionador de ar: informe a potência de \""
+                  + description
+                  + "\" em kW, CV ou HP."));
+    }
     return category.issues(this, path, usage, context);
   }
 }
