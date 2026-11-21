@@ -64,6 +64,8 @@ const itemOf = (
 	deadline: "2026-11-19",
 	deadlineStatus,
 	daysRemaining,
+	elapsedDays: 12,
+	suspendedDays: 0,
 	warnings: 0,
 	alerts: [],
 	ownerId: "5",

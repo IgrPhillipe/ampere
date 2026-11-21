@@ -81,7 +81,10 @@ export const reviewQueueItemSchema = z.object({
 	// A decided project has no deadline left.
 	deadline: z.iso.date().nullable(),
 	deadlineStatus: deadlineStatusSchema.nullable(),
-	daysRemaining: z.number().int(),
+	// Null once decided: the review clock stopped.
+	daysRemaining: z.number().int().nullable(),
+	elapsedDays: z.number().int().nonnegative().nullable(),
+	suspendedDays: z.number().int().nonnegative().nullable(),
 	warnings: z.number().int().nonnegative(),
 	alerts: z.array(z.string()),
 	ownerId: z.string().nullable(),

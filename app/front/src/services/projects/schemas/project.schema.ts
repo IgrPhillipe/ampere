@@ -49,6 +49,7 @@ export const projectSchema = z.object({
 	pendingCount: z.number().int().nonnegative(),
 	consumerUnitsCount: z.number().int().nonnegative(),
 	demandKva: z.number().nullable(),
+	approvalValidUntil: z.iso.date().nullish(),
 });
 
 export type Project = z.infer<typeof projectSchema>;
@@ -157,6 +158,10 @@ export const projectDetailSchema = z.object({
 	reviewDeadline: z.iso.date().nullish(),
 	deadlineStatus: deadlineStatusSchema.nullish(),
 	daysRemaining: z.number().int().nullish(),
+	elapsedDays: z.number().int().nullish(),
+	suspendedDays: z.number().int().nullish(),
+	reviewSuspended: z.boolean().nullish(),
+	approvalValidUntil: z.iso.date().nullish(),
 	reviewedAt: z.iso.datetime({ offset: true }).nullish(),
 	reviewCycle: z.number().int().nonnegative(),
 	openFindingsCount: z.number().int().nonnegative(),

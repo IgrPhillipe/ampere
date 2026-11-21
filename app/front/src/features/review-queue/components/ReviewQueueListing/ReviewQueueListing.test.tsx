@@ -17,6 +17,8 @@ const item: ReviewQueueItem = {
 	deadline: "2026-10-08",
 	deadlineStatus: "ON_TIME",
 	daysRemaining: 20,
+	elapsedDays: 12,
+	suspendedDays: 3,
 	warnings: 1,
 	alerts: [
 		"Recarga de 44,40 kW instalados, acima de 20 kW: exige estudo da rede.",
@@ -107,7 +109,9 @@ describe("ReviewQueueListing", () => {
 
 		expect(screen.getByText("01 alerta")).toBeInTheDocument();
 		expect(screen.getByText("Sem alerta")).toBeInTheDocument();
-		expect(screen.getAllByText("20 dias")).toHaveLength(2);
+		expect(screen.getAllByText("20 dias restantes")).toHaveLength(2);
+		expect(screen.getAllByText("12 dias corridos")).toHaveLength(2);
+		expect(screen.getAllByText("3 dias suspensos")).toHaveLength(2);
 	});
 });
 

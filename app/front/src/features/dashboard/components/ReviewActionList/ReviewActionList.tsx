@@ -38,7 +38,7 @@ export const ReviewActionList = ({
 						<div className="flex flex-col gap-2 border-l-2 border-attention pl-4">
 							<div className="flex items-baseline justify-between gap-4">
 								<span className="text-base font-medium">{item.name}</span>
-								{item.deadlineStatus ? (
+								{item.deadlineStatus && item.daysRemaining !== null ? (
 									<span className="shrink-0 font-mono text-2xs tracking-[0.11em] whitespace-nowrap text-faint-foreground uppercase">
 										{describeDeadline(item.deadlineStatus, item.daysRemaining, {
 											withRemaining: true,
