@@ -2,6 +2,7 @@ package br.com.ampere.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -55,6 +56,10 @@ class ConsumerUnitGroupApiIntegrationTest {
       { "kind": "RESIDENTIAL", "name": "Cobertura", "quantity": 2, "usefulArea": 180,
         "connectionType": "THREE_PHASE",
         "loads": [
+          { "category": "LIGHTING_AND_OUTLETS", "description": "Tomadas", "quantity": 1,
+            "power": 3, "powerUnit": "KW", "lampTechnology": "GENERAL_OUTLETS" },
+          { "category": "LIGHTING_AND_OUTLETS", "description": "Iluminação", "quantity": 1,
+            "power": 1.2, "powerUnit": "KW", "lampTechnology": "COMPACT_FLUORESCENT_LED" },
           { "category": "INSTANT_HEATING", "description": "Chuveiro", "quantity": 4,
             "power": 4, "powerUnit": "KW" }
         ] }
@@ -199,6 +204,28 @@ class ConsumerUnitGroupApiIntegrationTest {
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.data.status").value("VALIDATED"))
         .andExpect(jsonPath("$.data.rooms").doesNotExist());
+  }
+
+  @Test
+  void lightingBelowTheRoomsHoldsTheCalculationUntilCorrected() throws Exception {
+    String id = create(withRooms(THREE_PHASE, 13));
+
+    perform(get(groups()), "")
+        .andExpect(jsonPath("$.data[0].status").value("REVIEW"))
+        .andExpect(jsonPath("$.data[0].issues[0].field").value("loads[1].power"))
+        .andExpect(
+            jsonPath("$.data[0].issues[0].message")
+                .value(
+                    "Iluminação de 1,2 kW abaixo do mínimo de 1,3 kW para 13 cômodos e"
+                        + " corredores, 100 W por ponto de luz em cada um (DIS-NOR-030, item"
+                        + " 6.26.1.1)."));
+    perform(get(groups() + "/validation"), "")
+        .andExpect(jsonPath("$.data.canCalculate").value(false));
+    perform(post("/projects/" + project.getId() + "/calculations"), "")
+        .andExpect(status().isUnprocessableContent());
+
+    perform(put(groups() + "/" + id), withRooms(THREE_PHASE, 12))
+        .andExpect(jsonPath("$.data.status").value("VALIDATED"));
   }
 
   private static String withRooms(String body, int rooms) {

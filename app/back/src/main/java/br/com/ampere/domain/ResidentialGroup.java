@@ -210,6 +210,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
                 "Informe o número de cômodos e corredores. Ele define a carga mínima de"
                     + " iluminação do apartamento (DIS-NOR-030, item 6.26.1.1)."));
       }
+      issues.addAll(new ApartmentMinimumLoad(rooms, usefulArea).check(loads, context.tables()));
     } else if (!DeclaredValues.isPositive(load)) {
       issues.add(
           ValidationIssue.missing(

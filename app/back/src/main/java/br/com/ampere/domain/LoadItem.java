@@ -88,6 +88,11 @@ public class LoadItem {
     return category.installedKw(this, context);
   }
 
+  /** Lighting rather than general-use outlets; false while not classified. */
+  boolean isLighting() {
+    return lampTechnology != null && lampTechnology.lighting();
+  }
+
   public boolean ratedByMotorTable() {
     return DeclaredValues.isPositive(power) && category.ratedByMotorTable(this);
   }

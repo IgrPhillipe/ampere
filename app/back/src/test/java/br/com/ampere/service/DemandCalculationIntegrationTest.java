@@ -667,10 +667,26 @@ class DemandCalculationIntegrationTest {
                 null,
                 List.of(
                     new LoadItem(
+                        LoadCategory.LIGHTING_AND_OUTLETS,
+                        "Tomadas",
+                        1,
+                        new BigDecimal("3.0"),
+                        PowerUnit.KW,
+                        LampTechnology.GENERAL_OUTLETS,
+                        null),
+                    new LoadItem(
+                        LoadCategory.LIGHTING_AND_OUTLETS,
+                        "Iluminação",
+                        1,
+                        new BigDecimal("1.2"),
+                        PowerUnit.KW,
+                        LampTechnology.COMPACT_FLUORESCENT_LED,
+                        null),
+                    new LoadItem(
                         LoadCategory.INSTANT_HEATING,
                         "Aquecedor de passagem",
                         1,
-                        new BigDecimal(loadKw),
+                        new BigDecimal(loadKw).subtract(new BigDecimal("4.2")),
                         PowerUnit.KW,
                         null,
                         null)),

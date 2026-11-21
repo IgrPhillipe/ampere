@@ -133,6 +133,22 @@ class ConsumerUnitGroupServiceIntegrationTest {
     List<LoadItem> loads =
         List.of(
             new LoadItem(
+                LoadCategory.LIGHTING_AND_OUTLETS,
+                "Tomadas",
+                1,
+                new BigDecimal("2.5"),
+                PowerUnit.KW,
+                LampTechnology.GENERAL_OUTLETS,
+                null),
+            new LoadItem(
+                LoadCategory.LIGHTING_AND_OUTLETS,
+                "Iluminação",
+                1,
+                new BigDecimal("1.2"),
+                PowerUnit.KW,
+                LampTechnology.COMPACT_FLUORESCENT_LED,
+                null),
+            new LoadItem(
                 LoadCategory.INSTANT_HEATING,
                 "Chuveiro",
                 2,
@@ -158,8 +174,8 @@ class ConsumerUnitGroupServiceIntegrationTest {
     assertThat(group.getConnectionType()).isEqualTo(ConnectionType.THREE_PHASE);
     assertThat(group.getLoads())
         .extracting(LoadItem::getDescription)
-        .containsExactly("Chuveiro", "Ar-condicionado");
-    assertThat(group.getUnitLoadKw(validated.context())).isEqualByComparingTo("15.2");
+        .containsExactly("Tomadas", "Iluminação", "Chuveiro", "Ar-condicionado");
+    assertThat(group.getUnitLoadKw(validated.context())).isEqualByComparingTo("18.9");
     assertThat(validated.status()).isEqualTo(GroupStatus.VALIDATED);
   }
 
