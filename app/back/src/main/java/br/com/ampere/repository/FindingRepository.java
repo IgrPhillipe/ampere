@@ -77,7 +77,7 @@ public interface FindingRepository extends JpaRepository<Finding, Long> {
       @Param("since") OffsetDateTime since,
       Pageable pageable);
 
-  /** The projects behind {@link #rankByReviewer}, one line per finding key and project. */
+  /** The projects behind the ranked stages and items; the caller keeps the exact pairs. */
   @Query(
       """
       SELECT DISTINCT finding.stage AS stage, finding.standardItem AS standardItem,
@@ -88,10 +88,17 @@ public interface FindingRepository extends JpaRepository<Finding, Long> {
       WHERE finding.createdAt >= :since
         AND finding.status <> br.com.ampere.domain.FindingStatus.DRAFT
         AND (:reviewerId IS NULL OR reviewer.id = :reviewerId)
+        AND finding.stage IN :stages
+        AND (finding.standardItem IN :items
+          OR (:withoutItem = true AND finding.standardItem IS NULL))
       ORDER BY project.protocol
       """)
   List<RankedProject> findRankedProjects(
-      @Param("reviewerId") Long reviewerId, @Param("since") OffsetDateTime since);
+      @Param("reviewerId") Long reviewerId,
+      @Param("since") OffsetDateTime since,
+      @Param("stages") Collection<FindingStage> stages,
+      @Param("items") Collection<String> items,
+      @Param("withoutItem") boolean withoutItem);
 
   void deleteAllByProjectId(Long projectId);
 

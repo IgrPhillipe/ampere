@@ -128,8 +128,26 @@ public class ReviewDashboardService {
     if (ranks.isEmpty()) {
       return List.of();
     }
+    Set<FindingKey> ranked =
+        ranks.stream()
+            .map(rank -> new FindingKey(rank.getStage(), rank.getStandardItem()))
+            .collect(Collectors.toUnmodifiableSet());
+    Set<String> items =
+        ranked.stream()
+            .map(FindingKey::standardItem)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toUnmodifiableSet());
     Map<FindingKey, List<ProjectReference>> projects =
-        findingRepository.findRankedProjects(reviewerId, since).stream()
+        findingRepository
+            .findRankedProjects(
+                reviewerId,
+                since,
+                ranked.stream().map(FindingKey::stage).collect(Collectors.toUnmodifiableSet()),
+                // Never empty: a blank item is stored as null, so "" matches nothing.
+                items.isEmpty() ? Set.of("") : items,
+                ranked.stream().anyMatch(key -> key.standardItem() == null))
+            .stream()
+            .filter(project -> ranked.contains(FindingKey.of(project)))
             .collect(
                 Collectors.groupingBy(
                     FindingKey::of,
