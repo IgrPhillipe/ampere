@@ -79,6 +79,11 @@ public abstract class ConsumerUnitGroup {
   /** Null while not informed. */
   public abstract BigDecimal loadPerUnitKw(DemandContext context);
 
+  /** The load of one unit as informed or summed; only an apartment group has one. */
+  public BigDecimal getUnitLoadKw(DemandContext context) {
+    return null;
+  }
+
   public abstract String summary();
 
   /** This group's share of the demand. Only called once every group is validated. */

@@ -115,6 +115,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   }
 
   /** Declared for a single-phase unit; the sum of the loads for a three-phase one. */
+  @Override
   public BigDecimal getUnitLoadKw(DemandContext context) {
     if (isThreePhase()) {
       DemandContext unit = unitContext(context);
