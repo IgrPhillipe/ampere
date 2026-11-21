@@ -43,10 +43,9 @@ As consultas restantes são pontuais: projetos em análise, carga por analista, 
 | `weekly[]` | `ReviewHistory` | Da segunda-feira da semana de `since` à segunda da semana de hoje, inclusive as vazias. `received` conta eventos de envio e `decided` eventos de decisão com `localDate(occurredAt)` na semana e `>= since` |
 | `monthlyRejection[]` | `ReviewHistory` | Do mês de `since` ao mês de hoje. `REJECTED / (APPROVED + REJECTED)` dos eventos do mês no período, × 100, com 1 casa; `null` no mês sem decisão |
 | `deadlines.met`, `deadlines.overdue` | `ReviewHistory` | Para cada decisão no período, os dias de análise usados até ela: a soma de `daysBetween(envio, decisão)` dos ciclos até o dela. `<= Project.REVIEW_PERIOD_DAYS` (30) cumpre o prazo; acima, vencido. É o mesmo número que `Project.elapsedReviewDays` dá no ciclo corrente, já que o reenvio recua o início do prazo pelos dias usados |
-| `workload[]` | `ProjectRepository` | Só para o admin; o analista recebe `[]`. `SELECT reviewer.id, reviewer.name, COUNT(p)` de `UNDER_REVIEW` com analista, agrupado, do maior ao menor e depois por nome. Sem período. Analista sem projeto em análise não entra, diferente de `AdminDashboardService.reviewerLoads` |
 | `findingsRanking[]` | `FindingRepository` | `rankByOwner` com o escopo do analista no lugar do dono: `status <> DRAFT`, `createdAt >= since`, agrupado por `stage` e `standardItem`, `COUNT` decrescente, depois `stage` e `standardItem`, os 10 primeiros |
-| `findingsRanking[].projects[]` | `FindingRepository` | Segunda consulta: `DISTINCT stage, standardItem, project.id, name, protocol` dos mesmos apontamentos. Em Java, só as chaves do top 10 (com `standardItem` nulo como chave própria), em ordem de protocolo |
-| `municipalities[]` | `ReviewHistory` + `ProjectRepository` | Projetos de `totals.received`, carregados por id, agrupados por `municipality` e `state`. Os 5 maiores; empate por município e depois UF |
+| `findingsRanking[].projects[]` | `FindingRepository` | Segunda consulta: `DISTINCT stage, standardItem, project.id, name, protocol` dos apontamentos com as etapas e os itens do top 10. Em Java, só os pares exatos do top 10 (com `standardItem` nulo como chave própria), em ordem de protocolo |
+| `municipalities[]` | `ReviewHistory` + `ProjectRepository` | Projetos de `totals.received`, carregados por id, agrupados por `municipality` e `state`. Os 5 maiores; empate por município, em ordem alfabética do português (`Collator` pt-BR), e depois UF |
 | `repeatedRejections[]` | `ReviewHistory` + `ProjectRepository` | Projetos com 2 ou mais `REJECTED` no histórico e o último deles no período. `rejections` é a contagem; do maior ao menor, empate por protocolo. Sem limite |
 | `alertsByCategory[]` | `ReviewHistory` + `ProjectVersionRepository` | Projetos de `totals.received` por `buildingType.category()`. `alerts` soma os `CalculationCheck` com `WARNING` do cálculo da versão enviada, a do último envio do projeto no período (`ProjectVersion.number = event.version`). Só categorias com projeto, na ordem do enum |
 
@@ -78,8 +77,7 @@ Cada fatia entra com o teste junto. O arquivo de integração é `src/test/java/
 
 ### Fatia 4: Carga por Analista
 
-- `ProjectRepository.countUnderReviewPerReviewer()`, com projeção `ReviewerWorkload`.
-- **Testes:** o admin vê os analistas com projeto em análise, do maior ao menor; analista sem projeto não aparece; o analista recebe `workload: []`.
+Saiu na revisão do PR 259: o front não lia `workload`, e o gestor já vê a carga em "Carga por Analista" (`GET /api/dashboard/admin`).
 
 ### Fatia 5: Ranking de Apontamentos
 
@@ -118,9 +116,11 @@ Cada fatia entra com o teste junto. O arquivo de integração é `src/test/java/
 
 Subir o Postgres, o back (`./mvnw spring-boot:run` em `app/back`) e o front (`pnpm dev` em `app/front`). Os seeds criam os usuários com a senha `senha@123` e os cenários com datas relativas ao momento do seed; `SEED_RESET_SCENARIOS=true` recria as datas.
 
-- **`analista@ampere.com` (Ana Analista).** O Painel mostra só os projetos atribuídos a ela: três em análise (`underReview = 3`), a aprovação após contestação, a reprovação só com ajustes e a aprovação não residencial após retrabalho. Os projetos do ranking abrem. Não há reprovação repetida no escopo dela; `repeatedRejections` vem vazio e `workload` também.
-- **`revisor@ampere.com`.** Tem os dois cenários com duas reprovações; `repeatedRejections` lista os dois em `LAST_90_DAYS`.
-- **`admin@ampere.com`.** A seção "Indicadores da Análise" do Painel mostra a equipe toda, com `workload` por analista, e inclui o projeto que espera atribuição em `received`.
+Desde o redesenho dos painéis (#258), os indicadores ficam no fim da coluna de acompanhamento do Painel do analista e do gestor, a partir da seção "Projetos no Período", que traz o período na legenda. O seletor de período fica no topo; a faixa verde e o "Exige Ação" mostram sempre hoje.
+
+- **`analista@ampere.com` (Ana Analista).** A seção "Projetos no Período" e as seguintes contam só os projetos atribuídos a ela. Os projetos do ranking abrem. Não há reprovação repetida no escopo dela; "Mais de Uma Reprovação" mostra a mensagem de vazio.
+- **`revisor@ampere.com`.** Tem os dois cenários com duas reprovações; "Mais de Uma Reprovação" lista os dois em "Últimos 90 dias".
+- **`admin@ampere.com`.** Os indicadores da equipe ficam abaixo de "Carga por Analista" e "Usuários", e os recebidos incluem o projeto que espera atribuição.
 - **Projetista.** A chamada direta responde 403:
 
 ```bash
@@ -131,4 +131,4 @@ TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login -H 'Content-Type: a
 curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: Bearer $TOKEN" 'http://localhost:8080/api/dashboard/review?period=LAST_90_DAYS'
 ```
 
-Trocar o período no Painel deve mexer em tudo, menos em `underReview` e `workload`.
+Trocar o período no Painel muda só os indicadores; a faixa verde e o "Exige Ação" não mudam.
