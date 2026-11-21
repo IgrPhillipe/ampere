@@ -249,7 +249,7 @@ A resposta é `{ data: { ... } }`, sem paginação:
 | `findingsRanking[]` | sim | Apontamentos publicados, por etapa (`stage`) e item da norma (`standardItem`, nulo sem item), os 10 mais frequentes, com `total`. O período vale pela data de criação do apontamento. `projects[]` traz os projetos distintos que receberam o item, com `id`, `name` e `protocol`, em ordem de protocolo |
 | `municipalities[]` | sim | Os 5 municípios com mais projetos recebidos no período, com `municipality`, `state` e `total`; o empate sai pelo nome |
 | `repeatedRejections[]` | sim | Projetos com duas ou mais reprovações no histórico e a última delas no período, com `id`, `name`, `protocol` e `rejections` (sempre 2 ou mais), do maior número ao menor e depois por protocolo |
-| `alertsByCategory[]` | sim | Projetos recebidos no período por categoria da edificação (`RESIDENTIAL_MULTIFAMILY`, `NON_RESIDENTIAL`, `MIXED`), com `projects` e `alerts`, a soma dos alertas do cálculo da versão do último envio no período; só as categorias com projeto |
+| `alertsByCategory[]` | sim | Projetos recebidos no período por categoria da edificação (`RESIDENTIAL_MULTIFAMILY`, `NON_RESIDENTIAL`, `MIXED`), com `projects` e `alerts`, a soma dos alertas do cálculo da versão do último envio no período; projeto sem `ProjectVersion` (base anterior ao `ProjectVersionBackfill`) entra com 0 alertas. Só as categorias com projeto |
 
 - `id` sai como string, como no resto da API.
 - Os números do `reviewer` e do `admin` usam as mesmas regras; muda só o conjunto de projetos.
