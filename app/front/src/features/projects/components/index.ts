@@ -6,6 +6,7 @@ export * from "./ChangeSummaryNotice";
 export * from "./ConsumerUnitGroupsTable";
 export * from "./FindingBadge";
 export * from "./FindingDetails";
+export * from "./FixFindingPrompt";
 export * from "./GroupSheet";
 export * from "./LoadComposition";
 export * from "./MemorialPreview";

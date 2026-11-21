@@ -11,15 +11,18 @@ import {
 	useUploadDocument,
 } from "@services/submission";
 import { CircleAlert } from "lucide-react";
+import { useState } from "react";
 
 import {
+	FixFindingPrompt,
+	type FixFindingQueue,
 	ProjectDocuments,
 	StageFindingsNotice,
 	SubmissionChecklistPanel,
 	useFindingRegistrar,
 } from "../../components";
 import { stageFindingsOf } from "../../constants";
-import { useProjectPermissions } from "../../hooks";
+import { useProjectDetailActions, useProjectPermissions } from "../../hooks";
 
 interface DocumentsPageProps {
 	projectId: string;
@@ -31,6 +34,7 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 	const uploadMutation = useUploadDocument();
 	const deleteMutation = useDeleteDocument();
 	const registrar = useFindingRegistrar();
+	const [fixQueue, setFixQueue] = useState<FixFindingQueue | null>(null);
 
 	const project = projectQuery.data?.data;
 	const findingsQuery = useGetFindingList(projectId, {
@@ -43,9 +47,32 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 	);
 	const checklist = submissionQuery.data?.data;
 	const { canEditDocuments: editable } = useProjectPermissions(project);
+	const { respondFindings: canRespond } = useProjectDetailActions({
+		status: project?.status,
+		ownerId: project?.ownerId,
+	});
 
-	const upload = (type: DocumentType, file: File) =>
-		uploadMutation.mutate({ projectId, type, file });
+	const upload = (type: DocumentType, file: File) => {
+		const pointed = canRespond
+			? documentFindings.filter((finding) => finding.documentType === type)
+			: [];
+		const replacing = (checklist?.documents ?? []).some(
+			(document) => document.type === type,
+		);
+
+		uploadMutation.mutate(
+			{ projectId, type, file },
+			{
+				onSuccess: ({ data }) => {
+					if (pointed.length > 0)
+						setFixQueue({
+							findings: pointed,
+							suggestion: `${replacing ? "Substituí" : "Anexei"} o documento ${data.typeLabel}.`,
+						});
+				},
+			},
+		);
+	};
 
 	const remove = (document: ProjectDocument) =>
 		deleteMutation.mutate({ projectId, documentId: document.id });
@@ -122,6 +149,12 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 					/>
 				</section>
 			)}
+
+			<FixFindingPrompt
+				projectId={projectId}
+				queue={fixQueue}
+				onQueueChange={setFixQueue}
+			/>
 		</div>
 	);
 };

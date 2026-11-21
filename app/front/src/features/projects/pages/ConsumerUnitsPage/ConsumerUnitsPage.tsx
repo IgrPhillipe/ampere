@@ -28,7 +28,7 @@ import {
 	ValidationPanel,
 } from "../../components";
 import { GROUP_USAGE_TYPES, stageFindingsOf } from "../../constants";
-import { useProjectPermissions } from "../../hooks";
+import { useProjectDetailActions, useProjectPermissions } from "../../hooks";
 import { type NewGroupFormValues, newGroupSchema } from "../../schemas";
 
 const pendingCounterId = "unidades-pendencias";
@@ -104,6 +104,10 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 	const validation = validationQuery.data?.data;
 	const canCalculate = validation?.canCalculate ?? false;
 	const { canEdit: isEditable } = useProjectPermissions(project);
+	const { respondFindings: canRespond } = useProjectDetailActions({
+		status: project?.status,
+		ownerId: project?.ownerId,
+	});
 	const hasError =
 		projectQuery.isError || groupsQuery.isError || validationQuery.isError;
 
@@ -330,6 +334,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 				onClose={() => setOpened(null)}
 				onCreated={cancelAdding}
 				onCreateFinding={registrar.onGroup}
+				respondableFindings={canRespond ? stageFindings : undefined}
 			/>
 		</>
 	);

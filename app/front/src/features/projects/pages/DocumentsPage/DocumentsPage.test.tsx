@@ -1,6 +1,12 @@
 import type { ProjectDocument } from "@services/submission";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import {
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -27,6 +33,8 @@ const art: ProjectDocument = {
 const state = vi.hoisted(() => ({
 	project: undefined as unknown,
 	findings: [] as unknown[],
+	upload: undefined as unknown as ReturnType<typeof idleMutation>,
+	respondFinding: undefined as unknown as ReturnType<typeof idleMutation>,
 }));
 
 vi.mock("@services/projects", async (importOriginal) => ({
@@ -37,6 +45,7 @@ vi.mock("@services/projects", async (importOriginal) => ({
 vi.mock("@services/project-review", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/project-review")>()),
 	useGetFindingList: () => loadedQuery({ data: state.findings }),
+	useRespondFinding: () => state.respondFinding,
 	useGetDocumentFile: () =>
 		loadedQuery({
 			filename: "art-assinada.pdf",
@@ -61,7 +70,7 @@ vi.mock("@services/submission", async (importOriginal) => ({
 				documents: [art],
 			}),
 		}),
-	useUploadDocument: () => idleMutation(),
+	useUploadDocument: () => state.upload,
 	useDeleteDocument: () => idleMutation(),
 }));
 
@@ -83,6 +92,8 @@ describe("DocumentsPage", () => {
 	// jsdom has no object URLs; keep the rest of `URL` intact.
 	beforeEach(() => {
 		state.findings = [];
+		state.upload = idleMutation();
+		state.respondFinding = idleMutation();
 		URL.createObjectURL = vi.fn(() => "blob:documento");
 		URL.revokeObjectURL = vi.fn();
 	});
@@ -153,6 +164,124 @@ describe("DocumentsPage", () => {
 				screen.getByRole("button", { name: "Substituir ART" }),
 			).toBeVisible();
 			expect(screen.getByText(/1 apontamento neste item/)).toBeInTheDocument();
+		});
+
+		const pickFile = (button: string) => {
+			const input = screen
+				.getByRole("button", { name: button })
+				.parentElement?.querySelector("input[type=file]");
+			if (!input) throw new Error(`${button} input not found`);
+
+			fireEvent.change(input, {
+				target: {
+					files: [
+						new File(["%PDF"], "documento.pdf", { type: "application/pdf" }),
+					],
+				},
+			});
+		};
+
+		const replaceArt = () => pickFile("Substituir ART");
+
+		const prompt = { name: "Marcar o apontamento como corrigido?" };
+
+		it("suggests the attachment of a document the project did not have", async () => {
+			state.findings = [makeFinding({ documentType: "SINGLE_LINE_DIAGRAM" })];
+			state.upload = {
+				...idleMutation(),
+				mutate: vi.fn((_args, options) =>
+					options?.onSuccess?.({
+						data: {
+							...art,
+							type: "SINGLE_LINE_DIAGRAM",
+							typeLabel: "Diagrama unifilar",
+						},
+					}),
+				),
+			};
+			renderPage();
+
+			pickFile("Anexar Diagrama unifilar");
+
+			const dialog = await screen.findByRole("dialog", prompt);
+			expect(
+				within(dialog).getByRole("textbox", { name: /Observação/ }),
+			).toHaveValue("Anexei o documento Diagrama unifilar.");
+		});
+
+		it("asks to mark the pointed document as fixed after replacing it", async () => {
+			state.upload = {
+				...idleMutation(),
+				mutate: vi.fn((_args, options) =>
+					options?.onSuccess?.({ data: { ...art, filename: "art-nova.pdf" } }),
+				),
+			};
+			renderPage();
+
+			replaceArt();
+
+			const dialog = await screen.findByRole("dialog", prompt);
+			expect(
+				within(dialog).getByRole("textbox", { name: /Observação/ }),
+			).toHaveValue("Substituí o documento ART.");
+
+			fireEvent.click(
+				within(dialog).getByRole("button", { name: "Marcar Corrigido" }),
+			);
+
+			await waitFor(() => {
+				expect(state.respondFinding.mutate).toHaveBeenCalledTimes(1);
+			});
+			expect(state.respondFinding.mutate.mock.calls[0][0]).toEqual({
+				projectId: "4",
+				findingId: "1",
+				status: "FIXED",
+				response: "Substituí o documento ART.",
+			});
+		});
+
+		it("keeps the finding open when the designer declines", async () => {
+			state.upload = {
+				...idleMutation(),
+				mutate: vi.fn((_args, options) => options?.onSuccess?.({ data: art })),
+			};
+			renderPage();
+
+			replaceArt();
+			const dialog = await screen.findByRole("dialog", prompt);
+			fireEvent.click(
+				within(dialog).getByRole("button", { name: "Manter Aberto" }),
+			);
+
+			await waitFor(() => {
+				expect(screen.queryByRole("dialog", prompt)).not.toBeInTheDocument();
+			});
+			expect(state.respondFinding.mutate).not.toHaveBeenCalled();
+		});
+
+		it("does not ask before the upload succeeds", () => {
+			renderPage();
+
+			replaceArt();
+
+			expect(state.upload.mutate).toHaveBeenCalledTimes(1);
+			expect(screen.queryByRole("dialog", prompt)).not.toBeInTheDocument();
+		});
+
+		it("does not ask for a document without findings", async () => {
+			state.findings = [makeFinding({ documentType: "SINGLE_LINE_DIAGRAM" })];
+			state.upload = {
+				...idleMutation(),
+				mutate: vi.fn((_args, options) => options?.onSuccess?.({ data: art })),
+			};
+			renderPage();
+
+			replaceArt();
+
+			await waitFor(() => {
+				expect(state.upload.mutate).toHaveBeenCalledTimes(1);
+			});
+			expect(screen.queryByRole("dialog", prompt)).not.toBeInTheDocument();
 		});
 	});
 

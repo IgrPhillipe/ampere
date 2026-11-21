@@ -14,8 +14,10 @@ import {
 	useDeleteConsumerUnitGroup,
 	useUpdateConsumerUnitGroup,
 } from "@services/consumer-units";
+import type { Finding } from "@services/project-review";
 import { useState } from "react";
 
+import { FixFindingPrompt, type FixFindingQueue } from "../FixFindingPrompt";
 import { EvChargingGroupForm } from "./EvChargingGroupForm";
 import type { GroupFormProps } from "./group-form";
 import { LoadGroupForm } from "./LoadGroupForm";
@@ -37,6 +39,8 @@ interface GroupSheetProps {
 	onCreated?: () => void;
 	/** The analyst registers a finding tied to the open group. */
 	onCreateFinding?: (group: ConsumerUnitGroup) => void;
+	/** Findings the designer can answer now; saving a pointed group offers to mark them fixed. */
+	respondableFindings?: Finding[];
 }
 
 const renderGroupForm = (
@@ -60,11 +64,16 @@ export const GroupSheet = ({
 	onClose,
 	onCreated,
 	onCreateFinding,
+	respondableFindings = [],
 }: GroupSheetProps) => {
 	const createGroup = useCreateConsumerUnitGroup(projectId);
 	const updateGroup = useUpdateConsumerUnitGroup(projectId);
 	const deleteGroup = useDeleteConsumerUnitGroup(projectId);
 	const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+	const [fixQueue, setFixQueue] = useState<FixFindingQueue | null>(null);
+	// Opens once the sheet has slid out, or the leaving sheet covers the prompt.
+	const [pendingFixQueue, setPendingFixQueue] =
+		useState<FixFindingQueue | null>(null);
 
 	const group = opened?.group;
 	const closeSheet = () => {
@@ -88,9 +97,22 @@ export const GroupSheet = ({
 			return;
 		}
 
+		const pointed = respondableFindings.filter(
+			(finding) => finding.consumerUnitGroupId === group.id,
+		);
+
 		updateGroup.mutate(
 			{ projectId, groupId: group.id, payload },
-			{ onSuccess: closeSheet },
+			{
+				onSuccess: () => {
+					closeSheet();
+					if (pointed.length > 0)
+						setPendingFixQueue({
+							findings: pointed,
+							suggestion: `Corrigi o grupo ${payload.name || group.name}.`,
+						});
+				},
+			},
 		);
 	};
 
@@ -109,6 +131,12 @@ export const GroupSheet = ({
 				open={opened !== null}
 				onOpenChange={(open) => {
 					if (!open && !deleteGroup.isPending) closeSheet();
+				}}
+				onOpenChangeComplete={(open) => {
+					if (open || !pendingFixQueue) return;
+
+					setFixQueue(pendingFixQueue);
+					setPendingFixQueue(null);
 				}}
 			>
 				<SheetContent className="w-full gap-0 bg-card sm:max-w-xl">
@@ -171,6 +199,12 @@ export const GroupSheet = ({
 					onConfirm={remove}
 				/>
 			) : null}
+
+			<FixFindingPrompt
+				projectId={projectId}
+				queue={fixQueue}
+				onQueueChange={setFixQueue}
+			/>
 		</>
 	);
 };
