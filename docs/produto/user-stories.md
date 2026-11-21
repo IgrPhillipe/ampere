@@ -854,8 +854,8 @@ Em "Projetos", os filtros "Aprovados" e "Reprovados" listam os projetos decidido
 - **E** cada linha abre a análise do projeto em modo de consulta.
 
 ### Checklist de Implementação
-- [ ] Calcular os indicadores da equipe no período selecionado
-- [ ] Exibir o ranking dos apontamentos mais frequentes
+- [x] Calcular os indicadores da equipe no período selecionado
+- [x] Exibir o ranking dos apontamentos mais frequentes
 - [ ] Listar os projetos decididos pelo analista em "Projetos"
 
 ---
