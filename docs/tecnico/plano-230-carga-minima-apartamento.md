@@ -12,22 +12,28 @@ AT08-US03. O item 6.27.1.1 da DIS-NOR-030 manda considerar, no apartamento trif�
 
 ### Modelo de Domínio
 
+A validação com as tabelas normativas é da #229, que entra primeiro e define o contrato comum. A #230 só acrescenta a regra do mínimo sobre ele.
+
+**Da #229, pré-requisito mesclado:**
+
+| Peça | Papel |
+| :--- | :--- |
+| `ConsumerUnitGroup.validate(DemandContext)` e `status(DemandContext)` | Substituem `validate()` e `status()` em `ConsumerUnitGroup` e nas subclasses. Cada subclasse continua dona da própria validação (polimorfismo). `DemandContext` é o record que já existe: `(NormativeTables tables, SupplyVoltage voltage, ConnectionType connectionType)` |
+| `NormativeTables.contains(NormativeTableCode)` | Diz se a tabela está no conjunto sem lançar `MissingNormativeValueException`. A validação roda em todo `GET` da lista e não pode falhar com 500 |
+| `ProjectDemandContexts` (`@Service`) | `contextFor(Project)`, com `tablesFor` e `fixedRevisions` saídos de `DemandCalculationService`. Projeto sem envio lê as tabelas publicadas; projeto enviado, as revisões fixadas |
+| `ValidatedGroup(ConsumerUnitGroup group, DemandContext context, List<ValidationIssue> issues)` | O service valida uma vez e entrega grupo, contexto e pendências ao controller; `ConsumerUnitGroupResponse.from(ValidatedGroup)` deixa de chamar `validate()` |
+| `GroupValidation.of(groups, context)` | Total de pendências com o contexto do projeto |
+
+**Da #230:**
+
 | Peça | Papel |
 | :--- | :--- |
 | `ApartmentMinimumLoad` (carga mínima do apartamento) | Classe nova, final e imutável, no `domain`. Recebe cômodos e área; `lightingKw()` devolve `rooms × 0,1`; `outletsKw(NormativeTables)` lê a Tabela 5; `check(List<LoadItem>, NormativeTables)` soma os itens da parcela `a` por `LampTechnology.lighting()` e devolve as pendências. Encapsula a regra do item 6.26.1.1 num lugar só |
-| `ConsumerUnitGroup.validate(NormativeTables)` | Substitui `validate()`. Cada subclasse continua dona da própria validação (polimorfismo); `LoadGroup` e `EvChargingGroup` ignoram o argumento. `status()` passa a `status(NormativeTables)` |
-| `ResidentialGroup` | Campo `Integer rooms`, guardado só no trifásico, como `loads`. `validate` delega o mínimo a `ApartmentMinimumLoad` |
+| `ResidentialGroup` | Campo `Integer rooms`, guardado só no trifásico, como `loads`. `validate(DemandContext)` passa `context.tables()` a `ApartmentMinimumLoad` |
 | `LoadCategory.LIGHTING_AND_OUTLETS.issues` | Passa a exigir `lampTechnology` também no apartamento, com mensagem própria |
-| `NormativeTables.contains(code)` | Método novo: diz se a tabela está no conjunto sem lançar `MissingNormativeValueException`. A validação roda em todo `GET` da lista e não pode falhar com 500 |
 | `NormativeTableCode.T5_...` | Constante nova da Tabela 5 da DIS-NOR-030 |
 
-O `domain` continua sem importar `repository`: as tabelas chegam pela interface `NormativeTables`, como no cálculo.
-
-No `service`:
-
-- `ProjectTables` (novo): `tablesFor(Project)` e `fixedRevisions(Project)`, extraídos de `DemandCalculationService`, que passa a usá-lo. Projeto sem envio lê as publicadas; projeto enviado, as revisões fixadas.
-- `ValidatedGroup(ConsumerUnitGroup group, List<ValidationIssue> issues)` (record novo): o service valida uma vez e entrega grupo e pendências ao controller. `ConsumerUnitGroupResponse.from(ValidatedGroup)` deixa de chamar `validate()`, e o controller continua sem tocar no domínio.
-- `GroupValidation.of(groups, tables)`.
+O `domain` continua sem importar `repository`: as tabelas chegam pela interface `NormativeTables`, dentro do `DemandContext`, como no cálculo.
 
 ## 1. Campo Novo: Número de Cômodos
 
@@ -39,7 +45,7 @@ Nome no código: `rooms`. "Quartos" (`bedrooms`) já existe e não serve: cômod
 | Entidade | `domain/ResidentialGroup.java` | `private Integer rooms`, coluna `rooms` anulável (tabela única do `SINGLE_TABLE`). `applySpec` guarda no trifásico e zera no monofásico; `spec()` devolve; `getRooms()`; `summary()` inclui "8 cômodos" quando informado |
 | Entrada | `dto/ConsumerUnitGroupRequest.java` | `@Min(value = 1, message = "O número de cômodos deve ser no mínimo {value}.") @Max(value = 50, message = "O número de cômodos deve ser no máximo {value}.") Integer rooms` |
 | Saída | `dto/ConsumerUnitGroupResponse.java` | `Integer rooms`, omitido quando nulo (`NON_NULL`) |
-| Controller | `controller/ConsumerUnitGroupController.java` | `parametersOf` repassa `request.rooms()`; `list`, `create` e `update` mapeiam `ValidatedGroup` |
+| Controller | `controller/ConsumerUnitGroupController.java` | `parametersOf` repassa `request.rooms()`. O mapeamento por `ValidatedGroup` já vem da #229 |
 | OpenAPI | request e response | `@Schema(description = "Cômodos do apartamento trifásico; define a carga mínima de iluminação (DIS-NOR-030, item 6.26.1.1)")`. Conferir em `/api/docs` que `POST` e `PUT /api/projects/{projectId}/consumer-unit-groups` mostram o campo e os limites |
 | Histórico | `service/VersionFieldLabels.java` | `Map.entry("rooms", "Cômodos")` |
 | Schema da API (front) | `app/front/src/services/consumer-units/schemas/consumer-unit-group.schema.ts` | `rooms: z.number().int().positive().nullish()` em `residentialGroupSchema` |
@@ -72,85 +78,72 @@ A estrutura segue a Tabela 6 e o Quadro 35: tabela por faixa (`ranged`), argumen
 | Arquivo | Mudança |
 | :--- | :--- |
 | `domain/NormativeTableCode.java` | Constante da Tabela 5 |
-| `domain/NormativeTables.java`, `domain/NormativeTableSet.java` | `contains(code)` |
 | `domain/ApartmentMinimumLoad.java` | Novo |
-| `domain/ConsumerUnitGroup.java` | `validate(NormativeTables)`, `status(NormativeTables)` |
-| `domain/ResidentialGroup.java` | `rooms`, mínimo na validação |
-| `domain/LoadGroup.java`, `domain/EvChargingGroup.java` | Assinatura de `validate`; `rooms` nulo no `spec()` |
+| `domain/ResidentialGroup.java` | `rooms`, mínimo em `validate(DemandContext)` |
+| `domain/LoadGroup.java`, `domain/EvChargingGroup.java` | `rooms` nulo no `spec()` |
 | `domain/LoadCategory.java` | Classificação exigida no apartamento |
 | `domain/GroupSpec.java` | `rooms` |
 | `config/NormativeTableSeed.java` | Linhas da Tabela 5 |
 | `config/DataSeeder.java` | Semeia as tabelas cujo código falta, não só o banco vazio (seção 6) |
 | `config/EnumCheckConstraints.java` | `normative_table.code`, para o código novo passar no `CHECK` |
 | `config/ScenarioGroups.java`, `config/DemoScenarios.java` | Cômodos e classificação da cobertura do 2026-2047 |
-| `service/ProjectTables.java`, `service/ValidatedGroup.java` | Novos |
-| `service/GroupValidation.java` | Recebe as tabelas |
-| `service/ConsumerUnitGroupService.java` | Valida com as tabelas do projeto; devolve `ValidatedGroup` |
-| `service/DemandCalculationService.java` | Usa `ProjectTables`; `sameInput` ignora campos nulos (risco 3) |
-| `service/DesignerDashboardService.java` | `pendingStage` valida com as tabelas do rascunho |
-| `service/SpreadsheetExportService.java`, `service/CalculationWorkbook.java` | Situação do grupo com as tabelas do projeto |
+| `service/DemandCalculationService.java` | `sameInput` ignora campos nulos (risco 3) |
 | `service/VersionFieldLabels.java` | Rótulo de `rooms` |
-| `dto/ConsumerUnitGroupRequest.java`, `dto/ConsumerUnitGroupResponse.java`, `controller/ConsumerUnitGroupController.java` | Campo novo e `ValidatedGroup` |
+| `dto/ConsumerUnitGroupRequest.java`, `dto/ConsumerUnitGroupResponse.java`, `controller/ConsumerUnitGroupController.java` | Campo novo |
 | Front: os arquivos da seção 1 e `ResidentialGroupForm.test.tsx` | Campo, schemas e testes |
 | `docs/tecnico/engine-calculo.md` | Parâmetro "Número de cômodos" na seção 3 e linha nova em "Validações Normativas" |
 | `docs/tecnico/fontes-normativas.md` | Tabela 5 transcrita e listada em "Tabelas Paramétricas a Persistir" |
 | `docs/produto/dados-de-demonstracao.md` | Linha do 2026-2047 |
 
-Os caminhos do back são relativos a `app/back/src/main/java/br/com/ampere/`.
+Os caminhos do back são relativos a `app/back/src/main/java/br/com/ampere/`. Não estão na lista porque vêm da #229: `ConsumerUnitGroup`, `NormativeTables`, `NormativeTableSet`, `ProjectDemandContexts`, `ValidatedGroup`, `GroupValidation` e os chamadores (`ConsumerUnitGroupService`, `DesignerDashboardService`, `SpreadsheetExportService`, `CalculationWorkbook`).
 
 ## 5. Fatias
 
 Cada fatia entra com o teste junto e termina com `./mvnw spotless:apply` e `./mvnw clean verify` verdes (ou `pnpm validate && pnpm test && pnpm build` na do front).
 
+**Pré-requisito: fatia 2 da #229 mesclada.** Traz `validate(DemandContext)`, `status(DemandContext)`, `NormativeTables.contains`, `ProjectDemandContexts`, `ValidatedGroup` e `GroupValidation.of(groups, context)`. A fatia 1 abaixo não depende dela; as fatias 2 a 4 sim.
+
 ### Fatia 1: Tabela 5 Semeada
 
 - Constante em `NormativeTableCode`, linhas no `NormativeTableSeed`, `normative_table.code` em `EnumCheckConstraints`, `DataSeeder` semeando o código que falta.
 - **Pronto quando:** num banco novo e num banco já semeado, "Normas e Tabelas" mostra a Tabela 5 publicada, com item e página; os cinco exemplos do Anexo I continuam passando; teste de integração do seed cobre o banco que já tinha as outras tabelas e não duplica nenhuma.
-- **Depende de:** decisão 1. Sem os valores, a fatia não começa.
+- **Depende de:** decisão 1. Sem os valores, a fatia não começa. A semeadura em banco existente e o `CHECK` são da #230; a #229 não toca neles.
 
-### Fatia 2: Validação com as Tabelas do Projeto
-
-Refatoração sem mudança de comportamento.
-
-- `validate(NormativeTables)` e `status(NormativeTables)` no domínio; `contains` em `NormativeTables`.
-- `ProjectTables`, `ValidatedGroup`, `GroupValidation.of(groups, tables)` e os chamadores: `ConsumerUnitGroupService`, `DemandCalculationService`, `DesignerDashboardService`, `SpreadsheetExportService`.
-- **Pronto quando:** nenhum teste muda de resultado; nenhum chamador de `validate()` sobrou; a lista de grupos faz uma consulta às tabelas por requisição, não uma por grupo.
-
-### Fatia 3: Número de Cômodos no Contrato
+### Fatia 2: Número de Cômodos no Contrato
 
 - `rooms` do `GroupSpec` à resposta, OpenAPI, `VersionFieldLabels`, `summary()`.
 - Pendência Falta Dado sem cômodos no trifásico.
 - `sameInput` ignora campos nulos.
 - **Pronto quando:** `POST` e `PUT` aceitam e devolvem `rooms`; `rooms: 0` e `rooms: 51` voltam 400 com a mensagem; trifásico sem cômodos volta `MISSING_DATA` com `field: "rooms"`; monofásico com `rooms` volta sem o campo; um cálculo gravado antes do campo continua atual.
 
-### Fatia 4: Classificação da Parcela `a` no Apartamento
+### Fatia 3: Classificação da Parcela `a` no Apartamento
 
 - `LoadCategory.LIGHTING_AND_OUTLETS.issues` exige `lampTechnology` no apartamento.
-- Cobertura do 2026-2047 com "Tomadas" em `GENERAL_OUTLETS` e "Iluminação" na lâmpada do Exemplo 3, se ele disser qual, ou `COMPACT_FLUORESCENT_LED`.
-- **Pronto quando:** item sem classificação gera a pendência da seção 2; a demanda individual do 2026-2047 continua 26,58 kVA, porque a parcela `a` residencial não lê a lâmpada.
+- Cobertura do 2026-2047 com "Tomadas" em `GENERAL_OUTLETS` e "Iluminação" na lâmpada do Exemplo 3, se ele disser qual, ou `COMPACT_FLUORESCENT_LED`. Parte da cobertura como a #229 a deixou.
+- **Pronto quando:** item sem classificação gera a pendência da seção 2; a demanda individual do 2026-2047 não muda em relação ao valor da #229, porque a parcela `a` residencial não lê a lâmpada.
 
-### Fatia 5: Mínimo de Iluminação e de Tomadas
+### Fatia 4: Mínimo de Iluminação e de Tomadas
 
-- `ApartmentMinimumLoad` e a chamada em `ResidentialGroup.validate`.
+- `ApartmentMinimumLoad` e a chamada em `ResidentialGroup.validate(DemandContext)`, com `context.tables()`.
 - Pendências Revisar da seção 2.
-- Cômodos da cobertura do 2026-2047 (decisão 5).
+- Cômodos da cobertura do 2026-2047 (decisão 5) e números esperados de `DemoScenarioSeederIntegrationTest` e `IndividualDemandTest` atualizados sobre os da #229, se a cobertura mudar.
 - **Pronto quando:** os testes da seção 7 passam; `GET /validation` devolve `canCalculate: false` com carga abaixo do mínimo e `POST /calculations` volta 422; o 2026-2047 continua sem pendência e com o cálculo atual.
 
-### Fatia 6: Front
+### Fatia 5: Front
 
 - Schemas, tipo, campo "Cômodos" e "Iluminação ou tomadas" obrigatório nas cargas do apartamento.
 - **Testes** em `ResidentialGroupForm.test.tsx`: o campo aparece só no trifásico; some e é limpo ao trocar para monofásico; o payload envia `rooms` no trifásico e `null` no monofásico; 0 e 51 mostram o erro; a pendência com `field: "rooms"` foca o campo.
 - **Pronto quando:** `pnpm validate`, `pnpm test` e `pnpm build` passam; no navegador, a pendência aparece no grupo e some depois de corrigida.
-- Pode correr em paralelo às fatias 4 e 5 depois da 3, que fixa o contrato. A #230 é marcada Backend: se o front precisar de issue própria, abrir antes de começar.
+- Pode correr em paralelo às fatias 3 e 4 depois da 2, que fixa o contrato. A #230 é marcada Backend: se o front precisar de issue própria, abrir antes de começar.
 
-### Fatia 7: Documentação e Conferência
+### Fatia 6: Documentação e Conferência
 
 - `engine-calculo.md`, `fontes-normativas.md` e `dados-de-demonstracao.md` (seção 4).
 - Conferência no app (seção 9).
 
 ## 6. Cenários de Demonstração e Bancos Já Semeados
 
-**Cenários.** Só o 2026-2047 (Residencial Torres do Pina) tem apartamento trifásico: "Cobertura", 2 unidades, 180 m², 3 quartos, com as cargas do Exemplo 3 da DIS-NOR-030 (tomadas 3,0 kW, iluminação 1,2 kW). Ganha cômodos e a classificação dos dois itens. Para a iluminação de 1,2 kW passar, cômodos até 12. As tomadas de 3,0 kW precisam cobrir o mínimo da Tabela 5 para 180 m²; se não cobrirem, a cobertura deixa de reproduzir o Exemplo 3, muda o `Dind` e a nota de 26,58 kVA em `engine-calculo.md` (risco 5). `DemoScenarioSeederIntegrationTest` já exige que todo grupo semeado valide sem pendência e que o cálculo do 2026-2047 esteja atual; essas asserções seguram a fatia.
+**Cenários.** Só o 2026-2047 (Residencial Torres do Pina) tem apartamento trifásico: "Cobertura", 2 unidades, 180 m², 3 quartos, com as cargas do Exemplo 3 da DIS-NOR-030 (tomadas 3,0 kW, iluminação 1,2 kW). A #229 muda primeiro a carga instalada da cobertura; a #230 acrescenta depois os cômodos e a classificação dos dois itens e atualiza os números esperados. Para a iluminação de 1,2 kW passar, cômodos até 12. As tomadas de 3,0 kW precisam cobrir o mínimo da Tabela 5 para 180 m²; se não cobrirem, a cobertura deixa de reproduzir o Exemplo 3, muda o `Dind` e a nota do Exemplo 3 em `engine-calculo.md` (risco 5). `DemoScenarioSeederIntegrationTest` já exige que todo grupo semeado valide sem pendência e que o cálculo do 2026-2047 esteja atual; essas asserções seguram a fatia.
 
 **Coluna nova.** `rooms` é anulável, porque a `consumer_unit_group` é a tabela única das três subclasses. O `ddl-auto=update` acrescenta a coluna sem o `docker compose down -v`, como aconteceu com `bedrooms` e `connection_type`.
 
@@ -162,7 +155,7 @@ Refatoração sem mudança de comportamento.
 
 ## 7. Testes do Mínimo
 
-`domain/ApartmentMinimumLoadTest.java` (unitário, com `DemandFixtures.tables()`), casos em `domain/ConsumerUnitGroupTest.java` e, na integração, `controller/ConsumerUnitGroupApiIntegrationTest.java` e `service/ConsumerUnitGroupServiceIntegrationTest.java`.
+`domain/ApartmentMinimumLoadTest.java` (unitário, com `DemandFixtures.tables()`; os casos de grupo montam o `DemandContext` com essas tabelas), casos em `domain/ConsumerUnitGroupTest.java` e, na integração, `controller/ConsumerUnitGroupApiIntegrationTest.java` e `service/ConsumerUnitGroupServiceIntegrationTest.java`.
 
 **Por cômodo.**
 
@@ -188,11 +181,12 @@ Refatoração sem mudança de comportamento.
 
 ## 8. Ponto de Contato com a #229
 
-A #229 (motores pela Tabela 19) também mexe nas tabelas normativas e no `NormativeTableSeed`. Pontos em comum:
+A #229 (motores pela Tabela 19) entra primeiro e é dona do encanamento comum. A #230 parte dele mesclado.
 
-- **`NormativeTableSeed.all` e `NormativeTableCode`.** As duas acrescentam ou alteram entradas da mesma lista; o conflito de merge é certo e mecânico.
-- **Semeadura em banco existente.** Qualquer tabela nova da #229 esbarra no mesmo `count() > 0` do `DataSeeder` e no mesmo `CHECK` de `normative_table.code`. As duas peças entram uma vez só, em commit próprio, na issue que chegar primeiro; a outra rebaseia. Linha alterada numa tabela já publicada não se resolve assim: exige revisão nova da tabela, como faz `NormativeTableRevisions`.
-- **`ScenarioGroups.penthouseLoads` e o 2026-2047.** Se a #229 mudar o motor do apartamento trifásico, o `Dind` de 26,58 kVA muda nas duas, e as asserções de `DemoScenarioSeederIntegrationTest` e `IndividualDemandTest` precisam de um valor só.
+- **Validação com contexto: da #229.** `validate(DemandContext)` e `status(DemandContext)`, `NormativeTables.contains(NormativeTableCode)`, `ProjectDemandContexts.contextFor(Project)`, `ValidatedGroup(group, context, issues)`, `ConsumerUnitGroupResponse.from(ValidatedGroup)` e `GroupValidation.of(groups, context)`. A #230 não cria nenhuma dessas peças: só usa `context.tables()` em `ResidentialGroup.validate`.
+- **Seed: da #230.** Tabela 5 no `NormativeTableCode` e no `NormativeTableSeed`, `DataSeeder` semeando o código ausente e `normative_table.code` em `EnumCheckConstraints`. A #229 não toca nisso. O conflito de merge em `NormativeTableSeed` e `NormativeTableCode`, se houver, é mecânico.
+- **`sameInput`.** A #229 grava a chave `motorInstalledLoad` no snapshot quando há motor; ignorar campos nulos (risco 3) é compatível com ela.
+- **`ScenarioGroups.penthouseLoads` e o 2026-2047.** A #229 muda antes a carga instalada da cobertura e os números esperados do Exemplo 3. A #230 acrescenta cômodos e classificação sobre a versão dela e atualiza `DemoScenarioSeederIntegrationTest`, `IndividualDemandTest` e a nota de `engine-calculo.md` depois.
 - **`ResidentialGroup` e `LoadCategory`.** A #229 lê motores na parcela `g`; esta mexe na validação da parcela `a`. Arquivos iguais, trechos diferentes.
 
 ## 9. Verificação no App
@@ -208,11 +202,11 @@ Subir o Postgres, o back (`./mvnw spring-boot:run` em `app/back`) e o front (`pn
 
 1. **Valores da Tabela 5.** Não estão no repositório. Transcrever da DIS-NOR-030 REV 07, com página impressa, unidade e faixas, e passar pela dupla leitura antes da fatia 1. É o único bloqueio do plano.
 2. **Área construída ou área útil.** A Tabela 5 usa área construída; o grupo só tem área útil, que é menor. Usar a útil afrouxa o mínimo; um campo novo de área construída pesa no formulário. Recomendo a área útil, com a mensagem dizendo "área útil" e a escolha registrada em "Critérios Adotados na Implementação" de `engine-calculo.md`. Se a leitura da tabela mostrar que ela aceita área útil, a decisão some.
-3. **Cálculos atuais viram desatualizados.** `sameInput` compara o `GroupSpec` gravado com o atual; o campo novo aparece como `rooms: null` e não existe no JSON antigo, então todo cálculo residencial já gravado passaria a desatualizado. A fatia 3 remove os campos nulos das duas árvores antes de comparar.
+3. **Cálculos atuais viram desatualizados.** `sameInput` compara o `GroupSpec` gravado com o atual; o campo novo aparece como `rooms: null` e não existe no JSON antigo, então todo cálculo residencial já gravado passaria a desatualizado. A fatia 2 remove os campos nulos das duas árvores antes de comparar. É compatível com a chave `motorInstalledLoad`, que a #229 grava só quando há motor.
 4. **Tabela 5 ausente.** Projeto em rascunho num banco sem a Tabela 5, ou reprovado com revisões fixadas antes dela, não teria como resolver uma pendência de tabela: a revisão fixada nunca a inclui. Recomendo não conferir as tomadas nesse caso, sem pendência, e manter a conferência de iluminação, que não depende de tabela. A alternativa, Revisar com "publique a Tabela 5", trava o reenvio desses protocolos para sempre.
-5. **Cômodos do 2026-2047.** O Exemplo 3 da DIS-NOR-030 pode informar os cômodos e a área da residência; se informar, usar esses números. Senão, escolher um valor até 12 e registrar em `dados-de-demonstracao.md`. Se as tomadas de 3,0 kW ficarem abaixo da Tabela 5 para 180 m², a cobertura precisa de outra carga ou outra área, e o 26,58 kVA da documentação muda.
+5. **Cômodos do 2026-2047.** O Exemplo 3 da DIS-NOR-030 pode informar os cômodos e a área da residência; se informar, usar esses números. Senão, escolher um valor até 12 e registrar em `dados-de-demonstracao.md`. Se as tomadas de 3,0 kW ficarem abaixo da Tabela 5 para 180 m², a cobertura precisa de outra carga ou outra área, e o `Dind` que a #229 deixar muda de novo.
 6. **Um ponto por cômodo.** O plano lê "100 W por ponto de luz em cada cômodo" como mínimo de um ponto por cômodo. Se o item 6.26.1.1 exigir mais pontos por área do cômodo, o número de cômodos não basta e o modelo muda. Conferir o texto do item junto com a Tabela 5.
 7. **Classificação obrigatória.** Exigir "Iluminação ou tomadas" no apartamento acrescenta um campo por item da parcela `a` e põe Falta Dado em todo trifásico já cadastrado. A alternativa, comparar o total da parcela com a soma dos dois mínimos, dispensa o campo, mas não detecta tomadas abaixo do mínimo compensadas por iluminação acima. Recomendo exigir, como a issue pede a conferência em separado.
 8. **Grupos de projetos já enviados.** A validação roda também na leitura de projetos em análise e aprovados: um grupo trifásico enviado antes da mudança aparece como Falta Dado para o analista. Não bloqueia nada, porque esses projetos não recalculam. Se incomodar na demonstração, o `SEED_RESET_SCENARIOS` resolve os do seed.
-9. **Custo da validação.** A lista de grupos e o painel do projetista passam a carregar as tabelas do projeto. `pendingStage` já recebe as publicadas uma vez para todos os rascunhos; os reprovados leem as revisões fixadas, uma consulta por projeto. O volume é pequeno.
-10. **Front numa issue de back.** A #230 é Backend, mas o campo não tem uso sem o formulário. Se o time quiser rastrear o front à parte, abrir a issue antes da fatia 6.
+9. **Custo da validação.** Com o `ProjectDemandContexts` da #229, a lista de grupos e o painel do projetista carregam as tabelas do projeto. `pendingStage` já recebe as publicadas uma vez para todos os rascunhos; os reprovados leem as revisões fixadas, uma consulta por projeto. O volume é pequeno.
+10. **Front numa issue de back.** A #230 é Backend, mas o campo não tem uso sem o formulário. Se o time quiser rastrear o front à parte, abrir a issue antes da fatia 5.
