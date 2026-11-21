@@ -66,6 +66,15 @@ public enum NormativeTableCode {
       List.of(),
       "Demanda máxima da edificação (kVA)",
       List.of("Circuitos", "Seção do condutor (mm²)", "Disjuntor geral (A)")),
+  T5_MINIMUM_OUTLETS(
+      StandardName.DIS_NOR_030,
+      "Tabela 5",
+      "Número mínimo de tomadas em função da área construída",
+      "6.26.1.1",
+      "65",
+      List.of(),
+      "Área total (m²)",
+      List.of("Total I + II (W)", "Tomadas de 100 W", "Tomadas da cozinha (600 W)")),
   T6_RESIDENTIAL_LIGHTING_OUTLETS(
       StandardName.DIS_NOR_030,
       "Tabela 6",
