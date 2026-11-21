@@ -13,7 +13,6 @@ const makeResponse = () => ({
 			{ month: "2026-11", rejectionPercent: null },
 		],
 		deadlines: { met: 20, overdue: 3 },
-		workload: [{ id: "7", name: "Ana Analista", underReview: 5 }],
 		findingsRanking: [
 			{
 				stage: "CALCULATION",

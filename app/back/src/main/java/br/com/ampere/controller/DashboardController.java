@@ -4,9 +4,11 @@ import br.com.ampere.domain.DashboardPeriod;
 import br.com.ampere.dto.AdminDashboardResponse;
 import br.com.ampere.dto.ApiResponse;
 import br.com.ampere.dto.DesignerDashboardResponse;
+import br.com.ampere.dto.ReviewDashboardResponse;
 import br.com.ampere.service.AdminDashboardService;
 import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.DesignerDashboardService;
+import br.com.ampere.service.ReviewDashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -25,11 +27,15 @@ public class DashboardController {
 
   private final DesignerDashboardService designerService;
   private final AdminDashboardService adminService;
+  private final ReviewDashboardService reviewService;
 
   public DashboardController(
-      DesignerDashboardService designerService, AdminDashboardService adminService) {
+      DesignerDashboardService designerService,
+      AdminDashboardService adminService,
+      ReviewDashboardService reviewService) {
     this.designerService = designerService;
     this.adminService = adminService;
+    this.reviewService = reviewService;
   }
 
   @GetMapping("/admin")
@@ -73,6 +79,34 @@ public class DashboardController {
     return ApiResponse.of(
         DesignerDashboardResponse.from(
             designerService.dashboard(
+                period, AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role")))));
+  }
+
+  @GetMapping("/review")
+  @Operation(
+      operationId = "getReviewDashboard",
+      summary =
+          "Indicadores da análise: os projetos atribuídos ao analista ou a equipe toda para o"
+              + " administrador")
+  @ApiResponses({
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "200",
+        description = "Indicadores da análise"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "400",
+        description = "Período inválido"),
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+        responseCode = "403",
+        description = "Apenas o analista e o administrador acessam os indicadores")
+  })
+  public ApiResponse<ReviewDashboardResponse> review(
+      @Parameter(description = "Período dos indicadores, menos os projetos em análise hoje")
+          @RequestParam(defaultValue = "LAST_30_DAYS")
+          DashboardPeriod period,
+      @AuthenticationPrincipal Jwt jwt) {
+    return ApiResponse.of(
+        ReviewDashboardResponse.from(
+            reviewService.dashboard(
                 period, AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role")))));
   }
 }

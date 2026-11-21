@@ -820,17 +820,17 @@ Painel de indicadores da equipe de análise e histórico dos pareceres de cada a
 ### Conversação (Regras de Negócio e Interface)
 O "Painel" do analista e "Projetos" substituem a Fila de Análise, os Indicadores e Meus Pareceres do protótipo H7 (20/11). "Projetos" lista os projetos atribuídos a ele, em análise e já decididos. O Painel segue o layout dos outros painéis: na faixa, em análise, vencendo o prazo, analisados hoje e reprovação no mês; no acompanhamento, os próximos do prazo e o total por situação; em "Exige Ação", os atrasados ou que vencem hoje, com "Analisar".
 
-Quando o back da #137 estiver pronto, o acompanhamento do analista e o do gestor ganham, para o período selecionado:
+O seletor de período ("Últimos 30 dias", "Últimos 90 dias" e "Ano corrente") fica no topo do Painel do analista e do gestor e vale só para os indicadores: a faixa e o "Exige Ação" mostram sempre o dia de hoje. Depois do que já está no acompanhamento, entram os indicadores do período:
+- Projetos recebidos, aprovados e reprovados no período
 - Projetos recebidos e decididos por semana
-- Tempo médio de análise e de ciclo completo até a aprovação
-- Taxa de reprovação por mês
-- Prazos cumpridos e vencidos
-- Projetos em análise por analista
 - **Apontamentos mais frequentes** por etapa e item da norma
-- Municípios com mais projetos
-- Projetos aprovados, reprovados e em análise no período
-- Projetos com mais de uma reprovação
+- Tempo médio de análise e de ciclo completo até a aprovação, com os prazos cumpridos e vencidos
+- Taxa de reprovação por mês
 - Alertas por categoria da edificação (residencial, não residencial e misto)
+- Municípios com mais projetos
+- Projetos com mais de uma reprovação
+
+Os projetos em análise por analista ficam só na "Carga por Analista" do gestor. Se os indicadores não carregarem, só essa parte mostra o erro com "Tentar Novamente"; o restante do Painel continua.
 
 Em "Projetos", os filtros "Aprovados" e "Reprovados" listam os projetos decididos pelo analista, com a decisão e a data, da decisão mais recente para a mais antiga, com os filtros da [US18](#us18-filtros-e-ordenação-das-listagens).
 
@@ -854,8 +854,8 @@ Em "Projetos", os filtros "Aprovados" e "Reprovados" listam os projetos decidido
 - **E** cada linha abre a análise do projeto em modo de consulta.
 
 ### Checklist de Implementação
-- [ ] Calcular os indicadores da equipe no período selecionado
-- [ ] Exibir o ranking dos apontamentos mais frequentes
+- [x] Calcular os indicadores da equipe no período selecionado
+- [x] Exibir o ranking dos apontamentos mais frequentes
 - [ ] Listar os projetos decididos pelo analista em "Projetos"
 
 ---
@@ -1054,10 +1054,8 @@ Painel inicial do administrador com o estado dos usuários, da fila e os indicad
 ### Conversação (Regras de Negócio e Interface)
 O item "Painel" entra no menu do administrador e passa a ser a tela inicial após o login. Desde 21/11, os painéis dos três papéis têm o mesmo layout: a faixa verde com quatro números, uma coluna de acompanhamento e a coluna "Exige Ação". A listagem dos projetos fica em "Projetos". No painel do gestor:
 - **Faixa:** projetos em análise, sem analista, com prazo até 3 dias e atrasados
-- **Acompanhamento:** carga por analista ([US23](#us23-distribuição-da-fila-de-análise)) e os usuários ativos por papel e inativos, cada número abrindo a tela "Usuários" ([US11](#us11-gestão-de-usuários)) com o filtro aplicado
+- **Acompanhamento:** carga por analista ([US23](#us23-distribuição-da-fila-de-análise)) e os usuários ativos por papel e inativos, cada número abrindo a tela "Usuários" ([US11](#us11-gestão-de-usuários)) com o filtro aplicado. Abaixo, os indicadores da equipe no período escolhido no topo do Painel, os mesmos do analista ([US17](#us17-painel-do-analista))
 - **Exige Ação:** projetos sem analista, análises atrasadas, trocas de senha pendentes e contas sem acesso há mais de 30 dias, cada item com o atalho para a lista filtrada; o que está zerado não aparece
-
-Os indicadores da equipe por período ([US17](#us17-painel-do-analista)) entram na coluna de acompanhamento quando o back da #137 estiver pronto.
 
 ### Confirmação (Critérios de Aceite - BDD)
 

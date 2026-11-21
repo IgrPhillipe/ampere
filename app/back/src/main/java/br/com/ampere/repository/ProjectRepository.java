@@ -82,6 +82,9 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Project
 
   List<Project> findAllByOwnerIsNull();
 
+  @EntityGraph(attributePaths = "buildingType")
+  List<Project> findAllByIdIn(Collection<Long> ids);
+
   @Modifying
   @Query(
       """

@@ -12,8 +12,11 @@ import {
 	AdminActionList,
 	DashboardBand,
 	DashboardLayout,
+	DashboardPeriodPicker,
 	IndicatorList,
+	ReviewPeriodIndicators,
 } from "../../components";
+import { useDashboardPeriod } from "../../hooks";
 
 const usersLink = (
 	label: string,
@@ -30,15 +33,22 @@ const usersLink = (
 
 const plural = (count: number) => (count === 1 ? "projeto" : "projetos");
 
-/** The manager's panel: numbers only, laid out like every other panel. */
+/** The manager's panel: the queue and the team today, then the team's indicators of the period. */
 export const AdminDashboardPage = () => {
+	const [period, setPeriod] = useDashboardPeriod();
 	const dashboardQuery = useGetAdminDashboard();
 	const dashboard = dashboardQuery.data?.data;
 
 	return (
 		<PageLayout
 			title="Painel"
-			description="A fila de análise, a carga da equipe e o que espera por você."
+			description="A fila, a carga da equipe e o que espera por você hoje, e os indicadores da equipe no período escolhido."
+			actions={
+				<DashboardPeriodPicker
+					value={period}
+					onValueChange={(value) => void setPeriod(value)}
+				/>
+			}
 			bleed
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
@@ -139,6 +149,7 @@ export const AdminDashboardPage = () => {
 								}
 								emptyMessage="Nenhum usuário cadastrado."
 							/>
+							<ReviewPeriodIndicators period={period} />
 						</>
 					}
 					aside={<AdminActionList dashboard={dashboard} />}

@@ -74,6 +74,32 @@ public interface ProjectEventRepository extends JpaRepository<ProjectEvent, Long
   List<Approval> findApprovals(
       @Param("ownerId") Long ownerId, @Param("since") OffsetDateTime since);
 
+  /**
+   * The whole history of the given types for the projects in scope with one of them since the
+   * instant. A null reviewer means every project.
+   */
+  @Query(
+      """
+      SELECT event.project.id AS projectId, event.type AS type, event.version AS version,
+        event.occurredAt AS occurredAt
+      FROM ProjectEvent event
+      WHERE event.type IN :types
+        AND event.project.id IN (
+          SELECT project.id
+          FROM ProjectEvent recent
+          JOIN recent.project project
+          LEFT JOIN project.reviewer reviewer
+          WHERE recent.type IN :types
+            AND recent.occurredAt >= :since
+            AND (:reviewerId IS NULL OR reviewer.id = :reviewerId)
+        )
+      ORDER BY event.occurredAt, event.id
+      """)
+  List<ReviewEvent> findReviewHistory(
+      @Param("reviewerId") Long reviewerId,
+      @Param("since") OffsetDateTime since,
+      @Param("types") Collection<ProjectEventType> types);
+
   interface DecisionCount {
 
     ProjectEventType getType();
@@ -89,5 +115,16 @@ public interface ProjectEventRepository extends JpaRepository<ProjectEvent, Long
 
     /** Null for a project approved before the history recorded submissions. */
     OffsetDateTime getFirstSubmittedAt();
+  }
+
+  interface ReviewEvent {
+
+    Long getProjectId();
+
+    ProjectEventType getType();
+
+    int getVersion();
+
+    OffsetDateTime getOccurredAt();
   }
 }
