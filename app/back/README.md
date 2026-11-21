@@ -218,7 +218,7 @@ Cada item traz `status` e `reviewedAt` (nulo em análise). Nos decididos, `deadl
 
 ## Painel do Analista
 
-> Contrato a implementar na #137 (AT01-US17). O front já consome os indicadores e valida a resposta com `services/dashboard/schemas/review-dashboard.schema.ts`. Até o back entrar, o Painel do analista e a seção "Indicadores da Análise" do gestor mostram o estado de erro. "Meus Pareceres" saiu em 20/11: os projetos decididos do analista vêm de `GET /api/review-queue` com `filter=APPROVED` ou `REJECTED`, e `GET /api/review-queue/mine` não é mais necessário.
+> Implementado na #137 (AT01-US17). O front valida a resposta com `services/dashboard/schemas/review-dashboard.schema.ts`. "Meus Pareceres" saiu em 20/11: os projetos decididos do analista vêm de `GET /api/review-queue` com `filter=APPROVED` ou `REJECTED`, e `GET /api/review-queue/mine` não é mais necessário.
 
 ### Escopo por Papel
 
@@ -228,11 +228,11 @@ Cada item traz `status` e `reviewedAt` (nulo em análise). Nos decididos, `deadl
 | `admin` | A equipe inteira |
 | `user` | 403 |
 
-A regra é a mesma da fila (#255): o analista não alcança projeto sem analista ou de outro analista. Todo projeto citado na resposta abre para quem pediu.
+A regra é a mesma da fila (#255): o analista não alcança projeto sem analista ou de outro analista. Todo projeto citado na resposta abre para quem pediu. O escopo segue a atribuição atual: o projeto reatribuído leva o histórico para o novo analista.
 
 ### Indicadores
 
-`GET /api/dashboard/review?period=` responde a `reviewer` e `admin`. O `SecurityConfig` precisa de `/dashboard/review` em `hasAnyRole(REVIEWING_ROLES)`, antes de `anyRequest().authenticated()`; sem a regra, o projetista lê os indicadores. `period` aceita `LAST_30_DAYS` (padrão), `LAST_90_DAYS` e `CURRENT_YEAR`, contados no fuso de Recife com o dia de hoje incluído, como no painel do projetista. Os eventos vêm do histórico (`ProjectEvent`), porque o reenvio sobrescreve `submittedAt`.
+`GET /api/dashboard/review?period=` responde a `reviewer` e `admin`; o projetista recebe 403 do `SecurityConfig` e do service. `period` aceita `LAST_30_DAYS` (padrão), `LAST_90_DAYS` e `CURRENT_YEAR`, contados no fuso de Recife com o dia de hoje incluído, como no painel do projetista. Os eventos vêm do histórico (`ProjectEvent`), porque o reenvio sobrescreve `submittedAt`.
 
 A resposta é `{ data: { ... } }`, sem paginação:
 
@@ -241,19 +241,20 @@ A resposta é `{ data: { ... } }`, sem paginação:
 | `totals.received` | sim | Projetos distintos com `SUBMITTED` ou `RESUBMITTED` no período |
 | `totals.approved`, `totals.rejected` | sim | Projetos distintos com `APPROVED` ou `REJECTED` no período |
 | `totals.underReview` | não | Projetos em `UNDER_REVIEW` hoje |
-| `averageReviewDays` | sim | Média, em dias corridos com decimais, do envio ou reenvio até a decisão, para cada decisão no período; nulo sem decisões |
-| `averageCycleDays` | sim | Média do primeiro `SUBMITTED` ao `APPROVED`, para as aprovações no período; nulo sem aprovações |
+| `averageReviewDays` | sim | Média, com 1 casa, dos dias corridos do envio ou reenvio até a decisão do mesmo ciclo, para cada decisão no período; nulo sem decisões. Decisão sem envio registrado fica de fora |
+| `averageCycleDays` | sim | Média, com 1 casa, do primeiro `SUBMITTED` ao `APPROVED`, para as aprovações no período; nulo sem aprovações |
 | `weekly[]` | sim | Uma entrada por semana que toca o período, da mais antiga à mais recente, inclusive as vazias. `weekStart` é a segunda-feira (`YYYY-MM-DD`), `received` conta os eventos `SUBMITTED` e `RESUBMITTED` da semana e `decided` os `APPROVED` e `REJECTED` |
-| `monthlyRejection[]` | sim | Uma entrada por mês que toca o período (`month` em `YYYY-MM`). `rejectionPercent` é reprovações sobre decisões do mês, de 0 a 100; nulo no mês sem decisões |
-| `deadlines.met`, `deadlines.overdue` | sim | Decisões no período tomadas até o prazo (`Project.deadline`, com a suspensão) ou depois dele |
-| `workload[]` | não | Só para o `admin`; o `reviewer` recebe lista vazia. Analistas e administradores com projetos `UNDER_REVIEW` atribuídos, com `id`, `name` e `underReview`, do maior ao menor |
+| `monthlyRejection[]` | sim | Uma entrada por mês que toca o período (`month` em `YYYY-MM`). `rejectionPercent` é reprovações sobre decisões do mês, de 0 a 100, com 1 casa; nulo no mês sem decisões. A primeira semana e o primeiro mês contam só os eventos a partir do início do período |
+| `deadlines.met`, `deadlines.overdue` | sim | Decisões no período tomadas até o prazo ou depois dele. Os dias usados somam, ciclo a ciclo, do envio à decisão; até 30 cumpre. A espera pela correção não conta, como no prazo da fila |
+| `workload[]` | não | Só para o `admin`; o `reviewer` recebe lista vazia. Analistas e administradores com projetos `UNDER_REVIEW` atribuídos, com `id`, `name` e `underReview`, do maior ao menor e depois por nome |
 | `findingsRanking[]` | sim | Apontamentos publicados, por etapa (`stage`) e item da norma (`standardItem`, nulo sem item), os 10 mais frequentes, com `total`. O período vale pela data de criação do apontamento. `projects[]` traz os projetos distintos que receberam o item, com `id`, `name` e `protocol`, em ordem de protocolo |
 | `municipalities[]` | sim | Os 5 municípios com mais projetos recebidos no período, com `municipality`, `state` e `total`; o empate sai pelo nome |
-| `repeatedRejections[]` | sim | Projetos com duas ou mais reprovações no histórico e a última delas no período, com `id`, `name`, `protocol` e `rejections` (sempre 2 ou mais), do maior número ao menor |
-| `alertsByCategory[]` | sim | Projetos recebidos no período por categoria da edificação (`RESIDENTIAL_MULTIFAMILY`, `NON_RESIDENTIAL`, `MIXED`), com `projects` e `alerts`, a soma dos alertas do cálculo enviado; só as categorias com projeto |
+| `repeatedRejections[]` | sim | Projetos com duas ou mais reprovações no histórico e a última delas no período, com `id`, `name`, `protocol` e `rejections` (sempre 2 ou mais), do maior número ao menor e depois por protocolo |
+| `alertsByCategory[]` | sim | Projetos recebidos no período por categoria da edificação (`RESIDENTIAL_MULTIFAMILY`, `NON_RESIDENTIAL`, `MIXED`), com `projects` e `alerts`, a soma dos alertas do cálculo da versão do último envio no período; só as categorias com projeto |
 
 - `id` sai como string, como no resto da API.
 - Os números do `reviewer` e do `admin` usam as mesmas regras; muda só o conjunto de projetos.
+- Os totais contam projetos distintos e as semanas contam eventos: o projeto enviado e reenviado no período conta uma vez em `totals.received` e duas em `weekly[]`.
 
 ## Análise Técnica e Apontamentos
 
