@@ -348,7 +348,7 @@ Pontos em que as normas são omissas e o motor da US04 adotou um critério. Cada
 | 12 | Motor declarado em kW é lido na linha da potência convertida em CV, e a carga instalada é a absorvida dessa linha | kW e kVA saem da mesma linha da Tabela 18/19 |
 | 13 | Condicionador em BTU/h fora da Tabela 11 entra pela linha seguinte, e a memória indica qual; acima de 60.000 BTU/h, o grupo fica em Revisar. BTU/h só vale para a parcela `f` | O Exemplo 3 lê 14.000 BTU/h na linha de 15.000 |
 | 14 | O mínimo de tomadas da Tabela 5 (030, 6.26.1.1) é lido pela área útil do grupo, não pela área construída | O grupo só informa a área útil, que é a do Quadro 35; a mensagem diz "área útil" |
-| 15 | Acima de 250 m², ou sem a Tabela 5 nas revisões do projeto, o mínimo de tomadas não é conferido e não gera pendência; o de iluminação continua | Acima de 250 m² a norma manda declarar as tomadas e a tabela não tem linha. Um protocolo enviado antes da Tabela 5 nunca a recebe nas revisões fixadas |
+| 15 | Acima de 250 m², ou sem a Tabela 5 nas revisões do projeto, o mínimo de tomadas não é conferido e não gera pendência; o de iluminação continua | Acima de 250 m² a norma manda declarar as tomadas e a tabela não tem linha. Um protocolo fixado antes da vigência da Tabela 5 não a recebe e não teria como resolver a pendência. No banco já semeado, o seed a põe em vigor desde a primeira verificação, e os protocolos existentes a recebem |
 
 ## Divergências entre as Normas e Critério Adotado
 
