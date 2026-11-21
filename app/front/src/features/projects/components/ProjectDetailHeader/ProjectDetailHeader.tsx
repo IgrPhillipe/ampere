@@ -1,6 +1,7 @@
 import {
 	DeadlineStatusBadge,
 	describeDeadline,
+	formatDays,
 } from "@components/DeadlineStatusBadge";
 import { Skeleton } from "@components/ui/skeleton";
 import {
@@ -11,6 +12,7 @@ import {
 } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ProjectDetail } from "@services/projects";
+import type { DeadlineStatus } from "@services/review-queue";
 import type { ReactNode } from "react";
 
 import {
@@ -56,14 +58,10 @@ const StripDate = ({ value }: { value: string }) => (
 	<time dateTime={value}>{formatDate(value)}</time>
 );
 
-const formatDays = (count: number) =>
-	`${count} ${count === 1 ? "dia" : "dias"}`;
-
-const describeSuspendedDeadline = (daysRemaining: number) => {
-	if (daysRemaining < 0)
-		return `Atrasado ${formatDays(Math.abs(daysRemaining))}`;
-	if (daysRemaining === 0) return "Vence hoje";
-	return `${formatDays(daysRemaining)} restantes`;
+const statusOfFrozenDeadline = (daysRemaining: number): DeadlineStatus => {
+	if (daysRemaining < 0) return "OVERDUE";
+	if (daysRemaining === 0) return "DUE_TODAY";
+	return "ON_TIME";
 };
 
 export interface HeaderMetric {
@@ -225,7 +223,11 @@ export const ProjectDetailHeader = ({
 					<StripCell isLoading={isLoading} label="Prazo suspenso">
 						{project.daysRemaining == null
 							? "Prazo indisponível"
-							: describeSuspendedDeadline(project.daysRemaining)}
+							: describeDeadline(
+									statusOfFrozenDeadline(project.daysRemaining),
+									project.daysRemaining,
+									{ withRemaining: true },
+								)}
 					</StripCell>
 				) : null}
 

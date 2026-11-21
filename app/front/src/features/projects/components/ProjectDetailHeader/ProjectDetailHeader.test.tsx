@@ -125,6 +125,22 @@ describe("ProjectDetailHeader", () => {
 		expect(cell("Dias suspensos")).toHaveTextContent("4 dias");
 	});
 
+	it("reads a frozen deadline of one day in the singular", () => {
+		render(
+			<ProjectDetailHeader
+				project={makeProjectDetail({
+					status: "REJECTED",
+					reviewDeadline: null,
+					deadlineStatus: null,
+					reviewSuspended: true,
+					daysRemaining: 1,
+				})}
+			/>,
+		);
+
+		expect(cell("Prazo suspenso")).toHaveTextContent("1 dia restante");
+	});
+
 	it("shows the validity date for an approved project", () => {
 		render(
 			<ProjectDetailHeader
