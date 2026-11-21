@@ -475,7 +475,7 @@ class DemandCalculationIntegrationTest {
             jsonPath("$.data[3].issues[0].message")
                 .value(
                     "A Tabela 19 da DIS-NOR-030 não está publicada: sem ela não há carga nem"
-                        + " demanda de \"Elevador\". Publique a tabela em Normas e Tabelas."));
+                        + " demanda de \"Elevador\". Publique a tabela em Tabelas Normativas."));
     mockMvc
         .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
         .andExpect(status().isUnprocessableContent())

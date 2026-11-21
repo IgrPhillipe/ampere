@@ -596,7 +596,7 @@ public enum LoadCategory {
                   + citation
                   + " não está publicada: sem ela não há carga nem demanda de \""
                   + item.getDescription()
-                  + "\". Publique a tabela em Normas e Tabelas."));
+                  + "\". Publique a tabela em Tabelas Normativas."));
     }
     if (context.tables().lookup(table, null, argument).isEmpty()) {
       return List.of(
