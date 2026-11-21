@@ -46,6 +46,7 @@ export const ResidentialGroupForm = ({
 		quantity: group.quantity,
 		usefulArea: group.usefulArea ?? null,
 		bedrooms: group.bedrooms ?? null,
+		rooms: group.rooms ?? null,
 		// For a three-phase group the API sends the sum of its loads, not a declared total.
 		unitLoadKw:
 			group.connectionType === "THREE_PHASE"
@@ -80,8 +81,9 @@ export const ResidentialGroupForm = ({
 		if (connectionType === "THREE_PHASE") {
 			form.setValue("unitLoadKw", null);
 			if (current.length === 0) form.setValue("items", [EMPTY_LOAD_ITEM]);
-		} else if (connectionType === "SINGLE_PHASE" && current.length > 0) {
-			form.setValue("items", []);
+		} else if (connectionType === "SINGLE_PHASE") {
+			form.setValue("rooms", null);
+			if (current.length > 0) form.setValue("items", []);
 		}
 	}, [form, connectionType, readOnly]);
 
@@ -94,6 +96,7 @@ export const ResidentialGroupForm = ({
 			quantity: values.quantity,
 			usefulArea: values.usefulArea,
 			bedrooms: values.bedrooms,
+			rooms: threePhase ? values.rooms : null,
 			unitLoadKw: threePhase ? null : values.unitLoadKw,
 			compactUnit: toBoolean(values.compactUnit),
 			connectionType: values.connectionType,
@@ -171,7 +174,20 @@ export const ResidentialGroupForm = ({
 						variant="underline"
 					/>
 
-					{isThreePhase ? null : (
+					{isThreePhase ? (
+						<ControlledInput
+							control={form.control}
+							name="rooms"
+							label="Cômodos e corredores"
+							description="Define a carga mínima de iluminação, 100 W por cômodo ou corredor (DIS-NOR-030, item 6.26.1.1)."
+							type="number"
+							min={1}
+							step={1}
+							inputMode="numeric"
+							required
+							variant="underline"
+						/>
+					) : (
 						<ControlledInput
 							control={form.control}
 							name="unitLoadKw"
@@ -198,7 +214,6 @@ export const ResidentialGroupForm = ({
 						placeholder="Não informado"
 						items={yesNoItems}
 						variant="underline"
-						fieldClassName={isThreePhase ? "sm:col-span-2" : undefined}
 					/>
 				</div>
 

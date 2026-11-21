@@ -105,6 +105,18 @@ export const residentialGroupFormSchema = z
 				.min(0, { error: "O número de quartos não pode ser negativo." })
 				.max(50, { error: "O número de quartos deve ser no máximo 50." }),
 		),
+		/** Three-phase only: one 100 W light point per room or corridor (item 6.26.1.1). */
+		rooms: optionalNumber(
+			z
+				.number()
+				.int({ error: "O número de cômodos e corredores deve ser inteiro." })
+				.min(1, {
+					error: "O número de cômodos e corredores deve ser no mínimo 1.",
+				})
+				.max(50, {
+					error: "O número de cômodos e corredores deve ser no máximo 50.",
+				}),
+		),
 		unitLoadKw: optionalPositive(
 			"A carga por unidade deve ser maior que zero.",
 		),

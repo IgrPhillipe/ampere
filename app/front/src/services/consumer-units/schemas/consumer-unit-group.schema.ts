@@ -92,6 +92,7 @@ export const residentialGroupSchema = groupBaseSchema.extend({
 	kind: z.literal("RESIDENTIAL"),
 	usefulArea: z.number().positive().nullish(),
 	bedrooms: z.number().int().nonnegative().nullish(),
+	rooms: z.number().int().positive().nullish(),
 	unitLoadKw: z.number().positive().nullish(),
 	compactUnit: z.boolean().nullish(),
 	connectionType: unitConnectionTypeSchema.nullish(),
