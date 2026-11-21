@@ -3,6 +3,7 @@ package br.com.ampere.dto;
 import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.DeadlineStatus;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.User;
 import br.com.ampere.service.ReviewQueueEntry;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,6 +17,9 @@ public record ReviewQueueItemResponse(
     String id,
     String name,
     String protocol,
+    ProjectStatus status,
+    @Schema(description = "Data da decisão; nulo enquanto o projeto está em análise")
+        OffsetDateTime reviewedAt,
     String municipality,
     BrazilianState state,
     OffsetDateTime submittedAt,
@@ -46,6 +50,8 @@ public record ReviewQueueItemResponse(
         String.valueOf(project.getId()),
         project.getName(),
         project.getProtocol(),
+        project.getStatus(),
+        project.getReviewedAt(),
         project.getMunicipality(),
         project.getState(),
         project.getSubmittedAt(),

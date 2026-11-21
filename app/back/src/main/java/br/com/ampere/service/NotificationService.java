@@ -31,9 +31,9 @@ public class NotificationService {
 
   private static final String NOT_FOUND = "Notificação não encontrada.";
 
-  static final String QUEUE_LINK = "/fila-de-analise";
+  static final String QUEUE_LINK = "/projetos";
 
-  static final String UNASSIGNED_QUEUE_LINK = "/fila-de-analise?reviewer=none";
+  static final String UNASSIGNED_QUEUE_LINK = "/projetos?status=UNDER_REVIEW&reviewer=none";
 
   private final NotificationRepository notificationRepository;
   private final ProjectRepository projectRepository;
@@ -240,7 +240,7 @@ public class NotificationService {
   }
 
   private static String reviewerLink(Project project) {
-    return "/fila-de-analise/" + project.getId();
+    return "/projetos/" + project.getId();
   }
 
   private int notify(

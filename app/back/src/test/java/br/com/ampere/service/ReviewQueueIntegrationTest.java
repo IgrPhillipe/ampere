@@ -706,6 +706,50 @@ class ReviewQueueIntegrationTest {
   }
 
   @Test
+  void theAnalystListsTheirDecidedProjectsNewestFirst() throws Exception {
+    Project pending = project("2026-7701", ProjectStatus.DRAFT);
+    pending.submit(now.minusDays(9));
+    pending.assignReviewer(reviewer);
+    projectRepository.save(pending);
+    Project olderApproval = project("2026-7702", ProjectStatus.DRAFT);
+    olderApproval.submit(now.minusDays(8));
+    olderApproval.assignReviewer(reviewer);
+    olderApproval.approve(now.minusDays(3));
+    projectRepository.save(olderApproval);
+    Project newerApproval = project("2026-7703", ProjectStatus.DRAFT);
+    newerApproval.submit(now.minusDays(7));
+    newerApproval.assignReviewer(reviewer);
+    newerApproval.approve(now.minusDays(1));
+    projectRepository.save(newerApproval);
+    Project rejection = project("2026-7704", ProjectStatus.DRAFT);
+    rejection.submit(now.minusDays(6));
+    rejection.assignReviewer(reviewer);
+    rejection.reject(now.minusDays(2));
+    projectRepository.save(rejection);
+    Project othersApproval = project("2026-7705", ProjectStatus.DRAFT);
+    othersApproval.submit(now.minusDays(5));
+    othersApproval.assignReviewer(admin);
+    othersApproval.approve(now);
+    projectRepository.save(othersApproval);
+
+    asReviewer(get("/review-queue"))
+        .andExpect(jsonPath("$.data[*].protocol").value(contains("2026-7701")))
+        .andExpect(jsonPath("$.data[0].status").value("UNDER_REVIEW"))
+        .andExpect(jsonPath("$.data[0].reviewedAt").doesNotExist());
+    asReviewer(get("/review-queue").param("filter", "APPROVED"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[*].protocol").value(contains("2026-7703", "2026-7702")))
+        .andExpect(jsonPath("$.data[0].status").value("APPROVED"))
+        .andExpect(jsonPath("$.data[0].reviewedAt").isNotEmpty());
+    asReviewer(get("/review-queue").param("filter", "REJECTED"))
+        .andExpect(jsonPath("$.data[*].protocol").value(contains("2026-7704")));
+    asReviewer(get("/review-queue/indicators"))
+        .andExpect(jsonPath("$.data.total").value(1))
+        .andExpect(jsonPath("$.data.approved").value(2))
+        .andExpect(jsonPath("$.data.rejected").value(1));
+  }
+
+  @Test
   void anEmptyMonthHasNoRejectionRate() throws Exception {
     asManager(get("/review-queue/indicators"))
         .andExpect(jsonPath("$.data.total").value(0))

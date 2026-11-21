@@ -10,7 +10,9 @@ public record ReviewQueueIndicators(
     long reanalysis,
     long reviewedToday,
     long reviewedThisMonth,
-    long rejectedThisMonth) {
+    long rejectedThisMonth,
+    long approved,
+    long rejected) {
 
   public BigDecimal monthlyRejectionPercent() {
     if (reviewedThisMonth == 0) {

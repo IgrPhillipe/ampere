@@ -2,6 +2,7 @@ package br.com.ampere.repository;
 
 import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ProjectVisibility;
 import br.com.ampere.domain.User;
 import jakarta.persistence.EntityManager;
@@ -118,8 +119,11 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
 
   @Override
   public Page<Project> searchReviewQueue(ReviewQueueSearch search, Pageable pageable) {
-    StringBuilder where = new StringBuilder(REVIEW_QUEUE);
+    StringBuilder where =
+        new StringBuilder("WHERE project.status IN :statuses AND project.submittedAt IS NOT NULL");
     Map<String, Object> parameters = new HashMap<>();
+    parameters.put("statuses", search.statuses());
+    boolean decided = !search.statuses().contains(ProjectStatus.UNDER_REVIEW);
 
     if (!search.search().isEmpty()) {
       where.append(" AND project.reviewSearchIndex LIKE CONCAT('%', :search, '%') ESCAPE '\\'");
@@ -151,8 +155,13 @@ public class ProjectRepositoryImpl implements ProjectRepositoryCustom {
     String direction = search.direction().name();
     String column =
         switch (search.sort()) {
-          // The deadline is the clock start plus a fixed period, so the clock start orders it.
-          case DEADLINE -> REVIEW_CLOCK_START + " " + direction;
+          // A decided project has no deadline left: the latest decision comes first.
+          case DEADLINE ->
+              decided
+                  ? "project.reviewedAt DESC"
+                  // The deadline is the clock start plus a fixed period, so the clock start
+                  // orders it.
+                  : REVIEW_CLOCK_START + " " + direction;
           case SUBMITTED_AT -> "project.submittedAt " + direction;
           case DEMAND -> LATEST_DEMAND + " " + direction;
           case WARNINGS -> LATEST_WARNING_COUNT + " " + direction;

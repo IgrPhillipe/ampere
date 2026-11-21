@@ -166,7 +166,7 @@ class NotificationServiceTest {
             notification -> {
               assertThat(notification.getRecipient()).isSameAs(analyst);
               assertThat(notification.getType()).isEqualTo(NotificationType.PROJECT_RESUBMITTED);
-              assertThat(notification.getLink()).isEqualTo("/fila-de-analise/10");
+              assertThat(notification.getLink()).isEqualTo("/projetos/10");
             });
   }
 
@@ -205,7 +205,7 @@ class NotificationServiceTest {
               assertThat(notification.getType()).isEqualTo(NotificationType.REVIEW_DEADLINE_NEAR);
               assertThat(notification.getText())
                   .isEqualTo("Prazo de análise do projeto 2026-1004 vence em 3 dias");
-              assertThat(notification.getLink()).isEqualTo("/fila-de-analise/10");
+              assertThat(notification.getLink()).isEqualTo("/projetos/10");
             });
   }
 

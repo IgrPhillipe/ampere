@@ -63,5 +63,6 @@ public interface ProjectRepositoryCustom {
       boolean unassigned,
       Long ownerId,
       ReviewQueueSort sort,
-      SortDirection direction) {}
+      SortDirection direction,
+      Collection<ProjectStatus> statuses) {}
 }

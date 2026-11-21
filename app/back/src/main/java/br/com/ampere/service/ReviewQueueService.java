@@ -92,7 +92,8 @@ public class ReviewQueueService {
         reviewer.unassigned(),
         query.owner(),
         query.sort(),
-        query.direction());
+        query.direction(),
+        query.filter().statuses());
   }
 
   private ReviewQueueListing listing(Page<Project> projects, LocalDate today) {
@@ -167,7 +168,11 @@ public class ReviewQueueService {
           projectRepository.countByReviewerIdAndReviewedAtGreaterThanEqual(scope, startOfToday),
           projectRepository.countByReviewerIdAndReviewedAtGreaterThanEqual(scope, startOfMonth),
           projectRepository.countByReviewerIdAndStatusAndReviewedAtGreaterThanEqual(
-              scope, ProjectStatus.REJECTED, startOfMonth));
+              scope, ProjectStatus.REJECTED, startOfMonth),
+          projectRepository.countByReviewerIdAndStatusIn(
+              scope, ReviewQueueFilter.APPROVED.statuses()),
+          projectRepository.countByReviewerIdAndStatusIn(
+              scope, ReviewQueueFilter.REJECTED.statuses()));
     }
 
     return new ReviewQueueIndicators(
@@ -178,7 +183,9 @@ public class ReviewQueueService {
         projectRepository.countByReviewedAtGreaterThanEqual(startOfToday),
         projectRepository.countByReviewedAtGreaterThanEqual(startOfMonth),
         projectRepository.countByStatusAndReviewedAtGreaterThanEqual(
-            ProjectStatus.REJECTED, startOfMonth));
+            ProjectStatus.REJECTED, startOfMonth),
+        projectRepository.countByStatusIn(ReviewQueueFilter.APPROVED.statuses()),
+        projectRepository.countByStatusIn(ReviewQueueFilter.REJECTED.statuses()));
   }
 
   /** The analyst only reaches the projects the manager assigned to them; the manager, all. */
@@ -214,7 +221,8 @@ public class ReviewQueueService {
                 false,
                 null,
                 ReviewQueueSort.DEADLINE,
-                SortDirection.ASC),
+                SortDirection.ASC,
+                Set.of(ProjectStatus.UNDER_REVIEW)),
             PageRequest.of(0, 1))
         .getTotalElements();
   }

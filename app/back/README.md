@@ -169,13 +169,15 @@ Restrita ao papel `admin` pelo `SecurityConfig`, sem prefixo de papel no caminho
 | Parâmetro | Padrão | Valores |
 | :--- | :--- | :--- |
 | `search` | vazio | protocolo, projetista ou município, sem diferenciar maiúsculas ou acentos |
-| `filter` | `ALL` | `DUE_SOON` (vence hoje ou atrasado), `HIGH_DEMAND` (último cálculo acima de 50 kVA), `REANALYSIS` (dois ou mais envios) |
+| `filter` | `ALL` | Em análise: `ALL`, `DUE_SOON` (vence hoje ou atrasado), `HIGH_DEMAND` (último cálculo acima de 50 kVA), `REANALYSIS` (dois ou mais envios). Decididos: `APPROVED` (inclui a aprovação vencida) e `REJECTED`, da decisão mais recente para a mais antiga quando a ordem é `deadline` |
 | `sort` | `deadline` | `deadline` (prazo final, com a suspensão), `submittedAt` (data do último envio), `demand` (último cálculo) ou `warnings` (alertas do último cálculo) |
 | `direction` | `ASC` | `ASC` ou `DESC`; o empate é desfeito pelo ID crescente |
 | `reviewer` | vazio | ID do analista, ou `none` para os projetos sem analista |
 | `state`, `municipality` | vazio | UFs e municípios; repita o parâmetro para mais de um |
 
 Busca, filtro e ordenação valem antes da paginação. O analista vê só os projetos atribuídos a ele, e o parâmetro `reviewer` é ignorado para ele. `GET /api/review-queue/indicators` devolve os contadores, que não dependem desses parâmetros: os da fila inteira para o `admin` e os do próprio analista para o `reviewer`. `GET /api/review-queue/reviewers`, só do `admin`, lista os analistas do filtro `reviewer` e da atribuição. Quem foi desativado com projeto ainda em análise vem com `active: false`: entra no filtro, não na atribuição.
+
+Cada item traz `status` e `reviewedAt` (nulo em análise). Nos decididos, `deadline` e `deadlineStatus` vêm nulos. Os indicadores trazem também `approved` e `rejected`, os decididos de cada filtro.
 
 ---
 
@@ -216,15 +218,15 @@ Busca, filtro e ordenação valem antes da paginação. O analista vê só os pr
 
 ## Painel do Analista
 
-> Contrato a implementar na #137 (AT01-US17). O front da US17 já consome os dois endpoints e valida as respostas com os schemas `services/dashboard/schemas/review-dashboard.schema.ts` e `services/review-queue/schemas/my-reviews.schema.ts`. Até o back entrar, as telas "Indicadores" e "Meus Pareceres" mostram o estado de erro.
+> Contrato a implementar na #137 (AT01-US17). O front já consome os indicadores e valida a resposta com `services/dashboard/schemas/review-dashboard.schema.ts`. Até o back entrar, o Painel do analista e a seção "Indicadores da Análise" do gestor mostram o estado de erro. "Meus Pareceres" saiu em 20/11: os projetos decididos do analista vêm de `GET /api/review-queue` com `filter=APPROVED` ou `REJECTED`, e `GET /api/review-queue/mine` não é mais necessário.
 
 ### Escopo por Papel
 
-| Papel | Indicadores | Meus Pareceres |
-| :--- | :--- | :--- |
-| `reviewer` | Só os projetos atribuídos a ele, incluídos os que ele já decidiu | Só as decisões dele em projetos ainda atribuídos a ele; o projeto reatribuído sai da lista |
-| `admin` | A equipe inteira | As decisões dele |
-| `user` | 403 | 403 |
+| Papel | Indicadores |
+| :--- | :--- |
+| `reviewer` | Só os projetos atribuídos a ele, incluídos os que ele já decidiu |
+| `admin` | A equipe inteira |
+| `user` | 403 |
 
 A regra é a mesma da fila (#255): o analista não alcança projeto sem analista ou de outro analista. Todo projeto citado na resposta abre para quem pediu.
 
@@ -252,34 +254,6 @@ A resposta é `{ data: { ... } }`, sem paginação:
 
 - `id` sai como string, como no resto da API.
 - Os números do `reviewer` e do `admin` usam as mesmas regras; muda só o conjunto de projetos.
-
-### Meus Pareceres
-
-`GET /api/review-queue/mine` responde a `reviewer` e `admin`; já fica sob `/review-queue/**`. Lista as decisões (`APPROVED` e `REJECTED`) cujo autor é o usuário logado, da mais recente à mais antiga, com o ID do evento como desempate. Um projeto decidido duas vezes aparece em duas linhas, uma por versão.
-
-| Parâmetro | Padrão | Valores |
-| :--- | :--- | :--- |
-| `page`, `pageSize` | `1`, `10` | Paginação de `PageQuery` |
-| `search` | vazio | Protocolo, nome do projeto ou projetista, sem diferenciar maiúsculas ou acentos |
-| `decision` | vazio | `APPROVED` ou `REJECTED` |
-| `state`, `municipality` | vazio | UFs e municípios; repita o parâmetro para mais de um |
-| `decidedFrom`, `decidedTo` | vazio | Datas `YYYY-MM-DD`, inclusivas, no fuso de Recife; início depois do fim responde 400 |
-
-Cada item de `data[]`:
-
-| Campo | Regra |
-| :--- | :--- |
-| `id`, `name`, `protocol`, `municipality`, `state` | Do projeto; `id` abre `/projetos/{id}` |
-| `ownerName` | Nome do projetista; nulo se a conta não existir mais |
-| `decision`, `decidedAt` | Tipo e data do evento, ISO 8601 com offset |
-| `version` | Número do envio decidido, 1 para o primeiro |
-| `currentVersion` | Número do envio atual do projeto. Com `version` menor, o front abre o histórico do projeto |
-| `findings` | Apontamentos publicados nessa decisão |
-| `consumerUnitsCount`, `demandKva` | Do cálculo enviado nessa versão; `demandKva` nulo sem cálculo |
-
-O envelope ganha `counts` ao lado de `data` e `pagination`: `{ all, approved, rejected }`, contados com todos os filtros menos `decision`, para os chips de decisão. O `ApiResponse` atual só tem `data` e `pagination`, então a resposta precisa de um record próprio ou de um campo opcional no envelope.
-
----
 
 ## Análise Técnica e Apontamentos
 
@@ -417,10 +391,10 @@ Central do sino do cabeçalho, para projetista, analista e gestor. Sem e-mail. C
 | Decisão de aprovar | `PROJECT_APPROVED` | Dono do projeto | `/projetos/{id}` |
 | Decisão de reprovar ("reprovado com N apontamentos") | `PROJECT_REJECTED` | Dono do projeto | `/projetos/{id}/apontamentos` |
 | Decisão de reprovar com apontamentos reabertos no ciclo ("N apontamentos reabertos") | `FINDING_REOPENED` | Dono do projeto | `/projetos/{id}/apontamentos` |
-| Reenvio de projeto reprovado | `PROJECT_RESUBMITTED` | Analista atribuído | `/fila-de-analise/{id}` |
-| Envio ou reenvio que deixa o projeto sem analista ("aguardando analista") | `PROJECT_UNASSIGNED` | Gestores ativos | `/fila-de-analise?reviewer=none` |
-| Prazo de análise vence em até 3 dias (hoje inclusive) | `REVIEW_DEADLINE_NEAR` | Analista atribuído | `/fila-de-analise/{id}` |
-| Prazo de análise vencido | `REVIEW_OVERDUE` | Analista atribuído | `/fila-de-analise/{id}` |
+| Reenvio de projeto reprovado | `PROJECT_RESUBMITTED` | Analista atribuído | `/projetos/{id}` |
+| Envio ou reenvio que deixa o projeto sem analista ("aguardando analista") | `PROJECT_UNASSIGNED` | Gestores ativos | `/projetos?status=UNDER_REVIEW&reviewer=none` |
+| Prazo de análise vence em até 3 dias (hoje inclusive) | `REVIEW_DEADLINE_NEAR` | Analista atribuído | `/projetos/{id}` |
+| Prazo de análise vencido | `REVIEW_OVERDUE` | Analista atribuído | `/projetos/{id}` |
 | Aprovação expira em até 30 dias (36 meses após a aprovação) | `APPROVAL_EXPIRING` | Dono do projeto | `/projetos/{id}` |
 
 - As cinco primeiras nascem na transação da operação que as causa (decisão ou envio). A reabertura só avisa na reprovação: antes disso o projetista não pode responder, e o analista ainda pode aceitar o apontamento. Sem destinatário (projeto sem dono, ou sem analista atribuído), nada é gerado.
