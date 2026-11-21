@@ -1,4 +1,7 @@
-import { DeadlineStatusBadge } from "@components/DeadlineStatusBadge";
+import {
+	DeadlineStatusBadge,
+	formatDays,
+} from "@components/DeadlineStatusBadge";
 import type { ReviewQueueItem } from "@services/review-queue";
 
 interface DeadlineCellProps {
@@ -6,15 +9,17 @@ interface DeadlineCellProps {
 }
 
 export const DeadlineCell = ({ item }: DeadlineCellProps) => (
-	<div className="flex flex-col items-start gap-1">
+	<div className="flex flex-col items-end gap-1">
 		<DeadlineStatusBadge
 			deadlineStatus={item.deadlineStatus}
 			daysRemaining={item.daysRemaining}
 			withRemaining
 		/>
-		<span className="font-mono text-2xs text-muted-foreground">
-			{item.elapsedDays} {item.elapsedDays === 1 ? "dia" : "dias"} corridos ·{" "}
-			{item.suspendedDays} {item.suspendedDays === 1 ? "dia" : "dias"} suspensos
+		<span className="font-mono text-2xs whitespace-nowrap text-muted-foreground">
+			{formatDays(item.elapsedDays)} corridos
+		</span>
+		<span className="font-mono text-2xs whitespace-nowrap text-muted-foreground">
+			{formatDays(item.suspendedDays)} suspensos
 		</span>
 	</div>
 );

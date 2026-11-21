@@ -108,9 +108,8 @@ describe("ReviewQueueListing", () => {
 		expect(screen.getByText("01 alerta")).toBeInTheDocument();
 		expect(screen.getByText("Sem alerta")).toBeInTheDocument();
 		expect(screen.getAllByText("20 dias restantes")).toHaveLength(2);
-		expect(
-			screen.getAllByText("12 dias corridos · 3 dias suspensos"),
-		).toHaveLength(2);
+		expect(screen.getAllByText("12 dias corridos")).toHaveLength(2);
+		expect(screen.getAllByText("3 dias suspensos")).toHaveLength(2);
 	});
 });
 
