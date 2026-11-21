@@ -128,7 +128,7 @@ D = a + b + c + d + e + f + g + h + i   [kVA]
 | `d` | Secadora, lava-roupas, lava-louças, micro-ondas | Tabela 9 | **0,92** ou conforme fabricante |
 | `e` | Fornos e fogões elétricos | Tabela 9 | 1,00 |
 | `f` | Condicionadores de ar | Tabela 12; potência por aparelho na Tabela 11 | unidade central: fator de demanda 1,00 |
-| `g` | Motores e máquinas de solda a motor | Tabela 14 | potência de placa em CV/HP convertida pela **Tabela 19** (trifásico) ou **Tabela 18** (monofásico) |
+| `g` | Motores e máquinas de solda a motor | Tabela 14 | potência de placa em CV/HP convertida pela **Tabela 19** (trifásico) ou **Tabela 18** (monofásico); a coluna kW dá a carga instalada |
 | `h` | Equipamentos especiais | Tabela 15: maior 1,00, demais **0,60** | conforme placa do equipamento |
 | `i` | Bombas e hidromassagem | Tabela 16: 1 → 1,00; 2 → 0,56; 3 → 0,47; acima de 3 → 0,39 | 1,00 |
 
@@ -289,6 +289,18 @@ O Anexo I traz **cinco exemplos resolvidos de ponta a ponta**, com os valores in
 O segundo elevador de 15 cv entra no grupo dos "demais", com 0,50, conforme a nota da Tabela 14 para maiores potências iguais.
 
 Os valores dos Exemplos 3 a 5 devem ser transcritos das páginas do PDF, não da extração de texto.
+
+**DIS-NOR-030, Exemplo 3, carga instalada.** Residência de 180 m² com 12 cômodos, p. 52 a 55 impressas, REV 07, com o SHA-256 registrado em "Procedimento". É o exemplo da cobertura de `DemandFixtures.exemplo3()` e de `ScenarioGroups.penthouseLoads`, e não o Exemplo 3 do Anexo I da 053.
+
+| Carga | Valor da norma |
+| :--- | ---: |
+| Tomadas, pela Tabela 5 | 3.000 W |
+| Iluminação, 12 cômodos × 100 W | 1.200 W |
+| Eletrodomésticos, com os condicionadores em 2 × 1.900 W | 29.800 W |
+| Motores, 2 × 1.050 W (1 cv, Tabela 19) | 2.100 W |
+| **Carga instalada** | **36.100 W** |
+
+Na parcela `f`, os mesmos condicionadores entram como 2 × 2.100 VA (Tabela 11). O sistema guarda um valor por aparelho e a fixture lança 2,1 para `f` fechar em 4,20 kVA; por isso a carga instalada calculada é 36,50 kW. A divergência está em [`engine-calculo.md`](engine-calculo.md).
 
 ---
 

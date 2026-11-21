@@ -164,6 +164,8 @@ O item 6.22.3 da DIS-NOR-053 pede a demanda de cada apartamento pelo método da 
 - **Limite da baixa tensão:** unidade com carga instalada acima de **75 kW** não é atendida em tensão secundária (DIS-NOR-030, item 6.2.1). O grupo fica em Revisar e bloqueia o cálculo; a verificação `LOW_VOLTAGE_LIMIT` registra a maior carga por unidade.
 - Apartamento trifásico em edificação de ligação monofásica gera o alerta `UNIT_CONNECTION`: a entrada do prédio não alimenta a unidade trifásica.
 - A **DIS-NOR-030, Exemplo 3** (p. 52 a 55) chega a 25,90 kVA. O motor dá 26,58 kVA para as mesmas cargas: o exemplo põe o forno na parcela d, usa fator de potência 1,00 em d (o item 6.27.4 pede 0,92) e arredonda a e g para cima.
+- **Carga instalada dos motores:** potência absorvida em kW da Tabela 19 (trifásico) ou 18 (monofásico), a mesma linha que dá o kVA da parcela `g`, e não a conversão da placa (1 CV = 0,7355 kW). A carga do apartamento, o limite de 75 kW, a validação dos grupos e o cálculo usam o mesmo valor.
+- O mesmo Exemplo 3 soma 36,10 kW de carga instalada. O motor dá 36,50 kW: o exemplo conta os dois condicionadores como 2 × 1.900 W na carga e 2 × 2.100 VA na parcela `f` (Tabela 11), e o sistema tem um só valor por aparelho, informado como 2,1 para a parcela fechar. Os 0,40 kW são essa diferença.
 
 ---
 
@@ -183,7 +185,7 @@ D = a + b + c + d + e + f + g + h + i   [kVA]
 | **d**   | Secadora, lava-roupas, lava-louças, micro-ondas       | Tabela 9                                                       | **0,92** ou conforme fabricante                                                             |
 | **e**   | Fornos e fogões elétricos                             | Tabela 9                                                       | 1,00                                                                                        |
 | **f**   | Condicionadores de ar                                 | Tabela 12; potência por aparelho na Tabela 11                  | unidade central: fator de demanda 1,00                                                      |
-| **g**   | Motores e máquinas de solda a motor                   | Tabela 14                                                      | potência de placa em CV/HP convertida pela **Tabela 19** (trifásico) ou **18** (monofásico)  |
+| **g**   | Motores e máquinas de solda a motor                   | Tabela 14                                                      | potência de placa em CV/HP convertida pela **Tabela 19** (trifásico) ou **18** (monofásico), em kVA para a demanda e em kW para a carga instalada |
 | **h**   | Equipamentos especiais                                | Tabela 15: maior 1,00, demais **0,60**                         | conforme placa                                                                              |
 | **i**   | Bombas e hidromassagem                                | Tabela 16: 1 → 1,00; 2 → 0,56; 3 → 0,47; acima de 3 → 0,39     | 1,00                                                                                        |
 
@@ -203,7 +205,8 @@ O sistema aceita entradas para **todas as nove parcelas** presentes na edificaç
 | **Demais motores → fator 0,50**    | Todos os outros entram com 0,50                                                                                                    |
 | **Motores de potência igual**      | Havendo dois ou mais de mesma potência, apenas **um** conta como o maior; os demais vão para o grupo de 0,50                       |
 | **Partida simultânea obrigatória** | Motores que precisam partir simultaneamente por determinação do processo têm as potências **somadas** e contam como um único motor |
-| **Conversão de potência**          | CV ou HP de placa convertidos para kVA pela **Tabela 19** (trifásico) ou **18** (monofásico), não por cálculo próprio          |
+| **Conversão de potência**          | CV ou HP de placa convertidos pela **Tabela 19** (trifásico) ou **18** (monofásico), não por cálculo próprio: kVA na demanda, kW na carga instalada |
+| **Fora da tabela**                 | Motor acima da última linha, ou tabela de motores não publicada, deixa o grupo em Revisar e bloqueia o cálculo                  |
 
 ---
 
@@ -334,11 +337,12 @@ Pontos em que as normas são omissas e o motor da US04 adotou um critério. Cada
 | 4 | Na parcela `a`, todo item informa se é iluminação (e com quais lâmpadas) ou tomadas de uso geral; sem isso o grupo fica com "Falta Dado" | A Tabela 22 separa as duas cargas e o fator de potência vem da lâmpada: supor tomada subdimensionaria a iluminação |
 | 5 | Área comum usa a linha "Administração de edifícios de uso coletivo" da Tabela 22 (1,00 iluminação, 0,50 tomadas); carga comercial usa "Bancos, lojas e semelhantes" (1,00) | O Exemplo 1 usa a primeira; o Exemplo 2 usa "Auditórios" (1,00) para a mesma área comum. O resultado final do Exemplo 2 não muda |
 | 6 | Motor com potência ausente da Tabela 18/19 entra pela linha seguinte, e a memória indica qual | Nunca subdimensiona |
-| 7 | Bombas declaradas em CV ou HP obtêm o kVA da tabela de motores; em kW, fator de potência 1,00 | O item 6.27.9 dá fator de potência 1,00; a potência de placa costuma vir em CV |
+| 7 | Bombas declaradas em CV ou HP obtêm o kVA e a carga instalada da tabela de motores; em kW, fator de potência 1,00 e a carga declarada | O item 6.27.9 dá fator de potência 1,00; a potência de placa costuma vir em CV |
 | 8 | Recarga: kW = kVA (fator de potência 1,00) | O Quadro 33 se aplica à potência das estações |
 | 9 | O limite de 50 % do transformador (053, 6.26.2) não é verificado | O projeto não informa a potência do transformador |
 | 10 | O estudo de rede (030, 6.26.4.2) é verificado sobre a potência total de recarga | Sem o dado de carga por unidade, é a leitura conservadora |
 | 11 | Cada parcela é arredondada em duas casas antes da soma | A soma exibida fecha com os números mostrados |
+| 12 | Motor declarado em kW é lido na linha da potência convertida em CV, e a carga instalada é a absorvida dessa linha | kW e kVA saem da mesma linha da Tabela 18/19 |
 
 ## Divergências entre as Normas e Critério Adotado
 
@@ -347,6 +351,7 @@ Pontos em que as normas são omissas e o motor da US04 adotou um critério. Cada
 | Fator de demanda de recarga: Quadro 33 da 053 contra Tabela 13 da 030     | Quadro 33 para o agrupamento, Tabela 13 para a unidade individual (Anexo I, item 13) | Nenhum: as tabelas medem objetos diferentes                                                                                                                               |
 | Fator de potência de tomadas: 1,00 na 030 contra 0,80 no Exemplo 1 da 053 | Vale a 030, que o Anexo I, item 7.2, manda usar                                      | O motor não reproduz a parcela `a` do Exemplo 1 na casa dos centavos: 4,50 contra 4,69 kVA. O resultado final daquele exemplo não muda, porque o mínimo por tensão prevalece |
 | Parcela `j` definida fora do somatório das nove, na 030                   | Tratada como `Dve`, fora da soma                                                     | Nenhum, desde que não seja somada duas vezes                                                                                                                              |
+| Condicionador de ar em W na carga instalada e em VA na parcela `f`, no Exemplo 3 da 030 | Um valor só por aparelho, o da parcela `f`                                  | A carga instalada do Exemplo 3 sai em 36,50 kW, contra 36,10 kW da norma. A demanda não muda |
 
 Detalhamento e evidência em [`fontes-normativas.md`](fontes-normativas.md).
 

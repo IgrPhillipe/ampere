@@ -3,7 +3,7 @@ package br.com.ampere.domain;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-/** Physical conversion only; the kVA of a motor (Tabela 18) belongs to the calculation. */
+/** Physical conversion only; motors take their kW and kVA from Tabela 18 or 19. */
 public enum PowerUnit {
   KW("kW", BigDecimal.ONE),
   CV("CV", new BigDecimal("0.7355")),

@@ -49,6 +49,8 @@ A hipótese mais provável é o condicionador de ar: a fixture informa 2 × 2,1 
 
 A conferência é a Fatia 0, no PDF, antes do código. A fixture e o teste citam a DIS-NOR-030, Exemplo 3, p. 52 a 55; a issue cita o Anexo I da DIS-NOR-053, item 1.4. A Fatia 0 confirma qual exemplo dá os 36,10 kW.
 
+**Resolvido na Fatia 0.** O exemplo é o da DIS-NOR-030 (p. 52 a 55), com os condicionadores em 2 × 1.900 W na carga e 2 × 2.100 VA na parcela `f`. O teste fica em 36,50 kW, e os 0,40 kW entram como divergência conhecida em `engine-calculo.md`. Separar W de VA no condicionador fica para outra issue.
+
 ## 2. Fatias
 
 Cada fatia entra com os testes. Os unitários ficam em `src/test/java/br/com/ampere/domain/` com `DemandFixtures` (tabelas de `NormativeTableSeed.all`); os de integração seguem `DemandCalculationIntegrationTest` e `ConsumerUnitGroupControllerTest`.
@@ -161,7 +163,7 @@ A #230 (carga mínima de iluminação e tomadas) cria uma pendência em `Residen
 
 ## 8. Riscos e Decisões em Aberto
 
-1. **Valor do Exemplo 3.** Com a fixture atual, a Tabela 19 dá 36,50 kW, não 36,10 kW (seção 1). Recomendo a Fatia 0 decidir entre corrigir a fixture para a lista da norma, se a diferença for um dado transcrito errado, ou fixar o teste em 36,50 kW e registrar os 0,40 kW como divergência em `engine-calculo.md`, se a diferença for W contra VA do condicionador (Tabela 11, fora do escopo).
+1. **Valor do Exemplo 3 (decidido: 36,50 kW).** Com a fixture atual, a Tabela 19 dá 36,50 kW, não 36,10 kW (seção 1). Recomendo a Fatia 0 decidir entre corrigir a fixture para a lista da norma, se a diferença for um dado transcrito errado, ou fixar o teste em 36,50 kW e registrar os 0,40 kW como divergência em `engine-calculo.md`, se a diferença for W contra VA do condicionador (Tabela 11, fora do escopo).
 2. **Motor declarado em kW.** A linha da tabela é escolhida pela potência convertida em CV, como na demanda, e a carga instalada passa a ser a absorvida da tabela (10 kW de placa entram como cerca de 12 kW). A alternativa é manter o kW declarado. Recomendo seguir a tabela: kW e kVA da mesma linha.
 3. **Bombas em CV ou HP.** O critério 7 já manda a bomba em CV para a tabela de motores no kVA. Recomendo a carga instalada seguir a mesma linha; a issue cita só motores.
 4. **Motor fora da tabela ou tabela não publicada.** Vira pendência Revisar no grupo, e a carga exibida cai na placa. A alternativa, `loadPerUnitKw` nulo, esconde o total da etapa. Recomendo a pendência com a placa na exibição.
