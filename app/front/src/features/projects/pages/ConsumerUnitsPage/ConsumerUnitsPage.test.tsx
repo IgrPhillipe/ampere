@@ -2,6 +2,7 @@ import type {
 	ConsumerUnitGroup,
 	ConsumerUnitGroupResponse,
 } from "@services/consumer-units";
+import type { Finding } from "@services/project-review";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
 	fireEvent,
@@ -16,6 +17,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	idleMutation,
 	loadedQuery,
+	makeFinding,
 	makeProjectDetail,
 	signInAs,
 } from "@/test/fixtures/project-detail";
@@ -31,6 +33,8 @@ const state = vi.hoisted(() => ({
 		totalDeclaredLoadKw: 100,
 		groups: [],
 	},
+	findings: [] as Finding[],
+	respondFinding: undefined as unknown as ReturnType<typeof idleMutation>,
 	createGroup: undefined as unknown as ReturnType<typeof idleMutation>,
 	updateGroup: undefined as unknown as ReturnType<typeof idleMutation>,
 	deleteGroup: undefined as unknown as ReturnType<typeof idleMutation>,
@@ -48,7 +52,8 @@ vi.mock("@services/projects", async (importOriginal) => ({
 
 vi.mock("@services/project-review", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/project-review")>()),
-	useGetFindingList: () => loadedQuery({ data: [] }),
+	useGetFindingList: () => loadedQuery({ data: state.findings }),
+	useRespondFinding: () => state.respondFinding,
 }));
 
 vi.mock("@services/consumer-units", async (importOriginal) => ({
@@ -139,6 +144,8 @@ describe("ConsumerUnitsPage", () => {
 		state.groups = [];
 		state.createGroup = idleMutation();
 		state.updateGroup = idleMutation();
+		state.findings = [];
+		state.respondFinding = idleMutation();
 		state.deleteGroup = idleMutation();
 	});
 
@@ -561,5 +568,207 @@ describe("ConsumerUnitsPage", () => {
 		expect(
 			screen.queryByRole("button", { name: /Remover Carga/i }),
 		).not.toBeInTheDocument();
+	});
+
+	describe("while a rejected project is corrected", () => {
+		const groupFinding = makeFinding({
+			id: "7",
+			stage: "CONSUMER_UNITS",
+			consumerUnitGroupId: "102",
+			documentType: null,
+			description: "Informe as cargas da administração.",
+		});
+
+		const saveAdministration = async () => {
+			renderPage();
+			fireEvent.click(
+				screen.getAllByRole("button", { name: "Administração" })[0],
+			);
+			fireEvent.click(
+				await screen.findByRole("button", { name: /Salvar Grupo/i }),
+			);
+		};
+
+		beforeEach(() => {
+			state.project = makeProjectDetail({
+				id: "4",
+				status: "REJECTED",
+				ownerId: "1",
+			});
+			state.groups = [makeLoadGroup()];
+			state.updateGroup = respondWith(makeLoadGroup());
+		});
+
+		it("asks to mark the pointed group as fixed, with an editable answer", async () => {
+			state.findings = [groupFinding];
+
+			await saveAdministration();
+
+			const dialog = await screen.findByRole("dialog", {
+				name: "Marcar o apontamento como corrigido?",
+			});
+			expect(
+				within(dialog).getByText("Informe as cargas da administração."),
+			).toBeInTheDocument();
+			const answer = within(dialog).getByRole("textbox", { name: /Resposta/ });
+			expect(answer).toHaveValue("Corrigi o grupo Administração.");
+
+			fireEvent.change(answer, {
+				target: { value: "Incluí as cargas da administração." },
+			});
+			fireEvent.click(
+				within(dialog).getByRole("button", { name: "Marcar Corrigido" }),
+			);
+
+			await waitFor(() => {
+				expect(state.respondFinding.mutate).toHaveBeenCalledTimes(1);
+			});
+			expect(state.respondFinding.mutate.mock.calls[0][0]).toEqual({
+				projectId: "4",
+				findingId: "7",
+				status: "FIXED",
+				response: "Incluí as cargas da administração.",
+			});
+		});
+
+		it("asks again for a reopened finding", async () => {
+			state.findings = [
+				{
+					...groupFinding,
+					response: "Corrigido.",
+					respondedAt: "2026-10-05T12:00:00Z",
+				},
+			];
+
+			await saveAdministration();
+
+			expect(
+				await screen.findByRole("dialog", {
+					name: "Marcar o apontamento como corrigido?",
+				}),
+			).toBeInTheDocument();
+		});
+
+		it("keeps the finding open when the designer declines", async () => {
+			state.findings = [groupFinding];
+
+			await saveAdministration();
+			const dialog = await screen.findByRole("dialog", {
+				name: "Marcar o apontamento como corrigido?",
+			});
+			fireEvent.click(
+				within(dialog).getByRole("button", { name: "Manter Aberto" }),
+			);
+
+			await waitFor(() => {
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+			});
+			expect(state.respondFinding.mutate).not.toHaveBeenCalled();
+		});
+
+		it("asks one finding at a time when the group has several", async () => {
+			state.findings = [
+				groupFinding,
+				{
+					...groupFinding,
+					id: "8",
+					description: "Revise a potência da bomba.",
+				},
+			];
+			state.respondFinding = {
+				...idleMutation(),
+				mutate: vi.fn((_args, options) => options?.onSuccess?.()),
+			};
+
+			await saveAdministration();
+			const dialog = await screen.findByRole("dialog", {
+				name: "Marcar o apontamento como corrigido?",
+			});
+			expect(
+				within(dialog).getByText(/tem 2 apontamentos abertos/),
+			).toBeInTheDocument();
+			fireEvent.click(
+				within(dialog).getByRole("button", { name: "Marcar Corrigido" }),
+			);
+
+			await waitFor(() => {
+				expect(
+					within(dialog).getByText("Revise a potência da bomba."),
+				).toBeInTheDocument();
+			});
+			expect(
+				within(dialog).getByRole("textbox", { name: /Resposta/ }),
+			).toHaveValue("Corrigi o grupo Administração.");
+		});
+
+		it("does not ask when the saved group has no finding", async () => {
+			state.findings = [{ ...groupFinding, consumerUnitGroupId: "999" }];
+
+			await saveAdministration();
+
+			await waitFor(() => {
+				expect(state.updateGroup.mutate).toHaveBeenCalledTimes(1);
+			});
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+		});
+
+		it("does not ask an admin who edits someone else's project", async () => {
+			signInAs("admin", { id: "9" });
+			state.findings = [groupFinding];
+
+			await saveAdministration();
+
+			await waitFor(() => {
+				expect(state.updateGroup.mutate).toHaveBeenCalledTimes(1);
+			});
+			expect(
+				screen.queryByRole("dialog", {
+					name: "Marcar o apontamento como corrigido?",
+				}),
+			).not.toBeInTheDocument();
+		});
+
+		it("keeps the question open when the answer fails", async () => {
+			state.findings = [groupFinding];
+
+			await saveAdministration();
+			const dialog = await screen.findByRole("dialog", {
+				name: "Marcar o apontamento como corrigido?",
+			});
+			fireEvent.click(
+				within(dialog).getByRole("button", { name: "Marcar Corrigido" }),
+			);
+
+			await waitFor(() => {
+				expect(state.respondFinding.mutate).toHaveBeenCalledTimes(1);
+			});
+			expect(
+				screen.getByRole("dialog", {
+					name: "Marcar o apontamento como corrigido?",
+				}),
+			).toBeInTheDocument();
+		});
+
+		it("leaves the whole queue open when the question is dismissed", async () => {
+			state.findings = [
+				groupFinding,
+				{
+					...groupFinding,
+					id: "8",
+					description: "Revise a potência da bomba.",
+				},
+			];
+
+			await saveAdministration();
+			const dialog = await screen.findByRole("dialog", {
+				name: "Marcar o apontamento como corrigido?",
+			});
+			fireEvent.keyDown(dialog, { key: "Escape" });
+
+			await waitFor(() => {
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+			});
+			expect(state.respondFinding.mutate).not.toHaveBeenCalled();
+		});
 	});
 });
