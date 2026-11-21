@@ -1,6 +1,7 @@
 import type { DeadlineStatus } from "@services/review-queue";
 
-const days = (count: number) => (count === 1 ? "1 dia" : `${count} dias`);
+export const formatDays = (count: number) =>
+	count === 1 ? "1 dia" : `${count} dias`;
 
 export interface DescribeDeadlineOptions {
 	/** "18 dias restantes" instead of "18 dias". */
@@ -14,10 +15,10 @@ export const describeDeadline = (
 	{ withRemaining = false }: DescribeDeadlineOptions = {},
 ) => {
 	if (deadlineStatus === "OVERDUE") {
-		return `Atrasado ${days(Math.abs(daysRemaining))}`;
+		return `Atrasado ${formatDays(Math.abs(daysRemaining))}`;
 	}
 	if (deadlineStatus === "DUE_TODAY") return "Vence hoje";
-	if (!withRemaining) return days(daysRemaining);
+	if (!withRemaining) return formatDays(daysRemaining);
 
-	return `${days(daysRemaining)} ${daysRemaining === 1 ? "restante" : "restantes"}`;
+	return `${formatDays(daysRemaining)} ${daysRemaining === 1 ? "restante" : "restantes"}`;
 };

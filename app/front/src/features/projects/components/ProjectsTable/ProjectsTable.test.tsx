@@ -19,6 +19,7 @@ const project: Project = {
 	pendingCount: 0,
 	consumerUnitsCount: 0,
 	demandKva: null,
+	approvalValidUntil: null,
 };
 
 const actions = {
@@ -47,6 +48,29 @@ describe("ProjectsTable", () => {
 			screen.queryByRole("columnheader", { name: "Projetista" }),
 		).not.toBeInTheDocument();
 		expect(screen.queryByText("Beto Projetista")).not.toBeInTheDocument();
+	});
+
+	it("shows when an approved project expires in the status cell", () => {
+		render(
+			<ProjectsTable
+				projects={[
+					{
+						...project,
+						status: "APPROVED",
+						approvalValidUntil: "2029-11-10",
+					},
+				]}
+				{...actions}
+			/>,
+		);
+
+		expect(screen.getByText("Aprovado")).toBeInTheDocument();
+		expect(
+			screen.getByText(
+				(_, element) =>
+					element?.textContent?.trim() === "Válido até 10/11/2029",
+			),
+		).toBeInTheDocument();
 	});
 
 	it("tells a list with no projects apart from a filter with no match", () => {

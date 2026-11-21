@@ -20,6 +20,8 @@ describe("review queue API contract", () => {
 					deadline: "2026-10-08",
 					deadlineStatus: "DUE_TODAY",
 					daysRemaining: 0,
+					elapsedDays: 12,
+					suspendedDays: 3,
 					warnings: 1,
 					alerts: [
 						"Recarga de 44,40 kW instalados, acima de 20 kW: exige estudo da rede.",
