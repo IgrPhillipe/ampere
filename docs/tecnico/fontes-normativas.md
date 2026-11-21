@@ -302,7 +302,7 @@ Os valores dos Exemplos 3 a 5 devem ser transcritos das páginas do PDF, não da
 
 O exemplo declara "2 condicionadores de ar 14.000 BTU: 1.900 W cada um" e, na parcela `f`, "pela Tabela 11 temos a carga instalada em VA: 2 x 2.100 VA": o aparelho de 14.000 BTU usa a linha de 15.000, a próxima acima, o mesmo critério da linha seguinte dos motores. A fixture declara os condicionadores em BTU/h, e o motor fecha os 36,10 kW e os 4,20 kVA de `f`.
 
-**DIS-NOR-030, Tabela 11, condicionadores de ar.** Anexo II, p. 67 impressa, REV 07; conferida pela imagem da página e pela extração de texto. O sistema guarda W e VA em kW e kVA, como as Tabelas 18 e 19.
+**DIS-NOR-030, Tabela 11, condicionadores de ar.** Anexo II, p. 67 impressa, REV 07, lida pela imagem da página. O sistema guarda W e VA em kW e kVA, como as Tabelas 18 e 19.
 
 | Capacidade (BTU/h) | Potência (VA) | Potência (W) | Tensão e corrente |
 | ---: | ---: | ---: | :--- |
@@ -318,6 +318,8 @@ O exemplo declara "2 condicionadores de ar 14.000 BTU: 1.900 W cada um" e, na pa
 | 60.000 | 9.000 | 7.500 | 220 V, 24,0 A |
 
 Notas da tabela: os valores são orientativos, e vale o dado de placa ou de catálogo do fabricante quando houver; as correntes de 41.000 e 60.000 BTU são de ligação trifásica em 220 V. O item 6.26.2.2 manda usar a tabela quando o fabricante não informa a potência, e o item 6.27.6 tira dela a potência por aparelho da parcela `f`. Tensão e corrente não entram no cálculo e não são cadastradas.
+
+**Segunda leitura (procedimento, passo 4).** Em 21/11/2026, sobre o PDF com o SHA-256 registrado, a Tabela 11 (p. 67), as colunas W e VA das Tabelas 18 e 19 (p. 69 e 70) e o Exemplo 3 (p. 52 a 55) foram conferidos valor a valor pela imagem da página contra `NormativeTableSeed` e esta transcrição. Nenhuma divergência.
 
 ---
 
