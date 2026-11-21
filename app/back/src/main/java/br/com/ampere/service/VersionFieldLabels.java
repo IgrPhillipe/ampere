@@ -41,7 +41,8 @@ final class VersionFieldLabels {
           Map.entry("floors", "Nº de pavimentos"),
           Map.entry("voltage", "Tensão de fornecimento"),
           Map.entry("connectionType", "Tipo de ligação"),
-          Map.entry("entranceStandard", "Padrão de entrada"));
+          Map.entry("entranceStandard", "Padrão de entrada"),
+          Map.entry(DemandCalculationService.MOTOR_INSTALLED_LOAD, "Carga instalada dos motores"));
 
   private static final Map<String, String> LOAD_ITEM_FIELDS =
       Map.of(
@@ -70,7 +71,10 @@ final class VersionFieldLabels {
           Map.entry("compactUnit", YES_NO),
           Map.entry("incorporatedInVehicle", YES_NO),
           Map.entry("loadManagement", YES_NO),
-          Map.entry("simultaneousStart", YES_NO));
+          Map.entry("simultaneousStart", YES_NO),
+          Map.entry(
+              DemandCalculationService.MOTOR_INSTALLED_LOAD,
+              Map.of(DemandCalculationService.NORMATIVE_TABLE, "Tabela 18 ou 19")));
 
   private VersionFieldLabels() {}
 
