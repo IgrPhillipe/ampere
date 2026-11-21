@@ -105,7 +105,7 @@ Cada fatia entra com o teste junto e termina com `./mvnw spotless:apply` e `./mv
 ### Fatia 1: Tabela 5 Semeada (Feita)
 
 - Constante em `NormativeTableCode`, linhas no `NormativeTableSeed`, `normative_table.code` em `EnumCheckConstraints`, `DataSeeder` semeando o código que falta.
-- **Pronto quando:** num banco novo e num banco já semeado, "Normas e Tabelas" mostra a Tabela 5 publicada, com item e página; os cinco exemplos do Anexo I continuam passando; teste de integração do seed cobre o banco que já tinha as outras tabelas e não duplica nenhuma.
+- **Pronto quando:** num banco novo e num banco já semeado, "Tabelas Normativas" mostra a Tabela 5 publicada, com item e página; os cinco exemplos do Anexo I continuam passando; teste de integração do seed cobre o banco que já tinha as outras tabelas e não duplica nenhuma.
 - A semeadura em banco existente e o `CHECK` são da #230; a #229 não toca neles.
 
 ### Fatia 2: Número de Cômodos no Contrato (Feita)
@@ -192,7 +192,7 @@ A #229 (motores pela Tabela 19) entra primeiro e é dona do encanamento comum. A
 
 Subir o Postgres, o back (`./mvnw spring-boot:run` em `app/back`) e o front (`pnpm dev` em `app/front`), com `SEED_RESET_SCENARIOS=true` na primeira subida.
 
-- **"Normas e Tabelas"** (`admin@ampere.com`): Tabela 5 publicada, com item e página.
+- **"Tabelas Normativas"** (`admin@ampere.com`): Tabela 5 publicada, com item e página.
 - **2026-2047** (`user@ampere.com`): a "Cobertura" abre com "Cômodos e corredores" em 12, sem pendência, e o cálculo segue atual. Baixar os cômodos não muda nada; subir para 13 deixa a iluminação de 1,2 kW abaixo de 1,3 kW, o grupo vai para Revisar e o botão de calcular trava. Trocar a ligação para monofásica esconde o campo.
 - **Projeto novo:** grupo trifásico sem cômodos mostra Falta Dado, e a pendência foca o campo.
 - **`/api/docs`:** `rooms` em `POST` e `PUT /api/projects/{projectId}/consumer-unit-groups`, com os limites.
