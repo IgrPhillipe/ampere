@@ -311,9 +311,7 @@ public enum LoadCategory {
     @Override
     List<ValidationIssue> issues(
         LoadItem item, String path, LoadOccupancy usage, DemandContext context) {
-      return item.getPowerUnit() == PowerUnit.KW
-          ? List.of()
-          : motorTableIssues(item, path, context);
+      return ratedByMotorTable(item) ? motorTableIssues(item, path, context) : List.of();
     }
 
     /** Rated like a motor when the plate is in CV or HP, as its kVA is. */
