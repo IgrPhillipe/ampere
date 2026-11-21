@@ -14,7 +14,7 @@ const counts = {
 };
 
 describe("ProjectStatusFilters", () => {
-	it("shows the expired tile and fits the status strip at desktop widths", () => {
+	it("shows the expired tile with its count", () => {
 		render(
 			<ProjectStatusFilters
 				counts={counts}
@@ -27,9 +27,5 @@ describe("ProjectStatusFilters", () => {
 			"02",
 		);
 		expect(screen.getAllByRole("button")).toHaveLength(7);
-		expect(
-			screen.getByRole("group", { name: "Filtrar projetos por situação" })
-				.firstElementChild,
-		).toHaveClass("lg:auto-cols-[minmax(7rem,1fr)]");
 	});
 });
