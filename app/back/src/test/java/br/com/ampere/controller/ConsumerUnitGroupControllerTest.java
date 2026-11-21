@@ -19,10 +19,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import br.com.ampere.config.EnumParameterConfig;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
+import br.com.ampere.domain.DemandContext;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
+import br.com.ampere.domain.NormativeTableSet;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.SupplyVoltage;
@@ -34,6 +36,7 @@ import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.ConsumerUnitGroupService;
 import br.com.ampere.service.GroupParameters;
 import br.com.ampere.service.GroupValidation;
+import br.com.ampere.service.ValidatedGroup;
 import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -69,7 +72,7 @@ class ConsumerUnitGroupControllerTest {
   @Test
   void savesAnIncompleteGroupAndAnswersWhatItLacks() throws Exception {
     ConsumerUnitGroupService service = mock(ConsumerUnitGroupService.class);
-    when(service.create(eq(1L), any(), eq(DESIGNER))).thenReturn(charging(null));
+    when(service.create(eq(1L), any(), eq(DESIGNER))).thenReturn(validated(charging(null)));
 
     mockMvc(service)
         .perform(
@@ -108,7 +111,7 @@ class ConsumerUnitGroupControllerTest {
   @Test
   void convertsTheLoadsOfALoadGroup() throws Exception {
     ConsumerUnitGroupService service = mock(ConsumerUnitGroupService.class);
-    when(service.create(eq(1L), any(), eq(DESIGNER))).thenReturn(charging(true));
+    when(service.create(eq(1L), any(), eq(DESIGNER))).thenReturn(validated(charging(true)));
 
     mockMvc(service)
         .perform(
@@ -142,8 +145,9 @@ class ConsumerUnitGroupControllerTest {
     when(service.create(eq(1L), any(), eq(DESIGNER)))
         .thenAnswer(
             invocation ->
-                GroupKind.RESIDENTIAL.create(
-                    PROJECT, invocation.<GroupParameters>getArgument(1).spec()));
+                validated(
+                    GroupKind.RESIDENTIAL.create(
+                        PROJECT, invocation.<GroupParameters>getArgument(1).spec())));
 
     mockMvc(service)
         .perform(
@@ -266,6 +270,14 @@ class ConsumerUnitGroupControllerTest {
         .perform(delete("/projects/1/consumer-unit-groups/7"))
         .andExpect(status().isNoContent())
         .andExpect(content().string(""));
+  }
+
+  /** Without motors, no group of these tests reads a table. */
+  private static ValidatedGroup validated(ConsumerUnitGroup group) {
+    return ValidatedGroup.of(
+        group,
+        new DemandContext(
+            new NormativeTableSet(List.of()), SupplyVoltage.V380_220, ConnectionType.THREE_PHASE));
   }
 
   private static ConsumerUnitGroup charging(Boolean loadManagement) {

@@ -9,6 +9,7 @@ import br.com.ampere.domain.ConcessionArea;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DeadlineStatus;
+import br.com.ampere.domain.DemandContext;
 import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EvChargingGroup;
 import br.com.ampere.domain.EvStationType;
@@ -186,7 +187,8 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
     Set<String> pending = Set.of("2026-1001", "2026-2001", "2026-2002", "2026-2025");
 
     assertThat(SCENARIO_PROTOCOLS)
-        .filteredOn(protocol -> !GroupValidation.of(groups(protocol)).canCalculate())
+        .filteredOn(
+            protocol -> !GroupValidation.of(groups(protocol), context(protocol)).canCalculate())
         .containsExactlyInAnyOrderElementsOf(pending);
   }
 
@@ -250,14 +252,9 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
   @Test
   void leavesTheDraftsInEveryStageOfTheCalculation() {
     assertThat(groups("2026-2001")).isEmpty();
-    assertThat(groups("2026-2002"))
-        .extracting(ConsumerUnitGroup::status)
-        .contains(GroupStatus.MISSING_DATA);
-    assertThat(groups("2026-2025"))
-        .extracting(ConsumerUnitGroup::status)
-        .contains(GroupStatus.REVIEW);
-    assertThat(groups("2026-1001"))
-        .extracting(ConsumerUnitGroup::status)
+    assertThat(groupStatuses("2026-2002")).contains(GroupStatus.MISSING_DATA);
+    assertThat(groupStatuses("2026-2025")).contains(GroupStatus.REVIEW);
+    assertThat(groupStatuses("2026-1001"))
         .contains(GroupStatus.VALIDATED, GroupStatus.REVIEW, GroupStatus.MISSING_DATA);
 
     assertThat(calculation("2026-2003")).isPresent();
@@ -319,7 +316,8 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
     assertThat(items)
         .extracting(LoadItem::getLampTechnology)
         .contains(LampTechnology.FLUORESCENT_NEON_SODIUM);
-    assertThat(groups).allSatisfy(group -> assertThat(group.validate()).isEmpty());
+    DemandContext context = context("2026-2030");
+    assertThat(groups).allSatisfy(group -> assertThat(group.validate(context)).isEmpty());
   }
 
   @Test
@@ -620,6 +618,15 @@ class DemoScenarioSeederIntegrationTest extends SeedIntegrationTestBase {
 
   private Long id(String email) {
     return userRepository.findByEmail(email).orElseThrow().getId();
+  }
+
+  private DemandContext context(String protocol) {
+    return demandContext(project(protocol).getId());
+  }
+
+  private List<GroupStatus> groupStatuses(String protocol) {
+    DemandContext context = context(protocol);
+    return groups(protocol).stream().map(group -> group.status(context)).toList();
   }
 
   private List<ConsumerUnitGroup> groups(String protocol) {

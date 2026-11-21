@@ -329,6 +329,8 @@ class DemandCalculationIntegrationTest {
 
   @Test
   void namesTheTableThatIsNotPublished() throws Exception {
+    publishTables();
+    normativeTableRepository.delete(published(NormativeTableCode.Q35_APARTMENT_DEMAND));
     Project project = draftWithPrototypeGroups(true);
 
     mockMvc
@@ -336,6 +338,64 @@ class DemandCalculationIntegrationTest {
         .andExpect(status().isUnprocessableContent())
         .andExpect(
             jsonPath("$.detail", startsWith("O Quadro 35 da DIS-NOR-053 não está publicado")));
+  }
+
+  @Test
+  void theGroupsAnswerTheMotorLoadsOfTabela19() throws Exception {
+    publishTables();
+    Project project = draftWithPrototypeGroups(true);
+    String groups = "/projects/" + project.getId() + "/consumer-unit-groups";
+
+    // 12 CV at the 12½ cv row (10,85 kW) and two pumps of 5 CV (4,51 kW each).
+    mockMvc
+        .perform(get(groups).header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[3].loadPerUnitKw").value(45.67))
+        .andExpect(jsonPath("$.data[3].declaredLoadKw").value(45.67));
+    mockMvc
+        .perform(
+            post(groups)
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    { "kind": "RESIDENTIAL", "name": "Cobertura", "quantity": 2, "usefulArea": 180,
+                      "connectionType": "THREE_PHASE",
+                      "loads": [
+                        { "category": "INSTANT_HEATING", "description": "Chuveiro", "quantity": 1,
+                          "power": 4, "powerUnit": "KW" },
+                        { "category": "MOTORS", "description": "Bomba", "quantity": 1,
+                          "power": 1, "powerUnit": "CV", "simultaneousStart": false }
+                      ] }
+                    """))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.unitLoadKw").value(5.05))
+        .andExpect(jsonPath("$.data.loadPerUnitKw").value(5.05))
+        .andExpect(jsonPath("$.data.declaredLoadKw").value(10.1));
+  }
+
+  @Test
+  void aMotorWithoutItsTableHoldsTheGroupBeforeTheRun() throws Exception {
+    Project project = draftWithPrototypeGroups(true);
+
+    mockMvc
+        .perform(
+            get("/projects/" + project.getId() + "/consumer-unit-groups")
+                .header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[3].status").value("REVIEW"))
+        .andExpect(jsonPath("$.data[3].issues[0].field").value("items[0].power"))
+        .andExpect(
+            jsonPath("$.data[3].issues[0].message")
+                .value(
+                    "A Tabela 19 da DIS-NOR-030 não está publicada: sem ela não há carga nem"
+                        + " demanda de \"Elevador\". Publique a tabela em Normas e Tabelas."));
+    mockMvc
+        .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Há grupos com pendências. Corrija-os antes de calcular a demanda."));
   }
 
   @Test

@@ -81,7 +81,7 @@ public class DemandCalculationService {
     if (groups.isEmpty()) {
       throw unprocessable("Cadastre ao menos um grupo de unidades antes de calcular a demanda.");
     }
-    if (!GroupValidation.of(groups).canCalculate()) {
+    if (!GroupValidation.of(groups, contexts.contextFor(project)).canCalculate()) {
       throw unprocessable("Há grupos com pendências. Corrija-os antes de calcular a demanda.");
     }
     project.touch();

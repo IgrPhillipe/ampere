@@ -2,11 +2,14 @@ package br.com.ampere.dto;
 
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
+import br.com.ampere.domain.DemandContext;
 import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
 import br.com.ampere.domain.GroupStatus;
 import br.com.ampere.domain.LoadUsage;
+import br.com.ampere.domain.ResidentialGroup;
+import br.com.ampere.service.ValidatedGroup;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,22 +38,28 @@ public record ConsumerUnitGroupResponse(
     Boolean loadManagement,
     EvStationType stationType) {
 
-  public static ConsumerUnitGroupResponse from(ConsumerUnitGroup group) {
+  public static ConsumerUnitGroupResponse from(ValidatedGroup validated) {
+    ConsumerUnitGroup group = validated.group();
+    DemandContext context = validated.context();
     GroupSpec spec = group.spec();
+    BigDecimal unitLoadKw =
+        group instanceof ResidentialGroup residential
+            ? residential.getUnitLoadKw(context)
+            : spec.unitLoadKw();
 
     return new ConsumerUnitGroupResponse(
         String.valueOf(group.getId()),
         group.kind(),
         group.getName(),
         group.getQuantity(),
-        group.status(),
-        group.validate().stream().map(ValidationIssueResponse::from).toList(),
+        validated.status(),
+        validated.issues().stream().map(ValidationIssueResponse::from).toList(),
         group.summary(),
-        group.loadPerUnitKw(),
-        group.declaredLoadKw(),
+        group.loadPerUnitKw(context),
+        group.declaredLoadKw(context),
         spec.usefulArea(),
         spec.bedrooms(),
-        spec.unitLoadKw(),
+        unitLoadKw,
         spec.compactUnit(),
         spec.connectionType(),
         group.kind() == GroupKind.RESIDENTIAL ? items(spec) : null,

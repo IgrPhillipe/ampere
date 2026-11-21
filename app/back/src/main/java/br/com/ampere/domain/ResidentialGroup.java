@@ -94,7 +94,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
         getQuantity(),
         usefulArea,
         bedrooms,
-        getUnitLoadKw(),
+        unitLoadKw,
         compactUnit,
         connectionType,
         null,
@@ -114,11 +114,19 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   }
 
   /** Declared for a single-phase unit; the sum of the loads for a three-phase one. */
-  public BigDecimal getUnitLoadKw() {
+  public BigDecimal getUnitLoadKw(DemandContext context) {
     if (isThreePhase()) {
-      return loads.stream().map(LoadItem::declaredLoadKw).reduce(BigDecimal.ZERO, BigDecimal::add);
+      DemandContext unit = unitContext(context);
+      return loads.stream()
+          .map(load -> load.installedKw(unit))
+          .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
     return unitLoadKw;
+  }
+
+  /** The apartment's motors follow its own connection, not the building's. */
+  private static DemandContext unitContext(DemandContext context) {
+    return new DemandContext(context.tables(), context.voltage(), ConnectionType.THREE_PHASE);
   }
 
   public ConnectionType getConnectionType() {
@@ -145,8 +153,8 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   }
 
   @Override
-  public List<ValidationIssue> validate() {
-    BigDecimal load = getUnitLoadKw();
+  public List<ValidationIssue> validate(DemandContext context) {
+    BigDecimal load = getUnitLoadKw(context);
     List<ValidationIssue> issues = new ArrayList<>();
     if (connectionType == null) {
       issues.add(
@@ -170,7 +178,12 @@ public class ResidentialGroup extends ConsumerUnitGroup {
           .forEach(
               index ->
                   issues.addAll(
-                      loads.get(index).validate("loads[" + index + "]", LoadOccupancy.APARTMENT)));
+                      loads
+                          .get(index)
+                          .validate(
+                              "loads[" + index + "]",
+                              LoadOccupancy.APARTMENT,
+                              unitContext(context))));
     } else if (!DeclaredValues.isPositive(load)) {
       issues.add(
           ValidationIssue.missing(
@@ -201,8 +214,8 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   }
 
   @Override
-  public BigDecimal loadPerUnitKw() {
-    BigDecimal load = getUnitLoadKw();
+  public BigDecimal loadPerUnitKw(DemandContext context) {
+    BigDecimal load = getUnitLoadKw(context);
     return DeclaredValues.isPositive(load) ? load : null;
   }
 
@@ -235,7 +248,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   /** Item 6.27 is three-phase only; a single-phase unit keeps its installed load (6.28.1). */
   @Override
   public Optional<IndividualDemand> individualDemand(DemandContext context) {
-    BigDecimal load = getUnitLoadKw();
+    BigDecimal load = getUnitLoadKw(context);
     String installed = DeclaredValues.fixed(load, 2) + " kW";
     if (!isThreePhase()) {
       return Optional.of(
@@ -263,9 +276,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
                   .toList()));
     }
 
-    // The apartment's motors follow its own connection, not the building's.
-    DemandContext unit =
-        new DemandContext(context.tables(), context.voltage(), ConnectionType.THREE_PHASE);
+    DemandContext unit = unitContext(context);
     List<ParcelDemand> parcels = LoadCategory.parcels(loads, 1, LoadOccupancy.APARTMENT, unit);
     BigDecimal demand =
         DeclaredValues.kva(

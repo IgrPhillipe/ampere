@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -19,7 +20,8 @@ public enum LoadCategory {
   LIGHTING_AND_OUTLETS("a", "Iluminação e tomadas") {
     /** Lighting and outlets take different factors (6.27.1.2), so each item says which it is. */
     @Override
-    List<ValidationIssue> issues(LoadItem item, String path, LoadOccupancy usage) {
+    List<ValidationIssue> issues(
+        LoadItem item, String path, LoadOccupancy usage, DemandContext context) {
       if (!usage.residential() && item.getLampTechnology() == null) {
         return List.of(
             ValidationIssue.missing(
@@ -55,7 +57,7 @@ public enum LoadCategory {
                       TreeMap::new,
                       Collectors.reducing(
                           BigDecimal.ZERO,
-                          item -> installedKw(item, groupQuantity),
+                          item -> groupKw(item, groupQuantity, context),
                           BigDecimal::add)));
 
       List<String> terms = new ArrayList<>();
@@ -87,7 +89,7 @@ public enum LoadCategory {
         List<LoadItem> items, int groupQuantity, DemandContext context) {
       BigDecimal kw =
           items.stream()
-              .map(item -> installedKw(item, groupQuantity))
+              .map(item -> groupKw(item, groupQuantity, context))
               .reduce(BigDecimal.ZERO, BigDecimal::add);
       NormativeValue factor =
           context.tables().find(NormativeTableCode.T6_RESIDENTIAL_LIGHTING_OUTLETS, kw);
@@ -163,10 +165,12 @@ public enum LoadCategory {
   MOTORS("g", "Motores e máquinas de solda a motor") {
     /** Above 5 CV the starting condition changes the demand of the parcel (Tabela 14). */
     @Override
-    List<ValidationIssue> issues(LoadItem item, String path, LoadOccupancy usage) {
+    List<ValidationIssue> issues(
+        LoadItem item, String path, LoadOccupancy usage, DemandContext context) {
+      List<ValidationIssue> issues = new ArrayList<>(motorTableIssues(item, path, context));
       BigDecimal power = item.getPowerUnit().toCv(item.getPower());
       if (power.compareTo(LARGE_MOTOR_CV) > 0 && item.getSimultaneousStart() == null) {
-        return List.of(
+        issues.add(
             ValidationIssue.review(
                 path + ".simultaneousStart",
                 item.getDescription()
@@ -177,7 +181,13 @@ public enum LoadCategory {
                     + ". Motores acima de 5 CV entram com fator de partida próprio: informe se a"
                     + " partida é simultânea."));
       }
-      return List.of();
+      return issues;
+    }
+
+    /** The absorbed power of Tabela 18 or 19, not the plate converted (item 6.27.7). */
+    @Override
+    BigDecimal installedKw(LoadItem item, DemandContext context) {
+      return absorbedKw(item, context);
     }
 
     /** Motors that must start together count as one; of equal largest ones, only one is. */
@@ -229,6 +239,20 @@ public enum LoadCategory {
     }
   },
   PUMPS_AND_HOT_TUBS("i", "Bombas e hidromassagem") {
+    @Override
+    List<ValidationIssue> issues(
+        LoadItem item, String path, LoadOccupancy usage, DemandContext context) {
+      return item.getPowerUnit() == PowerUnit.KW
+          ? List.of()
+          : motorTableIssues(item, path, context);
+    }
+
+    /** Rated like a motor when the plate is in CV or HP, as its kVA is. */
+    @Override
+    BigDecimal installedKw(LoadItem item, DemandContext context) {
+      return item.getPowerUnit() == PowerUnit.KW ? item.plateKw() : absorbedKw(item, context);
+    }
+
     /** Pumps rated in CV or HP take their kVA from the motor table; in kW, power factor 1,00. */
     @Override
     ParcelDemand demand(
@@ -317,8 +341,14 @@ public enum LoadCategory {
   }
 
   /** What this parcel asks of an item whose power is already informed. */
-  List<ValidationIssue> issues(LoadItem item, String path, LoadOccupancy usage) {
+  List<ValidationIssue> issues(
+      LoadItem item, String path, LoadOccupancy usage, DemandContext context) {
     return List.of();
+  }
+
+  /** Installed kW of an item with its quantity; the plate converted unless the parcel rates it. */
+  BigDecimal installedKw(LoadItem item, DemandContext context) {
+    return item.plateKw();
   }
 
   /** Demand of this parcel over the items of one group, in kVA. */
@@ -337,7 +367,7 @@ public enum LoadCategory {
         items.stream().mapToLong(item -> (long) item.getQuantity() * groupQuantity).sum();
     BigDecimal kw =
         items.stream()
-            .map(item -> installedKw(item, groupQuantity))
+            .map(item -> groupKw(item, groupQuantity, context))
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     NormativeValue factor = context.tables().find(table, key, BigDecimal.valueOf(appliances));
     BigDecimal kva = DeclaredValues.kva(divide(kw, powerFactor).multiply(factor.value()));
@@ -401,10 +431,7 @@ public enum LoadCategory {
 
   /** Tabela 18 or 19 by the connection, at the first tabulated size that reaches the motor. */
   static NormativeValue motorKva(LoadItem item, DemandContext context, List<String> notes) {
-    BigDecimal size =
-        item.getPowerUnit() == PowerUnit.KW
-            ? item.getPowerUnit().toCv(item.getPower())
-            : item.getPower();
+    BigDecimal size = motorSize(item);
     NormativeValue motor = context.tables().find(context.connectionType().motorTable(), size);
     BigDecimal tabulated = motor.row().getUpperBound();
     if (tabulated != null && tabulated.compareTo(size) != 0) {
@@ -425,8 +452,62 @@ public enum LoadCategory {
     return motor;
   }
 
-  private static BigDecimal installedKw(LoadItem item, int groupQuantity) {
-    return item.declaredLoadKw().multiply(BigDecimal.valueOf(groupQuantity));
+  /** The row a motor is read at: CV or HP as on the plate, kW converted to CV. */
+  private static BigDecimal motorSize(LoadItem item) {
+    return item.getPowerUnit() == PowerUnit.KW
+        ? item.getPowerUnit().toCv(item.getPower())
+        : item.getPower();
+  }
+
+  /** Empty when the motor table is not published or has no row that reaches the motor. */
+  private static Optional<NormativeValue> motorRating(LoadItem item, DemandContext context) {
+    NormativeTableCode table = context.connectionType().motorTable();
+    if (!context.tables().contains(table)) {
+      return Optional.empty();
+    }
+    return context.tables().lookup(table, null, motorSize(item));
+  }
+
+  /** Falls back to the plate only while the item has a pending issue that blocks the run. */
+  private static BigDecimal absorbedKw(LoadItem item, DemandContext context) {
+    return motorRating(item, context)
+        .map(motor -> motor.value().multiply(BigDecimal.valueOf(item.getQuantity())))
+        .orElseGet(item::plateKw);
+  }
+
+  private static List<ValidationIssue> motorTableIssues(
+      LoadItem item, String path, DemandContext context) {
+    NormativeTableCode table = context.connectionType().motorTable();
+    String citation = table.identification() + " da " + table.standard().code();
+    if (!context.tables().contains(table)) {
+      return List.of(
+          ValidationIssue.review(
+              path + ".power",
+              "A "
+                  + citation
+                  + " não está publicada: sem ela não há carga nem demanda de \""
+                  + item.getDescription()
+                  + "\". Publique a tabela em Normas e Tabelas."));
+    }
+    if (motorRating(item, context).isEmpty()) {
+      return List.of(
+          ValidationIssue.review(
+              path + ".power",
+              "\""
+                  + item.getDescription()
+                  + "\" declarado com "
+                  + DeclaredValues.decimal(item.getPower())
+                  + " "
+                  + item.getPowerUnit().label()
+                  + " passa da última linha da "
+                  + citation
+                  + ": confira a potência de placa."));
+    }
+    return List.of();
+  }
+
+  private static BigDecimal groupKw(LoadItem item, int groupQuantity, DemandContext context) {
+    return item.installedKw(context).multiply(BigDecimal.valueOf(groupQuantity));
   }
 
   private static BigDecimal divide(BigDecimal value, BigDecimal divisor) {

@@ -28,6 +28,11 @@ public final class NormativeTableSet implements NormativeTables {
   }
 
   @Override
+  public boolean contains(NormativeTableCode code) {
+    return tables.containsKey(code);
+  }
+
+  @Override
   public Optional<NormativeValue> lookup(NormativeTableCode code, String key, BigDecimal argument) {
     NormativeTable table = published(code);
     return table.find(key, argument).map(row -> new NormativeValue(row, table.reference()));

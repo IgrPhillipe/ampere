@@ -80,19 +80,24 @@ public class LoadItem {
     return simultaneousStart;
   }
 
-  public BigDecimal declaredLoadKw() {
+  /** Installed kW with the quantity, as the parcel rates it: motors by Tabela 18 or 19. */
+  public BigDecimal installedKw(DemandContext context) {
     if (!DeclaredValues.isPositive(power)) {
       return BigDecimal.ZERO;
     }
+    return category.installedKw(this, context);
+  }
+
+  BigDecimal plateKw() {
     return powerUnit.toKilowatts(power).multiply(BigDecimal.valueOf(quantity));
   }
 
-  List<ValidationIssue> validate(String path, LoadOccupancy usage) {
+  List<ValidationIssue> validate(String path, LoadOccupancy usage, DemandContext context) {
     if (!DeclaredValues.isPositive(power)) {
       return List.of(
           ValidationIssue.missing(
               path + ".power", "Informe a potência de placa de \"" + description + "\"."));
     }
-    return category.issues(this, path, usage);
+    return category.issues(this, path, usage, context);
   }
 }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
+import br.com.ampere.domain.DemandContext;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.GroupKind;
@@ -19,6 +20,7 @@ import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.service.ProjectDemandContexts;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.util.List;
@@ -44,6 +46,8 @@ class ResidentialConnectionMigrationIntegrationTest {
 
   @Autowired private EntityManager entityManager;
 
+  @Autowired private ProjectDemandContexts contexts;
+
   @Test
   void anApartmentGroupSavedWithoutConnectionBecomesSinglePhase() {
     Project project = project();
@@ -57,8 +61,9 @@ class ResidentialConnectionMigrationIntegrationTest {
 
     ResidentialGroup migrated = (ResidentialGroup) groupRepository.findById(apartments).get();
     assertThat(migrated.getConnectionType()).isEqualTo(ConnectionType.SINGLE_PHASE);
-    assertThat(migrated.getUnitLoadKw()).isEqualByComparingTo("6.5");
-    assertThat(migrated.validate()).isEmpty();
+    DemandContext context = contexts.contextFor(project);
+    assertThat(migrated.getUnitLoadKw(context)).isEqualByComparingTo("6.5");
+    assertThat(migrated.validate(context)).isEmpty();
     assertThat(groupRepository.findById(charging).get().spec().connectionType()).isNull();
   }
 

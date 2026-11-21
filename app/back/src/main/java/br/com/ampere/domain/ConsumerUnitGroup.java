@@ -73,10 +73,11 @@ public abstract class ConsumerUnitGroup {
 
   public abstract GroupKind kind();
 
-  public abstract List<ValidationIssue> validate();
+  /** The context brings the tables some rules read, such as the motor tables. */
+  public abstract List<ValidationIssue> validate(DemandContext context);
 
   /** Null while not informed. */
-  public abstract BigDecimal loadPerUnitKw();
+  public abstract BigDecimal loadPerUnitKw(DemandContext context);
 
   public abstract String summary();
 
@@ -88,16 +89,21 @@ public abstract class ConsumerUnitGroup {
     return Optional.empty();
   }
 
-  public final GroupStatus status() {
-    return validate().stream()
+  public final GroupStatus status(DemandContext context) {
+    return statusOf(validate(context));
+  }
+
+  /** For a caller that already holds the issues of a validation. */
+  public static GroupStatus statusOf(List<ValidationIssue> issues) {
+    return issues.stream()
         .map(ValidationIssue::severity)
         .map(IssueSeverity::status)
         .max(Comparator.naturalOrder())
         .orElse(GroupStatus.VALIDATED);
   }
 
-  public final BigDecimal declaredLoadKw() {
-    BigDecimal perUnit = loadPerUnitKw();
+  public final BigDecimal declaredLoadKw(DemandContext context) {
+    BigDecimal perUnit = loadPerUnitKw(context);
     return perUnit == null ? BigDecimal.ZERO : perUnit.multiply(BigDecimal.valueOf(quantity));
   }
 }

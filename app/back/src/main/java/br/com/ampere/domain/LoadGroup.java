@@ -78,7 +78,7 @@ public class LoadGroup extends ConsumerUnitGroup {
   }
 
   @Override
-  public List<ValidationIssue> validate() {
+  public List<ValidationIssue> validate(DemandContext context) {
     List<ValidationIssue> issues = new ArrayList<>();
     if (usage == null) {
       issues.add(
@@ -91,16 +91,20 @@ public class LoadGroup extends ConsumerUnitGroup {
               "items", "Informe as cargas instaladas: iluminação, motores, bombas e demais."));
     }
     IntStream.range(0, items.size())
-        .forEach(index -> issues.addAll(items.get(index).validate("items[" + index + "]", usage)));
+        .forEach(
+            index ->
+                issues.addAll(items.get(index).validate("items[" + index + "]", usage, context)));
     return issues;
   }
 
   @Override
-  public BigDecimal loadPerUnitKw() {
+  public BigDecimal loadPerUnitKw(DemandContext context) {
     if (items.isEmpty()) {
       return null;
     }
-    return items.stream().map(LoadItem::declaredLoadKw).reduce(BigDecimal.ZERO, BigDecimal::add);
+    return items.stream()
+        .map(item -> item.installedKw(context))
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
   }
 
   /** Each parcel of DIS-NOR-030 item 6.27 present in the group, summed. */

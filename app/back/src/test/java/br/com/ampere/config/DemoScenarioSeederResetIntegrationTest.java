@@ -208,14 +208,18 @@ class DemoScenarioSeederResetIntegrationTest extends SeedIntegrationTestBase {
     jdbcTemplate.update(
         "UPDATE load_group_item SET simultaneous_start = NULL WHERE category = 'MOTORS'");
     assertThat(
-            GroupValidation.of(groupRepository.findAllByProjectIdOrderById(rejected.getId()))
+            GroupValidation.of(
+                    groupRepository.findAllByProjectIdOrderById(rejected.getId()),
+                    demandContext(rejected.getId()))
                 .canCalculate())
         .isFalse();
 
     scenarioSeeder(false).seed();
 
     assertThat(
-            GroupValidation.of(groupRepository.findAllByProjectIdOrderById(rejected.getId()))
+            GroupValidation.of(
+                    groupRepository.findAllByProjectIdOrderById(rejected.getId()),
+                    demandContext(rejected.getId()))
                 .canCalculate())
         .isTrue();
   }

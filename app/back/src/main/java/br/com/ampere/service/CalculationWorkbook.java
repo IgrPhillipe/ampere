@@ -49,7 +49,7 @@ final class CalculationWorkbook {
     numberStyle.setDataFormat(workbook.createDataFormat().getFormat(NUMBER_FORMAT));
   }
 
-  static byte[] of(Calculation calculation, Project project, List<ConsumerUnitGroup> groups) {
+  static byte[] of(Calculation calculation, Project project, List<ValidatedGroup> groups) {
     try (Workbook workbook = new XSSFWorkbook();
         ByteArrayOutputStream output = new ByteArrayOutputStream()) {
       CalculationWorkbook sheets = new CalculationWorkbook(workbook);
@@ -87,7 +87,7 @@ final class CalculationWorkbook {
     addRow(sheet, "Calculado em", BrazilianDateFormat.dateTime(calculation.getCalculatedAt()));
   }
 
-  private void addGroups(List<ConsumerUnitGroup> groups) {
+  private void addGroups(List<ValidatedGroup> groups) {
     Sheet sheet =
         sheet(
             "Grupos",
@@ -97,15 +97,16 @@ final class CalculationWorkbook {
             "Resumo",
             "Carga por unidade (kW)",
             "Situação");
-    for (ConsumerUnitGroup group : groups) {
+    for (ValidatedGroup validated : groups) {
+      ConsumerUnitGroup group = validated.group();
       addRow(
           sheet,
           group.getName(),
           group.kind().label(),
           group.getQuantity(),
           group.summary(),
-          group.loadPerUnitKw(),
-          group.status().label());
+          group.loadPerUnitKw(validated.context()),
+          validated.status().label());
     }
   }
 

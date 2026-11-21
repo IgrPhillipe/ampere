@@ -31,7 +31,8 @@ class IndividualDemandTest {
     assertThat(unit.lines().getFirst())
         .contains("a + b + d + e + f + g = 2,18 + 13,00 + 3,42 + 1,50 + 4,20 + 2,28 = 26,58 kVA");
     assertThat(unit.demandKva()).isEqualByComparingTo("26.58");
-    assertThat(unit.installedKw()).isEqualByComparingTo("35.871");
+    // The example reaches 36,10 kW: its air conditioners count 2 × 1,90 kW, not the 2,10 kVA of f.
+    assertThat(unit.installedKw()).isEqualByComparingTo("36.50");
     assertThat(unit.references())
         .extracting(NormativeReference::identification)
         .contains("Tabela 6", "Tabela 7", "Tabela 9", "Tabela 12", "Tabela 14", "Tabela 19");
@@ -92,7 +93,7 @@ class IndividualDemandTest {
         .startsWith(
             "Apartamento tipo (monofásico): carga instalada de 5,00 kW, que define a categoria da"
                 + " unidade (DIS-NOR-030, item 6.28.1)",
-            "Cobertura (trifásico, carga instalada de 35,87 kW): a + b + d + e + f + g = 2,18 +"
+            "Cobertura (trifásico, carga instalada de 36,50 kW): a + b + d + e + f + g = 2,18 +"
                 + " 13,00 + 3,42 + 1,50 + 4,20 + 2,28 = 26,58 kVA (DIS-NOR-030, item 6.27)");
     assertThat(result.steps().get(4).code()).isEqualTo("Ded");
     assertThat(result.steps().get(4).formula()).doesNotContain("Dind");
@@ -115,7 +116,7 @@ class IndividualDemandTest {
               assertThat(check.getStatus()).isEqualTo(CheckStatus.PASSED);
               assertThat(check.getMessage())
                   .isEqualTo(
-                      "Maior carga instalada por apartamento de 35,87 kW, dentro do limite de 75 kW"
+                      "Maior carga instalada por apartamento de 36,50 kW, dentro do limite de 75 kW"
                           + " da baixa tensão (DIS-NOR-030, item 6.2.1).");
             });
   }
