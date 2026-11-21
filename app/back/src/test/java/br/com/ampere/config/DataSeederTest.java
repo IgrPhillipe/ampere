@@ -140,6 +140,31 @@ class DataSeederTest extends SeedIntegrationTestBase {
   }
 
   @Test
+  void addsATableMissingFromADatabaseSeededBeforeIt() {
+    bootstrap();
+    NormativeTable tabela6 =
+        normativeTableRepository
+            .findByCodeAndStatus(
+                NormativeTableCode.T6_RESIDENTIAL_LIGHTING_OUTLETS, NormativeTableStatus.PUBLISHED)
+            .orElseThrow();
+    normativeTableRepository.deleteAll(
+        normativeTableRepository.findAllByCode(NormativeTableCode.T22_GENERAL_LIGHTING_OUTLETS));
+
+    bootstrap();
+
+    assertThat(normativeTableRepository.count()).isEqualTo(NormativeTableCode.values().length);
+    assertThat(
+            normativeTableRepository.findAllByCode(NormativeTableCode.T22_GENERAL_LIGHTING_OUTLETS))
+        .singleElement()
+        .satisfies(
+            added -> {
+              assertThat(added.getStatus()).isEqualTo(NormativeTableStatus.PUBLISHED);
+              assertThat(added.getVerifiedAt()).isAtSameInstantAs(tabela6.getVerifiedAt());
+              assertThat(added.wasEffectiveAt(tabela6.getVerifiedAt())).isTrue();
+            });
+  }
+
+  @Test
   void leavesTheProjectsToTheScenarioSeeder() {
     bootstrap();
 
