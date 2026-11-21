@@ -83,7 +83,7 @@ Cada fatia entra com os testes. Os unitários ficam em `src/test/java/br/com/amp
 - `GroupValidation.of(groups, context)` em `DemandCalculationService.calculate`, `ConsumerUnitGroupService.validation` e `DesignerDashboardService.pendingStage`. No painel, rascunho sem `submittedAt` usa `new NormativeTableSet(published)`, já carregado uma vez; o reprovado usa `contextFor`.
 - `ValidatedGroup`: `ConsumerUnitGroupService` valida cada grupo uma vez e devolve o record; `ConsumerUnitGroupController` monta `ConsumerUnitGroupResponse.from(validatedGroup)`.
 - `SpreadsheetExportService` e `CalculationWorkbook.addGroups`, `MemorialPdfService.addConsumerUnits` e `DesignerDashboardService` pedem o contexto a `ProjectDemandContexts` para `loadPerUnitKw` e `status`.
-- Fora desta issue: `NormativeTableSeed`, `DataSeeder` e `EnumCheckConstraints` ficam com a #230.
+- `NormativeTableSeed`, `DataSeeder` e `EnumCheckConstraints` ficam para a Fatia 6.
 - **Testes:** `ConsumerUnitGroupControllerTest`: `loadPerUnitKw`, `declaredLoadKw` e `unitLoadKw` de um grupo com motor saem pela tabela no `GET`, no `POST` e no `PUT`; `GET .../validation` soma o mesmo total. `DemandCalculationIntegrationTest`: o grupo em Revisar pela tabela recebe 422 ao calcular, com a mesma mensagem da listagem. Integração sem `publishTables()` com motor: listagem responde 200 com a pendência da tabela não publicada.
 - **Pronto quando:** `./mvnw clean verify` passa, nenhum service soma carga por conta própria, `ConsumerUnitGroupService` não depende de `DemandCalculationService` e `ConsumerUnitGroupResponse` não chama `validate`. É a fatia de que a #230 depende.
 
