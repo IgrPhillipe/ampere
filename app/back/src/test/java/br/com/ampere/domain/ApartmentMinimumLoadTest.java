@@ -145,6 +145,21 @@ class ApartmentMinimumLoadTest {
     assertThat(check(8, "180", List.of(unclassified))).isEmpty();
   }
 
+  @Test
+  void aLoadOfParcelAInBtuPerHourHoldsBothChecks() {
+    LoadItem inBtu =
+        new LoadItem(
+            LoadCategory.LIGHTING_AND_OUTLETS,
+            "Tomadas",
+            1,
+            new BigDecimal("10000"),
+            PowerUnit.BTU_H,
+            LampTechnology.GENERAL_OUTLETS,
+            null);
+
+    assertThat(check(8, "180", List.of(inBtu, LED))).isEmpty();
+  }
+
   private static List<ValidationIssue> check(Integer rooms, String area, List<LoadItem> loads) {
     return new ApartmentMinimumLoad(rooms, area == null ? null : new BigDecimal(area))
         .check(loads, TABLES);

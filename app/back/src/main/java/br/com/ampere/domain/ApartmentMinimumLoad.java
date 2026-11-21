@@ -93,7 +93,7 @@ final class ApartmentMinimumLoad {
   }
 
   private static boolean incomplete(LoadItem item) {
-    return item.getLampTechnology() == null || !DeclaredValues.isPositive(item.getPower());
+    return item.getLampTechnology() == null || !item.hasPlatePower();
   }
 
   private static BigDecimal sum(

@@ -101,6 +101,12 @@ public class LoadItem {
     return powerUnit.toKilowatts(power).multiply(BigDecimal.valueOf(quantity));
   }
 
+  /** Positive, and in BTU/h only where the category reads a capacity. */
+  boolean hasPlatePower() {
+    return DeclaredValues.isPositive(power)
+        && (powerUnit != PowerUnit.BTU_H || category.acceptsCapacity());
+  }
+
   List<ValidationIssue> validate(String path, LoadOccupancy usage, DemandContext context) {
     if (!DeclaredValues.isPositive(power)) {
       return List.of(
