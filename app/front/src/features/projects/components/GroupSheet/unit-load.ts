@@ -39,7 +39,8 @@ export const unitInstalledKw = (
 /** Loads the back reads from Tabelas 11, 18 and 19 when it saves, not from the plate. */
 export const ratedByTable = ({ category, powerUnit }: RatedLike) =>
 	category === "MOTORS" ||
-	(category === "PUMPS_AND_HOT_TUBS" && powerUnit !== "KW") ||
+	(category === "PUMPS_AND_HOT_TUBS" &&
+		(powerUnit === "CV" || powerUnit === "HP")) ||
 	(category === "AIR_CONDITIONING" && powerUnit === "BTU_H");
 
 export const TABLE_RATED_NOTICE =

@@ -87,6 +87,9 @@ describe("ratedByTable", () => {
 		expect(
 			ratedByTable({ category: "PUMPS_AND_HOT_TUBS", powerUnit: "KW" }),
 		).toBe(false);
+		expect(
+			ratedByTable({ category: "PUMPS_AND_HOT_TUBS", powerUnit: "BTU_H" }),
+		).toBe(false);
 	});
 
 	it("takes air conditioners only in BTU/h", () => {
