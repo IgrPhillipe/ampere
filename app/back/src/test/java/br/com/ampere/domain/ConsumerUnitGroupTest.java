@@ -103,7 +103,8 @@ class ConsumerUnitGroupTest {
     assertThat(group.spec().items())
         .extracting(LoadItem::getDescription)
         .containsExactly("Tomadas e iluminação", "Chuveiro");
-    assertThat(group.summary()).isEqualTo("180 m², 3 quartos, trifásico (DIS-NOR-053 Quadro 35)");
+    assertThat(group.summary())
+        .isEqualTo("180 m², 3 quartos, 12 cômodos e corredores, trifásico (DIS-NOR-053 Quadro 35)");
   }
 
   @Test
@@ -115,6 +116,26 @@ class ConsumerUnitGroupTest {
 
     assertThat(group.getLoads()).isEmpty();
     assertThat(group.spec().items()).isNull();
+  }
+
+  @Test
+  void aThreePhaseApartmentWithoutRoomsWaitsForThem() {
+    GroupSpec spec = withRooms(threePhaseApartments(DemandFixtures.motor("Bomba", 1, "1")), null);
+
+    assertThat(GroupKind.RESIDENTIAL.create(PROJECT, spec).validate(CONTEXT))
+        .extracting(ValidationIssue::severity, ValidationIssue::field)
+        .contains(tuple(IssueSeverity.MISSING_DATA, "rooms"));
+  }
+
+  @Test
+  void aSinglePhaseApartmentDropsTheRooms() {
+    ResidentialGroup group =
+        (ResidentialGroup)
+            GroupKind.RESIDENTIAL.create(
+                PROJECT, withConnection(threePhaseApartments(), ConnectionType.SINGLE_PHASE));
+
+    assertThat(group.getRooms()).isNull();
+    assertThat(group.spec().rooms()).isNull();
   }
 
   @Test
@@ -587,7 +608,8 @@ class ConsumerUnitGroupTest {
         null,
         null,
         null,
-        null);
+        null,
+        DemandFixtures.EXEMPLO_3_ROOMS);
   }
 
   private static GroupSpec withConnection(GroupSpec spec, ConnectionType connectionType) {
@@ -604,7 +626,26 @@ class ConsumerUnitGroupTest {
         spec.powerPerPointKw(),
         spec.incorporatedInVehicle(),
         spec.loadManagement(),
-        spec.stationType());
+        spec.stationType(),
+        spec.rooms());
+  }
+
+  private static GroupSpec withRooms(GroupSpec spec, Integer rooms) {
+    return new GroupSpec(
+        spec.name(),
+        spec.quantity(),
+        spec.usefulArea(),
+        spec.bedrooms(),
+        spec.unitLoadKw(),
+        spec.compactUnit(),
+        spec.connectionType(),
+        spec.usage(),
+        spec.items(),
+        spec.powerPerPointKw(),
+        spec.incorporatedInVehicle(),
+        spec.loadManagement(),
+        spec.stationType(),
+        rooms);
   }
 
   private static GroupSpec commonArea(List<LoadItem> items) {

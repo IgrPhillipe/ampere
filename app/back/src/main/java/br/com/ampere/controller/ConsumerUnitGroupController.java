@@ -186,7 +186,8 @@ public class ConsumerUnitGroupController {
             request.powerPerPointKw(),
             request.incorporatedInVehicle(),
             request.loadManagement(),
-            request.stationType()));
+            request.stationType(),
+            request.rooms()));
   }
 
   private static List<LoadItem> loadItems(List<LoadItemRequest> requests) {

@@ -42,6 +42,7 @@ final class VersionFieldLabels {
           Map.entry("quantity", "Quantidade de unidades"),
           Map.entry("usefulArea", "Área útil"),
           Map.entry("bedrooms", "Quartos"),
+          Map.entry("rooms", "Cômodos e corredores"),
           Map.entry("unitLoadKw", "Carga por unidade"),
           Map.entry("compactUnit", "Unidade compacta"),
           Map.entry("usage", "Tipo de uso"),

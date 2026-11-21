@@ -76,8 +76,12 @@ public final class DemandFixtures {
             null,
             null,
             null,
-            null));
+            null,
+            EXEMPLO_3_ROOMS));
   }
+
+  /** Rooms of DIS-NOR-030 Exemplo 3, which meet the minimum lighting of its 1,2 kW. */
+  static final int EXEMPLO_3_ROOMS = 12;
 
   /** DIS-NOR-030 Exemplo 3 (p. 52 to 55), oven in parcel e. */
   static List<LoadItem> exemplo3() {

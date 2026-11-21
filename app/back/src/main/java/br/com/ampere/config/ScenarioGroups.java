@@ -34,7 +34,7 @@ final class ScenarioGroups {
 
   /** Each apartment three-phase, detailing its loads (DIS-NOR-030 item 6.27). */
   static GroupDraft threePhaseApartments(
-      String name, int quantity, String usefulArea, int bedrooms, LoadItem... loads) {
+      String name, int quantity, String usefulArea, int bedrooms, int rooms, LoadItem... loads) {
     return new GroupDraft(
         GroupKind.RESIDENTIAL,
         new GroupSpec(
@@ -50,7 +50,8 @@ final class ScenarioGroups {
             null,
             null,
             null,
-            null));
+            null,
+            rooms));
   }
 
   /** The residence of DIS-NOR-030 Exemplo 3, as a penthouse. */

@@ -23,6 +23,8 @@ import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -163,6 +165,44 @@ class ConsumerUnitGroupApiIntegrationTest {
     ResidentialGroup group = (ResidentialGroup) groupRepository.findById(Long.valueOf(id)).get();
     assertThat(group.getLoads()).isEmpty();
     assertThat(group.getUnitLoadKw(contexts.contextFor(project))).isEqualByComparingTo("12");
+  }
+
+  @Test
+  void aThreePhaseApartmentWaitsForItsRoomsAndKeepsThem() throws Exception {
+    perform(post(groups()), THREE_PHASE)
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.status").value("MISSING_DATA"))
+        .andExpect(
+            jsonPath("$.data.issues[?(@.field == 'rooms')].message")
+                .value(
+                    "Informe o número de cômodos e corredores. Ele define a carga mínima de iluminação"
+                        + " do apartamento (DIS-NOR-030, item 6.26.1.1)."));
+    String id = create(THREE_PHASE);
+
+    perform(put(groups() + "/" + id), withRooms(THREE_PHASE, 12))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.rooms").value(12))
+        .andExpect(jsonPath("$.data.issues[?(@.field == 'rooms')]").isEmpty());
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {0, 51})
+  void refusesRoomsOutOfRange(int rooms) throws Exception {
+    perform(post(groups()), withRooms(THREE_PHASE, rooms))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errors[0].field").value("rooms"));
+  }
+
+  @Test
+  void aSinglePhaseApartmentDropsTheRooms() throws Exception {
+    perform(post(groups()), withRooms(SINGLE_PHASE, 6))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.status").value("VALIDATED"))
+        .andExpect(jsonPath("$.data.rooms").doesNotExist());
+  }
+
+  private static String withRooms(String body, int rooms) {
+    return body.replace("\"connectionType\"", "\"rooms\": " + rooms + ", \"connectionType\"");
   }
 
   private String create(String body) throws Exception {

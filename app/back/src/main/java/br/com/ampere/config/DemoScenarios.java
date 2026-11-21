@@ -471,7 +471,7 @@ final class DemoScenarios {
                     c,
                     2,
                     apartments("Apartamento tipo", 24, "70", 2, "7.80"),
-                    threePhaseApartments("Cobertura", 2, "180", 3, penthouseLoads()),
+                    threePhaseApartments("Cobertura", 2, "180", 3, 12, penthouseLoads()),
                     commonArea())));
   }
 

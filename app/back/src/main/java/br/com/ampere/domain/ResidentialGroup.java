@@ -38,6 +38,9 @@ public class ResidentialGroup extends ConsumerUnitGroup {
 
   private Integer bedrooms;
 
+  /** Three-phase only: one light point per room or corridor (DIS-NOR-030 item 6.26.1.1). */
+  private Integer rooms;
+
   private BigDecimal unitLoadKw;
 
   // Nullable: SINGLE_TABLE shares the row with the other kinds.
@@ -68,6 +71,7 @@ public class ResidentialGroup extends ConsumerUnitGroup {
     this.compactUnit = Boolean.TRUE.equals(spec.compactUnit());
     this.connectionType = spec.connectionType();
     this.loads.clear();
+    this.rooms = isThreePhase() ? spec.rooms() : null;
     if (isThreePhase()) {
       // Not stored: the column keeps two decimals and the sum of CV loads has more.
       this.unitLoadKw = null;
@@ -103,7 +107,8 @@ public class ResidentialGroup extends ConsumerUnitGroup {
         null,
         null,
         null,
-        null);
+        null,
+        rooms);
   }
 
   public BigDecimal getUsefulArea() {
@@ -112,6 +117,11 @@ public class ResidentialGroup extends ConsumerUnitGroup {
 
   public Integer getBedrooms() {
     return bedrooms;
+  }
+
+  /** Null unless the apartment is three-phase. */
+  public Integer getRooms() {
+    return rooms;
   }
 
   /** Declared for a single-phase unit; the sum of the loads for a three-phase one. */
@@ -193,6 +203,13 @@ public class ResidentialGroup extends ConsumerUnitGroup {
                               "loads[" + index + "]",
                               LoadOccupancy.APARTMENT,
                               unitContext(context))));
+      if (rooms == null) {
+        issues.add(
+            ValidationIssue.missing(
+                "rooms",
+                "Informe o número de cômodos e corredores. Ele define a carga mínima de"
+                    + " iluminação do apartamento (DIS-NOR-030, item 6.26.1.1)."));
+      }
     } else if (!DeclaredValues.isPositive(load)) {
       issues.add(
           ValidationIssue.missing(
@@ -335,6 +352,9 @@ public class ResidentialGroup extends ConsumerUnitGroup {
             : "Área útil não informada");
     if (bedrooms != null) {
       parts.add(bedrooms + (bedrooms == 1 ? " quarto" : " quartos"));
+    }
+    if (rooms != null) {
+      parts.add(rooms + (rooms == 1 ? " cômodo ou corredor" : " cômodos e corredores"));
     }
     if (connectionType != null) {
       parts.add(connectionType.label().toLowerCase());

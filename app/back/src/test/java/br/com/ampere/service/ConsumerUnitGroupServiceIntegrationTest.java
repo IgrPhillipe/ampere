@@ -359,7 +359,8 @@ class ConsumerUnitGroupServiceIntegrationTest {
             null,
             null,
             null,
-            null));
+            null,
+            connectionType == ConnectionType.THREE_PHASE ? 12 : null));
   }
 
   private static GroupParameters commonArea() {
