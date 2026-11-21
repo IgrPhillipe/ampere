@@ -88,6 +88,10 @@ public class LoadItem {
     return category.installedKw(this, context);
   }
 
+  public boolean ratedByMotorTable() {
+    return DeclaredValues.isPositive(power) && category.ratedByMotorTable(this);
+  }
+
   BigDecimal plateKw() {
     return powerUnit.toKilowatts(power).multiply(BigDecimal.valueOf(quantity));
   }

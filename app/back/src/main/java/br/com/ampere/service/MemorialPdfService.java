@@ -402,6 +402,21 @@ public class MemorialPdfService {
           decimal(group.loadPerUnitKw(context)));
     }
     document.add(table);
+    List<String> motorTables =
+        groups.stream()
+            .flatMap(group -> group.motorTable(context).stream())
+            .distinct()
+            .sorted()
+            .map(code -> code.identification().replace("Tabela ", ""))
+            .toList();
+    if (!motorTables.isEmpty()) {
+      document.add(
+          note(
+              "Carga instalada dos motores pela potência absorvida "
+                  + (motorTables.size() == 1 ? "da Tabela " : "das Tabelas ")
+                  + String.join(" e ", motorTables)
+                  + " da DIS-NOR-030 (item 6.27.7), não pela conversão da placa."));
+    }
   }
 
   private static void addCalculationSteps(Document document, Calculation calculation) {

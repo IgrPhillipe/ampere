@@ -12,6 +12,7 @@ import jakarta.persistence.OrderColumn;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 /** Common areas or a commercial unit, by installed load (DIS-NOR-030 item 6.27). */
@@ -105,6 +106,13 @@ public class LoadGroup extends ConsumerUnitGroup {
     return items.stream()
         .map(item -> item.installedKw(context))
         .reduce(BigDecimal.ZERO, BigDecimal::add);
+  }
+
+  @Override
+  public Optional<NormativeTableCode> motorTable(DemandContext context) {
+    return items.stream().anyMatch(LoadItem::ratedByMotorTable)
+        ? Optional.of(context.connectionType().motorTable())
+        : Optional.empty();
   }
 
   /** Each parcel of DIS-NOR-030 item 6.27 present in the group, summed. */

@@ -220,6 +220,13 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   }
 
   @Override
+  public Optional<NormativeTableCode> motorTable(DemandContext context) {
+    return isThreePhase() && loads.stream().anyMatch(LoadItem::ratedByMotorTable)
+        ? Optional.of(unitContext(context).connectionType().motorTable())
+        : Optional.empty();
+  }
+
+  @Override
   public DemandContribution demand(DemandContext context) {
     NormativeValue quadro35 =
         context.tables().find(NormativeTableCode.Q35_APARTMENT_DEMAND, usefulArea);
@@ -287,6 +294,9 @@ public class ResidentialGroup extends ConsumerUnitGroup {
         getName()
             + " (trifásico, carga instalada de "
             + installed
+            + motorTable(context)
+                .map(table -> ", motores pela " + table.identification())
+                .orElse("")
             + "): "
             + formula
             + " (DIS-NOR-030, item 6.27)");

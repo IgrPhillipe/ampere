@@ -190,6 +190,11 @@ public enum LoadCategory {
       return absorbedKw(item, context);
     }
 
+    @Override
+    boolean ratedByMotorTable(LoadItem item) {
+      return true;
+    }
+
     /** Motors that must start together count as one; of equal largest ones, only one is. */
     @Override
     ParcelDemand demand(
@@ -201,6 +206,15 @@ public enum LoadCategory {
       for (LoadItem item : items) {
         NormativeValue motor = motorKva(item, context, notes);
         references.add(motor.reference());
+        notes.add(
+            item.getDescription()
+                + ": "
+                + item.getQuantity()
+                + " × "
+                + DeclaredValues.fixed(motor.value(), 2)
+                + " kW de carga instalada ("
+                + motor.reference().identification()
+                + ")");
         long count = (long) item.getQuantity() * groupQuantity;
         if (Boolean.TRUE.equals(item.getSimultaneousStart())) {
           simultaneous = simultaneous.add(motor.secondValue().multiply(BigDecimal.valueOf(count)));
@@ -250,7 +264,12 @@ public enum LoadCategory {
     /** Rated like a motor when the plate is in CV or HP, as its kVA is. */
     @Override
     BigDecimal installedKw(LoadItem item, DemandContext context) {
-      return item.getPowerUnit() == PowerUnit.KW ? item.plateKw() : absorbedKw(item, context);
+      return ratedByMotorTable(item) ? absorbedKw(item, context) : item.plateKw();
+    }
+
+    @Override
+    boolean ratedByMotorTable(LoadItem item) {
+      return item.getPowerUnit() != PowerUnit.KW;
     }
 
     /** Pumps rated in CV or HP take their kVA from the motor table; in kW, power factor 1,00. */
@@ -349,6 +368,11 @@ public enum LoadCategory {
   /** Installed kW of an item with its quantity; the plate converted unless the parcel rates it. */
   BigDecimal installedKw(LoadItem item, DemandContext context) {
     return item.plateKw();
+  }
+
+  /** Whether the installed load comes from Tabela 18 or 19 instead of the plate. */
+  boolean ratedByMotorTable(LoadItem item) {
+    return false;
   }
 
   /** Demand of this parcel over the items of one group, in kVA. */

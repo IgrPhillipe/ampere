@@ -26,6 +26,10 @@ import br.com.ampere.domain.FindingSeverity;
 import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
+import br.com.ampere.domain.LoadCategory;
+import br.com.ampere.domain.LoadItem;
+import br.com.ampere.domain.LoadUsage;
+import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
@@ -333,7 +337,50 @@ class SubmissionIntegrationTest {
         .containsSubsequence("Apartamento tipo A", "Monofásico", "24")
         .contains("Demanda Individual dos Apartamentos (DIS-NOR-053, item 6.22.3)")
         .contains("Apartamento tipo A (monofásico): carga instalada de 6,50 kW")
-        .doesNotContain("Dind");
+        .doesNotContain("Dind")
+        .doesNotContain("potência absorvida");
+  }
+
+  @Test
+  void theMemorialCitesTheTableOfTheMotorLoads() throws Exception {
+    Project project = draft();
+    groupRepository.save(
+        GroupKind.LOAD.create(
+            project,
+            new GroupSpec(
+                "Área comum",
+                1,
+                null,
+                null,
+                null,
+                null,
+                null,
+                LoadUsage.COMMON_AREA,
+                List.of(
+                    new LoadItem(
+                        LoadCategory.MOTORS,
+                        "Elevador",
+                        1,
+                        new BigDecimal("12"),
+                        PowerUnit.CV,
+                        null,
+                        false)),
+                null,
+                null,
+                null,
+                null)));
+    perform(post("/projects/" + project.getId() + "/calculations")).andExpect(status().isCreated());
+
+    byte[] body =
+        perform(get(memorialOf(project))).andReturn().getResponse().getContentAsByteArray();
+
+    PdfTextExtractor extractor = new PdfTextExtractor(new PdfReader(body));
+    StringBuilder text = new StringBuilder();
+    for (int page = 1; page <= new PdfReader(body).getNumberOfPages(); page++) {
+      text.append(extractor.getTextFromPage(page)).append('\n');
+    }
+    assertThat(text.toString().replace('\n', ' '))
+        .contains("Carga instalada dos motores pela potência absorvida da Tabela 19");
   }
 
   @Test

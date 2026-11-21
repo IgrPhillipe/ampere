@@ -84,6 +84,11 @@ public abstract class ConsumerUnitGroup {
   /** This group's share of the demand. Only called once every group is validated. */
   public abstract DemandContribution demand(DemandContext context);
 
+  /** The table its motors are rated by; empty without a motor. */
+  public Optional<NormativeTableCode> motorTable(DemandContext context) {
+    return Optional.empty();
+  }
+
   /** Demand of one unit on its own, for the groups whose units are supplied apart. */
   public Optional<IndividualDemand> individualDemand(DemandContext context) {
     return Optional.empty();
