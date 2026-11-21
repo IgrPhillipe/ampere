@@ -166,22 +166,48 @@ describe("DocumentsPage", () => {
 			expect(screen.getByText(/1 apontamento neste item/)).toBeInTheDocument();
 		});
 
-		const replaceArt = () => {
+		const pickFile = (button: string) => {
 			const input = screen
-				.getByRole("button", { name: "Substituir ART" })
+				.getByRole("button", { name: button })
 				.parentElement?.querySelector("input[type=file]");
-			if (!input) throw new Error("ART input not found");
+			if (!input) throw new Error(`${button} input not found`);
 
 			fireEvent.change(input, {
 				target: {
 					files: [
-						new File(["%PDF"], "art-nova.pdf", { type: "application/pdf" }),
+						new File(["%PDF"], "documento.pdf", { type: "application/pdf" }),
 					],
 				},
 			});
 		};
 
+		const replaceArt = () => pickFile("Substituir ART");
+
 		const prompt = { name: "Marcar o apontamento como corrigido?" };
+
+		it("suggests the attachment of a document the project did not have", async () => {
+			state.findings = [makeFinding({ documentType: "SINGLE_LINE_DIAGRAM" })];
+			state.upload = {
+				...idleMutation(),
+				mutate: vi.fn((_args, options) =>
+					options?.onSuccess?.({
+						data: {
+							...art,
+							type: "SINGLE_LINE_DIAGRAM",
+							typeLabel: "Diagrama unifilar",
+						},
+					}),
+				),
+			};
+			renderPage();
+
+			pickFile("Anexar Diagrama unifilar");
+
+			const dialog = await screen.findByRole("dialog", prompt);
+			expect(
+				within(dialog).getByRole("textbox", { name: /Observação/ }),
+			).toHaveValue("Anexei o documento Diagrama unifilar.");
+		});
 
 		it("asks to mark the pointed document as fixed after replacing it", async () => {
 			state.upload = {

@@ -56,6 +56,9 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 		const pointed = canRespond
 			? documentFindings.filter((finding) => finding.documentType === type)
 			: [];
+		const replacing = (checklist?.documents ?? []).some(
+			(document) => document.type === type,
+		);
 
 		uploadMutation.mutate(
 			{ projectId, type, file },
@@ -64,7 +67,7 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 					if (pointed.length > 0)
 						setFixQueue({
 							findings: pointed,
-							suggestion: `Substituí o documento ${data.typeLabel}.`,
+							suggestion: `${replacing ? "Substituí" : "Anexei"} o documento ${data.typeLabel}.`,
 						});
 				},
 			},
