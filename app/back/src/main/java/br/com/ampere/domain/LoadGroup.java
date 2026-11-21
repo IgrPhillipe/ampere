@@ -109,10 +109,13 @@ public class LoadGroup extends ConsumerUnitGroup {
   }
 
   @Override
+  public boolean hasRatedMotors() {
+    return items.stream().anyMatch(LoadItem::ratedByMotorTable);
+  }
+
+  @Override
   public Optional<NormativeTableCode> motorTable(DemandContext context) {
-    return items.stream().anyMatch(LoadItem::ratedByMotorTable)
-        ? Optional.of(context.connectionType().motorTable())
-        : Optional.empty();
+    return hasRatedMotors() ? Optional.of(context.connectionType().motorTable()) : Optional.empty();
   }
 
   /** Each parcel of DIS-NOR-030 item 6.27 present in the group, summed. */

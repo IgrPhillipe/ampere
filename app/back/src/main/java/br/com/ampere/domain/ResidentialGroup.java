@@ -220,8 +220,13 @@ public class ResidentialGroup extends ConsumerUnitGroup {
   }
 
   @Override
+  public boolean hasRatedMotors() {
+    return isThreePhase() && loads.stream().anyMatch(LoadItem::ratedByMotorTable);
+  }
+
+  @Override
   public Optional<NormativeTableCode> motorTable(DemandContext context) {
-    return isThreePhase() && loads.stream().anyMatch(LoadItem::ratedByMotorTable)
+    return hasRatedMotors()
         ? Optional.of(unitContext(context).connectionType().motorTable())
         : Optional.empty();
   }

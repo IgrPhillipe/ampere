@@ -35,6 +35,9 @@ public class DemandCalculationService {
 
   private static final String TABLE_IDS = ProjectDemandContexts.TABLE_IDS;
 
+  /** Recorded since motors take Tabela 18 or 19: a run without it is outdated. */
+  private static final String MOTOR_INSTALLED_LOAD = "motorInstalledLoad";
+
   private final ProjectService projectService;
   private final ConsumerUnitGroupRepository groupRepository;
   private final ProjectDemandContexts contexts;
@@ -241,6 +244,9 @@ public class DemandCalculationService {
         groups.stream()
             .map(group -> Map.of("id", group.getId(), "kind", group.kind(), "spec", group.spec()))
             .toList());
+    if (groups.stream().anyMatch(ConsumerUnitGroup::hasRatedMotors)) {
+      input.put(MOTOR_INSTALLED_LOAD, "NORMATIVE_TABLE");
+    }
 
     return input;
   }

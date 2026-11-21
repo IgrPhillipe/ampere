@@ -84,6 +84,11 @@ public abstract class ConsumerUnitGroup {
   /** This group's share of the demand. Only called once every group is validated. */
   public abstract DemandContribution demand(DemandContext context);
 
+  /** Whether a load of the group is rated by Tabela 18 or 19. */
+  public boolean hasRatedMotors() {
+    return false;
+  }
+
   /** The table its motors are rated by; empty without a motor. */
   public Optional<NormativeTableCode> motorTable(DemandContext context) {
     return Optional.empty();

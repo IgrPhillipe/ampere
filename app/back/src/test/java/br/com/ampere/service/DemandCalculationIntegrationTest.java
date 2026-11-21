@@ -57,6 +57,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 /** Step 3 end to end: the published tables, the engine and the record, through HTTP. */
 @SpringBootTest
@@ -111,6 +112,68 @@ class DemandCalculationIntegrationTest {
     var resubmission = calculations.compute(project, groups);
     assertThat(resubmission.getEvChargingDemand())
         .isEqualByComparingTo(expected.getEvChargingDemand());
+  }
+
+  @Test
+  void aRunFromBeforeTheMotorTableRuleIsOutdatedOnlyWithMotors() throws Exception {
+    publishTables();
+    Project withMotors = draftWithPrototypeGroups(true);
+    Project withoutMotors = draftWithApartmentsOnly();
+    calculateBeforeTheMotorRule(withMotors);
+    calculateBeforeTheMotorRule(withoutMotors);
+
+    mockMvc
+        .perform(
+            get(calculationOf(withMotors) + "/latest").header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.outdated").value(true))
+        .andExpect(jsonPath("$.data.changedTables").isEmpty());
+    mockMvc
+        .perform(
+            get(calculationOf(withoutMotors) + "/latest")
+                .header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.outdated").value(false));
+
+    mockMvc
+        .perform(post(calculationOf(withMotors)).header("Authorization", "Bearer " + token))
+        .andExpect(status().isCreated());
+    mockMvc
+        .perform(
+            get(calculationOf(withMotors) + "/latest").header("Authorization", "Bearer " + token))
+        .andExpect(jsonPath("$.data.outdated").value(false));
+  }
+
+  /** A run saved as the engine recorded it before motors took Tabela 18 or 19. */
+  private void calculateBeforeTheMotorRule(Project project) {
+    var calculation =
+        calculationRepository.saveAndFlush(
+            calculations.compute(
+                project, groupRepository.findAllByProjectIdOrderById(project.getId())));
+    ObjectNode input = (ObjectNode) objectMapper.readTree(calculation.getInputSnapshot());
+    input.remove("motorInstalledLoad");
+    entityManager
+        .createQuery("UPDATE Calculation c SET c.inputSnapshot = :input WHERE c.id = :id")
+        .setParameter("input", objectMapper.writeValueAsString(input))
+        .setParameter("id", calculation.getId())
+        .executeUpdate();
+    entityManager.clear();
+  }
+
+  private Project draftWithApartmentsOnly() {
+    Project project =
+        projectRepository.save(
+            new Project(
+                "Residencial Sem Motores",
+                "Rua da Aurora, 10",
+                "Recife",
+                "2026-2002",
+                ProjectStatus.DRAFT,
+                building(),
+                standards,
+                owner));
+    groupRepository.save(apartments(project, "Apartamento tipo A", 24, "68"));
+    return project;
   }
 
   @Test
