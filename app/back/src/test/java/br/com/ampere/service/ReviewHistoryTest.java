@@ -8,9 +8,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.ampere.domain.DashboardPeriod;
 import br.com.ampere.domain.ProjectEventType;
+import br.com.ampere.service.ReviewDashboard.Deadlines;
+import br.com.ampere.service.ReviewDashboard.Month;
+import br.com.ampere.service.ReviewDashboard.Week;
 import br.com.ampere.service.ReviewHistory.Event;
 import br.com.ampere.service.ReviewHistory.RepeatedRejection;
-import br.com.ampere.service.ReviewHistory.Week;
 import br.com.ampere.utils.Timestamps;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -63,8 +65,8 @@ class ReviewHistoryTest {
 
     assertThat(history.monthlyRejection())
         .containsExactly(
-            new ReviewHistory.Month(YearMonth.of(2026, 10), null),
-            new ReviewHistory.Month(YearMonth.of(2026, 11), new BigDecimal("66.7")));
+            new Month(YearMonth.of(2026, 10), null),
+            new Month(YearMonth.of(2026, 11), new BigDecimal("66.7")));
   }
 
   @Test
@@ -85,7 +87,7 @@ class ReviewHistoryTest {
             event(3L, RESUBMITTED, 2, LocalDate.of(2026, 10, 20)),
             event(3L, APPROVED, 2, LocalDate.of(2026, 11, 14)));
 
-    assertThat(history.deadlines()).isEqualTo(new ReviewHistory.Deadlines(1, 3));
+    assertThat(history.deadlines()).isEqualTo(new Deadlines(1, 3));
     assertThat(history.averageReviewDays()).isEqualByComparingTo("23.0");
     assertThat(history.averageCycleDays()).isEqualByComparingTo("39.3");
   }
@@ -97,7 +99,7 @@ class ReviewHistoryTest {
     assertThat(history.decidedProjects(APPROVED)).isEqualTo(1);
     assertThat(history.averageReviewDays()).isNull();
     assertThat(history.averageCycleDays()).isNull();
-    assertThat(history.deadlines()).isEqualTo(new ReviewHistory.Deadlines(0, 0));
+    assertThat(history.deadlines()).isEqualTo(new Deadlines(0, 0));
   }
 
   @Test

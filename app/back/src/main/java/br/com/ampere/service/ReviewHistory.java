@@ -2,6 +2,9 @@ package br.com.ampere.service;
 
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEventType;
+import br.com.ampere.service.ReviewDashboard.Deadlines;
+import br.com.ampere.service.ReviewDashboard.Month;
+import br.com.ampere.service.ReviewDashboard.Week;
 import br.com.ampere.utils.Timestamps;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -48,13 +51,6 @@ final class ReviewHistory {
       return type == ProjectEventType.APPROVED || type == ProjectEventType.REJECTED;
     }
   }
-
-  record Week(LocalDate weekStart, long received, long decided) {}
-
-  /** {@code rejectionPercent} is null in a month without decisions. */
-  record Month(YearMonth month, BigDecimal rejectionPercent) {}
-
-  record Deadlines(long met, long overdue) {}
 
   record RepeatedRejection(Long projectId, int rejections) {}
 

@@ -9,22 +9,18 @@ import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectStatus;
-import br.com.ampere.dto.ReviewDashboardResponse;
-import br.com.ampere.dto.ReviewDashboardResponse.CategoryAlertsResponse;
-import br.com.ampere.dto.ReviewDashboardResponse.DeadlinesResponse;
-import br.com.ampere.dto.ReviewDashboardResponse.FindingRankResponse;
-import br.com.ampere.dto.ReviewDashboardResponse.MonthResponse;
-import br.com.ampere.dto.ReviewDashboardResponse.MunicipalityResponse;
-import br.com.ampere.dto.ReviewDashboardResponse.ProjectReference;
-import br.com.ampere.dto.ReviewDashboardResponse.RepeatedRejectionResponse;
-import br.com.ampere.dto.ReviewDashboardResponse.TotalsResponse;
-import br.com.ampere.dto.ReviewDashboardResponse.WeekResponse;
 import br.com.ampere.repository.FindingRepository;
 import br.com.ampere.repository.FindingRepository.RankedProject;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectVersionRepository;
 import br.com.ampere.repository.ProjectVersionRepository.VersionWarnings;
+import br.com.ampere.service.ReviewDashboard.CategoryAlerts;
+import br.com.ampere.service.ReviewDashboard.FindingRank;
+import br.com.ampere.service.ReviewDashboard.MunicipalityTotal;
+import br.com.ampere.service.ReviewDashboard.ProjectReference;
+import br.com.ampere.service.ReviewDashboard.RepeatedRejection;
+import br.com.ampere.service.ReviewDashboard.Totals;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -67,7 +63,7 @@ public class ReviewDashboardService {
   }
 
   @Transactional(readOnly = true)
-  public ReviewDashboardResponse dashboard(DashboardPeriod period, AuthenticatedUser user) {
+  public ReviewDashboard dashboard(DashboardPeriod period, AuthenticatedUser user) {
     user.requireReviewer();
     LocalDate today = LocalDate.now(ZONE);
     LocalDate firstDay = period.since(today);
@@ -92,23 +88,18 @@ public class ReviewDashboardService {
     Set<Long> cited = new LinkedHashSet<>(received);
     repeated.forEach(rejection -> cited.add(rejection.projectId()));
     Map<Long, Project> projects = projects(cited);
-    ReviewHistory.Deadlines deadlines = history.deadlines();
 
-    return new ReviewDashboardResponse(
-        new TotalsResponse(
+    return new ReviewDashboard(
+        new Totals(
             received.size(),
             history.decidedProjects(ProjectEventType.APPROVED),
             history.decidedProjects(ProjectEventType.REJECTED),
             underReview(reviewerId)),
         history.averageReviewDays(),
         history.averageCycleDays(),
-        history.weekly().stream()
-            .map(week -> new WeekResponse(week.weekStart(), week.received(), week.decided()))
-            .toList(),
-        history.monthlyRejection().stream()
-            .map(month -> new MonthResponse(month.month().toString(), month.rejectionPercent()))
-            .toList(),
-        new DeadlinesResponse(deadlines.met(), deadlines.overdue()),
+        history.weekly(),
+        history.monthlyRejection(),
+        history.deadlines(),
         findingsRanking(reviewerId, since),
         municipalities(received, projects),
         repeatedRejections(repeated, projects),
@@ -131,7 +122,7 @@ public class ReviewDashboardService {
             reviewerId, Set.of(ProjectStatus.UNDER_REVIEW));
   }
 
-  private List<FindingRankResponse> findingsRanking(Long reviewerId, OffsetDateTime since) {
+  private List<FindingRank> findingsRanking(Long reviewerId, OffsetDateTime since) {
     List<FindingRepository.FindingRank> ranks =
         findingRepository.rankByReviewer(reviewerId, since, PageRequest.of(0, RANKING_SIZE));
     if (ranks.isEmpty()) {
@@ -149,7 +140,7 @@ public class ReviewDashboardService {
     return ranks.stream()
         .map(
             rank ->
-                new FindingRankResponse(
+                new FindingRank(
                     rank.getStage(),
                     rank.getStandardItem(),
                     rank.getTotal(),
@@ -166,13 +157,12 @@ public class ReviewDashboardService {
   }
 
   private static ProjectReference reference(RankedProject project) {
-    return new ProjectReference(
-        String.valueOf(project.getProjectId()), project.getName(), project.getProtocol());
+    return new ProjectReference(project.getProjectId(), project.getName(), project.getProtocol());
   }
 
   private record Place(String municipality, BrazilianState state) {}
 
-  private static List<MunicipalityResponse> municipalities(
+  private static List<MunicipalityTotal> municipalities(
       Set<Long> received, Map<Long, Project> projects) {
     return received.stream()
         .map(projects::get)
@@ -191,33 +181,27 @@ public class ReviewDashboardService {
         .limit(MUNICIPALITIES_SIZE)
         .map(
             entry ->
-                new MunicipalityResponse(
+                new MunicipalityTotal(
                     entry.getKey().municipality(), entry.getKey().state(), entry.getValue()))
         .toList();
   }
 
-  private static List<RepeatedRejectionResponse> repeatedRejections(
+  private static List<RepeatedRejection> repeatedRejections(
       List<ReviewHistory.RepeatedRejection> repeated, Map<Long, Project> projects) {
     return repeated.stream()
         .filter(rejection -> projects.containsKey(rejection.projectId()))
         .map(
-            rejection -> {
-              Project project = projects.get(rejection.projectId());
-              return new RepeatedRejectionResponse(
-                  String.valueOf(project.getId()),
-                  project.getName(),
-                  project.getProtocol(),
-                  rejection.rejections());
-            })
+            rejection ->
+                new RepeatedRejection(projects.get(rejection.projectId()), rejection.rejections()))
         .sorted(
-            Comparator.comparingInt(RepeatedRejectionResponse::rejections)
+            Comparator.comparingInt(RepeatedRejection::rejections)
                 .reversed()
-                .thenComparing(RepeatedRejectionResponse::protocol))
+                .thenComparing(rejection -> rejection.project().getProtocol()))
         .toList();
   }
 
   /** The alerts come from the calculation frozen with each project's last submission. */
-  private List<CategoryAlertsResponse> alertsByCategory(
+  private List<CategoryAlerts> alertsByCategory(
       Map<Long, Integer> versions, Map<Long, Project> projects) {
     if (versions.isEmpty()) {
       return List.of();
@@ -245,8 +229,7 @@ public class ReviewDashboardService {
         .filter(totals::containsKey)
         .map(
             category ->
-                new CategoryAlertsResponse(
-                    category, totals.get(category)[1], totals.get(category)[0]))
+                new CategoryAlerts(category, totals.get(category)[1], totals.get(category)[0]))
         .toList();
   }
 }

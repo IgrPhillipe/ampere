@@ -105,7 +105,8 @@ public class DashboardController {
           DashboardPeriod period,
       @AuthenticationPrincipal Jwt jwt) {
     return ApiResponse.of(
-        reviewService.dashboard(
-            period, AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role"))));
+        ReviewDashboardResponse.from(
+            reviewService.dashboard(
+                period, AuthenticatedUser.of(jwt.getSubject(), jwt.getClaimAsString("role")))));
   }
 }
