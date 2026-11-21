@@ -250,7 +250,7 @@ class DemandEngineTest {
     assertThatThrownBy(() -> DemandEngine.run(List.of(apartments(PROJECT, 20, "40")), context))
         .isInstanceOf(MissingNormativeValueException.class)
         .hasMessage(
-            "O Quadro 35 da DIS-NOR-053 não está publicado. Cadastre e publique a tabela em Normas"
-                + " e Tabelas.");
+            "O Quadro 35 da DIS-NOR-053 não está publicado. Cadastre e publique a tabela em Tabelas"
+                + " Normativas.");
   }
 }
