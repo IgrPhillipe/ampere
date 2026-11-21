@@ -184,7 +184,6 @@ export const ResidentialGroupForm = ({
 							min={1}
 							step={1}
 							inputMode="numeric"
-							required
 							variant="underline"
 						/>
 					) : (

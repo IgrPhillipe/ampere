@@ -181,6 +181,16 @@ describe("ResidentialGroupForm", () => {
 			expect(onSave).not.toHaveBeenCalled();
 		});
 
+		it("saves without the rooms and leaves them to the back's pending issue", async () => {
+			const onSave = renderForm(threePhase());
+
+			expect(roomsField()).not.toBeRequired();
+			save();
+
+			await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+			expect(onSave.mock.calls[0][0]).toMatchObject({ rooms: null });
+		});
+
 		it("focuses the rooms when the back asks for them", async () => {
 			renderForm(threePhase(), "rooms");
 

@@ -167,7 +167,6 @@ export const LoadItemsSection = <T extends WithLoadItems>({
 									label="Iluminação ou tomadas"
 									placeholder="Não informado"
 									items={lampTechnologyItems}
-									required
 									variant="underline"
 									fieldClassName="sm:col-span-2"
 								/>

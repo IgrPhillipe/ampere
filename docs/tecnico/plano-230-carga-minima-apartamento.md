@@ -52,7 +52,6 @@ Nome no código: `rooms`. "Quartos" (`bedrooms`) já existe e não serve: cômod
 | Tipo do payload | `app/front/src/services/consumer-units/types.ts` | `rooms?: number \| null` |
 | Schema do formulário | `app/front/src/features/projects/schemas/consumer-unit-group.schema.ts` | `rooms: optionalNumber(...)`, inteiro, de 1 a 50, mensagens iguais às do back |
 | Formulário | `app/front/src/features/projects/components/GroupSheet/ResidentialGroupForm.tsx` | Campo "Cômodos e corredores" só no trifásico, com a descrição "Define a carga mínima de iluminação, 100 W por cômodo ou corredor (DIS-NOR-030, item 6.26.1.1)."; `submit` envia `rooms` só no trifásico; troca para monofásico limpa o valor, como `items`. Rever o `sm:col-span-2` de `compactUnit`, que hoje fecha a linha no trifásico |
-| Cargas | `GroupSheet/LoadItemsSection.tsx` | "Iluminação ou tomadas" marcado como obrigatório nas cargas do apartamento |
 
 ## 2. Pendências e Mensagens
 
@@ -131,7 +130,7 @@ Cada fatia entra com o teste junto e termina com `./mvnw spotless:apply` e `./mv
 
 ### Fatia 5: Front (Feita)
 
-- Schemas, tipo, campo "Cômodos" e "Iluminação ou tomadas" obrigatório nas cargas do apartamento.
+- Schemas, tipo e campo "Cômodos e corredores". Como a área útil e a potência, o campo salva vazio e a falta vira pendência Falta Dado; sem a marca de obrigatório, que o formulário reserva ao que ele mesmo exige.
 - **Testes** em `ResidentialGroupForm.test.tsx`: o campo aparece só no trifásico; some e é limpo ao trocar para monofásico; o payload envia `rooms` no trifásico e `null` no monofásico; 0 e 51 mostram o erro; a pendência com `field: "rooms"` foca o campo.
 - **Pronto quando:** `pnpm validate`, `pnpm test` e `pnpm build` passam; no navegador, a pendência aparece no grupo e some depois de corrigida.
 - Pode correr em paralelo às fatias 3 e 4 depois da 2, que fixa o contrato. A #230 é marcada Backend: se o front precisar de issue própria, abrir antes de começar.
