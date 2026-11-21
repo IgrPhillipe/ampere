@@ -59,6 +59,40 @@ public interface FindingRepository extends JpaRepository<Finding, Long> {
   List<FindingRank> rankByOwner(
       @Param("ownerId") Long ownerId, @Param("since") OffsetDateTime since, Pageable pageable);
 
+  /** Published findings since the instant, of one reviewer's projects or of all when null. */
+  @Query(
+      """
+      SELECT finding.stage AS stage, finding.standardItem AS standardItem, COUNT(finding) AS total
+      FROM Finding finding
+      JOIN finding.project project
+      LEFT JOIN project.reviewer reviewer
+      WHERE finding.createdAt >= :since
+        AND finding.status <> br.com.ampere.domain.FindingStatus.DRAFT
+        AND (:reviewerId IS NULL OR reviewer.id = :reviewerId)
+      GROUP BY finding.stage, finding.standardItem
+      ORDER BY COUNT(finding) DESC, finding.stage, finding.standardItem
+      """)
+  List<FindingRank> rankByReviewer(
+      @Param("reviewerId") Long reviewerId,
+      @Param("since") OffsetDateTime since,
+      Pageable pageable);
+
+  /** The projects behind {@link #rankByReviewer}, one line per finding key and project. */
+  @Query(
+      """
+      SELECT DISTINCT finding.stage AS stage, finding.standardItem AS standardItem,
+        project.id AS projectId, project.name AS name, project.protocol AS protocol
+      FROM Finding finding
+      JOIN finding.project project
+      LEFT JOIN project.reviewer reviewer
+      WHERE finding.createdAt >= :since
+        AND finding.status <> br.com.ampere.domain.FindingStatus.DRAFT
+        AND (:reviewerId IS NULL OR reviewer.id = :reviewerId)
+      ORDER BY project.protocol
+      """)
+  List<RankedProject> findRankedProjects(
+      @Param("reviewerId") Long reviewerId, @Param("since") OffsetDateTime since);
+
   void deleteAllByProjectId(Long projectId);
 
   @EntityGraph(attributePaths = {"author", "consumerUnitGroup"})
@@ -90,5 +124,18 @@ public interface FindingRepository extends JpaRepository<Finding, Long> {
     String getStandardItem();
 
     long getTotal();
+  }
+
+  interface RankedProject {
+
+    FindingStage getStage();
+
+    String getStandardItem();
+
+    Long getProjectId();
+
+    String getName();
+
+    String getProtocol();
   }
 }

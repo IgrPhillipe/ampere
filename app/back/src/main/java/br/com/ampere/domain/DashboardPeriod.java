@@ -2,7 +2,7 @@ package br.com.ampere.domain;
 
 import java.time.LocalDate;
 
-/** Window of the designer dashboard indicators, counted back from today. */
+/** Window of the dashboard indicators, counted back from today. */
 public enum DashboardPeriod {
   LAST_30_DAYS,
   LAST_90_DAYS,

@@ -88,6 +88,7 @@ public class SecurityConfig {
                     .requestMatchers(
                         "/review-queue",
                         "/review-queue/**",
+                        "/dashboard/review",
                         "/projects/*/review",
                         "/projects/*/decision",
                         "/projects/*/findings/*/resolution")
