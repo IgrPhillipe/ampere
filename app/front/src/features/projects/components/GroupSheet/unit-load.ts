@@ -16,7 +16,7 @@ const toNumber = (value: unknown) => {
 	return Number.isFinite(number) && number > 0 ? number : 0;
 };
 
-/** Sum of the plate powers in kW, as the back adds a three-phase apartment's loads. */
+/** Sum of the plate powers in kW; the back rates motors by Tabela 18 or 19 when it saves. */
 export const sumLoadsKw = (items: LoadLike[]) =>
 	items.reduce(
 		(total, item) =>
