@@ -53,6 +53,7 @@ export const LoadItemsSection = <T extends WithLoadItems>({
 		| LoadItemFormValues[]
 		| undefined;
 	const categories = (values ?? []).map(({ category }) => category);
+	const powerUnits = (values ?? []).map(({ powerUnit }) => powerUnit);
 	const field = (index: number, name: keyof LoadItemFormValues) =>
 		`items.${index}.${name}` as Path<T>;
 
@@ -151,7 +152,10 @@ export const LoadItemsSection = <T extends WithLoadItems>({
 									control={control}
 									name={field(index, "powerUnit")}
 									label={<span className="sr-only">Unidade</span>}
-									items={powerUnitItemsFor(categories[index])}
+									items={powerUnitItemsFor(
+										categories[index],
+										powerUnits[index],
+									)}
 									variant="underline"
 								/>
 							</div>

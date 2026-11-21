@@ -2,6 +2,7 @@ import type {
 	LoadCategory,
 	LoadItem,
 	LoadItemPayload,
+	PowerUnit,
 } from "@services/consumer-units";
 
 import { powerUnitItems } from "../../constants";
@@ -17,9 +18,12 @@ export const EMPTY_LOAD_ITEM: LoadItemFormValues = {
 	simultaneousStart: null,
 };
 
-/** BTU/h is a capacity, meaningful only for air conditioners (Tabela 11). */
-export const powerUnitItemsFor = (category: LoadCategory) => {
-	if (category === "AIR_CONDITIONING") {
+/** BTU/h is a capacity for air conditioners (Tabela 11); kept while chosen, so the back flags it. */
+export const powerUnitItemsFor = (
+	category: LoadCategory,
+	powerUnit?: PowerUnit,
+) => {
+	if (category === "AIR_CONDITIONING" || powerUnit === "BTU_H") {
 		return powerUnitItems;
 	}
 	const { BTU_H: _capacity, ...plate } = powerUnitItems;
