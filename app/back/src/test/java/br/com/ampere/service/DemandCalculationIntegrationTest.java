@@ -144,6 +144,29 @@ class DemandCalculationIntegrationTest {
         .andExpect(jsonPath("$.data.outdated").value(false));
   }
 
+  @Test
+  void aThreePhaseRunFromBeforeTheMotorTableRuleStaysCurrentWithoutMotors() throws Exception {
+    publishTables();
+    Project project = draftWithThreePhaseApartment("20");
+    calculateBeforeTheMotorRule(project);
+
+    // Runs before the rule recorded the plate sum of a three-phase unit.
+    assertThat(
+            objectMapper
+                .readTree(
+                    calculationRepository
+                        .findFirstByProjectIdOrderByIdDesc(project.getId())
+                        .orElseThrow()
+                        .getInputSnapshot())
+                .at("/groups/0/spec/unitLoadKw")
+                .decimalValue())
+        .isEqualByComparingTo("20");
+    mockMvc
+        .perform(get(calculationOf(project) + "/latest").header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.outdated").value(false));
+  }
+
   /** A run saved as the engine recorded it before motors took Tabela 18 or 19. */
   private void calculateBeforeTheMotorRule(Project project) {
     var calculation =

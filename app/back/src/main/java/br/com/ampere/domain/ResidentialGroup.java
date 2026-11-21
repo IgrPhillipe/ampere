@@ -94,7 +94,8 @@ public class ResidentialGroup extends ConsumerUnitGroup {
         getQuantity(),
         usefulArea,
         bedrooms,
-        unitLoadKw,
+        // Runs recorded the plate sum of a three-phase unit; keeping it keeps them current.
+        isThreePhase() ? plateLoadKw() : unitLoadKw,
         compactUnit,
         connectionType,
         null,
@@ -122,6 +123,13 @@ public class ResidentialGroup extends ConsumerUnitGroup {
           .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
     return unitLoadKw;
+  }
+
+  private BigDecimal plateLoadKw() {
+    return loads.stream()
+        .filter(load -> DeclaredValues.isPositive(load.getPower()))
+        .map(LoadItem::plateKw)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
   }
 
   /** The apartment's motors follow its own connection, not the building's. */
