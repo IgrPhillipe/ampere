@@ -145,6 +145,9 @@ export const ProjectDetailHeader = ({
 	const milestone = project ? milestoneOf(project, reviewing) : undefined;
 	const suspendedReview =
 		project?.status === "REJECTED" && project.reviewSuspended;
+	// The review clock only matters while the project is still in the cycle.
+	const reviewClock =
+		project?.status === "UNDER_REVIEW" || project?.status === "REJECTED";
 
 	return (
 		<header className={cn("flex flex-col border-b border-border", className)}>
@@ -231,13 +234,13 @@ export const ProjectDetailHeader = ({
 					</StripCell>
 				) : null}
 
-				{project?.elapsedDays != null ? (
+				{reviewClock && project.elapsedDays != null ? (
 					<StripCell isLoading={isLoading} label="Dias corridos">
 						{formatDays(project.elapsedDays)}
 					</StripCell>
 				) : null}
 
-				{project?.suspendedDays != null ? (
+				{reviewClock && project.suspendedDays != null ? (
 					<StripCell isLoading={isLoading} label="Dias suspensos">
 						{formatDays(project.suspendedDays)}
 					</StripCell>

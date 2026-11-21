@@ -155,6 +155,8 @@ describe("ProjectDetailHeader", () => {
 		);
 
 		expect(cell("Válido até")).toHaveTextContent("10/11/2029");
+		expect(screen.queryByText("Dias corridos")).not.toBeInTheDocument();
+		expect(screen.queryByText("Dias suspensos")).not.toBeInTheDocument();
 	});
 
 	it("avisa quando o prazo de retorno venceu", () => {
