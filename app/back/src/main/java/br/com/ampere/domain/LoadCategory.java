@@ -17,10 +17,7 @@ import java.util.stream.Collectors;
  */
 public enum LoadCategory {
   LIGHTING_AND_OUTLETS("a", "Iluminação e tomadas") {
-    /**
-     * Each item says whether it is lighting or outlets: elsewhere the factors differ (6.27.1.2); in
-     * a residence each has its own minimum (6.26.1.1).
-     */
+    /** Lighting or outlets: different factors (6.27.1.2), or minimums in a residence (6.26.1.1). */
     @Override
     List<ValidationIssue> issues(
         LoadItem item, String path, LoadOccupancy usage, DemandContext context) {
