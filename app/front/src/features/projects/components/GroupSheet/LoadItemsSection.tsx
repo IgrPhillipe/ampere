@@ -17,11 +17,10 @@ import {
 import {
 	lampTechnologyItems,
 	loadCategoryItems,
-	powerUnitItems,
 	yesNoItems,
 } from "../../constants";
 import type { LoadItemFormValues } from "../../schemas";
-import { EMPTY_LOAD_ITEM } from "./load-item";
+import { EMPTY_LOAD_ITEM, powerUnitItemsFor } from "./load-item";
 
 type WithLoadItems = FieldValues & { items: LoadItemFormValues[] };
 
@@ -152,7 +151,7 @@ export const LoadItemsSection = <T extends WithLoadItems>({
 									control={control}
 									name={field(index, "powerUnit")}
 									label={<span className="sr-only">Unidade</span>}
-									items={powerUnitItems}
+									items={powerUnitItemsFor(categories[index])}
 									variant="underline"
 								/>
 							</div>

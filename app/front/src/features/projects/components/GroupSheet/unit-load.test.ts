@@ -57,3 +57,14 @@ describe("unitInstalledKw", () => {
 		).toBe(0);
 	});
 });
+
+describe("sumLoadsKw with an air conditioner in BTU/h", () => {
+	it("leaves its watts to the back, which reads Tabela 11", () => {
+		expect(
+			sumLoadsKw([
+				{ quantity: 2, power: 14000, powerUnit: "BTU_H" as const },
+				{ quantity: 1, power: 3, powerUnit: "KW" as const },
+			]),
+		).toBe(3);
+	});
+});

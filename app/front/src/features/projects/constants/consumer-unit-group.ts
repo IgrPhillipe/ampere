@@ -68,6 +68,7 @@ export const powerUnitItems = {
 	KW: "kW",
 	CV: "CV",
 	HP: "HP",
+	BTU_H: "BTU/h",
 } as const satisfies Record<PowerUnit, string>;
 
 /** kW per unit of power, as the back converts plate powers. */
@@ -75,6 +76,8 @@ export const powerUnitKw = {
 	KW: 1,
 	CV: 0.7355,
 	HP: 0.7457,
+	// The back reads the watts of an air conditioner in BTU/h from Tabela 11 on save.
+	BTU_H: 0,
 } as const satisfies Record<PowerUnit, number>;
 
 export const unitConnectionTypeItems = {
