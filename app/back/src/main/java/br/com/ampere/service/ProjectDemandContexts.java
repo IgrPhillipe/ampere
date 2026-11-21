@@ -73,6 +73,7 @@ public class ProjectDemandContexts {
         .orElseGet(() -> new FixedRevisions(project.getSubmittedAt(), Map.of()));
   }
 
+  /** Read once by a caller that checks many drafts. */
   @Transactional(readOnly = true)
   public List<NormativeTable> publishedTables() {
     return tableRepository.findAllByStatus(NormativeTableStatus.PUBLISHED);

@@ -124,8 +124,7 @@ public class DesignerDashboardService {
               units.getOrDefault(project.getId(), 0L),
               null));
     }
-    List<NormativeTable> published =
-        idleDrafts.isEmpty() ? List.of() : calculationService.publishedTables();
+    List<NormativeTable> published = idleDrafts.isEmpty() ? List.of() : contexts.publishedTables();
     NormativeTableSet publishedSet = new NormativeTableSet(published);
     for (Project draft : idleDrafts) {
       items.add(

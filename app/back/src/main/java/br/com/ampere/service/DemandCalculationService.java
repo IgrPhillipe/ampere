@@ -125,17 +125,11 @@ public class DemandCalculationService {
     return fixed == null ? null : fixed.fixedAt();
   }
 
-  /** Read once by a caller that checks many drafts. */
-  @Transactional(readOnly = true)
-  public List<NormativeTable> publishedTables() {
-    return contexts.publishedTables();
-  }
-
   /** The tables replaced since a draft's run; a submitted protocol keeps its revisions. */
   @Transactional(readOnly = true)
   public List<String> changedTables(Calculation calculation) {
     return calculation.getProject().getSubmittedAt() == null
-        ? changedTables(calculation, publishedTables())
+        ? changedTables(calculation, contexts.publishedTables())
         : List.of();
   }
 
