@@ -86,8 +86,8 @@ public final class DemandFixtures {
   /** DIS-NOR-030 Exemplo 3 (p. 52 to 55), oven in parcel e. */
   static List<LoadItem> exemplo3() {
     return List.of(
-        item(LoadCategory.LIGHTING_AND_OUTLETS, "Tomadas", 1, "3.0", PowerUnit.KW),
-        item(LoadCategory.LIGHTING_AND_OUTLETS, "Iluminação", 1, "1.2", PowerUnit.KW),
+        outlets("3.0"),
+        lighting("Iluminação", "1.2", LampTechnology.COMPACT_FLUORESCENT_LED),
         item(LoadCategory.INSTANT_HEATING, "Chuveiro elétrico", 4, "4", PowerUnit.KW),
         item(LoadCategory.INSTANT_HEATING, "Torneira elétrica", 1, "3", PowerUnit.KW),
         item(LoadCategory.INSTANT_HEATING, "Ferro de passar", 1, "1", PowerUnit.KW),

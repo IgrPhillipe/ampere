@@ -57,8 +57,22 @@ final class ScenarioGroups {
   /** The residence of DIS-NOR-030 Exemplo 3, as a penthouse. */
   static LoadItem[] penthouseLoads() {
     return new LoadItem[] {
-      item(LoadCategory.LIGHTING_AND_OUTLETS, "Tomadas", 1, "3.0", PowerUnit.KW, null, null),
-      item(LoadCategory.LIGHTING_AND_OUTLETS, "Iluminação", 1, "1.2", PowerUnit.KW, null, null),
+      item(
+          LoadCategory.LIGHTING_AND_OUTLETS,
+          "Tomadas",
+          1,
+          "3.0",
+          PowerUnit.KW,
+          LampTechnology.GENERAL_OUTLETS,
+          null),
+      item(
+          LoadCategory.LIGHTING_AND_OUTLETS,
+          "Iluminação",
+          1,
+          "1.2",
+          PowerUnit.KW,
+          LampTechnology.COMPACT_FLUORESCENT_LED,
+          null),
       item(LoadCategory.INSTANT_HEATING, "Chuveiro elétrico", 4, "4", PowerUnit.KW, null, null),
       item(LoadCategory.INSTANT_HEATING, "Torneira elétrica", 1, "3", PowerUnit.KW, null, null),
       item(LoadCategory.INSTANT_HEATING, "Ferro de passar", 1, "1", PowerUnit.KW, null, null),

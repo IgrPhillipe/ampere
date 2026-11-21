@@ -80,14 +80,9 @@ class ConsumerUnitGroupTest {
             GroupKind.RESIDENTIAL.create(
                 PROJECT,
                 threePhaseApartments(
-                    new LoadItem(
-                        LoadCategory.LIGHTING_AND_OUTLETS,
-                        "Tomadas e iluminação",
-                        1,
-                        new BigDecimal("4.2"),
-                        PowerUnit.KW,
-                        null,
-                        null),
+                    DemandFixtures.outlets("3.0"),
+                    DemandFixtures.lighting(
+                        "Iluminação", "1.2", LampTechnology.COMPACT_FLUORESCENT_LED),
                     new LoadItem(
                         LoadCategory.INSTANT_HEATING,
                         "Chuveiro",
@@ -102,7 +97,7 @@ class ConsumerUnitGroupTest {
     assertThat(group.declaredLoadKw(CONTEXT)).isEqualByComparingTo("40.4");
     assertThat(group.spec().items())
         .extracting(LoadItem::getDescription)
-        .containsExactly("Tomadas e iluminação", "Chuveiro");
+        .containsExactly("Tomadas", "Iluminação", "Chuveiro");
     assertThat(group.summary())
         .isEqualTo("180 m², 3 quartos, 12 cômodos e corredores, trifásico (DIS-NOR-053 Quadro 35)");
   }
@@ -116,6 +111,30 @@ class ConsumerUnitGroupTest {
 
     assertThat(group.getLoads()).isEmpty();
     assertThat(group.spec().items()).isNull();
+  }
+
+  @Test
+  void anApartmentSaysWhetherEachLoadOfParcelAIsLightingOrOutlets() {
+    GroupSpec spec =
+        threePhaseApartments(
+            new LoadItem(
+                LoadCategory.LIGHTING_AND_OUTLETS,
+                "Tomadas e iluminação",
+                1,
+                new BigDecimal("4.2"),
+                PowerUnit.KW,
+                null,
+                null));
+
+    assertThat(GroupKind.RESIDENTIAL.create(PROJECT, spec).validate(CONTEXT))
+        .extracting(ValidationIssue::severity, ValidationIssue::field, ValidationIssue::message)
+        .contains(
+            tuple(
+                IssueSeverity.MISSING_DATA,
+                "loads[0].lampTechnology",
+                "Informe se \"Tomadas e iluminação\" é iluminação, e com que lâmpadas, ou tomadas"
+                    + " de uso geral. A carga mínima de cada uma é conferida em separado"
+                    + " (DIS-NOR-030, item 6.26.1.1)."));
   }
 
   @Test
