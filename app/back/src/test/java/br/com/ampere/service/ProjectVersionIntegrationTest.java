@@ -1,6 +1,7 @@
 package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasLength;
@@ -739,6 +740,37 @@ class ProjectVersionIntegrationTest {
             jsonPath(
                     "$.data.changed[0].fields[?(@.label == 'Elevador, partida simultânea')].toLabel")
                 .value("Sim"));
+  }
+
+  @Test
+  void theComparisonNamesTheTableANewVersionStartsUsing() throws Exception {
+    Project project = draft("2026-4022");
+    ConsumerUnitGroup load =
+        groupRepository.save(GroupKind.LOAD.create(project, loadSpec(motor("Elevador"))));
+    submitCalculated(project);
+
+    reject(project);
+    load.update(
+        loadSpec(
+            motor("Elevador"),
+            new LoadItem(
+                LoadCategory.AIR_CONDITIONING,
+                "Condicionador da portaria",
+                1,
+                new BigDecimal("14000"),
+                PowerUnit.BTU_H,
+                null,
+                null)));
+    groupRepository.save(load);
+    resubmitAfterEditing(project, "Condicionador incluído.");
+
+    String tabela11 = "$.data.building[?(@.field == 'normativeTableIds.T11_AIR_CONDITIONERS')]";
+    perform(get(versionsOf(project) + "/compare?from=1&to=2"))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath(tabela11 + ".label").value("Tabela 11 da DIS-NOR-030, Condicionadores de ar"))
+        .andExpect(jsonPath(tabela11 + ".fromLabel").value(contains(nullValue())))
+        .andExpect(jsonPath(tabela11 + ".toLabel").value("Aplicada"));
   }
 
   @Test
