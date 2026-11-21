@@ -5,9 +5,10 @@ interface DeadlineCellProps {
 	item: ReviewQueueItem;
 }
 
-export const DeadlineCell = ({ item }: DeadlineCellProps) => (
-	<DeadlineStatusBadge
-		deadlineStatus={item.deadlineStatus}
-		daysRemaining={item.daysRemaining}
-	/>
-);
+export const DeadlineCell = ({ item }: DeadlineCellProps) =>
+	item.deadlineStatus ? (
+		<DeadlineStatusBadge
+			deadlineStatus={item.deadlineStatus}
+			daysRemaining={item.daysRemaining}
+		/>
+	) : null;

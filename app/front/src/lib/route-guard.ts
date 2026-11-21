@@ -11,14 +11,12 @@ declare module "@tanstack/react-router" {
 
 /** Who reaches each area: the same split the back enforces. */
 export const ROLE_ACCESS = {
-	dashboard: ["user", "admin"],
-	projects: ["user", "admin"],
+	/** The designer's panel, the analyst's indicators or the manager's numbers. */
+	dashboard: ["user", "reviewer", "admin"],
+	/** The designer's own, the analyst's assigned ones or every project for the manager. */
+	projects: ["user", "reviewer", "admin"],
 	/** The project page itself: the analyst reads and reviews it there. */
 	projectWorkspace: ["user", "reviewer", "admin"],
-	/** The admin follows the queue in "Projetos" and the indicators in the panel. */
-	reviewQueue: ["reviewer"],
-	reviewIndicators: ["reviewer"],
-	myReviews: ["reviewer"],
 	normativeTables: ["reviewer", "admin"],
 	users: ["admin"],
 } as const satisfies Record<string, readonly UserRole[]>;
@@ -26,7 +24,7 @@ export const ROLE_ACCESS = {
 /** Where to send each role when it lands on a route it cannot see. */
 const ROLE_FALLBACK: Record<UserRole, string> = {
 	user: "/painel",
-	reviewer: "/fila-de-analise",
+	reviewer: "/projetos",
 	admin: "/painel",
 };
 

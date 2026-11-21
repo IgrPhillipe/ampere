@@ -46,6 +46,6 @@ describe("useStartSession", () => {
 
 		result.current(sessionOf(false));
 
-		expect(mockNavigate).toHaveBeenCalledWith({ to: "/fila-de-analise" });
+		expect(mockNavigate).toHaveBeenCalledWith({ to: "/projetos" });
 	});
 });

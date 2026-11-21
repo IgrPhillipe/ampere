@@ -58,7 +58,7 @@ const STEPS_WITH_FOOTER: ProjectSectionKey[] = [
 
 const notFoundDescriptions: Record<UserRole, string> = {
 	reviewer:
-		"O projeto não existe ou não está atribuído a você. Os projetos que o gestor atribuir a você ficam na fila de análise.",
+		"O projeto não existe ou não está atribuído a você. Os projetos que o gestor atribuir a você ficam em Projetos.",
 	user: "O projeto não existe ou não pertence a você.",
 	admin: "O projeto não existe ou foi excluído.",
 };
@@ -114,12 +114,10 @@ export const ProjectWorkspace = ({
 		ownerId: project?.ownerId,
 	});
 
-	// The analyst has no project listing: a project they cannot open sends them back to the queue.
-	const root =
-		breadcrumbRoot ??
-		(role === "reviewer"
-			? { label: "Fila de Análise", to: "/fila-de-analise" }
-			: { label: getProjectsPageTitle(role), to: "/projetos" });
+	const root = breadcrumbRoot ?? {
+		label: getProjectsPageTitle(role),
+		to: "/projetos",
+	};
 	const reanalysis =
 		project?.status === "UNDER_REVIEW" && project.reviewCycle > 1;
 	const sections: Partial<Record<ProjectSectionKey, ProjectSectionState>> =

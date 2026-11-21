@@ -7,6 +7,8 @@ const item: ReviewQueueItem = {
 	id: "1",
 	name: "Condomínio Vila Nova",
 	protocol: "2026-0475",
+	status: "UNDER_REVIEW",
+	reviewedAt: null,
 	municipality: "Recife",
 	state: "PE",
 	submittedAt: "2026-09-08T12:00:00Z",

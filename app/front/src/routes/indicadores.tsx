@@ -1,10 +1,8 @@
-import { ReviewDashboardPage } from "@features/dashboard";
-import { pageTitle } from "@lib/page-title";
-import { ROLE_ACCESS, requireRoles } from "@lib/route-guard";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+/** The analyst's indicators moved into "Painel": old links land there. */
 export const Route = createFileRoute("/indicadores")({
-	beforeLoad: requireRoles(ROLE_ACCESS.reviewIndicators),
-	head: () => ({ meta: [{ title: pageTitle("Indicadores") }] }),
-	component: ReviewDashboardPage,
+	beforeLoad: () => {
+		throw redirect({ to: "/painel" });
+	},
 });

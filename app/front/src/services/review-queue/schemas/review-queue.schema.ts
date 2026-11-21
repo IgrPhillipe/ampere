@@ -2,12 +2,21 @@ import { apiResponseSchema, paginatedResponseSchema } from "@features/shared";
 import { brazilianStateSchema } from "@services/locations";
 import { z } from "zod";
 
+/** `ALL` and the next three list the projects under review; the last two, the decided ones. */
 export const reviewQueueFilterSchema = z.enum([
 	"ALL",
 	"DUE_SOON",
 	"HIGH_DEMAND",
 	"REANALYSIS",
+	"APPROVED",
+	"REJECTED",
 ]);
+
+/** The views of the projects the analyst already decided. */
+export const DECIDED_REVIEW_FILTERS: readonly ReviewQueueFilter[] = [
+	"APPROVED",
+	"REJECTED",
+];
 
 export type ReviewQueueFilter = z.infer<typeof reviewQueueFilterSchema>;
 
@@ -49,15 +58,29 @@ export const deadlineStatusSchema = z.enum(["OVERDUE", "DUE_TODAY", "ON_TIME"]);
 
 export type DeadlineStatus = z.infer<typeof deadlineStatusSchema>;
 
+/** The statuses a submitted project goes through; `projects` imports this module, so no reuse. */
+export const reviewQueueStatusSchema = z.enum([
+	"UNDER_REVIEW",
+	"APPROVED",
+	"REJECTED",
+	"EXPIRED",
+]);
+
+export type ReviewQueueStatus = z.infer<typeof reviewQueueStatusSchema>;
+
 export const reviewQueueItemSchema = z.object({
 	id: z.string(),
 	name: z.string(),
 	protocol: z.string(),
+	status: reviewQueueStatusSchema,
+	/** The decision's date; null while the project is under review. */
+	reviewedAt: z.iso.datetime({ offset: true }).nullable(),
 	municipality: z.string(),
 	state: brazilianStateSchema,
 	submittedAt: z.iso.datetime({ offset: true }),
-	deadline: z.iso.date(),
-	deadlineStatus: deadlineStatusSchema,
+	// A decided project has no deadline left.
+	deadline: z.iso.date().nullable(),
+	deadlineStatus: deadlineStatusSchema.nullable(),
 	daysRemaining: z.number().int(),
 	warnings: z.number().int().nonnegative(),
 	alerts: z.array(z.string()),
@@ -80,6 +103,8 @@ export const reviewQueueIndicatorsSchema = z.object({
 	reanalysis: z.number().int().nonnegative(),
 	reviewedToday: z.number().int().nonnegative(),
 	monthlyRejectionPercent: z.number().nonnegative(),
+	approved: z.number().int().nonnegative(),
+	rejected: z.number().int().nonnegative(),
 });
 
 export type ReviewQueueIndicators = z.infer<typeof reviewQueueIndicatorsSchema>;

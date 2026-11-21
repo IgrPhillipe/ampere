@@ -41,6 +41,8 @@ const itemOf = (id: string, reviewerName: string | null = null) =>
 		id,
 		name: `Projeto ${id}`,
 		protocol: `2026-000${id}`,
+		status: "UNDER_REVIEW",
+		reviewedAt: null,
 		municipality: "Caruaru",
 		state: "PE",
 		submittedAt: "2026-09-08T12:00:00Z",
@@ -126,14 +128,14 @@ describe("ReviewQueuePage roles", () => {
 		expect(screen.getByRole("button", { name: "Exportar CSV" })).toBeEnabled();
 	});
 
-	it("shows the analyst's own queue, without the analyst filter and column", () => {
+	it("shows the analyst's projects, pending and decided, without the analyst column", () => {
 		signInAs("reviewer", { id: "7" });
 		renderPage();
 
-		expect(
-			screen.getByText("Acompanhe e priorize os projetos atribuídos a você."),
-		).toBeInTheDocument();
-		expect(screen.getByText("Meus projetos")).toBeInTheDocument();
+		expect(screen.getByText(/os que você já decidiu/)).toBeInTheDocument();
+		expect(screen.getByText("Em análise")).toBeInTheDocument();
+		expect(screen.getByText("Aprovados")).toBeInTheDocument();
+		expect(screen.getByText("Reprovados")).toBeInTheDocument();
 		expect(
 			screen.queryByRole("button", { name: /^Analista/ }),
 		).not.toBeInTheDocument();

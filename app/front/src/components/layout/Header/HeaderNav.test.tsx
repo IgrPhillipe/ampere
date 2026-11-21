@@ -51,8 +51,9 @@ describe("HeaderNav", () => {
 		signInAs("reviewer");
 		render(<HeaderNav />);
 
+		expect(screen.getByRole("link", { name: "Projetos" })).toBeInTheDocument();
 		expect(
-			screen.getByRole("link", { name: "Meus Pareceres" }),
-		).toBeInTheDocument();
+			screen.queryByRole("link", { name: "Meus Pareceres" }),
+		).not.toBeInTheDocument();
 	});
 });

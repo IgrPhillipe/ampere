@@ -2,10 +2,14 @@ import { useAuthStore } from "@features/shared";
 
 import { AdminDashboardPage } from "../AdminDashboardPage";
 import { DesignerDashboardPage } from "../DesignerDashboardPage";
+import { ReviewDashboardPage } from "../ReviewDashboardPage";
 
-/** `/painel` is the home of both the designer and the admin, each with their own panel. */
+/** `/painel`: each role has its own panel. */
 export const DashboardPage = () => {
 	const role = useAuthStore((state) => state.user?.role);
 
-	return role === "admin" ? <AdminDashboardPage /> : <DesignerDashboardPage />;
+	if (role === "admin") return <AdminDashboardPage />;
+	if (role === "reviewer") return <ReviewDashboardPage />;
+
+	return <DesignerDashboardPage />;
 };

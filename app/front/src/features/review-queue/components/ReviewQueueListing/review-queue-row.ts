@@ -30,6 +30,8 @@ export const formatQueueItemOrigin = ({
 export const getQueueItemAttention = (
 	item: ReviewQueueItem,
 ): AttentionMessage | null => {
+	// A decided project has no deadline to watch.
+	if (item.status !== "UNDER_REVIEW" || item.deadline === null) return null;
 	const warnings = item.warnings > 0 ? [formatWarnings(item.warnings)] : [];
 
 	if (item.deadlineStatus === "OVERDUE") {

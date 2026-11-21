@@ -10,6 +10,8 @@ const counts = {
 	reanalysis: 1,
 	reviewedToday: 2,
 	monthlyRejectionPercent: 50,
+	approved: 4,
+	rejected: 2,
 };
 
 describe("ReviewQueueToolbar", () => {

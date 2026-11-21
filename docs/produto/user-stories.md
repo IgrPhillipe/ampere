@@ -818,9 +818,9 @@ Painel de indicadores da equipe de análise e histórico dos pareceres de cada a
 > **Para que** a equipe dimensione a demanda e oriente os projetistas sobre as falhas recorrentes.
 
 ### Conversação (Regras de Negócio e Interface)
-O menu do analista ganha "Indicadores" e "Meus Pareceres", previstos no protótipo H7. O gestor vê os indicadores da equipe na seção "Indicadores da Análise" do Painel.
+O "Painel" do analista mostra os indicadores dele, e "Projetos" lista os projetos atribuídos a ele, em análise e já decididos. A Fila de Análise, os Indicadores e Meus Pareceres do protótipo H7 viraram essas duas telas em 20/11. O gestor vê os indicadores da equipe na seção "Indicadores da Análise" do Painel.
 
-"Indicadores" exibe, para o período selecionado:
+O "Painel" do analista exibe, para o período selecionado:
 - Projetos recebidos e decididos por semana
 - Tempo médio de análise e de ciclo completo até a aprovação
 - Taxa de reprovação por mês
@@ -832,31 +832,31 @@ O menu do analista ganha "Indicadores" e "Meus Pareceres", previstos no protóti
 - Projetos com mais de uma reprovação
 - Alertas por categoria da edificação (residencial, não residencial e misto)
 
-"Meus Pareceres" lista os projetos decididos pelo analista logado, com a decisão, a data, o número de apontamentos e a versão, com os filtros da [US18](#us18-filtros-e-ordenação-das-listagens).
+Em "Projetos", os filtros "Aprovados" e "Reprovados" listam os projetos decididos pelo analista, com a decisão e a data, da decisão mais recente para a mais antiga, com os filtros da [US18](#us18-filtros-e-ordenação-das-listagens).
 
 **Escopo por papel** (validação com a cliente em 20/11):
 - Para o analista, os indicadores, o ranking de apontamentos e as listas contam só os projetos atribuídos a ele, como a fila ([US23](#us23-distribuição-da-fila-de-análise)). O gestor vê os números da equipe toda
 - Os projetos listados pelo ranking abrem para o analista só se estiverem atribuídos a ele
-- "Meus Pareceres" lista os projetos decididos pelo analista que continuam atribuídos a ele. O projeto reatribuído ou redistribuído depois da decisão sai da lista de quem o tinha
+- Os projetos decididos em "Projetos" são os que continuam atribuídos ao analista. O projeto reatribuído ou redistribuído depois da decisão sai da lista de quem o tinha
 
 ### Confirmação (Critérios de Aceite - BDD)
 
 #### Cenário 1 (Positivo): Consulta dos Apontamentos Mais Frequentes
-- **Dado** que o analista está em "Indicadores" com o período "Últimos 90 dias"
+- **Dado** que o analista está no "Painel" com o período "Últimos 90 dias"
 - **Quando** visualiza o ranking de apontamentos
 - **Então** o sistema lista as etapas e os itens da norma ordenados pela quantidade de apontamentos
 - **E** clicar em um item lista os projetos que receberam esse apontamento.
 
 #### Cenário 2 (Positivo): Histórico de Pareceres
 - **Dado** que o analista decidiu 12 projetos no mês
-- **Quando** abre "Meus Pareceres" e filtra por "Reprovado"
+- **Quando** abre "Projetos" e filtra por "Reprovados"
 - **Então** a lista exibe apenas os projetos que ele reprovou, com o número de apontamentos
 - **E** cada linha abre a análise do projeto em modo de consulta.
 
 ### Checklist de Implementação
 - [ ] Calcular os indicadores da equipe no período selecionado
 - [ ] Exibir o ranking dos apontamentos mais frequentes
-- [ ] Listar os pareceres do analista logado
+- [ ] Listar os projetos decididos pelo analista em "Projetos"
 
 ---
 

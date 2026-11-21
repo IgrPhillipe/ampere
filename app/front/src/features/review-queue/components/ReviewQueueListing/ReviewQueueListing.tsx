@@ -22,6 +22,8 @@ const columnClassNames = {
 	warnings: "w-32",
 	deadline: "w-28 text-right lg:hidden xl:table-cell",
 	status: "w-36 text-right",
+	decision: "w-40",
+	reviewedAt: "w-32 text-right",
 	action: "w-24 pr-0 text-right",
 } satisfies Partial<Record<ReviewQueueColumnId, string>>;
 
@@ -36,6 +38,8 @@ interface ReviewQueueListingProps extends ReviewQueueRowActions {
 	items: ReviewQueueItem[];
 	/** Decides between "Analisar" and "Consultar" on each row. */
 	currentUserId?: string;
+	/** Approved or rejected projects, with the decision in place of the deadline. */
+	decided?: boolean;
 	isLoading?: boolean;
 	sort?: ListSort<ReviewQueueSort>;
 	onSortChange?: (column: ReviewQueueSort) => void;
@@ -47,6 +51,7 @@ export const ReviewQueueListing = ({
 	isLoading = false,
 	onAnalyze,
 	currentUserId,
+	decided = false,
 	sort,
 	onSortChange,
 	onClearFilters,
@@ -57,8 +62,9 @@ export const ReviewQueueListing = ({
 			createReviewQueueColumns({
 				onAnalyze,
 				currentUserId,
+				decided,
 			}),
-		[onAnalyze, currentUserId],
+		[onAnalyze, currentUserId, decided],
 	);
 
 	// The attention marker has no skeleton cell of its own.
@@ -90,7 +96,8 @@ export const ReviewQueueListing = ({
 			columnClassNames={columnClassNames}
 			// Below 1024 px every column stays and the table scrolls instead.
 			tableClassName="min-w-[72rem] lg:min-w-0"
-			sortableColumns={sortableColumns}
+			// The decided projects come newest decision first, with nothing left to sort by.
+			sortableColumns={decided ? [] : sortableColumns}
 			sort={sort}
 			onSortChange={onSortChange}
 		/>

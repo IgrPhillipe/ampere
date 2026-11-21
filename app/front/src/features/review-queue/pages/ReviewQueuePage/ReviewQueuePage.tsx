@@ -5,6 +5,7 @@ import { Pagination } from "@components/Pagination";
 import { Button } from "@components/ui/button";
 import { downloadFile, useAuthStore } from "@features/shared";
 import {
+	DECIDED_REVIEW_FILTERS,
 	type ReviewQueueItem,
 	useExportReviewQueueCsv,
 	useGetReviewQueue,
@@ -65,14 +66,14 @@ export const ReviewQueuePage = () => {
 
 	return (
 		<PageLayout
-			title="Fila de Análise"
-			description="Acompanhe e priorize os projetos atribuídos a você."
+			title="Projetos"
+			description="Os projetos atribuídos a você: os que estão em análise e os que você já decidiu."
 			bleed
 			className="mx-auto min-h-full w-full max-w-page pb-0 md:pb-0"
 		>
 			<section
 				className="flex flex-1 flex-col bg-card"
-				aria-label="Fila de análise técnica"
+				aria-label="Projetos atribuídos"
 			>
 				<ReviewQueueToolbar
 					search={search}
@@ -130,6 +131,7 @@ export const ReviewQueuePage = () => {
 							isLoading={queueQuery.isPending}
 							onAnalyze={analyze}
 							currentUserId={user?.id}
+							decided={DECIDED_REVIEW_FILTERS.includes(filter)}
 							sort={sort}
 							onSortChange={sortBy}
 							onClearFilters={hasActiveFilters ? clearFilters : undefined}

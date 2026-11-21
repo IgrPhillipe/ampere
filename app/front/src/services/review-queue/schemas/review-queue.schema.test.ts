@@ -14,6 +14,8 @@ describe("review queue API contract", () => {
 					id: "42",
 					name: "Condomínio Vila Nova",
 					protocol: "2026-0475",
+					status: "UNDER_REVIEW",
+					reviewedAt: null,
 					municipality: "Jaboatão dos Guararapes",
 					state: "PE",
 					submittedAt: "2026-09-08T12:00:00Z",
@@ -49,6 +51,8 @@ describe("review queue API contract", () => {
 				reanalysis: 0,
 				reviewedToday: 0,
 				monthlyRejectionPercent: 0,
+				approved: 0,
+				rejected: 0,
 			},
 		};
 

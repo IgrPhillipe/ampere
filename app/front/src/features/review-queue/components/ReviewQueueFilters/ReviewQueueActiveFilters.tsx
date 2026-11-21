@@ -7,6 +7,8 @@ const filterLabels: Record<Exclude<ReviewQueueFilter, "ALL">, string> = {
 	DUE_SOON: "Vencendo o prazo",
 	HIGH_DEMAND: "Acima de 50 kVA",
 	REANALYSIS: "Reanálise",
+	APPROVED: "Aprovados",
+	REJECTED: "Reprovados",
 };
 
 interface ReviewQueueActiveFiltersProps {

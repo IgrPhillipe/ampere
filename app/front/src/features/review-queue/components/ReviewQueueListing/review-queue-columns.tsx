@@ -1,7 +1,11 @@
 import { createDataTableColumnHelper } from "@components/DataTable";
 import { DateCell } from "@components/DateCell";
+import { Badge } from "@components/ui/badge";
 import { formatDate, formatKva } from "@features/shared";
-import type { ReviewQueueItem } from "@services/review-queue";
+import type {
+	ReviewQueueItem,
+	ReviewQueueStatus,
+} from "@services/review-queue";
 
 import { AlertsCell } from "./AlertsCell";
 import { AnalyzeButton } from "./AnalyzeButton";
@@ -25,6 +29,8 @@ export type ReviewQueueColumnId =
 	| "warnings"
 	| "deadline"
 	| "status"
+	| "decision"
+	| "reviewedAt"
 	| "action"
 	// No column of its own, but still a sort key of the list.
 	| "submittedAt";
@@ -37,14 +43,20 @@ export interface ReviewQueueRowActions {
 interface ReviewQueueColumnOptions extends ReviewQueueRowActions {
 	/** Only the analyst responsible for a project reviews it. */
 	currentUserId?: string;
+	/** Approved or rejected projects: the decision replaces the deadline columns. */
+	decided?: boolean;
 }
 
-/** The H06 set: receipt and submission cycle ride on the project's second line. */
-export const createReviewQueueColumns = ({
-	onAnalyze,
-	currentUserId,
-}: ReviewQueueColumnOptions) =>
-	columnHelper.columns([
+const decisionLabels: Record<ReviewQueueStatus, string> = {
+	UNDER_REVIEW: "Em análise",
+	APPROVED: "Aprovado",
+	REJECTED: "Reprovado",
+	EXPIRED: "Aprovação vencida",
+};
+
+/** What every row shows, decided or not: receipt and submission cycle ride on the second line. */
+const commonColumns = () =>
+	[
 		columnHelper.display({
 			id: "attention",
 			header: () => <span className="sr-only">Atenção</span>,
@@ -101,28 +113,72 @@ export const createReviewQueueColumns = ({
 					</span>
 				),
 		}),
-		columnHelper.accessor("warnings", {
-			header: "Pré-validação",
-			cell: ({ row }) => <AlertsCell item={row.original} />,
-		}),
-		columnHelper.accessor("deadline", {
-			header: "Vencimento",
-			cell: ({ row }) => <DateCell value={row.original.deadline} />,
-		}),
-		columnHelper.accessor("deadlineStatus", {
-			id: "status",
-			header: "Prazo",
-			cell: ({ row }) => <DeadlineCell item={row.original} />,
-		}),
-		columnHelper.display({
-			id: "action",
-			header: () => <span className="sr-only">Ação</span>,
-			cell: ({ row }) => (
-				<AnalyzeButton
-					urgent={isUrgent(row.original)}
-					consult={!isResponsible(row.original, currentUserId)}
-					onAnalyze={() => onAnalyze(row.original)}
-				/>
-			),
-		}),
-	]);
+	] as const;
+
+/** The H06 set for the projects under review; the decided ones swap the deadline for the decision. */
+export const createReviewQueueColumns = ({
+	onAnalyze,
+	currentUserId,
+	decided = false,
+}: ReviewQueueColumnOptions) =>
+	decided
+		? columnHelper.columns([
+				...commonColumns(),
+				columnHelper.accessor("status", {
+					id: "decision",
+					header: "Decisão",
+					cell: ({ row }) => (
+						<Badge variant="outline">
+							{decisionLabels[row.original.status]}
+						</Badge>
+					),
+				}),
+				columnHelper.accessor("reviewedAt", {
+					header: "Decidido em",
+					cell: ({ row }) =>
+						row.original.reviewedAt ? (
+							<DateCell value={row.original.reviewedAt} />
+						) : null,
+				}),
+				columnHelper.display({
+					id: "action",
+					header: () => <span className="sr-only">Ação</span>,
+					cell: ({ row }) => (
+						<AnalyzeButton
+							urgent={false}
+							consult
+							onAnalyze={() => onAnalyze(row.original)}
+						/>
+					),
+				}),
+			])
+		: columnHelper.columns([
+				...commonColumns(),
+				columnHelper.accessor("warnings", {
+					header: "Pré-validação",
+					cell: ({ row }) => <AlertsCell item={row.original} />,
+				}),
+				columnHelper.accessor("deadline", {
+					header: "Vencimento",
+					cell: ({ row }) =>
+						row.original.deadline ? (
+							<DateCell value={row.original.deadline} />
+						) : null,
+				}),
+				columnHelper.accessor("deadlineStatus", {
+					id: "status",
+					header: "Prazo",
+					cell: ({ row }) => <DeadlineCell item={row.original} />,
+				}),
+				columnHelper.display({
+					id: "action",
+					header: () => <span className="sr-only">Ação</span>,
+					cell: ({ row }) => (
+						<AnalyzeButton
+							urgent={isUrgent(row.original)}
+							consult={!isResponsible(row.original, currentUserId)}
+							onAnalyze={() => onAnalyze(row.original)}
+						/>
+					),
+				}),
+			]);

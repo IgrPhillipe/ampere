@@ -211,13 +211,13 @@ export const ReviewIndicatorsPanel = ({
 	);
 };
 
-/** The analyst's indicators page. */
+/** The analyst's panel: their indicators. */
 export const ReviewDashboardPage = () => {
 	const [period, setPeriod] = useDashboardPeriod();
 
 	return (
 		<PageLayout
-			title="Indicadores"
+			title="Painel"
 			description={SCOPE_COPY.reviewer.description}
 			actions={
 				<DashboardPeriodPicker

@@ -25,7 +25,7 @@ const labelsOf = (role: UserRole) =>
 describe("role navigation", () => {
 	it("sends each role to its home", () => {
 		expect(getRoleHomePath("user")).toBe("/painel");
-		expect(getRoleHomePath("reviewer")).toBe("/fila-de-analise");
+		expect(getRoleHomePath("reviewer")).toBe("/projetos");
 		expect(getRoleHomePath("admin")).toBe("/painel");
 	});
 
@@ -37,11 +37,10 @@ describe("role navigation", () => {
 		]);
 	});
 
-	it("gives the analyst the review queue, their panel and the normative tables", () => {
+	it("gives the analyst their panel, their projects and the normative tables", () => {
 		expect(labelsOf("reviewer")).toEqual([
-			"Fila de Análise",
-			"Indicadores",
-			"Meus Pareceres",
+			"Painel",
+			"Projetos",
 			"Tabelas Normativas",
 		]);
 	});
@@ -63,14 +62,11 @@ describe("role navigation", () => {
 		).toBe(true);
 	});
 
-	it("keeps the analyst out of the projects and the designer out of the tables", () => {
-		expect(ROLE_ACCESS.projects).not.toContain("reviewer");
+	it("opens the panel and the projects to every role, and the tables only to reviewers", () => {
+		expect(ROLE_ACCESS.projects).toEqual(["user", "reviewer", "admin"]);
+		expect(ROLE_ACCESS.dashboard).toEqual(["user", "reviewer", "admin"]);
 		expect(ROLE_ACCESS.normativeTables).not.toContain("user");
-		expect(ROLE_ACCESS.reviewQueue).not.toContain("user");
 		expect(ROLE_ACCESS.users).toEqual(["admin"]);
-		expect(ROLE_ACCESS.dashboard).toEqual(["user", "admin"]);
-		expect(ROLE_ACCESS.reviewIndicators).not.toContain("user");
-		expect(ROLE_ACCESS.myReviews).not.toContain("user");
 	});
 });
 
@@ -86,7 +82,7 @@ describe("redirectSignedIn", () => {
 		signInAs("reviewer");
 
 		await expect(redirectSignedIn()({ location: at() })).rejects.toMatchObject({
-			options: { to: "/fila-de-analise" },
+			options: { to: "/projetos" },
 		});
 	});
 
@@ -104,9 +100,9 @@ describe("redirectSignedIn", () => {
 	it("sends the designer home from an area they cannot see", async () => {
 		signInAs("user");
 
-		await expect(requireRoles(ROLE_ACCESS.reviewQueue)()).rejects.toMatchObject(
-			{ options: { to: "/painel" } },
-		);
+		await expect(requireRoles(ROLE_ACCESS.users)()).rejects.toMatchObject({
+			options: { to: "/painel" },
+		});
 	});
 
 	it("lets the visitor and the logout through", async () => {
@@ -167,7 +163,7 @@ describe("pending password change", () => {
 		signInAs("reviewer");
 
 		await expect(requirePendingPasswordChange()()).rejects.toMatchObject({
-			options: { to: "/fila-de-analise" },
+			options: { to: "/projetos" },
 		});
 
 		signInAs("reviewer", { mustChangePassword: true });

@@ -25,21 +25,11 @@ export const APP_NAV_ITEMS: NavItem[] = [
 	{ to: "/painel", label: "Painel", roles: ROLE_ACCESS.dashboard },
 	{ to: "/projetos", label: "Meus Projetos", exact: true, roles: ["user"] },
 	{ to: "/projetos/novo", label: "Novo Projeto", exact: true, roles: ["user"] },
-	{ to: "/projetos", label: "Projetos", exact: true, roles: ["admin"] },
 	{
-		to: "/fila-de-analise",
-		label: "Fila de Análise",
-		roles: ROLE_ACCESS.reviewQueue,
-	},
-	{
-		to: "/indicadores",
-		label: "Indicadores",
-		roles: ROLE_ACCESS.reviewIndicators,
-	},
-	{
-		to: "/meus-pareceres",
-		label: "Meus Pareceres",
-		roles: ROLE_ACCESS.myReviews,
+		to: "/projetos",
+		label: "Projetos",
+		exact: true,
+		roles: ["reviewer", "admin"],
 	},
 	{
 		to: "/tabelas-normativas",

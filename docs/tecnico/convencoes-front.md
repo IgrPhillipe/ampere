@@ -261,9 +261,9 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 | Feature | Rota | Página |
 | :--- | :--- | :--- |
 | `auth` | `/entrar`, `/criar-conta`, `/meu-perfil` | Entrar, Criar Conta e Meu Perfil |
-| `dashboard` | `/painel`, `/indicadores` | Painel, página inicial do projetista e do admin, cada um com o seu, e Indicadores da análise |
+| `dashboard` | `/painel` | Painel de cada papel: o do projetista, os indicadores do analista e os números do gestor |
 | `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id`, `/projetos/$id/<etapa>` | Meus Projetos (Projetos, para o admin), o detalhe e as etapas |
-| `review-queue` | `/fila-de-analise`, `/meus-pareceres` | Fila de Análise e Meus Pareceres |
+| `review-queue` | `/projetos`, para o analista | Projetos do analista: em análise, com prazo e "Analisar", e os já decididos. `/fila-de-analise`, `/indicadores` e `/meus-pareceres` redirecionam |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
 | `memorial-verification` | `/verificar-autenticidade` | Verificar Autenticidade, pública |
 | `users` | `/usuarios` | Usuários |
@@ -306,9 +306,8 @@ O `ROLE_ACCESS` de `lib/route-guard.ts` é a fonte única de quem chega a cada
 
 | Área | `user` | `reviewer` | `admin` |
 | :--- | :--- | :--- | :--- |
-| Painel | o próprio | não | o do admin, só com números: usuários, fila e indicadores da análise |
-| Projetos | os próprios | não | todos, com filtro e coluna de analista |
-| Fila de Análise, Indicadores e Meus Pareceres | não | sim | não |
+| Painel | o próprio | os indicadores dele | o do admin, só com números: usuários, fila e indicadores da análise |
+| Projetos | os próprios | os atribuídos a ele, em análise e decididos | todos, com filtro e coluna de analista |
 | Tabelas Normativas | não | sim | sim |
 | Usuários | não | não | sim |
 
