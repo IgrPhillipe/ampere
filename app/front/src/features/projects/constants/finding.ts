@@ -144,9 +144,17 @@ export const findingTarget = (finding: Finding) => {
 	return undefined;
 };
 
+const findingAttentionActions: Partial<Record<FindingStage, string>> = {
+	CONSUMER_UNITS:
+		"Corrija aqui. Ao salvar o grupo, o sistema pergunta se o apontamento foi corrigido.",
+	DOCUMENTS:
+		"Anexe o documento corrigido. Em seguida, o sistema pergunta se o apontamento foi corrigido.",
+};
+
 /** Tooltip of the marker an item shows while it has findings to answer. */
 export const getFindingAttention = (findings: Finding[]): AttentionMessage => {
 	const count = findings.length;
+	const stage = findings[0]?.stage;
 
 	return {
 		severity: findings.some(({ severity }) => severity === "BLOCKING")
@@ -154,7 +162,9 @@ export const getFindingAttention = (findings: Finding[]): AttentionMessage => {
 			: "warning",
 		title: `${count} ${count === 1 ? "apontamento" : "apontamentos"} neste item`,
 		details: findings.map(({ description }) => description.replace(/\.$/, "")),
-		action: "Corrija aqui e responda no aviso do topo da seção.",
+		action:
+			(stage && findingAttentionActions[stage]) ??
+			"Corrija aqui e responda no aviso do topo da seção.",
 	};
 };
 

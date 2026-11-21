@@ -30,4 +30,21 @@ describe("FindingBadge", () => {
 			),
 		).toBeInTheDocument();
 	});
+
+	it("tells that saving a pointed group asks about the fix", () => {
+		render(
+			<FindingBadge
+				findings={[
+					{
+						...finding("BLOCKING", "Informe as cargas."),
+						stage: "CONSUMER_UNITS",
+					},
+				]}
+			/>,
+		);
+
+		expect(
+			screen.getByText(/Ao salvar o grupo, o sistema pergunta/),
+		).toBeInTheDocument();
+	});
 });
