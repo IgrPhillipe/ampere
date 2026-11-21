@@ -11,19 +11,21 @@ AT07-US03. A carga instalada dos motores passa a sair da potência absorvida (kW
 
 ### Como as Tabelas Chegam à Carga Instalada
 
-A regra fica no domínio, por polimorfismo de `LoadCategory`, e as tabelas entram pelo `DemandContext` que o cálculo já usa (tabelas, tensão e ligação da edificação). Nenhum service calcula carga.
+A regra fica no domínio, por polimorfismo de `LoadCategory`, e as tabelas entram pelo `DemandContext` que o cálculo já usa (tabelas, tensão e ligação da edificação). Nenhum service calcula carga. O contrato é o mesmo do plano da #230: a #229 entra primeiro e é dona deste encanamento (Fatias 1 e 2); a #230 só lê `context.tables()` na sua regra.
 
 | Classe | Mudança |
 | :--- | :--- |
 | `LoadCategory` | Novo `installedKw(LoadItem, DemandContext)`: o padrão é a conversão da placa; `MOTORS` lê a coluna kW da tabela de motores; `PUMPS_AND_HOT_TUBS` lê a tabela quando a placa vem em CV ou HP e mantém o kW declarado (decisão 3). `motorKva` vira `motorRating`, que devolve a linha inteira e serve aos dois usos |
 | `LoadItem` | `declaredLoadKw()` sai. Entram `installedKw(DemandContext)`, que delega à categoria, e `plateKw()`, a conversão física, de pacote. `validate(path, usage, context)` repassa o contexto a `LoadCategory.issues` |
-| `ConsumerUnitGroup` | `validate`, `status`, `loadPerUnitKw` e `declaredLoadKw` recebem `DemandContext`. `EvChargingGroup` e o apartamento monofásico ignoram o contexto |
+| `ConsumerUnitGroup` e subclasses | `validate(DemandContext)`, `status(DemandContext)`, `loadPerUnitKw(DemandContext)` e `declaredLoadKw(DemandContext)`. `EvChargingGroup` e o apartamento monofásico ignoram o contexto |
 | `ResidentialGroup` | `getUnitLoadKw(DemandContext)` soma as cargas pelo contexto da unidade (trifásico). O limite de 75 kW e `individualDemand` usam esse valor. `spec()` deixa de chamar a soma: o trifásico não grava `unitLoadKw` |
-| `NormativeTables` | Novo `isPublished(NormativeTableCode)`, para a validação não lançar exceção quando a tabela de motores não está publicada |
-| `DemandCalculationService` | Novo `contextFor(Project)` público, com o que `compute` já faz: `tablesFor(project)` (revisões fixadas depois do primeiro envio), tensão e ligação da edificação. `compute` passa a usá-lo |
+| `NormativeTables` | Novo `contains(NormativeTableCode)`, implementado em `NormativeTableSet`, para a validação não lançar exceção quando a tabela não está publicada. Mesmo nome no plano da #230 |
+| `ProjectDemandContexts` (novo, `@Service`) | `contextFor(Project)`: tabelas, tensão e ligação da edificação. Recebe `tablesFor` e `fixedRevisions`, que saem de `DemandCalculationService` (revisões fixadas depois do primeiro envio) |
+| `DemandCalculationService` | `compute` passa a pedir o contexto a `ProjectDemandContexts`. `revisionsFixedAt` delega a `ProjectDemandContexts.fixedRevisions` |
 | `GroupValidation` | `of(groups, context)` |
-| `ConsumerUnitGroupService` | `list`, `create`, `update` e `validation` devolvem os grupos com o contexto do projeto (record `ProjectGroups(groups, context)`), para o controller montar a resposta fora da transação. As linhas das tabelas vêm por `@EntityGraph` com `rows` `EAGER`, então o mapeamento depois da transação funciona |
-| `ConsumerUnitGroupResponse` | `from(group, context)` |
+| `ValidatedGroup` (novo, record) | `ValidatedGroup(ConsumerUnitGroup group, DemandContext context, List<ValidationIssue> issues)`: a fronteira entre o service e o controller. O service valida uma vez e entrega as pendências prontas |
+| `ConsumerUnitGroupService` | `list`, `create` e `update` devolvem `ValidatedGroup`; `validation` monta `GroupValidation.of(groups, context)`. Pede o contexto a `ProjectDemandContexts`, sem depender de `DemandCalculationService`. As linhas das tabelas vêm por `@EntityGraph` com `rows` `EAGER`, então o mapeamento depois da transação funciona |
+| `ConsumerUnitGroupResponse` | `from(ValidatedGroup)`: lê o contexto para `loadPerUnitKw`, `declaredLoadKw` e `unitLoadKw`, e as pendências e a situação de `issues`, sem chamar `validate` |
 
 Motor sem linha na tabela (acima de 200 cv na Tabela 19 ou de 15 cv na 18) ou tabela de motores não publicada vira pendência **Revisar** no item, em `MOTORS.issues`, e bloqueia o cálculo. Nesse caso a carga do item cai na conversão da placa só para exibição. Validação e cálculo nunca divergem: o cálculo não roda com a pendência aberta. Hoje esse caso só aparece como 422 ao calcular.
 
@@ -59,7 +61,7 @@ Cada fatia entra com os testes. Os unitários ficam em `src/test/java/br/com/amp
 
 ### Fatia 1: Carga Instalada pela Tabela no Domínio
 
-- `LoadCategory.installedKw` e `motorRating`; `LoadItem.installedKw(context)` e `plateKw()`; `NormativeTables.isPublished` e a implementação em `NormativeTableSet`.
+- `LoadCategory.installedKw` e `motorRating`; `LoadItem.installedKw(context)` e `plateKw()`; `NormativeTables.contains` e a implementação em `NormativeTableSet`.
 - `ConsumerUnitGroup`, `LoadGroup`, `ResidentialGroup` e `EvChargingGroup` com `DemandContext` em `validate`, `status`, `loadPerUnitKw` e `declaredLoadKw`.
 - `MOTORS.issues`: pendência Revisar para motor sem linha na tabela ou tabela não publicada, com o campo `items[i].power` ou `loads[i].power`.
 - `DemandEngine`: `LOW_VOLTAGE_LIMIT` e `Dind` leem `installedKw` já calculado pelo contexto.
@@ -73,12 +75,13 @@ Cada fatia entra com os testes. Os unitários ficam em `src/test/java/br/com/amp
 
 ### Fatia 2: Contexto nos Services e na API
 
-- `DemandCalculationService.contextFor(project)`, usado por `compute`.
+- `ProjectDemandContexts.contextFor(project)`, com `tablesFor` e `fixedRevisions` vindos de `DemandCalculationService`. `compute` e `revisionsFixedAt` passam a usá-la.
 - `GroupValidation.of(groups, context)` em `DemandCalculationService.calculate`, `ConsumerUnitGroupService.validation` e `DesignerDashboardService.pendingStage`. No painel, rascunho sem `submittedAt` usa `new NormativeTableSet(published)`, já carregado uma vez; o reprovado usa `contextFor`.
-- `ConsumerUnitGroupService` com `ProjectGroups`; `ConsumerUnitGroupController` monta `ConsumerUnitGroupResponse.from(group, context)`.
-- `CalculationWorkbook.addGroups` e `MemorialPdfService.addConsumerUnits` recebem o contexto para `loadPerUnitKw` e `status`.
+- `ValidatedGroup`: `ConsumerUnitGroupService` valida cada grupo uma vez e devolve o record; `ConsumerUnitGroupController` monta `ConsumerUnitGroupResponse.from(validatedGroup)`.
+- `SpreadsheetExportService` e `CalculationWorkbook.addGroups`, `MemorialPdfService.addConsumerUnits` e `DesignerDashboardService` pedem o contexto a `ProjectDemandContexts` para `loadPerUnitKw` e `status`.
+- Fora desta issue: `NormativeTableSeed`, `DataSeeder` e `EnumCheckConstraints` ficam com a #230.
 - **Testes:** `ConsumerUnitGroupControllerTest`: `loadPerUnitKw`, `declaredLoadKw` e `unitLoadKw` de um grupo com motor saem pela tabela no `GET`, no `POST` e no `PUT`; `GET .../validation` soma o mesmo total. `DemandCalculationIntegrationTest`: o grupo em Revisar pela tabela recebe 422 ao calcular, com a mesma mensagem da listagem. Integração sem `publishTables()` com motor: listagem responde 200 com a pendência da tabela não publicada.
-- **Pronto quando:** `./mvnw clean verify` passa e nenhum service soma carga por conta própria.
+- **Pronto quando:** `./mvnw clean verify` passa, nenhum service soma carga por conta própria, `ConsumerUnitGroupService` não depende de `DemandCalculationService` e `ConsumerUnitGroupResponse` não chama `validate`. É a fatia de que a #230 depende.
 
 ### Fatia 3: Memorial Cita a Tabela 19
 
@@ -105,13 +108,13 @@ Cada fatia entra com os testes. Os unitários ficam em `src/test/java/br/com/amp
 
 ## 3. Arquivos
 
-**Back, código:** `domain/LoadCategory.java`, `domain/LoadItem.java`, `domain/ConsumerUnitGroup.java`, `domain/LoadGroup.java`, `domain/ResidentialGroup.java`, `domain/EvChargingGroup.java`, `domain/DemandEngine.java`, `domain/NormativeTables.java`, `domain/NormativeTableSet.java`, `domain/PowerUnit.java` (javadoc), `service/DemandCalculationService.java`, `service/GroupValidation.java`, `service/ConsumerUnitGroupService.java`, `service/ProjectGroups.java` (novo), `service/DesignerDashboardService.java`, `service/CalculationWorkbook.java`, `service/SpreadsheetExportService.java`, `service/MemorialPdfService.java`, `controller/ConsumerUnitGroupController.java`, `dto/ConsumerUnitGroupResponse.java`.
+**Back, código:** `domain/LoadCategory.java`, `domain/LoadItem.java`, `domain/ConsumerUnitGroup.java`, `domain/LoadGroup.java`, `domain/ResidentialGroup.java`, `domain/EvChargingGroup.java`, `domain/DemandEngine.java`, `domain/NormativeTables.java`, `domain/NormativeTableSet.java`, `domain/PowerUnit.java` (javadoc), `service/DemandCalculationService.java`, `service/ProjectDemandContexts.java` (novo), `service/ValidatedGroup.java` (novo), `service/GroupValidation.java`, `service/ConsumerUnitGroupService.java`, `service/DesignerDashboardService.java`, `service/CalculationWorkbook.java`, `service/SpreadsheetExportService.java`, `service/MemorialPdfService.java`, `controller/ConsumerUnitGroupController.java`, `dto/ConsumerUnitGroupResponse.java`.
 
 **Back, testes:** `IndividualDemandTest`, `ConsumerUnitGroupTest`, `LoadCategoryDemandTest`, `DemandEngineAnexoITest`, `DemandFixtures`, `ConsumerUnitGroupControllerTest`, `ConsumerUnitGroupServiceIntegrationTest`, `DemandCalculationIntegrationTest`, `SubmissionIntegrationTest`, `ResidentialConnectionMigrationIntegrationTest` e os testes do seed de cenários (chamadas a `validate` e `status`).
 
 **Docs:** `docs/tecnico/engine-calculo.md`, `docs/tecnico/fontes-normativas.md`.
 
-**Sem mudança:** `NormativeTableSeed` e `NormativeTableCode` (a Tabela 19 já está semeada), o contrato da API e o banco.
+**Sem mudança:** `NormativeTableSeed`, `NormativeTableCode`, `DataSeeder` e `EnumCheckConstraints` (a Tabela 19 já está semeada; o seed é da #230), o contrato da API e o banco.
 
 ## 4. Rascunhos com Cálculo Desatualizado
 
@@ -122,6 +125,8 @@ A Fatia 4 grava a regra na entrada: `motorInstalledLoad: NORMATIVE_TABLE`, só q
 - cálculo antigo de projeto com motor não tem a chave: `outdated: true`, e o projetista recalcula;
 - projeto sem motor não ganha a chave dos dois lados: nada muda;
 - cálculo novo grava a chave: fica atual.
+
+A #230 muda `sameInput` para ignorar campos nulos na comparação (o número de cômodos novo é nulo nos grupos antigos). As duas mudanças são compatíveis: `motorInstalledLoad` nunca é nula, então continua marcando os cálculos antigos com motor.
 
 O resto já existe: `latest` só marca desatualizado o projeto que ainda pode ser enviado (rascunho, reprovado, aguardando envio); o envio recalcula o aguardando envio desatualizado; o memorial e a planilha recusam com 409 até recalcular; o "Exige Ação" do Painel aponta a etapa Cálculo. Projeto em análise ou aprovado mantém o cálculo e o memorial emitido na versão (`ProjectVersion`).
 
@@ -144,11 +149,15 @@ Subir o Postgres, o back (`./mvnw spring-boot:run` em `app/back`) e o front (`pn
 
 ## 7. Ponto de Contato com a #230
 
-A #230 (carga mínima de iluminação e tomadas) semeia a Tabela 5 em `NormativeTableSeed` e `NormativeTableCode` e cria uma pendência em `ResidentialGroup.validate`, que precisa ler a Tabela 5. É o mesmo problema desta issue: tabela normativa dentro da validação.
+A #230 (carga mínima de iluminação e tomadas) cria uma pendência em `ResidentialGroup.validate` que lê a Tabela 5. É o mesmo problema desta issue, tabela normativa dentro da validação, e os dois planos usam um contrato só:
 
-- Esta issue não toca o seed nem o enum. O conflito de arquivo com a #230 fica em `ResidentialGroup.validate`, nas assinaturas de `ConsumerUnitGroup`, em `GroupValidation`, `ConsumerUnitGroupResponse`, `ConsumerUnitGroupService` e nos testes de grupo.
-- Recomendo a Fatia 1 e a 2 desta issue entrarem antes da #230, que passa a receber o `DemandContext` em `validate` pronto e só acrescenta a regra da Tabela 5. Se a #230 vier antes, ela precisa levar o mesmo encanamento, e esta issue só troca a conta dos motores.
-- `DemandFixtures.exemplo3()` e `ScenarioGroups.penthouseLoads` são apartamentos trifásicos: a #230 pode acrescentar cômodos a eles. Os valores esperados de carga instalada mudam nas duas issues; quem entrar depois atualiza os números.
+- **Domínio:** `validate(DemandContext)` e `status(DemandContext)` em `ConsumerUnitGroup` e subclasses; a #230 lê `context.tables()`. `NormativeTables.contains(NormativeTableCode)` nos dois planos.
+- **Service:** `ProjectDemandContexts.contextFor(Project)`, `GroupValidation.of(groups, context)` e `ValidatedGroup` na fronteira com o controller. A proposta da #230 (`validate(NormativeTables)`, `ProjectTables`) sai.
+- **Ordem:** a #229 entra primeiro e é dona do encanamento. **A #230 depende da Fatia 2 da #229 mesclada na `main`** e só acrescenta a regra da Tabela 5.
+- **Seed:** esta issue não toca `NormativeTableSeed`, `NormativeTableCode`, `DataSeeder` nem `EnumCheckConstraints`; a Tabela 5 e o resto do seed são da #230.
+- **`sameInput`:** a chave `motorInstalledLoad` desta issue e o descarte de campos nulos da #230 convivem (seção 4).
+- **Valores esperados:** a #229 fixa a carga instalada nova de `DemandFixtures.exemplo3()`, de `ScenarioGroups.penthouseLoads` e do cenário `2026-2047` de `DemoScenarios`. A #230, que entra depois, só acrescenta cômodos e atualiza os números se mudarem.
+- **Conflito de arquivo** que sobra: `ResidentialGroup.validate`, `ConsumerUnitGroupTest` e as fixtures de apartamento trifásico, resolvidos pela ordem acima.
 
 ## 8. Riscos e Decisões em Aberto
 
@@ -159,6 +168,6 @@ A #230 (carga mínima de iluminação e tomadas) semeia a Tabela 5 em `Normative
 5. **Prévia do front.** Recomendo manter a prévia pela placa, corrigir o comentário de `unit-load.ts` e deixar o número final e o aviso dos 75 kW com o back depois de salvar. Copiar a Tabela 19 para o front fere a regra de não embutir valor normativo no código, e não há rota de leitura das tabelas para o projetista. Se a diferença perto dos 75 kW incomodar, uma issue de front própria.
 6. **Assinaturas em cascata.** `validate` e `status` com contexto mudam dezenas de chamadas nos testes. `DemandFixtures` ganha `validate(group)` e `status(group)` com o contexto padrão para conter a mudança.
 7. **Consultas a mais.** A listagem, a validação e o painel passam a carregar as tabelas do projeto. São 18 tabelas pequenas por `@EntityGraph`; no painel, as publicadas já são lidas uma vez para todos os rascunhos. O reprovado no painel faz uma consulta a mais por projeto (`fixedRevisions`).
-8. **Revisões fixadas.** Reprovado depois do primeiro envio lê a Tabela 19 da versão 1 (`contextFor` usa `tablesFor`), na validação e no cálculo. Sem isso, a listagem e o cálculo poderiam ler revisões diferentes.
+8. **Revisões fixadas.** Reprovado depois do primeiro envio lê a Tabela 19 da versão 1 (`ProjectDemandContexts.contextFor` usa `tablesFor`), na validação e no cálculo. Sem isso, a listagem e o cálculo poderiam ler revisões diferentes.
 9. **Projetos já enviados.** Em análise ou aprovado com motor guardam a carga pela placa no cálculo e no memorial emitido. A listagem de grupos desses projetos mostra o número novo, diferente do memorial da versão. Só some num reenvio. Os cenários do seed com `SEED_RESET_SCENARIOS=true` recalculam com a regra nova.
 10. **Nome do exemplo.** A issue cita o Exemplo 3 do Anexo I da DIS-NOR-053; o código cita o Exemplo 3 da DIS-NOR-030. O Exemplo 3 do Anexo I em `DemandEngineAnexoITest` é o agrupamento de blocos, desativado. A Fatia 0 acerta a citação nos comentários e na documentação.
