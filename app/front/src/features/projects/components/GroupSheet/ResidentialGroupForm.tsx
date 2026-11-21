@@ -20,7 +20,7 @@ import {
 	toLoadItemFormValues,
 	toLoadItemPayload,
 } from "./load-item";
-import { unitInstalledKw, unitLoadNotice } from "./unit-load";
+import { tableRatedNotice, unitInstalledKw, unitLoadNotice } from "./unit-load";
 
 /** The back's `loads` are the form's `items`; the whole list, over 75 kW, focuses the first power. */
 const toFormField = (field?: string) =>
@@ -64,6 +64,7 @@ export const ResidentialGroupForm = ({
 	const isThreePhase = connectionType === "THREE_PHASE";
 	const installedKw = unitInstalledKw(connectionType, unitLoadKw, items ?? []);
 	const notice = unitLoadNotice(connectionType, installedKw);
+	const ratedNotice = isThreePhase ? tableRatedNotice(items ?? []) : null;
 	const itemsError =
 		form.formState.errors.items?.root?.message ??
 		form.formState.errors.items?.message;
@@ -208,7 +209,7 @@ export const ResidentialGroupForm = ({
 						title="Cargas do Apartamento"
 						meta={
 							<>
-								Total{" "}
+								{ratedNotice ? "Total parcial" : "Total"}{" "}
 								<span className="ml-1.5 whitespace-nowrap text-foreground normal-case">
 									{formatDecimal(installedKw)} kW
 								</span>
@@ -220,18 +221,21 @@ export const ResidentialGroupForm = ({
 					/>
 				) : null}
 
-				{notice ? (
-					<p
-						role="status"
-						className="flex gap-2.5 border-l-2 border-attention pl-3 text-sm text-foreground"
-					>
-						<CircleAlert
-							aria-hidden="true"
-							className="mt-0.5 size-4 shrink-0 text-attention"
-						/>
-						{notice}
-					</p>
-				) : null}
+				{[notice, ratedNotice].map((text) =>
+					text ? (
+						<p
+							key={text}
+							role="status"
+							className="flex gap-2.5 border-l-2 border-attention pl-3 text-sm text-foreground"
+						>
+							<CircleAlert
+								aria-hidden="true"
+								className="mt-0.5 size-4 shrink-0 text-attention"
+							/>
+							{text}
+						</p>
+					) : null,
+				)}
 			</fieldset>
 
 			<GroupFormFooter

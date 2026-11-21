@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { sumLoadsKw, unitInstalledKw, unitLoadNotice } from "./unit-load";
+import {
+	ratedByTable,
+	sumLoadsKw,
+	tableRatedNotice,
+	unitInstalledKw,
+	unitLoadNotice,
+} from "./unit-load";
 
 describe("unitLoadNotice", () => {
 	it("accepts exactly 75 kW, the low-voltage limit", () => {
@@ -66,5 +72,37 @@ describe("sumLoadsKw with an air conditioner in BTU/h", () => {
 				{ quantity: 1, power: 3, powerUnit: "KW" as const },
 			]),
 		).toBe(3);
+	});
+});
+
+describe("ratedByTable", () => {
+	it("takes motors whatever the unit", () => {
+		expect(ratedByTable({ category: "MOTORS", powerUnit: "KW" })).toBe(true);
+	});
+
+	it("takes pumps only in CV or HP", () => {
+		expect(
+			ratedByTable({ category: "PUMPS_AND_HOT_TUBS", powerUnit: "HP" }),
+		).toBe(true);
+		expect(
+			ratedByTable({ category: "PUMPS_AND_HOT_TUBS", powerUnit: "KW" }),
+		).toBe(false);
+	});
+
+	it("takes air conditioners only in BTU/h", () => {
+		expect(
+			ratedByTable({ category: "AIR_CONDITIONING", powerUnit: "BTU_H" }),
+		).toBe(true);
+		expect(
+			ratedByTable({ category: "AIR_CONDITIONING", powerUnit: "KW" }),
+		).toBe(false);
+	});
+});
+
+describe("tableRatedNotice", () => {
+	it("stays quiet when every load is read by its plate", () => {
+		expect(
+			tableRatedNotice([{ category: "INSTANT_HEATING", powerUnit: "KW" }]),
+		).toBeNull();
 	});
 });

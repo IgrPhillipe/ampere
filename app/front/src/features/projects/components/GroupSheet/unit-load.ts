@@ -10,6 +10,8 @@ import type { LoadItemFormValues } from "../../schemas";
 
 type LoadLike = Pick<LoadItemFormValues, "quantity" | "power" | "powerUnit">;
 
+type RatedLike = Pick<LoadItemFormValues, "category" | "powerUnit">;
+
 /** Form values arrive as strings while the user types. */
 const toNumber = (value: unknown) => {
 	const number = Number(value);
@@ -33,6 +35,18 @@ export const unitInstalledKw = (
 	items: LoadLike[],
 ) =>
 	connectionType === "THREE_PHASE" ? sumLoadsKw(items) : toNumber(unitLoadKw);
+
+/** Loads the back reads from Tabelas 11, 18 and 19 when it saves, not from the plate. */
+export const ratedByTable = ({ category, powerUnit }: RatedLike) =>
+	category === "MOTORS" ||
+	(category === "PUMPS_AND_HOT_TUBS" && powerUnit !== "KW") ||
+	(category === "AIR_CONDITIONING" && powerUnit === "BTU_H");
+
+export const TABLE_RATED_NOTICE =
+	"Condicionadores em BTU/h, motores e bombas em CV ou HP entram pela tabela da norma ao salvar. O total e o limite de 75 kW só se confirmam depois disso.";
+
+export const tableRatedNotice = (items: RatedLike[]) =>
+	items.some(ratedByTable) ? TABLE_RATED_NOTICE : null;
 
 /** Same checks the back runs on the group (DIS-NOR-030 item 6.2.1 and Tabela 2). */
 export const unitLoadNotice = (
