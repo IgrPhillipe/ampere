@@ -218,7 +218,7 @@ Cada item traz `status` e `reviewedAt` (nulo em análise). Nos decididos, `deadl
 
 ## Painel do Analista
 
-> Implementado na #137 (AT01-US17). O front valida a resposta com `services/dashboard/schemas/review-dashboard.schema.ts`, mas os painéis do analista e do gestor ainda não chamam esse endpoint: os indicadores entram na coluna de acompanhamento numa próxima etapa. "Meus Pareceres" saiu em 20/11: os projetos decididos do analista vêm de `GET /api/review-queue` com `filter=APPROVED` ou `REJECTED`, e `GET /api/review-queue/mine` não é mais necessário.
+> Implementado na #137 (AT01-US17). O front valida a resposta com `services/dashboard/schemas/review-dashboard.schema.ts`, e o Painel do analista e o do gestor mostram os indicadores no fim da coluna de acompanhamento. "Meus Pareceres" saiu em 20/11: os projetos decididos do analista vêm de `GET /api/review-queue` com `filter=APPROVED` ou `REJECTED`, e `GET /api/review-queue/mine` não é mais necessário.
 
 ### Escopo por Papel
 

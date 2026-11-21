@@ -261,7 +261,7 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 | Feature | Rota | Página |
 | :--- | :--- | :--- |
 | `auth` | `/entrar`, `/criar-conta`, `/meu-perfil` | Entrar, Criar Conta e Meu Perfil |
-| `dashboard` | `/painel` | Painel de cada papel, no mesmo layout (`DashboardLayout`: `DashboardBand`, acompanhamento e "Exige Ação") |
+| `dashboard` | `/painel` | Painel de cada papel, no mesmo layout (`DashboardLayout`: `DashboardBand`, acompanhamento e "Exige Ação"). O analista e o gestor têm, no fim do acompanhamento, os indicadores do período (`ReviewPeriodIndicators`, com `?period=`), que falham sozinhos sem derrubar o painel |
 | `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id`, `/projetos/$id/<etapa>` | Meus Projetos (Projetos, para o admin), o detalhe e as etapas |
 | `review-queue` | `/projetos`, para o analista | Projetos do analista: em análise, com prazo e "Analisar", e os já decididos. `/fila-de-analise`, `/indicadores` e `/meus-pareceres` redirecionam |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
@@ -306,7 +306,7 @@ O `ROLE_ACCESS` de `lib/route-guard.ts` é a fonte única de quem chega a cada
 
 | Área | `user` | `reviewer` | `admin` |
 | :--- | :--- | :--- | :--- |
-| Painel | o próprio | os projetos dele: prazos e o que exige ação | a fila, a carga da equipe, os usuários e o que exige ação |
+| Painel | o próprio | os projetos dele: prazos, o que exige ação e os indicadores do período | a fila, a carga da equipe, os usuários, o que exige ação e os indicadores da equipe no período |
 | Projetos | os próprios | os atribuídos a ele, em análise e decididos | todos, com filtro e coluna de analista |
 | Tabelas Normativas | não | sim | sim |
 | Usuários | não | não | sim |
