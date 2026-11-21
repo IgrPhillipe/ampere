@@ -41,7 +41,7 @@ Nome no código: `rooms`. "Quartos" (`bedrooms`) já existe e não serve: cômod
 
 | Camada | Arquivo | Mudança |
 | :--- | :--- | :--- |
-| Domínio | `domain/GroupSpec.java` | Componente `Integer rooms` depois de `bedrooms`. Todo `new GroupSpec(...)` ganha o argumento (`LoadGroup.spec`, `EvChargingGroup.spec`, `ScenarioGroups`, testes) |
+| Domínio | `domain/GroupSpec.java` | Componente `Integer rooms` no fim, com um construtor de 13 argumentos que o deixa nulo: só quem monta um apartamento trifásico passa o campo, e as demais chamadas (e os fixtures da #229) não mudam |
 | Entidade | `domain/ResidentialGroup.java` | `private Integer rooms`, coluna `rooms` anulável (tabela única do `SINGLE_TABLE`). `applySpec` guarda no trifásico e zera no monofásico; `spec()` devolve; `getRooms()`; `summary()` inclui "8 cômodos" quando informado |
 | Entrada | `dto/ConsumerUnitGroupRequest.java` | `@Min(value = 1, message = "O número de cômodos deve ser no mínimo {value}.") @Max(value = 50, message = "O número de cômodos deve ser no máximo {value}.") Integer rooms` |
 | Saída | `dto/ConsumerUnitGroupResponse.java` | `Integer rooms`, omitido quando nulo (`NON_NULL`) |
@@ -88,6 +88,7 @@ No seed, `T5_MINIMUM_OUTLETS` é tabela por faixa (`ranged`) sobre "Área total 
 | `config/EnumCheckConstraints.java` | `normative_table.code`, para o código novo passar no `CHECK` |
 | `config/ScenarioGroups.java`, `config/DemoScenarios.java` | Cômodos e classificação da cobertura do 2026-2047 |
 | `service/DemandCalculationService.java` | `sameInput` ignora campos nulos (risco 3) |
+| `service/ProjectVersionService.java` | A comparação de versões trata campo ausente e `null` como iguais (risco 3) |
 | `service/VersionFieldLabels.java` | Rótulo de `rooms` |
 | `dto/ConsumerUnitGroupRequest.java`, `dto/ConsumerUnitGroupResponse.java`, `controller/ConsumerUnitGroupController.java` | Campo novo |
 | Front: os arquivos da seção 1 e `ResidentialGroupForm.test.tsx` | Campo, schemas e testes |
@@ -109,34 +110,34 @@ Cada fatia entra com o teste junto e termina com `./mvnw spotless:apply` e `./mv
 - **Pronto quando:** num banco novo e num banco já semeado, "Normas e Tabelas" mostra a Tabela 5 publicada, com item e página; os cinco exemplos do Anexo I continuam passando; teste de integração do seed cobre o banco que já tinha as outras tabelas e não duplica nenhuma.
 - A semeadura em banco existente e o `CHECK` são da #230; a #229 não toca neles.
 
-### Fatia 2: Número de Cômodos no Contrato
+### Fatia 2: Número de Cômodos no Contrato (Feita)
 
 - `rooms` do `GroupSpec` à resposta, OpenAPI, `VersionFieldLabels`, `summary()`.
 - Pendência Falta Dado sem cômodos no trifásico.
 - `sameInput` ignora campos nulos.
 - **Pronto quando:** `POST` e `PUT` aceitam e devolvem `rooms`; `rooms: 0` e `rooms: 51` voltam 400 com a mensagem; trifásico sem cômodos volta `MISSING_DATA` com `field: "rooms"`; monofásico com `rooms` volta sem o campo; um cálculo gravado antes do campo continua atual.
 
-### Fatia 3: Classificação da Parcela `a` no Apartamento
+### Fatia 3: Classificação da Parcela `a` no Apartamento (Feita)
 
 - `LoadCategory.LIGHTING_AND_OUTLETS.issues` exige `lampTechnology` no apartamento.
 - Cobertura do 2026-2047 com "Tomadas" em `GENERAL_OUTLETS` e "Iluminação" na lâmpada do Exemplo 3, se ele disser qual, ou `COMPACT_FLUORESCENT_LED`. Parte da cobertura como a #229 a deixou.
 - **Pronto quando:** item sem classificação gera a pendência da seção 2; a demanda individual do 2026-2047 não muda em relação ao valor da #229, porque a parcela `a` residencial não lê a lâmpada.
 
-### Fatia 4: Mínimo de Iluminação e de Tomadas
+### Fatia 4: Mínimo de Iluminação e de Tomadas (Feita)
 
 - `ApartmentMinimumLoad` e a chamada em `ResidentialGroup.validate(DemandContext)`, com `context.tables()`.
 - Pendências Revisar da seção 2.
 - Cômodos da cobertura do 2026-2047 (decisão 5) e números esperados de `DemoScenarioSeederIntegrationTest` e `IndividualDemandTest` atualizados sobre os da #229, se a cobertura mudar.
 - **Pronto quando:** os testes da seção 7 passam; `GET /validation` devolve `canCalculate: false` com carga abaixo do mínimo e `POST /calculations` volta 422; o 2026-2047 continua sem pendência e com o cálculo atual.
 
-### Fatia 5: Front
+### Fatia 5: Front (Feita)
 
 - Schemas, tipo, campo "Cômodos" e "Iluminação ou tomadas" obrigatório nas cargas do apartamento.
 - **Testes** em `ResidentialGroupForm.test.tsx`: o campo aparece só no trifásico; some e é limpo ao trocar para monofásico; o payload envia `rooms` no trifásico e `null` no monofásico; 0 e 51 mostram o erro; a pendência com `field: "rooms"` foca o campo.
 - **Pronto quando:** `pnpm validate`, `pnpm test` e `pnpm build` passam; no navegador, a pendência aparece no grupo e some depois de corrigida.
 - Pode correr em paralelo às fatias 3 e 4 depois da 2, que fixa o contrato. A #230 é marcada Backend: se o front precisar de issue própria, abrir antes de começar.
 
-### Fatia 6: Documentação e Conferência
+### Fatia 6: Documentação e Conferência (Feita)
 
 - `engine-calculo.md`, `fontes-normativas.md` e `dados-de-demonstracao.md` (seção 4).
 - Conferência no app (seção 9).
@@ -202,7 +203,7 @@ Subir o Postgres, o back (`./mvnw spring-boot:run` em `app/back`) e o front (`pn
 
 1. **Valores da Tabela 5. Resolvida.** Transcrita da DIS-NOR-030 REV 07, p. 65/142, com duas leituras, em `fontes-normativas.md`.
 2. **Área construída ou área útil. Resolvida: área útil.** A Tabela 5 usa área construída; o grupo só tem área útil, que é menor e afrouxa o mínimo. A mensagem diz "área útil", e o critério entra em "Critérios Adotados na Implementação" de `engine-calculo.md`, junto com o de acima de 250 m²: sem conferência de tomadas e sem pendência, porque a norma manda declarar as tomadas e a tabela não tem linha.
-3. **Cálculos atuais viram desatualizados.** `sameInput` compara o `GroupSpec` gravado com o atual; o campo novo aparece como `rooms: null` e não existe no JSON antigo, então todo cálculo residencial já gravado passaria a desatualizado. A fatia 2 remove os campos nulos das duas árvores antes de comparar. É compatível com a chave `motorInstalledLoad`, que a #229 grava só quando há motor.
+3. **Cálculos atuais viram desatualizados.** `sameInput` compara o `GroupSpec` gravado com o atual; o campo novo aparece como `rooms: null` e não existe no JSON antigo, então todo cálculo residencial já gravado passaria a desatualizado. A fatia 2 remove os campos nulos das duas árvores antes de comparar. É compatível com a chave `motorInstalledLoad`, que a #229 grava só quando há motor. O mesmo vale para a comparação de versões: sem a correção em `ProjectVersionService`, toda versão enviada antes do campo mostraria uma mudança vazia em "Cômodos e corredores".
 4. **Tabela 5 ausente.** Projeto em rascunho num banco sem a Tabela 5, ou reprovado com revisões fixadas antes dela, não teria como resolver uma pendência de tabela: a revisão fixada nunca a inclui. Recomendo não conferir as tomadas nesse caso, sem pendência, e manter a conferência de iluminação, que não depende de tabela. A alternativa, Revisar com "publique a Tabela 5", trava o reenvio desses protocolos para sempre.
 5. **Cômodos do 2026-2047. Resolvida: 12.** O Exemplo 3 (p. 52 e 53) tem 180 m² e 12 cômodos; tomadas de 3.000 W e iluminação de 1.200 W ficam exatamente no mínimo.
 6. **Um ponto por cômodo. Resolvida.** O item 6.26.1.1 pede no mínimo um ponto de luz por cômodo ou corredor, com 100 W por ponto. Corredor também conta: o campo se chama "Cômodos e corredores".

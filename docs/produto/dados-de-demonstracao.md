@@ -54,7 +54,7 @@ Projetistas: **U** = Usuário Teste, **C** = Carla, **J** = João, **A** = Admin
 | 2026-2033 | Residencial Bela Vista | J | Rascunho | Quatro apartamentos: vale a demanda mínima da primeira faixa |
 | 2026-2034 | Residencial Janga | C | Rascunho | Ligação trifásica e entrada individual |
 | 2026-2035 | Padaria Central | J | Rascunho | Ligação monofásica e entrada individual, não residencial |
-| 2026-2047 | Residencial Torres do Pina | U | Rascunho | Ligação por apartamento: tipos monofásicos e coberturas trifásicas com as cargas detalhadas. Calculado, com a demanda individual (`Dind`) de cada grupo |
+| 2026-2047 | Residencial Torres do Pina | U | Rascunho | Ligação por apartamento: tipos monofásicos e coberturas trifásicas com as cargas detalhadas. A cobertura é a residência do Exemplo 3 da DIS-NOR-030: 180 m², 12 cômodos e corredores, tomadas e iluminação exatamente no mínimo do item 6.26.1.1. Calculado, com a demanda individual (`Dind`) de cada grupo |
 
 ### Legado
 
