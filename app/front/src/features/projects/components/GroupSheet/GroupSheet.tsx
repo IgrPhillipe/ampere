@@ -71,6 +71,9 @@ export const GroupSheet = ({
 	const deleteGroup = useDeleteConsumerUnitGroup(projectId);
 	const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
 	const [fixQueue, setFixQueue] = useState<FixFindingQueue | null>(null);
+	// Opens once the sheet has slid out, or the leaving sheet covers the prompt.
+	const [pendingFixQueue, setPendingFixQueue] =
+		useState<FixFindingQueue | null>(null);
 
 	const group = opened?.group;
 	const closeSheet = () => {
@@ -104,7 +107,7 @@ export const GroupSheet = ({
 				onSuccess: () => {
 					closeSheet();
 					if (pointed.length > 0)
-						setFixQueue({
+						setPendingFixQueue({
 							findings: pointed,
 							suggestion: `Corrigi o grupo ${payload.name || group.name}.`,
 						});
@@ -128,6 +131,12 @@ export const GroupSheet = ({
 				open={opened !== null}
 				onOpenChange={(open) => {
 					if (!open && !deleteGroup.isPending) closeSheet();
+				}}
+				onOpenChangeComplete={(open) => {
+					if (open || !pendingFixQueue) return;
+
+					setFixQueue(pendingFixQueue);
+					setPendingFixQueue(null);
 				}}
 			>
 				<SheetContent className="w-full gap-0 bg-card sm:max-w-xl">
