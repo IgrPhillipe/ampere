@@ -818,9 +818,9 @@ Painel de indicadores da equipe de análise e histórico dos pareceres de cada a
 > **Para que** a equipe dimensione a demanda e oriente os projetistas sobre as falhas recorrentes.
 
 ### Conversação (Regras de Negócio e Interface)
-O "Painel" do analista mostra os indicadores dele, e "Projetos" lista os projetos atribuídos a ele, em análise e já decididos. A Fila de Análise, os Indicadores e Meus Pareceres do protótipo H7 viraram essas duas telas em 20/11. O gestor vê os indicadores da equipe na seção "Indicadores da Análise" do Painel.
+O "Painel" do analista e "Projetos" substituem a Fila de Análise, os Indicadores e Meus Pareceres do protótipo H7 (20/11). "Projetos" lista os projetos atribuídos a ele, em análise e já decididos. O Painel segue o layout dos outros painéis: na faixa, em análise, vencendo o prazo, analisados hoje e reprovação no mês; no acompanhamento, os próximos do prazo e o total por situação; em "Exige Ação", os atrasados ou que vencem hoje, com "Analisar".
 
-O "Painel" do analista exibe, para o período selecionado:
+Quando o back da #137 estiver pronto, o acompanhamento do analista e o do gestor ganham, para o período selecionado:
 - Projetos recebidos e decididos por semana
 - Tempo médio de análise e de ciclo completo até a aprovação
 - Taxa de reprovação por mês
@@ -1013,7 +1013,7 @@ A regra por município (cada município com um analista fixo) saiu em 20/11: foi
 
 **Analista vê só os projetos atribuídos** (validação com a cliente em 20/11):
 - A fila, a exportação e o projeto ficam restritos aos projetos atribuídos ao analista, incluindo os que ele já decidiu
-- A fila é só do analista; o gestor acompanha os projetos em "Projetos" e os indicadores na seção "Indicadores da Análise" do Painel
+- A fila é só do analista; o gestor acompanha os projetos em "Projetos" e a fila no Painel
 - Projeto sem analista ou de outro analista não abre para o analista; o reatribuído sai do alcance de quem o tinha
 - Ao abrir um projeto fora do seu alcance, o analista vê "Projeto não encontrado" e volta para a fila
 - As notificações do analista sobre o projeto que ele perdeu passam a levar à fila, na reatribuição pelo gestor e na redistribuição do reenvio
@@ -1052,10 +1052,12 @@ Painel inicial do administrador com o estado dos usuários, da fila e os indicad
 > **Para que** eu resolva problemas de acesso e acompanhe a operação sem depender das listagens principais.
 
 ### Conversação (Regras de Negócio e Interface)
-O item "Painel" entra no menu do administrador e passa a ser a tela inicial após o login. O painel só tem números; a listagem dos projetos fica em "Projetos" (desde 20/11). São três blocos:
-- **Usuários:** ativos por papel, inativos, com troca de senha pendente e sem acesso há mais de 30 dias. Cada número abre a tela "Usuários" ([US11](#us11-gestão-de-usuários)) com o filtro aplicado, onde estão "Reativar" e "Redefinir Senha"
-- **Fila:** projetos sem analista, prazos vencendo em até 3 dias e projetos em análise por analista ([US23](#us23-distribuição-da-fila-de-análise)), com o atalho para os projetos em análise
-- **Indicadores da Análise:** os indicadores da equipe no período escolhido, os mesmos do painel do analista ([US17](#us17-painel-do-analista))
+O item "Painel" entra no menu do administrador e passa a ser a tela inicial após o login. Desde 21/11, os painéis dos três papéis têm o mesmo layout: a faixa verde com quatro números, uma coluna de acompanhamento e a coluna "Exige Ação". A listagem dos projetos fica em "Projetos". No painel do gestor:
+- **Faixa:** projetos em análise, sem analista, com prazo até 3 dias e atrasados
+- **Acompanhamento:** carga por analista ([US23](#us23-distribuição-da-fila-de-análise)) e os usuários ativos por papel e inativos, cada número abrindo a tela "Usuários" ([US11](#us11-gestão-de-usuários)) com o filtro aplicado
+- **Exige Ação:** projetos sem analista, análises atrasadas, trocas de senha pendentes e contas sem acesso há mais de 30 dias, cada item com o atalho para a lista filtrada; o que está zerado não aparece
+
+Os indicadores da equipe por período ([US17](#us17-painel-do-analista)) entram na coluna de acompanhamento quando o back da #137 estiver pronto.
 
 ### Confirmação (Critérios de Aceite - BDD)
 

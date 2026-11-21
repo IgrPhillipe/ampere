@@ -218,7 +218,7 @@ Cada item traz `status` e `reviewedAt` (nulo em análise). Nos decididos, `deadl
 
 ## Painel do Analista
 
-> Contrato a implementar na #137 (AT01-US17). O front já consome os indicadores e valida a resposta com `services/dashboard/schemas/review-dashboard.schema.ts`. Até o back entrar, o Painel do analista e a seção "Indicadores da Análise" do gestor mostram o estado de erro. "Meus Pareceres" saiu em 20/11: os projetos decididos do analista vêm de `GET /api/review-queue` com `filter=APPROVED` ou `REJECTED`, e `GET /api/review-queue/mine` não é mais necessário.
+> Contrato a implementar na #137 (AT01-US17). O front já consome os indicadores e valida a resposta com `services/dashboard/schemas/review-dashboard.schema.ts`. Os painéis do analista e do gestor ainda não chamam esse endpoint: os indicadores entram na coluna de acompanhamento quando ele existir. "Meus Pareceres" saiu em 20/11: os projetos decididos do analista vêm de `GET /api/review-queue` com `filter=APPROVED` ou `REJECTED`, e `GET /api/review-queue/mine` não é mais necessário.
 
 ### Escopo por Papel
 
