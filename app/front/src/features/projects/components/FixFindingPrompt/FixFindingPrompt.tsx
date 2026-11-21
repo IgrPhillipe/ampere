@@ -23,9 +23,7 @@ import {
 } from "../../schemas";
 
 export interface FixFindingQueue {
-	/** Findings of the saved item still waiting on the designer, asked one at a time. */
 	findings: Finding[];
-	/** Answer the dialog suggests, editable before confirming. */
 	suggestion: string;
 }
 
@@ -35,10 +33,7 @@ interface FixFindingPromptProps {
 	onQueueChange: (queue: FixFindingQueue | null) => void;
 }
 
-/**
- * Offers to mark the findings of an item as fixed right after the designer saves it.
- * Never marks without asking: the analyst must not receive as fixed what was not.
- */
+/** Asks one finding at a time; never marks a finding fixed on its own. */
 export const FixFindingPrompt = ({
 	projectId,
 	queue,
