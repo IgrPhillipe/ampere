@@ -28,7 +28,7 @@ A validação com as tabelas normativas é da #229, que entra primeiro e define 
 
 | Peça | Papel |
 | :--- | :--- |
-| `ApartmentMinimumLoad` (carga mínima do apartamento) | Classe nova, final e imutável, no `domain`. Recebe cômodos e área; `lightingKw()` devolve `rooms × 0,1`; `outletsKw(NormativeTables)` lê a Tabela 5; `check(List<LoadItem>, NormativeTables)` soma os itens da parcela `a` por `LampTechnology.lighting()` e devolve as pendências. Encapsula a regra do item 6.26.1.1 num lugar só |
+| `ApartmentMinimumLoad` (carga mínima do apartamento) | Classe nova, final e imutável, no `domain`. Recebe cômodos e área útil; `check(List<LoadItem>, NormativeTables)` soma os itens da parcela `a` por `LampTechnology.lighting()`, compara a iluminação com `rooms × 0,1` kW e as tomadas com a Tabela 5, e devolve as pendências. Encapsula a regra do item 6.26.1.1 num lugar só |
 | `ResidentialGroup` | Campo `Integer rooms`, guardado só no trifásico, como `loads`. `validate(DemandContext)` passa `context.tables()` a `ApartmentMinimumLoad` |
 | `LoadCategory.LIGHTING_AND_OUTLETS.issues` | Passa a exigir `lampTechnology` também no apartamento, com mensagem própria |
 | `NormativeTableCode.T5_...` | Constante nova da Tabela 5 da DIS-NOR-030 |
