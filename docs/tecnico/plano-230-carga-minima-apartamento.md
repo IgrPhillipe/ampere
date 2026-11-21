@@ -88,7 +88,6 @@ No seed, `T5_MINIMUM_OUTLETS` é tabela por faixa (`ranged`) sobre "Área total 
 | `config/EnumCheckConstraints.java` | `normative_table.code`, para o código novo passar no `CHECK` |
 | `config/ScenarioGroups.java`, `config/DemoScenarios.java` | Cômodos e classificação da cobertura do 2026-2047 |
 | `service/DemandCalculationService.java` | `sameInput` ignora campos nulos (risco 3) |
-| `service/ProjectVersionService.java` | A comparação de versões trata campo ausente e `null` como iguais (risco 3) |
 | `service/VersionFieldLabels.java` | Rótulo de `rooms` |
 | `dto/ConsumerUnitGroupRequest.java`, `dto/ConsumerUnitGroupResponse.java`, `controller/ConsumerUnitGroupController.java` | Campo novo |
 | Front: os arquivos da seção 1 e `ResidentialGroupForm.test.tsx` | Campo, schemas e testes |
@@ -203,7 +202,7 @@ Subir o Postgres, o back (`./mvnw spring-boot:run` em `app/back`) e o front (`pn
 
 1. **Valores da Tabela 5. Resolvida.** Transcrita da DIS-NOR-030 REV 07, p. 65/142, com duas leituras, em `fontes-normativas.md`.
 2. **Área construída ou área útil. Resolvida: área útil.** A Tabela 5 usa área construída; o grupo só tem área útil, que é menor e afrouxa o mínimo. A mensagem diz "área útil", e o critério entra em "Critérios Adotados na Implementação" de `engine-calculo.md`, junto com o de acima de 250 m²: sem conferência de tomadas e sem pendência, porque a norma manda declarar as tomadas e a tabela não tem linha.
-3. **Cálculos atuais viram desatualizados.** `sameInput` compara o `GroupSpec` gravado com o atual; o campo novo aparece como `rooms: null` e não existe no JSON antigo, então todo cálculo residencial já gravado passaria a desatualizado. A fatia 2 remove os campos nulos das duas árvores antes de comparar. É compatível com a chave `motorInstalledLoad`, que a #229 grava só quando há motor. O mesmo vale para a comparação de versões: sem a correção em `ProjectVersionService`, toda versão enviada antes do campo mostraria uma mudança vazia em "Cômodos e corredores".
+3. **Cálculos atuais viram desatualizados.** `sameInput` compara o `GroupSpec` gravado com o atual; o campo novo aparece como `rooms: null` e não existe no JSON antigo, então todo cálculo residencial já gravado passaria a desatualizado. A fatia 2 remove os campos nulos das duas árvores antes de comparar. É compatível com a chave `motorInstalledLoad`, que a #229 grava só quando há motor. A comparação de versões não muda: `ProjectVersionService` já descarta as folhas nulas ao achatar o JSON, e campo ausente e `null` caem no mesmo caso.
 4. **Tabela 5 ausente.** Projeto em rascunho num banco sem a Tabela 5, ou reprovado com revisões fixadas antes dela, não teria como resolver uma pendência de tabela: a revisão fixada nunca a inclui. Recomendo não conferir as tomadas nesse caso, sem pendência, e manter a conferência de iluminação, que não depende de tabela. A alternativa, Revisar com "publique a Tabela 5", trava o reenvio desses protocolos para sempre.
 5. **Cômodos do 2026-2047. Resolvida: 12.** O Exemplo 3 (p. 52 e 53) tem 180 m² e 12 cômodos; tomadas de 3.000 W e iluminação de 1.200 W ficam exatamente no mínimo.
 6. **Um ponto por cômodo. Resolvida.** O item 6.26.1.1 pede no mínimo um ponto de luz por cômodo ou corredor, com 100 W por ponto. Corredor também conta: o campo se chama "Cômodos e corredores".

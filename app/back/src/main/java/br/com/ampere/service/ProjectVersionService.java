@@ -385,10 +385,7 @@ public class ProjectVersionService {
     return item.path("category").asString("") + ":" + item.path("description").asString("");
   }
 
-  /** A field absent from an older snapshot equals one recorded as null. */
   private static boolean sameValue(JsonNode left, JsonNode right) {
-    left = left == null || left.isNull() ? null : left;
-    right = right == null || right.isNull() ? null : right;
     if (left == null || right == null) {
       return left == right;
     }
