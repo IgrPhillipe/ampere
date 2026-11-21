@@ -10,7 +10,6 @@ import { AdminDashboardPage } from "./AdminDashboardPage";
 
 const state = vi.hoisted(() => ({
 	dashboardQuery: {} as Record<string, unknown>,
-	reviewQuery: {} as Record<string, unknown>,
 }));
 
 vi.mock("@tanstack/react-router", () => ({
@@ -42,7 +41,6 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@services/dashboard", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@services/dashboard")>()),
 	useGetAdminDashboard: () => state.dashboardQuery,
-	useGetReviewDashboard: () => state.reviewQuery,
 }));
 
 const makeAdminDashboard = (
@@ -94,136 +92,97 @@ const renderPage = (searchParams = "") =>
 describe("AdminDashboardPage", () => {
 	beforeEach(() => {
 		state.dashboardQuery = loadedQuery({ data: makeAdminDashboard() });
-		// The review indicators wait for their own endpoint.
-		state.reviewQuery = { isError: true, refetch: vi.fn() };
 	});
 
-	it("renders user counters with links containing the expected query parameters", () => {
+	it("puts the queue on the green band, like every panel", () => {
 		renderPage();
 
-		const userLink = screen.getByRole("link", { name: /projetistas ativos/i });
-		expect(userLink).toHaveAttribute(
-			"href",
-			expect.stringContaining("/usuarios"),
-		);
-		expect(userLink).toHaveAttribute(
+		const band = screen.getByRole("region", { name: "Fila de análise hoje" });
+		for (const [label, value] of [
+			["Em análise", "03"],
+			["Sem analista", "04"],
+			["Prazo até 3 dias", "02"],
+			["Atrasados", "01"],
+		]) {
+			expect(within(band).getByText(label).nextSibling).toHaveTextContent(
+				value,
+			);
+		}
+	});
+
+	it("lists the load per analyst, with the deactivated one marked", () => {
+		renderPage();
+
+		const load = screen.getByRole("region", { name: /Carga por Analista/ });
+		expect(within(load).getByText("Ana Silva")).toBeInTheDocument();
+		expect(within(load).getByText("03 projetos")).toBeInTheDocument();
+		expect(
+			within(load).getByText("Bruno Antigo (Inativo)"),
+		).toBeInTheDocument();
+	});
+
+	it("links each user counter to the filtered list", () => {
+		renderPage();
+
+		const users = screen.getByRole("region", { name: "Usuários" });
+		const designers = within(users).getByRole("link", {
+			name: /projetistas ativos/i,
+		});
+		expect(designers).toHaveAttribute(
 			"href",
 			expect.stringContaining("role=user"),
 		);
-		expect(userLink).toHaveAttribute(
-			"href",
-			expect.stringContaining("status=active"),
-		);
-		expect(within(userLink).getByText("12")).toBeInTheDocument();
-
-		const reviewerLink = screen.getByRole("link", {
-			name: /analistas ativos/i,
-		});
-		expect(reviewerLink).toHaveAttribute(
-			"href",
-			expect.stringContaining("role=reviewer"),
-		);
-		expect(reviewerLink).toHaveAttribute(
-			"href",
-			expect.stringContaining("status=active"),
-		);
-		expect(within(reviewerLink).getByText("02")).toBeInTheDocument();
-
-		const adminLink = screen.getByRole("link", { name: /gestores ativos/i });
-		expect(adminLink).toHaveAttribute(
-			"href",
-			expect.stringContaining("role=admin"),
-		);
-		expect(adminLink).toHaveAttribute(
-			"href",
-			expect.stringContaining("status=active"),
-		);
-		expect(within(adminLink).getByText("01")).toBeInTheDocument();
-
-		const inactiveLink = screen.getByRole("link", { name: /contas inativas/i });
-		expect(inactiveLink).toHaveAttribute(
-			"href",
-			expect.stringContaining("status=inactive"),
-		);
-		expect(within(inactiveLink).getByText("03")).toBeInTheDocument();
-
-		const mustChangePwdLink = screen.getByRole("link", {
-			name: /troca de senha pendente/i,
-		});
-		expect(mustChangePwdLink).toHaveAttribute(
-			"href",
-			expect.stringContaining("mustChangePassword=true"),
-		);
-		expect(within(mustChangePwdLink).getByText("04")).toBeInTheDocument();
-
-		const inactive30DaysLink = screen.getByRole("link", {
-			name: /sem acesso há mais de 30 dias/i,
-		});
-		expect(inactive30DaysLink).toHaveAttribute(
-			"href",
-			expect.stringContaining("status=active"),
-		);
-		expect(inactive30DaysLink).toHaveAttribute(
-			"href",
-			expect.stringContaining("inactiveDays=30"),
-		);
-		expect(within(inactive30DaysLink).getByText("05")).toBeInTheDocument();
+		expect(
+			within(users).getByRole("link", { name: "Contas inativas" }),
+		).toHaveAttribute("href", expect.stringContaining("status=inactive"));
 	});
 
-	it("renders queue indicators, reviewer load, and the shortcut to the projects under review", () => {
+	it("lists what needs action, each with the list that resolves it", () => {
 		renderPage();
 
-		const queueSection = screen.getByRole("region", {
-			name: /fila de análise/i,
-		});
-
-		// Shortcuts
-		const queueLink = within(queueSection).getByRole("link", {
-			name: /ver projetos em análise/i,
-		});
-		expect(queueLink).toHaveAttribute("href", "/projetos?status=UNDER_REVIEW");
-
+		const actions = screen.getByRole("region", { name: "Exige Ação" });
 		expect(
-			within(queueSection).queryByRole("link", { name: /distribuição/i }),
-		).not.toBeInTheDocument();
-
-		// Queue counts
-		expect(within(queueSection).getByText("04")).toBeInTheDocument(); // unassigned
-		expect(within(queueSection).getByText("02")).toBeInTheDocument(); // dueIn3Days
-		expect(
-			within(queueSection).getAllByText("01").length,
-		).toBeGreaterThanOrEqual(1); // overdue and Bruno's underReview
-
-		// Reviewers workload
-		expect(within(queueSection).getByText("Ana Silva")).toBeInTheDocument();
-		expect(within(queueSection).getByText("Bruno Antigo")).toBeInTheDocument();
-		expect(within(queueSection).getByText("Inativo")).toBeInTheDocument();
-	});
-
-	it("holds numbers only: the projects are listed in Projetos", () => {
-		renderPage();
-
-		expect(
-			screen.queryByRole("heading", { name: /projetos ativos/i }),
-		).not.toBeInTheDocument();
-		expect(screen.queryByRole("table")).not.toBeInTheDocument();
-		expect(
-			screen.getByRole("heading", { name: "Indicadores da Análise" }),
+			within(actions).getByText("04 projetos sem analista"),
 		).toBeInTheDocument();
 		expect(
-			screen.getByRole("button", { name: "Últimos 90 Dias" }),
+			within(actions).getByRole("link", { name: /Ver Projetos Sem Analista/ }),
+		).toHaveAttribute("href", "/projetos?status=UNDER_REVIEW&reviewer=none");
+		expect(
+			within(actions).getByText("04 trocas de senha pendentes"),
+		).toBeInTheDocument();
+		expect(
+			within(actions).getByText("05 contas sem acesso há mais de 30 dias"),
 		).toBeInTheDocument();
 	});
 
-	it("keeps the review indicators when the counters fail", () => {
+	it("leaves out what is already resolved", () => {
+		state.dashboardQuery = loadedQuery({
+			data: makeAdminDashboard({
+				users: {
+					activeByRole: { user: 1 },
+					inactive: 0,
+					mustChangePassword: 0,
+					withoutAccess30Days: 0,
+				},
+				queue: { unassigned: 0, dueIn3Days: 0, overdue: 0, byReviewer: [] },
+			}),
+		});
+		renderPage();
+
+		expect(
+			within(screen.getByRole("region", { name: "Exige Ação" })).getByText(
+				"Nada exige sua ação agora.",
+			),
+		).toBeInTheDocument();
+	});
+
+	it("offers to retry when the panel fails", () => {
 		state.dashboardQuery = { isError: true, refetch: vi.fn() };
 		renderPage();
 
 		expect(
-			screen.queryByRole("region", { name: /fila de análise/i }),
-		).not.toBeInTheDocument();
-		expect(
-			screen.getByRole("heading", { name: "Indicadores da Análise" }),
+			screen.getByText("Não foi possível carregar o painel"),
 		).toBeInTheDocument();
+		expect(screen.queryByRole("table")).not.toBeInTheDocument();
 	});
 });
