@@ -37,7 +37,7 @@ Motor sem linha na tabela (acima de 200 cv na Tabela 19 ou de 15 cv na 18) ou ta
 | 10 cv trifásico | 7,355 kW | 8,89 kW |
 | 15 cv trifásico | 11,03 kW | 12,82 kW |
 | 1 cv monofásico | 0,7355 kW | 1,14 kW |
-| Cobertura do `exemplo3()` (2 motores de 1 cv) | 35,871 kW | 36,50 kW |
+| Cobertura do `exemplo3()` (2 motores de 1 cv, condicionadores em BTU/h) | 35,871 kW | 36,10 kW |
 
 A demanda em kVA não muda em nenhum caso: a parcela `g` e as bombas em CV já usam a Tabela 18/19.
 
@@ -49,7 +49,9 @@ A hipótese mais provável é o condicionador de ar: a fixture informa 2 × 2,1 
 
 A conferência é a Fatia 0, no PDF, antes do código. A fixture e o teste citam a DIS-NOR-030, Exemplo 3, p. 52 a 55; a issue cita o Anexo I da DIS-NOR-053, item 1.4. A Fatia 0 confirma qual exemplo dá os 36,10 kW.
 
-**Resolvido na Fatia 0.** O exemplo é o da DIS-NOR-030 (p. 52 a 55), com os condicionadores em 2 × 1.900 W na carga e 2 × 2.100 VA na parcela `f`. O teste fica em 36,50 kW, e os 0,40 kW entram como divergência conhecida em `engine-calculo.md`. Separar W de VA no condicionador fica para outra issue.
+**Resolvido na Fatia 0.** O exemplo é o da DIS-NOR-030 (p. 52 a 55), com os condicionadores em 2 × 1.900 W na carga e 2 × 2.100 VA na parcela `f`.
+
+**Decisão revista: corrigido nesta issue (Fatia 6).** O condicionador passa a aceitar a capacidade em BTU/h (`PowerUnit.BTU_H`) e lê a Tabela 11, semeada aqui: o W entra na carga instalada por `LoadCategory.AIR_CONDITIONING.installedKw` e o VA na parcela `f`, pelo mesmo padrão dos motores. A fixture declara 2 × 14.000 BTU/h, e o Exemplo 3 chega aos 36,10 kW da norma com `f` em 4,20 kVA. Não há divergência conhecida.
 
 ## 2. Fatias
 
@@ -87,7 +89,7 @@ Cada fatia entra com os testes. Os unitários ficam em `src/test/java/br/com/amp
 
 ### Fatia 3: Memorial Cita a Tabela 19
 
-- `ResidentialGroup.individualDemand`: a linha do trifásico com motores diz a origem, por exemplo "Cobertura (trifásico, carga instalada de 36,50 kW, motores pela Tabela 19)".
+- `ResidentialGroup.individualDemand`: a linha do trifásico com motores diz a origem, por exemplo "Cobertura (trifásico, carga instalada de 36,10 kW, motores pela Tabela 19)".
 - `LoadCategory.MOTORS.demand`: nota por item com a potência absorvida, "Motor trifásico: 2 × 1,05 kW de carga instalada (Tabela 19)", ao lado da nota da linha seguinte que `motorKva` já escreve.
 - `MemorialPdfService.addConsumerUnits`: nota abaixo da tabela "Unidades Consumidoras" quando algum grupo tem motor, citando a Tabela 19 ou 18 da DIS-NOR-030, item 6.27.7, como origem da carga dos motores.
 - **Testes:** `IndividualDemandTest` com a nova linha do `Dind`; `SubmissionIntegrationTest`, que já gera o memorial, com o texto da nota lido do PDF; projeto sem motor não ganha a nota.
@@ -108,6 +110,17 @@ Cada fatia entra com os testes. Os unitários ficam em `src/test/java/br/com/amp
 - Conferência no app (seção 6).
 - **Pronto quando:** a documentação não cita mais a conversão de 0,7355 para motor e o checklist de back-end do `CONTRIBUTING.md` passa.
 
+### Fatia 6: Condicionadores pela Tabela 11
+
+- Semeadura do código ausente em banco existente e `CHECK` de `normative_table.code`: commit da #230 (`feat(back): seed the table codes missing from an existing database`), trazido por cherry-pick.
+- `NormativeTableCode.T11_AIR_CONDITIONERS` e `NormativeTableSeed.tabela11`, com W e VA guardados em kW e kVA.
+- `PowerUnit.BTU_H`, com `CHECK` de `power_unit` em `load_group_item` e `residential_group_load`. BTU/h fora da parcela `f` vira pendência Revisar.
+- `LoadCategory.AIR_CONDITIONING`: `installedKw` pelo W da Tabela 11; parcela `f` pelo VA, com nota da linha lida; acima de 60.000 BTU/h ou sem a tabela, Revisar. Em kW, o dado do fabricante, como antes.
+- `DemandFixtures.exemplo3()` e `ScenarioGroups.penthouseLoads` com 2 × 14.000 BTU/h.
+- Front: unidade BTU/h no seletor, só para condicionador (`powerUnitItemsFor`); a prévia da carga deixa o condicionador em BTU/h para o back.
+- **Testes:** Exemplo 3 em 36,10 kW, `f` em 4,20 kVA e demanda de 26,58 kVA; 14.000 BTU/h na linha de 15.000; 80.000 BTU/h em Revisar; BTU/h em motor em Revisar; testes do front para o seletor e a prévia.
+- **Pronto quando:** `./mvnw clean verify` e `pnpm validate && pnpm test && pnpm build` passam.
+
 ## 3. Arquivos
 
 **Back, código:** `domain/LoadCategory.java`, `domain/LoadItem.java`, `domain/ConsumerUnitGroup.java`, `domain/LoadGroup.java`, `domain/ResidentialGroup.java`, `domain/EvChargingGroup.java`, `domain/DemandEngine.java`, `domain/NormativeTables.java`, `domain/NormativeTableSet.java`, `domain/PowerUnit.java` (javadoc), `service/DemandCalculationService.java`, `service/ProjectDemandContexts.java` (novo), `service/ValidatedGroup.java` (novo), `service/GroupValidation.java`, `service/ConsumerUnitGroupService.java`, `service/DesignerDashboardService.java`, `service/CalculationWorkbook.java`, `service/SpreadsheetExportService.java`, `service/MemorialPdfService.java`, `controller/ConsumerUnitGroupController.java`, `dto/ConsumerUnitGroupResponse.java`.
@@ -116,7 +129,9 @@ Cada fatia entra com os testes. Os unitários ficam em `src/test/java/br/com/amp
 
 **Docs:** `docs/tecnico/engine-calculo.md`, `docs/tecnico/fontes-normativas.md`.
 
-**Sem mudança:** `NormativeTableSeed`, `NormativeTableCode`, `DataSeeder` e `EnumCheckConstraints` (a Tabela 19 já está semeada; o seed é da #230), o contrato da API e o banco.
+**Fatia 6:** `domain/NormativeTableCode.java`, `domain/PowerUnit.java`, `config/NormativeTableSeed.java`, `config/EnumCheckConstraints.java`, `config/DataSeeder.java` (commit da #230), `config/ScenarioGroups.java`; no front, `constants/consumer-unit-group.ts`, `GroupSheet/load-item.ts`, `GroupSheet/LoadItemsSection.tsx` e o schema de `powerUnit`.
+
+**Sem mudança:** o contrato da API além do valor novo `BTU_H` em `powerUnit`, e o banco além dos `CHECK` reescritos na subida.
 
 ## 4. Rascunhos com Cálculo Desatualizado
 
@@ -163,7 +178,7 @@ A #230 (carga mínima de iluminação e tomadas) cria uma pendência em `Residen
 
 ## 8. Riscos e Decisões em Aberto
 
-1. **Valor do Exemplo 3 (decidido: 36,50 kW).** Com a fixture atual, a Tabela 19 dá 36,50 kW, não 36,10 kW (seção 1). Recomendo a Fatia 0 decidir entre corrigir a fixture para a lista da norma, se a diferença for um dado transcrito errado, ou fixar o teste em 36,50 kW e registrar os 0,40 kW como divergência em `engine-calculo.md`, se a diferença for W contra VA do condicionador (Tabela 11, fora do escopo).
+1. **Valor do Exemplo 3 (decidido: 36,10 kW, pela Tabela 11 na Fatia 6).** Com a fixture atual, a Tabela 19 dá 36,50 kW, não 36,10 kW (seção 1). Recomendo a Fatia 0 decidir entre corrigir a fixture para a lista da norma, se a diferença for um dado transcrito errado, ou fixar o teste em 36,50 kW e registrar os 0,40 kW como divergência em `engine-calculo.md`, se a diferença for W contra VA do condicionador (Tabela 11, fora do escopo).
 2. **Motor declarado em kW.** A linha da tabela é escolhida pela potência convertida em CV, como na demanda, e a carga instalada passa a ser a absorvida da tabela (10 kW de placa entram como cerca de 12 kW). A alternativa é manter o kW declarado. Recomendo seguir a tabela: kW e kVA da mesma linha.
 3. **Bombas em CV ou HP.** O critério 7 já manda a bomba em CV para a tabela de motores no kVA. Recomendo a carga instalada seguir a mesma linha; a issue cita só motores.
 4. **Motor fora da tabela ou tabela não publicada.** Vira pendência Revisar no grupo, e a carga exibida cai na placa. A alternativa, `loadPerUnitKw` nulo, esconde o total da etapa. Recomendo a pendência com a placa na exibição.
