@@ -441,6 +441,24 @@ class ConsumerUnitGroupTest {
   }
 
   @Test
+  void withoutTabela11AnAirConditionerInBtuIsUnderReviewInsteadOfFailing() {
+    DemandContext empty =
+        new DemandContext(
+            new NormativeTableSet(List.of()), SupplyVoltage.V380_220, ConnectionType.THREE_PHASE);
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(PROJECT, commonArea(List.of(airConditioner(1, "14000"))));
+
+    assertThat(group.validate(empty))
+        .extracting(ValidationIssue::severity, ValidationIssue::field, ValidationIssue::message)
+        .containsExactly(
+            tuple(
+                IssueSeverity.REVIEW,
+                "items[0].power",
+                "A Tabela 11 da DIS-NOR-030 não está publicada: sem ela não há carga nem demanda de"
+                    + " \"Condicionador de ar\". Publique a tabela em Tabelas Normativas."));
+  }
+
+  @Test
   void aThreePhaseApartmentCrossesTheLowVoltageLimitByTabela19() {
     ConsumerUnitGroup group =
         GroupKind.RESIDENTIAL.create(
