@@ -24,10 +24,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
-/**
- * The submissions and decisions of the projects in scope, whole history included, read for the
- * period that starts on {@code firstDay} and ends today.
- */
+/** Submissions and decisions of the projects in scope, whole history included. */
 final class ReviewHistory {
 
   static final Set<ProjectEventType> TYPES =
@@ -111,7 +108,6 @@ final class ReviewHistory {
         .count();
   }
 
-  /** The version of each received project's last submission in the period. */
   Map<Long, Integer> lastSubmittedVersions() {
     Map<Long, Integer> versions = new LinkedHashMap<>();
     inPeriod().stream()
@@ -160,10 +156,7 @@ final class ReviewHistory {
     return average(days);
   }
 
-  /**
-   * A decision meets the deadline when the review days used up to it, the earlier cycles included,
-   * fit in {@link Project#REVIEW_PERIOD_DAYS}: a resubmission resumes the period where it stopped.
-   */
+  /** On time while the review days used, earlier cycles included, fit in the review period. */
   Deadlines deadlines() {
     long met = 0;
     long overdue = 0;
@@ -208,9 +201,7 @@ final class ReviewHistory {
         .toList();
   }
 
-  /**
-   * Every month the period touches, from the oldest; only the decisions inside the period count.
-   */
+  /** Only the decisions inside the period count, also in its first month. */
   List<Month> monthlyRejection() {
     Map<YearMonth, long[]> months = new LinkedHashMap<>();
     for (YearMonth month = YearMonth.from(firstDay);

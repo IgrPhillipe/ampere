@@ -116,11 +116,7 @@ interface ReviewPeriodIndicatorsProps {
 	period: DashboardPeriod;
 }
 
-/**
- * US17: the review indicators of the period, below what the panel shows for today. The back
- * scopes them: the analyst's assigned projects, or the whole team for the admin. A failure here
- * leaves the rest of the panel in place.
- */
+/** US17: fails on its own, so the rest of the panel stays. */
 export const ReviewPeriodIndicators = ({
 	period,
 }: ReviewPeriodIndicatorsProps) => {
