@@ -171,7 +171,7 @@ A #230 (carga mínima de iluminação e tomadas) cria uma pendência em `Residen
 - **Domínio:** `validate(DemandContext)` e `status(DemandContext)` em `ConsumerUnitGroup` e subclasses; a #230 lê `context.tables()`. `NormativeTables.contains(NormativeTableCode)` nos dois planos.
 - **Service:** `ProjectDemandContexts.contextFor(Project)`, `GroupValidation.of(groups, context)` e `ValidatedGroup` na fronteira com o controller. A proposta da #230 (`validate(NormativeTables)`, `ProjectTables`) sai.
 - **Ordem:** a #229 entra primeiro e é dona do encanamento. **A #230 depende da Fatia 2 da #229 mesclada na `main`** e só acrescenta a regra da Tabela 5.
-- **Seed:** esta issue não toca `NormativeTableSeed`, `NormativeTableCode`, `DataSeeder` nem `EnumCheckConstraints`; a Tabela 5 e o resto do seed são da #230.
+- **Seed:** a semeadura do código ausente e o `CHECK` de `normative_table.code` são da #230 (commit trazido por cherry-pick); a #229 semeia só a Tabela 11 sobre eles, e a #230 a Tabela 5.
 - **`sameInput`:** a chave `motorInstalledLoad` desta issue e o descarte de campos nulos da #230 convivem (seção 4).
 - **Valores esperados:** a #229 fixa a carga instalada nova de `DemandFixtures.exemplo3()`, de `ScenarioGroups.penthouseLoads` e do cenário `2026-2047` de `DemoScenarios`. A #230, que entra depois, só acrescenta cômodos e atualiza os números se mudarem.
 - **Conflito de arquivo** que sobra: `ResidentialGroup.validate`, `ConsumerUnitGroupTest` e as fixtures de apartamento trifásico, resolvidos pela ordem acima.
