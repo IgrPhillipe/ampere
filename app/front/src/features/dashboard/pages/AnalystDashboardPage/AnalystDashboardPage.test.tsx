@@ -215,6 +215,41 @@ describe("AnalystDashboardPage", () => {
 		).not.toBeInTheDocument();
 	});
 
+	it("lists only the months with decisions in the rejection rate", () => {
+		state.reviewQuery = loadedQuery({
+			data: reviewDashboardOf({
+				monthlyRejection: [
+					{ month: "2026-09", rejectionPercent: null },
+					{ month: "2026-10", rejectionPercent: 25 },
+				],
+			}),
+		});
+		renderPage();
+
+		const rate = screen.getByRole("region", { name: /Taxa de Reprovação/ });
+		expect(
+			within(rate).queryByText("Setembro de 2026"),
+		).not.toBeInTheDocument();
+		expect(
+			within(rate).getByText("Outubro de 2026").nextSibling,
+		).toHaveTextContent("25%");
+	});
+
+	it("explains a period without decisions in the rejection rate", () => {
+		state.reviewQuery = loadedQuery({
+			data: reviewDashboardOf({
+				monthlyRejection: [{ month: "2026-10", rejectionPercent: null }],
+			}),
+		});
+		renderPage();
+
+		expect(
+			within(
+				screen.getByRole("region", { name: /Taxa de Reprovação/ }),
+			).getByText("Nenhuma decisão no período."),
+		).toBeInTheDocument();
+	});
+
 	it("asks the indicators for the period picked", () => {
 		renderPage("?period=CURRENT_YEAR");
 

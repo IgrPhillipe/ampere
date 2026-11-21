@@ -69,14 +69,17 @@ const timeItems = (dashboard: ReviewDashboard): IndicatorListItem[] =>
 		: [];
 
 const monthlyItems = (dashboard: ReviewDashboard): IndicatorListItem[] =>
-	dashboard.monthlyRejection.map(({ month, rejectionPercent }) => ({
-		key: month,
-		label: capitalize(dayjs(`${month}-01`).format("MMMM [de] YYYY")),
-		value:
-			rejectionPercent === null
-				? "Sem decisão"
-				: formatPercent(rejectionPercent),
-	}));
+	dashboard.monthlyRejection.flatMap(({ month, rejectionPercent }) =>
+		rejectionPercent === null
+			? []
+			: [
+					{
+						key: month,
+						label: capitalize(dayjs(`${month}-01`).format("MMMM [de] YYYY")),
+						value: formatPercent(rejectionPercent),
+					},
+				],
+	);
 
 const categoryItems = (dashboard: ReviewDashboard): IndicatorListItem[] =>
 	dashboard.alertsByCategory.map(({ category, alerts, projects }) => ({
