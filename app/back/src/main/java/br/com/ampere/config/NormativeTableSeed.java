@@ -91,6 +91,7 @@ public final class NormativeTableSeed {
             .range(5, 6, "0.60")
             .above(6, "0.50")
             .build(standardsByName),
+        tabela11().build(standardsByName),
         tabela12().build(standardsByName),
         table(NormativeTableCode.T13_EV_INDIVIDUAL_STATIONS)
             .range(1, 10, "1.00")
@@ -222,6 +223,21 @@ public final class NormativeTableSeed {
     return tabela;
   }
 
+  /** Printed in VA and W; kept in kVA and kW like the motor tables. */
+  private static Builder tabela11() {
+    return table(NormativeTableCode.T11_AIR_CONDITIONERS)
+        .airConditioner("7500", "7.500", "0.90", "1.10")
+        .airConditioner("9000", "9.000", "1.30", "1.55")
+        .airConditioner("10000", "10.000", "1.40", "1.65")
+        .airConditioner("12000", "12.000", "1.60", "1.90")
+        .airConditioner("15000", "15.000", "1.90", "2.10")
+        .airConditioner("18000", "18.000", "2.60", "2.86")
+        .airConditioner("21000", "21.000", "2.80", "3.08")
+        .airConditioner("30000", "30.000", "3.80", "4.00")
+        .airConditioner("41000", "41.000", "5.00", "5.50")
+        .airConditioner("60000", "60.000", "7.50", "9.00");
+  }
+
   private static Builder tabela18() {
     return table(NormativeTableCode.T18_SINGLE_PHASE_MOTORS)
         .motor("0.25", "¼", "0.42", "0.66")
@@ -342,6 +358,10 @@ public final class NormativeTableSeed {
 
     Builder motor(String cv, String printed, String kw, String kva) {
       return row(null, cv, cv, kw, kva, null, printed + " cv");
+    }
+
+    Builder airConditioner(String btu, String printed, String kw, String kva) {
+      return row(null, btu, btu, kw, kva, null, printed + " BTU/h");
     }
 
     NormativeTable build(Map<String, Standard> standardsByName) {
