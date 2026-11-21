@@ -144,7 +144,7 @@ D = a + b + c + d + e + f + g + h + i   [kVA]
 
 ### Carga Mínima do Apartamento: Tabela 5
 
-DIS-NOR-030, item 6.26.1.1, p. 46, aplicado ao residencial trifásico pelo item 6.27.1.1:
+DIS-NOR-030, item 6.26.1.1, p. 45/142, aplicado ao residencial trifásico pelo item 6.27.1.1 (p. 48/142):
 
 - **Tomadas:** no mínimo as da Tabela 5, pela área construída. Acima de 250 m², o interessado declara o número de tomadas, com 100 W por tomada.
 - **Iluminação:** no mínimo um ponto de luz por cômodo ou corredor, com 100 W por ponto. Para outros tipos de iluminação, vale a potência nominal.
@@ -169,11 +169,13 @@ DIS-NOR-030, item 6.26.1.1, p. 46, aplicado ao residencial trifásico pelo item 
 
 Notas da tabela: tomadas declaradas acima da tabela prevalecem; acima de 250 m², o interessado declara a quantidade de tomadas do projeto.
 
-**Leituras.** A imagem da página 65/142 e a extração `pdftotext -layout` do arquivo com o SHA-256 abaixo conferem valor a valor. A extração perde o sublinhado do "≤" e mostra "<"; vale a imagem.
+**Leituras.** Primeira leitura pela imagem da página 65/142, conferida com a extração `pdftotext -layout`, que perde o sublinhado do "≤" e mostra "<"; vale a imagem. Segunda leitura independente pela imagem da mesma página, na revisão da #230: as 13 faixas e as seis colunas conferem com a tabela acima e com `NormativeTableSeed`, e o Total I + II de cada linha fecha com 100 W por tomada e 600 W por tomada da cozinha. Arquivo com o SHA-256 registrado em "Procedimento".
 
 **Exemplo 3** (p. 52 e 53): residência de 180 m² com 12 cômodos. Tomadas pela Tabela 5: 12 × 100 W + 3 × 600 W = 3.000 W. Iluminação: 12 × 100 W = 1.200 W.
 
-> **Referência trocada.** O item 6.26.1.1 manda considerar a carga mínima de tomadas da cozinha "conforme indicado na Tabela 6". A Tabela 6 traz fatores de demanda; as tomadas de 600 W da cozinha estão nas colunas da Tabela 5, e é ela que o Exemplo 3 usa. **Vale a Tabela 5.**
+> **Referência trocada no 6.27.1.1.** O item pede a "carga instalada mínima, conforme item 6.25.7". O 6.25.7 trata das proteções da estação de recarga; a carga mínima de iluminação e tomadas é a do 6.26.1.1, o item da carga instalada residencial. **Vale o 6.26.1.1.**
+
+> **Referência trocada no 6.26.1.1.** O item 6.26.1.1 manda considerar a carga mínima de tomadas da cozinha "conforme indicado na Tabela 6". A Tabela 6 traz fatores de demanda; as tomadas de 600 W da cozinha estão nas colunas da Tabela 5, e é ela que o Exemplo 3 usa. **Vale a Tabela 5.**
 
 ### Conflito entre as Duas Normas: Qual Tabela de Recarga Veicular Vale
 
