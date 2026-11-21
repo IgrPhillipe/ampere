@@ -82,6 +82,8 @@ export const reviewQueueItemSchema = z.object({
 	deadline: z.iso.date().nullable(),
 	deadlineStatus: deadlineStatusSchema.nullable(),
 	daysRemaining: z.number().int(),
+	elapsedDays: z.number().int().nonnegative(),
+	suspendedDays: z.number().int().nonnegative(),
 	warnings: z.number().int().nonnegative(),
 	alerts: z.array(z.string()),
 	ownerId: z.string().nullable(),

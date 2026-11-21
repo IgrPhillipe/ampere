@@ -1,6 +1,7 @@
 import {
 	DeadlineStatusBadge,
 	describeDeadline,
+	formatDays,
 } from "@components/DeadlineStatusBadge";
 import { Skeleton } from "@components/ui/skeleton";
 import {
@@ -11,6 +12,7 @@ import {
 } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { ProjectDetail } from "@services/projects";
+import type { DeadlineStatus } from "@services/review-queue";
 import type { ReactNode } from "react";
 
 import {
@@ -55,6 +57,12 @@ const StripCell = ({
 const StripDate = ({ value }: { value: string }) => (
 	<time dateTime={value}>{formatDate(value)}</time>
 );
+
+const statusOfFrozenDeadline = (daysRemaining: number): DeadlineStatus => {
+	if (daysRemaining < 0) return "OVERDUE";
+	if (daysRemaining === 0) return "DUE_TODAY";
+	return "ON_TIME";
+};
 
 export interface HeaderMetric {
 	label: string;
@@ -135,6 +143,11 @@ export const ProjectDetailHeader = ({
 		? `${project.technicalResponsible.name}, CREA ${project.technicalResponsible.crea}`
 		: undefined;
 	const milestone = project ? milestoneOf(project, reviewing) : undefined;
+	const suspendedReview =
+		project?.status === "REJECTED" && project.reviewSuspended;
+	// The review clock only matters while the project is still in the cycle.
+	const reviewClock =
+		project?.status === "UNDER_REVIEW" || project?.status === "REJECTED";
 
 	return (
 		<header className={cn("flex flex-col border-b border-border", className)}>
@@ -207,6 +220,43 @@ export const ProjectDetailHeader = ({
 							{project.reviewerName ?? "Aguardando atribuição"}
 						</StripCell>
 					</>
+				) : null}
+
+				{suspendedReview ? (
+					<StripCell isLoading={isLoading} label="Prazo suspenso">
+						{project.daysRemaining == null
+							? "Prazo indisponível"
+							: describeDeadline(
+									statusOfFrozenDeadline(project.daysRemaining),
+									project.daysRemaining,
+									{ withRemaining: true },
+								)}
+					</StripCell>
+				) : null}
+
+				{reviewClock && project.elapsedDays != null ? (
+					<StripCell isLoading={isLoading} label="Dias corridos">
+						{formatDays(project.elapsedDays)}
+					</StripCell>
+				) : null}
+
+				{reviewClock && project.suspendedDays != null ? (
+					<StripCell isLoading={isLoading} label="Dias suspensos">
+						{formatDays(project.suspendedDays)}
+					</StripCell>
+				) : null}
+
+				{project &&
+				wasApproved(project.status) &&
+				project.approvalValidUntil ? (
+					<StripCell
+						isLoading={isLoading}
+						label={
+							project.status === "EXPIRED" ? "Validade encerrada" : "Válido até"
+						}
+					>
+						<StripDate value={project.approvalValidUntil} />
+					</StripCell>
 				) : null}
 
 				<StripCell
