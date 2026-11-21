@@ -264,16 +264,16 @@ class ReviewDashboardIntegrationTest {
 
   @Test
   void theFiveMunicipalitiesWithMoreReceivedProjectsTieByName() throws Exception {
-    Stream.of("Recife", "Recife", "Recife", "Olinda", "Paulista", "Caruaru", "Jaboatão")
+    Stream.of("Recife", "Recife", "Recife", "Olinda", "Caruaru", "Jaboatão", "Água Preta")
         .forEach(municipality -> located(municipality, BrazilianState.PE));
     located("João Pessoa", BrazilianState.PB);
 
     as(ADMIN, get("/dashboard/review"))
         .andExpect(
             jsonPath("$.data.municipalities[*].municipality")
-                .value(contains("Recife", "Caruaru", "Jaboatão", "João Pessoa", "Olinda")))
+                .value(contains("Recife", "Água Preta", "Caruaru", "Jaboatão", "João Pessoa")))
         .andExpect(jsonPath("$.data.municipalities[0].total").value(3))
-        .andExpect(jsonPath("$.data.municipalities[3].state").value("PB"));
+        .andExpect(jsonPath("$.data.municipalities[4].state").value("PB"));
   }
 
   @Test

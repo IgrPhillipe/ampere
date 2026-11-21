@@ -21,6 +21,7 @@ import br.com.ampere.service.ReviewDashboard.MunicipalityTotal;
 import br.com.ampere.service.ReviewDashboard.ProjectReference;
 import br.com.ampere.service.ReviewDashboard.RepeatedRejection;
 import br.com.ampere.service.ReviewDashboard.Totals;
+import java.text.Collator;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -29,6 +30,7 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -194,7 +196,9 @@ public class ReviewDashboardService {
         .sorted(
             Comparator.<Map.Entry<Place, Long>>comparingLong(Map.Entry::getValue)
                 .reversed()
-                .thenComparing(entry -> entry.getKey().municipality())
+                .thenComparing(
+                    entry -> entry.getKey().municipality(),
+                    Collator.getInstance(Locale.forLanguageTag("pt-BR")))
                 .thenComparing(entry -> entry.getKey().state()))
         .limit(MUNICIPALITIES_SIZE)
         .map(
