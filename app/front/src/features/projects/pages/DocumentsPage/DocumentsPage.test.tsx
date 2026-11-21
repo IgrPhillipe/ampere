@@ -196,7 +196,7 @@ describe("DocumentsPage", () => {
 
 			const dialog = await screen.findByRole("dialog", prompt);
 			expect(
-				within(dialog).getByRole("textbox", { name: /Resposta/ }),
+				within(dialog).getByRole("textbox", { name: /Observação/ }),
 			).toHaveValue("Substituí o documento ART.");
 
 			fireEvent.click(

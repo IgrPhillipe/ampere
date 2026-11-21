@@ -610,7 +610,9 @@ describe("ConsumerUnitsPage", () => {
 			expect(
 				within(dialog).getByText("Informe as cargas da administração."),
 			).toBeInTheDocument();
-			const answer = within(dialog).getByRole("textbox", { name: /Resposta/ });
+			const answer = within(dialog).getByRole("textbox", {
+				name: /Observação/,
+			});
 			expect(answer).toHaveValue("Corrigi o grupo Administração.");
 
 			fireEvent.change(answer, {
@@ -697,7 +699,7 @@ describe("ConsumerUnitsPage", () => {
 				).toBeInTheDocument();
 			});
 			expect(
-				within(dialog).getByRole("textbox", { name: /Resposta/ }),
+				within(dialog).getByRole("textbox", { name: /Observação/ }),
 			).toHaveValue("Corrigi o grupo Administração.");
 		});
 

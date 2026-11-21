@@ -130,8 +130,8 @@ export const FixFindingPrompt = ({
 						<ControlledTextarea
 							control={form.control}
 							name="response"
-							label="Resposta"
-							description="Opcional. Informe ao analista o que foi corrigido."
+							label="Observação"
+							description="Opcional. Informe onde a correção foi realizada."
 							maxLength={2000}
 						/>
 
