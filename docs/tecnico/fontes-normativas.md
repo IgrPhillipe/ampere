@@ -142,6 +142,39 @@ D = a + b + c + d + e + f + g + h + i   [kVA]
 
 > **Divergência dentro da própria norma.** O item 6.27 apresenta a fórmula com nove parcelas, de `a` a `i`, mas o item 6.27.10 define uma décima parcela `j`, estação de recarga de veículos elétricos, ausente do somatório. Na 053 a recarga é termo próprio (`Dve`). **A parcela `j` fica fora da soma das nove**; somar as duas conta a recarga duas vezes.
 
+### Carga Mínima do Apartamento: Tabela 5
+
+DIS-NOR-030, item 6.26.1.1, p. 46, aplicado ao residencial trifásico pelo item 6.27.1.1:
+
+- **Tomadas:** no mínimo as da Tabela 5, pela área construída. Acima de 250 m², o interessado declara o número de tomadas, com 100 W por tomada.
+- **Iluminação:** no mínimo um ponto de luz por cômodo ou corredor, com 100 W por ponto. Para outros tipos de iluminação, vale a potência nominal.
+
+**Tabela 5, Número Mínimo de Tomadas em Função da Área Construída** (Anexo II, p. 65/142). As faixas fecham em cima. O mínimo de tomadas é o Total I + II.
+
+| Área total (m²) | Tomadas de 100 W | Subtotal I (W) | Tomadas da cozinha (600 W) | Subtotal II (W) | Total I + II (W) |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| S ≤ 8 | 1 | 100 | 1 | 600 | 700 |
+| 8 < S ≤ 15 | 3 | 300 | 1 | 600 | 900 |
+| 15 < S ≤ 20 | 4 | 400 | 2 | 1.200 | 1.600 |
+| 20 < S ≤ 30 | 5 | 500 | 2 | 1.200 | 1.700 |
+| 30 < S ≤ 50 | 6 | 600 | 3 | 1.800 | 2.400 |
+| 50 < S ≤ 70 | 7 | 700 | 3 | 1.800 | 2.500 |
+| 70 < S ≤ 90 | 8 | 800 | 3 | 1.800 | 2.600 |
+| 90 < S ≤ 110 | 9 | 900 | 3 | 1.800 | 2.700 |
+| 110 < S ≤ 140 | 10 | 1.000 | 3 | 1.800 | 2.800 |
+| 140 < S ≤ 170 | 11 | 1.100 | 3 | 1.800 | 2.900 |
+| 170 < S ≤ 200 | 12 | 1.200 | 3 | 1.800 | 3.000 |
+| 200 < S ≤ 220 | 13 | 1.300 | 3 | 1.800 | 3.100 |
+| 220 < S ≤ 250 | 14 | 1.400 | 3 | 1.800 | 3.200 |
+
+Notas da tabela: tomadas declaradas acima da tabela prevalecem; acima de 250 m², o interessado declara a quantidade de tomadas do projeto.
+
+**Leituras.** A imagem da página 65/142 e a extração `pdftotext -layout` do arquivo com o SHA-256 abaixo conferem valor a valor. A extração perde o sublinhado do "≤" e mostra "<"; vale a imagem.
+
+**Exemplo 3** (p. 52 e 53): residência de 180 m² com 12 cômodos. Tomadas pela Tabela 5: 12 × 100 W + 3 × 600 W = 3.000 W. Iluminação: 12 × 100 W = 1.200 W.
+
+> **Referência trocada.** O item 6.26.1.1 manda considerar a carga mínima de tomadas da cozinha "conforme indicado na Tabela 6". A Tabela 6 traz fatores de demanda; as tomadas de 600 W da cozinha estão nas colunas da Tabela 5, e é ela que o Exemplo 3 usa. **Vale a Tabela 5.**
+
 ### Conflito entre as Duas Normas: Qual Tabela de Recarga Veicular Vale
 
 As duas normas trazem fator de demanda por quantidade de estações de recarga, **com valores diferentes**:
@@ -235,6 +268,7 @@ Todas versionadas por revisão de norma, nunca como constante no código:
 | Quadro 37 | 053 | Fator de segurança por faixa de demanda residencial |
 | Quadro 33 | 053 | Fator de demanda do agrupamento de estações de recarga |
 | Tabelas 1 e 2 | 053 | Mínimo por tensão e dimensionamento de ramal e proteção |
+| Tabela 5 | 030 | Número mínimo de tomadas por faixa de área construída |
 | Tabelas 6 e 22 | 030 | Fator de demanda de iluminação e tomadas |
 | Tabelas 7, 8, 9 | 030 | Fator de demanda de aquecimento, lavagem e cocção |
 | Tabelas 11 e 12 | 030 | Potência e fator de demanda de condicionadores de ar |
