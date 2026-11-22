@@ -84,6 +84,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -771,6 +772,39 @@ class ProjectVersionIntegrationTest {
             jsonPath(tabela11 + ".label").value("Tabela 11 da DIS-NOR-030, Condicionadores de ar"))
         .andExpect(jsonPath(tabela11 + ".fromLabel").value(contains(nullValue())))
         .andExpect(jsonPath(tabela11 + ".toLabel").value("Aplicada"));
+  }
+
+  @Test
+  void aFieldAbsentFromAnOlderVersionIsNotAChange() throws Exception {
+    Project project = draft("2026-4023");
+    submitCalculated(project);
+    Long calculationId =
+        versionRepository
+            .findByProjectIdAndNumber(project.getId(), 1)
+            .orElseThrow()
+            .getCalculation()
+            .getId();
+    new TransactionTemplate(transactionManager)
+        .executeWithoutResult(
+            status -> {
+              Calculation calculation = calculationRepository.findById(calculationId).orElseThrow();
+              ObjectNode snapshot =
+                  (ObjectNode) objectMapper.readTree(calculation.getInputSnapshot());
+              snapshot
+                  .path("groups")
+                  .forEach(group -> ((ObjectNode) group.path("spec")).remove("rooms"));
+              entityManager
+                  .createNativeQuery(
+                      "UPDATE calculation SET input_snapshot = :snapshot WHERE id = :id")
+                  .setParameter("snapshot", objectMapper.writeValueAsString(snapshot))
+                  .setParameter("id", calculationId)
+                  .executeUpdate();
+            });
+
+    resubmit(project, "Sem alteração nos grupos.");
+
+    perform(get(versionsOf(project) + "/compare?from=1&to=2"))
+        .andExpect(jsonPath("$.data.changed", hasSize(0)));
   }
 
   @Test

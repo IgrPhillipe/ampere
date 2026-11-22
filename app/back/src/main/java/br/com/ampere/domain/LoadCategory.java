@@ -17,20 +17,24 @@ import java.util.stream.Collectors;
  */
 public enum LoadCategory {
   LIGHTING_AND_OUTLETS("a", "Iluminação e tomadas") {
-    /** Lighting and outlets take different factors (6.27.1.2), so each item says which it is. */
+    /** Lighting or outlets: different factors (6.27.1.2), or minimums in a residence (6.26.1.1). */
     @Override
     List<ValidationIssue> issues(
         LoadItem item, String path, LoadOccupancy usage, DemandContext context) {
-      if (!usage.residential() && item.getLampTechnology() == null) {
-        return List.of(
-            ValidationIssue.missing(
-                path + ".lampTechnology",
-                "Informe se \""
-                    + item.getDescription()
-                    + "\" é iluminação, e com que lâmpadas, ou tomadas de uso geral. Isso define os"
-                    + " fatores de potência e de demanda."));
+      if (item.getLampTechnology() != null) {
+        return List.of();
       }
-      return List.of();
+      String reason =
+          usage.residential()
+              ? "A carga mínima de cada uma é conferida em separado (DIS-NOR-030, item 6.26.1.1)."
+              : "Isso define os fatores de potência e de demanda.";
+      return List.of(
+          ValidationIssue.missing(
+              path + ".lampTechnology",
+              "Informe se \""
+                  + item.getDescription()
+                  + "\" é iluminação, e com que lâmpadas, ou tomadas de uso geral. "
+                  + reason));
     }
 
     @Override

@@ -94,8 +94,7 @@ class NormativeTableServiceIntegrationTest {
         .isNotEmpty()
         .allSatisfy(
             table -> assertThat(table.getCode().standard()).isEqualTo(StandardName.DIS_NOR_030));
-    assertThat(tables.get(0).getCode())
-        .isEqualTo(NormativeTableCode.T6_RESIDENTIAL_LIGHTING_OUTLETS);
+    assertThat(tables.get(0).getCode()).isEqualTo(NormativeTableCode.T5_MINIMUM_OUTLETS);
   }
 
   @Test

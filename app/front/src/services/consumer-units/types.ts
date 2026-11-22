@@ -24,6 +24,8 @@ export interface ConsumerUnitGroupPayload {
 	quantity: number;
 	usefulArea?: number | null;
 	bedrooms?: number | null;
+	/** Rooms and corridors of a three-phase apartment (DIS-NOR-030 item 6.26.1.1). */
+	rooms?: number | null;
 	unitLoadKw?: number | null;
 	compactUnit?: boolean | null;
 	connectionType?: UnitConnectionType | null;

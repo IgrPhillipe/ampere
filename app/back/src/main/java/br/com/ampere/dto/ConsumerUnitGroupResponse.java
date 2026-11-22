@@ -10,6 +10,7 @@ import br.com.ampere.domain.GroupStatus;
 import br.com.ampere.domain.LoadUsage;
 import br.com.ampere.service.ValidatedGroup;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -35,7 +36,8 @@ public record ConsumerUnitGroupResponse(
     BigDecimal powerPerPointKw,
     Boolean incorporatedInVehicle,
     Boolean loadManagement,
-    EvStationType stationType) {
+    EvStationType stationType,
+    @Schema(description = "Cômodos e corredores do apartamento trifásico") Integer rooms) {
 
   public static ConsumerUnitGroupResponse from(ValidatedGroup validated) {
     ConsumerUnitGroup group = validated.group();
@@ -63,7 +65,8 @@ public record ConsumerUnitGroupResponse(
         spec.powerPerPointKw(),
         spec.incorporatedInVehicle(),
         spec.loadManagement(),
-        spec.stationType());
+        spec.stationType(),
+        spec.rooms());
   }
 
   /** The residential group answers its items as loads, as the request sends them. */

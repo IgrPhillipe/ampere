@@ -19,6 +19,9 @@ public final class NormativeTableSeed {
   public static final String REGISTERED_BY = "admin@ampere.com";
   public static final String VERIFIED_BY = "conferente@ampere.com";
 
+  private static final int GENERAL_OUTLET_W = 100;
+  private static final int KITCHEN_OUTLET_W = 600;
+
   private NormativeTableSeed() {}
 
   public static List<NormativeTable> all(Map<String, Standard> standardsByName) {
@@ -65,6 +68,7 @@ public final class NormativeTableSeed {
             .entrance(211, 263, 2, 150, 400)
             .entrance(263, 300, 2, 185, 450)
             .build(standardsByName),
+        tabela5().build(standardsByName),
         table(NormativeTableCode.T6_RESIDENTIAL_LIGHTING_OUTLETS)
             .labelled(null, "1", "0.86", "C ≤ 1")
             .labelled("1", "2", "0.75", "1 < C ≤ 2")
@@ -255,6 +259,24 @@ public final class NormativeTableSeed {
         .motor("15", "15", "13.72", "16.94");
   }
 
+  /** Above 250 m² the table has no row: the designer declares the outlets (item 6.26.1.1). */
+  private static Builder tabela5() {
+    return table(NormativeTableCode.T5_MINIMUM_OUTLETS)
+        .outlets(null, "8", 1, 1)
+        .outlets("8", "15", 3, 1)
+        .outlets("15", "20", 4, 2)
+        .outlets("20", "30", 5, 2)
+        .outlets("30", "50", 6, 3)
+        .outlets("50", "70", 7, 3)
+        .outlets("70", "90", 8, 3)
+        .outlets("90", "110", 9, 3)
+        .outlets("110", "140", 10, 3)
+        .outlets("140", "170", 11, 3)
+        .outlets("170", "200", 12, 3)
+        .outlets("200", "220", 13, 3)
+        .outlets("220", "250", 14, 3);
+  }
+
   private static Builder tabela19() {
     return table(NormativeTableCode.T19_THREE_PHASE_MOTORS)
         .motor("0.3333", "⅓", "0.39", "0.65")
@@ -354,6 +376,18 @@ public final class NormativeTableSeed {
           String.valueOf(cableMm2),
           String.valueOf(breakerAmps),
           lower + " < De ≤ " + upper);
+    }
+
+    /** Tabela 5: total in W, then the 100 W outlets and the 600 W kitchen ones. */
+    Builder outlets(String lower, String upper, int general, int kitchen) {
+      return row(
+          null,
+          lower,
+          upper,
+          String.valueOf(general * GENERAL_OUTLET_W + kitchen * KITCHEN_OUTLET_W),
+          String.valueOf(general),
+          String.valueOf(kitchen),
+          (lower == null ? "" : lower + " < ") + "S ≤ " + upper);
     }
 
     Builder motor(String cv, String printed, String kw, String kva) {

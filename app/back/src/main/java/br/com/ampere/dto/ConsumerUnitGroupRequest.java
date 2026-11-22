@@ -4,6 +4,7 @@ import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.LoadUsage;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -39,4 +40,11 @@ public record ConsumerUnitGroupRequest(
     @Positive(message = "A potência por ponto deve ser maior que zero.") BigDecimal powerPerPointKw,
     Boolean incorporatedInVehicle,
     Boolean loadManagement,
-    EvStationType stationType) {}
+    EvStationType stationType,
+    @Schema(
+            description =
+                "Cômodos e corredores do apartamento trifásico; definem a carga mínima de"
+                    + " iluminação (DIS-NOR-030, item 6.26.1.1)")
+        @Min(value = 1, message = "O número de cômodos e corredores deve ser no mínimo {value}.")
+        @Max(value = 50, message = "O número de cômodos e corredores deve ser no máximo {value}.")
+        Integer rooms) {}

@@ -188,8 +188,23 @@ public class DemandCalculationService {
   private boolean sameInput(Calculation calculation, List<ConsumerUnitGroup> groups) {
     ObjectNode recorded = (ObjectNode) objectMapper.readTree(calculation.getInputSnapshot());
     recorded.remove(TABLE_IDS);
-    return recorded.equals(
-        SAME_VALUE, objectMapper.valueToTree(input(calculation.getProject(), groups)));
+    return withoutNulls(recorded)
+        .equals(
+            SAME_VALUE,
+            withoutNulls(objectMapper.valueToTree(input(calculation.getProject(), groups))));
+  }
+
+  /** A field added after a run is absent from its snapshot and null in the current input. */
+  private static JsonNode withoutNulls(JsonNode node) {
+    if (node instanceof ObjectNode object) {
+      object.properties().stream()
+          .filter(field -> field.getValue().isNull())
+          .map(Map.Entry::getKey)
+          .toList()
+          .forEach(object::remove);
+    }
+    node.forEach(DemandCalculationService::withoutNulls);
+    return node;
   }
 
   private static final Comparator<JsonNode> SAME_VALUE =

@@ -2,6 +2,7 @@ package br.com.ampere.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -23,6 +24,8 @@ import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -53,6 +56,10 @@ class ConsumerUnitGroupApiIntegrationTest {
       { "kind": "RESIDENTIAL", "name": "Cobertura", "quantity": 2, "usefulArea": 180,
         "connectionType": "THREE_PHASE",
         "loads": [
+          { "category": "LIGHTING_AND_OUTLETS", "description": "Tomadas", "quantity": 1,
+            "power": 3, "powerUnit": "KW", "lampTechnology": "GENERAL_OUTLETS" },
+          { "category": "LIGHTING_AND_OUTLETS", "description": "Iluminação", "quantity": 1,
+            "power": 1.2, "powerUnit": "KW", "lampTechnology": "COMPACT_FLUORESCENT_LED" },
           { "category": "INSTANT_HEATING", "description": "Chuveiro", "quantity": 4,
             "power": 4, "powerUnit": "KW" }
         ] }
@@ -163,6 +170,66 @@ class ConsumerUnitGroupApiIntegrationTest {
     ResidentialGroup group = (ResidentialGroup) groupRepository.findById(Long.valueOf(id)).get();
     assertThat(group.getLoads()).isEmpty();
     assertThat(group.getUnitLoadKw(contexts.contextFor(project))).isEqualByComparingTo("12");
+  }
+
+  @Test
+  void aThreePhaseApartmentWaitsForItsRoomsAndKeepsThem() throws Exception {
+    perform(post(groups()), THREE_PHASE)
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.status").value("MISSING_DATA"))
+        .andExpect(
+            jsonPath("$.data.issues[?(@.field == 'rooms')].message")
+                .value(
+                    "Informe o número de cômodos e corredores. Ele define a carga mínima de iluminação"
+                        + " do apartamento (DIS-NOR-030, item 6.26.1.1)."));
+    String id = create(THREE_PHASE);
+
+    perform(put(groups() + "/" + id), withRooms(THREE_PHASE, 12))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.rooms").value(12))
+        .andExpect(jsonPath("$.data.issues[?(@.field == 'rooms')]").isEmpty());
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {0, 51})
+  void refusesRoomsOutOfRange(int rooms) throws Exception {
+    perform(post(groups()), withRooms(THREE_PHASE, rooms))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errors[0].field").value("rooms"));
+  }
+
+  @Test
+  void aSinglePhaseApartmentDropsTheRooms() throws Exception {
+    perform(post(groups()), withRooms(SINGLE_PHASE, 6))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.status").value("VALIDATED"))
+        .andExpect(jsonPath("$.data.rooms").doesNotExist());
+  }
+
+  @Test
+  void lightingBelowTheRoomsHoldsTheCalculationUntilCorrected() throws Exception {
+    String id = create(withRooms(THREE_PHASE, 13));
+
+    perform(get(groups()), "")
+        .andExpect(jsonPath("$.data[0].status").value("REVIEW"))
+        .andExpect(jsonPath("$.data[0].issues[0].field").value("loads[1].power"))
+        .andExpect(
+            jsonPath("$.data[0].issues[0].message")
+                .value(
+                    "Iluminação de 1,2 kW abaixo do mínimo de 1,3 kW para 13 cômodos e"
+                        + " corredores, 100 W por ponto de luz em cada um (DIS-NOR-030, item"
+                        + " 6.26.1.1)."));
+    perform(get(groups() + "/validation"), "")
+        .andExpect(jsonPath("$.data.canCalculate").value(false));
+    perform(post("/projects/" + project.getId() + "/calculations"), "")
+        .andExpect(status().isUnprocessableContent());
+
+    perform(put(groups() + "/" + id), withRooms(THREE_PHASE, 12))
+        .andExpect(jsonPath("$.data.status").value("VALIDATED"));
+  }
+
+  private static String withRooms(String body, int rooms) {
+    return body.replace("\"connectionType\"", "\"rooms\": " + rooms + ", \"connectionType\"");
   }
 
   private String create(String body) throws Exception {

@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 class ConsumerUnitGroupTest {
@@ -80,14 +81,9 @@ class ConsumerUnitGroupTest {
             GroupKind.RESIDENTIAL.create(
                 PROJECT,
                 threePhaseApartments(
-                    new LoadItem(
-                        LoadCategory.LIGHTING_AND_OUTLETS,
-                        "Tomadas e iluminação",
-                        1,
-                        new BigDecimal("4.2"),
-                        PowerUnit.KW,
-                        null,
-                        null),
+                    DemandFixtures.outlets("3.0"),
+                    DemandFixtures.lighting(
+                        "Iluminação", "1.2", LampTechnology.COMPACT_FLUORESCENT_LED),
                     new LoadItem(
                         LoadCategory.INSTANT_HEATING,
                         "Chuveiro",
@@ -102,8 +98,9 @@ class ConsumerUnitGroupTest {
     assertThat(group.declaredLoadKw(CONTEXT)).isEqualByComparingTo("40.4");
     assertThat(group.spec().items())
         .extracting(LoadItem::getDescription)
-        .containsExactly("Tomadas e iluminação", "Chuveiro");
-    assertThat(group.summary()).isEqualTo("180 m², 3 quartos, trifásico (DIS-NOR-053 Quadro 35)");
+        .containsExactly("Tomadas", "Iluminação", "Chuveiro");
+    assertThat(group.summary())
+        .isEqualTo("180 m², 3 quartos, 12 cômodos e corredores, trifásico (DIS-NOR-053 Quadro 35)");
   }
 
   @Test
@@ -118,6 +115,50 @@ class ConsumerUnitGroupTest {
   }
 
   @Test
+  void anApartmentSaysWhetherEachLoadOfParcelAIsLightingOrOutlets() {
+    GroupSpec spec =
+        threePhaseApartments(
+            new LoadItem(
+                LoadCategory.LIGHTING_AND_OUTLETS,
+                "Tomadas e iluminação",
+                1,
+                new BigDecimal("4.2"),
+                PowerUnit.KW,
+                null,
+                null));
+
+    assertThat(GroupKind.RESIDENTIAL.create(PROJECT, spec).validate(CONTEXT))
+        .extracting(ValidationIssue::severity, ValidationIssue::field, ValidationIssue::message)
+        .contains(
+            tuple(
+                IssueSeverity.MISSING_DATA,
+                "loads[0].lampTechnology",
+                "Informe se \"Tomadas e iluminação\" é iluminação, e com que lâmpadas, ou tomadas"
+                    + " de uso geral. A carga mínima de cada uma é conferida em separado"
+                    + " (DIS-NOR-030, item 6.26.1.1)."));
+  }
+
+  @Test
+  void aThreePhaseApartmentWithoutRoomsWaitsForThem() {
+    GroupSpec spec = withRooms(threePhaseApartments(DemandFixtures.motor("Bomba", 1, "1")), null);
+
+    assertThat(GroupKind.RESIDENTIAL.create(PROJECT, spec).validate(CONTEXT))
+        .extracting(ValidationIssue::severity, ValidationIssue::field)
+        .contains(tuple(IssueSeverity.MISSING_DATA, "rooms"));
+  }
+
+  @Test
+  void aSinglePhaseApartmentDropsTheRooms() {
+    ResidentialGroup group =
+        (ResidentialGroup)
+            GroupKind.RESIDENTIAL.create(
+                PROJECT, withConnection(threePhaseApartments(), ConnectionType.SINGLE_PHASE));
+
+    assertThat(group.getRooms()).isNull();
+    assertThat(group.spec().rooms()).isNull();
+  }
+
+  @Test
   void aThreePhaseApartmentWithoutLoadsIsRefused() {
     assertThat(GroupKind.RESIDENTIAL.rejection(threePhaseApartments()))
         .contains("Detalhe as cargas do apartamento trifásico.");
@@ -129,12 +170,13 @@ class ConsumerUnitGroupTest {
         GroupKind.RESIDENTIAL.create(
             PROJECT,
             threePhaseApartments(
-                new LoadItem(
-                    LoadCategory.APPLIANCES, "Secadora", 1, null, PowerUnit.KW, null, null)));
+                withParcelA(
+                    new LoadItem(
+                        LoadCategory.APPLIANCES, "Secadora", 1, null, PowerUnit.KW, null, null))));
 
     assertThat(group.validate(CONTEXT))
         .extracting(ValidationIssue::severity, ValidationIssue::field)
-        .containsExactly(tuple(IssueSeverity.MISSING_DATA, "loads[0].power"));
+        .containsExactly(tuple(IssueSeverity.MISSING_DATA, "loads[2].power"));
   }
 
   @Test
@@ -143,15 +185,17 @@ class ConsumerUnitGroupTest {
         GroupKind.RESIDENTIAL.create(
             PROJECT,
             threePhaseApartments(
-                new LoadItem(
-                    LoadCategory.SPECIAL_EQUIPMENT,
-                    "Sauna",
-                    1,
-                    new BigDecimal("75.00"),
-                    PowerUnit.KW,
-                    null,
-                    null)));
+                withParcelA(
+                    new LoadItem(
+                        LoadCategory.SPECIAL_EQUIPMENT,
+                        "Sauna",
+                        1,
+                        new BigDecimal("70.80"),
+                        PowerUnit.KW,
+                        null,
+                        null))));
 
+    assertThat(group.loadPerUnitKw(CONTEXT)).isEqualByComparingTo("75");
     assertThat(group.validate(CONTEXT)).isEmpty();
   }
 
@@ -197,14 +241,15 @@ class ConsumerUnitGroupTest {
         GroupKind.RESIDENTIAL.create(
             PROJECT,
             threePhaseApartments(
-                new LoadItem(
-                    LoadCategory.SPECIAL_EQUIPMENT,
-                    "Sauna",
-                    2,
-                    new BigDecimal("40"),
-                    PowerUnit.KW,
-                    null,
-                    null)));
+                withParcelA(
+                    new LoadItem(
+                        LoadCategory.SPECIAL_EQUIPMENT,
+                        "Sauna",
+                        2,
+                        new BigDecimal("40"),
+                        PowerUnit.KW,
+                        null,
+                        null))));
 
     assertThat(group.validate(CONTEXT)).extracting(ValidationIssue::field).containsExactly("loads");
   }
@@ -464,15 +509,16 @@ class ConsumerUnitGroupTest {
         GroupKind.RESIDENTIAL.create(
             PROJECT,
             threePhaseApartments(
-                new LoadItem(
-                    LoadCategory.INSTANT_HEATING,
-                    "Aquecedores",
-                    10,
-                    new BigDecimal("7"),
-                    PowerUnit.KW,
-                    null,
-                    null),
-                motor("Bomba", 6, PowerUnit.CV, false)));
+                withParcelA(
+                    new LoadItem(
+                        LoadCategory.INSTANT_HEATING,
+                        "Aquecedores",
+                        10,
+                        new BigDecimal("6.58"),
+                        PowerUnit.KW,
+                        null,
+                        null),
+                    motor("Bomba", 6, PowerUnit.CV, false))));
 
     assertThat(group.loadPerUnitKw(CONTEXT)).isEqualByComparingTo("76.57");
     assertThat(group.validate(CONTEXT))
@@ -587,7 +633,8 @@ class ConsumerUnitGroupTest {
         null,
         null,
         null,
-        null);
+        null,
+        DemandFixtures.EXEMPLO_3_ROOMS);
   }
 
   private static GroupSpec withConnection(GroupSpec spec, ConnectionType connectionType) {
@@ -604,7 +651,37 @@ class ConsumerUnitGroupTest {
         spec.powerPerPointKw(),
         spec.incorporatedInVehicle(),
         spec.loadManagement(),
-        spec.stationType());
+        spec.stationType(),
+        spec.rooms());
+  }
+
+  /** Parcel a of DIS-NOR-030 Exemplo 3, at the minimum of its 12 rooms and 180 m², first. */
+  private static LoadItem[] withParcelA(LoadItem... loads) {
+    return Stream.concat(
+            Stream.of(
+                DemandFixtures.outlets("3.0"),
+                DemandFixtures.lighting(
+                    "Iluminação", "1.2", LampTechnology.COMPACT_FLUORESCENT_LED)),
+            Stream.of(loads))
+        .toArray(LoadItem[]::new);
+  }
+
+  private static GroupSpec withRooms(GroupSpec spec, Integer rooms) {
+    return new GroupSpec(
+        spec.name(),
+        spec.quantity(),
+        spec.usefulArea(),
+        spec.bedrooms(),
+        spec.unitLoadKw(),
+        spec.compactUnit(),
+        spec.connectionType(),
+        spec.usage(),
+        spec.items(),
+        spec.powerPerPointKw(),
+        spec.incorporatedInVehicle(),
+        spec.loadManagement(),
+        spec.stationType(),
+        rooms);
   }
 
   private static GroupSpec commonArea(List<LoadItem> items) {

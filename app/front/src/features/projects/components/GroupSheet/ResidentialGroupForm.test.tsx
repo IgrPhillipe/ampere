@@ -69,12 +69,16 @@ const save = () =>
 const unitLoadField = () =>
 	screen.queryByRole("spinbutton", { name: /Carga instalada por unidade/i });
 
+const roomsField = () =>
+	screen.queryByRole("spinbutton", { name: /Cômodos e corredores/i });
+
 describe("ResidentialGroupForm", () => {
 	describe("single-phase", () => {
 		it("keeps the total load per unit and sends no loads", async () => {
 			const onSave = renderForm(makeGroup());
 
 			expect(unitLoadField()).toBeInTheDocument();
+			expect(roomsField()).not.toBeInTheDocument();
 			expect(
 				screen.queryByRole("heading", { name: "Cargas do Apartamento" }),
 			).not.toBeInTheDocument();
@@ -85,6 +89,7 @@ describe("ResidentialGroupForm", () => {
 			expect(onSave.mock.calls[0][0]).toMatchObject({
 				connectionType: "SINGLE_PHASE",
 				unitLoadKw: 10,
+				rooms: null,
 				loads: null,
 			});
 		});
@@ -146,17 +151,50 @@ describe("ResidentialGroupForm", () => {
 			expect(screen.getByText("11,00 kW")).toBeInTheDocument();
 		});
 
-		it("sends the loads and no total load", async () => {
-			const onSave = renderForm(threePhase());
+		it("sends the loads, the rooms and no total load", async () => {
+			const onSave = renderForm(threePhase({ rooms: 12 }));
 
+			expect(roomsField()).toHaveValue(12);
 			save();
 
 			await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
 			expect(onSave.mock.calls[0][0]).toMatchObject({
 				connectionType: "THREE_PHASE",
 				unitLoadKw: null,
+				rooms: 12,
 				loads: [shower],
 			});
+		});
+
+		it.each([
+			["0", "O número de cômodos e corredores deve ser no mínimo 1."],
+			["51", "O número de cômodos e corredores deve ser no máximo 50."],
+		])("refuses %s rooms", async (rooms, message) => {
+			const onSave = renderForm(threePhase());
+
+			fireEvent.change(roomsField() as HTMLElement, {
+				target: { value: rooms },
+			});
+			save();
+
+			expect(await screen.findByText(message)).toBeInTheDocument();
+			expect(onSave).not.toHaveBeenCalled();
+		});
+
+		it("saves without the rooms and leaves them to the back's pending issue", async () => {
+			const onSave = renderForm(threePhase());
+
+			expect(roomsField()).not.toBeRequired();
+			save();
+
+			await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+			expect(onSave.mock.calls[0][0]).toMatchObject({ rooms: null });
+		});
+
+		it("focuses the rooms when the back asks for them", async () => {
+			renderForm(threePhase(), "rooms");
+
+			await waitFor(() => expect(roomsField()).toHaveFocus());
 		});
 
 		it("refuses to save without loads", async () => {
@@ -264,17 +302,19 @@ describe("ResidentialGroupForm", () => {
 		expect(unitLoadField()).toHaveValue(null);
 	});
 
-	it("drops the loads when switching back to single-phase", async () => {
+	it("drops the loads and the rooms when switching back to single-phase", async () => {
 		const onSave = renderForm(
 			makeGroup({
 				connectionType: "THREE_PHASE",
 				unitLoadKw: 11,
+				rooms: 12,
 				loads: [shower],
 			}),
 		);
 
 		await pickConnection("Monofásico");
 		expect(unitLoadField()).toHaveValue(null);
+		expect(roomsField()).not.toBeInTheDocument();
 		fireEvent.change(unitLoadField() as HTMLElement, {
 			target: { value: "9" },
 		});
@@ -284,6 +324,7 @@ describe("ResidentialGroupForm", () => {
 		expect(onSave.mock.calls[0][0]).toMatchObject({
 			connectionType: "SINGLE_PHASE",
 			unitLoadKw: 9,
+			rooms: null,
 			loads: null,
 		});
 	});

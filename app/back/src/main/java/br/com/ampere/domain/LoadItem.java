@@ -88,12 +88,23 @@ public class LoadItem {
     return category.installedKw(this, context);
   }
 
+  /** Lighting rather than general-use outlets; false while not classified. */
+  boolean isLighting() {
+    return lampTechnology != null && lampTechnology.lighting();
+  }
+
   public boolean ratedByMotorTable() {
     return DeclaredValues.isPositive(power) && category.ratedByMotorTable(this);
   }
 
   BigDecimal plateKw() {
     return powerUnit.toKilowatts(power).multiply(BigDecimal.valueOf(quantity));
+  }
+
+  /** Positive, and in BTU/h only where the category reads a capacity. */
+  boolean hasPlatePower() {
+    return DeclaredValues.isPositive(power)
+        && (powerUnit != PowerUnit.BTU_H || category.acceptsCapacity());
   }
 
   List<ValidationIssue> validate(String path, LoadOccupancy usage, DemandContext context) {

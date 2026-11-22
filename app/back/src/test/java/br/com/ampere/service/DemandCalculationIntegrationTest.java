@@ -3,6 +3,7 @@ package br.com.ampere.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.startsWith;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -30,6 +31,7 @@ import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
 import br.com.ampere.domain.User;
 import br.com.ampere.domain.UserRole;
+import br.com.ampere.domain.ValidationIssue;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
@@ -96,6 +98,8 @@ class DemandCalculationIntegrationTest {
   @Autowired private EntityManager entityManager;
 
   @Autowired private NormativeTableValidityMigration validityMigration;
+
+  @Autowired private ProjectDemandContexts contexts;
 
   @Test
   void aTableFirstUsedOnResubmissionAlsoUsesTheOriginalDate() {
@@ -197,6 +201,39 @@ class DemandCalculationIntegrationTest {
                 owner));
     groupRepository.save(apartments(project, "Apartamento tipo A", 24, "68"));
     return project;
+  }
+
+  @Test
+  void aRunRecordedBeforeTheRoomsFieldStaysCurrent() {
+    publishTables();
+    Project project = draftWithPrototypeGroups(true);
+    var groups = groupRepository.findAllByProjectIdOrderById(project.getId());
+    var run = calculations.compute(project, groups);
+    ObjectNode snapshot = (ObjectNode) objectMapper.readTree(run.getInputSnapshot());
+    snapshot.path("groups").forEach(group -> ((ObjectNode) group.path("spec")).remove("rooms"));
+    setField(run, "inputSnapshot", objectMapper.writeValueAsString(snapshot));
+
+    assertThat(calculations.isCurrent(run, groups)).isTrue();
+  }
+
+  @Test
+  void aProtocolFixedBeforeTabela5ChecksOnlyTheLighting() {
+    publishTables();
+    entityManager
+        .createQuery("UPDATE NormativeTable t SET t.verifiedAt = :at WHERE t.code = :code")
+        .setParameter("at", OffsetDateTime.now(ZoneOffset.UTC).minusDays(1))
+        .setParameter("code", NormativeTableCode.T5_MINIMUM_OUTLETS)
+        .executeUpdate();
+    Project project = draftWithThreePhaseApartment("20", "0.5");
+    var group = groupRepository.findAllByProjectIdOrderById(project.getId()).getFirst();
+    assertThat(group.validate(contexts.contextFor(project)))
+        .extracting(ValidationIssue::field)
+        .containsExactly("loads[0].power");
+
+    project.submit(OffsetDateTime.now(ZoneOffset.UTC).minusDays(10));
+    project.reject(OffsetDateTime.now(ZoneOffset.UTC), "Corrigir");
+
+    assertThat(group.validate(contexts.contextFor(project))).isEmpty();
   }
 
   @Test
@@ -628,6 +665,10 @@ class DemandCalculationIntegrationTest {
   }
 
   private Project draftWithThreePhaseApartment(String loadKw) {
+    return draftWithThreePhaseApartment(loadKw, "3.0");
+  }
+
+  private Project draftWithThreePhaseApartment(String loadKw, String outletsKw) {
     Project project =
         projectRepository.save(
             new Project(
@@ -653,17 +694,36 @@ class DemandCalculationIntegrationTest {
                 null,
                 List.of(
                     new LoadItem(
+                        LoadCategory.LIGHTING_AND_OUTLETS,
+                        "Tomadas",
+                        1,
+                        new BigDecimal(outletsKw),
+                        PowerUnit.KW,
+                        LampTechnology.GENERAL_OUTLETS,
+                        null),
+                    new LoadItem(
+                        LoadCategory.LIGHTING_AND_OUTLETS,
+                        "Iluminação",
+                        1,
+                        new BigDecimal("1.2"),
+                        PowerUnit.KW,
+                        LampTechnology.COMPACT_FLUORESCENT_LED,
+                        null),
+                    new LoadItem(
                         LoadCategory.INSTANT_HEATING,
                         "Aquecedor de passagem",
                         1,
-                        new BigDecimal(loadKw),
+                        new BigDecimal(loadKw)
+                            .subtract(new BigDecimal(outletsKw))
+                            .subtract(new BigDecimal("1.2")),
                         PowerUnit.KW,
                         null,
                         null)),
                 null,
                 null,
                 null,
-                null)));
+                null,
+                12)));
     return project;
   }
 

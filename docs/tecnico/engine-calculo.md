@@ -134,6 +134,7 @@ Dados inseridos por **grupo de unidades**, que reúne unidades de mesma área. A
 | **Ligação da unidade**              | Monofásica ou trifásica, de cada apartamento               | DIS-NOR-030, itens 6.27 e 6.28.1        |
 | **Carga instalada por unidade**     | Monofásico: carga total declarada                          | DIS-NOR-030, item 6.28.1                |
 | **Cargas da unidade**               | Trifásico: cargas por parcela (a a i); a carga instalada é a soma | DIS-NOR-030, item 6.27           |
+| **Cômodos e corredores**            | Trifásico: um ponto de luz de 100 W em cada, mínimo de iluminação | DIS-NOR-030, itens 6.26.1.1 e 6.27.1.1 |
 
 Sequência aplicada, na ordem do Anexo I:
 
@@ -163,6 +164,7 @@ O item 6.22.3 da DIS-NOR-053 pede a demanda de cada apartamento pelo método da 
 - O valor da etapa é a maior demanda individual entre os apartamentos trifásicos, em kVA; o monofásico aparece só com a carga instalada, em kW. Os detalhes trazem cada grupo e as parcelas do trifásico.
 - **Limite da baixa tensão:** unidade com carga instalada acima de **75 kW** não é atendida em tensão secundária (DIS-NOR-030, item 6.2.1). O grupo fica em Revisar e bloqueia o cálculo; a verificação `LOW_VOLTAGE_LIMIT` registra a maior carga por unidade.
 - Apartamento trifásico em edificação de ligação monofásica gera o alerta `UNIT_CONNECTION`: a entrada do prédio não alimenta a unidade trifásica.
+- **Carga mínima de iluminação e tomadas** (DIS-NOR-030, item 6.26.1.1, aplicado pelo 6.27.1.1, que remete por engano ao 6.25.7): no apartamento trifásico, cada item da parcela `a` diz se é iluminação ou tomadas. A iluminação declarada cobre 100 W por cômodo ou corredor; as tomadas cobrem o Total I + II da Tabela 5 pela área útil. Abaixo de um dos mínimos, o grupo fica em Revisar e bloqueia o cálculo. A demanda da parcela `a` não muda: continua a Tabela 6 sobre o total.
 - A **DIS-NOR-030, Exemplo 3** (p. 52 a 55) chega a 25,90 kVA. O motor dá 26,58 kVA para as mesmas cargas: o exemplo põe o forno na parcela d, usa fator de potência 1,00 em d (o item 6.27.4 pede 0,92) e arredonda a e g para cima.
 - **Carga instalada dos motores:** potência absorvida em kW da Tabela 19 (trifásico) ou 18 (monofásico), a mesma linha que dá o kVA da parcela `g`, e não a conversão da placa (1 CV = 0,7355 kW). A carga do apartamento, o limite de 75 kW, a validação dos grupos e o cálculo usam o mesmo valor.
 - **Carga instalada dos condicionadores:** declarados em BTU/h, os condicionadores entram com o W da Tabela 11 na carga instalada e com o VA na parcela `f`. Em kW, vale o dado do fabricante (nota 1 da Tabela 11), com fator de potência 1,00 na parcela `f`.
@@ -345,6 +347,8 @@ Pontos em que as normas são omissas e o motor da US04 adotou um critério. Cada
 | 11 | Cada parcela é arredondada em duas casas antes da soma | A soma exibida fecha com os números mostrados |
 | 12 | Motor declarado em kW é lido na linha da potência convertida em CV, e a carga instalada é a absorvida dessa linha | kW e kVA saem da mesma linha da Tabela 18/19 |
 | 13 | Condicionador em BTU/h fora da Tabela 11 entra pela linha seguinte, e a memória indica qual; acima de 60.000 BTU/h, o grupo fica em Revisar. BTU/h só vale para a parcela `f` | O Exemplo 3 lê 14.000 BTU/h na linha de 15.000 |
+| 14 | O mínimo de tomadas da Tabela 5 (030, 6.26.1.1) é lido pela área útil do grupo, não pela área construída | O grupo só informa a área útil, que é a do Quadro 35; a mensagem diz "área útil" |
+| 15 | Acima de 250 m², ou sem a Tabela 5 nas revisões do projeto, o mínimo de tomadas não é conferido e não gera pendência; o de iluminação continua | Acima de 250 m² a norma manda declarar as tomadas e a tabela não tem linha. Um protocolo fixado antes da vigência da Tabela 5 não a recebe e não teria como resolver a pendência. No banco já semeado, o seed a põe em vigor desde a primeira verificação, e os protocolos existentes a recebem |
 
 ## Divergências entre as Normas e Critério Adotado
 
