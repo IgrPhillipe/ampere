@@ -4,11 +4,13 @@ import static br.com.ampere.utils.Timestamps.ZONE;
 
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DashboardPeriod;
+import br.com.ampere.domain.DemandContext;
 import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.FindingSeverity;
 import br.com.ampere.domain.FindingStage;
 import br.com.ampere.domain.FindingStatus;
 import br.com.ampere.domain.NormativeTable;
+import br.com.ampere.domain.NormativeTableSet;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectEventType;
@@ -60,6 +62,7 @@ public class DesignerDashboardService {
   private final ConsumerUnitGroupRepository groupRepository;
   private final ProjectDocumentRepository documentRepository;
   private final DemandCalculationService calculationService;
+  private final ProjectDemandContexts contexts;
 
   public DesignerDashboardService(
       ProjectRepository projectRepository,
@@ -68,7 +71,8 @@ public class DesignerDashboardService {
       CalculationRepository calculationRepository,
       ConsumerUnitGroupRepository groupRepository,
       ProjectDocumentRepository documentRepository,
-      DemandCalculationService calculationService) {
+      DemandCalculationService calculationService,
+      ProjectDemandContexts contexts) {
     this.projectRepository = projectRepository;
     this.eventRepository = eventRepository;
     this.findingRepository = findingRepository;
@@ -76,6 +80,7 @@ public class DesignerDashboardService {
     this.groupRepository = groupRepository;
     this.documentRepository = documentRepository;
     this.calculationService = calculationService;
+    this.contexts = contexts;
   }
 
   @Transactional(readOnly = true)
@@ -119,8 +124,8 @@ public class DesignerDashboardService {
               units.getOrDefault(project.getId(), 0L),
               null));
     }
-    List<NormativeTable> published =
-        idleDrafts.isEmpty() ? List.of() : calculationService.publishedTables();
+    List<NormativeTable> published = idleDrafts.isEmpty() ? List.of() : contexts.publishedTables();
+    NormativeTableSet publishedSet = new NormativeTableSet(published);
     for (Project draft : idleDrafts) {
       items.add(
           new ActionItem(
@@ -128,17 +133,23 @@ public class DesignerDashboardService {
               0,
               ChronoUnit.DAYS.between(Timestamps.localDate(draft.getUpdatedAt()), today),
               units.getOrDefault(draft.getId(), 0L),
-              pendingStage(draft, published)));
+              pendingStage(draft, published, publishedSet)));
     }
 
     return items;
   }
 
   /** The first step still incomplete, in the order the project tabs follow; null when none. */
-  private FindingStage pendingStage(Project draft, List<NormativeTable> published) {
+  private FindingStage pendingStage(
+      Project draft, List<NormativeTable> published, NormativeTableSet publishedSet) {
     Long projectId = draft.getId();
     List<ConsumerUnitGroup> groups = groupRepository.findAllByProjectIdOrderById(projectId);
-    if (!GroupValidation.of(groups).canCalculate()) {
+    // A rejected project keeps the revisions of its first version.
+    DemandContext context =
+        draft.getSubmittedAt() == null
+            ? ProjectDemandContexts.contextFor(draft, publishedSet)
+            : contexts.contextFor(draft);
+    if (!GroupValidation.of(groups, context).canCalculate()) {
       return FindingStage.CONSUMER_UNITS;
     }
     boolean calculated =

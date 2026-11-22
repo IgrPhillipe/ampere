@@ -43,7 +43,7 @@ export const lampTechnologySchema = z.enum([
 
 export type LampTechnology = z.infer<typeof lampTechnologySchema>;
 
-export const powerUnitSchema = z.enum(["KW", "CV", "HP"]);
+export const powerUnitSchema = z.enum(["KW", "CV", "HP", "BTU_H"]);
 
 export type PowerUnit = z.infer<typeof powerUnitSchema>;
 

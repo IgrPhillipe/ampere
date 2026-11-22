@@ -57,6 +57,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 /** Step 3 end to end: the published tables, the engine and the record, through HTTP. */
 @SpringBootTest
@@ -111,6 +112,91 @@ class DemandCalculationIntegrationTest {
     var resubmission = calculations.compute(project, groups);
     assertThat(resubmission.getEvChargingDemand())
         .isEqualByComparingTo(expected.getEvChargingDemand());
+  }
+
+  @Test
+  void aRunFromBeforeTheMotorTableRuleIsOutdatedOnlyWithMotors() throws Exception {
+    publishTables();
+    Project withMotors = draftWithPrototypeGroups(true);
+    Project withoutMotors = draftWithApartmentsOnly();
+    calculateBeforeTheMotorRule(withMotors);
+    calculateBeforeTheMotorRule(withoutMotors);
+
+    mockMvc
+        .perform(
+            get(calculationOf(withMotors) + "/latest").header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.outdated").value(true))
+        .andExpect(jsonPath("$.data.changedTables").isEmpty());
+    mockMvc
+        .perform(
+            get(calculationOf(withoutMotors) + "/latest")
+                .header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.outdated").value(false));
+
+    mockMvc
+        .perform(post(calculationOf(withMotors)).header("Authorization", "Bearer " + token))
+        .andExpect(status().isCreated());
+    mockMvc
+        .perform(
+            get(calculationOf(withMotors) + "/latest").header("Authorization", "Bearer " + token))
+        .andExpect(jsonPath("$.data.outdated").value(false));
+  }
+
+  @Test
+  void aThreePhaseRunFromBeforeTheMotorTableRuleStaysCurrentWithoutMotors() throws Exception {
+    publishTables();
+    Project project = draftWithThreePhaseApartment("20");
+    calculateBeforeTheMotorRule(project);
+
+    // Runs before the rule recorded the plate sum of a three-phase unit.
+    assertThat(
+            objectMapper
+                .readTree(
+                    calculationRepository
+                        .findFirstByProjectIdOrderByIdDesc(project.getId())
+                        .orElseThrow()
+                        .getInputSnapshot())
+                .at("/groups/0/spec/unitLoadKw")
+                .decimalValue())
+        .isEqualByComparingTo("20");
+    mockMvc
+        .perform(get(calculationOf(project) + "/latest").header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.outdated").value(false));
+  }
+
+  /** A run saved as the engine recorded it before motors took Tabela 18 or 19. */
+  private void calculateBeforeTheMotorRule(Project project) {
+    var calculation =
+        calculationRepository.saveAndFlush(
+            calculations.compute(
+                project, groupRepository.findAllByProjectIdOrderById(project.getId())));
+    ObjectNode input = (ObjectNode) objectMapper.readTree(calculation.getInputSnapshot());
+    input.remove("motorInstalledLoad");
+    entityManager
+        .createQuery("UPDATE Calculation c SET c.inputSnapshot = :input WHERE c.id = :id")
+        .setParameter("input", objectMapper.writeValueAsString(input))
+        .setParameter("id", calculation.getId())
+        .executeUpdate();
+    entityManager.clear();
+  }
+
+  private Project draftWithApartmentsOnly() {
+    Project project =
+        projectRepository.save(
+            new Project(
+                "Residencial Sem Motores",
+                "Rua da Aurora, 10",
+                "Recife",
+                "2026-2002",
+                ProjectStatus.DRAFT,
+                building(),
+                standards,
+                owner));
+    groupRepository.save(apartments(project, "Apartamento tipo A", 24, "68"));
+    return project;
   }
 
   @Test
@@ -329,6 +415,8 @@ class DemandCalculationIntegrationTest {
 
   @Test
   void namesTheTableThatIsNotPublished() throws Exception {
+    publishTables();
+    normativeTableRepository.delete(published(NormativeTableCode.Q35_APARTMENT_DEMAND));
     Project project = draftWithPrototypeGroups(true);
 
     mockMvc
@@ -336,6 +424,64 @@ class DemandCalculationIntegrationTest {
         .andExpect(status().isUnprocessableContent())
         .andExpect(
             jsonPath("$.detail", startsWith("O Quadro 35 da DIS-NOR-053 não está publicado")));
+  }
+
+  @Test
+  void theGroupsAnswerTheMotorLoadsOfTabela19() throws Exception {
+    publishTables();
+    Project project = draftWithPrototypeGroups(true);
+    String groups = "/projects/" + project.getId() + "/consumer-unit-groups";
+
+    // 12 CV at the 12½ cv row (10,85 kW) and two pumps of 5 CV (4,51 kW each).
+    mockMvc
+        .perform(get(groups).header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[3].loadPerUnitKw").value(45.67))
+        .andExpect(jsonPath("$.data[3].declaredLoadKw").value(45.67));
+    mockMvc
+        .perform(
+            post(groups)
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    { "kind": "RESIDENTIAL", "name": "Cobertura", "quantity": 2, "usefulArea": 180,
+                      "connectionType": "THREE_PHASE",
+                      "loads": [
+                        { "category": "INSTANT_HEATING", "description": "Chuveiro", "quantity": 1,
+                          "power": 4, "powerUnit": "KW" },
+                        { "category": "MOTORS", "description": "Bomba", "quantity": 1,
+                          "power": 1, "powerUnit": "CV", "simultaneousStart": false }
+                      ] }
+                    """))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.unitLoadKw").value(5.05))
+        .andExpect(jsonPath("$.data.loadPerUnitKw").value(5.05))
+        .andExpect(jsonPath("$.data.declaredLoadKw").value(10.1));
+  }
+
+  @Test
+  void aMotorWithoutItsTableHoldsTheGroupBeforeTheRun() throws Exception {
+    Project project = draftWithPrototypeGroups(true);
+
+    mockMvc
+        .perform(
+            get("/projects/" + project.getId() + "/consumer-unit-groups")
+                .header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[3].status").value("REVIEW"))
+        .andExpect(jsonPath("$.data[3].issues[0].field").value("items[0].power"))
+        .andExpect(
+            jsonPath("$.data[3].issues[0].message")
+                .value(
+                    "A Tabela 19 da DIS-NOR-030 não está publicada: sem ela não há carga nem"
+                        + " demanda de \"Elevador\". Publique a tabela em Tabelas Normativas."));
+    mockMvc
+        .perform(post(calculationOf(project)).header("Authorization", "Bearer " + token))
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Há grupos com pendências. Corrija-os antes de calcular a demanda."));
   }
 
   @Test

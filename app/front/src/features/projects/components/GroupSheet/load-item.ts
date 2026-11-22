@@ -1,5 +1,11 @@
-import type { LoadItem, LoadItemPayload } from "@services/consumer-units";
+import type {
+	LoadCategory,
+	LoadItem,
+	LoadItemPayload,
+	PowerUnit,
+} from "@services/consumer-units";
 
+import { powerUnitItems } from "../../constants";
 import { type LoadItemFormValues, toBoolean, toYesNo } from "../../schemas";
 
 export const EMPTY_LOAD_ITEM: LoadItemFormValues = {
@@ -10,6 +16,18 @@ export const EMPTY_LOAD_ITEM: LoadItemFormValues = {
 	powerUnit: "KW",
 	lampTechnology: null,
 	simultaneousStart: null,
+};
+
+/** BTU/h is a capacity for air conditioners (Tabela 11); kept while chosen, so the back flags it. */
+export const powerUnitItemsFor = (
+	category: LoadCategory,
+	powerUnit?: PowerUnit,
+) => {
+	if (category === "AIR_CONDITIONING" || powerUnit === "BTU_H") {
+		return powerUnitItems;
+	}
+	const { BTU_H: _capacity, ...plate } = powerUnitItems;
+	return plate;
 };
 
 export const toLoadItemFormValues = (item: LoadItem): LoadItemFormValues => ({

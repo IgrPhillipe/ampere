@@ -8,6 +8,7 @@ import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.LampTechnology;
 import br.com.ampere.domain.LoadCategory;
 import br.com.ampere.domain.LoadUsage;
+import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.SupplyVoltage;
 import java.util.Arrays;
@@ -22,6 +23,17 @@ final class VersionFieldLabels {
 
   private static final Pattern LOAD_ITEM =
       Pattern.compile("items\\[[^:]*:(.+?)(?:#(\\d+))?]\\.(\\w+)");
+
+  private static final Pattern TABLE_ID =
+      Pattern.compile(Pattern.quote(ProjectDemandContexts.TABLE_IDS) + "\\.(\\w+)");
+
+  /** A version that starts using a table records its id, which means nothing on screen. */
+  private static final String APPLIED_TABLE = "Aplicada";
+
+  private static final Map<String, String> TABLES =
+      labels(
+          NormativeTableCode.values(),
+          code -> code.identification() + " da " + code.standard().code() + ", " + code.title());
 
   private static final Map<String, String> FIELDS =
       Map.ofEntries(
@@ -41,7 +53,8 @@ final class VersionFieldLabels {
           Map.entry("floors", "Nº de pavimentos"),
           Map.entry("voltage", "Tensão de fornecimento"),
           Map.entry("connectionType", "Tipo de ligação"),
-          Map.entry("entranceStandard", "Padrão de entrada"));
+          Map.entry("entranceStandard", "Padrão de entrada"),
+          Map.entry(DemandCalculationService.MOTOR_INSTALLED_LOAD, "Carga instalada dos motores"));
 
   private static final Map<String, String> LOAD_ITEM_FIELDS =
       Map.of(
@@ -70,7 +83,10 @@ final class VersionFieldLabels {
           Map.entry("compactUnit", YES_NO),
           Map.entry("incorporatedInVehicle", YES_NO),
           Map.entry("loadManagement", YES_NO),
-          Map.entry("simultaneousStart", YES_NO));
+          Map.entry("simultaneousStart", YES_NO),
+          Map.entry(
+              DemandCalculationService.MOTOR_INSTALLED_LOAD,
+              Map.of(DemandCalculationService.NORMATIVE_TABLE, "Tabela 18 ou 19")));
 
   private VersionFieldLabels() {}
 
@@ -89,12 +105,19 @@ final class VersionFieldLabels {
 
   /** The value as the screens show it; numbers and free text stay as they are. */
   static String ofValue(String field, String value) {
+    if (value != null && TABLE_ID.matcher(field).matches()) {
+      return APPLIED_TABLE;
+    }
     String name = field.substring(field.lastIndexOf('.') + 1);
 
     return value == null ? null : VALUES.getOrDefault(name, Map.of()).getOrDefault(value, value);
   }
 
   static String of(String field) {
+    Matcher table = TABLE_ID.matcher(field);
+    if (table.matches()) {
+      return TABLES.getOrDefault(table.group(1), field);
+    }
     Matcher item = LOAD_ITEM.matcher(field);
     if (item.matches()) {
       String name = item.group(2) == null ? item.group(1) : item.group(1) + " " + item.group(2);

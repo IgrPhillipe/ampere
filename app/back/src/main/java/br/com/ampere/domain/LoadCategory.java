@@ -19,7 +19,8 @@ public enum LoadCategory {
   LIGHTING_AND_OUTLETS("a", "Iluminação e tomadas") {
     /** Lighting and outlets take different factors (6.27.1.2), so each item says which it is. */
     @Override
-    List<ValidationIssue> issues(LoadItem item, String path, LoadOccupancy usage) {
+    List<ValidationIssue> issues(
+        LoadItem item, String path, LoadOccupancy usage, DemandContext context) {
       if (!usage.residential() && item.getLampTechnology() == null) {
         return List.of(
             ValidationIssue.missing(
@@ -55,7 +56,7 @@ public enum LoadCategory {
                       TreeMap::new,
                       Collectors.reducing(
                           BigDecimal.ZERO,
-                          item -> installedKw(item, groupQuantity),
+                          item -> groupKw(item, groupQuantity, context),
                           BigDecimal::add)));
 
       List<String> terms = new ArrayList<>();
@@ -87,7 +88,7 @@ public enum LoadCategory {
         List<LoadItem> items, int groupQuantity, DemandContext context) {
       BigDecimal kw =
           items.stream()
-              .map(item -> installedKw(item, groupQuantity))
+              .map(item -> groupKw(item, groupQuantity, context))
               .reduce(BigDecimal.ZERO, BigDecimal::add);
       NormativeValue factor =
           context.tables().find(NormativeTableCode.T6_RESIDENTIAL_LIGHTING_OUTLETS, kw);
@@ -149,24 +150,82 @@ public enum LoadCategory {
   },
   AIR_CONDITIONING("f", "Condicionadores de ar") {
     @Override
+    List<ValidationIssue> issues(
+        LoadItem item, String path, LoadOccupancy usage, DemandContext context) {
+      return item.getPowerUnit() == PowerUnit.BTU_H
+          ? ratedIssues(
+              item, path, context, NormativeTableCode.T11_AIR_CONDITIONERS, item.getPower())
+          : List.of();
+    }
+
+    /** In BTU/h, the W of Tabela 11 (item 6.27.6); the manufacturer's kW otherwise. */
+    @Override
+    BigDecimal installedKw(LoadItem item, DemandContext context) {
+      return item.getPowerUnit() == PowerUnit.BTU_H
+          ? ratedKw(item, context, NormativeTableCode.T11_AIR_CONDITIONERS, item.getPower())
+          : item.plateKw();
+    }
+
+    @Override
+    boolean acceptsCapacity() {
+      return true;
+    }
+
+    /** Tabela 12 over the VA of Tabela 11, or the manufacturer's kW at power factor 1,00. */
+    @Override
     ParcelDemand demand(
         List<LoadItem> items, int groupQuantity, LoadOccupancy usage, DemandContext context) {
-      return byCount(
-          items,
-          groupQuantity,
-          NormativeTableCode.T12_AIR_CONDITIONING,
-          usage.airConditioningKey(),
-          BigDecimal.ONE,
-          context);
+      List<String> notes = new ArrayList<>();
+      List<NormativeReference> references = new ArrayList<>();
+      long appliances = 0;
+      BigDecimal apparent = BigDecimal.ZERO;
+      for (LoadItem item : items) {
+        long count = (long) item.getQuantity() * groupQuantity;
+        appliances += count;
+        if (item.getPowerUnit() == PowerUnit.BTU_H) {
+          NormativeValue unit = airConditioner(item, context, notes);
+          references.add(unit.reference());
+          apparent = apparent.add(unit.secondValue().multiply(BigDecimal.valueOf(count)));
+        } else {
+          apparent = apparent.add(groupKw(item, groupQuantity, context));
+        }
+      }
+      NormativeValue factor =
+          context
+              .tables()
+              .find(
+                  NormativeTableCode.T12_AIR_CONDITIONING,
+                  usage.airConditioningKey(),
+                  BigDecimal.valueOf(appliances));
+      references.add(0, factor.reference());
+      BigDecimal kva = DeclaredValues.kva(apparent.multiply(factor.value()));
+
+      return new ParcelDemand(
+          this,
+          kva,
+          prefixed(
+              this,
+              appliances
+                  + (appliances == 1 ? " aparelho, " : " aparelhos, ")
+                  + DeclaredValues.fixed(apparent, 2)
+                  + " kVA × "
+                  + DeclaredValues.fixed(factor.value(), 2)
+                  + " = "
+                  + DeclaredValues.fixed(kva, 2)
+                  + " kVA",
+              notes),
+          DemandComponent.distinct(references));
     }
   },
   MOTORS("g", "Motores e máquinas de solda a motor") {
     /** Above 5 CV the starting condition changes the demand of the parcel (Tabela 14). */
     @Override
-    List<ValidationIssue> issues(LoadItem item, String path, LoadOccupancy usage) {
+    List<ValidationIssue> issues(
+        LoadItem item, String path, LoadOccupancy usage, DemandContext context) {
+      List<ValidationIssue> issues = new ArrayList<>(motorTableIssues(item, path, context));
       BigDecimal power = item.getPowerUnit().toCv(item.getPower());
       if (power.compareTo(LARGE_MOTOR_CV) > 0 && item.getSimultaneousStart() == null) {
-        return List.of(
+        issues.add(
             ValidationIssue.review(
                 path + ".simultaneousStart",
                 item.getDescription()
@@ -177,7 +236,18 @@ public enum LoadCategory {
                     + ". Motores acima de 5 CV entram com fator de partida próprio: informe se a"
                     + " partida é simultânea."));
       }
-      return List.of();
+      return issues;
+    }
+
+    /** The absorbed power of Tabela 18 or 19, not the plate converted (item 6.27.7). */
+    @Override
+    BigDecimal installedKw(LoadItem item, DemandContext context) {
+      return absorbedKw(item, context);
+    }
+
+    @Override
+    boolean ratedByMotorTable(LoadItem item) {
+      return true;
     }
 
     /** Motors that must start together count as one; of equal largest ones, only one is. */
@@ -191,6 +261,15 @@ public enum LoadCategory {
       for (LoadItem item : items) {
         NormativeValue motor = motorKva(item, context, notes);
         references.add(motor.reference());
+        notes.add(
+            item.getDescription()
+                + ": "
+                + item.getQuantity()
+                + " × "
+                + DeclaredValues.fixed(motor.value(), 2)
+                + " kW de carga instalada ("
+                + motor.reference().identification()
+                + ")");
         long count = (long) item.getQuantity() * groupQuantity;
         if (Boolean.TRUE.equals(item.getSimultaneousStart())) {
           simultaneous = simultaneous.add(motor.secondValue().multiply(BigDecimal.valueOf(count)));
@@ -229,6 +308,23 @@ public enum LoadCategory {
     }
   },
   PUMPS_AND_HOT_TUBS("i", "Bombas e hidromassagem") {
+    @Override
+    List<ValidationIssue> issues(
+        LoadItem item, String path, LoadOccupancy usage, DemandContext context) {
+      return ratedByMotorTable(item) ? motorTableIssues(item, path, context) : List.of();
+    }
+
+    /** Rated like a motor when the plate is in CV or HP, as its kVA is. */
+    @Override
+    BigDecimal installedKw(LoadItem item, DemandContext context) {
+      return ratedByMotorTable(item) ? absorbedKw(item, context) : item.plateKw();
+    }
+
+    @Override
+    boolean ratedByMotorTable(LoadItem item) {
+      return item.getPowerUnit() == PowerUnit.CV || item.getPowerUnit() == PowerUnit.HP;
+    }
+
     /** Pumps rated in CV or HP take their kVA from the motor table; in kW, power factor 1,00. */
     @Override
     ParcelDemand demand(
@@ -317,8 +413,24 @@ public enum LoadCategory {
   }
 
   /** What this parcel asks of an item whose power is already informed. */
-  List<ValidationIssue> issues(LoadItem item, String path, LoadOccupancy usage) {
+  List<ValidationIssue> issues(
+      LoadItem item, String path, LoadOccupancy usage, DemandContext context) {
     return List.of();
+  }
+
+  /** Installed kW of an item with its quantity; the plate converted unless the parcel rates it. */
+  BigDecimal installedKw(LoadItem item, DemandContext context) {
+    return item.plateKw();
+  }
+
+  /** Whether the installed load comes from Tabela 18 or 19 instead of the plate. */
+  boolean ratedByMotorTable(LoadItem item) {
+    return false;
+  }
+
+  /** Whether a capacity in BTU/h means anything for this parcel. */
+  boolean acceptsCapacity() {
+    return false;
   }
 
   /** Demand of this parcel over the items of one group, in kVA. */
@@ -337,7 +449,7 @@ public enum LoadCategory {
         items.stream().mapToLong(item -> (long) item.getQuantity() * groupQuantity).sum();
     BigDecimal kw =
         items.stream()
-            .map(item -> installedKw(item, groupQuantity))
+            .map(item -> groupKw(item, groupQuantity, context))
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     NormativeValue factor = context.tables().find(table, key, BigDecimal.valueOf(appliances));
     BigDecimal kva = DeclaredValues.kva(divide(kw, powerFactor).multiply(factor.value()));
@@ -401,10 +513,7 @@ public enum LoadCategory {
 
   /** Tabela 18 or 19 by the connection, at the first tabulated size that reaches the motor. */
   static NormativeValue motorKva(LoadItem item, DemandContext context, List<String> notes) {
-    BigDecimal size =
-        item.getPowerUnit() == PowerUnit.KW
-            ? item.getPowerUnit().toCv(item.getPower())
-            : item.getPower();
+    BigDecimal size = motorSize(item);
     NormativeValue motor = context.tables().find(context.connectionType().motorTable(), size);
     BigDecimal tabulated = motor.row().getUpperBound();
     if (tabulated != null && tabulated.compareTo(size) != 0) {
@@ -425,8 +534,98 @@ public enum LoadCategory {
     return motor;
   }
 
-  private static BigDecimal installedKw(LoadItem item, int groupQuantity) {
-    return item.declaredLoadKw().multiply(BigDecimal.valueOf(groupQuantity));
+  /** The row a motor is read at: CV or HP as on the plate, kW converted to CV. */
+  private static BigDecimal motorSize(LoadItem item) {
+    return item.getPowerUnit() == PowerUnit.KW
+        ? item.getPowerUnit().toCv(item.getPower())
+        : item.getPower();
+  }
+
+  /** Tabela 11 at the first tabulated capacity that reaches the appliance, as Exemplo 3 does. */
+  private static NormativeValue airConditioner(
+      LoadItem item, DemandContext context, List<String> notes) {
+    NormativeValue unit =
+        context.tables().find(NormativeTableCode.T11_AIR_CONDITIONERS, item.getPower());
+    String read =
+        unit.row().getUpperBound().compareTo(item.getPower()) == 0
+            ? " pela "
+            : " lido na linha de " + unit.band() + " da ";
+    notes.add(
+        item.getDescription()
+            + ": "
+            + DeclaredValues.decimal(item.getPower())
+            + " BTU/h"
+            + read
+            + unit.reference().identification()
+            + ", "
+            + DeclaredValues.fixed(unit.value(), 2)
+            + " kW e "
+            + DeclaredValues.fixed(unit.secondValue(), 2)
+            + " kVA cada");
+    return unit;
+  }
+
+  /** The kW column of a rating table with the item's quantity; the plate while it cannot. */
+  private static BigDecimal ratedKw(
+      LoadItem item, DemandContext context, NormativeTableCode table, BigDecimal argument) {
+    if (!context.tables().contains(table)) {
+      return item.plateKw();
+    }
+    return context
+        .tables()
+        .lookup(table, null, argument)
+        .map(row -> row.value().multiply(BigDecimal.valueOf(item.getQuantity())))
+        .orElseGet(item::plateKw);
+  }
+
+  /** What blocks the run while the plate is shown: the table missing or no row reached. */
+  private static List<ValidationIssue> ratedIssues(
+      LoadItem item,
+      String path,
+      DemandContext context,
+      NormativeTableCode table,
+      BigDecimal argument) {
+    String citation = table.identification() + " da " + table.standard().code();
+    if (!context.tables().contains(table)) {
+      return List.of(
+          ValidationIssue.review(
+              path + ".power",
+              "A "
+                  + citation
+                  + " não está publicada: sem ela não há carga nem demanda de \""
+                  + item.getDescription()
+                  + "\". Publique a tabela em Tabelas Normativas."));
+    }
+    if (context.tables().lookup(table, null, argument).isEmpty()) {
+      return List.of(
+          ValidationIssue.review(
+              path + ".power",
+              "\""
+                  + item.getDescription()
+                  + "\" declarado com "
+                  + DeclaredValues.decimal(item.getPower())
+                  + " "
+                  + item.getPowerUnit().label()
+                  + " passa da última linha da "
+                  + citation
+                  + (item.getPowerUnit() == PowerUnit.BTU_H
+                      ? ": confira a capacidade do aparelho."
+                      : ": confira a potência de placa.")));
+    }
+    return List.of();
+  }
+
+  private static BigDecimal absorbedKw(LoadItem item, DemandContext context) {
+    return ratedKw(item, context, context.connectionType().motorTable(), motorSize(item));
+  }
+
+  private static List<ValidationIssue> motorTableIssues(
+      LoadItem item, String path, DemandContext context) {
+    return ratedIssues(item, path, context, context.connectionType().motorTable(), motorSize(item));
+  }
+
+  private static BigDecimal groupKw(LoadItem item, int groupQuantity, DemandContext context) {
+    return item.installedKw(context).multiply(BigDecimal.valueOf(groupQuantity));
   }
 
   private static BigDecimal divide(BigDecimal value, BigDecimal divisor) {

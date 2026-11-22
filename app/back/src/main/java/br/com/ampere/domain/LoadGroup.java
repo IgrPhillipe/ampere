@@ -12,6 +12,7 @@ import jakarta.persistence.OrderColumn;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 /** Common areas or a commercial unit, by installed load (DIS-NOR-030 item 6.27). */
@@ -78,7 +79,7 @@ public class LoadGroup extends ConsumerUnitGroup {
   }
 
   @Override
-  public List<ValidationIssue> validate() {
+  public List<ValidationIssue> validate(DemandContext context) {
     List<ValidationIssue> issues = new ArrayList<>();
     if (usage == null) {
       issues.add(
@@ -91,16 +92,30 @@ public class LoadGroup extends ConsumerUnitGroup {
               "items", "Informe as cargas instaladas: iluminação, motores, bombas e demais."));
     }
     IntStream.range(0, items.size())
-        .forEach(index -> issues.addAll(items.get(index).validate("items[" + index + "]", usage)));
+        .forEach(
+            index ->
+                issues.addAll(items.get(index).validate("items[" + index + "]", usage, context)));
     return issues;
   }
 
   @Override
-  public BigDecimal loadPerUnitKw() {
+  public BigDecimal loadPerUnitKw(DemandContext context) {
     if (items.isEmpty()) {
       return null;
     }
-    return items.stream().map(LoadItem::declaredLoadKw).reduce(BigDecimal.ZERO, BigDecimal::add);
+    return items.stream()
+        .map(item -> item.installedKw(context))
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+  }
+
+  @Override
+  public boolean hasRatedMotors() {
+    return items.stream().anyMatch(LoadItem::ratedByMotorTable);
+  }
+
+  @Override
+  public Optional<NormativeTableCode> motorTable(DemandContext context) {
+    return hasRatedMotors() ? Optional.of(context.connectionType().motorTable()) : Optional.empty();
   }
 
   /** Each parcel of DIS-NOR-030 item 6.27 present in the group, summed. */

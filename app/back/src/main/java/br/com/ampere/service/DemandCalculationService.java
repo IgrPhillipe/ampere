@@ -12,17 +12,13 @@ import br.com.ampere.domain.MissingNormativeValueException;
 import br.com.ampere.domain.NormativeTable;
 import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.NormativeTableSet;
-import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.domain.Project;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
-import br.com.ampere.repository.NormativeTableRepository;
-import br.com.ampere.repository.ProjectVersionRepository;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
-import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,31 +33,31 @@ import tools.jackson.databind.node.ObjectNode;
 @Service
 public class DemandCalculationService {
 
-  private static final String TABLE_IDS = "normativeTableIds";
+  private static final String TABLE_IDS = ProjectDemandContexts.TABLE_IDS;
 
-  private static final int FIRST_VERSION = 1;
+  /** Recorded since motors take Tabela 18 or 19: a run without it is outdated. */
+  static final String MOTOR_INSTALLED_LOAD = "motorInstalledLoad";
+
+  static final String NORMATIVE_TABLE = "NORMATIVE_TABLE";
 
   private final ProjectService projectService;
   private final ConsumerUnitGroupRepository groupRepository;
-  private final NormativeTableRepository tableRepository;
+  private final ProjectDemandContexts contexts;
   private final CalculationRepository calculationRepository;
-  private final ProjectVersionRepository versionRepository;
   private final ProjectEventService eventService;
   private final ObjectMapper objectMapper;
 
   public DemandCalculationService(
       ProjectService projectService,
       ConsumerUnitGroupRepository groupRepository,
-      NormativeTableRepository tableRepository,
+      ProjectDemandContexts contexts,
       CalculationRepository calculationRepository,
-      ProjectVersionRepository versionRepository,
       ProjectEventService eventService,
       ObjectMapper objectMapper) {
     this.projectService = projectService;
     this.groupRepository = groupRepository;
-    this.tableRepository = tableRepository;
+    this.contexts = contexts;
     this.calculationRepository = calculationRepository;
-    this.versionRepository = versionRepository;
     this.eventService = eventService;
     this.objectMapper = objectMapper;
   }
@@ -90,7 +86,7 @@ public class DemandCalculationService {
     if (groups.isEmpty()) {
       throw unprocessable("Cadastre ao menos um grupo de unidades antes de calcular a demanda.");
     }
-    if (!GroupValidation.of(groups).canCalculate()) {
+    if (!GroupValidation.of(groups, contexts.contextFor(project)).canCalculate()) {
       throw unprocessable("Há grupos com pendências. Corrija-os antes de calcular a demanda.");
     }
     project.touch();
@@ -100,10 +96,8 @@ public class DemandCalculationService {
 
   /** The engine run alone, unsaved: the seed reuses it for projects already submitted. */
   public Calculation compute(Project project, List<ConsumerUnitGroup> groups) {
-    BuildingType building = project.getBuildingType();
-    NormativeTableSet tables = tablesFor(project);
-    DemandContext context =
-        new DemandContext(tables, building.getVoltage(), building.getConnectionType());
+    NormativeTableSet tables = contexts.tablesFor(project);
+    DemandContext context = ProjectDemandContexts.contextFor(project, tables);
     DemandResult result;
     try {
       result = DemandEngine.run(groups, context);
@@ -124,57 +118,18 @@ public class DemandCalculationService {
     return new Calculation(project, result, objectMapper.writeValueAsString(input));
   }
 
-  private NormativeTableSet tablesFor(Project project) {
-    FixedRevisions fixed = fixedRevisions(project);
-    return fixed == null
-        ? new NormativeTableSet(tableRepository.findAllByStatus(NormativeTableStatus.PUBLISHED))
-        : new NormativeTableSet(tableRepository.findListingBy(), fixed);
-  }
-
-  /** Null before the first submission; afterwards, what the run of the first version used. */
-  public FixedRevisions fixedRevisions(Project project) {
-    if (project.getSubmittedAt() == null) {
-      return null;
-    }
-    return versionRepository
-        .findByProjectIdAndNumber(project.getId(), FIRST_VERSION)
-        .map(
-            first -> new FixedRevisions(first.getSubmittedAt(), tableIdsOf(first.getCalculation())))
-        // The first submission issues its memorial before its version is saved.
-        .orElseGet(() -> new FixedRevisions(project.getSubmittedAt(), Map.of()));
-  }
-
   /** The date the protocol's revisions are fixed at; null before the first submission. */
   @Transactional(readOnly = true)
   public OffsetDateTime revisionsFixedAt(Project project) {
-    FixedRevisions fixed = fixedRevisions(project);
+    FixedRevisions fixed = contexts.fixedRevisions(project);
     return fixed == null ? null : fixed.fixedAt();
-  }
-
-  private Map<NormativeTableCode, Long> tableIdsOf(Calculation calculation) {
-    JsonNode ids = objectMapper.readTree(calculation.getInputSnapshot()).get(TABLE_IDS);
-    Map<NormativeTableCode, Long> tableIds = new EnumMap<>(NormativeTableCode.class);
-    if (ids != null) {
-      ids.properties()
-          .forEach(
-              entry ->
-                  tableIds.put(
-                      NormativeTableCode.valueOf(entry.getKey()), entry.getValue().asLong()));
-    }
-    return tableIds;
-  }
-
-  /** Read once by a caller that checks many drafts. */
-  @Transactional(readOnly = true)
-  public List<NormativeTable> publishedTables() {
-    return tableRepository.findAllByStatus(NormativeTableStatus.PUBLISHED);
   }
 
   /** The tables replaced since a draft's run; a submitted protocol keeps its revisions. */
   @Transactional(readOnly = true)
   public List<String> changedTables(Calculation calculation) {
     return calculation.getProject().getSubmittedAt() == null
-        ? changedTables(calculation, publishedTables())
+        ? changedTables(calculation, contexts.publishedTables())
         : List.of();
   }
 
@@ -285,6 +240,9 @@ public class DemandCalculationService {
         groups.stream()
             .map(group -> Map.of("id", group.getId(), "kind", group.kind(), "spec", group.spec()))
             .toList());
+    if (groups.stream().anyMatch(ConsumerUnitGroup::hasRatedMotors)) {
+      input.put(MOTOR_INSTALLED_LOAD, NORMATIVE_TABLE);
+    }
 
     return input;
   }

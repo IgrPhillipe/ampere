@@ -65,7 +65,13 @@ final class ScenarioGroups {
       item(LoadCategory.APPLIANCES, "Secadora de roupas", 1, "2.5", PowerUnit.KW, null, null),
       item(LoadCategory.COOKING, "Forno elétrico", 1, "1.5", PowerUnit.KW, null, null),
       item(
-          LoadCategory.AIR_CONDITIONING, "Condicionador de ar", 2, "2.1", PowerUnit.KW, null, null),
+          LoadCategory.AIR_CONDITIONING,
+          "Condicionador de ar",
+          2,
+          "14000",
+          PowerUnit.BTU_H,
+          null,
+          null),
       item(LoadCategory.MOTORS, "Motor trifásico", 2, "1", PowerUnit.CV, null, false)
     };
   }

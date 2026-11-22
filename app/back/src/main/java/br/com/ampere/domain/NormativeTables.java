@@ -6,6 +6,9 @@ import java.util.Optional;
 /** The published tables the calculation reads, without the domain knowing how they are stored. */
 public interface NormativeTables {
 
+  /** Whether the table can be read at all, so a validation can report it instead of throwing. */
+  boolean contains(NormativeTableCode code);
+
   /** Empty when the table has no row for the argument; an unpublished table still throws. */
   Optional<NormativeValue> lookup(NormativeTableCode code, String key, BigDecimal argument);
 

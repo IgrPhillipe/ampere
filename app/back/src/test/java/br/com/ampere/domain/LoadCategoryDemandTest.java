@@ -35,6 +35,33 @@ class LoadCategoryDemandTest {
         .isEqualByComparingTo("10.00");
   }
 
+  /** DIS-NOR-030 Exemplo 3, parcela f: 14.000 BTU/h read at 15.000, 2 × 2.100 VA. */
+  @Test
+  void anAirConditionerInBtuTakesTheVaOfTabela11() {
+    ParcelDemand airConditioning =
+        LoadCategory.AIR_CONDITIONING.demand(
+            List.of(
+                item(
+                    LoadCategory.AIR_CONDITIONING,
+                    "Condicionador de ar",
+                    2,
+                    "14000",
+                    PowerUnit.BTU_H)),
+            1,
+            LoadOccupancy.APARTMENT,
+            THREE_PHASE);
+
+    assertThat(airConditioning.kva()).isEqualByComparingTo("4.20");
+    assertThat(airConditioning.lines())
+        .containsExactly(
+            "f) Condicionadores de ar: 2 aparelhos, 4,20 kVA × 1,00 = 4,20 kVA",
+            "Condicionador de ar: 14.000 BTU/h lido na linha de 15.000 BTU/h da Tabela 11, 1,90 kW"
+                + " e 2,10 kVA cada");
+    assertThat(airConditioning.references())
+        .extracting(NormativeReference::identification)
+        .containsExactly("Tabela 12", "Tabela 11");
+  }
+
   /** DIS-NOR-030 Exemplo 3, parcela a: 4,2 kW at 0,52 of Tabela 6, power factor 1,00. */
   @Test
   void anApartmentReadsTabela6OverItsLightingAndOutletsTogether() {

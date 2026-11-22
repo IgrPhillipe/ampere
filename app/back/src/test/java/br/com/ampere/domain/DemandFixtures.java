@@ -79,7 +79,7 @@ public final class DemandFixtures {
             null));
   }
 
-  /** DIS-NOR-030 Exemplo 3 (p. 52 to 55), oven in parcel e and air conditioners in VA. */
+  /** DIS-NOR-030 Exemplo 3 (p. 52 to 55), oven in parcel e. */
   static List<LoadItem> exemplo3() {
     return List.of(
         item(LoadCategory.LIGHTING_AND_OUTLETS, "Tomadas", 1, "3.0", PowerUnit.KW),
@@ -90,7 +90,7 @@ public final class DemandFixtures {
         item(LoadCategory.APPLIANCES, "Lava-louças", 1, "2", PowerUnit.KW),
         item(LoadCategory.APPLIANCES, "Secadora de roupas", 1, "2.5", PowerUnit.KW),
         item(LoadCategory.COOKING, "Forno elétrico", 1, "1.5", PowerUnit.KW),
-        item(LoadCategory.AIR_CONDITIONING, "Condicionador de ar", 2, "2.1", PowerUnit.KW),
+        item(LoadCategory.AIR_CONDITIONING, "Condicionador de ar", 2, "14000", PowerUnit.BTU_H),
         motor("Motor trifásico", 2, "1"));
   }
 

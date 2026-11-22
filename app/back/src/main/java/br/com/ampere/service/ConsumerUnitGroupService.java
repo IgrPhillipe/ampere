@@ -1,6 +1,7 @@
 package br.com.ampere.service;
 
 import br.com.ampere.domain.ConsumerUnitGroup;
+import br.com.ampere.domain.DemandContext;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
 import br.com.ampere.error.BusinessException;
@@ -22,40 +23,48 @@ public class ConsumerUnitGroupService {
   private final ConsumerUnitGroupRepository groupRepository;
   private final FindingRepository findingRepository;
   private final ProjectService projectService;
+  private final ProjectDemandContexts contexts;
 
   public ConsumerUnitGroupService(
       ConsumerUnitGroupRepository groupRepository,
       FindingRepository findingRepository,
-      ProjectService projectService) {
+      ProjectService projectService,
+      ProjectDemandContexts contexts) {
     this.groupRepository = groupRepository;
     this.findingRepository = findingRepository;
     this.projectService = projectService;
+    this.contexts = contexts;
   }
 
   @Transactional(readOnly = true)
-  public List<ConsumerUnitGroup> list(Long projectId, AuthenticatedUser user) {
-    projectService.findById(projectId, user);
+  public List<ValidatedGroup> list(Long projectId, AuthenticatedUser user) {
+    DemandContext context = contexts.contextFor(projectService.findById(projectId, user));
 
-    return groupRepository.findAllByProjectIdOrderById(projectId);
+    return groupRepository.findAllByProjectIdOrderById(projectId).stream()
+        .map(group -> ValidatedGroup.of(group, context))
+        .toList();
   }
 
   @Transactional(readOnly = true)
   public GroupValidation validation(Long projectId, AuthenticatedUser user) {
-    return GroupValidation.of(list(projectId, user));
+    DemandContext context = contexts.contextFor(projectService.findById(projectId, user));
+
+    return GroupValidation.of(groupRepository.findAllByProjectIdOrderById(projectId), context);
   }
 
   @Transactional
-  public ConsumerUnitGroup create(
-      Long projectId, GroupParameters parameters, AuthenticatedUser user) {
+  public ValidatedGroup create(Long projectId, GroupParameters parameters, AuthenticatedUser user) {
     rejectInvalid(parameters);
     Project project = projectService.editableOrFail(projectId, NOT_EDITABLE, user);
     project.touch();
 
-    return groupRepository.save(parameters.kind().create(project, parameters.spec()));
+    ConsumerUnitGroup group =
+        groupRepository.save(parameters.kind().create(project, parameters.spec()));
+    return ValidatedGroup.of(group, contexts.contextFor(project));
   }
 
   @Transactional
-  public ConsumerUnitGroup update(
+  public ValidatedGroup update(
       Long projectId, Long groupId, GroupParameters parameters, AuthenticatedUser user) {
     rejectInvalid(parameters);
     Project project = projectService.editableOrFail(projectId, NOT_EDITABLE, user);
@@ -68,7 +77,7 @@ public class ConsumerUnitGroupService {
     group.update(parameters.spec());
     project.touch();
 
-    return group;
+    return ValidatedGroup.of(group, contexts.contextFor(project));
   }
 
   @Transactional

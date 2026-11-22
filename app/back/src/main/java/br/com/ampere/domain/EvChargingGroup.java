@@ -80,7 +80,7 @@ public class EvChargingGroup extends ConsumerUnitGroup {
   }
 
   @Override
-  public List<ValidationIssue> validate() {
+  public List<ValidationIssue> validate(DemandContext context) {
     List<ValidationIssue> issues = new ArrayList<>();
     if (loadManagement == null) {
       issues.add(
@@ -107,7 +107,11 @@ public class EvChargingGroup extends ConsumerUnitGroup {
   }
 
   @Override
-  public BigDecimal loadPerUnitKw() {
+  public BigDecimal loadPerUnitKw(DemandContext context) {
+    return pointKw();
+  }
+
+  private BigDecimal pointKw() {
     if (DeclaredValues.isPositive(powerPerPointKw)) {
       return powerPerPointKw;
     }
@@ -117,7 +121,7 @@ public class EvChargingGroup extends ConsumerUnitGroup {
   /** Installed kW only: the factor of Quadro 33 goes on every point of the building. */
   @Override
   public DemandContribution demand(DemandContext context) {
-    BigDecimal power = loadPerUnitKw();
+    BigDecimal power = pointKw();
     BigDecimal installed = DeclaredValues.kva(power.multiply(BigDecimal.valueOf(getQuantity())));
     String term = getQuantity() + " × " + DeclaredValues.fixed(power, 2);
     String line =
@@ -148,7 +152,7 @@ public class EvChargingGroup extends ConsumerUnitGroup {
   @Override
   public String summary() {
     String points = getQuantity() + (getQuantity() == 1 ? " ponto" : " pontos");
-    BigDecimal power = loadPerUnitKw();
+    BigDecimal power = pointKw();
     String described =
         power == null
             ? points + ", potência não informada"

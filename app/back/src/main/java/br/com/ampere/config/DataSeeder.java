@@ -1,6 +1,7 @@
 package br.com.ampere.config;
 
 import br.com.ampere.domain.NormativeTable;
+import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.User;
@@ -11,8 +12,11 @@ import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -272,18 +276,31 @@ public class DataSeeder implements CommandLineRunner {
             });
   }
 
+  /** Only the codes the database lacks: a table already there is never touched. */
   private void seedNormativeTables(List<Standard> standards) {
-    if (normativeTableRepository.count() > 0) {
+    List<NormativeTable> existing = normativeTableRepository.findListingBy();
+    Set<NormativeTableCode> present =
+        existing.stream().map(NormativeTable::getCode).collect(Collectors.toSet());
+    List<NormativeTable> missing =
+        NormativeTableSeed.all(
+                standards.stream()
+                    .collect(Collectors.toMap(Standard::getName, Function.identity())))
+            .stream()
+            .filter(table -> !present.contains(table.getCode()))
+            .toList();
+    if (missing.isEmpty()) {
       return;
     }
 
-    List<NormativeTable> tables =
-        normativeTableRepository.saveAll(
-            NormativeTableSeed.all(
-                standards.stream()
-                    .collect(Collectors.toMap(Standard::getName, Function.identity()))));
-    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-    tables.forEach(table -> timestamps.table(table.getId(), now.minusDays(90), now.minusDays(89)));
+    // In force since the oldest verification, so protocols already submitted also find it.
+    OffsetDateTime verifiedAt =
+        existing.stream()
+            .map(NormativeTable::getVerifiedAt)
+            .filter(Objects::nonNull)
+            .min(Comparator.naturalOrder())
+            .orElse(OffsetDateTime.now(ZoneOffset.UTC).minusDays(89));
+    List<NormativeTable> tables = normativeTableRepository.saveAll(missing);
+    tables.forEach(table -> timestamps.table(table.getId(), verifiedAt.minusDays(1), verifiedAt));
     log.info("DataSeeder: {} published normative tables inserted.", tables.size());
   }
 

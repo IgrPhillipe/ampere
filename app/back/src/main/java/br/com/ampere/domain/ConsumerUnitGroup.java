@@ -73,31 +73,52 @@ public abstract class ConsumerUnitGroup {
 
   public abstract GroupKind kind();
 
-  public abstract List<ValidationIssue> validate();
+  /** The context brings the tables some rules read, such as the motor tables. */
+  public abstract List<ValidationIssue> validate(DemandContext context);
 
   /** Null while not informed. */
-  public abstract BigDecimal loadPerUnitKw();
+  public abstract BigDecimal loadPerUnitKw(DemandContext context);
+
+  /** The load of one unit as informed or summed; only an apartment group has one. */
+  public BigDecimal getUnitLoadKw(DemandContext context) {
+    return null;
+  }
 
   public abstract String summary();
 
   /** This group's share of the demand. Only called once every group is validated. */
   public abstract DemandContribution demand(DemandContext context);
 
+  /** Whether a load of the group is rated by Tabela 18 or 19. */
+  public boolean hasRatedMotors() {
+    return false;
+  }
+
+  /** The table its motors are rated by; empty without a motor. */
+  public Optional<NormativeTableCode> motorTable(DemandContext context) {
+    return Optional.empty();
+  }
+
   /** Demand of one unit on its own, for the groups whose units are supplied apart. */
   public Optional<IndividualDemand> individualDemand(DemandContext context) {
     return Optional.empty();
   }
 
-  public final GroupStatus status() {
-    return validate().stream()
+  public final GroupStatus status(DemandContext context) {
+    return statusOf(validate(context));
+  }
+
+  /** For a caller that already holds the issues of a validation. */
+  public static GroupStatus statusOf(List<ValidationIssue> issues) {
+    return issues.stream()
         .map(ValidationIssue::severity)
         .map(IssueSeverity::status)
         .max(Comparator.naturalOrder())
         .orElse(GroupStatus.VALIDATED);
   }
 
-  public final BigDecimal declaredLoadKw() {
-    BigDecimal perUnit = loadPerUnitKw();
+  public final BigDecimal declaredLoadKw(DemandContext context) {
+    BigDecimal perUnit = loadPerUnitKw(context);
     return perUnit == null ? BigDecimal.ZERO : perUnit.multiply(BigDecimal.valueOf(quantity));
   }
 }

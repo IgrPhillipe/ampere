@@ -5,6 +5,7 @@ import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.CalculationStep;
 import br.com.ampere.domain.ConnectionType;
 import br.com.ampere.domain.ConsumerUnitGroup;
+import br.com.ampere.domain.DemandContext;
 import br.com.ampere.domain.DemandStep;
 import br.com.ampere.domain.Finding;
 import br.com.ampere.domain.Project;
@@ -104,6 +105,7 @@ public class MemorialPdfService {
   private final CalculationRepository calculationRepository;
   private final ConsumerUnitGroupRepository groupRepository;
   private final DemandCalculationService demandCalculationService;
+  private final ProjectDemandContexts contexts;
   private final ProjectVersionRepository versionRepository;
   private final ApprovalMemorialRepository approvalMemorialRepository;
 
@@ -112,12 +114,14 @@ public class MemorialPdfService {
       CalculationRepository calculationRepository,
       ConsumerUnitGroupRepository groupRepository,
       DemandCalculationService demandCalculationService,
+      ProjectDemandContexts contexts,
       ProjectVersionRepository versionRepository,
       ApprovalMemorialRepository approvalMemorialRepository) {
     this.projectService = projectService;
     this.calculationRepository = calculationRepository;
     this.groupRepository = groupRepository;
     this.demandCalculationService = demandCalculationService;
+    this.contexts = contexts;
     this.versionRepository = versionRepository;
     this.approvalMemorialRepository = approvalMemorialRepository;
   }
@@ -222,7 +226,7 @@ public class MemorialPdfService {
     addHeader(document, project, stamp);
     addStamp(document, project, calculation, groups);
     addIdentification(document, project, calculation);
-    addConsumerUnits(document, groups);
+    addConsumerUnits(document, groups, contexts.contextFor(project));
     addCalculationSteps(document, calculation);
     addDemandTotals(document, calculation);
     addAppliedStandards(document, calculation, demandCalculationService.revisionsFixedAt(project));
@@ -372,7 +376,8 @@ public class MemorialPdfService {
     document.add(fields);
   }
 
-  private static void addConsumerUnits(Document document, List<ConsumerUnitGroup> groups) {
+  private static void addConsumerUnits(
+      Document document, List<ConsumerUnitGroup> groups, DemandContext context) {
     addSection(document, 2, "Unidades Consumidoras");
     if (groups.isEmpty()) {
       document.add(note("Nenhuma unidade consumidora cadastrada."));
@@ -394,9 +399,24 @@ public class MemorialPdfService {
           group.getName(),
           connection == null ? NOT_APPLICABLE : connection.label(),
           String.valueOf(group.getQuantity()),
-          decimal(group.loadPerUnitKw()));
+          decimal(group.loadPerUnitKw(context)));
     }
     document.add(table);
+    List<String> motorTables =
+        groups.stream()
+            .flatMap(group -> group.motorTable(context).stream())
+            .distinct()
+            .sorted()
+            .map(code -> code.identification().replace("Tabela ", ""))
+            .toList();
+    if (!motorTables.isEmpty()) {
+      document.add(
+          note(
+              "Carga instalada dos motores pela potência absorvida "
+                  + (motorTables.size() == 1 ? "da Tabela " : "das Tabelas ")
+                  + String.join(" e ", motorTables)
+                  + " da DIS-NOR-030 (item 6.27.7), não pela conversão da placa."));
+    }
   }
 
   private static void addCalculationSteps(Document document, Calculation calculation) {

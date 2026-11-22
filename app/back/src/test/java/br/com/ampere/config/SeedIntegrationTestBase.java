@@ -1,5 +1,6 @@
 package br.com.ampere.config;
 
+import br.com.ampere.domain.DemandContext;
 import br.com.ampere.repository.ApprovalMemorialRepository;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
@@ -15,6 +16,7 @@ import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.service.DemandCalculationService;
 import br.com.ampere.service.NotificationService;
+import br.com.ampere.service.ProjectDemandContexts;
 import br.com.ampere.service.ProjectEventService;
 import br.com.ampere.service.ProjectVersionService;
 import jakarta.persistence.EntityManager;
@@ -41,6 +43,7 @@ abstract class SeedIntegrationTestBase {
   @Autowired protected NormativeTableRepository normativeTableRepository;
   @Autowired protected UserRepository userRepository;
   @Autowired protected DemandCalculationService demandCalculation;
+  @Autowired protected ProjectDemandContexts demandContexts;
   @Autowired protected ProjectEventService projectEventService;
   @Autowired protected ProjectVersionService projectVersionService;
   @Autowired protected NotificationService notificationService;
@@ -52,6 +55,14 @@ abstract class SeedIntegrationTestBase {
 
   protected TransactionTemplate transaction() {
     return new TransactionTemplate(transactionManager);
+  }
+
+  /** Read in a transaction: the building of a detached project is lazy. */
+  protected DemandContext demandContext(Long projectId) {
+    return transaction()
+        .execute(
+            status ->
+                demandContexts.contextFor(projectRepository.findById(projectId).orElseThrow()));
   }
 
   protected void wipe() {

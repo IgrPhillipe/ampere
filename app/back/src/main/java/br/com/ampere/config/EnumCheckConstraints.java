@@ -2,7 +2,9 @@ package br.com.ampere.config;
 
 import br.com.ampere.domain.BrazilianState;
 import br.com.ampere.domain.LampTechnology;
+import br.com.ampere.domain.NormativeTableCode;
 import br.com.ampere.domain.NotificationType;
+import br.com.ampere.domain.PowerUnit;
 import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.UserRole;
@@ -24,8 +26,11 @@ public class EnumCheckConstraints {
       List.of(
           new Constraint("app_user", "role", UserRole.class),
           new Constraint("load_group_item", "lamp_technology", LampTechnology.class),
+          new Constraint("load_group_item", "power_unit", PowerUnit.class),
+          new Constraint("normative_table", "code", NormativeTableCode.class),
           new Constraint("notification", "type", NotificationType.class),
           new Constraint("residential_group_load", "lamp_technology", LampTechnology.class),
+          new Constraint("residential_group_load", "power_unit", PowerUnit.class),
           new Constraint("project", "state", BrazilianState.class),
           new Constraint("project", "status", ProjectStatus.class),
           new Constraint("project_event", "type", ProjectEventType.class));

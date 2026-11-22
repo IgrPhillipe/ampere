@@ -18,6 +18,7 @@ import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.service.ProjectDemandContexts;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,6 +71,8 @@ class ConsumerUnitGroupApiIntegrationTest {
   @Autowired private ConsumerUnitGroupRepository groupRepository;
 
   @Autowired private EntityManager entityManager;
+
+  @Autowired private ProjectDemandContexts contexts;
 
   private String token;
 
@@ -159,7 +162,7 @@ class ConsumerUnitGroupApiIntegrationTest {
 
     ResidentialGroup group = (ResidentialGroup) groupRepository.findById(Long.valueOf(id)).get();
     assertThat(group.getLoads()).isEmpty();
-    assertThat(group.getUnitLoadKw()).isEqualByComparingTo("12");
+    assertThat(group.getUnitLoadKw(contexts.contextFor(project))).isEqualByComparingTo("12");
   }
 
   private String create(String body) throws Exception {

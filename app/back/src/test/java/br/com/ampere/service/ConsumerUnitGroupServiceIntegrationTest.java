@@ -84,17 +84,18 @@ class ConsumerUnitGroupServiceIntegrationTest {
   void keepsTheLoadsOfALoadGroupInTheirOrder() {
     Long projectId = draft().getId();
 
-    Long groupId = service.create(projectId, commonArea(), designer).getId();
+    Long groupId = service.create(projectId, commonArea(), designer).group().getId();
     entityManager.flush();
     entityManager.clear();
 
-    ConsumerUnitGroup group = service.list(projectId, designer).getFirst();
+    ValidatedGroup validated = service.list(projectId, designer).getFirst();
+    ConsumerUnitGroup group = validated.group();
     assertThat(group.getId()).isEqualTo(groupId);
     assertThat(group).isInstanceOf(LoadGroup.class);
     assertThat(((LoadGroup) group).getItems())
         .extracting(LoadItem::getDescription)
         .containsExactly("Elevador", "Iluminação");
-    assertThat(group.status()).isEqualTo(GroupStatus.REVIEW);
+    assertThat(validated.status()).isEqualTo(GroupStatus.REVIEW);
   }
 
   @Test
@@ -102,7 +103,7 @@ class ConsumerUnitGroupServiceIntegrationTest {
     Long projectId = draft().getId();
     assertThat(service.validation(projectId, designer).canCalculate()).isFalse();
 
-    ConsumerUnitGroup charging = service.create(projectId, charging(null), designer);
+    ConsumerUnitGroup charging = service.create(projectId, charging(null), designer).group();
     GroupValidation pending = service.validation(projectId, designer);
     assertThat(pending.canCalculate()).isFalse();
     assertThat(pending.pendingIssues()).isEqualTo(1);
@@ -152,13 +153,14 @@ class ConsumerUnitGroupServiceIntegrationTest {
     entityManager.flush();
     entityManager.clear();
 
-    ResidentialGroup group = (ResidentialGroup) service.list(projectId, designer).getFirst();
+    ValidatedGroup validated = service.list(projectId, designer).getFirst();
+    ResidentialGroup group = (ResidentialGroup) validated.group();
     assertThat(group.getConnectionType()).isEqualTo(ConnectionType.THREE_PHASE);
     assertThat(group.getLoads())
         .extracting(LoadItem::getDescription)
         .containsExactly("Chuveiro", "Ar-condicionado");
-    assertThat(group.getUnitLoadKw()).isEqualByComparingTo("15.2");
-    assertThat(group.status()).isEqualTo(GroupStatus.VALIDATED);
+    assertThat(group.getUnitLoadKw(validated.context())).isEqualByComparingTo("15.2");
+    assertThat(validated.status()).isEqualTo(GroupStatus.VALIDATED);
   }
 
   @Test
@@ -170,7 +172,7 @@ class ConsumerUnitGroupServiceIntegrationTest {
 
     assertThat(validation.canCalculate()).isFalse();
     assertThat(validation.pendingIssues()).isEqualTo(1);
-    assertThat(service.list(projectId, designer).getFirst().validate())
+    assertThat(service.list(projectId, designer).getFirst().issues())
         .extracting(issue -> issue.message())
         .containsExactly(
             "Carga instalada de 80 kW por unidade passa do limite de 75 kW da baixa tensão"
@@ -180,7 +182,7 @@ class ConsumerUnitGroupServiceIntegrationTest {
   @Test
   void refusesToChangeTheKindOfAGroup() {
     Long projectId = draft().getId();
-    Long groupId = service.create(projectId, charging(true), designer).getId();
+    Long groupId = service.create(projectId, charging(true), designer).group().getId();
 
     assertThatThrownBy(() -> service.update(projectId, groupId, commonArea(), designer))
         .isInstanceOfSatisfying(
@@ -221,9 +223,9 @@ class ConsumerUnitGroupServiceIntegrationTest {
                 List.of(),
                 owner));
 
-    ConsumerUnitGroup created = service.create(rejected.getId(), charging(false), designer);
+    ConsumerUnitGroup created = service.create(rejected.getId(), charging(false), designer).group();
     ConsumerUnitGroup updated =
-        service.update(rejected.getId(), created.getId(), charging(true), designer);
+        service.update(rejected.getId(), created.getId(), charging(true), designer).group();
     assertThat(updated.getId()).isEqualTo(created.getId());
     service.delete(rejected.getId(), created.getId(), designer);
 
@@ -236,7 +238,7 @@ class ConsumerUnitGroupServiceIntegrationTest {
   void doesNotFindAGroupThroughAnotherProject() {
     Long projectId = draft().getId();
     Long otherProjectId = draft("2026-1009").getId();
-    Long groupId = service.create(projectId, charging(true), designer).getId();
+    Long groupId = service.create(projectId, charging(true), designer).group().getId();
 
     assertThatThrownBy(() -> service.delete(otherProjectId, groupId, designer))
         .isInstanceOf(NotFoundException.class)
@@ -260,7 +262,7 @@ class ConsumerUnitGroupServiceIntegrationTest {
   @Test
   void keepsTheFindingWhenItsGroupIsDeleted() {
     Project project = draft();
-    ConsumerUnitGroup group = service.create(project.getId(), commonArea(), designer);
+    ConsumerUnitGroup group = service.create(project.getId(), commonArea(), designer).group();
     Finding finding =
         findingRepository.save(
             new Finding(
@@ -290,7 +292,7 @@ class ConsumerUnitGroupServiceIntegrationTest {
     Long projectId = draft().getId();
 
     leftIdle(projectId);
-    Long groupId = service.create(projectId, charging(true), designer).getId();
+    Long groupId = service.create(projectId, charging(true), designer).group().getId();
     assertChangedNow(projectId);
 
     leftIdle(projectId);

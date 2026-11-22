@@ -102,6 +102,15 @@ public enum NormativeTableCode {
       List.of(),
       "Nº de aparelhos",
       List.of("Fator de demanda")),
+  T11_AIR_CONDITIONERS(
+      StandardName.DIS_NOR_030,
+      "Tabela 11",
+      "Condicionadores de ar",
+      "6.27.6",
+      "67",
+      List.of(),
+      "Capacidade (BTU/h)",
+      List.of("Potência (kW)", "Potência (kVA)")),
   T12_AIR_CONDITIONING(
       StandardName.DIS_NOR_030,
       "Tabela 12",

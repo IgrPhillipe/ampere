@@ -67,18 +67,20 @@ class DemandEngineAnexoITest {
   @Test
   void example2ResidentialBuildingOf76ApartmentsAt220V() {
     Project project = project(SupplyVoltage.V220_127);
+    DemandContext context = context(SupplyVoltage.V220_127, ConnectionType.THREE_PHASE);
+    ConsumerUnitGroup commonArea =
+        loads(
+            project,
+            LoadUsage.COMMON_AREA,
+            lighting("Iluminação", "5.8", LampTechnology.COMPACT_FLUORESCENT_LED),
+            outlets("3.8"),
+            motor("Elevadores", 2, "15"),
+            motor("Bombas d'água", 2, "3"));
     DemandResult result =
-        DemandEngine.run(
-            List.of(
-                apartments(project, 76, "128"),
-                loads(
-                    project,
-                    LoadUsage.COMMON_AREA,
-                    lighting("Iluminação", "5.8", LampTechnology.COMPACT_FLUORESCENT_LED),
-                    outlets("3.8"),
-                    motor("Elevadores", 2, "15"),
-                    motor("Bombas d'água", 2, "3"))),
-            context(SupplyVoltage.V220_127, ConnectionType.THREE_PHASE));
+        DemandEngine.run(List.of(apartments(project, 76, "128"), commonArea), context);
+
+    // Motors by Tabela 19: 2 × 12,82 + 2 × 2,95 kW.
+    assertThat(commonArea.loadPerUnitKw(context)).isEqualByComparingTo("41.14");
 
     ResidentialTrace residential = result.residential();
     assertThat(residential.coincidenceFactor()).isEqualByComparingTo("0.6823");

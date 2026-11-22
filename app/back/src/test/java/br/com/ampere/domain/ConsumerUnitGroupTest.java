@@ -20,6 +20,9 @@ class ConsumerUnitGroupTest {
               12, SupplyVoltage.V380_220, ConnectionType.THREE_PHASE, EntranceStandard.COLLECTIVE),
           List.of());
 
+  private static final DemandContext CONTEXT =
+      DemandFixtures.context(SupplyVoltage.V380_220, ConnectionType.THREE_PHASE);
+
   @Test
   void eachKindBuildsItsOwnSubclass() {
     assertThat(GroupKind.RESIDENTIAL.create(PROJECT, apartments(68, 6.5)))
@@ -33,10 +36,10 @@ class ConsumerUnitGroupTest {
   void aCompleteApartmentGroupIsValidated() {
     ConsumerUnitGroup group = GroupKind.RESIDENTIAL.create(PROJECT, apartments(68, 6.5));
 
-    assertThat(group.validate()).isEmpty();
-    assertThat(group.status()).isEqualTo(GroupStatus.VALIDATED);
+    assertThat(group.validate(CONTEXT)).isEmpty();
+    assertThat(group.status(CONTEXT)).isEqualTo(GroupStatus.VALIDATED);
     assertThat(group.summary()).isEqualTo("68 m², 2 quartos, monofásico (DIS-NOR-053 Quadro 35)");
-    assertThat(group.declaredLoadKw()).isEqualByComparingTo("156");
+    assertThat(group.declaredLoadKw(CONTEXT)).isEqualByComparingTo("156");
   }
 
   @Test
@@ -59,14 +62,14 @@ class ConsumerUnitGroupTest {
                 null,
                 null));
 
-    assertThat(group.validate())
+    assertThat(group.validate(CONTEXT))
         .extracting(ValidationIssue::severity, ValidationIssue::field)
         .containsExactly(
             tuple(IssueSeverity.MISSING_DATA, "connectionType"),
             tuple(IssueSeverity.MISSING_DATA, "usefulArea"),
             tuple(IssueSeverity.MISSING_DATA, "unitLoadKw"));
-    assertThat(group.status()).isEqualTo(GroupStatus.MISSING_DATA);
-    assertThat(group.declaredLoadKw()).isEqualByComparingTo("0");
+    assertThat(group.status(CONTEXT)).isEqualTo(GroupStatus.MISSING_DATA);
+    assertThat(group.declaredLoadKw(CONTEXT)).isEqualByComparingTo("0");
     assertThat(group.summary()).isEqualTo("Área útil não informada (DIS-NOR-053 Quadro 35)");
   }
 
@@ -94,9 +97,9 @@ class ConsumerUnitGroupTest {
                         null,
                         null)));
 
-    assertThat(group.validate()).isEmpty();
-    assertThat(group.getUnitLoadKw()).isEqualByComparingTo("20.2");
-    assertThat(group.declaredLoadKw()).isEqualByComparingTo("40.4");
+    assertThat(group.validate(CONTEXT)).isEmpty();
+    assertThat(group.getUnitLoadKw(CONTEXT)).isEqualByComparingTo("20.2");
+    assertThat(group.declaredLoadKw(CONTEXT)).isEqualByComparingTo("40.4");
     assertThat(group.spec().items())
         .extracting(LoadItem::getDescription)
         .containsExactly("Tomadas e iluminação", "Chuveiro");
@@ -129,7 +132,7 @@ class ConsumerUnitGroupTest {
                 new LoadItem(
                     LoadCategory.APPLIANCES, "Secadora", 1, null, PowerUnit.KW, null, null)));
 
-    assertThat(group.validate())
+    assertThat(group.validate(CONTEXT))
         .extracting(ValidationIssue::severity, ValidationIssue::field)
         .containsExactly(tuple(IssueSeverity.MISSING_DATA, "loads[0].power"));
   }
@@ -149,19 +152,20 @@ class ConsumerUnitGroupTest {
                     null,
                     null)));
 
-    assertThat(group.validate()).isEmpty();
+    assertThat(group.validate(CONTEXT)).isEmpty();
   }
 
   @Test
   void aSinglePhaseUnitUpTo15KwFitsCategoryM3() {
-    assertThat(GroupKind.RESIDENTIAL.create(PROJECT, apartments(68, 15)).validate()).isEmpty();
+    assertThat(GroupKind.RESIDENTIAL.create(PROJECT, apartments(68, 15)).validate(CONTEXT))
+        .isEmpty();
   }
 
   @Test
   void aSinglePhaseUnitAbove15KwAsksForReview() {
     ConsumerUnitGroup group = GroupKind.RESIDENTIAL.create(PROJECT, apartments(68, 15.5));
 
-    assertThat(group.validate())
+    assertThat(group.validate(CONTEXT))
         .extracting(ValidationIssue::severity, ValidationIssue::field, ValidationIssue::message)
         .containsExactly(
             tuple(
@@ -170,14 +174,14 @@ class ConsumerUnitGroupTest {
                 "Carga instalada de 15,5 kW passa de 15 kW, teto da ligação monofásica"
                     + " (DIS-NOR-030, Anexo I, Tabela 2, categoria M3): confirme a ligação do"
                     + " apartamento."));
-    assertThat(group.status()).isEqualTo(GroupStatus.REVIEW);
+    assertThat(group.status(CONTEXT)).isEqualTo(GroupStatus.REVIEW);
   }
 
   @Test
   void aUnitAbove75KwIsNotSuppliedInLowVoltage() {
     ConsumerUnitGroup group = GroupKind.RESIDENTIAL.create(PROJECT, apartments(68, 75.01));
 
-    assertThat(group.validate())
+    assertThat(group.validate(CONTEXT))
         .extracting(ValidationIssue::severity, ValidationIssue::field, ValidationIssue::message)
         .containsExactly(
             tuple(
@@ -202,17 +206,17 @@ class ConsumerUnitGroupTest {
                     null,
                     null)));
 
-    assertThat(group.validate()).extracting(ValidationIssue::field).containsExactly("loads");
+    assertThat(group.validate(CONTEXT)).extracting(ValidationIssue::field).containsExactly("loads");
   }
 
   @Test
   void anAreaBeyondQuadro35AsksForReview() {
     ConsumerUnitGroup group = GroupKind.RESIDENTIAL.create(PROJECT, apartments(1200, 12));
 
-    assertThat(group.validate())
+    assertThat(group.validate(CONTEXT))
         .extracting(ValidationIssue::severity, ValidationIssue::field)
         .containsExactly(tuple(IssueSeverity.REVIEW, "usefulArea"));
-    assertThat(group.status()).isEqualTo(GroupStatus.REVIEW);
+    assertThat(group.status(CONTEXT)).isEqualTo(GroupStatus.REVIEW);
   }
 
   @Test
@@ -225,12 +229,12 @@ class ConsumerUnitGroupTest {
                     motor("Elevador", 12, PowerUnit.CV, null),
                     lighting("Iluminação da garagem", 3, LampTechnology.COMPACT_FLUORESCENT_LED))));
 
-    assertThat(group.validate())
+    assertThat(group.validate(CONTEXT))
         .extracting(ValidationIssue::severity, ValidationIssue::field)
         .containsExactly(tuple(IssueSeverity.REVIEW, "items[0].simultaneousStart"));
-    assertThat(group.validate().getFirst().message())
+    assertThat(group.validate(CONTEXT).getFirst().message())
         .startsWith("Elevador declarado com 12 CV. Motores acima de 5 CV");
-    assertThat(group.status()).isEqualTo(GroupStatus.REVIEW);
+    assertThat(group.status(CONTEXT)).isEqualTo(GroupStatus.REVIEW);
   }
 
   @Test
@@ -239,7 +243,7 @@ class ConsumerUnitGroupTest {
         GroupKind.LOAD.create(
             PROJECT, commonArea(List.of(motor("Portão", 3.6, PowerUnit.KW, null))));
 
-    assertThat(group.status()).isEqualTo(GroupStatus.VALIDATED);
+    assertThat(group.status(CONTEXT)).isEqualTo(GroupStatus.VALIDATED);
   }
 
   @Test
@@ -248,7 +252,7 @@ class ConsumerUnitGroupTest {
         GroupKind.LOAD.create(
             PROJECT, commonArea(List.of(motor("Elevador", 12, PowerUnit.CV, false))));
 
-    assertThat(group.status()).isEqualTo(GroupStatus.VALIDATED);
+    assertThat(group.status(CONTEXT)).isEqualTo(GroupStatus.VALIDATED);
   }
 
   @Test
@@ -257,7 +261,7 @@ class ConsumerUnitGroupTest {
         GroupKind.LOAD.create(
             PROJECT, loads(LoadUsage.COMMERCIAL, List.of(lighting("Loja térrea", 4, null))));
 
-    assertThat(group.validate())
+    assertThat(group.validate(CONTEXT))
         .extracting(ValidationIssue::severity, ValidationIssue::field)
         .containsExactly(tuple(IssueSeverity.MISSING_DATA, "items[0].lampTechnology"));
   }
@@ -268,7 +272,7 @@ class ConsumerUnitGroupTest {
         GroupKind.LOAD.create(
             PROJECT, commonArea(List.of(lighting("Iluminação da garagem", 3, null))));
 
-    assertThat(group.validate())
+    assertThat(group.validate(CONTEXT))
         .extracting(ValidationIssue::severity, ValidationIssue::field)
         .containsExactly(tuple(IssueSeverity.MISSING_DATA, "items[0].lampTechnology"));
   }
@@ -279,15 +283,15 @@ class ConsumerUnitGroupTest {
         GroupKind.LOAD.create(
             PROJECT, commonArea(List.of(lighting("Tomadas", 2, LampTechnology.GENERAL_OUTLETS))));
 
-    assertThat(group.status()).isEqualTo(GroupStatus.VALIDATED);
+    assertThat(group.status(CONTEXT)).isEqualTo(GroupStatus.VALIDATED);
   }
 
   @Test
   void aLoadGroupWithoutLoadsIsMissingData() {
     ConsumerUnitGroup group = GroupKind.LOAD.create(PROJECT, commonArea(List.of()));
 
-    assertThat(group.validate()).extracting(ValidationIssue::field).containsExactly("items");
-    assertThat(group.loadPerUnitKw()).isNull();
+    assertThat(group.validate(CONTEXT)).extracting(ValidationIssue::field).containsExactly("items");
+    assertThat(group.loadPerUnitKw(CONTEXT)).isNull();
     assertThat(group.summary()).isEqualTo("Nenhuma carga informada (DIS-NOR-030 item 6.27)");
   }
 
@@ -297,7 +301,7 @@ class ConsumerUnitGroupTest {
         GroupKind.LOAD.create(
             PROJECT, commonArea(List.of(motor("Bomba de recalque", null, PowerUnit.CV, null))));
 
-    assertThat(group.validate())
+    assertThat(group.validate(CONTEXT))
         .extracting(ValidationIssue::severity, ValidationIssue::field)
         .containsExactly(tuple(IssueSeverity.MISSING_DATA, "items[0].power"));
   }
@@ -311,8 +315,169 @@ class ConsumerUnitGroupTest {
                 List.of(
                     motor("Elevador", 10, PowerUnit.CV, false), lighting("Iluminação", 2, null))));
 
-    assertThat(group.loadPerUnitKw()).isEqualByComparingTo("9.355");
+    assertThat(group.loadPerUnitKw(CONTEXT)).isEqualByComparingTo("10.89");
     assertThat(group.summary()).isEqualTo("Elevador, Iluminação (DIS-NOR-030 item 6.27)");
+  }
+
+  @Test
+  void aMotorLoadIsTheAbsorbedPowerOfTabela19() {
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(PROJECT, commonArea(List.of(motor("Bomba", 1, PowerUnit.CV, false))));
+
+    assertThat(group.loadPerUnitKw(CONTEXT)).isEqualByComparingTo("1.05");
+  }
+
+  @Test
+  void aPumpInCvIsRatedLikeAMotorAndOneInKilowattsKeepsItsPlate() {
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(
+            PROJECT,
+            commonArea(
+                List.of(
+                    new LoadItem(
+                        LoadCategory.PUMPS_AND_HOT_TUBS,
+                        "Bomba de recalque",
+                        1,
+                        new BigDecimal("5"),
+                        PowerUnit.CV,
+                        null,
+                        null),
+                    new LoadItem(
+                        LoadCategory.PUMPS_AND_HOT_TUBS,
+                        "Hidromassagem",
+                        1,
+                        new BigDecimal("2"),
+                        PowerUnit.KW,
+                        null,
+                        null))));
+
+    assertThat(group.loadPerUnitKw(CONTEXT)).isEqualByComparingTo("6.51");
+  }
+
+  @Test
+  void anAirConditionerInBtuTakesTheWattsOfTabela11AtTheNextRow() {
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(PROJECT, commonArea(List.of(airConditioner(2, "14000"))));
+
+    assertThat(group.loadPerUnitKw(CONTEXT)).isEqualByComparingTo("3.80");
+    assertThat(group.validate(CONTEXT)).isEmpty();
+  }
+
+  @Test
+  void anAirConditionerAboveTheLastRowOfTabela11IsUnderReview() {
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(PROJECT, commonArea(List.of(airConditioner(1, "80000"))));
+
+    assertThat(group.validate(CONTEXT))
+        .extracting(ValidationIssue::severity, ValidationIssue::field, ValidationIssue::message)
+        .containsExactly(
+            tuple(
+                IssueSeverity.REVIEW,
+                "items[0].power",
+                "\"Condicionador de ar\" declarado com 80.000 BTU/h passa da última linha da"
+                    + " Tabela 11 da DIS-NOR-030: confira a capacidade do aparelho."));
+  }
+
+  @Test
+  void onlyAnAirConditionerIsDeclaredInBtu() {
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(
+            PROJECT, commonArea(List.of(motor("Bomba", 9000, PowerUnit.BTU_H, false))));
+
+    assertThat(group.validate(CONTEXT))
+        .extracting(ValidationIssue::severity, ValidationIssue::field)
+        .containsExactly(tuple(IssueSeverity.REVIEW, "items[0].powerUnit"));
+  }
+
+  @Test
+  void aSinglePhaseBuildingReadsItsMotorsInTabela18() {
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(PROJECT, commonArea(List.of(motor("Bomba", 1, PowerUnit.CV, false))));
+
+    assertThat(
+            group.loadPerUnitKw(
+                DemandFixtures.context(SupplyVoltage.V220_127, ConnectionType.SINGLE_PHASE)))
+        .isEqualByComparingTo("1.14");
+  }
+
+  @Test
+  void aMotorInKilowattsIsReadAtTheRowOfItsPowerInCv() {
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(
+            PROJECT, commonArea(List.of(motor("Exaustor", 7.5, PowerUnit.KW, false))));
+
+    assertThat(group.loadPerUnitKw(CONTEXT)).isEqualByComparingTo("10.85");
+  }
+
+  @Test
+  void aMotorAboveTheLastRowOfTabela19IsUnderReview() {
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(
+            PROJECT, commonArea(List.of(motor("Compressor", 250, PowerUnit.CV, false))));
+
+    assertThat(group.validate(CONTEXT))
+        .extracting(ValidationIssue::severity, ValidationIssue::field, ValidationIssue::message)
+        .containsExactly(
+            tuple(
+                IssueSeverity.REVIEW,
+                "items[0].power",
+                "\"Compressor\" declarado com 250 CV passa da última linha da Tabela 19 da"
+                    + " DIS-NOR-030: confira a potência de placa."));
+    assertThat(group.status(CONTEXT)).isEqualTo(GroupStatus.REVIEW);
+  }
+
+  @Test
+  void withoutTheMotorTableTheGroupIsUnderReviewInsteadOfFailing() {
+    DemandContext empty =
+        new DemandContext(
+            new NormativeTableSet(List.of()), SupplyVoltage.V380_220, ConnectionType.THREE_PHASE);
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(PROJECT, commonArea(List.of(motor("Bomba", 1, PowerUnit.CV, false))));
+
+    assertThat(group.validate(empty))
+        .extracting(ValidationIssue::severity, ValidationIssue::field)
+        .containsExactly(tuple(IssueSeverity.REVIEW, "items[0].power"));
+    assertThat(group.loadPerUnitKw(empty)).isEqualByComparingTo("0.7355");
+  }
+
+  @Test
+  void withoutTabela11AnAirConditionerInBtuIsUnderReviewInsteadOfFailing() {
+    DemandContext empty =
+        new DemandContext(
+            new NormativeTableSet(List.of()), SupplyVoltage.V380_220, ConnectionType.THREE_PHASE);
+    ConsumerUnitGroup group =
+        GroupKind.LOAD.create(PROJECT, commonArea(List.of(airConditioner(1, "14000"))));
+
+    assertThat(group.validate(empty))
+        .extracting(ValidationIssue::severity, ValidationIssue::field, ValidationIssue::message)
+        .containsExactly(
+            tuple(
+                IssueSeverity.REVIEW,
+                "items[0].power",
+                "A Tabela 11 da DIS-NOR-030 não está publicada: sem ela não há carga nem demanda de"
+                    + " \"Condicionador de ar\". Publique a tabela em Tabelas Normativas."));
+  }
+
+  @Test
+  void aThreePhaseApartmentCrossesTheLowVoltageLimitByTabela19() {
+    ConsumerUnitGroup group =
+        GroupKind.RESIDENTIAL.create(
+            PROJECT,
+            threePhaseApartments(
+                new LoadItem(
+                    LoadCategory.INSTANT_HEATING,
+                    "Aquecedores",
+                    10,
+                    new BigDecimal("7"),
+                    PowerUnit.KW,
+                    null,
+                    null),
+                motor("Bomba", 6, PowerUnit.CV, false)));
+
+    assertThat(group.loadPerUnitKw(CONTEXT)).isEqualByComparingTo("76.57");
+    assertThat(group.validate(CONTEXT))
+        .extracting(ValidationIssue::severity, ValidationIssue::field)
+        .containsExactly(tuple(IssueSeverity.REVIEW, "loads"));
   }
 
   @Test
@@ -334,18 +499,18 @@ class ConsumerUnitGroupTest {
   void chargingWithoutLoadManagementIsMissingData() {
     ConsumerUnitGroup group = GroupKind.EV_CHARGING.create(PROJECT, charging(7.4, false, null));
 
-    assertThat(group.validate())
+    assertThat(group.validate(CONTEXT))
         .extracting(ValidationIssue::severity, ValidationIssue::field)
         .containsExactly(tuple(IssueSeverity.MISSING_DATA, "loadManagement"));
     assertThat(group.summary()).isEqualTo("6 pontos de 7,4 kW (DIS-NOR-053 Quadro 33)");
-    assertThat(group.declaredLoadKw()).isEqualByComparingTo("44.4");
+    assertThat(group.declaredLoadKw(CONTEXT)).isEqualByComparingTo("44.4");
   }
 
   @Test
   void aFixedStationWithoutPowerIsMissingData() {
     ConsumerUnitGroup group = GroupKind.EV_CHARGING.create(PROJECT, charging(null, false, true));
 
-    assertThat(group.validate())
+    assertThat(group.validate(CONTEXT))
         .extracting(ValidationIssue::field)
         .containsExactly("powerPerPointKw");
     assertThat(group.summary())
@@ -356,8 +521,8 @@ class ConsumerUnitGroupTest {
   void anIncorporatedStationWithoutPowerTakesTheStandardValue() {
     ConsumerUnitGroup group = GroupKind.EV_CHARGING.create(PROJECT, charging(null, true, true));
 
-    assertThat(group.status()).isEqualTo(GroupStatus.VALIDATED);
-    assertThat(group.loadPerUnitKw()).isEqualByComparingTo("3.3");
+    assertThat(group.status(CONTEXT)).isEqualTo(GroupStatus.VALIDATED);
+    assertThat(group.loadPerUnitKw(CONTEXT)).isEqualByComparingTo("3.3");
   }
 
   @Test
@@ -369,7 +534,7 @@ class ConsumerUnitGroupTest {
                 LoadUsage.COMMERCIAL,
                 List.of(motor("Elevador", 12, PowerUnit.CV, null), lighting("Loja", 4, null))));
 
-    assertThat(group.status()).isEqualTo(GroupStatus.MISSING_DATA);
+    assertThat(group.status(CONTEXT)).isEqualTo(GroupStatus.MISSING_DATA);
   }
 
   @Test
@@ -378,7 +543,7 @@ class ConsumerUnitGroupTest {
 
     group.update(charging(7.4, false, true));
 
-    assertThat(group.status()).isEqualTo(GroupStatus.VALIDATED);
+    assertThat(group.status(CONTEXT)).isEqualTo(GroupStatus.VALIDATED);
   }
 
   @Test
@@ -478,6 +643,17 @@ class ConsumerUnitGroupTest {
         unit,
         null,
         simultaneousStart);
+  }
+
+  private static LoadItem airConditioner(int quantity, String btu) {
+    return new LoadItem(
+        LoadCategory.AIR_CONDITIONING,
+        "Condicionador de ar",
+        quantity,
+        new BigDecimal(btu),
+        PowerUnit.BTU_H,
+        null,
+        null);
   }
 
   private static LoadItem lighting(String description, double kw, LampTechnology lamp) {

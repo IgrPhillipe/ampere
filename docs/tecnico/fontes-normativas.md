@@ -128,7 +128,7 @@ D = a + b + c + d + e + f + g + h + i   [kVA]
 | `d` | Secadora, lava-roupas, lava-louças, micro-ondas | Tabela 9 | **0,92** ou conforme fabricante |
 | `e` | Fornos e fogões elétricos | Tabela 9 | 1,00 |
 | `f` | Condicionadores de ar | Tabela 12; potência por aparelho na Tabela 11 | unidade central: fator de demanda 1,00 |
-| `g` | Motores e máquinas de solda a motor | Tabela 14 | potência de placa em CV/HP convertida pela **Tabela 19** (trifásico) ou **Tabela 18** (monofásico) |
+| `g` | Motores e máquinas de solda a motor | Tabela 14 | potência de placa em CV/HP convertida pela **Tabela 19** (trifásico) ou **Tabela 18** (monofásico); a coluna kW dá a carga instalada |
 | `h` | Equipamentos especiais | Tabela 15: maior 1,00, demais **0,60** | conforme placa do equipamento |
 | `i` | Bombas e hidromassagem | Tabela 16: 1 → 1,00; 2 → 0,56; 3 → 0,47; acima de 3 → 0,39 | 1,00 |
 
@@ -289,6 +289,37 @@ O Anexo I traz **cinco exemplos resolvidos de ponta a ponta**, com os valores in
 O segundo elevador de 15 cv entra no grupo dos "demais", com 0,50, conforme a nota da Tabela 14 para maiores potências iguais.
 
 Os valores dos Exemplos 3 a 5 devem ser transcritos das páginas do PDF, não da extração de texto.
+
+**DIS-NOR-030, Exemplo 3, carga instalada.** Residência de 180 m² com 12 cômodos, p. 52 a 55 impressas, REV 07, com o SHA-256 registrado em "Procedimento". É o exemplo da cobertura de `DemandFixtures.exemplo3()` e de `ScenarioGroups.penthouseLoads`, e não o Exemplo 3 do Anexo I da 053.
+
+| Carga | Valor da norma |
+| :--- | ---: |
+| Tomadas, pela Tabela 5 | 3.000 W |
+| Iluminação, 12 cômodos × 100 W | 1.200 W |
+| Eletrodomésticos, com os condicionadores em 2 × 1.900 W | 29.800 W |
+| Motores, 2 × 1.050 W (1 cv, Tabela 19) | 2.100 W |
+| **Carga instalada** | **36.100 W** |
+
+O exemplo declara "2 condicionadores de ar 14.000 BTU: 1.900 W cada um" e, na parcela `f`, "pela Tabela 11 temos a carga instalada em VA: 2 x 2.100 VA": o aparelho de 14.000 BTU usa a linha de 15.000, a próxima acima, o mesmo critério da linha seguinte dos motores. A fixture declara os condicionadores em BTU/h, e o motor fecha os 36,10 kW e os 4,20 kVA de `f`.
+
+**DIS-NOR-030, Tabela 11, condicionadores de ar.** Anexo II, p. 67 impressa, REV 07, lida pela imagem da página. O sistema guarda W e VA em kW e kVA, como as Tabelas 18 e 19.
+
+| Capacidade (BTU/h) | Potência (VA) | Potência (W) | Tensão e corrente |
+| ---: | ---: | ---: | :--- |
+| 7.500 | 1.100 | 900 | 110 V, 10,0 A; 220 V, 5,0 A |
+| 9.000 | 1.550 | 1.300 | 110 V, 14,0 A; 220 V, 7,0 A |
+| 10.000 | 1.650 | 1.400 | 110 V, 15,0 A; 220 V, 7,5 A |
+| 12.000 | 1.900 | 1.600 | 110 V, 17,0 A; 220 V, 8,5 A |
+| 15.000 | 2.100 | 1.900 | 220 V, 9,5 A |
+| 18.000 | 2.860 | 2.600 | 220 V, 13,0 A |
+| 21.000 | 3.080 | 2.800 | 220 V, 14,0 A |
+| 30.000 | 4.000 | 3.800 | 220 V, 18,0 A |
+| 41.000 | 5.500 | 5.000 | 220 V, 14,5 A |
+| 60.000 | 9.000 | 7.500 | 220 V, 24,0 A |
+
+Notas da tabela: os valores são orientativos, e vale o dado de placa ou de catálogo do fabricante quando houver; as correntes de 41.000 e 60.000 BTU são de ligação trifásica em 220 V. O item 6.26.2.2 manda usar a tabela quando o fabricante não informa a potência, e o item 6.27.6 tira dela a potência por aparelho da parcela `f`. Tensão e corrente não entram no cálculo e não são cadastradas.
+
+**Segunda leitura (procedimento, passo 4).** Em 21/11/2026, sobre o PDF com o SHA-256 registrado, a Tabela 11 (p. 67), as colunas W e VA das Tabelas 18 e 19 (p. 69 e 70) e o Exemplo 3 (p. 52 a 55) foram conferidos valor a valor pela imagem da página contra `NormativeTableSeed` e esta transcrição. Nenhuma divergência.
 
 ---
 

@@ -207,9 +207,40 @@ describe("ResidentialGroupForm", () => {
 				}),
 			);
 
-			expect(await screen.findByRole("status")).toHaveTextContent(
-				"Carga instalada de 84,71 kW por unidade passa do limite de 75 kW",
+			expect(
+				await screen.findByText(
+					/Carga instalada de 84,71 kW por unidade passa do limite de 75 kW/,
+				),
+			).toBeInTheDocument();
+		});
+
+		it("says the loads rated by a table only add up on save", async () => {
+			renderForm(
+				threePhase({
+					loads: [
+						shower,
+						{
+							category: "AIR_CONDITIONING",
+							description: "Condicionador de ar",
+							quantity: 2,
+							power: 14000,
+							powerUnit: "BTU_H",
+						},
+					],
+				}),
 			);
+
+			expect(await screen.findByRole("status")).toHaveTextContent(
+				"Condicionadores em BTU/h, motores e bombas em CV ou HP entram pela tabela da norma ao salvar. O total e o limite de 75 kW só se confirmam depois disso.",
+			);
+			expect(screen.getByText(/Total parcial/)).toBeInTheDocument();
+		});
+
+		it("gives no table notice when every load is read by its plate", () => {
+			renderForm(threePhase());
+
+			expect(screen.queryByRole("status")).not.toBeInTheDocument();
+			expect(screen.queryByText(/Total parcial/)).not.toBeInTheDocument();
 		});
 	});
 
