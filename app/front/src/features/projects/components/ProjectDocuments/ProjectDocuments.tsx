@@ -22,6 +22,8 @@ interface ProjectDocumentsProps {
 	/** `undefined` while loading. */
 	documents?: ProjectDocument[];
 	onCreateFinding?: (document: ProjectDocument) => void;
+	/** `stacked` puts the list above the viewer, as a selector, when a side column is already taken. */
+	layout?: "side" | "stacked";
 	className?: string;
 }
 
@@ -29,8 +31,10 @@ export const ProjectDocuments = ({
 	projectId,
 	documents,
 	onCreateFinding,
+	layout = "side",
 	className,
 }: ProjectDocumentsProps) => {
+	const stacked = layout === "stacked";
 	const [selectedId, setSelectedId] = useState<string>();
 
 	if (!documents) {
@@ -58,11 +62,18 @@ export const ProjectDocuments = ({
 	return (
 		<div
 			className={cn(
-				"grid gap-6 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]",
+				"grid gap-6",
+				!stacked && "lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]",
 				className,
 			)}
 		>
-			<ul className="flex flex-col" aria-label="Documentos anexados">
+			<ul
+				className={cn(
+					"flex flex-col",
+					stacked && "@3xl:grid @3xl:grid-cols-2 @3xl:gap-x-6 @6xl:grid-cols-3",
+				)}
+				aria-label="Documentos anexados"
+			>
 				{documents.map((document) => {
 					const isSelected = document.id === selected.id;
 
