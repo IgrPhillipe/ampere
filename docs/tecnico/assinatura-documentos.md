@@ -46,6 +46,8 @@ A planilha não tem assinatura criptográfica: a garantia é o hash registrado. 
 | XLSX | O SHA-256 está no registro |
 | PDF | O SHA-256 está no registro **e** a assinatura está íntegra, cobre o arquivo inteiro e foi feita com um certificado do AMPERE. Memorial antigo, sem assinatura, passa só pelo hash |
 
+A assinatura é lida dos bytes crus: o `/ByteRange` precisa começar em 0, terminar no fim do arquivo e deixar de fora exatamente a string `/Contents`. Nenhum parser de PDF roda e nenhum stream é descomprimido, então um arquivo hostil (uma bomba de compressão, por exemplo) custa no máximo o próprio tamanho. Uma assinatura guardada dentro de um stream comprimido aparece como ausente.
+
 O campo `signature` da resposta, só no PDF enviado:
 
 | Valor | Quando |
@@ -63,9 +65,9 @@ A resposta traz também `documentType` e `issuedAt`. Sem correspondência, `veri
 | :--- | :--- |
 | `SIGNING_KEYSTORE` | PKCS12 com a chave e o certificado do AMPERE, em base64. Obrigatória no profile `prod` |
 | `SIGNING_KEYSTORE_PASSWORD` | Senha do PKCS12 |
-| `FRONT_URL` | Origem do front, base do link e do QR code |
+| `FRONT_URL` | Origem do front, base do link e do QR code. Obrigatória no profile `prod`, em `https` e fora de `localhost`: o link fica para sempre dentro do PDF assinado |
 
-Fora de `prod`, sem `SIGNING_KEYSTORE`, a API gera um certificado efêmero (`CN=AMPERE (desenvolvimento)`) a cada subida e registra um aviso no log. Os testes usam esse caminho. Nenhuma chave real fica no repositório.
+Fora de `prod`, sem `FRONT_URL`, os links apontam para `http://localhost:5173`; sem `SIGNING_KEYSTORE`, a API gera um certificado efêmero (`CN=AMPERE (desenvolvimento)`) a cada subida e registra um aviso no log. Os testes usam esse caminho. Nenhuma chave real fica no repositório.
 
 Gerar o PKCS12 de produção (validade de 5 anos):
 
