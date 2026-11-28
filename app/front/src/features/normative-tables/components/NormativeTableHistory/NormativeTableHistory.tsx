@@ -22,7 +22,22 @@ import {
 interface NormativeTableHistoryProps {
 	table: NormativeTable;
 	definition?: NormativeTableCode;
+	onOpenRevision?: (id: string) => void;
 }
+
+/** From the approval to the approval of the revision that replaced it. */
+const formatValidity = ({
+	status,
+	verifiedAt,
+	supersededAt,
+}: NormativeTable) => {
+	if (!verifiedAt) return null;
+	if (supersededAt)
+		return `${formatDate(verifiedAt)} a ${formatDate(supersededAt)}`;
+
+	// A superseded revision without its end date would read as still in effect.
+	return status === "PUBLISHED" ? `desde ${formatDate(verifiedAt)}` : null;
+};
 
 /** The open revision against the one before it, or the one after when it is the first. */
 const defaultComparison = (
@@ -68,6 +83,7 @@ const PersonLine = ({
 export const NormativeTableHistory = ({
 	table,
 	definition,
+	onOpenRevision,
 }: NormativeTableHistoryProps) => {
 	const revisionsQuery = useGetNormativeTableRevisions(table.id);
 	const revisions = revisionsQuery.data?.data ?? [];
@@ -119,6 +135,8 @@ export const NormativeTableHistory = ({
 				<ol className="flex flex-col">
 					{revisions.map((revision, index) => {
 						const isOpen = revision.id === table.id;
+						const label = formatRevision(revisions.length - index);
+						const validity = formatValidity(revision);
 
 						return (
 							<li
@@ -131,13 +149,24 @@ export const NormativeTableHistory = ({
 							>
 								<div className="flex flex-wrap items-center gap-3">
 									<span className="text-sm font-medium text-foreground">
-										{formatRevision(revisions.length - index)}
+										{label}
 									</span>
 									<NormativeTableStatusBadge status={revision.status} />
 									{isOpen ? (
-										<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+										<span className="ml-auto font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 											Aberta
 										</span>
+									) : onOpenRevision ? (
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											className="ml-auto"
+											aria-label={`Abrir ${label}`}
+											onClick={() => onOpenRevision(revision.id)}
+										>
+											Abrir
+										</Button>
 									) : null}
 								</div>
 
@@ -164,6 +193,12 @@ export const NormativeTableHistory = ({
 										person={revision.verifiedByName}
 										at={revision.verifiedAt}
 									/>
+									{validity ? (
+										<div className="flex gap-1.5">
+											<dt className="text-muted-foreground">Vigência</dt>
+											<dd className="font-mono text-foreground">{validity}</dd>
+										</div>
+									) : null}
 								</dl>
 							</li>
 						);

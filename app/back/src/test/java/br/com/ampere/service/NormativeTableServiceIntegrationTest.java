@@ -67,7 +67,10 @@ class NormativeTableServiceIntegrationTest {
         NormativeTableSeed.all(
             standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
 
-    List<NormativeTable> tables = service.list(NormativeTableQuery.all(), ADMIN);
+    List<NormativeTable> tables =
+        service.list(NormativeTableQuery.all(), ADMIN).stream()
+            .map(NormativeTableListing::table)
+            .toList();
     NormativeTable detail = service.findById(tables.get(0).getId(), ADMIN);
 
     assertThat(tables).allSatisfy(table -> assertThat(table.getRows()).isNotEmpty());
@@ -85,10 +88,14 @@ class NormativeTableServiceIntegrationTest {
             standards.stream().collect(Collectors.toMap(Standard::getName, Function.identity()))));
 
     List<NormativeTable> tables =
-        service.list(
-            new NormativeTableQuery(
-                "dis-nor-030", Set.of(NormativeTableStatus.PUBLISHED), null, null),
-            ADMIN);
+        service
+            .list(
+                new NormativeTableQuery(
+                    "dis-nor-030", Set.of(NormativeTableStatus.PUBLISHED), null, null),
+                ADMIN)
+            .stream()
+            .map(NormativeTableListing::table)
+            .toList();
 
     assertThat(tables)
         .isNotEmpty()

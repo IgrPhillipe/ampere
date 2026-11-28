@@ -140,6 +140,7 @@ export const NormativeTablesPage = () => {
 				open={isSheetOpen}
 				tableId={tableId}
 				onCreated={openTable}
+				onOpenRevision={setTableId}
 				onClose={() => setSheetOpen(false)}
 			/>
 		</PageLayout>

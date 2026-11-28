@@ -1,16 +1,22 @@
 import { AttentionIndicator } from "@components/AttentionIndicator";
 import { createDataTableColumnHelper } from "@components/DataTable";
 import { RowAction } from "@components/RowAction";
-import type { NormativeTable } from "@services/normative-tables";
+import type {
+	NormativeTable,
+	NormativeTableListing,
+} from "@services/normative-tables";
 
 import { NormativeTableStatusBadge } from "../NormativeTableStatusBadge";
 import {
 	getNormativeTableAction,
 	getNormativeTableAttention,
+	getNormativeTableTarget,
 } from "./normative-table-row";
+import { PendingRevisionBadge } from "./PendingRevisionBadge";
 import { PersonCell } from "./PersonCell";
+import { TableIdentity } from "./TableIdentity";
 
-const columnHelper = createDataTableColumnHelper<NormativeTable>();
+const columnHelper = createDataTableColumnHelper<NormativeTableListing>();
 
 export type NormativeTableColumnId =
 	| "attention"
@@ -45,16 +51,7 @@ export const createNormativeTableColumns = (
 		columnHelper.accessor("identification", {
 			id: "code",
 			header: "Tabela",
-			cell: ({ row }) => (
-				<div className="flex flex-col gap-1 whitespace-normal">
-					<span className="text-base font-medium text-foreground">
-						{row.original.identification}
-					</span>
-					<span className="text-sm text-muted-foreground">
-						{row.original.title}
-					</span>
-				</div>
-			),
+			cell: ({ row }) => <TableIdentity table={row.original} />,
 		}),
 		columnHelper.accessor("standard", {
 			header: "Norma",
@@ -83,7 +80,10 @@ export const createNormativeTableColumns = (
 		columnHelper.accessor("status", {
 			header: "Situação",
 			cell: ({ row }) => (
-				<NormativeTableStatusBadge status={row.original.status} />
+				<div className="flex flex-col items-start gap-1.5">
+					<NormativeTableStatusBadge status={row.original.status} />
+					{row.original.pendingRevision ? <PendingRevisionBadge /> : null}
+				</div>
 			),
 		}),
 		columnHelper.accessor("registeredByName", {
@@ -122,7 +122,7 @@ export const createNormativeTableColumns = (
 						onClick={(event) => {
 							// The row opens the sheet too; one open per click is enough.
 							event.stopPropagation();
-							onOpen(row.original);
+							onOpen(getNormativeTableTarget(row.original));
 						}}
 					/>
 				);

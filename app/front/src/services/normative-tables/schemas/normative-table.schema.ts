@@ -73,10 +73,20 @@ export const normativeTableSchema = z.object({
 	verifiedBy: z.string().nullish(),
 	verifiedByName: z.string().nullish(),
 	verifiedAt: z.string().nullish(),
+	// Set when a newer revision took effect, which ends this one's validity.
+	supersededAt: z.string().nullish(),
 	rows: z.array(normativeTableRowSchema).optional(),
 });
 
 export type NormativeTable = z.infer<typeof normativeTableSchema>;
+
+/** One line per table code: the revision it shows and the draft still waiting for review. */
+export const normativeTableListingSchema = normativeTableSchema.extend({
+	revisionCount: z.number().int().positive(),
+	pendingRevision: normativeTableSchema.nullish(),
+});
+
+export type NormativeTableListing = z.infer<typeof normativeTableListingSchema>;
 
 export const normativeTableRowChangeSchema = z.object({
 	before: normativeTableRowSchema,
@@ -113,11 +123,19 @@ export type NormativeTableCodeListResponse = z.infer<
 >;
 
 export const normativeTableListResponseSchema = apiResponseSchema(
-	z.array(normativeTableSchema),
+	z.array(normativeTableListingSchema),
 );
 
 export type NormativeTableListResponse = z.infer<
 	typeof normativeTableListResponseSchema
+>;
+
+export const normativeTableRevisionListResponseSchema = apiResponseSchema(
+	z.array(normativeTableSchema),
+);
+
+export type NormativeTableRevisionListResponse = z.infer<
+	typeof normativeTableRevisionListResponseSchema
 >;
 
 export const normativeTableResponseSchema =

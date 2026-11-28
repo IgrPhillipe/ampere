@@ -6,9 +6,10 @@ import { type ListSort, useAuthStore } from "@features/shared";
 import { cn } from "@lib/utils";
 import type {
 	NormativeTable,
+	NormativeTableListing,
 	NormativeTableSort,
 } from "@services/normative-tables";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 import { useCanManageNormativeTables } from "../../hooks";
 import { NormativeTableCards } from "./NormativeTableCards";
@@ -16,6 +17,7 @@ import {
 	createNormativeTableColumns,
 	type NormativeTableColumnId,
 } from "./normative-table-columns";
+import { getNormativeTableTarget } from "./normative-table-row";
 
 const normativeTableColumnClassNames = {
 	attention: "w-5 px-0",
@@ -35,8 +37,9 @@ const sortableColumns = [
 ] as const satisfies readonly NormativeTableSort[];
 
 interface NormativeTablesTableProps {
-	tables: NormativeTable[];
+	tables: NormativeTableListing[];
 	isLoading?: boolean;
+	/** Receives the revision the line leads to, the pending draft when there is one. */
 	onOpen: (table: NormativeTable) => void;
 	sort?: ListSort<NormativeTableSort>;
 	onSortChange?: (column: NormativeTableSort) => void;
@@ -59,6 +62,10 @@ export const NormativeTablesTable = ({
 	const columns = useMemo(
 		() => createNormativeTableColumns(onOpen, email, canReview),
 		[onOpen, email, canReview],
+	);
+	const openLine = useCallback(
+		(table: NormativeTableListing) => onOpen(getNormativeTableTarget(table)),
+		[onOpen],
 	);
 
 	if (isLoading) return <SkeletonTable columns={8} />;
@@ -90,15 +97,19 @@ export const NormativeTablesTable = ({
 		<>
 			<NormativeTableCards
 				tables={tables}
-				onOpen={onOpen}
+				onOpen={openLine}
 				className={cn("md:hidden", className)}
 			/>
 
-			<DataTable<NormativeTable, NormativeTableColumnId, NormativeTableSort>
+			<DataTable<
+				NormativeTableListing,
+				NormativeTableColumnId,
+				NormativeTableSort
+			>
 				columns={columns}
 				data={tables}
 				columnClassNames={normativeTableColumnClassNames}
-				onRowClick={onOpen}
+				onRowClick={openLine}
 				sortableColumns={sortableColumns}
 				sort={sort}
 				onSortChange={onSortChange}

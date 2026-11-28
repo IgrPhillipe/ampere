@@ -1,8 +1,7 @@
 package br.com.ampere.service;
 
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -201,8 +200,37 @@ class NormativeTableHistoryIntegrationTest {
         .andExpect(jsonPath("$.data.verifiedByName").value("Bruno Conferente"));
     mockMvc
         .perform(get("/normative-tables").header("Authorization", admin))
-        .andExpect(jsonPath("$.data.length()").value(2))
-        .andExpect(jsonPath("$.data[*].registeredByName", everyItem(is("Ana Gestora"))));
+        .andExpect(jsonPath("$.data.length()").value(1))
+        .andExpect(jsonPath("$.data[0].id").value(first))
+        .andExpect(jsonPath("$.data[0].registeredByName").value("Ana Gestora"))
+        .andExpect(jsonPath("$.data[0].verifiedByName").value("Bruno Conferente"))
+        .andExpect(jsonPath("$.data[0].pendingRevision.id").value(second))
+        .andExpect(jsonPath("$.data[0].pendingRevision.registeredByName").value("Ana Gestora"));
+  }
+
+  @Test
+  void listsOneLinePerTableAndLeavesTheSupersededOnesToTheHistory() throws Exception {
+    publish(second);
+    create(TABELA_22);
+
+    mockMvc
+        .perform(get("/normative-tables").header("Authorization", admin))
+        .andExpect(jsonPath("$.data[*].id", hasSize(2)))
+        .andExpect(jsonPath("$.data[0].id").value(second))
+        .andExpect(jsonPath("$.data[0].status").value("PUBLISHED"))
+        .andExpect(jsonPath("$.data[0].revisionCount").value(2))
+        .andExpect(jsonPath("$.data[0].pendingRevision").doesNotExist())
+        .andExpect(jsonPath("$.data[1].status").value("DRAFT"))
+        .andExpect(jsonPath("$.data[1].revisionCount").value(1));
+    mockMvc
+        .perform(
+            get("/normative-tables").param("status", "SUPERSEDED").header("Authorization", admin))
+        .andExpect(jsonPath("$.data[*].id", contains(first)));
+    mockMvc
+        .perform(get("/normative-tables/" + second + "/revisions").header("Authorization", admin))
+        .andExpect(jsonPath("$.data[0].supersededAt").doesNotExist())
+        .andExpect(jsonPath("$.data[1].id").value(first))
+        .andExpect(jsonPath("$.data[1].supersededAt").exists());
   }
 
   @Test
