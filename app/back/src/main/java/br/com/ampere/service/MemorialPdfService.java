@@ -207,10 +207,7 @@ public class MemorialPdfService {
     return new Memorial(memorial.getFilename(), memorial.getData());
   }
 
-  /**
-   * The code comes from a first rendering: a printed code cannot be part of its own hash. The
-   * signature goes on last, over the stamped PDF.
-   */
+  /** The code comes from an unstamped first rendering; the signature goes on last. */
   public Issued issue(
       Project project,
       Calculation calculation,

@@ -8,8 +8,6 @@ import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -63,25 +61,17 @@ public record SigningCredentials(PrivateKey key, List<X509Certificate> chain) {
     }
   }
 
-  static byte[] digest(byte[] content) {
-    try {
-      return MessageDigest.getInstance("SHA-256").digest(content);
-    } catch (NoSuchAlgorithmException impossible) {
-      throw new IllegalStateException(impossible);
-    }
-  }
-
   public static SigningCredentials resolve(SigningProperties properties, boolean isProduction) {
     String keystore = properties == null ? null : properties.keystore();
     if (keystore == null || keystore.isBlank()) {
       if (isProduction) {
         throw new IllegalStateException(
-            "SIGNING_KEYSTORE nao definida. Defina o PKCS12 do AMPERE em base64 antes de subir"
-                + " em producao.");
+            "SIGNING_KEYSTORE não definida. Defina o PKCS12 do AMPERE em base64 antes de subir"
+                + " em produção.");
       }
       log.warn(
-          "SIGNING_KEYSTORE nao definida: assinando os documentos com um certificado efemero"
-              + " desta execucao. Nao use em producao.");
+          "SIGNING_KEYSTORE não definida: assinando os documentos com um certificado efêmero"
+              + " desta execução. Não use em produção.");
 
       return selfSigned(DEVELOPMENT_SUBJECT);
     }
@@ -103,10 +93,10 @@ public record SigningCredentials(PrivateKey key, List<X509Certificate> chain) {
               key, Arrays.stream(chain).map(X509Certificate.class::cast).toList());
         }
       }
-      throw new IllegalStateException("SIGNING_KEYSTORE nao tem chave privada.");
+      throw new IllegalStateException("SIGNING_KEYSTORE não tem chave privada.");
     } catch (GeneralSecurityException | IOException | IllegalArgumentException exception) {
       throw new IllegalStateException(
-          "SIGNING_KEYSTORE invalida ou senha errada: " + exception.getMessage(), exception);
+          "SIGNING_KEYSTORE inválida ou senha errada: " + exception.getMessage(), exception);
     }
   }
 
@@ -139,7 +129,7 @@ public record SigningCredentials(PrivateKey key, List<X509Certificate> chain) {
 
       return new SigningCredentials(pair.getPrivate(), List.of(certificate));
     } catch (GeneralSecurityException | OperatorCreationException | IOException exception) {
-      throw new IllegalStateException("Nao foi possivel gerar o certificado.", exception);
+      throw new IllegalStateException("Não foi possível gerar o certificado.", exception);
     }
   }
 }

@@ -189,7 +189,6 @@ public class ProjectVersionService {
             type,
             version.getProject(),
             version,
-            issued.filename(),
             issued.sha256(),
             issued.verificationCode(),
             issuedAt,

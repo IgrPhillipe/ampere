@@ -30,11 +30,11 @@ import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
-import br.com.ampere.repository.IssuedDocumentRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectRepositoryCustom.ProjectSearch;
+import br.com.ampere.repository.ProjectVersionRepository;
 import br.com.ampere.repository.UserRepository;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -245,7 +245,7 @@ class ProjectServiceTest {
         mock(ConsumerUnitGroupRepository.class),
         mock(CalculationRepository.class),
         mock(ProjectDocumentRepository.class),
-        mock(IssuedDocumentRepository.class),
+        mock(ProjectVersionRepository.class),
         mock(ProjectEventRepository.class),
         mock(UserRepository.class),
         creation,
@@ -267,7 +267,7 @@ class ProjectServiceTest {
         mock(ConsumerUnitGroupRepository.class),
         calculationRepository,
         mock(ProjectDocumentRepository.class),
-        mock(IssuedDocumentRepository.class),
+        mock(ProjectVersionRepository.class),
         mock(ProjectEventRepository.class),
         mock(UserRepository.class),
         mock(ProjectCreation.class),

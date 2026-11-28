@@ -57,10 +57,7 @@ public class MemorialVerificationService {
     ABSENT
   }
 
-  /**
-   * The document a file or code belongs to. version is null for a spreadsheet of a calculation not
-   * yet submitted; approvedAt only for the memorial of an approval with reservations.
-   */
+  /** version is null for an unsubmitted calculation; approvedAt only for an approval memorial. */
   public record Verified(
       IssuedDocumentType type,
       Project project,

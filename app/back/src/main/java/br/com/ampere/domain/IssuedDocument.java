@@ -19,10 +19,7 @@ import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-/**
- * Registry of every official file handed out: its SHA-256 and printed code verify the exact file
- * later. Memorials issued before the registry are still found in their version.
- */
+/** Every official file handed out; memorials issued before it are found in their version. */
 @Entity
 @Immutable
 @Table(
@@ -31,7 +28,7 @@ import org.hibernate.annotations.OnDeleteAction;
       @UniqueConstraint(columnNames = {"sha256"}),
       @UniqueConstraint(columnNames = {"verificationCode"})
     },
-    indexes = @Index(columnList = "project_id"))
+    indexes = {@Index(columnList = "project_id"), @Index(columnList = "signerCertificateSha256")})
 public class IssuedDocument {
 
   @Id
@@ -53,9 +50,6 @@ public class IssuedDocument {
   @JoinColumn(name = "version_id", updatable = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   private ProjectVersion version;
-
-  @Column(nullable = false, updatable = false)
-  private String filename;
 
   @Column(nullable = false, length = 64, updatable = false)
   private String sha256;
@@ -80,7 +74,6 @@ public class IssuedDocument {
       IssuedDocumentType type,
       Project project,
       ProjectVersion version,
-      String filename,
       String sha256,
       String verificationCode,
       OffsetDateTime issuedAt,
@@ -89,7 +82,6 @@ public class IssuedDocument {
     this.type = Objects.requireNonNull(type, "type");
     this.project = Objects.requireNonNull(project, "project");
     this.version = version;
-    this.filename = Objects.requireNonNull(filename, "filename");
     this.sha256 = Objects.requireNonNull(sha256, "sha256");
     this.verificationCode = Objects.requireNonNull(verificationCode, "verificationCode");
     this.issuedAt = Objects.requireNonNull(issuedAt, "issuedAt");
@@ -111,10 +103,6 @@ public class IssuedDocument {
 
   public ProjectVersion getVersion() {
     return version;
-  }
-
-  public String getFilename() {
-    return filename;
   }
 
   public String getSha256() {

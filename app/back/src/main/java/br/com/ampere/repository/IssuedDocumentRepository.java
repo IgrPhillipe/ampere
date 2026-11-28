@@ -8,10 +8,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface IssuedDocumentRepository extends JpaRepository<IssuedDocument, Long> {
 
-  /** Lifts ProjectVersionGuard for the rest of the transaction, as the version cleanup does. */
-  @Query(value = "SELECT set_config('ampere.version_cleanup', 'on', true)", nativeQuery = true)
-  String allowCleanup();
-
   @Query(
       """
       SELECT document FROM IssuedDocument document

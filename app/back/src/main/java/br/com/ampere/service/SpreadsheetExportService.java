@@ -138,7 +138,6 @@ public class SpreadsheetExportService {
             IssuedDocumentType.CALCULATION_SPREADSHEET,
             project,
             version,
-            filename,
             MemorialFingerprint.sha256(content),
             code,
             issuedAt,

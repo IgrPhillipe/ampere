@@ -15,8 +15,12 @@ public final class MemorialFingerprint {
   private MemorialFingerprint() {}
 
   public static String sha256(byte[] content) {
+    return HexFormat.of().formatHex(digest(content));
+  }
+
+  public static byte[] digest(byte[] content) {
     try {
-      return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(content));
+      return MessageDigest.getInstance("SHA-256").digest(content);
     } catch (NoSuchAlgorithmException impossible) {
       throw new IllegalStateException(impossible);
     }

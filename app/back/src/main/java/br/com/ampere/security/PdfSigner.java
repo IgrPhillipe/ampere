@@ -1,5 +1,6 @@
 package br.com.ampere.security;
 
+import br.com.ampere.utils.MemorialFingerprint;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.pdf.PdfDate;
 import com.lowagie.text.pdf.PdfDictionary;
@@ -96,7 +97,7 @@ public class PdfSigner {
 
       byte[] cms = cms(appearance.getRangeStream().readAllBytes(), credentials);
       if (cms.length > RESERVED_BYTES) {
-        throw new IllegalStateException("Assinatura maior que o espaco reservado no PDF.");
+        throw new IllegalStateException("Assinatura maior que o espaço reservado no PDF.");
       }
       PdfDictionary contents = new PdfDictionary();
       contents.put(
@@ -105,7 +106,7 @@ public class PdfSigner {
 
       return output.toByteArray();
     } catch (IOException | DocumentException exception) {
-      throw new IllegalStateException("Nao foi possivel assinar o PDF.", exception);
+      throw new IllegalStateException("Não foi possível assinar o PDF.", exception);
     }
   }
 
@@ -115,7 +116,7 @@ public class PdfSigner {
     try {
       ESSCertIDv2 certId =
           new ESSCertIDv2(
-              SigningCredentials.digest(certificate.getEncoded()),
+              MemorialFingerprint.digest(certificate.getEncoded()),
               new IssuerSerial(
                   new GeneralNames(
                       new GeneralName(
@@ -144,7 +145,7 @@ public class PdfSigner {
         | OperatorCreationException
         | CMSException
         | IOException exception) {
-      throw new IllegalStateException("Nao foi possivel assinar o PDF.", exception);
+      throw new IllegalStateException("Não foi possível assinar o PDF.", exception);
     }
   }
 
