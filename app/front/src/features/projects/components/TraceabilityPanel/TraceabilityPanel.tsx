@@ -7,6 +7,8 @@ import type { Calculation } from "@services/calculation";
 interface TraceabilityPanelProps {
 	calculation?: Calculation;
 	isLoading?: boolean;
+	/** Summary strip above the data, for the analyst. */
+	compact?: boolean;
 	className?: string;
 }
 
@@ -25,6 +27,7 @@ const breaker = ({ breakerAmps, breakerPoles }: Calculation["traceability"]) =>
 export const TraceabilityPanel = ({
 	calculation,
 	isLoading = false,
+	compact = false,
 	className,
 }: TraceabilityPanelProps) => {
 	const rows = calculation
@@ -49,7 +52,13 @@ export const TraceabilityPanel = ({
 	return (
 		<aside
 			aria-labelledby="resultado-titulo"
-			className={cn("flex flex-col px-6 py-8 md:px-9.5", className)}
+			className={cn(
+				"flex flex-col px-6 py-8",
+				compact
+					? "md:px-10 @3xl:grid @3xl:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] @3xl:items-start @3xl:gap-x-9.5"
+					: "md:px-9.5",
+				className,
+			)}
 		>
 			<ConclusionField
 				label={<span id="resultado-titulo">Resultado</span>}
@@ -73,7 +82,12 @@ export const TraceabilityPanel = ({
 				) : null}
 			</ConclusionField>
 
-			<dl className="mt-9.5 flex flex-col">
+			<dl
+				className={cn(
+					"mt-9.5 flex flex-col",
+					compact && "@3xl:mt-0 @3xl:grid @3xl:grid-cols-2 @3xl:gap-x-9.5",
+				)}
+			>
 				{isLoading || !calculation
 					? Array.from({ length: 7 }, (_, index) => (
 							<div

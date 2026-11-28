@@ -12,7 +12,7 @@ export interface FindingRegistrar {
 }
 
 interface ProjectWorkspaceContextValue {
-	/** The analyst's view of the project, with the review panel beside the sections. */
+	/** The analyst's view: the findings column beside the sections, each stage panel as a summary above its data. */
 	reviewing: boolean;
 	registrar: FindingRegistrar;
 }

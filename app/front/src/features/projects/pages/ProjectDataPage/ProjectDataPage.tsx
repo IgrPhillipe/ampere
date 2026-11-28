@@ -4,6 +4,7 @@ import { Eyebrow, PageLayout } from "@components/layout";
 import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { formatPostalCode, useAuthStore, useZodForm } from "@features/shared";
+import { cn } from "@lib/utils";
 import { calculationKeys } from "@services/calculation";
 import { isConcessionState } from "@services/locations";
 import { useGetFindingList } from "@services/project-review";
@@ -27,6 +28,7 @@ import {
 	ProjectReviewerField,
 	StageFindingsNotice,
 	StepFooter,
+	useWorkspaceReviewing,
 } from "../../components";
 import {
 	buildingTypeLabels,
@@ -113,6 +115,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 		"PROJECT_DATA",
 	);
 	const { canEdit } = useProjectPermissions(project);
+	const reviewing = useWorkspaceReviewing();
 	const isAdmin = useAuthStore((state) => state.user?.role === "admin");
 	const isEditable = projectId === undefined || canEdit;
 	const choosesOwner = isAdmin && projectId === undefined;
@@ -205,7 +208,14 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 				onSubmit={form.handleSubmit(onSubmit)}
 				className="flex flex-1 flex-col"
 			>
-				<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_400px]">
+				<div
+					className={cn(
+						"flex-1",
+						reviewing
+							? "flex flex-col"
+							: "grid @5xl:grid-cols-[minmax(0,1fr)_400px]",
+					)}
+				>
 					<fieldset
 						disabled={!isEditable || projectQuery.isLoading}
 						className="min-w-0 space-y-9.5 px-6 py-8 md:px-10"
@@ -305,8 +315,21 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 						</section>
 					</fieldset>
 
-					<aside className="order-first flex flex-col gap-9.5 border-b border-border px-6 py-8 md:px-9.5 @5xl:order-none @5xl:border-b-0 @5xl:border-l">
-						<div className="flex flex-col gap-5">
+					<aside
+						className={cn(
+							"order-first flex flex-col gap-9.5 border-b border-border px-6 py-8",
+							reviewing
+								? "md:px-10"
+								: "md:px-9.5 @5xl:order-none @5xl:border-b-0 @5xl:border-l",
+						)}
+					>
+						<div
+							className={cn(
+								"flex flex-col gap-5",
+								reviewing &&
+									"@3xl:grid @3xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] @3xl:items-center @3xl:gap-x-9.5",
+							)}
+						>
 							{/* The exact revision only exists after the POST (`ApplicableStandards`). */}
 							<ConclusionField
 								label="Norma derivada"

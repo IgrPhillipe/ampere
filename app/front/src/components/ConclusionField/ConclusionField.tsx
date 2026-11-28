@@ -12,6 +12,8 @@ interface ConclusionFieldProps {
 	value?: ReactNode;
 	/** Versalete caption under the value. */
 	caption?: ReactNode;
+	/** Puts the children beside the answer once the container is wide, for a summary strip. */
+	compact?: boolean;
 	children?: ReactNode;
 	className?: string;
 }
@@ -26,12 +28,15 @@ export const ConclusionField = ({
 	valueClassName,
 	value,
 	caption,
+	compact = false,
 	children,
 	className,
 }: ConclusionFieldProps) => (
 	<section
 		className={cn(
 			"flex flex-col gap-5 bg-primary px-6 py-6 text-primary-foreground",
+			compact &&
+				"@3xl:grid @3xl:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] @3xl:items-start @3xl:gap-x-9.5",
 			className,
 		)}
 	>
@@ -57,6 +62,7 @@ export const ConclusionField = ({
 				<p
 					className={cn(
 						"font-mono text-6xl leading-none font-medium tracking-[-0.04em]",
+						compact && "text-5xl",
 						valueClassName,
 					)}
 				>

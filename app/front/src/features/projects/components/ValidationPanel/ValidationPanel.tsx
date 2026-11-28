@@ -20,6 +20,8 @@ interface ValidationPanelProps {
 	isLoading?: boolean;
 	counterId: string;
 	onOpenIssue: (group: ConsumerUnitGroup, issue: ValidationIssue) => void;
+	/** Summary strip above the data, for the analyst. */
+	compact?: boolean;
 	className?: string;
 }
 
@@ -29,6 +31,7 @@ export const ValidationPanel = ({
 	isLoading = false,
 	counterId,
 	onOpenIssue,
+	compact = false,
 	className,
 }: ValidationPanelProps) => {
 	const pending = groups.flatMap((group) =>
@@ -43,9 +46,14 @@ export const ValidationPanel = ({
 	return (
 		<aside
 			aria-labelledby="validacao-titulo"
-			className={cn("flex flex-col px-6 py-8 md:px-9.5", className)}
+			className={cn(
+				"flex flex-col px-6 py-8",
+				compact ? "md:px-10" : "md:px-9.5",
+				className,
+			)}
 		>
 			<ConclusionField
+				compact={compact}
 				label={
 					<span
 						id="validacao-titulo"
