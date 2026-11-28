@@ -1,4 +1,4 @@
-import { ConclusionField } from "@components/ConclusionField";
+import { ConclusionField, STRIP_COLUMNS } from "@components/ConclusionField";
 import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { Skeleton } from "@components/ui/skeleton";
@@ -236,7 +236,7 @@ export const SubmissionChecklistPanel = ({
 				page
 					? "grid flex-1 content-start px-6 py-8 md:px-10 @5xl:grid-cols-[minmax(0,1fr)_400px] @5xl:grid-rows-[auto_1fr] @5xl:p-0"
 					: strip
-						? "flex flex-col px-6 py-8 md:px-10 @3xl:grid @3xl:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] @3xl:items-start @3xl:gap-x-9.5"
+						? ["flex flex-col px-6 py-8 md:px-10", STRIP_COLUMNS]
 						: "flex flex-col px-6 py-8 md:px-9.5",
 				className,
 			)}
@@ -245,7 +245,7 @@ export const SubmissionChecklistPanel = ({
 				className={cn(
 					page &&
 						"@5xl:col-start-2 @5xl:row-start-1 @5xl:border-l @5xl:border-border @5xl:px-9.5 @5xl:pt-8",
-					strip && "@3xl:row-span-2",
+					strip && "@strip:row-span-2",
 				)}
 			>
 				<ConclusionField
@@ -281,7 +281,7 @@ export const SubmissionChecklistPanel = ({
 						className={cn(
 							"mt-9.5 flex flex-col gap-3",
 							page && "@5xl:mt-0",
-							strip && "@3xl:mt-0",
+							strip && "@strip:mt-0",
 						)}
 					>
 						{Array.from({ length: 4 }, (_, index) => (
@@ -302,7 +302,8 @@ export const SubmissionChecklistPanel = ({
 							className={cn(
 								"mt-9.5 flex flex-col",
 								page && "@5xl:mt-0",
-								strip && "@3xl:mt-0 @5xl:grid @5xl:grid-cols-2 @5xl:gap-x-9.5",
+								strip &&
+									"@strip:mt-0 @5xl:grid @5xl:grid-cols-2 @5xl:gap-x-9.5",
 							)}
 						>
 							{checklist.items.map((item) => {
@@ -339,7 +340,7 @@ export const SubmissionChecklistPanel = ({
 				aria-labelledby="envio-segue-titulo"
 				className={cn(
 					"mt-9.5",
-					strip && "@3xl:col-start-2 @3xl:mt-6",
+					strip && "@strip:col-start-2 @strip:mt-6",
 					page &&
 						"@5xl:col-start-2 @5xl:row-start-2 @5xl:mt-0 @5xl:border-l @5xl:border-border @5xl:px-9.5 @5xl:pt-9.5 @5xl:pb-8",
 				)}

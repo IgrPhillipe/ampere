@@ -20,7 +20,7 @@ import {
 	StageFindingsNotice,
 	SubmissionChecklistPanel,
 	useFindingRegistrar,
-	useWorkspaceReviewing,
+	useStepPanelLayout,
 } from "../../components";
 import { stageFindingsOf } from "../../constants";
 import { useProjectDetailActions, useProjectPermissions } from "../../hooks";
@@ -35,7 +35,7 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 	const uploadMutation = useUploadDocument();
 	const deleteMutation = useDeleteDocument();
 	const registrar = useFindingRegistrar();
-	const reviewing = useWorkspaceReviewing();
+	const panelLayout = useStepPanelLayout();
 	const [fixQueue, setFixQueue] = useState<FixFindingQueue | null>(null);
 
 	const project = projectQuery.data?.data;
@@ -148,7 +148,7 @@ export const DocumentsPage = ({ projectId }: DocumentsPageProps) => {
 						projectId={projectId}
 						documents={checklist?.documents}
 						onCreateFinding={registrar.onDocument}
-						layout={reviewing ? "stacked" : "side"}
+						layout={panelLayout}
 					/>
 				</section>
 			)}

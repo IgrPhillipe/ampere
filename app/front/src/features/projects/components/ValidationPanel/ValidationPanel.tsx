@@ -9,6 +9,8 @@ import type {
 	ValidationIssue,
 } from "@services/consumer-units";
 
+import type { StepPanelLayout } from "../StepLayout";
+
 const issueActionLabels = {
 	REVIEW: "Corrigir Agora",
 	MISSING_DATA: "Informar Dado",
@@ -20,8 +22,7 @@ interface ValidationPanelProps {
 	isLoading?: boolean;
 	counterId: string;
 	onOpenIssue: (group: ConsumerUnitGroup, issue: ValidationIssue) => void;
-	/** Summary strip above the data, for the analyst. */
-	compact?: boolean;
+	layout?: StepPanelLayout;
 	className?: string;
 }
 
@@ -31,7 +32,7 @@ export const ValidationPanel = ({
 	isLoading = false,
 	counterId,
 	onOpenIssue,
-	compact = false,
+	layout = "panel",
 	className,
 }: ValidationPanelProps) => {
 	const pending = groups.flatMap((group) =>
@@ -48,12 +49,12 @@ export const ValidationPanel = ({
 			aria-labelledby="validacao-titulo"
 			className={cn(
 				"flex flex-col px-6 py-8",
-				compact ? "md:px-10" : "md:px-9.5",
+				layout === "strip" ? "md:px-10" : "md:px-9.5",
 				className,
 			)}
 		>
 			<ConclusionField
-				compact={compact}
+				layout={layout}
 				label={
 					<span
 						id="validacao-titulo"

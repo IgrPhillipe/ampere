@@ -223,6 +223,8 @@
 
 	--spacing: var(--ds-space-1);
 	--container-page: var(--ds-size-page);
+	/* Width where a review summary strip puts its detail beside the conclusion: the data column at lg. */
+	--container-strip: 40rem;
 	--spacing-header: var(--ds-size-header);
 	--spacing-gutter: var(--ds-space-gutter);
 	--spacing-gutter-md: var(--ds-space-gutter-md);

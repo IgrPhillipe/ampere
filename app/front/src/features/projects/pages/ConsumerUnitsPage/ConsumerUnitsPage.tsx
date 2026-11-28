@@ -2,7 +2,6 @@ import { EmptyState } from "@components/EmptyState";
 import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { useZodForm } from "@features/shared";
-import { cn } from "@lib/utils";
 import { useRunCalculation } from "@services/calculation";
 import {
 	type ConsumerUnitGroup,
@@ -25,8 +24,9 @@ import {
 	type OpenedGroup,
 	StageFindingsNotice,
 	StepFooter,
+	StepLayout,
 	useFindingRegistrar,
-	useWorkspaceReviewing,
+	useStepPanelLayout,
 	ValidationPanel,
 } from "../../components";
 import { GROUP_USAGE_TYPES, stageFindingsOf } from "../../constants";
@@ -73,7 +73,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 	const createGroup = useCreateConsumerUnitGroup(projectId);
 	const run = useRunCalculation();
 	const registrar = useFindingRegistrar();
-	const reviewing = useWorkspaceReviewing();
+	const panelLayout = useStepPanelLayout();
 
 	const [isAdding, setIsAdding] = useState(false);
 	const [opened, setOpened] = useState<OpenedGroup | null>(null);
@@ -200,13 +200,20 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 						/>
 					</div>
 				) : (
-					<div
-						className={cn(
-							"flex-1",
-							reviewing
-								? "flex flex-col"
-								: "grid @5xl:grid-cols-[minmax(0,1fr)_400px]",
-						)}
+					<StepLayout
+						stacks="before"
+						panel={
+							<ValidationPanel
+								groups={groups}
+								validation={validation}
+								isLoading={validationQuery.isPending || groupsQuery.isPending}
+								counterId={pendingCounterId}
+								layout={panelLayout}
+								onOpenIssue={(group, issue) =>
+									setOpened({ group, focusField: issue.field })
+								}
+							/>
+						}
 					>
 						<section
 							aria-labelledby="grupos-titulo"
@@ -275,22 +282,7 @@ export const ConsumerUnitsPage = ({ projectId }: ConsumerUnitsPageProps) => {
 								}
 							/>
 						</section>
-
-						<ValidationPanel
-							groups={groups}
-							validation={validation}
-							isLoading={validationQuery.isPending || groupsQuery.isPending}
-							counterId={pendingCounterId}
-							compact={reviewing}
-							className={cn(
-								"order-first border-b border-border",
-								!reviewing && "@5xl:order-none @5xl:border-b-0 @5xl:border-l",
-							)}
-							onOpenIssue={(group, issue) =>
-								setOpened({ group, focusField: issue.field })
-							}
-						/>
-					</div>
+					</StepLayout>
 				)}
 
 				{isEditable ? (

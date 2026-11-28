@@ -1,14 +1,15 @@
-import { ConclusionField } from "@components/ConclusionField";
+import { ConclusionField, STRIP_COLUMNS } from "@components/ConclusionField";
 import { Skeleton } from "@components/ui/skeleton";
 import { formatDecimal, formatKva } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Calculation } from "@services/calculation";
 
+import type { StepPanelLayout } from "../StepLayout";
+
 interface TraceabilityPanelProps {
 	calculation?: Calculation;
 	isLoading?: boolean;
-	/** Summary strip above the data, for the analyst. */
-	compact?: boolean;
+	layout?: StepPanelLayout;
 	className?: string;
 }
 
@@ -27,7 +28,7 @@ const breaker = ({ breakerAmps, breakerPoles }: Calculation["traceability"]) =>
 export const TraceabilityPanel = ({
 	calculation,
 	isLoading = false,
-	compact = false,
+	layout = "panel",
 	className,
 }: TraceabilityPanelProps) => {
 	const rows = calculation
@@ -54,9 +55,7 @@ export const TraceabilityPanel = ({
 			aria-labelledby="resultado-titulo"
 			className={cn(
 				"flex flex-col px-6 py-8",
-				compact
-					? "md:px-10 @3xl:grid @3xl:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] @3xl:items-start @3xl:gap-x-9.5"
-					: "md:px-9.5",
+				layout === "strip" ? ["md:px-10", STRIP_COLUMNS] : "md:px-9.5",
 				className,
 			)}
 		>
@@ -85,7 +84,8 @@ export const TraceabilityPanel = ({
 			<dl
 				className={cn(
 					"mt-9.5 flex flex-col",
-					compact && "@3xl:mt-0 @3xl:grid @3xl:grid-cols-2 @3xl:gap-x-9.5",
+					layout === "strip" &&
+						"@strip:mt-0 @4xl:grid @4xl:grid-cols-2 @4xl:gap-x-9.5",
 				)}
 			>
 				{isLoading || !calculation

@@ -1,6 +1,10 @@
 import { cn } from "@lib/utils";
 import type { ReactNode } from "react";
 
+/** Columns of a summary strip: the conclusion, then its detail beside it once there is room. */
+export const STRIP_COLUMNS =
+	"@strip:grid @strip:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] @strip:items-start @strip:gap-x-9.5";
+
 interface ConclusionFieldProps {
 	/** Versalete line on top, naming what the screen answers. */
 	label?: ReactNode;
@@ -12,8 +16,8 @@ interface ConclusionFieldProps {
 	value?: ReactNode;
 	/** Versalete caption under the value. */
 	caption?: ReactNode;
-	/** Puts the children beside the answer once the container is wide, for a summary strip. */
-	compact?: boolean;
+	/** `strip` puts the children beside the answer once the container has room. */
+	layout?: "panel" | "strip";
 	children?: ReactNode;
 	className?: string;
 }
@@ -28,15 +32,14 @@ export const ConclusionField = ({
 	valueClassName,
 	value,
 	caption,
-	compact = false,
+	layout = "panel",
 	children,
 	className,
 }: ConclusionFieldProps) => (
 	<section
 		className={cn(
 			"flex flex-col gap-5 bg-primary px-6 py-6 text-primary-foreground",
-			compact &&
-				"@3xl:grid @3xl:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] @3xl:items-start @3xl:gap-x-9.5",
+			layout === "strip" && STRIP_COLUMNS,
 			className,
 		)}
 	>
@@ -62,7 +65,6 @@ export const ConclusionField = ({
 				<p
 					className={cn(
 						"font-mono text-6xl leading-none font-medium tracking-[-0.04em]",
-						compact && "text-5xl",
 						valueClassName,
 					)}
 				>
