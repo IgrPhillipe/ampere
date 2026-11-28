@@ -1,4 +1,11 @@
 # Exported from Render on 2026-10-13T12:57:21Z
+#
+# The API web service is configured in the Render dashboard, not here. Its environment
+# variables, besides the database ones (see app/back/README.md):
+#   JWT_SECRET                 token signing secret, at least 32 characters
+#   SIGNING_KEYSTORE           PKCS12 of the AMPERE certificate, in base64 (required in prod)
+#   SIGNING_KEYSTORE_PASSWORD  password of that PKCS12
+#   FRONT_URL                  front-end origin, e.g. https://ampere-virid.vercel.app
 version: "1"
 projects:
 - name: ampere

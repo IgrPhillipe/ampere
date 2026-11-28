@@ -5,17 +5,21 @@ import br.com.ampere.domain.Calculation;
 import br.com.ampere.domain.ConsumerUnitGroup;
 import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.Finding;
+import br.com.ampere.domain.IssuedDocument;
+import br.com.ampere.domain.IssuedDocumentType;
 import br.com.ampere.domain.Project;
 import br.com.ampere.domain.ProjectDocument;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ProjectVersion;
 import br.com.ampere.domain.ProjectVersionDocument;
 import br.com.ampere.domain.ProjectVersionMemorial;
+import br.com.ampere.domain.User;
 import br.com.ampere.error.BusinessException;
 import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.ApprovalMemorialRepository;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
+import br.com.ampere.repository.IssuedDocumentRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectVersionDocumentRepository;
@@ -62,6 +66,7 @@ public class ProjectVersionService {
   private final CalculationRepository calculationRepository;
   private final ProjectRepository projectRepository;
   private final ObjectMapper objectMapper;
+  private final IssuedDocumentRepository issuedDocumentRepository;
 
   public ProjectVersionService(
       ProjectService projectService,
@@ -73,8 +78,10 @@ public class ProjectVersionService {
       ConsumerUnitGroupRepository groupRepository,
       CalculationRepository calculationRepository,
       ProjectRepository projectRepository,
+      IssuedDocumentRepository issuedDocumentRepository,
       ObjectMapper objectMapper) {
     this.projectService = projectService;
+    this.issuedDocumentRepository = issuedDocumentRepository;
     this.memorialPdfService = memorialPdfService;
     this.versionRepository = versionRepository;
     this.approvalMemorialRepository = approvalMemorialRepository;
@@ -125,6 +132,8 @@ public class ProjectVersionService {
                 new ProjectVersionMemorial(issued.filename(), issued.content()),
                 issued.sha256(),
                 issued.verificationCode()));
+    record(
+        IssuedDocumentType.SUBMISSION_MEMORIAL, version, issued, submittedAt, project.getOwner());
     for (ProjectDocument document :
         documentRepository.findAllByProjectIdOrderByType(project.getId())) {
       versionDocumentRepository.save(new ProjectVersionDocument(version, document));
@@ -157,10 +166,34 @@ public class ProjectVersionService {
                       issued.sha256(),
                       issued.verificationCode(),
                       approvedAt));
+              record(
+                  IssuedDocumentType.APPROVAL_MEMORIAL,
+                  version,
+                  issued,
+                  approvedAt,
+                  project.getReviewer());
             },
             () ->
                 log.warn(
                     "Approval memorial not issued: project {} has no version", project.getId()));
+  }
+
+  private void record(
+      IssuedDocumentType type,
+      ProjectVersion version,
+      MemorialPdfService.Issued issued,
+      OffsetDateTime issuedAt,
+      User issuedBy) {
+    issuedDocumentRepository.save(
+        new IssuedDocument(
+            type,
+            version.getProject(),
+            version,
+            issued.sha256(),
+            issued.verificationCode(),
+            issuedAt,
+            issuedBy,
+            issued.signerCertificateSha256()));
   }
 
   @Transactional(readOnly = true)

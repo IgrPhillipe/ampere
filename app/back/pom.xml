@@ -20,6 +20,7 @@
 		<java.version>21</java.version>
 		<springdoc.version>3.1.1</springdoc.version>
 		<spotless.version>3.10.2</spotless.version>
+		<bouncycastle.version>1.80</bouncycastle.version>
 	</properties>
 
 	<dependencies>
@@ -60,6 +61,20 @@
 			<version>2.0.3</version>
 		</dependency>
 
+		<!-- PAdES signature of the memorial; OpenPDF leaves BouncyCastle optional. -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk18on</artifactId>
+			<version>${bouncycastle.version}</version>
+		</dependency>
+
+		<!-- QR code of the memorial footer -->
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>core</artifactId>
+			<version>3.5.3</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
@@ -91,6 +106,13 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Renders the memorial page so the tests can read its QR code. -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>3.0.4</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

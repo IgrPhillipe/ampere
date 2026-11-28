@@ -44,6 +44,10 @@ services:
       DDL_AUTO: ${DDL_AUTO:-update}
       # Recreates the seeded demo projects with fresh dates when true.
       SEED_RESET_SCENARIOS: ${SEED_RESET_SCENARIOS:-false}
+      # Left blank, the memorials are signed with a certificate generated per run.
+      SIGNING_KEYSTORE: ${SIGNING_KEYSTORE:-}
+      SIGNING_KEYSTORE_PASSWORD: ${SIGNING_KEYSTORE_PASSWORD:-}
+      FRONT_URL: ${FRONT_URL:-http://localhost:5173}
 
     depends_on:
       db:

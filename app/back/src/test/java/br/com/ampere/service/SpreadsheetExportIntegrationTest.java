@@ -2,7 +2,9 @@ package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -14,6 +16,8 @@ import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.EvStationType;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
+import br.com.ampere.domain.IssuedDocument;
+import br.com.ampere.domain.IssuedDocumentType;
 import br.com.ampere.domain.LoadCategory;
 import br.com.ampere.domain.LoadItem;
 import br.com.ampere.domain.LoadUsage;
@@ -28,11 +32,14 @@ import br.com.ampere.domain.UserRole;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
+import br.com.ampere.repository.IssuedDocumentRepository;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.utils.MemorialFingerprint;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
@@ -55,6 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -92,6 +100,8 @@ class SpreadsheetExportIntegrationTest {
   @Autowired private ConsumerUnitGroupRepository groupRepository;
 
   @Autowired private CalculationRepository calculationRepository;
+
+  @Autowired private IssuedDocumentRepository issuedDocumentRepository;
 
   private List<Standard> standards;
 
@@ -137,7 +147,8 @@ class SpreadsheetExportIntegrationTest {
               "Etapas",
               "Resultado",
               "Verificações",
-              "Tabelas Aplicadas");
+              "Tabelas Aplicadas",
+              "Autenticidade");
       Sheet identification = workbook.getSheet("Identificação");
       assertThat(text(identification, 1, 1)).isEqualTo("Residencial 2026-2001");
       assertThat(text(identification, 2, 1)).isEqualTo("2026-2001");
@@ -145,6 +156,107 @@ class SpreadsheetExportIntegrationTest {
       assertThat(text(identification, 7, 1)).isEqualTo("DIS-NOR-053 REV 06");
       assertThat(text(identification, 9, 1)).matches(BR_DATE_TIME);
     }
+  }
+
+  @Test
+  void stampsProtocolVersionAndCodeAndRegistersTheExactFile() throws Exception {
+    Project project = calculated("2026-2002");
+    byte[] content = xlsx(project);
+    IssuedDocument registered =
+        issuedDocumentRepository.findBySha256(MemorialFingerprint.sha256(content)).orElseThrow();
+    String code = registered.getVerificationCode();
+
+    assertThat(registered.getType()).isEqualTo(IssuedDocumentType.CALCULATION_SPREADSHEET);
+    assertThat(registered.getProject().getId()).isEqualTo(project.getId());
+    assertThat(registered.getVersion()).isNull();
+    assertThat(registered.getIssuedBy().getEmail()).isEqualTo(DESIGNER);
+    assertThat(code).matches("[0-9A-F]{4}(-[0-9A-F]{4}){3}");
+    try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(content))) {
+      Sheet authenticity = workbook.getSheet("Autenticidade");
+      assertThat(cellsOf(authenticity, 0))
+          .containsExactly(
+              "Campo",
+              "Documento",
+              "Protocolo",
+              "Versão",
+              "Emitida em",
+              "Emitida por",
+              "Código de verificação",
+              "Verificação",
+              "Observação");
+      assertThat(text(authenticity, 2, 1)).isEqualTo("2026-2002");
+      assertThat(text(authenticity, 3, 1)).isEqualTo("cálculo ainda não enviado");
+      assertThat(text(authenticity, 4, 1)).matches(BR_DATE_TIME);
+      assertThat(text(authenticity, 5, 1)).isEqualTo("Usuário Teste");
+      assertThat(text(authenticity, 6, 1)).isEqualTo(code);
+      assertThat(text(authenticity, 7, 1))
+          .isEqualTo("https://ampere.test/verificar-autenticidade?codigo=" + code);
+      assertThat(authenticity.getRow(7).getCell(1).getHyperlink().getAddress())
+          .isEqualTo(text(authenticity, 7, 1));
+      for (Sheet sheet : workbook) {
+        assertThat(sheet.getFooter().getRight()).isEqualTo("Código de verificação " + code);
+        assertThat(sheet.getFooter().getLeft()).contains("protocolo 2026-2002");
+      }
+    }
+  }
+
+  @Test
+  void eachDownloadIsANewCopyWithItsOwnCode() throws Exception {
+    Project project = calculated("2026-2003");
+
+    byte[] first = xlsx(project);
+    byte[] second = xlsx(project);
+
+    assertThat(issuedDocumentRepository.findBySha256(MemorialFingerprint.sha256(first)))
+        .isPresent();
+    assertThat(issuedDocumentRepository.findBySha256(MemorialFingerprint.sha256(second)))
+        .isPresent()
+        .get()
+        .extracting(IssuedDocument::getVerificationCode)
+        .isNotEqualTo(
+            issuedDocumentRepository
+                .findBySha256(MemorialFingerprint.sha256(first))
+                .orElseThrow()
+                .getVerificationCode());
+  }
+
+  @Test
+  void anIntactSpreadsheetVerifiesAndAnAlteredOneDoesNot() throws Exception {
+    Project project = calculated("2026-2004");
+    byte[] content = xlsx(project);
+    String code =
+        issuedDocumentRepository
+            .findBySha256(MemorialFingerprint.sha256(content))
+            .orElseThrow()
+            .getVerificationCode();
+
+    verify(content)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.verified").value(true))
+        .andExpect(jsonPath("$.data.documentType").value("CALCULATION_SPREADSHEET"))
+        .andExpect(jsonPath("$.data.protocol").value("2026-2004"))
+        .andExpect(jsonPath("$.data.version").value(nullValue()))
+        .andExpect(jsonPath("$.data.issuedAt").isNotEmpty())
+        .andExpect(jsonPath("$.data.signature").value(nullValue()));
+    mockMvc
+        .perform(get("/memorial-verifications/" + code))
+        .andExpect(jsonPath("$.data.verified").value(true))
+        .andExpect(jsonPath("$.data.documentType").value("CALCULATION_SPREADSHEET"));
+
+    byte[] edited;
+    try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(content));
+        ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+      workbook.getSheet("Resultado").getRow(1).getCell(1).setCellValue(1.0);
+      workbook.write(output);
+      edited = output.toByteArray();
+    }
+    verify(edited)
+        .andExpect(jsonPath("$.data.verified").value(false))
+        .andExpect(jsonPath("$.data.protocol").doesNotExist());
+
+    byte[] flipped = content.clone();
+    flipped[flipped.length / 2] ^= 0x01;
+    verify(flipped).andExpect(jsonPath("$.data.verified").value(false));
   }
 
   @Test
@@ -379,6 +491,22 @@ class SpreadsheetExportIntegrationTest {
 
     assertThat(rows).hasSize(2);
     assertThat(rows.get(1)).startsWith("2026-4501;");
+  }
+
+  private byte[] xlsx(Project project) throws Exception {
+    return as(DESIGNER, get(xlsxOf(project)))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsByteArray();
+  }
+
+  private ResultActions verify(byte[] content) throws Exception {
+    return mockMvc.perform(
+        multipart("/memorial-verifications")
+            .file(
+                new MockMultipartFile(
+                    "file", "calculo.xlsx", SpreadsheetExportService.XLSX_CONTENT_TYPE, content)));
   }
 
   private Workbook workbookOf(Project project, String filename) throws Exception {

@@ -21,7 +21,8 @@ public class ProjectVersionGuard {
           "project_version",
           "project_version_document",
           "project_version_memorial",
-          "approval_memorial");
+          "approval_memorial",
+          "issued_document");
 
   private static final String REFUSE_CHANGE =
       """

@@ -16,6 +16,7 @@ import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
 import br.com.ampere.repository.ProjectRepositoryCustom.ProjectSearch;
+import br.com.ampere.repository.ProjectVersionRepository;
 import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.SearchTerms;
 import br.com.ampere.utils.Timestamps;
@@ -64,6 +65,7 @@ public class ProjectService {
   private final ConsumerUnitGroupRepository groupRepository;
   private final CalculationRepository calculationRepository;
   private final ProjectDocumentRepository documentRepository;
+  private final ProjectVersionRepository versionRepository;
   private final ProjectEventRepository eventRepository;
   private final UserRepository userRepository;
   private final ProjectCreation projectCreation;
@@ -75,6 +77,7 @@ public class ProjectService {
       ConsumerUnitGroupRepository groupRepository,
       CalculationRepository calculationRepository,
       ProjectDocumentRepository documentRepository,
+      ProjectVersionRepository versionRepository,
       ProjectEventRepository eventRepository,
       UserRepository userRepository,
       ProjectCreation projectCreation,
@@ -84,6 +87,7 @@ public class ProjectService {
     this.groupRepository = groupRepository;
     this.calculationRepository = calculationRepository;
     this.documentRepository = documentRepository;
+    this.versionRepository = versionRepository;
     this.eventRepository = eventRepository;
     this.userRepository = userRepository;
     this.projectCreation = projectCreation;
@@ -247,6 +251,8 @@ public class ProjectService {
   public void delete(Long id, AuthenticatedUser user) {
     Project project = draftOrFail(id, "Só é possível excluir um projeto em rascunho.", user);
 
+    // The spreadsheets issued for the draft go with it, past ProjectVersionGuard.
+    versionRepository.allowCleanup();
     calculationRepository.deleteAllByProjectId(id);
     findingRepository.deleteAllByProjectId(id);
     groupRepository.deleteAllByProjectId(id);

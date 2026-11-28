@@ -53,6 +53,7 @@ Scaffold em `app/back`: Java 21 com Spring Boot 4.1 e Spring Data JPA sobre Post
 | Documento                                  | Conteúdo                                                                                                                                                              |
 | :----------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`convencoes-back.md`](convencoes-back.md) | **Documento único da stack.** Nomenclatura e pacotes; camadas, contrato com o front, banco e Docker; receita passo a passo para criar uma entidade ponta a ponta |
+| [`assinatura-documentos.md`](assinatura-documentos.md) | Assinatura PAdES do memorial, registro dos documentos emitidos, QR code, verificação pública e configuração da chave |
 
 Como executar: [`app/back/README.md`](../../app/back/README.md).
 

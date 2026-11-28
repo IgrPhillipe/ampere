@@ -18,10 +18,13 @@ import br.com.ampere.repository.ApprovalMemorialRepository;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.ProjectVersionRepository;
+import br.com.ampere.security.PdfSigner;
 import br.com.ampere.utils.BrazilianDateFormat;
 import br.com.ampere.utils.BrazilianNumberFormat;
 import br.com.ampere.utils.MemorialFingerprint;
+import br.com.ampere.utils.QrCode;
 import br.com.ampere.utils.Timestamps;
+import com.google.zxing.common.BitMatrix;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.Element;
@@ -32,6 +35,7 @@ import com.lowagie.text.Phrase;
 import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.ColumnText;
+import com.lowagie.text.pdf.PdfAction;
 import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.pdf.PdfGState;
 import com.lowagie.text.pdf.PdfName;
@@ -66,6 +70,8 @@ public class MemorialPdfService {
   private static final String NOT_APPLICABLE = "Não se aplica";
 
   private static final float MARGIN = 48;
+  private static final float BOTTOM_MARGIN = 76;
+  private static final float QR_SIZE = 56;
 
   // Same values as the --neo-* tokens of app/front/src/styles/tokens.css.
   private static final Color GREEN = new Color(0x00A443);
@@ -108,6 +114,8 @@ public class MemorialPdfService {
   private final ProjectDemandContexts contexts;
   private final ProjectVersionRepository versionRepository;
   private final ApprovalMemorialRepository approvalMemorialRepository;
+  private final PdfSigner signer;
+  private final VerificationLinks links;
 
   public MemorialPdfService(
       ProjectService projectService,
@@ -116,7 +124,9 @@ public class MemorialPdfService {
       DemandCalculationService demandCalculationService,
       ProjectDemandContexts contexts,
       ProjectVersionRepository versionRepository,
-      ApprovalMemorialRepository approvalMemorialRepository) {
+      ApprovalMemorialRepository approvalMemorialRepository,
+      PdfSigner signer,
+      VerificationLinks links) {
     this.projectService = projectService;
     this.calculationRepository = calculationRepository;
     this.groupRepository = groupRepository;
@@ -124,13 +134,22 @@ public class MemorialPdfService {
     this.contexts = contexts;
     this.versionRepository = versionRepository;
     this.approvalMemorialRepository = approvalMemorialRepository;
+    this.signer = signer;
+    this.links = links;
   }
 
   public record Memorial(String filename, byte[] content) {}
 
-  public record Issued(String filename, byte[] content, String sha256, String verificationCode) {}
+  /** The signed PDF; sha256 is that of the signed bytes, as served. */
+  public record Issued(
+      String filename,
+      byte[] content,
+      String sha256,
+      String verificationCode,
+      String signerCertificateSha256) {}
 
-  private record Stamp(int version, OffsetDateTime issuedAt, String code) {}
+  /** url is the verification page of the code, printed as the QR code; null before the code. */
+  private record Stamp(int version, OffsetDateTime issuedAt, String code, String url) {}
 
   private record Column(String header, float width, boolean numeric) {}
 
@@ -188,7 +207,7 @@ public class MemorialPdfService {
     return new Memorial(memorial.getFilename(), memorial.getData());
   }
 
-  /** The code comes from a first rendering: a printed code cannot be part of its own hash. */
+  /** The code comes from an unstamped first rendering; the signature goes on last. */
   public Issued issue(
       Project project,
       Calculation calculation,
@@ -197,17 +216,28 @@ public class MemorialPdfService {
       OffsetDateTime issuedAt,
       List<Finding> reservations) {
     byte[] unstamped =
-        build(project, calculation, groups, new Stamp(version, issuedAt, ""), reservations);
+        build(project, calculation, groups, new Stamp(version, issuedAt, "", null), reservations);
     String code = MemorialFingerprint.verificationCode(MemorialFingerprint.sha256(unstamped));
+    byte[] stamped =
+        build(
+            project,
+            calculation,
+            groups,
+            new Stamp(version, issuedAt, code, links.forCode(code)),
+            reservations);
+    String purpose =
+        reservations.isEmpty() ? "Memorial do envio" : "Memorial da aprovação com ressalvas";
     byte[] content =
-        build(project, calculation, groups, new Stamp(version, issuedAt, code), reservations);
+        signer.sign(
+            stamped, Timestamps.now(), purpose + ", protocolo " + project.getProtocol() + ".");
 
     String approval = reservations.isEmpty() ? "" : "-aprovado";
     return new Issued(
         "memorial-" + project.getProtocol() + "-v" + version + approval + ".pdf",
         content,
         MemorialFingerprint.sha256(content),
-        code);
+        code,
+        signer.certificateSha256());
   }
 
   private byte[] build(
@@ -217,7 +247,7 @@ public class MemorialPdfService {
       Stamp stamp,
       List<Finding> reservations) {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
-    Document document = new Document(PageSize.A4, MARGIN, MARGIN, 56, 64);
+    Document document = new Document(PageSize.A4, MARGIN, MARGIN, 56, BOTTOM_MARGIN);
     PdfWriter writer = PdfWriter.getInstance(document, output);
     writer.setPageEvent(new PageFrame(project.getProtocol(), stamp));
     describe(document, writer, project, stamp);
@@ -758,10 +788,12 @@ public class MemorialPdfService {
       canvas.fill();
 
       float footer = 40;
+      boolean hasQr = stamp != null && stamp.url() != null;
+      float right = page.getWidth() - MARGIN - (hasQr ? QR_SIZE + 10 : 0);
       canvas.setColorStroke(BORDER);
       canvas.setLineWidth(0.75f);
       canvas.moveTo(MARGIN, footer + 12);
-      canvas.lineTo(page.getWidth() - MARGIN, footer + 12);
+      canvas.lineTo(right, footer + 12);
       canvas.stroke();
       canvas.restoreState();
 
@@ -775,6 +807,11 @@ public class MemorialPdfService {
         identification +=
             ", versão " + stamp.version() + ", " + BrazilianDateFormat.dateTime(stamp.issuedAt());
         second = "Código de verificação " + stamp.code();
+        if (hasQr) {
+          qrCode(canvas, page, stamp.url());
+          ColumnText.showTextAligned(
+              canvas, Element.ALIGN_LEFT, signedNotice(stamp), MARGIN, footer - 22, 0);
+        }
       }
 
       ColumnText.showTextAligned(
@@ -795,9 +832,50 @@ public class MemorialPdfService {
           canvas,
           Element.ALIGN_RIGHT,
           new Phrase(eyebrow("Página " + writer.getPageNumber(), FOOTER_FONT)),
-          page.getWidth() - MARGIN,
+          right,
           footer,
           0);
+    }
+
+    /** The address keeps its case: the path is case sensitive. */
+    private static Phrase signedNotice(Stamp stamp) {
+      Phrase phrase = new Phrase(eyebrow("Assinado digitalmente. Confira em ", FOOTER_FONT));
+      phrase.add(spaced(shortPage(stamp), FOOTER_FONT, 0.6f));
+
+      return phrase;
+    }
+
+    /** The verification page without the scheme and the query, short enough for the footer. */
+    private static String shortPage(Stamp stamp) {
+      String url = stamp.url();
+      int query = url.indexOf('?');
+
+      return (query < 0 ? url : url.substring(0, query)).replaceFirst("^https?://", "");
+    }
+
+    /** Drawn as vector modules, with a link over it for whoever reads the PDF on screen. */
+    private static void qrCode(PdfContentByte canvas, Rectangle page, String url) {
+      BitMatrix modules = QrCode.modules(url);
+      float module = QR_SIZE / modules.getWidth();
+      float left = page.getWidth() - MARGIN - QR_SIZE;
+      float bottom = 12;
+
+      canvas.saveState();
+      canvas.setColorFill(Color.BLACK);
+      for (int row = 0; row < modules.getHeight(); row++) {
+        for (int column = 0; column < modules.getWidth(); column++) {
+          if (modules.get(column, row)) {
+            canvas.rectangle(
+                left + column * module,
+                bottom + (modules.getHeight() - 1 - row) * module,
+                module,
+                module);
+          }
+        }
+      }
+      canvas.fill();
+      canvas.restoreState();
+      canvas.setAction(new PdfAction(url), left, bottom, left + QR_SIZE, bottom + QR_SIZE);
     }
 
     private static void watermark(PdfWriter writer, Rectangle page) {

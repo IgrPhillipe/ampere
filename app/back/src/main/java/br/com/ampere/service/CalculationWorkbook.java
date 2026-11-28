@@ -12,10 +12,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
+import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Hyperlink;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
@@ -49,7 +52,12 @@ final class CalculationWorkbook {
     numberStyle.setDataFormat(workbook.createDataFormat().getFormat(NUMBER_FORMAT));
   }
 
-  static byte[] of(Calculation calculation, Project project, List<ValidatedGroup> groups) {
+  /** What identifies this copy: version null for a calculation not yet submitted. */
+  record Issue(
+      Integer version, OffsetDateTime issuedAt, String issuedBy, String code, String url) {}
+
+  static byte[] of(
+      Calculation calculation, Project project, List<ValidatedGroup> groups, Issue issue) {
     try (Workbook workbook = new XSSFWorkbook();
         ByteArrayOutputStream output = new ByteArrayOutputStream()) {
       CalculationWorkbook sheets = new CalculationWorkbook(workbook);
@@ -59,7 +67,9 @@ final class CalculationWorkbook {
       sheets.addResult(calculation);
       sheets.addChecks(calculation.getChecks());
       sheets.addAppliedTables(calculation.getAppliedTables());
+      sheets.addAuthenticity(project, issue);
       sheets.fitColumns();
+      sheets.addFooters(project, issue);
       workbook.write(output);
 
       return output.toByteArray();
@@ -172,6 +182,40 @@ final class CalculationWorkbook {
           table.getItem(),
           table.getPage());
     }
+  }
+
+  private void addAuthenticity(Project project, Issue issue) {
+    Sheet sheet = sheet("Autenticidade", "Campo", "Valor");
+    addRow(sheet, "Documento", "Planilha de cálculo de demanda");
+    addRow(sheet, "Protocolo", project.getProtocol());
+    addRow(sheet, "Versão", version(issue));
+    addRow(sheet, "Emitida em", BrazilianDateFormat.dateTime(issue.issuedAt()));
+    addRow(sheet, "Emitida por", issue.issuedBy());
+    addRow(sheet, "Código de verificação", issue.code());
+    addRow(sheet, "Verificação", issue.url());
+    Cell link = sheet.getRow(sheet.getLastRowNum()).getCell(1);
+    Hyperlink hyperlink = workbook.getCreationHelper().createHyperlink(HyperlinkType.URL);
+    hyperlink.setAddress(issue.url());
+    link.setHyperlink(hyperlink);
+    addRow(
+        sheet,
+        "Observação",
+        "O AMPERE registrou esta planilha. Envie o arquivo na página de verificação para"
+            + " conferir que nada mudou; salvar de novo no Excel já muda o arquivo.");
+  }
+
+  /** Printed on every page, so a paper copy carries the code too. */
+  private void addFooters(Project project, Issue issue) {
+    for (Sheet sheet : workbook) {
+      sheet
+          .getFooter()
+          .setLeft("AMPERE, protocolo " + project.getProtocol() + ", versão " + version(issue));
+      sheet.getFooter().setRight("Código de verificação " + issue.code());
+    }
+  }
+
+  private static String version(Issue issue) {
+    return issue.version() == null ? "cálculo ainda não enviado" : String.valueOf(issue.version());
   }
 
   private Sheet sheet(String name, String... headers) {
