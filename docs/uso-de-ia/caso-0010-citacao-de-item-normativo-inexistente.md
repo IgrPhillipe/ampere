@@ -1,6 +1,6 @@
 # Caso 0010: Citação de Item Normativo que Não Existe na Norma Citada
 
-Data: 09/09/2026. Fase: Ideação. Tipo: resposta incorreta.
+Data: 09/09/2026. Fase: Especificação. Tipo: alucinação.
 
 ## Atividade
 
