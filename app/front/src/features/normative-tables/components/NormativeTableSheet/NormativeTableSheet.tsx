@@ -25,7 +25,6 @@ interface NormativeTableSheetProps {
 	/** `null` opens an empty form for a new table. */
 	tableId: string | null;
 	onCreated: (table: NormativeTable) => void;
-	/** Opens another revision of the same table, chosen in the history. */
 	onOpenRevision: (id: string) => void;
 	onClose: () => void;
 }

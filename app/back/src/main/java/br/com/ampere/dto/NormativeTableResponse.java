@@ -6,13 +6,11 @@ import br.com.ampere.domain.NormativeTableStatus;
 import br.com.ampere.service.NormativeTableListing;
 import br.com.ampere.service.PersonNames;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-/**
- * A table with its rows, or without them in the listing. The e-mails come with the names. Only the
- * listing fills the revision count and the draft waiting for review on the same code.
- */
+/** A table with its rows, or without them in the listing. The e-mails come with the names. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record NormativeTableResponse(
     String id,
@@ -32,8 +30,9 @@ public record NormativeTableResponse(
     String verifiedByName,
     OffsetDateTime verifiedAt,
     OffsetDateTime supersededAt,
-    Integer revisionCount,
-    NormativeTableResponse pendingRevision,
+    @Schema(description = "Revisões do código; só na listagem") Integer revisionCount,
+    @Schema(description = "Revisão aguardando aprovação atrás da vigente; só na listagem")
+        NormativeTableResponse pendingRevision,
     List<NormativeTableRowResponse> rows) {
 
   public static NormativeTableResponse summary(NormativeTable table, PersonNames names) {

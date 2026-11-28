@@ -7,7 +7,7 @@ import type {
 type ListedTable = NormativeTable &
 	Pick<NormativeTableListing, "pendingRevision">;
 
-/** The revision a line opens: the draft waiting for review, when the line shows another one. */
+/** The revision a line opens: the draft waiting behind a published one, or the line itself. */
 export const getNormativeTableTarget = (table: ListedTable): NormativeTable =>
 	table.pendingRevision ?? table;
 
