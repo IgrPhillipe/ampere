@@ -83,9 +83,26 @@ class PdfSignatureTest {
   }
 
   @Test
-  void bytesThatAreNotAPdfAreInvalid() {
+  void aBrokenFileWithoutSignatureHasNone() {
     assertThat(verifier.inspect("%PDF-1.7 quebrado".getBytes(StandardCharsets.US_ASCII)).outcome())
-        .isEqualTo(Outcome.INVALID);
+        .isEqualTo(Outcome.ABSENT);
+  }
+
+  @Test
+  void aByteRangeWhoseGapIsNotTheSignatureIsInvalid() {
+    byte[] forged =
+        "%PDF-1.7\n/ByteRange [0 10 20 5] /Contents <00> padding....\n"
+            .getBytes(StandardCharsets.US_ASCII);
+
+    assertThat(verifier.inspect(forged).outcome()).isEqualTo(Outcome.INVALID);
+  }
+
+  @Test
+  void aCompressionBombIsReadWithoutExpandingIt() {
+    byte[] bomb = FlateBomb.pdf(256);
+    assertThat(bomb.length).isLessThan(2 * 1024 * 1024);
+
+    assertThat(verifier.inspect(bomb).outcome()).isEqualTo(Outcome.ABSENT);
   }
 
   @Test

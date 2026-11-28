@@ -1,17 +1,16 @@
 package br.com.ampere.security;
 
-import com.lowagie.text.pdf.AcroFields;
-import com.lowagie.text.pdf.PdfArray;
-import com.lowagie.text.pdf.PdfDictionary;
-import com.lowagie.text.pdf.PdfName;
-import com.lowagie.text.pdf.PdfReader;
-import com.lowagie.text.pdf.PdfString;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.cms.ContentInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -24,12 +23,18 @@ import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.springframework.stereotype.Component;
 
-/** Checks the cryptographic signature of a PDF; who may sign is decided by the caller. */
+/** Reads the signature from the raw bytes, never inflating a stream; the caller decides trust. */
 @Component
 public class PdfSignatureVerifier {
 
+  private static final Pattern BYTE_RANGE =
+      Pattern.compile(
+          "/ByteRange\\s*\\[\\s*(\\d{1,10})\\s+(\\d{1,10})\\s+(\\d{1,10})\\s+(\\d{1,10})\\s*\\]");
+
+  private static final Pattern HEX_STRING = Pattern.compile("<([0-9A-Fa-f\\s]*)>");
+
   public enum Outcome {
-    /** No signature at all, as in the memorials issued before the signature. */
+    /** No signature dictionary in the file, as in the memorials issued before the signature. */
     ABSENT,
     /** Signed, but the bytes changed after it, or the signature does not cover the whole file. */
     INVALID,
@@ -49,26 +54,31 @@ public class PdfSignatureVerifier {
     }
   }
 
+  private record Range(int firstLength, int secondStart, int secondLength) {}
+
   public Inspection inspect(byte[] pdf) {
-    List<String> names;
-    AcroFields fields;
-    try {
-      fields = new PdfReader(pdf).getAcroFields();
-      names = fields.getSignedFieldNames();
-    } catch (IOException | RuntimeException unreadable) {
-      return Inspection.of(Outcome.INVALID);
+    // ISO-8859-1 maps each byte to one char, so string offsets are file offsets.
+    String text = new String(pdf, StandardCharsets.ISO_8859_1);
+    List<Range> ranges = new ArrayList<>();
+    Matcher matcher = BYTE_RANGE.matcher(text);
+    while (matcher.find()) {
+      Range range = range(matcher, pdf.length);
+      if (range == null) {
+        return Inspection.of(Outcome.INVALID);
+      }
+      ranges.add(range);
     }
-    if (names.isEmpty()) {
+    if (ranges.isEmpty()) {
       return Inspection.of(Outcome.ABSENT);
     }
 
     Inspection whole = Inspection.of(Outcome.INVALID);
-    for (String name : names) {
-      Inspection inspection = check(pdf, fields.getSignatureDictionary(name));
+    for (Range range : ranges) {
+      Inspection inspection = check(pdf, text, range);
       if (inspection.outcome() != Outcome.INTACT) {
         return Inspection.of(Outcome.INVALID);
       }
-      if (fields.signatureCoversWholeDocument(name)) {
+      if (range.secondStart() + range.secondLength() == pdf.length) {
         whole = inspection;
       }
     }
@@ -76,23 +86,37 @@ public class PdfSignatureVerifier {
     return whole;
   }
 
-  private static Inspection check(byte[] pdf, PdfDictionary signature) {
+  /** The two ranges around /Contents, or null when they do not frame a gap within the file. */
+  private static Range range(Matcher matcher, int fileLength) {
+    long firstStart = Long.parseLong(matcher.group(1));
+    long firstLength = Long.parseLong(matcher.group(2));
+    long secondStart = Long.parseLong(matcher.group(3));
+    long secondLength = Long.parseLong(matcher.group(4));
+    if (firstStart != 0 || secondStart <= firstLength || secondStart + secondLength > fileLength) {
+      return null;
+    }
+
+    return new Range((int) firstLength, (int) secondStart, (int) secondLength);
+  }
+
+  private static Inspection check(byte[] pdf, String text, Range range) {
+    // The gap must be exactly the /Contents hex string, so nothing unsigned hides in it.
+    Matcher contents = HEX_STRING.matcher(text.substring(range.firstLength(), range.secondStart()));
+    if (!contents.matches()) {
+      return Inspection.of(Outcome.INVALID);
+    }
     try {
-      PdfArray range = signature.getAsArray(PdfName.BYTERANGE);
-      PdfString contents = signature.getAsString(PdfName.CONTENTS);
-      if (range == null || contents == null || range.size() != 4) {
-        return Inspection.of(Outcome.INVALID);
-      }
-      byte[] signed = signedBytes(pdf, range);
-      if (signed == null) {
-        return Inspection.of(Outcome.INVALID);
-      }
+      byte[] cms = HexFormat.of().parseHex(contents.group(1).replaceAll("\\s", ""));
+      ByteArrayOutputStream signed = new ByteArrayOutputStream();
+      signed.write(pdf, 0, range.firstLength());
+      signed.write(pdf, range.secondStart(), range.secondLength());
 
       ContentInfo info;
-      try (ASN1InputStream input = new ASN1InputStream(contents.getOriginalBytes())) {
+      try (ASN1InputStream input = new ASN1InputStream(cms)) {
         info = ContentInfo.getInstance(input.readObject());
       }
-      CMSSignedData data = new CMSSignedData(new CMSProcessableByteArray(signed), info);
+      CMSSignedData data =
+          new CMSSignedData(new CMSProcessableByteArray(signed.toByteArray()), info);
       Collection<SignerInformation> signers = data.getSignerInfos().getSigners();
       if (signers.size() != 1) {
         return Inspection.of(Outcome.INVALID);
@@ -118,29 +142,5 @@ public class PdfSignatureVerifier {
         | RuntimeException broken) {
       return Inspection.of(Outcome.INVALID);
     }
-  }
-
-  /** The two ranges around /Contents, or null when they do not frame it within the file. */
-  private static byte[] signedBytes(byte[] pdf, PdfArray range) {
-    long[] values = new long[4];
-    for (int index = 0; index < 4; index++) {
-      values[index] = range.getAsNumber(index).intValue();
-    }
-    long firstStart = values[0];
-    long firstLength = values[1];
-    long secondStart = values[2];
-    long secondLength = values[3];
-    if (firstStart != 0
-        || firstLength < 0
-        || secondLength < 0
-        || secondStart < firstLength
-        || secondStart + secondLength > pdf.length) {
-      return null;
-    }
-    ByteArrayOutputStream signed = new ByteArrayOutputStream();
-    signed.write(pdf, 0, (int) firstLength);
-    signed.write(pdf, (int) secondStart, (int) secondLength);
-
-    return signed.toByteArray();
   }
 }
