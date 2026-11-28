@@ -475,6 +475,19 @@ describe("ProjectReviewWorkspace", () => {
 		).toBeTruthy();
 	});
 
+	it("keeps the list before the form below the history", async () => {
+		signInAs("reviewer");
+		state.activeRoute = "/projetos/$id/historico";
+		renderWorkspace();
+
+		const form = screen.getByRole("heading", { name: "Novo Apontamento" });
+		const list = await screen.findByRole("heading", { name: "Desta Análise" });
+
+		expect(
+			list.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING,
+		).toBeTruthy();
+	});
+
 	it("starts a finding from an item of a section", () => {
 		signInAs("reviewer");
 		renderWorkspace();
