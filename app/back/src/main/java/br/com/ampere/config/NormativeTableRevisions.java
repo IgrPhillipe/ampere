@@ -44,6 +44,16 @@ final class NormativeTableRevisions {
               NormativeTableStatus.SUPERSEDED,
               NormativeTableSeed.REGISTERED_BY,
               row -> "STORES".equals(row.getRowKey()) ? withValue(row, "0.90") : row),
+          // Behind the published one, so the listing shows a pending review next to a superseded
+          // one.
+          new Plan(
+              NormativeTableCode.T22_GENERAL_LIGHTING_OUTLETS,
+              NormativeTableStatus.DRAFT,
+              NormativeTableSeed.REGISTERED_BY,
+              row ->
+                  "COLLECTIVE_ADMINISTRATION_OUTLETS".equals(row.getRowKey())
+                      ? withValue(row, "0.60")
+                      : row),
           new Plan(
               NormativeTableCode.Q37_SAFETY_FACTOR,
               NormativeTableStatus.DRAFT,
@@ -79,7 +89,7 @@ final class NormativeTableRevisions {
     this.timestamps = timestamps;
   }
 
-  /** Per table, only once and only where the published revision is the seed's own. */
+  /** Per table and status, only once and only where the published revision is the seed's own. */
   int seed() {
     List<NormativeTable> tables = repository.findListingBy();
     OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
@@ -88,9 +98,7 @@ final class NormativeTableRevisions {
       boolean hasRevision =
           tables.stream()
               .anyMatch(
-                  table ->
-                      table.getCode() == plan.code()
-                          && table.getStatus() != NormativeTableStatus.PUBLISHED);
+                  table -> table.getCode() == plan.code() && table.getStatus() == plan.status());
       NormativeTable current =
           tables.stream()
               .filter(table -> table.getCode() == plan.code())
