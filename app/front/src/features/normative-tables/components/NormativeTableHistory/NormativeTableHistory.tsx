@@ -22,17 +22,21 @@ import {
 interface NormativeTableHistoryProps {
 	table: NormativeTable;
 	definition?: NormativeTableCode;
-	/** Loads another revision of the same table in place of the open one. */
 	onOpenRevision?: (id: string) => void;
 }
 
 /** From the approval to the approval of the revision that replaced it. */
-const formatValidity = ({ verifiedAt, supersededAt }: NormativeTable) => {
+const formatValidity = ({
+	status,
+	verifiedAt,
+	supersededAt,
+}: NormativeTable) => {
 	if (!verifiedAt) return null;
+	if (supersededAt)
+		return `${formatDate(verifiedAt)} a ${formatDate(supersededAt)}`;
 
-	return supersededAt
-		? `${formatDate(verifiedAt)} a ${formatDate(supersededAt)}`
-		: `desde ${formatDate(verifiedAt)}`;
+	// A superseded revision without its end date would read as still in effect.
+	return status === "PUBLISHED" ? `desde ${formatDate(verifiedAt)}` : null;
 };
 
 /** The open revision against the one before it, or the one after when it is the first. */
@@ -149,7 +153,7 @@ export const NormativeTableHistory = ({
 									</span>
 									<NormativeTableStatusBadge status={revision.status} />
 									{isOpen ? (
-										<span className="font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
+										<span className="ml-auto font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase">
 											Aberta
 										</span>
 									) : onOpenRevision ? (

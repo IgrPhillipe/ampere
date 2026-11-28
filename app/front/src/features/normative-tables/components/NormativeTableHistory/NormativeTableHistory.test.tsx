@@ -395,4 +395,18 @@ describe("NormativeTableHistory navigation", () => {
 			within(replacedRow).getByText("10/07/2026 a 15/11/2026"),
 		).toBeVisible();
 	});
+
+	it("gives no open end to a superseded revision missing its end date", () => {
+		const undated = { ...replaced, supersededAt: null };
+		hooks.revisions.mockReturnValue(revisionsReturn([current, undated]));
+
+		render(<NormativeTableHistory table={current} definition={quadro37} />);
+
+		const [, replacedRow] = within(
+			screen.getByRole("region", { name: "Revisões" }),
+		).getAllByRole("listitem");
+
+		expect(within(replacedRow).queryByText(/desde/)).not.toBeInTheDocument();
+		expect(within(replacedRow).queryByText("Vigência")).not.toBeInTheDocument();
+	});
 });
