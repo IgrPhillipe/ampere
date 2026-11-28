@@ -1,1 +1,1 @@
-export { ConclusionField } from "./ConclusionField";
+export { ConclusionField, STRIP_COLUMNS } from "./ConclusionField";

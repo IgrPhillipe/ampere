@@ -1,9 +1,10 @@
-import { ConclusionField } from "@components/ConclusionField";
+import { ConclusionField, STRIP_COLUMNS } from "@components/ConclusionField";
 import { ControlledInput, ControlledSelect } from "@components/form";
 import { Eyebrow, PageLayout } from "@components/layout";
 import { SectionHeading } from "@components/SectionHeading";
 import { Button } from "@components/ui/button";
 import { formatPostalCode, useAuthStore, useZodForm } from "@features/shared";
+import { cn } from "@lib/utils";
 import { calculationKeys } from "@services/calculation";
 import { isConcessionState } from "@services/locations";
 import { useGetFindingList } from "@services/project-review";
@@ -27,6 +28,8 @@ import {
 	ProjectReviewerField,
 	StageFindingsNotice,
 	StepFooter,
+	StepLayout,
+	useStepPanelLayout,
 } from "../../components";
 import {
 	buildingTypeLabels,
@@ -113,6 +116,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 		"PROJECT_DATA",
 	);
 	const { canEdit } = useProjectPermissions(project);
+	const panelLayout = useStepPanelLayout();
 	const isAdmin = useAuthStore((state) => state.user?.role === "admin");
 	const isEditable = projectId === undefined || canEdit;
 	const choosesOwner = isAdmin && projectId === undefined;
@@ -205,7 +209,106 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 				onSubmit={form.handleSubmit(onSubmit)}
 				className="flex flex-1 flex-col"
 			>
-				<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_400px]">
+				<StepLayout
+					stacks="before"
+					panel={
+						<aside
+							className={cn(
+								"flex flex-col gap-9.5 px-6 py-8",
+								panelLayout === "strip" ? "md:px-10" : "md:px-9.5",
+							)}
+						>
+							<div
+								className={cn(
+									"flex flex-col gap-5",
+									panelLayout === "strip" && [
+										STRIP_COLUMNS,
+										"@strip:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] @strip:items-center",
+									],
+								)}
+							>
+								{/* The exact revision only exists after the POST (`ApplicableStandards`). */}
+								<ConclusionField
+									label="Norma derivada"
+									value={
+										<span className="text-3xl tracking-[-0.03em]">
+											{mainStandard?.name ?? "DIS-NOR-053"}
+										</span>
+									}
+									caption={
+										mainStandard
+											? `${mainStandard.revision} vigente`
+											: "Revisão vigente"
+									}
+								>
+									{mainStandard && otherStandards.length === 0 ? null : (
+										<p className="-mt-2 font-mono text-xs opacity-85">
+											{mainStandard
+												? otherStandards
+														.map(
+															({ name, revision }) => `e ${name} ${revision}`,
+														)
+														.join(" ")
+												: "e DIS-NOR-030"}
+										</p>
+									)}
+								</ConclusionField>
+
+								<p className="text-sm text-muted-foreground">
+									Selecionada automaticamente ao salvar, a partir do tipo de
+									edificação, da tensão e do padrão de entrada informados.
+								</p>
+							</div>
+
+							{isEditable ? (
+								<section aria-labelledby="preenchimento-titulo">
+									<SectionHeading id="preenchimento-titulo">
+										Preenchimento
+									</SectionHeading>
+
+									<p className="mt-5 flex items-center gap-3 font-mono text-3xl font-medium tracking-[-0.03em] text-foreground">
+										{pad(totalFilled)}/{pad(totalRequired)}
+										{isComplete ? (
+											<Check aria-hidden="true" className="size-5" />
+										) : null}
+									</p>
+
+									<p
+										id={progressCounterId}
+										className="mt-1.5 font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase"
+									>
+										Campos obrigatórios preenchidos
+									</p>
+
+									<ul className="mt-9.5 flex flex-col gap-5">
+										{progress.map(({ title, filled, required }) => (
+											<li key={title}>
+												<div className="flex items-baseline justify-between border-b border-border-soft pb-1.5 text-sm text-foreground">
+													<span>{title}</span>
+
+													<span className="font-mono text-xs font-medium">
+														{pad(filled)}/{pad(required)}
+													</span>
+												</div>
+
+												<div className="mt-3 flex gap-1" aria-hidden="true">
+													{Array.from({ length: required }, (_, index) => (
+														<span
+															key={index}
+															className={`h-1 flex-1 ${
+																index < filled ? "bg-primary" : "bg-border"
+															}`}
+														/>
+													))}
+												</div>
+											</li>
+										))}
+									</ul>
+								</section>
+							) : null}
+						</aside>
+					}
+				>
 					<fieldset
 						disabled={!isEditable || projectQuery.isLoading}
 						className="min-w-0 space-y-9.5 px-6 py-8 md:px-10"
@@ -304,88 +407,7 @@ export const ProjectDataPage = ({ projectId }: ProjectDataPageProps) => {
 							</div>
 						</section>
 					</fieldset>
-
-					<aside className="order-first flex flex-col gap-9.5 border-b border-border px-6 py-8 md:px-9.5 @5xl:order-none @5xl:border-b-0 @5xl:border-l">
-						<div className="flex flex-col gap-5">
-							{/* The exact revision only exists after the POST (`ApplicableStandards`). */}
-							<ConclusionField
-								label="Norma derivada"
-								value={
-									<span className="text-3xl tracking-[-0.03em]">
-										{mainStandard?.name ?? "DIS-NOR-053"}
-									</span>
-								}
-								caption={
-									mainStandard
-										? `${mainStandard.revision} vigente`
-										: "Revisão vigente"
-								}
-							>
-								{mainStandard && otherStandards.length === 0 ? null : (
-									<p className="-mt-2 font-mono text-xs opacity-85">
-										{mainStandard
-											? otherStandards
-													.map(({ name, revision }) => `e ${name} ${revision}`)
-													.join(" ")
-											: "e DIS-NOR-030"}
-									</p>
-								)}
-							</ConclusionField>
-
-							<p className="text-sm text-muted-foreground">
-								Selecionada automaticamente ao salvar, a partir do tipo de
-								edificação, da tensão e do padrão de entrada informados.
-							</p>
-						</div>
-
-						{isEditable ? (
-							<section aria-labelledby="preenchimento-titulo">
-								<SectionHeading id="preenchimento-titulo">
-									Preenchimento
-								</SectionHeading>
-
-								<p className="mt-5 flex items-center gap-3 font-mono text-3xl font-medium tracking-[-0.03em] text-foreground">
-									{pad(totalFilled)}/{pad(totalRequired)}
-									{isComplete ? (
-										<Check aria-hidden="true" className="size-5" />
-									) : null}
-								</p>
-
-								<p
-									id={progressCounterId}
-									className="mt-1.5 font-mono text-2xs tracking-[0.11em] text-faint-foreground uppercase"
-								>
-									Campos obrigatórios preenchidos
-								</p>
-
-								<ul className="mt-9.5 flex flex-col gap-5">
-									{progress.map(({ title, filled, required }) => (
-										<li key={title}>
-											<div className="flex items-baseline justify-between border-b border-border-soft pb-1.5 text-sm text-foreground">
-												<span>{title}</span>
-
-												<span className="font-mono text-xs font-medium">
-													{pad(filled)}/{pad(required)}
-												</span>
-											</div>
-
-											<div className="mt-3 flex gap-1" aria-hidden="true">
-												{Array.from({ length: required }, (_, index) => (
-													<span
-														key={index}
-														className={`h-1 flex-1 ${
-															index < filled ? "bg-primary" : "bg-border"
-														}`}
-													/>
-												))}
-											</div>
-										</li>
-									))}
-								</ul>
-							</section>
-						) : null}
-					</aside>
-				</div>
+				</StepLayout>
 
 				{isEditable ? (
 					<StepFooter>

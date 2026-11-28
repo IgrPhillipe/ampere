@@ -4,6 +4,8 @@ Comparação do front com o [Protótipo Hi-Fi](https://www.figma.com/design/tbMe
 
 **Exceção decidida:** a mesa bege com a folha flutuante não é adotada. As telas seguem em página branca de largura total.
 
+**Exceção decidida:** na análise do projeto (H7), o formulário de apontamento fica no topo da coluna de apontamentos, acima das listas. A coluna é fixa ao lado dos dados, e o formulário segue à vista enquanto as listas rolam. No histórico, a lista continua antes do formulário.
+
 **Regra:** o Figma é a fonte do estilo. O front se ajusta a ele, e o Figma não muda. Telas sem protótipo seguem o mesmo sistema, a partir do padrão mais próximo.
 
 **Método:** 22 frames exportados do Figma e 26 telas do sistema capturadas a 1440 px, com o seed do `DemoScenarios` e os perfis projetista, analista e admin. As regras de estilo vêm da página "Documentação: Hierarquia visual" e das variáveis do arquivo.

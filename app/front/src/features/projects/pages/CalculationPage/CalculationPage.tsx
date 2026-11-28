@@ -1,5 +1,6 @@
 import { EmptyState } from "@components/EmptyState";
 import { Button } from "@components/ui/button";
+import { cn } from "@lib/utils";
 import {
 	useGetLatestCalculation,
 	useRunCalculation,
@@ -23,8 +24,10 @@ import {
 	NormativeRevisionNotice,
 	StageFindingsNotice,
 	StepFooter,
+	StepLayout,
 	TraceabilityPanel,
 	useFindingRegistrar,
+	useStepPanelLayout,
 } from "../../components";
 import { stageFindingsOf } from "../../constants";
 import { useProjectPermissions } from "../../hooks";
@@ -40,6 +43,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 	const latestQuery = useGetLatestCalculation(projectId);
 	const run = useRunCalculation();
 	const registrar = useFindingRegistrar();
+	const panelLayout = useStepPanelLayout();
 	const project = projectQuery.data?.data;
 	const findingsQuery = useGetFindingList(projectId, {
 		enabled: project?.status === "REJECTED",
@@ -171,7 +175,28 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 					/>
 				</div>
 			) : (
-				<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_440px]">
+				<StepLayout
+					stacks="after"
+					wide
+					panel={
+						<>
+							<TraceabilityPanel
+								calculation={result}
+								isLoading={isLoading}
+								layout={panelLayout}
+							/>
+							<AutomaticVerification
+								checks={result?.checks}
+								isLoading={isLoading}
+								onCreateFinding={registrar.onCheck}
+								className={cn(
+									"mx-6 mb-8",
+									panelLayout === "strip" ? "md:mx-10" : "md:mx-9.5",
+								)}
+							/>
+						</>
+					}
+				>
 					<div className="flex min-w-0 flex-col gap-9.5 px-6 py-8 md:px-10">
 						<CalculationSteps
 							steps={result?.steps}
@@ -184,17 +209,7 @@ export const CalculationPage = ({ projectId }: CalculationPageProps) => {
 							isLoading={isLoading}
 						/>
 					</div>
-
-					<div className="flex flex-col border-t border-border @5xl:border-t-0 @5xl:border-l">
-						<TraceabilityPanel calculation={result} isLoading={isLoading} />
-						<AutomaticVerification
-							checks={result?.checks}
-							isLoading={isLoading}
-							onCreateFinding={registrar.onCheck}
-							className="mx-6 mb-8 md:mx-9.5"
-						/>
-					</div>
-				</div>
+				</StepLayout>
 			)}
 
 			{isEditable ? (

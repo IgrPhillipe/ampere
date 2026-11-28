@@ -17,7 +17,9 @@ import {
 	MemorialPreview,
 	NormativeRevisionNotice,
 	StepFooter,
+	StepLayout,
 	SubmissionChecklistPanel,
+	useStepPanelLayout,
 } from "../../components";
 import { getMemorialStamp, mayHaveOfficialMemorial } from "../../constants";
 import { useProjectPermissions } from "../../hooks";
@@ -39,6 +41,7 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 
 	const project = projectQuery.data?.data;
 	const { canEdit } = useProjectPermissions(project);
+	const panelLayout = useStepPanelLayout();
 	// Only a project out of edition can hold a stored memorial; the versions say which one.
 	const checksVersions =
 		project !== undefined && mayHaveOfficialMemorial(project.status);
@@ -152,18 +155,21 @@ export const MemorialPage = ({ projectId }: MemorialPageProps) => {
 			{submissionQuery.isError ? (
 				<div className="flex-1 px-6 py-8 md:px-10">{content}</div>
 			) : (
-				<div className="grid flex-1 @5xl:grid-cols-[minmax(0,1fr)_400px]">
+				<StepLayout
+					stacks="after"
+					panel={
+						<SubmissionChecklistPanel
+							projectId={projectId}
+							checklist={submissionQuery.data?.data}
+							isLoading={submissionQuery.isPending}
+							editable={false}
+							summary
+							layout={panelLayout}
+						/>
+					}
+				>
 					<div className="min-w-0 px-6 py-8 md:px-10">{content}</div>
-
-					<SubmissionChecklistPanel
-						projectId={projectId}
-						checklist={submissionQuery.data?.data}
-						isLoading={submissionQuery.isPending}
-						editable={false}
-						summary
-						className="border-t border-border @5xl:border-t-0 @5xl:border-l"
-					/>
-				</div>
+				</StepLayout>
 			)}
 
 			{canEdit ? (

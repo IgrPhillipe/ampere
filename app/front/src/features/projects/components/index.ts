@@ -36,6 +36,7 @@ export * from "./ReviewOpinion";
 export * from "./ReworkPanel";
 export * from "./StageFindingsNotice";
 export * from "./StepFooter";
+export * from "./StepLayout";
 export * from "./SubmissionChecklistPanel";
 export * from "./TraceabilityPanel";
 export * from "./ValidationPanel";

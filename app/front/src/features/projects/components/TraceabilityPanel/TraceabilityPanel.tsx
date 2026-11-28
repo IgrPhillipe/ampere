@@ -1,12 +1,15 @@
-import { ConclusionField } from "@components/ConclusionField";
+import { ConclusionField, STRIP_COLUMNS } from "@components/ConclusionField";
 import { Skeleton } from "@components/ui/skeleton";
 import { formatDecimal, formatKva } from "@features/shared";
 import { cn } from "@lib/utils";
 import type { Calculation } from "@services/calculation";
 
+import type { StepPanelLayout } from "../StepLayout";
+
 interface TraceabilityPanelProps {
 	calculation?: Calculation;
 	isLoading?: boolean;
+	layout?: StepPanelLayout;
 	className?: string;
 }
 
@@ -25,6 +28,7 @@ const breaker = ({ breakerAmps, breakerPoles }: Calculation["traceability"]) =>
 export const TraceabilityPanel = ({
 	calculation,
 	isLoading = false,
+	layout = "panel",
 	className,
 }: TraceabilityPanelProps) => {
 	const rows = calculation
@@ -49,7 +53,11 @@ export const TraceabilityPanel = ({
 	return (
 		<aside
 			aria-labelledby="resultado-titulo"
-			className={cn("flex flex-col px-6 py-8 md:px-9.5", className)}
+			className={cn(
+				"flex flex-col px-6 py-8",
+				layout === "strip" ? ["md:px-10", STRIP_COLUMNS] : "md:px-9.5",
+				className,
+			)}
 		>
 			<ConclusionField
 				label={<span id="resultado-titulo">Resultado</span>}
@@ -73,7 +81,13 @@ export const TraceabilityPanel = ({
 				) : null}
 			</ConclusionField>
 
-			<dl className="mt-9.5 flex flex-col">
+			<dl
+				className={cn(
+					"mt-9.5 flex flex-col",
+					layout === "strip" &&
+						"@strip:mt-0 @4xl:grid @4xl:grid-cols-2 @4xl:gap-x-9.5",
+				)}
+			>
 				{isLoading || !calculation
 					? Array.from({ length: 7 }, (_, index) => (
 							<div

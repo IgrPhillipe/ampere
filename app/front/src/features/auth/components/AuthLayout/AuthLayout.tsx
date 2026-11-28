@@ -20,7 +20,7 @@ export const AuthLayout = ({
 	children,
 }: AuthLayoutProps) => (
 	<div className="flex min-h-svh flex-col bg-background">
-		<header className="h-16 shrink-0 border-b border-border">
+		<header className="h-header shrink-0 border-b border-border">
 			<div className="flex h-full w-full items-center px-4 md:px-10">
 				<AppBrand />
 			</div>

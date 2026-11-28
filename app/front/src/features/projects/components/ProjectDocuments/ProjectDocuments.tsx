@@ -7,6 +7,7 @@ import type { ProjectDocument } from "@services/submission";
 import { FileText } from "lucide-react";
 import { useState } from "react";
 
+import type { StepPanelLayout } from "../StepLayout";
 import { PdfViewer } from "./PdfViewer";
 
 const formatFileSize = (bytes: number) => {
@@ -22,6 +23,8 @@ interface ProjectDocumentsProps {
 	/** `undefined` while loading. */
 	documents?: ProjectDocument[];
 	onCreateFinding?: (document: ProjectDocument) => void;
+	/** `strip` puts the list above the viewer, as a selector, when the findings take the side column. */
+	layout?: StepPanelLayout;
 	className?: string;
 }
 
@@ -29,8 +32,10 @@ export const ProjectDocuments = ({
 	projectId,
 	documents,
 	onCreateFinding,
+	layout = "panel",
 	className,
 }: ProjectDocumentsProps) => {
+	const strip = layout === "strip";
 	const [selectedId, setSelectedId] = useState<string>();
 
 	if (!documents) {
@@ -58,11 +63,19 @@ export const ProjectDocuments = ({
 	return (
 		<div
 			className={cn(
-				"grid gap-6 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]",
+				"grid gap-6",
+				!strip && "lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]",
 				className,
 			)}
 		>
-			<ul className="flex flex-col" aria-label="Documentos anexados">
+			<ul
+				className={cn(
+					"flex flex-col",
+					strip &&
+						"@strip:grid @strip:grid-cols-2 @strip:gap-x-6 @5xl:grid-cols-3",
+				)}
+				aria-label="Documentos anexados"
+			>
 				{documents.map((document) => {
 					const isSelected = document.id === selected.id;
 

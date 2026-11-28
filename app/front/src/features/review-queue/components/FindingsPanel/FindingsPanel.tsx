@@ -148,11 +148,42 @@ export const FindingsPanel = ({
 			</>
 		);
 
+	const form = editable ? (
+		// A new key replays the highlight each time another section fills the form.
+		<section
+			key={autoFocusForm ? editor.key : "idle"}
+			aria-labelledby="formulario-apontamento-titulo"
+			className={cn(
+				"-mx-3 px-3 py-3",
+				autoFocusForm && "motion-safe:animate-highlight",
+			)}
+		>
+			<h3
+				id="formulario-apontamento-titulo"
+				className="mb-4 text-base font-medium text-foreground"
+			>
+				{editor.mode === "edit" ? "Editar Apontamento" : "Novo Apontamento"}
+			</h3>
+			<FindingForm
+				key={editor.key}
+				editor={editor}
+				currentStage={currentStage}
+				referenceOptions={referenceOptions}
+				isPending={isSaving}
+				autoFocus={autoFocusForm}
+				onSubmit={onSubmit}
+				onCancel={onCancelEdit}
+			/>
+		</section>
+	) : null;
+
 	return (
 		<aside
 			aria-labelledby="apontamentos-titulo"
 			className={cn(
 				"flex flex-col gap-9.5 px-6 py-8 md:px-10",
+				// The side column is 22rem at lg, so the form keeps a usable width.
+				placement === "side" && "lg:px-6 xl:px-10",
 				placement === "below" &&
 					"@container lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-12",
 				className,
@@ -177,37 +208,14 @@ export const FindingsPanel = ({
 				>
 					Apontamentos
 				</SectionHeading>
+				{/* Beside the section the form opens the column; below it, the form sits beside the list. */}
+				{placement === "side" && form ? (
+					<div className="mt-4">{form}</div>
+				) : null}
 				{list}
 			</div>
 
-			{editable ? (
-				// A new key replays the highlight each time another section fills the form.
-				<section
-					key={autoFocusForm ? editor.key : "idle"}
-					aria-labelledby="formulario-apontamento-titulo"
-					className={cn(
-						"-mx-3 px-3 py-3",
-						autoFocusForm && "motion-safe:animate-highlight",
-					)}
-				>
-					<h3
-						id="formulario-apontamento-titulo"
-						className="mb-4 text-base font-medium text-foreground"
-					>
-						{editor.mode === "edit" ? "Editar Apontamento" : "Novo Apontamento"}
-					</h3>
-					<FindingForm
-						key={editor.key}
-						editor={editor}
-						currentStage={currentStage}
-						referenceOptions={referenceOptions}
-						isPending={isSaving}
-						autoFocus={autoFocusForm}
-						onSubmit={onSubmit}
-						onCancel={onCancelEdit}
-					/>
-				</section>
-			) : null}
+			{placement === "below" ? form : null}
 
 			<FindingDialog
 				finding={opened}
