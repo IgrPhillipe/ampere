@@ -14,6 +14,7 @@ import br.com.ampere.dto.NormativeTableResponse;
 import br.com.ampere.dto.NormativeTableRowRequest;
 import br.com.ampere.service.AuthenticatedUser;
 import br.com.ampere.service.NormativeTableHistoryService;
+import br.com.ampere.service.NormativeTableListing;
 import br.com.ampere.service.NormativeTableParameters;
 import br.com.ampere.service.NormativeTableQuery;
 import br.com.ampere.service.NormativeTableService;
@@ -26,6 +27,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -78,11 +80,13 @@ public class NormativeTableController {
   @GetMapping
   @Operation(
       operationId = "listNormativeTables",
-      summary = "Lista as tabelas cadastradas, filtradas e ordenadas")
+      summary =
+          "Lista uma linha por tabela, com a revisão vigente ou, sem ela, a aguardando revisão,"
+              + " filtradas e ordenadas")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
-        description = "Tabelas cadastradas, sem as linhas"),
+        description = "Uma linha por tabela, sem as linhas da tabela"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
         description = "Parâmetros inválidos")
@@ -103,7 +107,16 @@ public class NormativeTableController {
       @AuthenticationPrincipal Jwt jwt) {
     NormativeTableQuery query = new NormativeTableQuery(search, statuses, sort, direction);
 
-    return ApiResponse.of(summaries(service.list(query, userOf(jwt))));
+    List<NormativeTableListing> listings = service.list(query, userOf(jwt));
+    PersonNames names =
+        namesOf(
+            listings.stream()
+                .flatMap(listing -> Stream.of(listing.table(), listing.pendingRevision()))
+                .filter(Objects::nonNull)
+                .toList());
+
+    return ApiResponse.of(
+        listings.stream().map(listing -> NormativeTableResponse.listing(listing, names)).toList());
   }
 
   @GetMapping("/{id}")

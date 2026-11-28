@@ -2,6 +2,7 @@ package br.com.ampere.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -38,26 +39,41 @@ class NormativeTableServiceTest {
           table(1L, NormativeTableCode.T19_THREE_PHASE_MOTORS, 1, 6),
           table(2L, NormativeTableCode.Q35_APARTMENT_DEMAND, 2, 3),
           table(3L, NormativeTableCode.Q35_APARTMENT_DEMAND, 4, 5),
-          table(4L, NormativeTableCode.T6_RESIDENTIAL_LIGHTING_OUTLETS, 5, null));
+          table(4L, NormativeTableCode.T6_RESIDENTIAL_LIGHTING_OUTLETS, 5, null),
+          table(5L, NormativeTableCode.Q37_SAFETY_FACTOR, 3, 4),
+          table(6L, NormativeTableCode.Q37_SAFETY_FACTOR, 7, null));
 
   static {
     TABLES.get(1).supersede();
+    ReflectionTestUtils.setField(TABLES.get(1), "identification", "Quadro 35 de 2025");
   }
 
   private final NormativeTableService service = service();
 
   @Test
-  void listsInCatalogueOrderWithTheNewestRevisionFirst() {
-    assertThat(ids(NormativeTableQuery.all())).containsExactly(3L, 2L, 4L, 1L);
+  void listsOneLinePerCodeInCatalogueOrderShowingThePublishedRevision() {
+    assertThat(ids(NormativeTableQuery.all())).containsExactly(3L, 5L, 4L, 1L);
   }
 
   @Test
-  void filtersByStatusIgnoringBlankValues() {
+  void pointsThePublishedLineToTheDraftWaitingForReview() {
+    List<NormativeTableListing> listings = list(NormativeTableQuery.all());
+
+    assertThat(listings)
+        .extracting(
+            NormativeTableListing::revisionCount,
+            listing -> listing.pendingRevision() == null ? null : listing.pendingRevision().getId())
+        .containsExactly(tuple(2, null), tuple(2, 6L), tuple(1, null), tuple(1, null));
+  }
+
+  @Test
+  void keepsACodeWhenAnyRevisionHasTheStatusAndShowsThatRevision() {
     assertThat(
             ids(
                 new NormativeTableQuery(
                     null, Arrays.asList(NormativeTableStatus.DRAFT, null), null, null)))
-        .containsExactly(4L);
+        .containsExactly(6L, 4L);
+    assertThat(ids(status(NormativeTableStatus.SUPERSEDED))).containsExactly(2L);
     assertThat(
             ids(
                 new NormativeTableQuery(
@@ -65,12 +81,18 @@ class NormativeTableServiceTest {
                     Set.of(NormativeTableStatus.PUBLISHED, NormativeTableStatus.SUPERSEDED),
                     null,
                     null)))
-        .containsExactly(3L, 2L, 1L);
+        .containsExactly(3L, 5L, 1L);
+  }
+
+  @Test
+  void theDraftLineHasNoPendingRevisionOfItsOwn() {
+    assertThat(list(status(NormativeTableStatus.DRAFT)))
+        .allSatisfy(listing -> assertThat(listing.pendingRevision()).isNull());
   }
 
   @Test
   void searchesIdentificationTitleItemAndStandardIgnoringAccents() {
-    assertThat(ids(search("quadro 35"))).containsExactly(3L, 2L);
+    assertThat(ids(search("quadro 35"))).containsExactly(3L);
     assertThat(ids(search("TRIFASICOS"))).containsExactly(1L);
     assertThat(ids(search("6.27.1"))).containsExactly(4L);
     assertThat(ids(search("dis-nor-030"))).containsExactly(4L, 1L);
@@ -78,19 +100,24 @@ class NormativeTableServiceTest {
   }
 
   @Test
+  void showsTheRevisionTheSearchFoundWhenOnlyAnOlderOneMatches() {
+    assertThat(ids(search("de 2025"))).containsExactly(2L);
+  }
+
+  @Test
   void sortsByRegistrationInBothDirections() {
     assertThat(ids(sort(NormativeTableSort.REGISTERED_AT, SortDirection.ASC)))
-        .containsExactly(1L, 2L, 3L, 4L);
+        .containsExactly(1L, 5L, 3L, 4L);
     assertThat(ids(sort(NormativeTableSort.REGISTERED_AT, SortDirection.DESC)))
-        .containsExactly(4L, 3L, 2L, 1L);
+        .containsExactly(4L, 3L, 5L, 1L);
   }
 
   @Test
   void keepsDraftsAfterThePublishedOnesWhenSortingByPublication() {
     assertThat(ids(sort(NormativeTableSort.VERIFIED_AT, SortDirection.ASC)))
-        .containsExactly(2L, 3L, 1L, 4L);
+        .containsExactly(5L, 3L, 1L, 4L);
     assertThat(ids(sort(NormativeTableSort.VERIFIED_AT, SortDirection.DESC)))
-        .containsExactly(1L, 3L, 2L, 4L);
+        .containsExactly(1L, 3L, 5L, 4L);
   }
 
   @Test
@@ -145,10 +172,16 @@ class NormativeTableServiceTest {
         .isEqualTo(HttpStatus.CONFLICT);
   }
 
+  private List<NormativeTableListing> list(NormativeTableQuery query) {
+    return service.list(query, new AuthenticatedUser(1L, UserRole.ADMIN));
+  }
+
   private List<Long> ids(NormativeTableQuery query) {
-    return service.list(query, new AuthenticatedUser(1L, UserRole.ADMIN)).stream()
-        .map(NormativeTable::getId)
-        .toList();
+    return list(query).stream().map(listing -> listing.table().getId()).toList();
+  }
+
+  private static NormativeTableQuery status(NormativeTableStatus status) {
+    return new NormativeTableQuery(null, Set.of(status), null, null);
   }
 
   private static NormativeTableQuery search(String term) {

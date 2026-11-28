@@ -12,8 +12,12 @@ import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.utils.SearchTerms;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -27,6 +31,12 @@ public class NormativeTableService {
   private static final String NOT_DRAFT =
       "Uma revisão aprovada não é editada. Cadastre uma nova revisão.";
 
+  private static final Comparator<NormativeTable> REPRESENTATIVE_FIRST =
+      Comparator.comparingInt((NormativeTable table) -> representationRank(table.getStatus()))
+          .thenComparing(
+              NormativeTable::getVerifiedAt, Comparator.nullsLast(Comparator.reverseOrder()))
+          .thenComparing(NormativeTable::getId, Comparator.reverseOrder());
+
   private final NormativeTableRepository tableRepository;
   private final StandardRepository standardRepository;
 
@@ -36,19 +46,51 @@ public class NormativeTableService {
     this.standardRepository = standardRepository;
   }
 
-  /** In memory: the title and the catalogue order live in the enum, and the list is small. */
+  /**
+   * One line per code, kept when any of its revisions passes the status filter and the search. The
+   * line shows the first of those revisions in effect order: the published one, then the draft,
+   * then the most recently superseded. In memory: the title and the catalogue order live in the
+   * enum, and the list is small.
+   */
   @Transactional(readOnly = true)
-  public List<NormativeTable> list(NormativeTableQuery query, AuthenticatedUser user) {
+  public List<NormativeTableListing> list(NormativeTableQuery query, AuthenticatedUser user) {
     user.requireReviewer();
     String search = SearchTerms.fold(query.search());
+    Map<NormativeTableCode, List<NormativeTable>> revisionsByCode =
+        tableRepository.findListingBy().stream()
+            .collect(
+                Collectors.groupingBy(
+                    NormativeTable::getCode,
+                    () -> new EnumMap<>(NormativeTableCode.class),
+                    Collectors.toList()));
 
-    return tableRepository.findListingBy().stream()
+    return revisionsByCode.values().stream()
+        .map(revisions -> listingOf(revisions, query, search))
+        .flatMap(Optional::stream)
+        .sorted(
+            Comparator.comparing(
+                    NormativeTableListing::table, comparatorOf(query.sort(), query.direction()))
+                .thenComparing(listing -> listing.table().getId(), Comparator.reverseOrder()))
+        .toList();
+  }
+
+  private static Optional<NormativeTableListing> listingOf(
+      List<NormativeTable> revisions, NormativeTableQuery query, String search) {
+    return revisions.stream()
         .filter(table -> query.statuses().isEmpty() || query.statuses().contains(table.getStatus()))
         .filter(table -> search.isEmpty() || matches(table, search))
-        .sorted(
-            comparatorOf(query.sort(), query.direction())
-                .thenComparing(NormativeTable::getId, Comparator.reverseOrder()))
-        .toList();
+        .min(REPRESENTATIVE_FIRST)
+        .map(
+            table ->
+                new NormativeTableListing(
+                    table,
+                    table.isDraft()
+                        ? null
+                        : revisions.stream()
+                            .filter(NormativeTable::isDraft)
+                            .findFirst()
+                            .orElse(null),
+                    revisions.size()));
   }
 
   @Transactional(readOnly = true)
@@ -178,6 +220,14 @@ public class NormativeTableService {
     return standardRepository.findByNameInOrderByName(List.of(name)).stream()
         .findFirst()
         .orElseThrow(() -> new NotFoundException("Norma " + name + " não cadastrada."));
+  }
+
+  private static int representationRank(NormativeTableStatus status) {
+    return switch (status) {
+      case PUBLISHED -> 0;
+      case DRAFT -> 1;
+      case SUPERSEDED -> 2;
+    };
   }
 
   private static boolean matches(NormativeTable table, String search) {
