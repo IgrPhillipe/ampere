@@ -182,6 +182,8 @@ export const FindingsPanel = ({
 			aria-labelledby="apontamentos-titulo"
 			className={cn(
 				"flex flex-col gap-9.5 px-6 py-8 md:px-10",
+				// The side column is 22rem at lg, so the form keeps a usable width.
+				placement === "side" && "lg:px-6 xl:px-10",
 				placement === "below" &&
 					"@container lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-x-12",
 				className,
