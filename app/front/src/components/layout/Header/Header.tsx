@@ -36,7 +36,7 @@ export const Header = () => {
 
 	return (
 		// Same scrollbar gutter as `main`, so the logo lines up with the page title.
-		<header className="h-16 shrink-0 overflow-y-hidden border-b border-border bg-background [scrollbar-gutter:stable]">
+		<header className="h-header shrink-0 overflow-y-hidden border-b border-border bg-background [scrollbar-gutter:stable]">
 			<div className="relative mx-auto flex h-full w-full max-w-page items-center gap-3 px-4 md:px-10">
 				<Button
 					variant="ghost"

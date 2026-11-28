@@ -119,6 +119,7 @@
 	--ds-space-6: 4.5rem;
 	--ds-space-7: 6rem;
 	--ds-size-page: 100rem;
+	--ds-size-header: 4rem;
 	--ds-space-gutter: 2.5rem;
 	--ds-space-gutter-md: 3rem;
 
@@ -222,6 +223,7 @@
 
 	--spacing: var(--ds-space-1);
 	--container-page: var(--ds-size-page);
+	--spacing-header: var(--ds-size-header);
 	--spacing-gutter: var(--ds-space-gutter);
 	--spacing-gutter-md: var(--ds-space-gutter-md);
 	/* Media queries cannot read variables, so this one is literal. */
