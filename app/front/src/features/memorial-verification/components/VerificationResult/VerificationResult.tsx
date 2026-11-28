@@ -36,7 +36,7 @@ const showsIssue = ({
 	submittedAt,
 	approvedAt,
 }: MemorialVerification) =>
-	issuedAt !== null &&
+	issuedAt != null &&
 	approvedAt === null &&
 	(submittedAt === null ||
 		new Date(issuedAt).getTime() !== new Date(submittedAt).getTime());
@@ -108,7 +108,7 @@ export const VerificationResult = ({
 				) : null}
 				<Field label="Protocolo">{result.protocol}</Field>
 				<Field label="Versão">
-					{result.version ?? "Rascunho, não enviada"}
+					{result.version ?? "Cálculo ainda não enviado"}
 				</Field>
 				{result.submittedAt ? (
 					<Field label="Enviado em">{formatMoment(result.submittedAt)}</Field>

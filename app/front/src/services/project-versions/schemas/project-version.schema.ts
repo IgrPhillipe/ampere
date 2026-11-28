@@ -54,18 +54,18 @@ export const signatureStatusSchema = z.enum([
 
 export type SignatureStatus = z.infer<typeof signatureStatusSchema>;
 
-/** `verified: false` carries no data besides the signature: nothing issued matches. */
+/** `verified: false` carries no data besides the signature. The new fields are nullish for an API deployed before them. */
 export const memorialVerificationSchema = z.object({
 	verified: z.boolean(),
-	documentType: issuedDocumentTypeSchema.nullable(),
+	documentType: issuedDocumentTypeSchema.nullish(),
 	protocol: z.string().nullable(),
 	/** `null` on the spreadsheet of a calculation not yet submitted. */
 	version: z.number().int().positive().nullable(),
 	submittedAt: z.iso.datetime({ offset: true }).nullable(),
 	/** Only on the memorial of an approval with reservations. */
 	approvedAt: z.iso.datetime({ offset: true }).nullable(),
-	issuedAt: z.iso.datetime({ offset: true }).nullable(),
-	signature: signatureStatusSchema.nullable(),
+	issuedAt: z.iso.datetime({ offset: true }).nullish(),
+	signature: signatureStatusSchema.nullish(),
 });
 
 export type MemorialVerification = z.infer<typeof memorialVerificationSchema>;

@@ -1,4 +1,7 @@
-import type { MemorialVerification } from "@services/project-versions";
+import {
+	type MemorialVerification,
+	memorialVerificationSchema,
+} from "@services/project-versions";
 import {
 	verifyMemorialByCode,
 	verifyMemorialByFile,
@@ -162,7 +165,7 @@ describe("VerifyAuthenticityPage", () => {
 
 		await waitFor(() => expect(byFile).toHaveBeenCalledWith(file));
 		expect(await screen.findByText("Planilha de cálculo")).toBeInTheDocument();
-		expect(screen.getByText("Rascunho, não enviada")).toBeInTheDocument();
+		expect(screen.getByText("Cálculo ainda não enviado")).toBeInTheDocument();
 		expect(screen.getByText("Emitido em")).toBeInTheDocument();
 		expect(screen.getByText("10/09/2026 às 09:00")).toBeInTheDocument();
 	});
@@ -191,6 +194,16 @@ describe("VerifyAuthenticityPage", () => {
 		expect(
 			await screen.findByText(/não foi feita com o certificado do AMPERE/),
 		).toBeInTheDocument();
+	});
+
+	it("still answers an API that predates the document type and signature", async () => {
+		const { documentType, issuedAt, signature, ...older } = VERIFIED;
+		const parsed = memorialVerificationSchema.parse(older);
+		byCode.mockResolvedValue({ data: parsed });
+		render(<VerifyAuthenticityPage initialCode="7F3A-91C2-04BD-2E77" />);
+
+		expect(await screen.findByText("Documento Autêntico")).toBeInTheDocument();
+		expect(screen.queryByText("Documento")).not.toBeInTheDocument();
 	});
 
 	it("checks the code of a link at once", async () => {
