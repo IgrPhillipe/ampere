@@ -1,11 +1,19 @@
 package br.com.ampere.service;
 
+import br.com.ampere.domain.Calculation;
+import br.com.ampere.domain.IssuedDocument;
+import br.com.ampere.domain.IssuedDocumentType;
 import br.com.ampere.domain.Project;
+import br.com.ampere.domain.ProjectVersion;
 import br.com.ampere.domain.User;
 import br.com.ampere.error.BusinessException;
+import br.com.ampere.repository.IssuedDocumentRepository;
+import br.com.ampere.repository.ProjectVersionRepository;
+import br.com.ampere.repository.UserRepository;
 import br.com.ampere.utils.BrazilianDateFormat;
 import br.com.ampere.utils.BrazilianNumberFormat;
 import br.com.ampere.utils.CsvFile;
+import br.com.ampere.utils.MemorialFingerprint;
 import br.com.ampere.utils.Timestamps;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -66,19 +74,32 @@ public class SpreadsheetExportService {
   private final DemandCalculationService calculationService;
   private final ConsumerUnitGroupService groupService;
   private final ReviewQueueService reviewQueueService;
+  private final ProjectVersionRepository versionRepository;
+  private final IssuedDocumentRepository issuedDocumentRepository;
+  private final UserRepository userRepository;
+  private final VerificationLinks links;
 
   public SpreadsheetExportService(
       ProjectService projectService,
       DemandCalculationService calculationService,
       ConsumerUnitGroupService groupService,
-      ReviewQueueService reviewQueueService) {
+      ReviewQueueService reviewQueueService,
+      ProjectVersionRepository versionRepository,
+      IssuedDocumentRepository issuedDocumentRepository,
+      UserRepository userRepository,
+      VerificationLinks links) {
     this.projectService = projectService;
     this.calculationService = calculationService;
     this.groupService = groupService;
     this.reviewQueueService = reviewQueueService;
+    this.versionRepository = versionRepository;
+    this.issuedDocumentRepository = issuedDocumentRepository;
+    this.userRepository = userRepository;
+    this.links = links;
   }
 
-  @Transactional(readOnly = true)
+  /** Every download is a new copy, registered with its own code so the exact file verifies. */
+  @Transactional
   public Download calculation(Long projectId, AuthenticatedUser user) {
     DemandCalculationService.Latest latest = calculationService.latest(projectId, user);
     if (latest.outdated()) {
@@ -87,12 +108,53 @@ public class SpreadsheetExportService {
               + " exportar a planilha.",
           HttpStatus.CONFLICT);
     }
-    Project project = latest.calculation().getProject();
+    Calculation calculation = latest.calculation();
+    Project project = calculation.getProject();
+    // The version only when the spreadsheet shows the calculation that was submitted.
+    ProjectVersion version =
+        versionRepository
+            .findLatestByProjectId(projectId)
+            .filter(
+                latestVersion -> latestVersion.getCalculation().getId().equals(calculation.getId()))
+            .orElse(null);
+    User issuer = userRepository.findById(user.id()).orElse(null);
+    OffsetDateTime issuedAt = Timestamps.now();
+    String code = newCode();
+    String filename = project.getProtocol() + "-calculo.xlsx";
 
-    return new Download(
-        project.getProtocol() + "-calculo.xlsx",
-        XLSX_CONTENT_TYPE,
-        CalculationWorkbook.of(latest.calculation(), project, groupService.list(projectId, user)));
+    byte[] content =
+        CalculationWorkbook.of(
+            calculation,
+            project,
+            groupService.list(projectId, user),
+            new CalculationWorkbook.Issue(
+                version == null ? null : version.getNumber(),
+                issuedAt,
+                issuer == null ? null : issuer.getName(),
+                code,
+                links.forCode(code)));
+    issuedDocumentRepository.save(
+        new IssuedDocument(
+            IssuedDocumentType.CALCULATION_SPREADSHEET,
+            project,
+            version,
+            filename,
+            MemorialFingerprint.sha256(content),
+            code,
+            issuedAt,
+            issuer,
+            null));
+
+    return new Download(filename, XLSX_CONTENT_TYPE, content);
+  }
+
+  private String newCode() {
+    String code = MemorialFingerprint.randomCode();
+    while (issuedDocumentRepository.existsByVerificationCode(code)) {
+      code = MemorialFingerprint.randomCode();
+    }
+
+    return code;
   }
 
   @Transactional(readOnly = true)

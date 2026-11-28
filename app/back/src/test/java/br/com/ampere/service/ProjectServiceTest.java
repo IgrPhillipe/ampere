@@ -30,6 +30,7 @@ import br.com.ampere.error.NotFoundException;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
+import br.com.ampere.repository.IssuedDocumentRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
 import br.com.ampere.repository.ProjectEventRepository;
 import br.com.ampere.repository.ProjectRepository;
@@ -244,6 +245,7 @@ class ProjectServiceTest {
         mock(ConsumerUnitGroupRepository.class),
         mock(CalculationRepository.class),
         mock(ProjectDocumentRepository.class),
+        mock(IssuedDocumentRepository.class),
         mock(ProjectEventRepository.class),
         mock(UserRepository.class),
         creation,
@@ -265,6 +267,7 @@ class ProjectServiceTest {
         mock(ConsumerUnitGroupRepository.class),
         calculationRepository,
         mock(ProjectDocumentRepository.class),
+        mock(IssuedDocumentRepository.class),
         mock(ProjectEventRepository.class),
         mock(UserRepository.class),
         mock(ProjectCreation.class),

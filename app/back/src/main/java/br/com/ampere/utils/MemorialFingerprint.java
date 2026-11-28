@@ -2,6 +2,7 @@ package br.com.ampere.utils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.HexFormat;
 import java.util.Locale;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import java.util.Optional;
 public final class MemorialFingerprint {
 
   private static final int CODE_DIGITS = 16;
+  private static final SecureRandom RANDOM = new SecureRandom();
 
   private MemorialFingerprint() {}
 
@@ -18,6 +20,14 @@ public final class MemorialFingerprint {
     } catch (NoSuchAlgorithmException impossible) {
       throw new IllegalStateException(impossible);
     }
+  }
+
+  /** For a file whose bytes carry no rendering to derive the code from, such as the spreadsheet. */
+  public static String randomCode() {
+    byte[] digits = new byte[CODE_DIGITS / 2];
+    RANDOM.nextBytes(digits);
+
+    return grouped(HexFormat.of().withUpperCase().formatHex(digits));
   }
 
   public static String verificationCode(String sha256) {
