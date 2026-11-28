@@ -265,7 +265,7 @@ service próprio.** `http.get(...)` dentro de uma feature está no lugar errado.
 | `projects` | `/projetos`, `/projetos/novo`, `/projetos/$id`, `/projetos/$id/<etapa>` | Meus Projetos (Projetos, para o admin), o detalhe e as etapas |
 | `review-queue` | `/projetos`, para o analista | Projetos do analista: em análise, com prazo e "Analisar", e os já decididos. `/fila-de-analise`, `/indicadores` e `/meus-pareceres` redirecionam |
 | `normative-tables` | `/tabelas-normativas` | Tabelas Normativas |
-| `memorial-verification` | `/verificar-autenticidade` | Verificar Autenticidade, pública |
+| `memorial-verification` | `/verificar-autenticidade` | Verificar Autenticidade, pública: memorial em PDF e planilha em XLSX, pelo código ou pelo arquivo ([`assinatura-documentos.md`](assinatura-documentos.md)) |
 | `users` | `/usuarios` | Usuários |
 
 - `/` não tem página: o `redirectToRoleHome` manda cada papel à sua página

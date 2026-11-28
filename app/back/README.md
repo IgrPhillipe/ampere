@@ -47,8 +47,9 @@ API em `http://localhost:8080/api`, documentação em `http://localhost:8080/api
 ### Exportações
 
 - `GET /api/projects/{id}/calculation.xlsx` baixa o último cálculo gravado, com as abas
-  Identificação, Grupos, Etapas, Resultado, Verificações e Tabelas Aplicadas. Projeto sem cálculo
-  responde 404; dados alterados depois do cálculo respondem 409, como no memorial.
+  Identificação, Grupos, Etapas, Resultado, Verificações, Tabelas Aplicadas e Autenticidade. Projeto
+  sem cálculo responde 404; dados alterados depois do cálculo respondem 409, como no memorial. Cada
+  download é registrado com código próprio e pode ser conferido em `/verificar-autenticidade`.
 - `GET /api/projects/export.csv` exporta todos os projetos visíveis ao usuário.
 - `GET /api/review-queue/export.csv` exporta os projetos da fila visíveis ao usuário (apenas
   `reviewer` e `admin`).
@@ -359,17 +360,19 @@ Cada envio grava uma versão imutável (`ProjectVersion`): número (o ciclo de a
 | `GET /api/projects/{id}/versions/{number}/approval-memorial` | Dono, analista, admin | PDF do memorial da aprovação com ressalvas da versão. Versão sem ele responde 404 |
 | `GET /api/projects/{id}/versions/{number}/documents/{type}/file` | Dono, analista, admin | PDF do documento como foi enviado na versão |
 | `GET /api/projects/{id}/versions/compare?from=&to=` | Dono, analista, admin | Grupos `included`, `removed` e `changed`, dados da edificação em `building` e a demanda de cada versão. `from` maior que `to` responde 400 |
-| `GET /api/memorial-verifications/{code}` | Público | Confere o código do rodapé |
-| `POST /api/memorial-verifications` | Público | Recebe o PDF (`multipart`, campo `file`) e confere se é idêntico ao emitido |
+| `GET /api/memorial-verifications/{code}` | Público | Confere o código do rodapé do memorial ou da aba Autenticidade da planilha |
+| `POST /api/memorial-verifications` | Público | Recebe o PDF ou o XLSX (`multipart`, campo `file`) e confere se é idêntico ao emitido; no PDF, valida também a assinatura |
 
 - Aprovação com ressalvas emite um segundo memorial da versão (`ApprovalMemorial`), com a seção "Ressalvas" (data da aprovação, analista e ajustes), SHA-256 e código próprios. É a única renderização depois do envio: o PDF é refeito na aprovação com o código de renderização vigente, a partir do cálculo da versão e dos grupos do projeto, congelados desde o envio, e fica gravado como o do envio. O memorial do envio continua em `/versions/{number}/memorial`; `/memorial` do projeto aprovado devolve o da aprovação, e a verificação confirma os dois.
 - O `ProjectVersionGuard` instala, na inicialização, gatilhos que recusam `UPDATE` e `DELETE` nas tabelas de versão e na `approval_memorial`, inclusive por SQL direto. Só o reset dos cenários passa, com `ampere.version_cleanup` ligado na própria transação. Quem tem acesso de dono ao banco ainda pode remover os gatilhos.
 - Regerar mudaria os bytes (o PDF leva a data de criação) e quebraria a verificação, por isso o PDF de uma versão só é lido, nunca refeito.
-- O rodapé traz protocolo, versão, data do envio e o código de verificação. Os metadados do arquivo trazem título, projetista, protocolo, versão e normas aplicadas.
-- O SHA-256 do arquivo fica na versão. O código (`XXXX-XXXX-XXXX-XXXX`) vem do SHA-256 de uma primeira renderização sem ele, pois o código impresso não pode entrar no próprio hash.
-- A verificação responde `200` com `verified` verdadeiro e protocolo, versão e data do envio, mais `approvedAt` no memorial da aprovação com ressalvas (nulo no do envio), ou `verified` falso e nada mais. Um arquivo com qualquer byte alterado não confirma, e isso inclui o PDF salvo de novo por um leitor ou por "imprimir como PDF".
+- O rodapé traz protocolo, versão, data do envio, o código de verificação e um QR code com o link da verificação (`FRONT_URL`). Os metadados do arquivo trazem título, projetista, protocolo, versão e normas aplicadas.
+- O memorial emitido é assinado no padrão PAdES com o certificado do AMPERE, depois de carimbado o código. O certificado é autoassinado: o Adobe mostra o documento como assinado pelo AMPERE, com identidade desconhecida. Detalhes, chave e geração do PKCS12 em [`assinatura-documentos.md`](../../docs/tecnico/assinatura-documentos.md).
+- O SHA-256 do PDF assinado fica na versão e no registro de documentos emitidos (`IssuedDocument`). O código (`XXXX-XXXX-XXXX-XXXX`) vem do SHA-256 de uma primeira renderização sem ele, pois o código impresso não pode entrar no próprio hash.
+- A planilha de cálculo também entra no registro, a cada download, com código próprio na aba Autenticidade e no rodapé de impressão.
+- A verificação responde `200` com `verified` verdadeiro, `documentType`, protocolo, versão, data do envio, `issuedAt` e `approvedAt` no memorial da aprovação com ressalvas (nulo nos demais), ou `verified` falso e nada mais. No PDF enviado, `signature` diz se a assinatura é `VALID`, `INVALID`, `UNTRUSTED` (outro certificado) ou `ABSENT` (memorial anterior à assinatura, que continua verificável pelo hash). Um arquivo com qualquer byte alterado não confirma, e isso inclui o PDF salvo de novo por um leitor ou por "imprimir como PDF".
 - O `POST` aceita 20 envios por minuto por endereço. Acima disso, responde `429` com `Retry-After`. O contador fica em memória, por instância.
-- Pelo código, `verified` confirma a versão, não o arquivo em mãos: um PDF alterado mantém o código impresso. Só o envio do arquivo atesta a integridade.
+- Pelo código, `verified` confirma o documento, não o arquivo em mãos: um arquivo alterado mantém o código impresso. Só o envio do arquivo atesta a integridade.
 - Cada alteração da comparação traz `field`, com o caminho (`quantity`, `items[MOTORS:Elevador].power`, pois cada item é identificado pela categoria e pela descrição, e renomear um item conta como troca), `label` em português, os valores crus em `from` e `to` e os valores de tela em `fromLabel` e `toLabel`.
 - Na inicialização, projeto em análise ou aprovado sem versão recebe uma, com a data e o número do último envio, pois seus dados não mudaram desde então. Projeto reprovado antes das versões não recebe: seus dados podem já ter mudado, e o próximo reenvio grava a versão desse ciclo, sem as anteriores.
 - Depois de atualizar um banco com os dados de demonstração, `SEED_RESET_SCENARIOS=true` recria os cenários com o histórico completo de versões.
@@ -416,6 +419,9 @@ Central do sino do cabeçalho, para projetista, analista e gestor. Sem e-mail. C
 | `JWT_EXPIRATION` | Não | `8h` | Validade do token |
 | `CORS_ALLOWED_ORIGINS` | Não | vazio | Origens externas que podem chamar a API, separadas por vírgula. Aceita padrão: `https://ampere-virid.vercel.app,https://*-igrph.vercel.app`. Vazio: apenas a mesma origem |
 | `CORS_PREVIEW_ORIGINS` | Não | `https://ampere-*-igrph.vercel.app` | Deploy previews do front na Vercel, somados a `CORS_ALLOWED_ORIGINS`. O padrão cobre `ampere-<hash>-igrph.vercel.app` e `ampere-git-<branch>-igrph.vercel.app` |
+| `SIGNING_KEYSTORE` | Em produção | | PKCS12 do certificado do AMPERE em base64, que assina os memoriais. Sem ela o profile `prod` não sobe. Fora de produção, a API gera um certificado efêmero por execução e avisa no log |
+| `SIGNING_KEYSTORE_PASSWORD` | Com `SIGNING_KEYSTORE` | | Senha do PKCS12 |
+| `FRONT_URL` | Em produção | `http://localhost:5173` | Origem do front, base do link de verificação e do QR code dos documentos. Em produção: `https://ampere-virid.vercel.app` |
 | `NOTIFICATIONS_CRON` | Não | `0 0 6 * * *` | Horário da varredura diária de prazos e validade das notificações (cron do Spring, fuso de Recife). `-` desliga, inclusive a varredura ao subir |
 | `DDL_AUTO` | Não | `update` | Alavanca de recuperação de schema. `create` apaga e recria o schema a cada inicialização; use uma vez e **remova a variável** |
 
