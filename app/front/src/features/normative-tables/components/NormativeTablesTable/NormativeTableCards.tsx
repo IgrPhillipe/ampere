@@ -1,11 +1,13 @@
 import { cn } from "@lib/utils";
-import type { NormativeTable } from "@services/normative-tables";
+import type { NormativeTableListing } from "@services/normative-tables";
 
 import { NormativeTableStatusBadge } from "../NormativeTableStatusBadge";
+import { PendingRevisionBadge } from "./PendingRevisionBadge";
+import { TableIdentity } from "./TableIdentity";
 
 interface NormativeTableCardsProps {
-	tables: NormativeTable[];
-	onOpen: (table: NormativeTable) => void;
+	tables: NormativeTableListing[];
+	onOpen: (table: NormativeTableListing) => void;
 	className?: string;
 }
 
@@ -23,16 +25,12 @@ export const NormativeTableCards = ({
 					className="flex w-full flex-col gap-3 px-6 py-4 text-left transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
 				>
 					<div className="flex w-full items-start justify-between gap-3">
-						<div className="flex min-w-0 flex-col gap-1">
-							<span className="text-base font-medium text-foreground">
-								{table.identification}
-							</span>
-							<span className="text-sm text-muted-foreground">
-								{table.title}
-							</span>
-						</div>
+						<TableIdentity table={table} />
 
-						<NormativeTableStatusBadge status={table.status} />
+						<div className="flex shrink-0 flex-col items-end gap-1.5">
+							<NormativeTableStatusBadge status={table.status} />
+							{table.pendingRevision ? <PendingRevisionBadge /> : null}
+						</div>
 					</div>
 
 					<span className="font-mono text-xs text-muted-foreground">

@@ -7,6 +7,7 @@ import {
 	normativeTableComparisonResponseSchema,
 	normativeTableListResponseSchema,
 	normativeTableResponseSchema,
+	normativeTableRevisionListResponseSchema,
 } from "./schemas";
 import type {
 	CompareNormativeTableRevisionsParams,
@@ -39,7 +40,7 @@ export const getNormativeTable = async (id: string) => {
 export const getNormativeTableRevisions = async (id: string) => {
 	const response = await http.get(e.revisions(id)).json<unknown>();
 
-	return normativeTableListResponseSchema.parse(response);
+	return normativeTableRevisionListResponseSchema.parse(response);
 };
 
 export const compareNormativeTableRevisions = async ({
