@@ -379,7 +379,15 @@ export const ProjectWorkspace = ({
 								"lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_25rem]",
 						)}
 					>
-						<div className="@container flex min-w-0 flex-1 flex-col">
+						<div
+							className={cn(
+								"@container flex min-w-0 flex-1 flex-col",
+								// The divider lives here so it spans the row even when the findings column is shorter.
+								asideContent &&
+									placement === "side" &&
+									"lg:border-r lg:border-border",
+							)}
+						>
 							{/* The analyst's workspace replaces this one once the project loads, so an earlier section would mount twice. */}
 							{project ? (
 								<Outlet />
@@ -398,9 +406,9 @@ export const ProjectWorkspace = ({
 							<div
 								className={cn(
 									"border-t border-border",
-									// Pinned under the app header (h-16), scrolling on its own while the section scrolls in <main>.
+									// Pinned under the app header, scrolling on its own while the section scrolls in <main>.
 									placement === "side" &&
-										"lg:sticky lg:top-0 lg:h-[calc(100svh-4rem)] lg:self-start lg:overflow-y-auto lg:overscroll-contain lg:border-t-0 lg:border-l",
+										"lg:sticky lg:top-0 lg:max-h-[calc(100svh-var(--ds-size-header))] lg:self-start lg:overflow-y-auto lg:border-t-0",
 								)}
 							>
 								{asideContent}
