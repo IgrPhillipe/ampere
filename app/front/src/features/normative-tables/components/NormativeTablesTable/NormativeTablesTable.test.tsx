@@ -104,4 +104,27 @@ describe("NormativeTablesTable", () => {
 
 		expect(onOpen).toHaveBeenCalledExactlyOnceWith(published);
 	});
+
+	it("reads a superseded line as it was, without the pending review", () => {
+		signInAs("reviewer");
+		const onOpen = vi.fn();
+		const superseded: NormativeTableListing = {
+			...revision({
+				status: "SUPERSEDED",
+				supersededAt: "2026-11-15T12:00:00Z",
+			}),
+			revisionCount: 3,
+			pendingRevision: null,
+		};
+		render(<NormativeTablesTable tables={[superseded]} onOpen={onOpen} />);
+
+		expect(screen.queryByText("Revisão Pendente")).not.toBeInTheDocument();
+		expect(
+			screen.queryByText(/Aguardando sua revisão/),
+		).not.toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole("button", { name: "Ver Tabela" }));
+
+		expect(onOpen).toHaveBeenCalledExactlyOnceWith(superseded);
+	});
 });

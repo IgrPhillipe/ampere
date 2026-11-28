@@ -46,12 +46,7 @@ public class NormativeTableService {
     this.standardRepository = standardRepository;
   }
 
-  /**
-   * One line per code, kept when any of its revisions passes the status filter and the search. The
-   * line shows the first of those revisions in effect order: the published one, then the draft,
-   * then the most recently superseded. In memory: the title and the catalogue order live in the
-   * enum, and the list is small.
-   */
+  /** One line per code, shown by its first revision that passes the filter and the search. */
   @Transactional(readOnly = true)
   public List<NormativeTableListing> list(NormativeTableQuery query, AuthenticatedUser user) {
     user.requireReviewer();
@@ -76,6 +71,10 @@ public class NormativeTableService {
 
   private static Optional<NormativeTableListing> listingOf(
       List<NormativeTable> revisions, NormativeTableQuery query, String search) {
+    NormativeTable draft =
+        revisions.stream().filter(NormativeTable::isDraft).findFirst().orElse(null);
+
+    // Only the published line leads to the draft; a superseded one is read as it was.
     return revisions.stream()
         .filter(table -> query.statuses().isEmpty() || query.statuses().contains(table.getStatus()))
         .filter(table -> search.isEmpty() || matches(table, search))
@@ -83,14 +82,7 @@ public class NormativeTableService {
         .map(
             table ->
                 new NormativeTableListing(
-                    table,
-                    table.isDraft()
-                        ? null
-                        : revisions.stream()
-                            .filter(NormativeTable::isDraft)
-                            .findFirst()
-                            .orElse(null),
-                    revisions.size()));
+                    table, table.isPublished() ? draft : null, revisions.size()));
   }
 
   @Transactional(readOnly = true)

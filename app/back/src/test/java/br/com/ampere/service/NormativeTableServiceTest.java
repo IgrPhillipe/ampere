@@ -91,6 +91,38 @@ class NormativeTableServiceTest {
   }
 
   @Test
+  void aSupersededLineNeverLeadsToTheDraft() {
+    List<NormativeTable> revisions =
+        List.of(
+            table(1L, NormativeTableCode.Q35_APARTMENT_DEMAND, 1, 2),
+            table(2L, NormativeTableCode.Q35_APARTMENT_DEMAND, 3, 4),
+            table(3L, NormativeTableCode.Q35_APARTMENT_DEMAND, 5, null));
+    revisions.get(0).supersede();
+    ReflectionTestUtils.setField(revisions.get(0), "identification", "Quadro 35 de 2024");
+    NormativeTableService grouped = serviceOf(revisions);
+    AuthenticatedUser admin = new AuthenticatedUser(1L, UserRole.ADMIN);
+
+    assertThat(grouped.list(NormativeTableQuery.all(), admin))
+        .singleElement()
+        .satisfies(listing -> assertThat(listing.pendingRevision().getId()).isEqualTo(3L));
+    assertThat(grouped.list(status(NormativeTableStatus.SUPERSEDED), admin))
+        .singleElement()
+        .satisfies(
+            listing -> {
+              assertThat(listing.table().getId()).isEqualTo(1L);
+              assertThat(listing.pendingRevision()).isNull();
+              assertThat(listing.revisionCount()).isEqualTo(3);
+            });
+    assertThat(grouped.list(search("de 2024"), admin))
+        .singleElement()
+        .satisfies(
+            listing -> {
+              assertThat(listing.table().getId()).isEqualTo(1L);
+              assertThat(listing.pendingRevision()).isNull();
+            });
+  }
+
+  @Test
   void searchesIdentificationTitleItemAndStandardIgnoringAccents() {
     assertThat(ids(search("quadro 35"))).containsExactly(3L);
     assertThat(ids(search("TRIFASICOS"))).containsExactly(1L);
@@ -193,8 +225,12 @@ class NormativeTableServiceTest {
   }
 
   private static NormativeTableService service() {
+    return serviceOf(TABLES);
+  }
+
+  private static NormativeTableService serviceOf(List<NormativeTable> tables) {
     NormativeTableRepository repository = mock(NormativeTableRepository.class);
-    when(repository.findListingBy()).thenReturn(TABLES);
+    when(repository.findListingBy()).thenReturn(tables);
 
     return new NormativeTableService(repository, mock(StandardRepository.class));
   }
