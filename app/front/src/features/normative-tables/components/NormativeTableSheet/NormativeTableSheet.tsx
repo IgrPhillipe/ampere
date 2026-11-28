@@ -25,6 +25,8 @@ interface NormativeTableSheetProps {
 	/** `null` opens an empty form for a new table. */
 	tableId: string | null;
 	onCreated: (table: NormativeTable) => void;
+	/** Opens another revision of the same table, chosen in the history. */
+	onOpenRevision: (id: string) => void;
 	onClose: () => void;
 }
 
@@ -32,6 +34,7 @@ export const NormativeTableSheet = ({
 	open,
 	tableId,
 	onCreated,
+	onOpenRevision,
 	onClose,
 }: NormativeTableSheetProps) => {
 	const codesQuery = useGetNormativeTableCodes();
@@ -138,6 +141,7 @@ export const NormativeTableSheet = ({
 							<NormativeTableHistory
 								table={table}
 								definition={codes.find(({ code }) => code === table.code)}
+								onOpenRevision={onOpenRevision}
 							/>
 						</TabsContent>
 					</Tabs>

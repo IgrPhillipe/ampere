@@ -45,6 +45,7 @@ const renderSheet = (tableId: string | null) =>
 				open
 				tableId={tableId}
 				onCreated={vi.fn()}
+				onOpenRevision={vi.fn()}
 				onClose={vi.fn()}
 			/>
 		</QueryClientProvider>,

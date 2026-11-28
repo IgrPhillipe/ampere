@@ -344,3 +344,55 @@ describe("NormativeTableHistory", () => {
 		expect(hooks.compare).not.toHaveBeenCalled();
 	});
 });
+
+describe("NormativeTableHistory navigation", () => {
+	const replaced = revision("1", "2026-07-01T12:00:00Z", {
+		status: "SUPERSEDED",
+		verifiedAt: "2026-07-10T12:00:00Z",
+		supersededAt: "2026-11-15T12:00:00Z",
+	});
+	const current = revision("2", "2026-11-12T12:00:00Z", {
+		status: "PUBLISHED",
+		verifiedAt: "2026-11-15T12:00:00Z",
+	});
+
+	beforeEach(() => {
+		hooks.revisions.mockReturnValue(revisionsReturn([current, replaced]));
+		hooks.compare.mockReturnValue({
+			isError: false,
+			data: { data: comparison },
+		});
+	});
+
+	it("opens a superseded revision from the list", () => {
+		const onOpenRevision = vi.fn();
+		render(
+			<NormativeTableHistory
+				table={current}
+				definition={quadro37}
+				onOpenRevision={onOpenRevision}
+			/>,
+		);
+
+		expect(
+			screen.queryByRole("button", { name: "Abrir Revisão 02" }),
+		).not.toBeInTheDocument();
+
+		fireEvent.click(screen.getByRole("button", { name: "Abrir Revisão 01" }));
+
+		expect(onOpenRevision).toHaveBeenCalledWith("1");
+	});
+
+	it("shows when each revision was in effect", () => {
+		render(<NormativeTableHistory table={current} definition={quadro37} />);
+
+		const [currentRow, replacedRow] = within(
+			screen.getByRole("region", { name: "Revisões" }),
+		).getAllByRole("listitem");
+
+		expect(within(currentRow).getByText("desde 15/11/2026")).toBeVisible();
+		expect(
+			within(replacedRow).getByText("10/07/2026 a 15/11/2026"),
+		).toBeVisible();
+	});
+});
