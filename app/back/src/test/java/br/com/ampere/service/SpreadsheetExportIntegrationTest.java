@@ -185,7 +185,7 @@ class SpreadsheetExportIntegrationTest {
               "Verificação",
               "Observação");
       assertThat(text(authenticity, 2, 1)).isEqualTo("2026-2002");
-      assertThat(text(authenticity, 3, 1)).isEqualTo("rascunho, não enviada");
+      assertThat(text(authenticity, 3, 1)).isEqualTo("cálculo ainda não enviado");
       assertThat(text(authenticity, 4, 1)).matches(BR_DATE_TIME);
       assertThat(text(authenticity, 5, 1)).isEqualTo("Usuário Teste");
       assertThat(text(authenticity, 6, 1)).isEqualTo(code);

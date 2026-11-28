@@ -215,7 +215,7 @@ final class CalculationWorkbook {
   }
 
   private static String version(Issue issue) {
-    return issue.version() == null ? "rascunho, não enviada" : String.valueOf(issue.version());
+    return issue.version() == null ? "cálculo ainda não enviado" : String.valueOf(issue.version());
   }
 
   private Sheet sheet(String name, String... headers) {
