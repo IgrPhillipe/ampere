@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Tag(
     name = "Memorial verification",
-    description = "Verificação pública da autenticidade do memorial")
+    description = "Verificação pública da autenticidade do memorial e da planilha de cálculo")
 @RestController
 @RequestMapping("/memorial-verifications")
 public class MemorialVerificationController {
@@ -34,44 +34,41 @@ public class MemorialVerificationController {
   @Operation(
       operationId = "verifyMemorialByCode",
       summary =
-          "Confere o código do rodapé do memorial e devolve protocolo, versão, data do envio e,"
-              + " no memorial da aprovação com ressalvas, a data da aprovação")
+          "Confere o código do rodapé do memorial ou da aba Autenticidade da planilha e devolve"
+              + " o tipo do documento, protocolo, versão, data de emissão e, no memorial da"
+              + " aprovação com ressalvas, a data da aprovação")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
         description = "Resultado da verificação; verified é falso se o código não existe")
   })
   public ApiResponse<MemorialVerificationResponse> byCode(@PathVariable String code) {
-    return ApiResponse.of(
-        service
-            .byCode(code)
-            .map(MemorialVerificationResponse::confirmed)
-            .orElseGet(MemorialVerificationResponse::notConfirmed));
+    return ApiResponse.of(MemorialVerificationResponse.of(service.byCode(code)));
   }
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @Operation(
       operationId = "verifyMemorialByFile",
       summary =
-          "Confere se o PDF é idêntico ao memorial emitido no envio ou na aprovação com ressalvas")
+          "Confere se o PDF ou o XLSX é idêntico ao emitido pelo AMPERE; no PDF, valida também a"
+              + " assinatura digital")
   @ApiResponses({
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "200",
-        description = "Resultado da verificação; verified é falso se o arquivo foi alterado"),
+        description =
+            "Resultado da verificação; verified é falso se o arquivo foi alterado ou se a"
+                + " assinatura não é do AMPERE"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "400",
-        description = "Arquivo que não é PDF"),
+        description = "Arquivo que não é PDF nem XLSX"),
     @io.swagger.v3.oas.annotations.responses.ApiResponse(
         responseCode = "413",
         description = "Arquivo acima de 10 MB")
   })
   public ApiResponse<MemorialVerificationResponse> byFile(
-      @Parameter(description = "PDF do memorial") @RequestPart MultipartFile file)
+      @Parameter(description = "PDF do memorial ou XLSX da planilha de cálculo") @RequestPart
+          MultipartFile file)
       throws IOException {
-    return ApiResponse.of(
-        service
-            .byFile(file.getBytes())
-            .map(MemorialVerificationResponse::confirmed)
-            .orElseGet(MemorialVerificationResponse::notConfirmed));
+    return ApiResponse.of(MemorialVerificationResponse.of(service.byFile(file.getBytes())));
   }
 }

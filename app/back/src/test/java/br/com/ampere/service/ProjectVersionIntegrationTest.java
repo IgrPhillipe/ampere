@@ -25,6 +25,8 @@ import br.com.ampere.domain.DocumentType;
 import br.com.ampere.domain.EntranceStandard;
 import br.com.ampere.domain.GroupKind;
 import br.com.ampere.domain.GroupSpec;
+import br.com.ampere.domain.IssuedDocument;
+import br.com.ampere.domain.IssuedDocumentType;
 import br.com.ampere.domain.LoadCategory;
 import br.com.ampere.domain.LoadItem;
 import br.com.ampere.domain.LoadUsage;
@@ -36,6 +38,7 @@ import br.com.ampere.domain.ProjectEvent;
 import br.com.ampere.domain.ProjectEventType;
 import br.com.ampere.domain.ProjectStatus;
 import br.com.ampere.domain.ProjectVersion;
+import br.com.ampere.domain.ProjectVersionMemorial;
 import br.com.ampere.domain.ResidentialMultifamily;
 import br.com.ampere.domain.Standard;
 import br.com.ampere.domain.SupplyVoltage;
@@ -45,6 +48,7 @@ import br.com.ampere.repository.ApprovalMemorialRepository;
 import br.com.ampere.repository.CalculationRepository;
 import br.com.ampere.repository.ConsumerUnitGroupRepository;
 import br.com.ampere.repository.FindingRepository;
+import br.com.ampere.repository.IssuedDocumentRepository;
 import br.com.ampere.repository.NormativeTableRepository;
 import br.com.ampere.repository.NotificationRepository;
 import br.com.ampere.repository.ProjectDocumentRepository;
@@ -54,19 +58,34 @@ import br.com.ampere.repository.ProjectVersionDocumentRepository;
 import br.com.ampere.repository.ProjectVersionRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.security.PdfSignatureVerifier;
+import br.com.ampere.security.PdfSigner;
+import br.com.ampere.security.SigningCredentials;
 import br.com.ampere.utils.BrazilianDateFormat;
 import br.com.ampere.utils.MemorialFingerprint;
 import br.com.ampere.utils.Timestamps;
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.DecodeHintType;
+import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.qrcode.QRCodeReader;
 import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.PdfStamper;
 import com.lowagie.text.pdf.parser.PdfTextExtractor;
 import jakarta.persistence.EntityManager;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.hibernate.Hibernate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -130,6 +149,12 @@ class ProjectVersionIntegrationTest {
   @Autowired private EntityManager entityManager;
 
   @Autowired private PlatformTransactionManager transactionManager;
+
+  @Autowired private IssuedDocumentRepository issuedDocumentRepository;
+
+  @Autowired private PdfSignatureVerifier signatureVerifier;
+
+  @Autowired private PdfSigner signer;
 
   private String token;
 
@@ -386,6 +411,8 @@ class ProjectVersionIntegrationTest {
         .andExpect(jsonPath("$.data.approvedAt").isNotEmpty());
     verifyFile(approved)
         .andExpect(jsonPath("$.data.verified").value(true))
+        .andExpect(jsonPath("$.data.documentType").value("APPROVAL_MEMORIAL"))
+        .andExpect(jsonPath("$.data.signature").value("VALID"))
         .andExpect(jsonPath("$.data.approvedAt").isNotEmpty());
     verifyFile(submitted)
         .andExpect(jsonPath("$.data.verified").value(true))
@@ -590,6 +617,133 @@ class ProjectVersionIntegrationTest {
   }
 
   @Test
+  void theIssuedMemorialIsSignedByAmpereAndRegisteredWithTheHashOfTheSignedFile() throws Exception {
+    Project project = submittedProject("2026-4041");
+    byte[] memorial = bytes(perform(get(memorialOf(project))));
+
+    PdfSignatureVerifier.Inspection inspection = signatureVerifier.inspect(memorial);
+    assertThat(inspection.outcome()).isEqualTo(PdfSignatureVerifier.Outcome.INTACT);
+    assertThat(inspection.signerSha256()).isEqualTo(signer.certificateSha256());
+    assertThat(sha256Of(project, 1)).isEqualTo(MemorialFingerprint.sha256(memorial));
+
+    IssuedDocument registered =
+        issuedDocumentRepository.findBySha256(MemorialFingerprint.sha256(memorial)).orElseThrow();
+    assertThat(registered.getType()).isEqualTo(IssuedDocumentType.SUBMISSION_MEMORIAL);
+    assertThat(registered.getVerificationCode()).isEqualTo(codeOf(project, 1));
+    assertThat(registered.getSignerCertificateSha256()).isEqualTo(signer.certificateSha256());
+
+    verifyFile(memorial)
+        .andExpect(jsonPath("$.data.verified").value(true))
+        .andExpect(jsonPath("$.data.documentType").value("SUBMISSION_MEMORIAL"))
+        .andExpect(jsonPath("$.data.signature").value("VALID"))
+        .andExpect(jsonPath("$.data.issuedAt").isNotEmpty());
+    mockMvc
+        .perform(get("/memorial-verifications/" + codeOf(project, 1)))
+        .andExpect(jsonPath("$.data.documentType").value("SUBMISSION_MEMORIAL"))
+        .andExpect(jsonPath("$.data.signature").value(nullValue()));
+  }
+
+  @Test
+  void aMemorialChangedAfterTheSignatureIsRefused() throws Exception {
+    Project project = submittedProject("2026-4042");
+    byte[] memorial = bytes(perform(get(memorialOf(project))));
+
+    // A reader that saves an incremental update keeps the signature, which no longer covers it.
+    PdfReader reader = new PdfReader(memorial);
+    ByteArrayOutputStream updated = new ByteArrayOutputStream();
+    PdfStamper stamper = new PdfStamper(reader, updated, '\0', true);
+    stamper.setInfoDictionary(Map.of("Subject", "Alterado"));
+    stamper.close();
+    verifyFile(updated.toByteArray())
+        .andExpect(jsonPath("$.data.verified").value(false))
+        .andExpect(jsonPath("$.data.signature").value("INVALID"))
+        .andExpect(jsonPath("$.data.protocol").doesNotExist());
+
+    String text = new String(memorial, StandardCharsets.ISO_8859_1);
+    byte[] tampered = memorial.clone();
+    tampered[text.indexOf("/Protocol") + 1] = 'X';
+    verifyFile(tampered)
+        .andExpect(jsonPath("$.data.verified").value(false))
+        .andExpect(jsonPath("$.data.signature").value("INVALID"));
+  }
+
+  @Test
+  void aPdfSignedWithAnotherCertificateIsNotTakenAsAmpere() throws Exception {
+    Project project = draft("2026-4043");
+    perform(post("/projects/" + project.getId() + "/calculations")).andExpect(status().isCreated());
+    byte[] preview = bytes(perform(get(memorialOf(project))));
+
+    byte[] forged =
+        PdfSigner.sign(
+            preview,
+            Timestamps.now(),
+            "Memorial do envio",
+            SigningCredentials.selfSigned("CN=AMPERE"));
+
+    verifyFile(forged)
+        .andExpect(jsonPath("$.data.verified").value(false))
+        .andExpect(jsonPath("$.data.signature").value("UNTRUSTED"));
+  }
+
+  @Test
+  void aMemorialIssuedBeforeTheSignatureStillVerifiesByItsHash() throws Exception {
+    Project project = submittedProject("2026-4044");
+    Project legacyDraft = draft("2026-4045");
+    perform(post("/projects/" + legacyDraft.getId() + "/calculations"))
+        .andExpect(status().isCreated());
+    byte[] unsigned = bytes(perform(get(memorialOf(legacyDraft))));
+    String sha256 = MemorialFingerprint.sha256(unsigned);
+    String code = MemorialFingerprint.verificationCode(sha256);
+    new TransactionTemplate(transactionManager)
+        .executeWithoutResult(
+            status ->
+                versionRepository.save(
+                    new ProjectVersion(
+                        projectRepository.getReferenceById(project.getId()),
+                        2,
+                        Timestamps.now(),
+                        null,
+                        null,
+                        calculationRepository.getReferenceById(latestCalculation(project).getId()),
+                        new ProjectVersionMemorial("antigo.pdf", unsigned),
+                        sha256,
+                        code)));
+
+    verifyFile(unsigned)
+        .andExpect(jsonPath("$.data.verified").value(true))
+        .andExpect(jsonPath("$.data.documentType").value("SUBMISSION_MEMORIAL"))
+        .andExpect(jsonPath("$.data.version").value(2))
+        .andExpect(jsonPath("$.data.signature").value("ABSENT"));
+    mockMvc
+        .perform(get("/memorial-verifications/" + code))
+        .andExpect(jsonPath("$.data.verified").value(true));
+  }
+
+  @Test
+  void theFooterQrCodeOpensTheVerificationPageOfTheCode() throws Exception {
+    Project project = submittedProject("2026-4046");
+    byte[] memorial = bytes(perform(get(memorialOf(project))));
+
+    assertThat(qrCodeOf(memorial))
+        .isEqualTo("https://ampere.test/verificar-autenticidade?codigo=" + codeOf(project, 1));
+    assertThat(textOf(memorial))
+        .contains("ASSINADO DIGITALMENTE. CONFIRA EM ampere.test/verificar-autenticidade");
+  }
+
+  @Test
+  void theSpreadsheetOfASubmittedProjectNamesItsVersionAndVerifies() throws Exception {
+    Project project = submittedProject("2026-4047");
+    byte[] spreadsheet = bytes(perform(get("/projects/" + project.getId() + "/calculation.xlsx")));
+
+    verifyFile(spreadsheet)
+        .andExpect(jsonPath("$.data.verified").value(true))
+        .andExpect(jsonPath("$.data.documentType").value("CALCULATION_SPREADSHEET"))
+        .andExpect(jsonPath("$.data.protocol").value("2026-4047"))
+        .andExpect(jsonPath("$.data.version").value(1))
+        .andExpect(jsonPath("$.data.signature").value(nullValue()));
+  }
+
+  @Test
   void aRegeneratedMemorialDoesNotVerifyEvenWithTheSameData() throws Exception {
     Project project = draft("2026-4010");
     perform(post("/projects/" + project.getId() + "/calculations")).andExpect(status().isCreated());
@@ -606,7 +760,8 @@ class ProjectVersionIntegrationTest {
                 .file(
                     new MockMultipartFile(
                         "file", "x.pdf", MediaType.APPLICATION_PDF_VALUE, "texto".getBytes())))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("Envie o memorial em PDF ou a planilha em XLSX."));
   }
 
   @Test
@@ -1052,6 +1207,27 @@ class ProjectVersionIntegrationTest {
 
   private static byte[] bytes(ResultActions result) throws Exception {
     return result.andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+  }
+
+  /** Renders the first page and reads the QR code in its bottom right corner. */
+  private static String qrCodeOf(byte[] pdf) throws Exception {
+    try (PDDocument document = Loader.loadPDF(pdf)) {
+      BufferedImage page = new PDFRenderer(document).renderImageWithDPI(0, 200);
+      BufferedImage corner =
+          page.getSubimage(
+              page.getWidth() * 3 / 4,
+              page.getHeight() * 7 / 8,
+              page.getWidth() / 4,
+              page.getHeight() / 8);
+      int[] pixels =
+          corner.getRGB(0, 0, corner.getWidth(), corner.getHeight(), null, 0, corner.getWidth());
+      BinaryBitmap bitmap =
+          new BinaryBitmap(
+              new HybridBinarizer(
+                  new RGBLuminanceSource(corner.getWidth(), corner.getHeight(), pixels)));
+
+      return new QRCodeReader().decode(bitmap, Map.of(DecodeHintType.TRY_HARDER, true)).getText();
+    }
   }
 
   private static String textOf(byte[] pdf) throws Exception {
