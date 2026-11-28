@@ -376,7 +376,7 @@ export const ProjectWorkspace = ({
 							"flex flex-1 flex-col",
 							asideContent &&
 								placement === "side" &&
-								"lg:grid lg:grid-cols-[minmax(0,1fr)_400px]",
+								"lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_25rem]",
 						)}
 					>
 						<div className="@container flex min-w-0 flex-1 flex-col">
@@ -398,7 +398,9 @@ export const ProjectWorkspace = ({
 							<div
 								className={cn(
 									"border-t border-border",
-									placement === "side" && "lg:border-t-0 lg:border-l",
+									// Pinned under the app header (h-16), scrolling on its own while the section scrolls in <main>.
+									placement === "side" &&
+										"lg:sticky lg:top-0 lg:h-[calc(100svh-4rem)] lg:self-start lg:overflow-y-auto lg:overscroll-contain lg:border-t-0 lg:border-l",
 								)}
 							>
 								{asideContent}

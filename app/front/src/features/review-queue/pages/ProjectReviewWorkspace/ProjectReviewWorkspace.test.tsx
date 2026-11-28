@@ -463,6 +463,18 @@ describe("ProjectReviewWorkspace", () => {
 		).toBeVisible();
 	});
 
+	it("opens the findings column with the form, above the lists", async () => {
+		signInAs("reviewer");
+		renderWorkspace();
+
+		const form = screen.getByRole("heading", { name: "Novo Apontamento" });
+		const list = await screen.findByRole("heading", { name: "Desta Análise" });
+
+		expect(
+			form.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING,
+		).toBeTruthy();
+	});
+
 	it("starts a finding from an item of a section", () => {
 		signInAs("reviewer");
 		renderWorkspace();

@@ -148,6 +148,35 @@ export const FindingsPanel = ({
 			</>
 		);
 
+	const form = editable ? (
+		// A new key replays the highlight each time another section fills the form.
+		<section
+			key={autoFocusForm ? editor.key : "idle"}
+			aria-labelledby="formulario-apontamento-titulo"
+			className={cn(
+				"-mx-3 px-3 py-3",
+				autoFocusForm && "motion-safe:animate-highlight",
+			)}
+		>
+			<h3
+				id="formulario-apontamento-titulo"
+				className="mb-4 text-base font-medium text-foreground"
+			>
+				{editor.mode === "edit" ? "Editar Apontamento" : "Novo Apontamento"}
+			</h3>
+			<FindingForm
+				key={editor.key}
+				editor={editor}
+				currentStage={currentStage}
+				referenceOptions={referenceOptions}
+				isPending={isSaving}
+				autoFocus={autoFocusForm}
+				onSubmit={onSubmit}
+				onCancel={onCancelEdit}
+			/>
+		</section>
+	) : null;
+
 	return (
 		<aside
 			aria-labelledby="apontamentos-titulo"
@@ -177,37 +206,14 @@ export const FindingsPanel = ({
 				>
 					Apontamentos
 				</SectionHeading>
+				{/* Beside the section the form opens the column; below it, the form sits beside the list. */}
+				{placement === "side" && form ? (
+					<div className="mt-4">{form}</div>
+				) : null}
 				{list}
 			</div>
 
-			{editable ? (
-				// A new key replays the highlight each time another section fills the form.
-				<section
-					key={autoFocusForm ? editor.key : "idle"}
-					aria-labelledby="formulario-apontamento-titulo"
-					className={cn(
-						"-mx-3 px-3 py-3",
-						autoFocusForm && "motion-safe:animate-highlight",
-					)}
-				>
-					<h3
-						id="formulario-apontamento-titulo"
-						className="mb-4 text-base font-medium text-foreground"
-					>
-						{editor.mode === "edit" ? "Editar Apontamento" : "Novo Apontamento"}
-					</h3>
-					<FindingForm
-						key={editor.key}
-						editor={editor}
-						currentStage={currentStage}
-						referenceOptions={referenceOptions}
-						isPending={isSaving}
-						autoFocus={autoFocusForm}
-						onSubmit={onSubmit}
-						onCancel={onCancelEdit}
-					/>
-				</section>
-			) : null}
+			{placement === "below" ? form : null}
 
 			<FindingDialog
 				finding={opened}
