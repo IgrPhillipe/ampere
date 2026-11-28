@@ -58,6 +58,7 @@ import br.com.ampere.repository.ProjectVersionDocumentRepository;
 import br.com.ampere.repository.ProjectVersionRepository;
 import br.com.ampere.repository.StandardRepository;
 import br.com.ampere.repository.UserRepository;
+import br.com.ampere.security.FlateBomb;
 import br.com.ampere.security.PdfSignatureVerifier;
 import br.com.ampere.security.PdfSigner;
 import br.com.ampere.security.SigningCredentials;
@@ -668,21 +669,41 @@ class ProjectVersionIntegrationTest {
   }
 
   @Test
-  void aPdfSignedWithAnotherCertificateIsNotTakenAsAmpere() throws Exception {
+  void aRegisteredPdfSignedWithAnotherCertificateIsRefused() throws Exception {
     Project project = draft("2026-4043");
-    perform(post("/projects/" + project.getId() + "/calculations")).andExpect(status().isCreated());
-    byte[] preview = bytes(perform(get(memorialOf(project))));
-
     byte[] forged =
         PdfSigner.sign(
-            preview,
+            preview(project),
             Timestamps.now(),
             "Memorial do envio",
             SigningCredentials.selfSigned("CN=AMPERE"));
+    // A row forged in the database still needs the AMPERE signature on the file.
+    register(project, forged, signer.certificateSha256());
 
     verifyFile(forged)
         .andExpect(jsonPath("$.data.verified").value(false))
         .andExpect(jsonPath("$.data.signature").value("UNTRUSTED"));
+  }
+
+  @Test
+  void aMemorialSignedBeforeAKeyRotationStillVerifies() throws Exception {
+    Project project = draft("2026-4048");
+    SigningCredentials previousKey = SigningCredentials.selfSigned("CN=AMPERE");
+    byte[] signed =
+        PdfSigner.sign(preview(project), Timestamps.now(), "Memorial do envio", previousKey);
+    register(project, signed, previousKey.certificateSha256());
+
+    verifyFile(signed)
+        .andExpect(jsonPath("$.data.verified").value(true))
+        .andExpect(jsonPath("$.data.signature").value("VALID"));
+  }
+
+  @Test
+  void aCompressionBombIsAnsweredWithoutInflatingIt() throws Exception {
+    verifyFile(FlateBomb.pdf(256))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.verified").value(false))
+        .andExpect(jsonPath("$.data.signature").value("ABSENT"));
   }
 
   @Test
@@ -1207,6 +1228,28 @@ class ProjectVersionIntegrationTest {
 
   private static byte[] bytes(ResultActions result) throws Exception {
     return result.andExpect(status().isOk()).andReturn().getResponse().getContentAsByteArray();
+  }
+
+  private byte[] preview(Project project) throws Exception {
+    perform(post("/projects/" + project.getId() + "/calculations")).andExpect(status().isCreated());
+
+    return bytes(perform(get(memorialOf(project))));
+  }
+
+  private void register(Project project, byte[] pdf, String signerCertificateSha256) {
+    new TransactionTemplate(transactionManager)
+        .executeWithoutResult(
+            status ->
+                issuedDocumentRepository.save(
+                    new IssuedDocument(
+                        IssuedDocumentType.SUBMISSION_MEMORIAL,
+                        projectRepository.getReferenceById(project.getId()),
+                        null,
+                        MemorialFingerprint.sha256(pdf),
+                        MemorialFingerprint.randomCode(),
+                        Timestamps.now(),
+                        null,
+                        signerCertificateSha256)));
   }
 
   /** Renders the first page and reads the QR code in its bottom right corner. */
