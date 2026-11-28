@@ -8,7 +8,7 @@ export type VerifyMemorialInput =
 	| { by: "code"; code: string }
 	| { by: "file"; file: File };
 
-/** A memorial that matches nothing is an answer, not an error: `verified` says it. */
+/** A file that matches nothing is an answer, not an error: `verified` says it. */
 export const useVerifyMemorial = () =>
 	useMutation({
 		mutationFn: (input: VerifyMemorialInput) =>
@@ -18,7 +18,7 @@ export const useVerifyMemorial = () =>
 		onError: (error) =>
 			toast.error(
 				getToastErrorMessage(error, {
-					fallback: "Não foi possível verificar o memorial.",
+					fallback: "Não foi possível verificar o documento.",
 				}),
 			),
 	});

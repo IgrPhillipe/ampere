@@ -11,7 +11,7 @@ export const verificationCodeSchema = z.object({
 	code: z
 		.string()
 		.trim()
-		.min(1, { error: "Informe o código do rodapé do memorial." })
+		.min(1, { error: "Informe o código de verificação do documento." })
 		.refine(
 			(value) =>
 				/^[0-9A-F]{16}$/.test(value.replace(/[^0-9a-z]/gi, "").toUpperCase()),
