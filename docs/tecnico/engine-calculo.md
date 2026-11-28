@@ -62,7 +62,9 @@ Regras da área administrativa:
 - **Uma revisão pendente por tabela.** Outra revisão da mesma tabela só entra depois que a pendente for aprovada ou excluída. O banco garante a regra também para dois cadastros no mesmo instante.
 - **Os cinco exemplos do Anexo I são o portão de publicação.** Antes de publicar uma revisão, o sistema executa os cinco exemplos resolvidos da norma com os parâmetros recém-cadastrados. Se algum deixar de fechar, a revisão não é publicada, o que barra erro de digitação nos parâmetros.
 - **Revisão publicada não é editada.** Norma nova gera revisão nova, e a anterior passa a substituída. Cálculo antigo continua apontando para a revisão sob a qual foi feito.
-- **Histórico das revisões.** A tabela lista as revisões do mesmo código, as aguardando revisão primeiro e as publicadas da mais recente à mais antiga, com quem cadastrou e quem aprovou, e compara as linhas de duas delas: incluídas, removidas e alteradas.
+- **Uma linha por tabela na listagem.** A linha mostra a revisão vigente ou, se a tabela nunca foi publicada, a aguardando revisão. Quando a vigente tem uma revisão aguardando revisão, a linha ganha o selo "Revisão Pendente" e a ação "Revisar" ou "Editar" abre essa revisão. As substituídas saem da listagem e ficam no histórico.
+- **Filtro e busca por tabela.** Uma tabela entra quando qualquer revisão dela tem a situação filtrada ou o termo buscado. A linha mostra a primeira dessas revisões nesta ordem: vigente, aguardando revisão, substituída mais recente. No filtro "Substituída", a linha mostra a revisão antiga como ela era, sem o selo de pendência.
+- **Histórico das revisões.** A tabela lista as revisões do mesmo código, as aguardando revisão primeiro e as publicadas da mais recente à mais antiga, com quem cadastrou, quem aprovou e a vigência (da aprovação até a aprovação da revisão seguinte, ou "desde" a aprovação na vigente). Qualquer revisão abre na própria tela pelo botão "Abrir", e o comparativo mostra as linhas de duas delas: incluídas, removidas e alteradas.
 
 Tabelas a cadastrar:
 

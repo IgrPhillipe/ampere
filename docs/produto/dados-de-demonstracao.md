@@ -130,18 +130,21 @@ Cada história gera as notificações do fluxo real: decisões para o projetista
 
 ## Tabelas Normativas
 
-As 18 tabelas entram publicadas, digitadas pelo admin e conferidas pelo conferente. O seed acrescenta revisões, só a partir das tabelas que ele mesmo publicou, cada uma com linhas que de fato diferem:
+As 20 tabelas entram publicadas, digitadas pelo admin e conferidas pelo conferente. O seed acrescenta revisões, só a partir das tabelas que ele mesmo publicou, cada uma com linhas que de fato diferem:
 
 | Tabela | Situação | Diferença |
 | :--- | :--- | :--- |
 | Quadro 35 | Substituída, mais antiga que a vigente | Fatores menores nas três primeiras faixas acima de 40 m² |
 | Tabela 22 | Substituída, mais antiga que a vigente | Fator de lojas de 0,90 em vez de 1,00 |
+| Tabela 22 | Aguardando revisão, cadastrada pelo admin | Fator de tomadas da administração coletiva de 0,60 em vez de 0,50 |
 | Quadro 37 | Aguardando revisão, cadastrada pelo admin | Fatores de segurança de 1,4 e 1,25 nas duas primeiras faixas. Só o admin a altera; o conferente e os analistas podem aprová-la |
 | Tabela 2 | Aguardando revisão, cadastrada pelo conferente | Faixa 53 a 66 kVA com condutor de 50 mm² e disjuntor de 125 A. O admin e os analistas podem aprová-la |
 
-A aba "Histórico" de cada uma mostra essa diferença no comparativo.
+A listagem mostra uma linha por tabela, com a revisão vigente. As revisões substituídas do Quadro 35 e da Tabela 22 aparecem só na aba "Histórico" ou no filtro "Substituída". O Quadro 37, a Tabela 2 e a Tabela 22 mostram o selo "Revisão Pendente", e "Revisar" abre a revisão aguardando aprovação. No filtro "Substituída", a Tabela 22 aparece com a revisão antiga e sem o selo.
 
-Cada tabela tem no máximo uma revisão pendente: uma nova revisão do Quadro 37 ou da Tabela 2 só entra depois que a pendente for aprovada ou excluída. Exclui quem a cadastrou ou o admin.
+A aba "Histórico" de cada uma mostra essa diferença no comparativo, a vigência de cada revisão e o botão "Abrir" para carregar qualquer uma delas.
+
+Cada tabela tem no máximo uma revisão pendente: uma nova revisão do Quadro 37, da Tabela 2 ou da Tabela 22 só entra depois que a pendente for aprovada ou excluída. Exclui quem a cadastrou ou o admin.
 
 ---
 
